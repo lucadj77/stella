@@ -52,7 +52,12 @@ await win.waitForTimeout(500)
 await shotEl(win, `${lang}/formatta`, dialog(), 24)
 await dialog().getByRole('button', { name: T['format.cancel'], exact: true }).click()
 await win.waitForTimeout(300)
-// variabile icona
+// variabile icona: con più di sei voci la sezione delle variabili parte chiusa
+await win
+  .locator('#sidebar-variables .section-toggle[aria-expanded="false"]')
+  .click({ timeout: 2000 })
+  .catch(() => {})
+await win.waitForTimeout(300)
 await win
   .locator('.sidebar')
   .getByText(it ? '{spada}' : '{sword}', { exact: true })

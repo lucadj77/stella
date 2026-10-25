@@ -8,8 +8,9 @@ await annotate(win, [
   [win.locator('.toolbar .project-name').first(), 1, 'after'],
   [win.getByText(T['sidebar.sets'], { exact: true }).first(), 2, { dx: 70 }],
   [win.getByText(T['sidebar.templates'], { exact: true }).first(), 3, { dx: it ? 105 : 120 }],
-  [win.getByText(T['sidebar.styles'], { exact: true }).first(), 4, { dx: it ? 75 : 88 }],
-  [win.getByText(T['sidebar.variables'], { exact: true }).first(), 5, { dx: it ? 100 : 112 }],
+  // stili e variabili hanno il numero delle voci accanto al titolo
+  [win.locator('#sidebar-styles .section-toggle'), 4, { dx: it ? 100 : 110 }],
+  [win.locator('#sidebar-variables .section-toggle'), 5, { dx: it ? 125 : 135 }],
   [win.locator('.card-grid').first(), 6, { dx: -14, dy: 0 }],
   [win.locator('.preview-header h2').first(), 7, 'after'],
   [win.locator('.card-form h3').first(), 8, { dx: 60 }]
