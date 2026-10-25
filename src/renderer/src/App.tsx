@@ -105,12 +105,15 @@ import {
   DocumentsIcon
 } from './components/icons'
 import TemplateEditor, { EDITOR_UNDO } from './editor/TemplateEditor'
-import { Dialog, NewTemplateDialog } from './editor/dialogs'
+import { Dialog, NewTemplateDialog, type NewTemplate } from './editor/dialogs'
+import { KIND_CORNER } from '../../shared/model/kinds'
 import CardGrid from './components/CardGrid'
 import CardForm from './components/CardForm'
 import ColumnsMenu from './components/ColumnsMenu'
 import { confirmKey, showNotice } from './components/confirm'
 import FirstSteps from './components/FirstSteps'
+import { kindWords } from './i18n/kinds'
+import HelpTip from './components/HelpTip'
 import InlineEditor, { type InlineEdit } from './components/InlineEditor'
 import ValueInfo from './components/ValueInfo'
 import { AddColumnDialog, DuplicateDialog, NewSetDialog } from './components/setDialogs'
@@ -1425,11 +1428,14 @@ function App(): React.JSX.Element {
     return () => window.removeEventListener('keydown', onKey)
   })
 
-  const createTemplate = (name: string, width: number, height: number): void => {
+  const createTemplate = ({ name, width, height, kind, shape }: NewTemplate): void => {
     const tpl = normalizeTemplate({
       name,
+      kind,
       width,
       height,
+      cornerRadius: KIND_CORNER[kind],
+      ...(shape ? { shape } : {}),
       front: [
         {
           type: 'shape',
@@ -2879,6 +2885,8 @@ function SetView({
     (row: number): Record<string, string> => computedRows[row] ?? {},
     [computedRows]
   )
+  // le parole per i componenti del set: carte, segnalini, facce...
+  const words = kindWords(t, template)
 
   // PagSu e PagGiù passano alla carta precedente o successiva, nell'ordine della vista, anche
   // mentre si scrive nei campi della carta (il campo resta lo stesso)
@@ -2967,7 +2975,12 @@ function SetView({
   const remove = async (): Promise<void> => {
     if (
       selection.length > 1 &&
-      !(await confirmKey(t, 'set.deleteConfirm', { n: selection.length }, { danger: true }))
+      !(await confirmKey(
+        t,
+        'set.deleteConfirm',
+        { what: words.count(selection.length) },
+        { danger: true }
+      ))
     )
       return
     onChange(removeRows(sheet, selection))
@@ -3224,7 +3237,7 @@ function SetView({
                 </option>
               ))}
             </select>
-            · {t('set.counts', { rows: sheet.rows.length, cards: countCards(sheet) })}
+            · {t('set.counts', { rows: sheet.rows.length, what: words.count(countCards(sheet)) })}
             {readOnly && (
               <span className="readonly-badge" title={t('data.readOnlyHint')}>
                 {t('data.readOnlyBadge')}
@@ -3257,16 +3270,10 @@ function SetView({
         <div className="set-actions">
           <span className="action-group">
             <button onClick={addCard} title={t('tip.addCard')}>
-              {t('set.addCard')}
+              {words.add}
             </button>
             <button disabled={none} onClick={duplicate} title={t('tip.duplicateCards')}>
               {t('set.duplicate')}
-            </button>
-            <button onClick={() => setGenerating(true)} title={t('tip.generateCards')}>
-              {t('set.generate')}
-            </button>
-            <button disabled={!template} onClick={() => setSplitting(true)} title={t('tip.split')}>
-              {t('set.split')}
             </button>
           </span>
           <span className="action-group">
@@ -3290,10 +3297,23 @@ function SetView({
             />
           </span>
           <span className="action-group">
+            {/* gli strumenti usati più di rado, in un menu solo */}
             <Menu
-              label={`${t('set.checks')} ▾`}
-              title={t('tip.checks')}
+              label={`${t('set.tools')} ▾`}
+              title={t('tip.setTools')}
               items={[
+                {
+                  label: t('set.generate'),
+                  title: t('tip.generateCards'),
+                  onClick: () => setGenerating(true)
+                },
+                {
+                  label: t('set.split'),
+                  title: t('tip.split'),
+                  disabled: !template,
+                  onClick: () => setSplitting(true)
+                },
+                'sep',
                 { label: t('set.stats'), title: t('tip.stats'), onClick: () => setShowStats(true) },
                 { label: t('set.compare'), title: t('tip.compare'), onClick: onCompare },
                 {
@@ -3385,6 +3405,9 @@ function SetView({
               {t('set.clearView')}
             </button>
           )}
+          {sheet.rows.length > 0 && (
+            <HelpTip text={view === 'grid' && template ? t('set.gridHint') : t('set.editHint')} />
+          )}
         </div>
         {compare && (
           <div className="compare-bar set-hint">
@@ -3404,7 +3427,7 @@ function SetView({
         {selection.length > 1 ? (
           <div className="selection-bar set-hint">
             <strong title={t('set.selectedHint')}>
-              {t('set.selected', { n: selection.length })}
+              {t('set.selected', { what: words.count(selection.length) })}
             </strong>
             {selection.length < order.length && (
               <button title={t('tip.selectAll')} onClick={selectAll}>
@@ -3415,15 +3438,11 @@ function SetView({
               {t('set.selectNone')}
             </button>
           </div>
-        ) : sheet.rows.length < 2 && !viewActive ? null : (
+        ) : viewActive ? (
           <p className="muted small set-hint">
-            {viewActive
-              ? t('set.viewHint', { shown: order.length, total: sheet.rows.length })
-              : view === 'grid' && template
-                ? t('set.gridHint')
-                : t('set.editHint')}
+            {t('set.viewHint', { shown: order.length, total: sheet.rows.length })}
           </p>
-        )}
+        ) : null}
         {sheet.rows.length === 0 && (
           <div className="set-empty">
             <p className="set-empty-title">{t('set.emptyTitle')}</p>
@@ -3503,7 +3522,10 @@ function SetView({
         </>
       )}
       {big && card && (
-        <Dialog title={t('preview.bigTitle', { n: current + 1 })} onClose={() => setBig(false)}>
+        <Dialog
+          title={t('preview.bigTitle', { what: words.title, n: current + 1 })}
+          onClose={() => setBig(false)}
+        >
           <div className="big-preview">
             <div className="big-preview-bar">
               <button

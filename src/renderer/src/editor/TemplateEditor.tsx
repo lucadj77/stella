@@ -13,6 +13,8 @@ import Resizer from '../components/Resizer'
 import { usePanelSide, usePanelWidth } from '../components/usePanelWidth'
 import { GridIcon, ImageIcon } from '../components/icons'
 import Menu, { type MenuItem } from '../components/Menu'
+import AssetPicker from '../components/AssetPicker'
+import { dragHasFiles, importDropped } from '../components/dropImages'
 import Canvas from './Canvas'
 import LayersPanel from './LayersPanel'
 import PropertiesPanel from './PropertiesPanel'
@@ -64,6 +66,9 @@ export default function TemplateEditor({
   const normalize = useMemo(() => (base ? (x: Template) => rebase(base, x) : undefined), [base])
   const [state, dispatch] = useEditor(template, normalize)
   const [resizing, setResizing] = useState<[number, number] | null>(null)
+  // un livello immagine nuovo nasce dalla scelta dell'immagine
+  const [pickingImage, setPickingImage] = useState(false)
+  const [dropping, setDropping] = useState(false)
   const [preview, setPreview] = useState<{ set: number; row: number } | null>(initialPreview)
   const inheritedIds = useMemo(
     () => (base ? new Set(walkLayers([...base.front, ...base.back]).map((l) => l.id)) : null),
@@ -215,19 +220,43 @@ export default function TemplateEditor({
     [display, sets]
   )
 
-  const tools: [React.ReactNode, () => void, string][] = [
-    ['T', () => cmd.add('text'), t('tool.text')],
-    [<ImageIcon key="image" />, () => cmd.add('image'), t('tool.image')],
-    ...(['rect', 'ellipse', 'polygon', 'star', 'line'] as ShapeKind[]).map<
-      [React.ReactNode, () => void, string]
-    >((s) => [
-      SHAPE_ICONS[s],
-      () => cmd.add('shape', s),
-      t(`tool.${s}` as Parameters<typeof t>[0])
-    ]),
-    [<GridIcon key="grid" />, () => cmd.add('grid'), t('tool.grid')],
-    ['#', () => cmd.add('value'), t('tool.value')]
-  ]
+  // ogni strumento ha l'icona e il nome; le forme stanno in un menu
+  const tool = (
+    icon: React.ReactNode,
+    label: string,
+    title: string,
+    run: () => void
+  ): React.JSX.Element => (
+    <button key={label} className="tool labelled" title={title} onClick={run}>
+      <span className="tool-icon">{icon}</span>
+      <span className="tool-label">{label}</span>
+    </button>
+  )
+  const shapeItems: MenuItem[] = (
+    ['rect', 'ellipse', 'polygon', 'star', 'line'] as ShapeKind[]
+  ).map((s) => ({
+    label: t(`tool.${s}` as Parameters<typeof t>[0]),
+    onClick: () => cmd.add('shape', s)
+  }))
+  const toolButtons = (
+    <>
+      {tool('T', t('tool.short.text'), t('tool.text'), () => cmd.add('text'))}
+      {tool(<ImageIcon />, t('tool.short.image'), t('tool.image'), () => setPickingImage(true))}
+      <Menu
+        className="tool labelled"
+        title={t('tool.shapes')}
+        label={
+          <>
+            <span className="tool-icon">{SHAPE_ICONS.rect}</span>
+            <span className="tool-label">{t('tool.short.shapes')} ▾</span>
+          </>
+        }
+        items={shapeItems}
+      />
+      {tool(<GridIcon />, t('tool.short.grid'), t('tool.grid'), () => cmd.add('grid'))}
+      {tool('#', t('tool.short.value'), t('tool.value'), () => cmd.add('value'))}
+    </>
+  )
 
   // i pannelli stanno a sinistra o a destra della tela, anche entrambi sullo stesso lato
   const layersPanel = (
@@ -312,13 +341,7 @@ export default function TemplateEditor({
             </button>
           </span>
         )}
-        <div className="tool-group">
-          {tools.map(([icon, run, label]) => (
-            <button key={label} className="tool" title={label} onClick={run}>
-              {icon}
-            </button>
-          ))}
-        </div>
+        <div className="tool-group">{toolButtons}</div>
         <Segmented<Side>
           value={state.side}
           options={[
@@ -359,7 +382,24 @@ export default function TemplateEditor({
       </div>
       <div className="editor-body">
         {left}
-        <div className="editor-center">
+        <div
+          className={'editor-center' + (dropping ? ' dropping' : '')}
+          onDragOver={(e) => {
+            if (!dragHasFiles(e)) return
+            e.preventDefault()
+            setDropping(true)
+          }}
+          onDragLeave={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node)) setDropping(false)
+          }}
+          onDrop={async (e) => {
+            if (!dragHasFiles(e)) return
+            e.preventDefault()
+            setDropping(false)
+            // ogni immagine lasciata cadere diventa un livello immagine
+            cmd.addImages(await importDropped(e))
+          }}
+        >
           <Canvas state={state} display={display.template} dispatch={dispatch} />
           {(display.problems.length > 0 ||
             inheritProblems.length > 0 ||
@@ -376,6 +416,17 @@ export default function TemplateEditor({
         </div>
         {right}
       </div>
+      {pickingImage && (
+        <AssetPicker
+          value=""
+          onPick={(src) => cmd.add('image', undefined, { src })}
+          onSkip={() => {
+            setPickingImage(false)
+            cmd.add('image')
+          }}
+          onClose={() => setPickingImage(false)}
+        />
+      )}
       {resizing && (
         <ResizeDialog
           from={[state.template.width, state.template.height]}

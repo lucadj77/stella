@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { LoadedProject } from '../../../shared/project'
-import type { Side } from '../../../shared/model/template'
+import { kindOf, type Side } from '../../../shared/model/template'
 import { walkLayers } from '../../../shared/model/normalize'
 import { resolveAsset } from '../../../shared/model/assets'
 import { isGenericFont, markupFonts } from '../../../shared/model/fonts'
@@ -31,9 +31,8 @@ import { Dialog } from '../editor/dialogs'
 import CreditsDialog from './CreditsDialog'
 import ExportPreview from './ExportPreview'
 import ProfileBar from './ProfileBar'
-import { EXPORT_PRESETS } from '../../../shared/exportPresets'
+import { EXPORT_GOALS, EXPORT_PRESETS, type ExportGoal } from '../../../shared/exportPresets'
 import { useProjectFonts, type FontCheck } from '../render/fonts'
-import Segmented from '../components/Segmented'
 import { buildSets } from '../../../shared/exportJob'
 import { projectLanguages } from '../../../shared/model/language'
 import { languageName } from '../i18n/languageName'
@@ -127,8 +126,15 @@ export default function ExportDialog({
     patch({ sets: next.length === setNames.length ? [] : next })
   }
 
+  /** Il tipo di componente del template del set, proposto come oggetto di Tabletop Simulator */
+  const componentKind = (name: string): TtsObjectType => {
+    const set = project.sets.find((s) => s.name === name)
+    return kindOf(project.templates.find((x) => x.name === set?.template))
+  }
   /** Almeno un set scelto esce come mazzo di carte: servono le opzioni dei fogli */
-  const hasCards = selected.some((name) => ttsSetObject(tts, name).type === 'card')
+  const hasCards = selected.some(
+    (name) => ttsSetObject(tts, name, componentKind(name)).type === 'card'
+  )
 
   const firstTemplate = useMemo(() => {
     const set = project.sets.find((s) => selected.includes(s.name))
@@ -188,6 +194,21 @@ export default function ExportDialog({
         ...keep(o)
       }))
     setKind(p.kind)
+  }
+  /** L'obiettivo mostrato: il PDF con l'abbondanza è quello per la tipografia */
+  const goal: ExportGoal =
+    kind === 'tts' ? 'tts' : kind === 'images' ? 'images' : pdf.bleed ? 'shop' : 'home'
+  const chooseGoal = (g: ExportGoal): void => {
+    if (g === goal) return
+    if (g === 'tts' || g === 'images') {
+      setKind(g)
+      setActiveProfile('')
+      return
+    }
+    const label =
+      g === 'shop' ? 'preset.printShop' : ui === 'en' ? 'preset.homeLetter' : 'preset.homeA4'
+    const p = presets.find((x) => x.name === t(label))
+    if (p) pickProfile(p)
   }
   const currentProfile = (): NamedProfile =>
     kind === 'images'
@@ -391,18 +412,22 @@ export default function ExportDialog({
   return (
     <Dialog title={t('export.title')} onClose={running ? () => undefined : onClose} guide="export">
       <div className="export-dialog">
-        <Segmented<ExportKind>
-          value={kind}
-          options={[
-            ['images', t('export.images')],
-            ['pdf', t('export.pdf')],
-            ['tts', t('export.tts')] as [ExportKind, string]
-          ]}
-          onChange={(k) => {
-            setKind(k)
-            setActiveProfile('')
-          }}
-        />
+        <div className="export-goals" role="radiogroup" aria-label={t('export.goal')}>
+          {EXPORT_GOALS.map((g) => (
+            <button
+              key={g}
+              type="button"
+              role="radio"
+              aria-checked={goal === g}
+              className={'export-goal' + (goal === g ? ' active' : '')}
+              disabled={running}
+              onClick={() => chooseGoal(g)}
+            >
+              <span className="export-goal-title">{t(`export.goal.${g}`)}</span>
+              <span className="export-goal-text">{t(`export.goal.${g}.text`)}</span>
+            </button>
+          ))}
+        </div>
         <ProfileBar
           profiles={named}
           presets={presets}
@@ -796,7 +821,7 @@ export default function ExportDialog({
                 'export.ttsObjects',
                 <div className="tts-objects">
                   {selected.map((name) => {
-                    const obj = ttsSetObject(tts, name)
+                    const obj = ttsSetObject(tts, name, componentKind(name))
                     const set = (p: Partial<TtsSetObject>): void =>
                       patch({ objects: { ...tts.objects, [name]: { ...obj, ...p } } })
                     return (

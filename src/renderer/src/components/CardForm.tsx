@@ -1,3 +1,5 @@
+import { kindWords } from '../i18n/kinds'
+import { dragHasFiles, importDropped } from './dropImages'
 import { Fragment, useContext, useEffect, useRef, useState } from 'react'
 import type { Sheet } from '../../../shared/project'
 import {
@@ -73,6 +75,7 @@ function CardForm({
   onChange
 }: Props): React.JSX.Element {
   const { t } = useI18n()
+  const words = kindWords(t, template)
   const boxRef = useRef<HTMLDivElement>(null)
   const columnsOf = (type: 'text' | 'image'): Set<string> => {
     const out = new Set(
@@ -432,7 +435,18 @@ function CardForm({
             </span>
           ) : imageColumns.has(h) ? (
             <>
-              <input {...common} />
+              <input
+                {...common}
+                onDragOver={(e) => {
+                  if (dragHasFiles(e)) e.preventDefault()
+                }}
+                onDrop={async (e) => {
+                  if (!dragHasFiles(e)) return
+                  e.preventDefault()
+                  const [name] = await importDropped(e)
+                  if (name) write(h, name)
+                }}
+              />
               <button
                 className="pick-btn"
                 title={t('assetPicker.open')}
@@ -457,8 +471,8 @@ function CardForm({
     <div className="card-form" ref={boxRef}>
       <h3>
         {multi
-          ? t('cardForm.multiTitle', { n: targets.length })
-          : t('cardForm.title', { n: row + 1 })}
+          ? t('cardForm.multiTitle', { what: words.count(targets.length) })
+          : t('cardForm.title', { what: words.title, n: row + 1 })}
       </h3>
       {multi && <p className="muted small">{t('cardForm.multiHint')}</p>}
       {/* il template della carta è sempre a portata di mano, anche senza la colonna nel foglio */}

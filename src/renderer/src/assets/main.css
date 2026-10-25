@@ -1144,6 +1144,73 @@ textarea.invalid {
   background: var(--accent-soft);
 }
 
+.kind-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kind-choice-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: 6px;
+}
+
+.kind-choice-buttons button {
+  padding: 10px 6px;
+  font-size: 14px;
+}
+
+.kind-choice-buttons button.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.kind-choice-hint {
+  margin: 0;
+  font-size: 12px;
+  min-height: 2.6em;
+}
+
+.export-goals {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.export-goal {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 10px 12px;
+  text-align: left;
+  white-space: normal;
+}
+
+.export-goal.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.export-goal-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.export-goal.active .export-goal-title {
+  color: var(--accent);
+}
+
+.export-goal-text {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
 .dialog-form {
   display: flex;
   flex-direction: column;
@@ -6386,4 +6453,59 @@ button.more-button {
 .fx-crumb-sep {
   margin: 0 4px;
   color: var(--muted);
+}
+
+/* immagini trascinate sulla tela dell'editor */
+.editor-center.dropping {
+  outline: 3px dashed var(--accent);
+  outline-offset: -6px;
+}
+
+.tool.labelled {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: auto;
+  padding: 3px 9px;
+}
+
+.tool.labelled .tool-label {
+  font-size: 13px;
+}
+
+.source-line .field-control {
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
+.source-line .segmented button {
+  padding: 3px 7px;
+  font-size: 12px;
+}
+
+.help-tip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: help;
+  user-select: none;
+}
+
+.help-tip:hover,
+.help-tip:focus-visible {
+  background: var(--accent-soft);
+}
+
+.layers h2 .help-tip {
+  margin-left: 6px;
+  margin-right: auto;
+  text-transform: none;
 }

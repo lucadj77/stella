@@ -5,6 +5,28 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.5.0-beta.3
+
+### English
+
+- **Component kind**: a new template starts from **What are you making?**: card, token, tile, board or die face. The kind suggests suitable formats (round tokens, square and hexagonal tiles, large boards, die faces) and changes the words of the set: **+ Token**, "6 faces", "Face 3". In the Tabletop Simulator export each set starts from the object of its kind. The kind can be changed later with **Component** in the template properties; in the file it is the `kind` key.
+- **Export by goal**: the export window starts from **Print at home**, **Print shop** (a new preset with bleed and crop marks), **Tabletop Simulator** or **Images**, instead of the three tabs.
+- **Images**: **Image** in the editor opens the image picker right away (**No image for now** creates the layer empty). Image files dragged from the computer onto the canvas become image layers; dragged onto a cell of the table or an image field of the form they become its value. The files are copied into `assets/images`.
+- **Editor tools** have their names next to the icons, and the shapes are in a **Shapes** menu.
+- **Value on cards** of a layer is a single line with **Column**, **Fixed**, **Formula** and the **fx** button, always at the top of the properties.
+- **Set**: **+ Column** and **Columns** are now **+ Field** and **Fields**; **Generate…**, **Split image…** and the checks are in a **Tools** menu.
+- **?** help tips replace the always visible instructions in the set, in the layers panel and for the guides, and explain bleed, safe margin, card shape and component kind.
+
+### Italiano
+
+- **Tipo di componente**: un template nuovo parte da **Cosa stai creando?**: carta, segnalino, tessera, plancia o faccia di dado. Il tipo propone i formati adatti (segnalini tondi, tessere quadrate ed esagonali, plance grandi, facce di dado) e cambia le parole del set: **+ Segnalino**, «6 facce», «Faccia 3». Nell'esportazione per Tabletop Simulator ogni set parte dall'oggetto del suo tipo. Il tipo si cambia anche dopo, con **Componente** nelle proprietà del template; nel file è la chiave `kind`.
+- **Esportazione per obiettivo**: la finestra di esportazione parte da **Stampare a casa**, **Tipografia** (un preset nuovo con abbondanza e segni di taglio), **Tabletop Simulator** o **Immagini**, al posto delle tre schede.
+- **Immagini**: **Immagine** nell'editor apre subito la scelta dell'immagine (**Per ora nessuna immagine** crea il livello vuoto). I file immagine trascinati dal computer sulla tela diventano livelli immagine; trascinati su una cella della tabella o su un campo immagine del modulo ne diventano il valore. I file si copiano in `assets/images`.
+- **Strumenti dell'editor**: hanno il nome accanto all'icona, e le forme stanno nel menu **Forme**.
+- **Valore sulle carte** di un livello è una riga sola con **Colonna**, **Fisso**, **Formula** e il tasto **fx**, sempre in cima alle proprietà.
+- **Set**: **+ Colonna** e **Colonne** diventano **+ Campo** e **Campi**; **Genera…**, **Dividi immagine…** e i controlli stanno nel menu **Strumenti**.
+- I **?** sostituiscono le istruzioni sempre visibili nel set, nel pannello dei livelli e per le guide, e spiegano abbondanza, margine di sicurezza, forma della carta e tipo di componente.
+
 ## 1.5.0-beta.2
 
 ### English

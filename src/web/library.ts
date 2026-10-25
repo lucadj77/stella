@@ -181,6 +181,22 @@ type PickerWindow = Window & {
   }) => Promise<FileSystemFileHandle[]>
 }
 
+/** Scrive in assets/images/ le immagini trascinate nella finestra */
+export async function dropImages(
+  folder: string,
+  files: { name: string; data: Uint8Array }[]
+): Promise<{ update: AssetsUpdate; paths: string[] }> {
+  const dir = join(folder, 'assets', IMAGES_FOLDER)
+  await mkdir(dir, { recursive: true })
+  const paths: string[] = []
+  for (const f of files) {
+    const target = await freeName(dir, f.name)
+    await writeFile(target, f.data)
+    paths.push(`${IMAGES_FOLDER}/${target.slice(target.lastIndexOf('/') + 1)}`)
+  }
+  return { update: await assetsUpdate(folder), paths }
+}
+
 /** Copia in assets/images/ le immagini scelte; null se l'utente annulla */
 export async function addImages(folder: string): Promise<AssetsUpdate | null> {
   let handles: FileSystemFileHandle[]

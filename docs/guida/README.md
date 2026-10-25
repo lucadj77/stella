@@ -169,7 +169,9 @@ Nell'app per computer gli stessi comandi stanno anche nel menu dell'app (sul Mac
 
 ### 4.1 Creare un template
 
-Il + accanto a **Template** apre la finestra del nuovo template: nome, formato (poker, bridge, mini, tarocchi, quadrata, A6 o personalizzato) e misure. Il lucchetto tra larghezza e altezza mantiene le proporzioni.
+Il + accanto a **Template** apre la finestra del nuovo template. In cima, **Cosa stai creando?** sceglie il tipo di componente: **Carta**, **Segnalino**, **Tessera**, **Plancia** o **Faccia di dado**. Il tipo propone i formati adatti (per un segnalino i tondi da 20, 25 e 38 mm, per una tessera quadrati ed esagoni, per una plancia 30 cm, A3 e A4) e cambia le parole dell'app: nel set il pulsante diventa **+ Segnalino** o **+ Faccia**, e i conteggi dicono «6 facce». Per un dado ogni riga del set è una faccia, e sei facce di seguito fanno un dado. Poi si scrivono il nome, il formato e le misure; il lucchetto tra larghezza e altezza mantiene le proporzioni.
+
+Il tipo si cambia anche dopo, con **Componente** nelle proprietà del template. Nell'esportazione per Tabletop Simulator ogni set parte dall'oggetto del suo tipo: segnalini, tessere, plance o dadi.
 
 ![La finestra del nuovo template](img/nuovo-template.png)
 
@@ -177,7 +179,7 @@ Il + accanto a **Template** apre la finestra del nuovo template: nome, formato (
 
 ![L'editor dei template, con le parti numerate](img/editor.png)
 
-1. **Strumenti** per aggiungere un livello: testo (T), immagine, rettangolo (R), ellisse (E), poligono, stella, linea, griglia e valore (#). **Fronte** e **Retro** passano da un lato all'altro della carta; le frecce annullano e ripetono.
+1. **Strumenti** per aggiungere un livello, ognuno con il suo nome: **Testo** (T), **Immagine**, **Forme** (un menu con rettangolo (R), ellisse (E), poligono, stella e linea), **Griglia** e **Valore**. **Immagine** apre subito la scelta dell'immagine; **Per ora nessuna immagine** crea il livello vuoto, per esempio quando l'immagine viene da una colonna. Un'immagine trascinata dal computer sulla tela diventa un livello immagine e si copia in `assets/images`. **Fronte** e **Retro** passano da un lato all'altro della carta; le frecce annullano e ripetono.
 2. **Livelli**, dall'alto in basso come si sovrappongono sulla carta. Accanto a ogni livello c'è la fonte del valore (colonna del foglio o _fx_ per una formula), il lucchetto e l'occhio per nasconderlo.
 3. **Tela** con la carta. Il tratteggio rosso è il bordo di taglio, l'area esterna è l'abbondanza, il tratteggio azzurro l'area sicura.
 4. **Proprietà** del livello selezionato, o del template se non è selezionato nulla.
@@ -192,7 +194,7 @@ I livelli selezionati si copiano con ⌘C / Ctrl+C (⌘X / Ctrl+X per tagliarli)
 
 ### 4.3 Le proprietà del template
 
-Senza livelli selezionati, il pannello mostra le proprietà del template: misure, abbondanza (di base 3 mm), margine dell'area sicura, forma della carta (rettangolo con angoli arrotondati, cerchio o ellisse, esagono, sagoma presa da un'immagine), guide manuali e **Nome delle carte**, il campo che compare sotto ogni carta nella griglia. L'esagono è sempre regolare, il più grande che sta nella carta: per riempirla il lato corto deve essere il lato lungo × 0,866, e il pulsante **Adatta la carta all'esagono** cambia così il lato corto. Nelle forme poligono e stella, **Rendi regolare** porta il riquadro a un quadrato attorno allo stesso centro, così lati e angoli sono tutti uguali.
+Senza livelli selezionati, il pannello mostra le proprietà del template: il tipo di componente, misure, abbondanza (di base 3 mm), margine dell'area sicura, forma della carta (rettangolo con angoli arrotondati, cerchio o ellisse, esagono, sagoma presa da un'immagine), guide manuali e **Nome delle carte**, il campo che compare sotto ogni carta nella griglia. L'esagono è sempre regolare, il più grande che sta nella carta: per riempirla il lato corto deve essere il lato lungo × 0,866, e il pulsante **Adatta la carta all'esagono** cambia così il lato corto. Nelle forme poligono e stella, **Rendi regolare** porta il riquadro a un quadrato attorno allo stesso centro, così lati e angoli sono tutti uguali.
 
 Quando si cambiano le misure di un template che ha già dei livelli, l'app chiede se scalare i livelli in proporzione o lasciarli dove sono. Nel secondo caso ogni livello segue i suoi **vincoli**: due menu nella sezione della posizione, uno per l'orizzontale e uno per il verticale, che dicono a che cosa il livello resta attaccato quando la carta cambia misura.
 
@@ -225,9 +227,9 @@ Nei campi numerici si può trascinare l'etichetta a destra o a sinistra per camb
 </tr>
 </table>
 
-In cima a ogni livello ci sono il **nome**, che è anche il nome della colonna del foglio, e il **valore sulle carte**:
+In cima a ogni livello ci sono il **nome**, che è anche il nome della colonna del foglio, e il **valore sulle carte**, in una riga con tre scelte e il tasto **fx** dell'assistente formule:
 
-- **Colonna del foglio**: di base quella con lo stesso nome del livello. Una cella vuota lascia il valore scritto nel template.
+- **Colonna**: la colonna del foglio, di base quella con lo stesso nome del livello. Una cella vuota lascia il valore scritto nel template.
 - **Fisso**: lo stesso valore su tutte le carte.
 - **Formula**: il valore si calcola dagli altri campi della carta ([capitolo 9](#9-formule-e-campi-calcolati)).
 
@@ -300,9 +302,13 @@ La **tabella** funziona come un foglio di calcolo: doppio clic o digitazione per
 
 Il campo **Copie** (la colonna `amount` del foglio) indica quante copie stampare di ogni carta; vuoto vale 1.
 
+Un file immagine trascinato dal computer su una cella della tabella, o su un campo immagine del modulo, si copia in `assets/images` e il suo nome va nella cella.
+
+Le spiegazioni brevi del set, dell'editor e delle proprietà del template stanno dietro un piccolo **?**: il puntatore del mouse sopra mostra il testo.
+
 Un set senza componenti mostra al posto della tabella il pulsante **+ Aggiungi il primo componente**.
 
-Tabella e modulo mostrano tutte le colonne che si possono modificare: quelle del foglio e quelle che il template legge ma il foglio non ha ancora (con l'intestazione in corsivo), che si creano scrivendoci un valore. Il pulsante **Colonne** sceglie quali nascondere; **Ripristina** torna alla vista di base, con le sole colonne lette dai livelli collegati a una colonna (le colonne rimaste nel foglio senza un livello, per esempio da un progetto TTC importato, si nascondono) e i dettagli dei campi chiusi. Nel modulo della carta l'occhio accanto al campo di un livello lo mostra o lo nasconde su quella carta. L'icona con i cursori apre le proprietà del livello per la carta (colore, corsivo, forma, posizione...), con menu per i valori prestabiliti, campi numerici e selettore del colore: un valore scritto lì vale solo per quella carta e crea la colonna `livello.proprietà`, mentre un campo vuoto mostra in grigio il valore del template. Il numero sull'icona dice quante proprietà la carta cambia. Le colonne dei livelli fissi o con formula non arrivano alla carta e restano nascoste; **Mostra i livelli fissi e con formula** le aggiunge in sola lettura, con il simbolo ƒ e il valore che hanno su ogni carta.
+Tabella e modulo mostrano tutte le colonne che si possono modificare: quelle del foglio e quelle che il template legge ma il foglio non ha ancora (con l'intestazione in corsivo), che si creano scrivendoci un valore. Il pulsante **Campi** sceglie quali colonne nascondere; **Ripristina** torna alla vista di base, con le sole colonne lette dai livelli collegati a una colonna (le colonne rimaste nel foglio senza un livello, per esempio da un progetto TTC importato, si nascondono) e i dettagli dei campi chiusi. Nel modulo della carta l'occhio accanto al campo di un livello lo mostra o lo nasconde su quella carta. L'icona con i cursori apre le proprietà del livello per la carta (colore, corsivo, forma, posizione...), con menu per i valori prestabiliti, campi numerici e selettore del colore: un valore scritto lì vale solo per quella carta e crea la colonna `livello.proprietà`, mentre un campo vuoto mostra in grigio il valore del template. Il numero sull'icona dice quante proprietà la carta cambia. Le colonne dei livelli fissi o con formula non arrivano alla carta e restano nascoste; **Mostra i livelli fissi e con formula** le aggiunge in sola lettura, con il simbolo ƒ e il valore che hanno su ogni carta.
 
 Le colonne vero/falso (le proprietà come `stemma.visible` o `nome.italic`, e le colonne in cui ogni cella vale `true` o `false`) hanno una casella: un clic, o la barra spaziatrice sulla cella, la spunta o la toglie. Una casella chiara vuol dire cella vuota: vale il valore del template.
 
@@ -324,7 +330,7 @@ Ordinamento e filtro cambiano solo la vista: il foglio e l'esportazione restano 
 
 ![Carte ordinate per forza e filtrate](img/ordina-filtra.png)
 
-I controlli sul set stanno nel menu **Controlli** della riga dei pulsanti.
+I controlli sul set stanno nel menu **Strumenti** della riga dei pulsanti, insieme a **Genera…** e **Dividi immagine…**.
 
 **Statistiche…** mostra quante carte hanno ogni valore di una colonna, anche di un livello con formula, con una barra per confrontarli: serve a bilanciare il set (per esempio quante carte per costo). Per le colonne di numeri dà anche somma, media, minimo e massimo. Le copie della colonna `amount` contano, a meno di togliere la spunta; con un filtro attivo contano solo le carte filtrate.
 
@@ -334,7 +340,7 @@ I controlli sul set stanno nel menu **Controlli** della riga dei pulsanti.
 
 ### 5.4 Colonne delle proprietà
 
-Oltre al valore principale, ogni proprietà di un livello può cambiare carta per carta con una colonna `livello.proprietà`: per esempio `nome.color` per il colore del titolo o `icona.tint` per la colorazione di un'icona. **+ Colonna** propone le colonne che il template legge e che mancano nel foglio, le proprietà di un livello a scelta, o una colonna libera.
+Oltre al valore principale, ogni proprietà di un livello può cambiare carta per carta con una colonna `livello.proprietà`: per esempio `nome.color` per il colore del titolo o `icona.tint` per la colorazione di un'icona. **+ Campo** propone le colonne che il template legge e che mancano nel foglio, le proprietà di un livello a scelta, o una colonna libera.
 
 ![La finestra per aggiungere una colonna](img/aggiungi-colonna.png)
 
@@ -576,7 +582,7 @@ Un campo vale, in ordine di precedenza: il livello valore calcolato, la cella no
 
 ### 9.1 L'assistente formule
 
-Il tasto **fx** accanto al campo **Formula** apre l'assistente. Su un livello con **Colonna del foglio** o **Fisso** lo stesso assistente si apre con **Crea una formula con l'assistente…**, sotto **Valore sulle carte**: confermando, il livello passa a **Formula**. C'è anche accanto al **Filtro** del generatore (sezione 10), dove la formula deve dare vero o falso.
+Il tasto **fx**, nella riga di **Valore sulle carte**, apre l'assistente. Su un livello con **Colonna** o **Fisso**, confermando la formula il livello passa a **Formula**. C'è anche accanto al **Filtro** del generatore (sezione 10), dove la formula deve dare vero o falso.
 
 Con una formula vuota l'assistente chiede **Cosa vuoi fare?** e propone i casi frequenti come schede: un valore diverso secondo una condizione, cambia qualcosa ogni N caselle (o componenti), alterna due valori, scacchiera, scorri un elenco, scegli a caso, mostra solo se un campo non è vuoto, basso/medio/alto, calcola un numero, unisci testi e campi. Accanto al filtro del generatore le schede sono condizioni (confronta un campo con un valore, un campo non è vuoto). **La scrivo io** passa alla modalità avanzata.
 
@@ -602,7 +608,7 @@ Su un livello **griglia** la formula vale per tutta la griglia (per esempio il c
 
 ## 10. Generare le carte
 
-**Genera…**, nell'intestazione del set, crea le righe combinando insiemi di valori. Ogni insieme ha una colonna di destinazione, un elenco di valori (uno per riga o separati da virgole; `1-5` diventa 1, 2, 3, 4, 5) e quanti valori mettere su ogni carta.
+**Genera…**, nel menu **Strumenti** del set, crea le righe combinando insiemi di valori. Ogni insieme ha una colonna di destinazione, un elenco di valori (uno per riga o separati da virgole; `1-5` diventa 1, 2, 3, 4, 5) e quanti valori mettere su ogni carta.
 
 - Più insiemi si combinano in tutti i modi possibili: 6 semi e i numeri 1-5 danno 30 carte.
 - Con più valori per carta si sceglie se ammettere le ripetizioni e se conta l'ordine. In **Limiti per valore** si fissano minimo e massimo per ciascun valore.
@@ -621,7 +627,7 @@ Ogni carta mostra la parte dell'immagine che sta sotto il suo livello, come se l
 
 ## 11. Esportare
 
-**Esporta…** apre una finestra con tre schede: immagini, PDF e Tabletop Simulator. In ogni scheda si scelgono i set e se ripetere le carte secondo la colonna `amount`. Le carte si disegnano con lo stesso motore dell'anteprima, comprese le modifiche non ancora salvate.
+**Esporta…** apre una finestra che comincia da cosa vuoi fare: **Stampare a casa** (un PDF con i componenti affiancati, fronte e retro), **Tipografia** (un PDF con l'abbondanza e i segni di taglio), **Tabletop Simulator** o **Immagini**. Le prime due partono da un preset che si può poi cambiare. Per ognuna si scelgono i set e se ripetere le carte secondo la colonna `amount`. Le carte si disegnano con lo stesso motore dell'anteprima, comprese le modifiche non ancora salvate.
 
 ### 11.1 Immagini
 

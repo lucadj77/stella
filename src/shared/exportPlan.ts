@@ -602,7 +602,7 @@ export function planTts(o: TtsOptions, sets: ExportSet[]): TtsSetPlan[] {
   return sets.map((set) => {
     // senza copie ogni riga è una carta; con le copie le righe a 0 non entrano nel mazzo
     const kept = set.cards.filter((c) => !o.copies || c.amount > 0)
-    const object = ttsSetObject(o, set.name)
+    const object = ttsSetObject(o, set.name, set.kind)
     if (object.type === 'die') {
       const dice: TtsDiePlan[] = []
       for (let i = 0; i < kept.length; i += 6) {

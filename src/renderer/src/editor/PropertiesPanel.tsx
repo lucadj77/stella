@@ -1,5 +1,7 @@
 import { useContext, useMemo, useState } from 'react'
 import AssetPicker from '../components/AssetPicker'
+import HelpTip from '../components/HelpTip'
+import Segmented from '../components/Segmented'
 import { ImageIcon } from '../components/icons'
 import { P, Section } from './advanced'
 import {
@@ -11,6 +13,7 @@ import {
   uniqueName
 } from '../../../shared/model/edit'
 import { assetRefName, isImageAsset, resolveAsset } from '../../../shared/model/assets'
+import { COMPONENT_KINDS, kindOf, type ComponentKind } from '../../../shared/model/template'
 import type {
   Anchor,
   CardShape,
@@ -238,6 +241,15 @@ function TemplateProperties({
         <span className="field-label">{t('prop.name')}</span>
         <span className="field-control">{tpl.name}</span>
       </div>
+      <Inherit keys={['kind']}>
+        <SelectField<ComponentKind>
+          label={t('prop.kind')}
+          help={t('prop.kindHint')}
+          value={kindOf(tpl)}
+          options={COMPONENT_KINDS.map((k) => [k, t(`kind.${k}`)] as [ComponentKind, string])}
+          onChange={(kind) => set({ kind: kind === 'card' ? undefined : kind }, 'kind')}
+        />
+      </Inherit>
       {base ? (
         // le misure della carta sono sempre quelle del base
         <div className="field" title={t('inherit.sizeFromBase')}>
@@ -266,6 +278,7 @@ function TemplateProperties({
       <Inherit keys={['bleed']}>
         <NumberField
           label={t('prop.bleed')}
+          help={t('help.word.bleed')}
           value={tpl.bleed}
           min={0}
           unit="mm"
@@ -275,6 +288,7 @@ function TemplateProperties({
       <Inherit keys={['safeMargin']}>
         <NumberField
           label={t('prop.safeMargin')}
+          help={t('help.word.safe')}
           value={tpl.safeMargin}
           min={0}
           unit="mm"
@@ -284,7 +298,7 @@ function TemplateProperties({
       <Inherit keys={['shape']}>
         <SelectField<CardShape>
           label={t('prop.cardShape')}
-          hint={t('editor.cardShapeHint')}
+          help={t('editor.cardShapeHint')}
           value={tpl.shape ?? 'rect'}
           options={options(t, 'cardShape', ['rect', 'ellipse', 'hexagon', 'path'] as const)}
           onChange={(shape) => set({ shape }, 'shape')}
@@ -659,8 +673,8 @@ function GuideFields({
         >
           {t('editor.guideAddH')}
         </button>
+        <HelpTip text={t('editor.guidesHint')} />
       </div>
-      <p className="muted small">{t('editor.guidesHint')}</p>
     </>
   )
 }
@@ -1985,16 +1999,22 @@ function ValueSource({
 
   return (
     <div className="value-source">
-      <SelectField<ValueSourceKind>
-        label={t('source.label')}
-        value={src.kind}
-        options={[
-          ['column', t('source.kind.column')],
-          ['fixed', t('source.kind.fixed')],
-          ['formula', t('source.kind.formula')]
-        ]}
-        onChange={(kind) => set({ source: switchSource(l, kind) })}
-      />
+      {/* da dove viene il valore: una riga sola, sempre in cima alle proprietà del livello */}
+      <div className="field source-line">
+        <span className="field-label">{t('source.label')}</span>
+        <span className="field-control">
+          <Segmented<ValueSourceKind>
+            value={src.kind}
+            options={[
+              ['column', t('source.short.column'), t('source.kind.column')],
+              ['fixed', t('source.kind.fixed'), t('source.fixedNote')],
+              ['formula', t('source.kind.formula'), t('source.formulaNote')]
+            ]}
+            onChange={(kind) => set({ source: switchSource(l, kind) })}
+          />
+          {fx}
+        </span>
+      </div>
       {src.kind === 'column' && (
         <>
           <TextField
@@ -2020,13 +2040,8 @@ function ValueSource({
           multiline
           rows={3}
           onChange={(expr) => set({ source: { kind: 'formula', expr } })}
-          action={fx}
+          action={<HelpTip text={t('source.formulaHelp')} />}
         />
-      )}
-      {src.kind !== 'formula' && (
-        <button type="button" className="fx-start" onClick={() => setAssistant(true)}>
-          <span className="fx-button">fx</span> {t('fx.start')}
-        </button>
       )}
       {assistant && (
         <FormulaDialog
@@ -2051,7 +2066,6 @@ function ValueSource({
           onClose={close}
         />
       )}
-      {src.kind === 'formula' && <p className="small muted">{t('source.formulaHelp')}</p>}
       <p className="small muted">
         {src.kind === 'fixed'
           ? t('source.fixedNote')

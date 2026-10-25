@@ -45,6 +45,8 @@ function templateValue(t: Template, k: InheritableTemplateKey): unknown {
       return t.guides ?? { x: [], y: [] }
     case 'labelField':
       return t.labelField ?? null
+    case 'kind':
+      return t.kind ?? 'card'
     default:
       return t[k]
   }
