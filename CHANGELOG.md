@@ -18,6 +18,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 #### Changed
 
 - **Help** (F1), **Formulas** tab, also lists `MOD` and `PICK`.
+- **Grids**: **Text in each cell** and **Shape in each cell** create the layer as big as the cell, so a text background stays aligned with the cell.
 
 #### Fixed
 
@@ -34,6 +35,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 #### Modifiche
 
 - **Aiuto** (F1), scheda **Formule**, elenca anche `MOD` e `PICK`.
+- **Griglie**: **Testo in ogni casella** e **Forma in ogni casella** creano il livello grande quanto la casella, così uno sfondo nel testo resta allineato alla casella.
 
 #### Correzioni
 
