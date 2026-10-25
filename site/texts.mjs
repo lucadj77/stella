@@ -45,7 +45,7 @@ export const texts = {
         ],
         [
           'Stampa e Tabletop Simulator',
-          'PDF con crocini e fronte-retro, immagini singole, e oggetti pronti per Tabletop Simulator: mazzi, segnalini, tessere, plance e dadi a sei facce, da caricare nel gioco così come sono.'
+          'PDF da stampare con crocini e fronte-retro, oppure immagini singole. Per Tabletop Simulator Stella crea direttamente gli oggetti del gioco: mazzi, segnalini, tessere, plance e dadi a sei facce compaiono già pronti in Saved Objects, da mettere sul tavolo con un clic.'
         ],
         [
           'Regolamento con le carte',
@@ -173,7 +173,7 @@ export const texts = {
         ],
         [
           'Print and Tabletop Simulator',
-          'PDFs with crop marks and duplex, single images, and ready-made Tabletop Simulator objects: decks, tokens, tiles, boards and six-sided dice, loaded into the game as they are.'
+          'Print-ready PDFs with crop marks and duplex, or single images. For Tabletop Simulator, Stella creates the game objects directly: decks, tokens, tiles, boards and six-sided dice show up ready-made in Saved Objects, one click away from the table.'
         ],
         [
           'Rulebook with the cards',
