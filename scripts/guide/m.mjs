@@ -114,6 +114,12 @@ await win.locator('.value-source .fx-button').click()
 await win.waitForTimeout(800)
 // la formula del numero riconosciuta come frase «Ogni 10 caselle…»
 await shot(win, `${lang}/assistente-formule`, { clip: await win.locator('.dialog').boundingBox() })
+// lo spazio «mostra»: il campo del testo sempre visibile con le schede che ci inseriscono
+await win.locator('.fx-sentence .fx-leaf').nth(1).click()
+await win.waitForTimeout(500)
+await shot(win, `${lang}/assistente-formule-testo`, {
+  clip: await win.locator('.dialog').boundingBox()
+})
 // «Ricomincia»: la schermata «Cosa vuoi fare?»
 await win.getByRole('button', { name: T['fx.startOver'] }).click()
 await win.waitForTimeout(500)

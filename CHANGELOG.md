@@ -5,6 +5,18 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.4.0-beta.2
+
+### English
+
+- **Website link**: the start screen footer and the Help window (F1) link to <https://stella.lucadj.eu/>, in the interface language.
+- Guide: the formula assistant section shows the text box of a blank with its tabs.
+
+### Italiano
+
+- **Link al sito**: il piè di pagina della schermata iniziale e la finestra Aiuto (F1) rimandano a <https://stella.lucadj.eu/it/>, nella lingua dell'interfaccia.
+- Guida: la sezione dell'assistente formule mostra il campo del testo di uno spazio con le sue schede.
+
 ## 1.4.0-beta.1
 
 ### English
