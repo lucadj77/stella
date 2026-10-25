@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.4.0-beta.3
+
+### English
+
+- **Formula assistant, nested functions**: a function inside a blank appears as a smaller sentence inside the sentence, so the guided mode also works for nested formulas. The **Formula** tab of a blank offers the cases of **What do you want to do?** first. Conditions get **+ and also** and **+ or** (`AND`, `OR`). In **Advanced**, complete nested functions fold into one line, and **⤢** opens a nested function on its own with a path to go back.
+
+### Italiano
+
+- **Assistente formule, funzioni annidate**: una funzione dentro uno spazio compare come una frase più piccola dentro la frase, così il modo guidato funziona anche con le formule annidate. La scheda **Formula** di uno spazio propone per prima i casi di **Cosa vuoi fare?**. Le condizioni hanno **+ e anche** e **+ oppure** (`AND`, `OR`). In **Avanzato** le funzioni annidate complete si chiudono in una riga, e **⤢** apre una funzione annidata da sola, con il percorso per tornare indietro.
+
 ## 1.4.0-beta.2
 
 ### English

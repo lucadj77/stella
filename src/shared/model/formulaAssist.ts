@@ -438,8 +438,12 @@ export type SentencePart =
   /** Uno spazio da riempire: il nodo in `blank`; `also` sono copie da tenere uguali */
   | { blank: NodePath; kind: SlotKind; label: string; also?: NodePath[] }
   | { op: NodePath; ops: readonly BinaryOperator[] }
-  /** Aggiunge una voce: un argomento alla funzione in `add`, o una fascia se `band` */
-  | { add: NodePath; label: string; band?: boolean }
+  /** Aggiunge una voce: un argomento alla funzione in `add`, o una fascia se `band` (con il campo in `field`) */
+  | { add: NodePath; label: string; band?: boolean; field?: NodePath }
+  /** Aggiunge un confronto alla condizione in `join`, con AND (e anche) o OR (oppure) */
+  | { join: NodePath; fn: 'AND' | 'OR'; label: string }
+  /** Toglie il confronto in `drop` da un AND o un OR */
+  | { drop: NodePath; label: string }
 
 export interface SentenceDefaults {
   /** Il campo da proporre: la prima colonna numerica, se c'è */
@@ -613,23 +617,54 @@ const ranges: SentenceTemplate = {
     }
     out.push(txt('fx.s.otherwise'))
     out.push(blank(Array<number>(len).fill(2), 'result', 'fx.b.otherwise'))
-    out.push({ add: Array<number>(len - 1).fill(2), label: 'fx.addBand', band: true })
+    out.push({
+      add: Array<number>(len - 1).fill(2),
+      label: 'fx.addBand',
+      band: true,
+      field: [0, 0]
+    })
     return out
   }
 }
 
-/** IF(a op b; A; B) */
+/**
+ * Una condizione fatta di confronti: uno solo, oppure più confronti uniti da AND (e anche) o da OR
+ * (oppure). null se dentro c'è altro.
+ */
+function condParts(cond: FormulaNode, at: NodePath): SentencePart[] | null {
+  const fn =
+    cond.k === 'call' && (cond.fn === 'AND' || cond.fn === 'OR') && cond.args.length >= 2
+      ? cond.fn
+      : null
+  const items = fn && cond.k === 'call' ? cond.args : [cond]
+  if (!items.every((c) => isBin(c, COMPARISON_OPERATORS))) return null
+  const out: SentencePart[] = []
+  items.forEach((_, i) => {
+    const p = fn ? [...at, i] : at
+    if (i > 0) out.push(txt(fn === 'AND' ? 'fx.s.and' : 'fx.s.or'))
+    out.push(
+      blank([...p, 0], 'value', 'fx.b.value'),
+      { op: p, ops: COMPARISON_OPERATORS },
+      blank([...p, 1], 'value', 'fx.b.comparedWith')
+    )
+    if (fn) out.push({ drop: p, label: 'fx.removeCondition' })
+  })
+  if (fn !== 'OR') out.push({ join: at, fn: 'AND', label: 'fx.addAnd' })
+  if (fn !== 'AND') out.push({ join: at, fn: 'OR', label: 'fx.addOr' })
+  return out
+}
+
+/** IF(a op b; A; B), anche con più confronti uniti da AND o OR */
 const ifThen: SentenceTemplate = {
   id: 'if',
   make: (_, d) => call('IF', bin('>', field(d.field), num(3)), d.yes, d.no),
   parts: (n) => {
     if (!isCall(n, 'IF') || n.args.length < 2 || n.args.length > 3) return null
-    if (!isBin(n.args[0], COMPARISON_OPERATORS)) return null
+    const cond = condParts(n.args[0], [0])
+    if (!cond) return null
     return [
       txt('fx.s.if'),
-      blank([0, 0], 'value', 'fx.b.value'),
-      { op: [0], ops: COMPARISON_OPERATORS },
-      blank([0, 1], 'value', 'fx.b.comparedWith'),
+      ...cond,
       txt('fx.s.show'),
       blank([1], 'result', 'fx.b.show'),
       ...(n.args.length === 3
@@ -682,15 +717,10 @@ const comparing: SentenceTemplate = {
   id: 'compare',
   condition: true,
   make: (_, d) => bin('>', field(d.field), num(3)),
-  parts: (n) =>
-    isBin(n, COMPARISON_OPERATORS)
-      ? [
-          txt('fx.s.trueWhen'),
-          blank([0], 'value', 'fx.b.value'),
-          { op: [], ops: COMPARISON_OPERATORS },
-          blank([1], 'value', 'fx.b.comparedWith')
-        ]
-      : null
+  parts: (n) => {
+    const cond = condParts(n, [])
+    return cond ? [txt('fx.s.trueWhen'), ...cond] : null
+  }
 }
 
 /** NOT(ISBLANK(campo)) */
@@ -764,6 +794,71 @@ export function findSentence(
     if (parts) return { template, parts }
   }
   return null
+}
+
+/** Uno spazio della frase guidata, con la frase più piccola che contiene se dentro c'è una funzione */
+export type GuidedPart = SentencePart & { sub?: GuidedPart[] }
+
+/** Ciò che sta in uno spazio senza bisogno di una frase: vuoto, numero, sì/no, campo, testo */
+export function isLeafNode(n: FormulaNode): boolean {
+  if (n.k === 'empty' || n.k === 'num' || n.k === 'bool' || n.k === 'field') return true
+  if (n.k === 'neg') return n.v.k === 'num'
+  return (n.k === 'str' || n.k === 'bin') && readText(n) !== null
+}
+
+const prefixed = (p: SentencePart, at: NodePath): SentencePart => {
+  const pre = (x: NodePath): NodePath => [...at, ...x]
+  if ('blank' in p) return { ...p, blank: pre(p.blank), also: p.also?.map(pre) }
+  if ('op' in p) return { ...p, op: pre(p.op) }
+  if ('add' in p) return { ...p, add: pre(p.add), field: p.field && pre(p.field) }
+  if ('join' in p) return { ...p, join: pre(p.join) }
+  if ('drop' in p) return { ...p, drop: pre(p.drop) }
+  return p
+}
+
+/**
+ * La formula come frase guidata, con le frasi annidate: uno spazio che contiene una funzione
+ * conosciuta diventa una frase più piccola dentro la frase. null se un pezzo non ha la forma di
+ * nessuna frase: allora la formula si apre nel modo avanzato. I percorsi sono dalla radice.
+ */
+export function guide(
+  node: FormulaNode,
+  ctx: CatalogContext,
+  at: NodePath = []
+): GuidedPart[] | null {
+  const found = findSentence(node, ctx)
+  if (!found) return null
+  const out: GuidedPart[] = []
+  for (const part of found.parts) {
+    const p: GuidedPart = prefixed(part, at)
+    if ('blank' in part) {
+      const inner = nodeAt(node, part.blank)
+      if (inner && !isLeafNode(inner)) {
+        const sub = guide(inner, ctx, [...at, ...part.blank])
+        if (!sub) return null
+        p.sub = sub
+      }
+    }
+    out.push(p)
+  }
+  return out
+}
+
+type GuidedBlank = Extract<SentencePart, { blank: NodePath }> & { sub?: GuidedPart[] }
+
+/** Tutti gli spazi della frase guidata in ordine, compresi quelli delle frasi annidate */
+export function guidedBlanks(parts: GuidedPart[]): GuidedBlank[] {
+  return parts.flatMap((p): GuidedBlank[] =>
+    'blank' in p ? [p as GuidedBlank, ...(p.sub ? guidedBlanks(p.sub) : [])] : []
+  )
+}
+
+/** Il primo spazio da riempire: il primo vuoto, o il primo spazio che non contiene una frase */
+export function firstGuidedBlank(parts: GuidedPart[] | null, root: FormulaNode): NodePath | null {
+  if (!parts) return null
+  const blanks = guidedBlanks(parts).filter((b) => !b.sub)
+  const empty = blanks.find((b) => nodeAt(root, b.blank)?.k === 'empty')
+  return (empty ?? blanks[0])?.blank ?? null
 }
 
 /** Il campo da proporre: la prima colonna con un numero nella carta d'esempio, o la prima */
