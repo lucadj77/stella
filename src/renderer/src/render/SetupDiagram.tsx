@@ -1,10 +1,12 @@
-import { useContext } from 'react'
+import { useContext, useId } from 'react'
 import type { LoadedSet } from '../../../shared/project'
 import type { Template } from '../../../shared/model/template'
 import { anatomyCardSource } from '../../../shared/model/document'
 import type { Setup, SetupItem } from '../../../shared/model/setup'
 import { resolveAsset } from '../../../shared/model/assets'
-import { imageVariable } from '../../../shared/model/variables'
+import { backdropInner, imageBackdrop } from '../../../shared/model/shapes'
+import { imageVariable, palette, resolveColor } from '../../../shared/model/variables'
+import { SvgBackdrop } from './backdrop'
 import CardSvg from './CardSvg'
 import { MarkupInline } from './MarkupText'
 import { AssetsContext, VariablesContext, assetUrl } from './assets'
@@ -217,8 +219,6 @@ function Item({
   it: SetupItem
   font: number
 }): React.JSX.Element | null {
-  const assets = useContext(AssetsContext)
-  const variables = useContext(VariablesContext)
   switch (it.kind) {
     case 'zone':
       return (
@@ -252,37 +252,8 @@ function Item({
           <Label x={it.x} y={it.y} w={it.w} font={font} text={it.text} align="left" />
         </g>
       )
-    case 'image': {
-      const name = it.src.replace(/^\{(.*)\}$/, '$1')
-      const v = imageVariable(name, variables)
-      const r = resolveAsset(v ? v.src : name, assets)
-      const c = { x: it.x + it.w / 2, y: it.y + it.w / 2 }
-      return (
-        <g data-item={i} transform={it.rotate ? `rotate(${it.rotate} ${c.x} ${c.y})` : undefined}>
-          {r.ok ? (
-            <image
-              href={assetUrl(r.path)}
-              x={it.x}
-              y={it.y}
-              width={it.w}
-              height={it.w}
-              preserveAspectRatio="xMidYMid meet"
-            />
-          ) : (
-            <rect
-              x={it.x}
-              y={it.y}
-              width={it.w}
-              height={it.w}
-              fill="none"
-              stroke="#e5484d"
-              strokeDasharray="1 1"
-              strokeWidth={0.3}
-            />
-          )}
-        </g>
-      )
-    }
+    case 'image':
+      return <ImageItem i={i} it={it} />
     case 'arrow': {
       const dx = it.x2 - it.x
       const dy = it.y2 - it.y
@@ -327,4 +298,82 @@ function Item({
     default:
       return null
   }
+}
+
+/**
+ * Un'immagine o una variabile immagine, con la sua tinta, rotazione, ribaltamento, opacità e il
+ * suo sfondo
+ */
+function ImageItem({
+  i,
+  it
+}: {
+  i: number
+  it: Extract<SetupItem, { kind: 'image' }>
+}): React.JSX.Element {
+  const assets = useContext(AssetsContext)
+  const variables = useContext(VariablesContext)
+  const id = useId().replace(/:/g, '')
+  const name = it.src.replace(/^\{(.*)\}$/, '$1')
+  const v = imageVariable(name, variables)
+  const r = resolveAsset(v ? v.src : name, assets)
+  const c = { x: it.x + it.w / 2, y: it.y + it.w / 2 }
+  const box = { x: it.x, y: it.y, w: it.w, h: it.w }
+  const backdrop = imageBackdrop(v, variables)
+  const inner = backdrop ? backdropInner(box, backdrop) : box
+  const tint = v?.tint ? resolveColor(v.tint, palette(variables)) : null
+  const flip = v?.flip
+  const turn = [
+    v?.rotate ? `rotate(${v.rotate} ${c.x} ${c.y})` : '',
+    flip
+      ? `translate(${flip.includes('h') ? 2 * c.x : 0} ${flip.includes('v') ? 2 * c.y : 0}) scale(${flip.includes('h') ? -1 : 1} ${flip.includes('v') ? -1 : 1})`
+      : ''
+  ]
+    .filter(Boolean)
+    .join(' ')
+  return (
+    <g
+      data-item={i}
+      transform={it.rotate ? `rotate(${it.rotate} ${c.x} ${c.y})` : undefined}
+      opacity={v?.opacity !== undefined && v.opacity < 1 ? v.opacity : undefined}
+    >
+      {r.ok ? (
+        <>
+          {/* un riquadro trasparente: l'immagine si sceglie anche cliccando dove è vuota */}
+          <rect x={it.x} y={it.y} width={it.w} height={it.w} fill="transparent" />
+          {backdrop && <SvgBackdrop box={box} backdrop={backdrop} />}
+          {tint && (
+            <defs>
+              <filter id={`${id}-tint`}>
+                <feFlood floodColor={tint} />
+                <feComposite in2="SourceAlpha" operator="in" />
+              </filter>
+            </defs>
+          )}
+          <g transform={turn || undefined}>
+            <image
+              href={assetUrl(r.path)}
+              x={inner.x}
+              y={inner.y}
+              width={inner.w}
+              height={inner.h}
+              preserveAspectRatio="xMidYMid meet"
+              filter={tint ? `url(#${id}-tint)` : undefined}
+            />
+          </g>
+        </>
+      ) : (
+        <rect
+          x={it.x}
+          y={it.y}
+          width={it.w}
+          height={it.w}
+          fill="none"
+          stroke="#e5484d"
+          strokeDasharray="1 1"
+          strokeWidth={0.3}
+        />
+      )}
+    </g>
+  )
 }

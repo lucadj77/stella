@@ -24,6 +24,15 @@ export interface ImageVariable extends ImageSettings {
   type: 'image'
   /** File in assets/, risolto come le altre immagini (sezione 3.1) */
   src: string
+  /**
+   * Sfondo dietro l'immagine, ovunque la variabile si mostri: una forma predefinita (circle,
+   * square, rounded, hexagon, diamond), un file di assets/ o un'altra variabile immagine
+   */
+  bg?: string
+  /** Colore dello sfondo; senza, la forma prende il colore del testo e l'immagine i suoi */
+  bgColor?: string
+  /** Spazio tra l'immagine e il bordo dello sfondo, in frazione del lato per parte: 0.2 = 20% */
+  bgPad?: number
 }
 
 /** Testo con markup che prende il posto di {nome} */

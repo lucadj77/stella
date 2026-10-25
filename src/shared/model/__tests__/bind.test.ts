@@ -305,4 +305,20 @@ describe('contenuto della griglia', () => {
     expect(Number(a)).toBeGreaterThan(0)
     expect(Number(a)).toBeLessThanOrEqual(999999)
   })
+
+  it('porta sul livello immagine lo sfondo della variabile, con i colori risolti', () => {
+    const tpl = normalizeTemplate({
+      name: 't',
+      front: [{ type: 'image', name: 'img', src: '{goccia}' }]
+    })
+    const variables = {
+      goccia: { type: 'image' as const, src: 'icons/goccia', bg: 'circle', bgColor: 'rosso' },
+      rosso: { type: 'color' as const, color: '#A33A2A' }
+    }
+    const img = bindCard(tpl, rowToCard([], []), { variables }).template.front[0]
+    expect(img).toMatchObject({
+      src: 'icons/goccia',
+      backdrop: { shape: 'circle', color: '#A33A2A', pad: 0.18 }
+    })
+  })
 })

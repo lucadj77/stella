@@ -3,7 +3,8 @@ import type { ProjectFont } from '../../../shared/project'
 import type { HAlign } from '../../../shared/model/template'
 import { parseInline, type Inline } from '../../../shared/model/markup'
 import { resolveAsset } from '../../../shared/model/assets'
-import { imageVariable } from '../../../shared/model/variables'
+import { imageVariable, palette, resolveColor } from '../../../shared/model/variables'
+import { imageBackdrop } from '../../../shared/model/shapes'
 import {
   DOC_PAGES,
   documentText,
@@ -16,6 +17,7 @@ import {
 import { cellImageKey, cellParts } from '../../../shared/model/docTable'
 import { assetUrl } from '../render/assets'
 import { dataUri, fontFaces, svgOfCard } from './toSvg'
+import { backdropPng, loadImage } from './iconPng'
 
 // Esportazione di un documento (model/document.ts) dalla sua anteprima già disegnata: una pagina
 // HTML autonoma, con carte, immagini e font dentro il file, da cui si stampa anche il PDF; oppure
@@ -180,7 +182,25 @@ export async function documentMarkdown(
     const n = splitImageSource(src).path.replace(/^\{(.*)\}$/, '$1')
     const v = imageVariable(n, ctx.variables)
     const r = resolveAsset(v ? v.src : n, ctx.assets ?? [])
-    return r.ok ? asset(r.path) : null
+    if (!r.ok) return null
+    const backdrop = imageBackdrop(v, ctx.variables)
+    if (!backdrop) return asset(r.path)
+    // con lo sfondo della variabile si scrive un PNG con l'icona già sopra lo sfondo
+    let file = used.get(`{${n}}`)
+    if (!file) {
+      const img = await loadImage(assetUrl(r.path))
+      if (!img) return null
+      const pal = palette(ctx.variables)
+      file = `${safeName(n)}-bg.png`
+      used.set(`{${n}}`, file)
+      const data = await backdropPng(img, backdrop, 12, {
+        assets: ctx.assets ?? [],
+        pal,
+        tint: v?.tint ? resolveColor(v.tint, pal) : undefined
+      })
+      files.push({ path: `${dir}/${file}`, data })
+    }
+    return link(file)
   }
 
   const inline = async (s: string): Promise<string> =>

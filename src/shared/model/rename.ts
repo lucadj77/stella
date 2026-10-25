@@ -156,9 +156,9 @@ export function renameInSheet(
 }
 
 /**
- * Le altre variabili (testi che ne richiamano altre, colori scritti come un'altra variabile) e
- * gli stili (colori, stili di base). Il file di una variabile immagine non si tocca: può avere
- * lo stesso nome della variabile.
+ * Le altre variabili (testi che ne richiamano altre, colori scritti come un'altra variabile,
+ * tinta e sfondo delle immagini) e gli stili (colori, stili di base). Il file di una variabile
+ * immagine non si tocca: può avere lo stesso nome della variabile.
  */
 export function renameInDefinitions(
   variables: Variables,
@@ -173,6 +173,14 @@ export function renameInDefinitions(
       if (v.type === 'value') return [k, { ...v, value: renameInText(v.value, kind, from, to) }]
       if (v.type === 'color')
         return [k, { ...v, color: renameValue(v.color, true, kind, from, to) }]
+      if (v.type === 'image') {
+        // tinta e colore dello sfondo possono essere variabili colore, lo sfondo un'altra immagine
+        const out = { ...v }
+        if (v.tint) out.tint = renameValue(v.tint, true, kind, from, to)
+        if (v.bgColor) out.bgColor = renameValue(v.bgColor, true, kind, from, to)
+        if (v.bg) out.bg = renameValue(v.bg, true, kind, from, to)
+        return [k, out]
+      }
       return [k, v]
     })
   )

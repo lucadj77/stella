@@ -8,6 +8,7 @@ import { isGenericFont, markupFonts } from './fonts'
 import { evaluateFormula } from './formula'
 import { markupProblems, markupRefs } from './markup'
 import { walkLayers } from './normalize'
+import { imageBackdrop } from './shapes'
 import { splitLanguage, translatedCells, translation, type Localization } from './language'
 import { cardTemplate } from './inherit'
 import { systemFields, usesSide, type SystemInfo } from './system'
@@ -248,13 +249,15 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
             const v = imageVariable(out.src.trim().replace(/^\{(.*)\}$/, '$1'), ctx.variables)
             if (v) {
               const [flipH, flipV] = combineFlip(v.flip, out.flipH, out.flipV)
+              const backdrop = imageBackdrop(v, ctx.variables)
               out = {
                 ...out,
                 src: v.src,
                 tint: out.tint ?? v.tint ?? null,
                 flipH,
                 flipV,
-                opacity: out.opacity * (v.opacity ?? 1)
+                opacity: out.opacity * (v.opacity ?? 1),
+                ...(backdrop ? { backdrop } : {})
               }
             }
           }
@@ -600,7 +603,15 @@ function paintLayer(
         stroke: stroke(l.stroke)
       }
     case 'image':
-      return { ...l, shadow, tint: l.tint && paint(l.tint), stroke: stroke(l.stroke) }
+      return {
+        ...l,
+        shadow,
+        tint: l.tint && paint(l.tint),
+        stroke: stroke(l.stroke),
+        ...(l.backdrop
+          ? { backdrop: { ...l.backdrop, color: l.backdrop.color && paint(l.backdrop.color) } }
+          : {})
+      }
     case 'grid':
       return {
         ...l,

@@ -1349,7 +1349,26 @@ export const en = {
   'documents.setupTable': 'Table',
   'documents.setupFixedSize': 'Fixed table size',
   'documents.setupHint':
-    'Click an element to select it, drag it to move it, use the arrow keys to nudge it by 1 mm (5 with Shift) and Delete to remove it. Without a fixed size the drawing fits its elements (dashed outline).',
+    'Click an element to select it and drag it to move it. Shift or ⌘/Ctrl + click adds elements to the selection, and so does dragging a box on an empty spot; ⌘A / Ctrl+A selects everything. The arrow keys nudge the selection by 1 mm (5 with Shift) and Delete removes it. Without a fixed size the drawing fits its elements (dashed outline).',
+  'documents.setupZoomFitHint': 'Fit the whole drawing in the window (⌘0 / Ctrl+0)',
+  'documents.setupZoomHint':
+    'Zoom with ⌘/Ctrl + mouse wheel, by pinching the trackpad or with ⌘+ and ⌘− / Ctrl++ and Ctrl+−. Move the view with the scroll bars, the wheel, or by dragging while holding the space bar',
+  'documents.setupFull': 'Full screen',
+  'documents.setupFullExit': 'Exit full screen',
+  'documents.setupFullHint': 'Use the whole app window for the drawing',
+  'documents.setupChosen': '{n} elements selected',
+  'documents.setupAlignHint':
+    'Align and distribute act on the box that holds all the selected elements. Drag one of them to move them all.',
+  'documents.setupOrder': 'Order',
+  'documents.setupOrder.top': 'Bring to front',
+  'documents.setupOrder.up': 'Bring forward',
+  'documents.setupOrder.down': 'Send backward',
+  'documents.setupOrder.bottom': 'Send to back',
+  'documents.setupOrder.topHint': 'Above all the elements of the same kind',
+  'documents.setupOrder.upHint': 'One step up among the elements of the same kind',
+  'documents.setupOrder.downHint': 'One step down among the elements of the same kind',
+  'documents.setupOrder.bottomHint':
+    'Below all the elements of the same kind. Zones always stay below cards and images, texts and arrows above',
   'documents.pickCard': 'Choose a card',
   'documents.pick': 'Choose',
   'documents.insertCard': 'Insert card',
@@ -1405,6 +1424,14 @@ export const en = {
   'variable.flip.v': 'Vertical',
   'variable.flip.hv': 'Both',
   'variable.opacity': 'Opacity',
+  'variable.bg': 'Background',
+  'variable.bgHint':
+    'A shape (circle, square, rounded, hexagon, diamond), an image or another image variable behind the image, wherever the variable is used: in texts, image layers and documents',
+  'variable.bgColor': 'Background color',
+  'variable.bgColorHint':
+    'Without a color, a shape takes the color of the text and an image keeps its own colors',
+  'variable.bgPad': 'Space around',
+  'variable.bgPadHint': 'Space between the image and the edge of the background, on each side',
   'variable.attrsHint':
     'In text these can be changed for a single use: {spada tint=red size=150% rotate=90 flip=h opacity=50%}',
   'variable.text': 'Text',

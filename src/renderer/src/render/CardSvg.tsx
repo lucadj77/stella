@@ -11,6 +11,8 @@ import {
 import { useI18n } from '../i18n/context'
 import { AssetsContext, ShowEmptyContext, assetUrl } from './assets'
 import { fitRect, useImageSize } from './imageSize'
+import { SvgBackdrop } from './backdrop'
+import { backdropInner } from '../../../shared/model/shapes'
 import { cropRect } from '../../../shared/model/crop'
 import { gridGeometry } from '../../../shared/model/grid'
 import MarkupText from './MarkupText'
@@ -541,7 +543,20 @@ function zoomRect<B extends { x: number; y: number; w: number; h: number }>(
   return { x: r.x + (r.w - w) / 2, y: r.y + (r.h - h) / 2, w, h }
 }
 
-function ImageView({ layer: l, id }: { layer: ImageLayer; id: string }): React.JSX.Element | null {
+function ImageView({ layer, id }: { layer: ImageLayer; id: string }): React.JSX.Element | null {
+  // con lo sfondo di una variabile l'immagine sta nel quadrato interno, sopra la forma
+  const l = layer.backdrop ? { ...layer, ...backdropInner(layer, layer.backdrop) } : layer
+  const view = <ImageBody layer={l} id={id} />
+  if (!layer.backdrop) return view
+  return (
+    <g>
+      <SvgBackdrop box={layer} backdrop={layer.backdrop} />
+      {view}
+    </g>
+  )
+}
+
+function ImageBody({ layer: l, id }: { layer: ImageLayer; id: string }): React.JSX.Element | null {
   const assets = useContext(AssetsContext)
   const { t } = useI18n()
   const showEmpty = useContext(ShowEmptyContext)
