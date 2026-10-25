@@ -34,9 +34,22 @@ import { InheritContext, type InheritCtx } from './inheritContext'
 import { hexagonFit, lineEnds, lineFromEnds, type Point } from '../../../shared/model/geometry'
 import { useI18n, type Translate } from '../i18n/context'
 import { evaluateFormula } from '../../../shared/model/formula'
-import { cardFields, rowToCard, substituteFields, switchSource } from '../../../shared/model/bind'
+import {
+  cardFields,
+  cellFields,
+  rowToCard,
+  substituteFields,
+  switchSource
+} from '../../../shared/model/bind'
 import type { MessageKey } from '../i18n/en'
-import { AssetsContext, ProjectLanguagesContext, assetUrl } from '../render/assets'
+import {
+  AssetsContext,
+  ProjectLanguagesContext,
+  VariablesContext,
+  assetUrl
+} from '../render/assets'
+import FormulaDialog, { type FormulaExpect } from '../components/FormulaDialog'
+import { contentGrid } from '../../../shared/model/formulaAssist'
 import CropDialog from '../components/CropDialog'
 import { DisplayContext } from './displayContext'
 import { cropText } from '../../../shared/model/crop'
@@ -1835,13 +1848,31 @@ function ValueSource({
   )
   // anteprima della formula sulla prima riga disponibile, o con i soli valori del template
   const sample = sheets.find((s) => s.rows.length)
-  const fields = cardFields(
-    template,
-    sample ? rowToCard(sample.headers, sample.rows[0]) : { fields: {}, amount: 1 }
-  )
+  const variables = useContext(VariablesContext)
+  const cells = contentGrid(template, l.id)
+  const fields = {
+    ...cardFields(
+      template,
+      sample ? rowToCard(sample.headers, sample.rows[0]) : { fields: {}, amount: 1 },
+      variables
+    ),
+    // nel contenuto di una griglia l'anteprima è quella della prima casella
+    ...(cells && cellFields(cells.grid, 0, cells.columns, cells.rows * cells.columns))
+  }
   const result = src.kind === 'formula' ? evaluateFormula(src.expr, fields) : null
   // come sulla carta: i {campo} rimasti nel risultato si sostituiscono
   const preview = result && { ...result, value: substituteFields(result.value, fields) }
+  const [assistant, setAssistant] = useState(false)
+  const fx = (
+    <button
+      type="button"
+      className="pick-btn fx-button"
+      title={t('fx.open')}
+      onClick={() => setAssistant(true)}
+    >
+      fx
+    </button>
+  )
   const listId = `columns-${l.id}`
 
   return (
@@ -1881,6 +1912,27 @@ function ValueSource({
           multiline
           rows={3}
           onChange={(expr) => set({ source: { kind: 'formula', expr } })}
+          action={fx}
+        />
+      )}
+      {src.kind !== 'formula' && (
+        <button type="button" className="fx-start" onClick={() => setAssistant(true)}>
+          <span className="fx-button">fx</span> {t('fx.start')}
+        </button>
+      )}
+      {assistant && (
+        <FormulaDialog
+          value={src.kind === 'formula' ? src.expr : ''}
+          expect={FORMULA_EXPECT[l.type]}
+          columns={headers}
+          layers={walkLayers([...template.front, ...template.back])
+            .filter((x) => x.id !== l.id && x.type !== 'group')
+            .map((x) => x.name)}
+          sample={fields}
+          sampleLabel={sample ? t('fx.firstCardOf', { set: sample.set }) : undefined}
+          cells={cells}
+          onApply={(expr) => set({ source: { kind: 'formula', expr } })}
+          onClose={() => setAssistant(false)}
         />
       )}
       {src.kind === 'formula' && <p className="small muted">{t('source.formulaHelp')}</p>}
@@ -1910,3 +1962,13 @@ function ValueSource({
 }
 
 type ValueSourceKind = Layer['source']['kind']
+
+/** Cosa dà la formula di un livello: il valore principale del suo tipo */
+const FORMULA_EXPECT: Record<Layer['type'], FormulaExpect> = {
+  text: 'text',
+  image: 'image',
+  shape: 'color',
+  grid: 'color',
+  group: 'bool',
+  value: 'value'
+}

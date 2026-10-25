@@ -3,7 +3,10 @@
 // scrive la formula come testo: il formato dei template non cambia.
 
 import { parseExpression, printExpression, type BinaryOperator, type FormulaNode } from './formula'
+import { gridSize } from './grid'
 import { parseAttrs, serializeAttrs, type Attrs } from './markup'
+import { walkLayers } from './normalize'
+import type { Template } from './template'
 
 export const FORMULA_CATEGORIES = ['condition', 'selection', 'math', 'text', 'recipes'] as const
 export type FormulaCategory = (typeof FORMULA_CATEGORIES)[number]
@@ -379,4 +382,41 @@ export function formulaText(node: FormulaNode): string {
     if (!/[-+*/{}\\]/.test(literals) && plain) return plain
   }
   return '=' + printExpression(node)
+}
+
+// --- dove si trova il livello ---
+
+/** Caselle della griglia che ripete il livello: il suo gruppo è il contenuto di una griglia */
+export interface CellContext {
+  grid: string
+  rows: number
+  columns: number
+}
+
+/**
+ * La griglia di cui il livello fa parte del contenuto (il gruppo stesso o un suo livello), dove
+ * valgono {cell.*}; null fuori dal contenuto di una griglia.
+ */
+export function contentGrid(template: Template, layerId: string): CellContext | null {
+  for (const side of [template.front, template.back]) {
+    const all = walkLayers(side)
+    for (const g of all) {
+      if (g.type !== 'grid' || !g.content.trim()) continue
+      const group = all.find((l) => l.type === 'group' && l.name === g.content.trim())
+      if (group && walkLayers([group]).some((l) => l.id === layerId))
+        return { grid: g.name, ...gridSize(g) }
+    }
+  }
+  return null
+}
+
+/** La prima casella vuota, nell'ordine in cui si legge la formula */
+export function firstEmpty(n: FormulaNode, path: NodePath = []): NodePath | null {
+  if (n.k === 'empty') return path
+  const c = children(n)
+  for (let i = 0; i < c.length; i++) {
+    const p = firstEmpty(c[i], [...path, i])
+    if (p) return p
+  }
+  return null
 }
