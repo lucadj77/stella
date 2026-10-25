@@ -5,6 +5,18 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.4.0-beta.1
+
+### English
+
+- **Formula assistant**: the **fx** button next to the formula of a layer, under **Value on cards** and next to the filter of the generator opens a window that builds the formula box by box. You choose what kind of formula you need (a conditional result, several cases, a pick from a list, a calculation, a text operation) and fill each box with a field, a variable, a cell or component number, a number, a formatted text, a colour, an image, a comparison or another formula. **Recipes** set up common cases in one click: every N cells, alternate, checkerboard, cycle through a list, pick at random, only if not empty, by range. Each box shows its result on the first card, inside a grid you see the first cells, and the formula text stays visible and can still be written by hand.
+- The **Help** window (F1), **Formulas** tab, now also lists `MOD` and `PICK`.
+
+### Italiano
+
+- **Assistente formule**: il tasto **fx** accanto alla formula di un livello, sotto **Valore sulle carte** e accanto al filtro del generatore apre una finestra che costruisce la formula casella per casella. Si sceglie che tipo di formula serve (un risultato condizionato, più casi, una scelta da un elenco, un calcolo, un'operazione sul testo) e si riempie ogni casella con un campo, una variabile, il numero della casella o del componente, un numero, un testo formattato, un colore, un'immagine, un confronto o un'altra formula. Le **ricette** impostano con un clic i casi frequenti: ogni N caselle, alterna, scacchiera, scorri un elenco, scegli a caso, solo se non vuoto, per fasce. Ogni casella mostra il suo risultato sulla prima carta, dentro una griglia si vedono le prime caselle, e il testo della formula resta visibile e si può ancora scrivere a mano.
+- La finestra **Aiuto** (F1), scheda **Formule**, elenca anche `MOD` e `PICK`.
+
 ## 1.3.1
 
 ### English

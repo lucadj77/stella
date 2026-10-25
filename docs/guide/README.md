@@ -546,6 +546,18 @@ A value layer can also provide a colour: in colour fields (fill, text colour, st
 
 A field's value is, in order of precedence: the calculated value layer, the non-empty cell of the row, the value written in the template. Formula errors are shown under the card and in the properties panel.
 
+### 9.1 The formula assistant
+
+The **fx** button next to the **Formula** field opens the assistant, which builds the formula box by box. On a layer with **Sheet column** or **Fixed** the same assistant opens with **Build a formula with the assistant…**, under **Value on cards**: when you confirm, the layer switches to **Formula**. It is also next to the **Filter** of the generator (section 10), where the formula must give true or false.
+
+- On the left the formula as blocks: each function has its boxes with a name (for `IF`: **Condition**, **If true**, **If false**) and under each box the value it gives on the first card. Empty boxes say **Choose…**.
+- On the right what to put in the chosen box: **Field** (columns and layers), **Variable**, **Card & cell** (the system variables with a readable name, such as **Cell number** for `{cell.index}`; the cell ones only inside the content of a grid), **Number**, **Text** (with fields between braces and **Format…** for colour, weight and the other attributes), **Color**, **Image** (for image layers), **Yes / No**, **Comparison** and **Formula**, which nests another function. The tab offered first depends on the box and on the layer: for a shape the result starts from **Color**.
+- **Formula** groups the functions by category: **Condition**, **Selection**, **Math**, **Text** and **Recipes**. Recipes set up common cases: **Every N** (`MOD`), **Alternate**, **Checkerboard**, **Cycle through a list** and **Pick at random** (`PICK`), **Only if not empty**, **By range**. Inside a grid they count cells, outside the components of the set. With **Put the current value inside** the chosen function takes the value of the box as its first argument.
+- **Several cases** shows a chain of `IF` as a list of **When… Then…** rows with **Otherwise** at the end; **+ Case** adds one.
+- Below, the formula text: it updates while you fill the boxes and you can also write it by hand. Inside a grid you see the result of the first cells. **Use formula** writes the formula in the field; a formula opened and not changed stays as it was.
+
+![The formula assistant on the number of the score track](img/assistente-formule.png)
+
 ## 10. Generating cards
 
 **Generate…**, in the set header, creates rows by combining sets of values. Each value set has a target column, a list of values (one per line or comma separated; `1-5` becomes 1, 2, 3, 4, 5) and how many values to put on each card.

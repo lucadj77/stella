@@ -540,7 +540,7 @@ export const it: Record<MessageKey, string> = {
   'layerType.image': 'Immagine',
   'layerType.shape': 'Forma',
   'source.formulaHelp':
-    'Inizia con = per un\'espressione come in Excel: =IF({forza}>3; "Forte"; "Debole"). Funzioni: IF, AND, OR, NOT, MIN, MAX, ABS, ROUND, FLOOR, CEILING, UPPER, LOWER, LEN, CONCAT, ISBLANK, COUNTIN (quante volte un testo ne contiene un altro: COUNTIN({costo}; "oro")). & unisce i testi.',
+    'Inizia con = per un\'espressione come in Excel: =IF({forza}>3; "Forte"; "Debole"). Funzioni: IF, AND, OR, NOT, MIN, MAX, ABS, ROUND, FLOOR, CEILING, UPPER, LOWER, LEN, CONCAT, ISBLANK, COUNTIN (quante volte un testo ne contiene un altro: COUNTIN({costo}; "oro")), MOD, PICK. & unisce i testi. Il tasto fx costruisce la formula passo per passo.',
   'source.formulaError': 'Errore nella formula: {error}',
   'source.formulaPreviewDefaults': 'Con i valori del template: {value}',
   'source.computedHint': 'Calcolato dalla formula sopra',

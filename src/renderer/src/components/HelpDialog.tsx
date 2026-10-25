@@ -49,7 +49,9 @@ const FUNCTIONS = [
   'LEN',
   'CONCAT',
   'ISBLANK',
-  'COUNTIN'
+  'COUNTIN',
+  'MOD',
+  'PICK'
 ] as const
 
 const isMac = navigator.userAgent.includes('Mac')
