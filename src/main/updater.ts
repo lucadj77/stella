@@ -126,7 +126,9 @@ async function install(version: string, sender: WebContents): Promise<void> {
   if ((await updateMode()) !== 'auto') throw new Error('this installation updates by hand')
   log('info', [`update ${app.getVersion()} -> ${version} on ${process.platform}`])
   if (process.platform === 'darwin') return installMac(version, progress)
-  const { autoUpdater } = await import('electron-updater')
+  // electron-updater è CommonJS e definisce autoUpdater con un getter che l'import() di Node non vede
+  // come esportazione con nome: va preso da default (module.exports), o è undefined
+  const { autoUpdater } = (await import('electron-updater')).default
   autoUpdater.logger = fileLogger
   // senza un ascoltatore un errore dell'installazione chiuderebbe l'app
   if (!autoUpdater.listenerCount('error')) autoUpdater.on('error', (e) => log('error', [e]))

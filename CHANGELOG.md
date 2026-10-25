@@ -5,6 +5,42 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.4.0
+
+### English
+
+#### New
+
+- **Formula assistant**: the **fx** button next to the formula of a layer, under **Value on cards** and next to the filter of the generator opens a window that builds the formula for you. It starts with **What do you want to do?** (a different value depending on a condition, every N cells, alternate, checkerboard, cycle through a list, pick at random, only if not empty, low/medium/high, calculate, join texts): the chosen case becomes a sentence to complete, with the result on the first card shown below. Blanks take a field, a variable, a cell or component number, a number, a formatted text, a colour, an image, a comparison or another formula, shown as a smaller sentence inside the sentence. Conditions can be combined with **+ and also** and **+ or**. **Advanced** shows the formula as nested boxes, and the formula text stays visible and can still be written by hand.
+- **Grid**: **Text in each cell** and **Shape in each cell** create the content of the cells in one click, so its formulas can vary from cell to cell.
+- **Website link** in the start screen footer and in Help (F1).
+
+#### Changed
+
+- **Help** (F1), **Formulas** tab, also lists `MOD` and `PICK`.
+- **Grids**: **Text in each cell** and **Shape in each cell** create the layer as big as the cell, so a text background stays aligned with the cell.
+
+#### Fixed
+
+- **Automatic update on Windows and Linux**: installing an update stopped with *Cannot set properties of undefined (setting 'logger')*, because the updater module was loaded the wrong way. Installed versions up to 1.3.1 and 1.4.0-beta.4 cannot install this fix by themselves: download 1.4.0 once from the release page, then updates work again.
+
+### Italiano
+
+#### Novità
+
+- **Assistente formule**: il tasto **fx** accanto alla formula di un livello, sotto **Valore sulle carte** e accanto al filtro del generatore apre una finestra che costruisce la formula al posto tuo. Si parte da **Cosa vuoi fare?** (un valore diverso secondo una condizione, ogni N caselle, alterna, scacchiera, scorri un elenco, scegli a caso, solo se non vuoto, basso/medio/alto, calcola, unisci testi): il caso scelto diventa una frase da completare, con sotto il risultato sulla prima carta. Gli spazi accettano un campo, una variabile, il numero della casella o del componente, un numero, un testo formattato, un colore, un'immagine, un confronto o un'altra formula, che compare come una frase più piccola dentro la frase. Le condizioni si combinano con **+ e anche** e **+ oppure**. **Avanzato** mostra la formula come caselle annidate, e il testo della formula resta visibile e si può ancora scrivere a mano.
+- **Griglia**: **Testo in ogni casella** e **Forma in ogni casella** creano con un clic il contenuto delle caselle, così le sue formule possono variare da casella a casella.
+- **Link al sito** nel piè di pagina della schermata iniziale e nell'Aiuto (F1).
+
+#### Modifiche
+
+- **Aiuto** (F1), scheda **Formule**, elenca anche `MOD` e `PICK`.
+- **Griglie**: **Testo in ogni casella** e **Forma in ogni casella** creano il livello grande quanto la casella, così uno sfondo nel testo resta allineato alla casella.
+
+#### Correzioni
+
+- **Aggiornamento automatico su Windows e Linux**: l'installazione di un aggiornamento si fermava con *Cannot set properties of undefined (setting 'logger')*, perché il modulo degli aggiornamenti era caricato nel modo sbagliato. Le versioni installate fino alla 1.3.1 e alla 1.4.0-beta.4 non possono installare da sole questa correzione: va scaricata una volta la 1.4.0 dalla pagina della release, poi gli aggiornamenti tornano a funzionare.
+
 ## 1.4.0-beta.4
 
 ### English
