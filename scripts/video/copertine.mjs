@@ -13,7 +13,10 @@ const SUBTITLES = {
   agente: ['Stella con un agente IA', 'Stella with an AI agent'],
   plance: ['Plance, tessere, segnalini e dadi', 'Boards, tiles, tokens and dice'],
   stampa: ['Stampare i componenti', 'Printing your components'],
-  griglie: ['Le griglie e le formule nelle caselle', 'Grids and cell formulas']
+  griglie: ['Le griglie e le formule nelle caselle', 'Grids and cell formulas'],
+  dati: ['I dati dal foglio di calcolo', 'Data from the spreadsheet'],
+  icone: ['Immagini, icone e font', 'Images, icons and fonts'],
+  lingue: ['Un gioco in più lingue', 'A game in several languages']
 }
 if (!SUBTITLES[video]) throw new Error('video sconosciuto: ' + video)
 const subtitle = SUBTITLES[video][it ? 0 : 1]

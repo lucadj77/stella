@@ -25,7 +25,8 @@ export const texts = {
       version: 'versione stabile',
       web: 'Prova nel browser',
       shot: 'La finestra del progetto di Stella con le carte di un set',
-      loading: 'cerco l’ultima versione…'
+      loading: 'cerco l’ultima versione…',
+      install: 'Come si installa'
     },
     features: {
       title: 'Cosa fa',
@@ -82,6 +83,7 @@ export const texts = {
       linuxAppImage: 'AppImage',
       linuxDeb: 'Pacchetto .deb (Debian, Ubuntu)',
       linuxNote: 'L’AppImage va reso eseguibile (chmod +x) e richiede libfuse2.',
+      install: 'Come si installa e come si supera l’avviso di macOS e Windows, passo per passo',
       all: 'Tutte le versioni su GitHub',
       beta: 'Le versioni beta si attivano dall’app, in ⚙ Aggiornamenti.',
       support: 'Stella è gratuita: se ti è utile, puoi offrirmi un caffè con PayPal.',
@@ -150,7 +152,8 @@ export const texts = {
       version: 'stable version',
       web: 'Try in the browser',
       shot: 'The Stella project window with the cards of a set',
-      loading: 'looking for the latest version…'
+      loading: 'looking for the latest version…',
+      install: 'How to install'
     },
     features: {
       title: 'What it does',
@@ -206,6 +209,7 @@ export const texts = {
       linuxAppImage: 'AppImage',
       linuxDeb: '.deb package (Debian, Ubuntu)',
       linuxNote: 'Make the AppImage executable (chmod +x); it needs libfuse2.',
+      install: 'How to install and get past the macOS and Windows warning, step by step',
       all: 'All versions on GitHub',
       beta: 'Beta versions are enabled in the app, under ⚙ Updates.',
       support: 'Stella is free: if you find it useful, you can buy me a coffee with PayPal.',

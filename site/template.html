@@ -51,7 +51,8 @@
             <a class="btn" href="{{root}}app/">{{hero.web}}</a>
           </div>
           <p class="hero-note">
-            <span id="dl-status">{{hero.loading}}</span> <span id="dl-hint"></span>
+            <span id="dl-status">{{hero.loading}}</span> <span id="dl-hint"></span> ·
+            <a href="{{installHref}}">{{hero.install}}</a>
           </p>
         </div>
         <div class="hero-shot">
@@ -93,6 +94,7 @@
           {{ornament}}
           <h2>{{download.title}}</h2>
           <p id="dl-intro">{{download.intro}}</p>
+          <p><a href="{{installHref}}">{{download.install}}</a></p>
         </div>
         <div class="dl-grid">
           <div class="dl">

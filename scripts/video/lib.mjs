@@ -31,7 +31,9 @@ export async function launch({
       '--user-data-dir=' + ud,
       '--no-sandbox',
       '--lang=' + lang,
-      '--force-device-scale-factor=' + scale
+      '--force-device-scale-factor=' + scale,
+      // ELECTRON_ARGS: per esempio --ignore-certificate-errors dietro il proxy del cloud (Google Fonts)
+      ...(process.env.ELECTRON_ARGS ? process.env.ELECTRON_ARGS.split(' ') : [])
     ],
     recordVideo: {
       dir: `${OUT}/raw`,

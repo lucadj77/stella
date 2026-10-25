@@ -8,6 +8,8 @@ The presentation site, with downloads and tutorials, is <https://stella.lucadj.e
 
 ## Installation
 
+Step by step, with the macOS and Windows warnings: [Installing Stella](docs/guide/README.md#installing-stella) in the user guide.
+
 Packages are on the [Releases](https://github.com/lucadj77/stella/releases) page or, for a build not yet released, among the artifacts of the **Build** action in [Actions](https://github.com/lucadj77/stella/actions/workflows/build.yml).
 
 - **Mac**: `Stella-<version>-mac-arm64.dmg` for Macs with an Apple chip (M1 and later), `-mac-x64.dmg` for those with an Intel processor. Open the .dmg and drag Stella to Applications. The app is not signed with an Apple certificate, so on first launch macOS says it cannot verify it: close the warning, open **System Settings → Privacy & Security** and press **Open Anyway** at the bottom. Alternatively, from Terminal: `xattr -dr com.apple.quarantine /Applications/Stella.app`. Only needed the first time.

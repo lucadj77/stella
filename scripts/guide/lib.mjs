@@ -7,7 +7,8 @@ export async function dict(lang) {
   const m = await import(`${REPO}/src/renderer/src/i18n/${lang}.ts`)
   return m[lang]
 }
-export const home = (lang) => `/Users/luca`
+// GUIDE_HOME: un'altra casa per le prove, mentre un video si registra con quella normale
+export const home = (lang) => process.env.GUIDE_HOME || '/Users/luca'
 export const docs = (lang) => `${home(lang)}/${lang === 'it' ? 'Documenti' : 'Documents'}`
 export function makeProject(lang) {
   const dest = `${docs(lang)}/Stella/${lang === 'it' ? 'Esempio' : 'Example'}`

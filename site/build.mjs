@@ -80,6 +80,10 @@ for (const lang of ['it', 'en']) {
     zoomClose: lang === 'it' ? 'Chiudi' : 'Close',
     guideDir: lang === 'it' ? 'guida' : 'guide',
     guideDirOther: lang === 'it' ? 'guide' : 'guida',
+    installHref:
+      lang === 'it'
+        ? 'https://github.com/lucadj77/stella/blob/main/docs/guida/README.md#installare-stella'
+        : 'https://github.com/lucadj77/stella/blob/main/docs/guide/README.md#installing-stella',
     ornament: ORNAMENT,
     'features.items': t.features.items
       .map(

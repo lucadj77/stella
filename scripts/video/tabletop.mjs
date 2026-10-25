@@ -71,14 +71,8 @@ await r.clear(2200)
 await r.overlay()
 
 // i componenti
-await openSet(
-  cardsSet,
-  it ? 'Le carte: diventano un mazzo' : 'The cards: they become a deck'
-)
-await openSet(
-  coins,
-  it ? 'Monete rotonde: diventano segnalini' : 'Round coins: they become tokens'
-)
+await openSet(cardsSet, it ? 'Le carte: diventano un mazzo' : 'The cards: they become a deck')
+await openSet(coins, it ? 'Monete rotonde: diventano segnalini' : 'Round coins: they become tokens')
 await openSet(
   lands,
   it ? 'Terreni esagonali: diventano tessere' : 'Hexagonal lands: they become tiles'
@@ -149,7 +143,7 @@ await r.click(dialog().getByRole('button', { name: T['export.close'], exact: tru
 await r.clear()
 await r.title(
   it
-    ? 'In Tabletop Simulator: Oggetti → Oggetti salvati'
+    ? 'In Tabletop Simulator: Objects → Saved Objects'
     : 'In Tabletop Simulator: Objects → Saved Objects',
   3600
 )

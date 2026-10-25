@@ -10,6 +10,8 @@ Versione italiana: [../guida/README.md](../guida/README.md).
 
 ## Contents
 
+- [Installing Stella](#installing-stella)
+
 1. [Basic concepts](#1-basic-concepts)
 2. [Start screen](#2-start-screen)
 3. [The project window](#3-the-project-window)
@@ -28,6 +30,55 @@ Versione italiana: [../guida/README.md](../guida/README.md).
 16. [The web version](#16-the-web-version)
 17. [Project files](#17-project-files)
 18. [Keyboard shortcuts](#18-keyboard-shortcuts)
+
+## Installing Stella
+
+Download Stella from the [Download section of the website](https://stella.lucadj.eu/#download), which offers the right file for your system, or from the [releases page on GitHub](https://github.com/lucadj77/stella/releases), which has every version. It's free and needs no account.
+
+Stella is not signed with an Apple or Microsoft certificate: those certificates cost hundreds of dollars a year, and Stella is a free project. So the first time you open it, macOS and Windows show a warning and ask you to confirm. The program is the same one you find on GitHub, with public source code; you confirm only once, then Stella opens normally, also after automatic updates.
+
+### Mac
+
+1. Pick the file for your processor: `Stella-<version>-mac-arm64.dmg` for Macs with an Apple chip (M1 and later), `Stella-<version>-mac-x64.dmg` for those with an Intel processor. If you don't know which one you have: Apple menu → **About This Mac**, under **Chip** or **Processor**.
+2. Open the .dmg and drag the Stella icon onto the **Applications** folder. Then eject the Stella disk from the Finder sidebar. Keep Stella in Applications (or another folder you can write to): opened from the downloaded disk, it doesn't update itself.
+3. Open Stella from Applications or Launchpad. macOS says it can't verify that the app is free of malware: press **Done** (or **OK**), not **Move to Trash**.
+4. Open **System Settings → Privacy & Security** and scroll down to the **Security** section: there's the line "Stella" was blocked to protect your Mac. Press **Open Anyway** and confirm with your password or Touch ID.
+5. Open Stella again and, in the last warning, press **Open**. From then on you won't be asked again.
+
+On macOS versions before Sequoia (15), a right-click (or Control-click) on the app in Applications → **Open** → **Open** also works.
+
+If macOS says Stella "is damaged and can't be opened", or **Open Anyway** doesn't appear, remove the block from Terminal (Applications → Utilities → Terminal):
+
+```bash
+xattr -dr com.apple.quarantine /Applications/Stella.app
+```
+
+### Windows
+
+1. Download `Stella-<version>-windows-setup.exe`. Edge or Chrome may warn that the file isn't commonly downloaded: in the downloads panel open the **…** menu next to the file and choose **Keep** (in Edge then **Show more → Keep anyway**).
+2. Open the file. The blue SmartScreen window "Windows protected your PC" appears: press **More info** and then **Run anyway**. If Windows asks whether to allow the app to make changes, answer **Yes**.
+3. Follow the installer: you can choose whether to install Stella just for you or for all users, and the folder. At the end Stella is in the Start menu and on the desktop.
+
+The **portable** version, `Stella-<version>-windows-portable.exe`, doesn't install: it starts with a double-click, also from a USB stick, and keeps its data (recent projects, preferences) in the `Stella data` folder next to the file. It also goes through SmartScreen the first time. It doesn't update itself: when a new version comes out, Stella tells you and opens the page to download it.
+
+On work computers the administrator may block unsigned programs entirely. In that case there's the [web version](#16-the-web-version), which doesn't install.
+
+### Linux
+
+- **AppImage** (`Stella-<version>-linux-x86_64.AppImage`), for any distribution: make it executable and start it. From the file manager: right-click → Properties → Permissions → "Allow executing file as program"; or from the terminal:
+
+  ```bash
+  chmod +x Stella-*-linux-x86_64.AppImage
+  ./Stella-*-linux-x86_64.AppImage
+  ```
+
+  The AppImage needs libfuse2: on Ubuntu 24.04 and later `sudo apt install libfuse2t64`, on earlier versions `sudo apt install libfuse2`. It updates itself.
+
+- **.deb package** (`Stella-<version>-linux-amd64.deb`), for Debian, Ubuntu and derivatives: `sudo apt install ./Stella-<version>-linux-amd64.deb`. Stella appears among the applications and also starts with the `stella` command. It doesn't update itself: for a new version, install the new .deb the same way.
+
+### Uninstalling
+
+On the Mac, drag Stella from the Applications folder to the Trash; on Windows, use **Settings → Apps → Installed apps → Stella → Uninstall**; on Linux, delete the AppImage, or `sudo apt remove stella`. Your projects stay where you saved them: they are ordinary folders, which Stella never deletes.
 
 ## 1. Basic concepts
 

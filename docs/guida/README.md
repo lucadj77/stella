@@ -10,6 +10,8 @@ English version: [../guide/README.md](../guide/README.md).
 
 ## Indice
 
+- [Installare Stella](#installare-stella)
+
 1. [Concetti di base](#1-concetti-di-base)
 2. [Schermata di ingresso](#2-schermata-di-ingresso)
 3. [La finestra del progetto](#3-la-finestra-del-progetto)
@@ -28,6 +30,55 @@ English version: [../guide/README.md](../guide/README.md).
 16. [La versione web](#16-la-versione-web)
 17. [I file del progetto](#17-i-file-del-progetto)
 18. [Scorciatoie da tastiera](#18-scorciatoie-da-tastiera)
+
+## Installare Stella
+
+Stella si scarica dalla sezione [Scarica del sito](https://stella.lucadj.eu/it/#download), che propone il file giusto per il tuo sistema, oppure dalla pagina delle [release su GitHub](https://github.com/lucadj77/stella/releases), dove ci sono tutte le versioni. È gratuita e non serve un account.
+
+Stella non è firmata con un certificato di Apple o di Microsoft: i certificati costano centinaia di euro l'anno, e Stella è un progetto gratuito. Per questo, la prima volta che la apri, macOS e Windows mostrano un avviso e chiedono conferma. Il programma è lo stesso che trovi su GitHub, con il codice sorgente pubblico; la conferma serve una volta sola, poi Stella si apre normalmente, anche dopo gli aggiornamenti automatici.
+
+### Mac
+
+1. Scegli il file in base al processore: `Stella-<versione>-mac-arm64.dmg` per i Mac con chip Apple (M1 e successivi), `Stella-<versione>-mac-x64.dmg` per quelli con processore Intel. Se non sai quale hai: menu Apple → **Informazioni su questo Mac**, alla voce **Chip** o **Processore**.
+2. Apri il .dmg e trascina l'icona di Stella sulla cartella **Applicazioni**. Poi espelli il disco di Stella dalla barra laterale del Finder. Tieni Stella in Applicazioni (o in un'altra cartella in cui puoi scrivere): aperta dal disco scaricato non si aggiorna da sola.
+3. Apri Stella da Applicazioni o da Launchpad. macOS dice che non può verificare che l'app sia priva di malware: premi **Fine** (o **OK**), non **Sposta nel Cestino**.
+4. Apri **Impostazioni di Sistema → Privacy e sicurezza** e scorri fino alla sezione **Sicurezza**: c'è la riga «L'apertura di "Stella" è stata bloccata». Premi **Apri comunque** e conferma con la password o con Touch ID.
+5. Riapri Stella e, nell'ultimo avviso, premi **Apri**. Da qui in poi non viene più chiesto.
+
+Sulle versioni di macOS precedenti a Sequoia (15) basta anche un clic destro (o Ctrl+clic) sull'app in Applicazioni → **Apri** → **Apri**.
+
+Se macOS dice che Stella «è danneggiata e non può essere aperta», o se **Apri comunque** non compare, si toglie il blocco dal Terminale (Applicazioni → Utility → Terminale):
+
+```bash
+xattr -dr com.apple.quarantine /Applications/Stella.app
+```
+
+### Windows
+
+1. Scarica `Stella-<versione>-windows-setup.exe`. Edge o Chrome possono avvisare che il file non viene scaricato spesso: nel pannello dei download apri il menu **…** accanto al file e scegli **Mantieni** (in Edge poi **Mostra altro → Mantieni comunque**).
+2. Apri il file. Compare la finestra blu «Windows ha protetto il PC» di SmartScreen: premi **Ulteriori informazioni** e poi **Esegui comunque**. Se Windows chiede se consentire all'app di apportare modifiche, rispondi **Sì**.
+3. Segui l'installazione: puoi scegliere se installare Stella solo per te o per tutti gli utenti, e la cartella. Alla fine Stella è nel menu Start e sul desktop.
+
+La versione **portatile**, `Stella-<versione>-windows-portable.exe`, non si installa: si avvia con un doppio clic, anche da una chiavetta USB, e tiene i suoi dati (progetti recenti, preferenze) nella cartella `Stella data` accanto al file. Anche lei passa da SmartScreen la prima volta. Non si aggiorna da sola: quando esce una versione nuova Stella lo segnala e apre la pagina da cui scaricarla.
+
+Sui computer di lavoro l'amministratore può impedire del tutto i programmi non firmati. In quel caso c'è la [versione web](#16-la-versione-web), che non si installa.
+
+### Linux
+
+- **AppImage** (`Stella-<versione>-linux-x86_64.AppImage`), per qualsiasi distribuzione: rendilo eseguibile e avvialo. Dal file manager: tasto destro → Proprietà → Permessi → «Consenti l'esecuzione come programma»; oppure dal terminale:
+
+  ```bash
+  chmod +x Stella-*-linux-x86_64.AppImage
+  ./Stella-*-linux-x86_64.AppImage
+  ```
+
+  L'AppImage richiede libfuse2: su Ubuntu 24.04 e successive `sudo apt install libfuse2t64`, sulle versioni precedenti `sudo apt install libfuse2`. Si aggiorna da sola.
+
+- **Pacchetto .deb** (`Stella-<versione>-linux-amd64.deb`), per Debian, Ubuntu e derivate: `sudo apt install ./Stella-<versione>-linux-amd64.deb`. Stella compare tra le applicazioni e si avvia anche con il comando `stella`. Non si aggiorna da sola: per una versione nuova si installa il .deb nuovo allo stesso modo.
+
+### Disinstallare
+
+Sul Mac si trascina Stella dalla cartella Applicazioni nel Cestino; su Windows si usa **Impostazioni → App → App installate → Stella → Disinstalla**; su Linux si cancella l'AppImage, oppure `sudo apt remove stella`. I progetti restano dove li hai salvati: sono cartelle normali, che Stella non cancella mai.
 
 ## 1. Concetti di base
 
