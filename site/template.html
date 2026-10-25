@@ -42,7 +42,7 @@
             <a id="dl-main" class="btn primary" href="#download"
               ><span class="label">{{hero.downloadGeneric}}</span></a
             >
-            <a class="btn" href="{{root}}app/">{{hero.web}}</a>
+            <a class="btn" href="#web">{{hero.web}}</a>
           </div>
           <p class="hero-note">
             <span id="dl-status">{{hero.loading}}</span> <span id="dl-hint"></span> ·
@@ -168,11 +168,13 @@
           {{ornament}}
           <h2>{{web.title}}</h2>
           <p>{{web.text}}</p>
+          <p class="web-limits">{{web.limits}}</p>
           <p><a href="{{web.moreHref}}">{{web.more}}</a></p>
         </div>
         <div class="web-actions">
           <a class="btn primary" href="{{root}}app/">{{web.open}}</a>
           <a class="btn" href="{{root}}beta/">{{web.beta}}</a>
+          <a class="btn" href="#download">{{web.download}}</a>
         </div>
       </div>
     </section>

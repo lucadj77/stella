@@ -110,8 +110,11 @@ export const texts = {
       failed: 'Non riesco a leggere l’ultima versione: scaricala dalla pagina delle release.'
     },
     web: {
-      title: 'Nel browser, senza installare',
-      text: 'La versione web è la stessa app in Chrome, Edge o Opera, per i computer dove non si può installare nulla. Lavora sugli stessi progetti del tuo computer, con alcune funzioni in meno.',
+      title: 'Provare Stella nel browser',
+      text: 'La versione web serve a provare Stella senza installare nulla, o a usarla sui computer dove non si può installare: funziona in Chrome, Edge o Opera e lavora sugli stessi progetti del tuo computer.',
+      limits:
+        'Ha però dei limiti rispetto all’app: il PDF passa dalla finestra di stampa del browser e non c’è la conversione in CMYK, l’esportazione per Tabletop Simulator chiede qualche passaggio in più, i font di Google hanno solo l’alfabeto latino, mancano il comando stella e gli aggiornamenti dei cataloghi di icone e font. Per usare al meglio tutte le funzioni ti consiglio la versione desktop.',
+      download: 'Scarica la versione desktop',
       open: 'Apri la versione web',
       beta: 'versione beta',
       more: 'Cosa manca rispetto all’app',
@@ -279,8 +282,11 @@ export const texts = {
       failed: 'The latest version could not be read: download it from the releases page.'
     },
     web: {
-      title: 'In the browser, nothing to install',
-      text: 'The web version is the same app in Chrome, Edge or Opera, for computers where nothing can be installed. It works on the same projects on your computer, with a few features less.',
+      title: 'Try Stella in the browser',
+      text: 'The web version lets you try Stella without installing anything, or use it on computers where nothing can be installed: it runs in Chrome, Edge or Opera and works on the same projects on your computer.',
+      limits:
+        'It does have limits compared with the app: PDFs go through the browser print dialog with no CMYK conversion, the Tabletop Simulator export needs a few extra steps, Google fonts come with the Latin alphabet only, and there is no stella command and no catalog updates for icons and fonts. To get the most out of every feature, I recommend the desktop version.',
+      download: 'Download the desktop version',
       open: 'Open the web version',
       beta: 'beta version',
       more: 'What the desktop app adds',
