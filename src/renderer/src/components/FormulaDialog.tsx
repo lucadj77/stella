@@ -252,6 +252,11 @@ export default function FormulaDialog({
     return t('fx.arg.number')
   }
   /** Nel modo guidato lo spazio selezionato ha il suo nome */
+  /** Nel modo guidato lo spazio dice che cosa ci va: una soglia è un numero anche dentro un confronto */
+  const pickerKind = (path: NodePath): SlotKind => {
+    const part = mode === 'guided' ? blanks.find((p) => same(p.blank, path)) : undefined
+    return part && 'blank' in part ? part.kind : slotKind(path)
+  }
   const blankLabel = (path: NodePath): string => {
     const part = blanks.find((p) => same(p.blank, path))
     return part && 'blank' in part ? t(part.label as MessageKey) : slotLabel(path)
@@ -314,7 +319,7 @@ export default function FormulaDialog({
       })}
       node={nodeAt(root, selected)!}
       path={selected}
-      kind={slotKind(selected)}
+      kind={pickerKind(selected)}
       expect={expect}
       ctx={ctx}
       columns={columns}
@@ -322,8 +327,8 @@ export default function FormulaDialog({
       fields={fields}
       known={known}
       variables={variables}
-      templates={slotTemplates(slotKind(selected))}
-      defaults={slotDefaults(slotKind(selected))}
+      templates={slotTemplates(pickerKind(selected))}
+      defaults={slotDefaults(pickerKind(selected))}
       onPick={pick}
       onRemove={
         canRemove(root, selected)
@@ -348,6 +353,13 @@ export default function FormulaDialog({
     </p>
   )
 
+  // una condizione si legge Sì o No, non true o false
+  const shown = (v: string | undefined): string =>
+    !v
+      ? '∅'
+      : expect === 'bool' && /^(true|false)$/i.test(v)
+        ? t(/^true$/i.test(v) ? 'fx.yes' : 'fx.no')
+        : v
   const resultLine = (
     <p className={`small ${textError || result?.error ? 'fx-error' : 'muted'}`}>
       {textError
@@ -357,8 +369,8 @@ export default function FormulaDialog({
           : result?.error
             ? t('fx.resultError', { error: result.error })
             : sampleLabel
-              ? t('fx.result', { value: result?.value || '∅', card: sampleLabel })
-              : t('fx.resultDefaults', { value: result?.value || '∅' })}
+              ? t('fx.result', { value: shown(result?.value), card: sampleLabel })
+              : t('fx.resultDefaults', { value: shown(result?.value) })}
     </p>
   )
   const stripView = strip && (
@@ -1181,10 +1193,21 @@ function SlotPicker(p: PickerProps): React.JSX.Element {
   const write = (text: string, a: Attrs = attrs): void => {
     setSrc(text)
     setAttrs(a)
+    const plain = !serializeAttrs(a)
+    const n = Number(text.trim().replace(',', '.'))
+    // un numero scritto da solo resta un numero: «3» in un confronto vale 3, non il testo "3"
+    const numeric =
+      plain &&
+      /^-?\d+([.,]\d+)?$/.test(text.trim()) &&
+      String(Math.abs(n)) === text.trim().replace(',', '.').replace(/^-/, '')
     const node: FormulaNode =
-      text === '' && !serializeAttrs(a)
+      text === '' && plain
         ? { k: 'empty' }
-        : writeText({ parts: partsFromTemplate(text, p.known), attrs: a })
+        : numeric
+          ? n < 0
+            ? { k: 'neg', v: { k: 'num', v: -n } }
+            : { k: 'num', v: n }
+          : writeText({ parts: partsFromTemplate(text, p.known), attrs: a })
     setWritten(node)
     p.onPick(node)
   }

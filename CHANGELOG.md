@@ -5,6 +5,18 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.4.0-beta.4
+
+### English
+
+- **Formula assistant**: a threshold or a number blank in a sentence opens the **Number** tab, and a number typed in the text of a comparison stays a number (`5`, not `"5"`), so comparisons with typed numbers work as expected.
+- **Formula assistant**: the result of a condition reads Yes or No instead of true or false.
+
+### Italiano
+
+- **Assistente formule**: una soglia o uno spazio numerico di una frase apre la scheda **Numero**, e un numero scritto nel testo di un confronto resta un numero (`5`, non `"5"`): i confronti con numeri scritti a mano funzionano come ci si aspetta.
+- **Assistente formule**: il risultato di una condizione si legge Sì o No invece di true o false.
+
 ## 1.4.0-beta.3
 
 ### English
