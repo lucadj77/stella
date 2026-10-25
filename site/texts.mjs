@@ -57,6 +57,26 @@ export const texts = {
         ]
       ]
     },
+    local: {
+      title: 'I tuoi dati restano sul tuo computer',
+      intro:
+        'Un progetto di Stella è una normale cartella sul tuo computer: il foglio di calcolo con i dati, i template, le immagini e i documenti. Niente account, niente cloud, niente abbonamenti.',
+      items: [
+        [
+          'Nessun dato inviato',
+          'Stella non manda i tuoi progetti da nessuna parte e non raccoglie statistiche su come la usi. Il tuo gioco resta tuo, anche prima di annunciarlo.'
+        ],
+        [
+          'File aperti, sempre leggibili',
+          'Fogli Excel, immagini e testi in Markdown: si aprono con altri programmi anche senza Stella, oggi e tra dieci anni.'
+        ],
+        [
+          'La cartella va dove vuoi',
+          'Su una chiavetta, in Dropbox o Google Drive per lavorare da più computer, in un repository git per tenere la storia delle modifiche.'
+        ]
+      ],
+      note: 'Stella si collega a internet solo per controllare gli aggiornamenti, per scaricare font e icone quando li scegli tu e per leggere un foglio Google se ne colleghi uno.'
+    },
     shots: {
       title: 'Uno sguardo',
       items: [
@@ -184,6 +204,26 @@ export const texts = {
           'Tabletop Creator projects open and convert, with templates, data and images.'
         ]
       ]
+    },
+    local: {
+      title: 'Your data stays on your computer',
+      intro:
+        'A Stella project is an ordinary folder on your computer: the spreadsheet with the data, the templates, the images and the documents. No account, no cloud, no subscription.',
+      items: [
+        [
+          'Nothing is sent',
+          'Stella does not send your projects anywhere and does not collect statistics on how you use it. Your game stays yours, even before you announce it.'
+        ],
+        [
+          'Open files, always readable',
+          'Excel sheets, images and Markdown text: they open in other programs even without Stella, today and ten years from now.'
+        ],
+        [
+          'The folder goes where you want',
+          'On a USB stick, in Dropbox or Google Drive to work from several computers, in a git repository to keep the history of your changes.'
+        ]
+      ],
+      note: 'Stella goes online only to check for updates, to download fonts and icons when you pick them, and to read a Google sheet if you link one.'
     },
     shots: {
       title: 'A look',
@@ -336,6 +376,33 @@ export const videos = [
     url: {
       it: 'https://www.youtube.com/watch?v=hOHibzzWdtw',
       en: 'https://www.youtube.com/watch?v=f-ks0NMbs6k'
+    }
+  },
+  {
+    it: 'I dati dal foglio di calcolo',
+    en: 'Data from the spreadsheet',
+    minutes: 9,
+    url: {
+      it: 'https://www.youtube.com/watch?v=m_DN9LW7OTU',
+      en: 'https://www.youtube.com/watch?v=55U-lu3N3AE'
+    }
+  },
+  {
+    it: 'Immagini, icone e font',
+    en: 'Images, icons and fonts',
+    minutes: 6,
+    url: {
+      it: 'https://www.youtube.com/watch?v=aDtusbkTleY',
+      en: 'https://www.youtube.com/watch?v=PWL7IkAG4qo'
+    }
+  },
+  {
+    it: 'Un gioco in più lingue',
+    en: 'A game in several languages',
+    minutes: 6,
+    url: {
+      it: 'https://www.youtube.com/watch?v=1eV4QzH_3XI',
+      en: 'https://www.youtube.com/watch?v=gszofbPThzU'
     }
   }
 ]

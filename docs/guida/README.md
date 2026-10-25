@@ -15,6 +15,9 @@ Video tutorial su YouTube, senza voce ([tutta la playlist](https://www.youtube.c
 7. [Plance, tessere, segnalini e dadi](https://www.youtube.com/watch?v=kf8xqR-5BDU) (8 minuti)
 8. [Le griglie e le formule nelle caselle](https://www.youtube.com/watch?v=wY4PRv9vN1o) (14 minuti)
 9. [Stampare i componenti](https://www.youtube.com/watch?v=hOHibzzWdtw) (7 minuti)
+10. [I dati dal foglio di calcolo](https://www.youtube.com/watch?v=m_DN9LW7OTU) (9 minuti)
+11. [Immagini, icone e font](https://www.youtube.com/watch?v=aDtusbkTleY) (6 minuti)
+12. [Un gioco in più lingue](https://www.youtube.com/watch?v=1eV4QzH_3XI) (6 minuti)
 
 English version: [../guide/README.md](../guide/README.md).
 
