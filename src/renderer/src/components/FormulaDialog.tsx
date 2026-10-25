@@ -25,6 +25,7 @@ import {
   removeArg,
   replaceAt,
   templateFromParts,
+  type FormattedText,
   writeText,
   type CatalogContext,
   type CellContext,
@@ -969,6 +970,16 @@ function SlotPicker(p: PickerProps): React.JSX.Element {
     !p.path.length && p.node.k === 'empty' ? 'formula' : firstTab(p.kind, p.expect, p.node)
   )
   const [all, setAll] = useState(false)
+  const [formatting, setFormatting] = useState(false)
+  // un campo o un testo nella casella si formatta direttamente, senza passare dalla scheda Testo
+  const formattable: FormattedText | null =
+    p.kind === 'condition' || p.kind === 'number'
+      ? null
+      : p.node.k === 'field'
+        ? { parts: [{ field: p.node.name }], attrs: { styles: [] } }
+        : p.node.k === 'str' || p.node.k === 'bin'
+          ? readText(p.node)
+          : null
   const few = relevantTabs(p.kind, p.expect)
   // dentro una griglia le variabili della casella servono quasi sempre
   if (p.ctx.inCell && !few.includes('system') && p.kind !== 'condition') few.splice(2, 0, 'system')
@@ -1016,6 +1027,11 @@ function SlotPicker(p: PickerProps): React.JSX.Element {
         {tab === 'formula' && <FormulaTab {...p} />}
       </div>
       <div className="fx-row fx-picker-actions">
+        {formattable && (
+          <button type="button" onClick={() => setFormatting(true)}>
+            {t('fx.formatThis')}
+          </button>
+        )}
         {p.node.k !== 'empty' && (
           <button type="button" onClick={() => p.onPick({ k: 'empty' })}>
             {t('fx.clear')}
@@ -1027,6 +1043,18 @@ function SlotPicker(p: PickerProps): React.JSX.Element {
           </button>
         )}
       </div>
+      {formatting && formattable && (
+        <FormatDialog
+          initial={formattable.attrs}
+          sample={templateFromParts(formattable.parts) || t('fx.textSample')}
+          mode="text"
+          onApply={(attrs) => {
+            setFormatting(false)
+            p.onPick(writeText({ parts: formattable.parts, attrs }))
+          }}
+          onClose={() => setFormatting(false)}
+        />
+      )}
     </div>
   )
 }
@@ -1150,7 +1178,10 @@ function NumberTab(p: PickerProps): React.JSX.Element {
 function TextTab(p: PickerProps): React.JSX.Element {
   const { t } = useI18n()
   const current = p.node.k === 'str' || p.node.k === 'bin' ? readText(p.node) : null
-  const [src, setSrc] = useState(current ? templateFromParts(current.parts) : '')
+  // un campo nella casella si ritrova nel testo, pronto da formattare o completare
+  const [src, setSrc] = useState(
+    current ? templateFromParts(current.parts) : p.node.k === 'field' ? `{${p.node.name}}` : ''
+  )
   const [attrs, setAttrs] = useState<Attrs>(current?.attrs ?? { styles: [] })
   const [formatting, setFormatting] = useState(false)
   const names = [...new Set([...p.columns, ...p.layers])]

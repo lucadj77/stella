@@ -2059,6 +2059,7 @@ export const en = {
   'fx.use': 'Use',
   'fx.textPlaceholder': 'Text, with {field} for the values of the card',
   'fx.insertField': 'Insert a field…',
+  'fx.formatThis': 'Format this value…',
   'fx.format': 'Format…',
   'fx.formatted': 'Formatting: {attrs}',
   'fx.removeFormat': 'Remove',

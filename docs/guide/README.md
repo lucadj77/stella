@@ -554,7 +554,7 @@ With an empty formula the assistant asks **What do you want to do?** and offers 
 
 ![The start screen of the assistant](img/assistente-formule-inizio.png)
 
-Once you pick a card, the formula appears as a sentence to complete, already filled with sensible values: for example **Every 10 cells, show "Yes" otherwise "No"**. Each blank is a button: the selected one has the picker below with what can go in it (**Field**, **Number**, **Text** with **Format…** for colour and weight, **Variable**, **Card & cell**, **Formula**…; **More…** shows the remaining tabs). Under the sentence the result on the first card and, inside a grid, the result of the first cells; **Show formula** opens the formula text, which you can also write by hand. When you open an existing formula that matches one of the sentences, the assistant shows it as that sentence.
+Once you pick a card, the formula appears as a sentence to complete, already filled with sensible values: for example **Every 10 cells, show "Yes" otherwise "No"**. Each blank is a button: the selected one has the picker below with what can go in it (**Field**, **Number**, **Text**, **Variable**, **Card & cell**, **Formula**…; **More…** shows the remaining tabs). **Format this value…** gives colour, weight and the other attributes to the field or text in the blank: for example the cell number in red every six cells. Under the sentence the result on the first card and, inside a grid, the result of the first cells; **Show formula** opens the formula text, which you can also write by hand. When you open an existing formula that matches one of the sentences, the assistant shows it as that sentence.
 
 ![The formula assistant on the number of the score track](img/assistente-formule.png)
 

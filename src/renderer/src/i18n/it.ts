@@ -2089,6 +2089,7 @@ export const it: Record<MessageKey, string> = {
   'fx.use': 'Usa',
   'fx.textPlaceholder': 'Testo, con {campo} per i valori della carta',
   'fx.insertField': 'Inserisci un campo…',
+  'fx.formatThis': 'Formatta questo valore…',
   'fx.format': 'Formatta…',
   'fx.formatted': 'Formattazione: {attrs}',
   'fx.removeFormat': 'Togli',
