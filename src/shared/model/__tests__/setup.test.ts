@@ -9,7 +9,7 @@ import {
   setupSource,
   type SetupItem
 } from '../setup'
-import { documentProblems, parseDocument } from '../document'
+import { anatomySource, documentProblems, parseDocument } from '../document'
 import type { LoadedSet } from '../../project'
 
 const lines = (src: string): { lines: string[]; starts: number[] } => {
@@ -137,5 +137,24 @@ describe('disposizione nello schema', () => {
     expect(reorderSetupItem(items, 1, 'up').items).toBe(items)
     expect(canReorderSetupItem(items, 1, true)).toBe(false)
     expect(canReorderSetupItem(items, 2, false)).toBe(true)
+  })
+})
+
+describe('larghezza e testo dei blocchi', () => {
+  it('legge e scrive width e font nello schema', () => {
+    const s = parse('width 60%\nfont: 80%\nzone 0,0 10x10\nwidth 5%')
+    expect(s.width).toBe(0.6)
+    expect(s.font).toBe(0.8)
+    expect(s.bad).toHaveLength(1)
+    expect(setupSource(s)).toContain('width: 60%\nfont: 80%\nzone')
+    expect(setupSource({ ...s, width: 1, font: 1 })).not.toContain('width:')
+  })
+
+  it("legge width e font nell'anatomia", () => {
+    const [b] = parseDocument('```anatomy\ncard: P/1\nwidth: 50%\nfont: 120%\n- nome: Nome\n```')
+    expect(b).toMatchObject({ kind: 'anatomy', width: 0.5, font: 1.2, bad: [] })
+    expect(anatomySource('P/1', [{ layer: 'nome', label: 'Nome' }], false, { width: 0.5 })).toBe(
+      '```anatomy\ncard: P/1\nwidth: 50%\n- nome: Nome\n```'
+    )
   })
 })

@@ -9,6 +9,9 @@
 //   text 140,30 width=50 "Pesca **2** carte"
 //   arrow 40,50 -> 60,80 "pesca"
 //   image icons/moneta.png 200,20 width=10
+//
+// Con `width 60%` lo schema occupa al massimo il 60% della riga, con `font 90%` le didascalie
+// hanno il 90% del corpo di base.
 
 export const SETUP_FENCE = 'setup'
 
@@ -35,8 +38,41 @@ export interface Setup {
   /** Misure dell'area in mm; senza, quelle degli elementi */
   size: { w: number; h: number } | null
   items: SetupItem[]
+  /** Larghezza massima in frazione della riga; null = tutta */
+  width?: number | null
+  /** Corpo delle didascalie in frazione di quello di base; null = di base */
+  font?: number | null
   /** Righe che non si capiscono */
   bad: { from: number; to: number }[]
+}
+
+/** Limiti di `width:` e `font:` negli schemi del tavolo e nelle anatomie (model/document.ts), in frazione */
+export const BLOCK_WIDTH = { min: 0.1, max: 1 }
+export const BLOCK_FONT = { min: 0.3, max: 3 }
+
+/**
+ * Righe `width: 60%` e `font: 90%` dell'anatomia e dello schema del tavolo (anche senza i due
+ * punti); value null se il valore non va bene
+ */
+export function blockSizeLine(
+  line: string
+): { key: 'width' | 'font'; value: number | null } | null {
+  const m = /^\s*(width|font)\s*:?\s*(\S*)\s*$/i.exec(line)
+  if (!m) return null
+  const key = m[1].toLowerCase() as 'width' | 'font'
+  const pct = /^(\d+(?:[.,]\d+)?)%$/.exec(m[2])
+  const n = pct ? Number(pct[1].replace(',', '.')) / 100 : NaN
+  const lim = key === 'width' ? BLOCK_WIDTH : BLOCK_FONT
+  return { key, value: n >= lim.min && n <= lim.max ? n : null }
+}
+
+/** Le righe `width:` e `font:` da scrivere nel blocco */
+export function blockSizeLines(o: { width?: number | null; font?: number | null }): string[] {
+  const pct = (n: number): string => `${Math.round(n * 1000) / 10}%`
+  return [
+    ...(o.width && o.width < 1 ? [`width: ${pct(o.width)}`] : []),
+    ...(o.font && o.font !== 1 ? [`font: ${pct(o.font)}`] : [])
+  ]
 }
 
 /** Larghezza di base dei testi e delle immagini, in mm */
@@ -147,10 +183,16 @@ function parseItem(line: string, from: number): SetupItem | null {
 
 /** Legge le righe del blocco; `starts` è la posizione di ogni riga nel documento */
 export function parseSetup(lines: string[], starts: number[]): Setup {
-  const out: Setup = { size: null, items: [], bad: [] }
+  const out: Setup = { size: null, items: [], width: null, font: null, bad: [] }
   lines.forEach((l, k) => {
     const from = starts[k]
     if (!l.trim() || l.trim().startsWith('#')) return
+    const block = blockSizeLine(l)
+    if (block) {
+      if (block.value === null) out.bad.push({ from, to: from + l.length })
+      else out[block.key] = block.value
+      return
+    }
     const size = /^\s*size\s*:?\s*(\S+)\s*$/i.exec(l)
     const sz = size && SIZE.exec(size[1])
     if (sz) {
@@ -188,10 +230,11 @@ export function setupLine(it: SetupItem): string {
 }
 
 /** Il testo del blocco ```setup */
-export function setupSource(s: Pick<Setup, 'size' | 'items'>): string {
+export function setupSource(s: Pick<Setup, 'size' | 'items' | 'width' | 'font'>): string {
   return [
     '```' + SETUP_FENCE,
     ...(s.size ? [`size ${r(s.size.w)}x${r(s.size.h)}`] : []),
+    ...blockSizeLines(s),
     ...s.items.map(setupLine),
     '```'
   ].join('\n')

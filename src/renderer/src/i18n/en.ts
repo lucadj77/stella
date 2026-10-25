@@ -1369,6 +1369,10 @@ export const en = {
   'documents.setupOrder.downHint': 'One step down among the elements of the same kind',
   'documents.setupOrder.bottomHint':
     'Below all the elements of the same kind. Zones always stay below cards and images, texts and arrows above',
+  'documents.blockWidth': 'Width (% of line)',
+  'documents.blockFont': 'Caption text (%)',
+  'documents.blockSizeHint':
+    'In the document the drawing takes at most this share of the line width; the captions keep the size you choose here.',
   'documents.pickCard': 'Choose a card',
   'documents.pick': 'Choose',
   'documents.insertCard': 'Insert card',

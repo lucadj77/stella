@@ -125,6 +125,9 @@ export default function SetupDialog({
   const { t } = useI18n()
   const [items, setItems] = useState<Item[]>(initial?.items ?? [])
   const [size, setSize] = useState(initial?.size ?? null)
+  /** Larghezza massima nel documento e corpo delle didascalie, in frazione (width: e font:) */
+  const [blockWidth, setBlockWidth] = useState(initial?.width ?? 1)
+  const [blockFont, setBlockFont] = useState(initial?.font ?? 1)
   /** Elementi scelti, per indice; il primo è quello cliccato per primo */
   const [selection, setSelection] = useState<number[]>([])
   /** Scelta della carta: per un elemento nuovo o per quello con questo indice */
@@ -152,10 +155,12 @@ export default function SetupDialog({
   const zoomRef = useRef(zoom)
   const busy = !!pickingCard || !!pickingImage
   useUndo(
-    [items, size],
-    ([i, s]) => {
+    [items, size, blockWidth, blockFont],
+    ([i, s, w, f]) => {
       setItems(i)
       setSize(s)
+      setBlockWidth(w)
+      setBlockFont(f)
       setSelection((sel) => sel.filter((k) => k < i.length))
     },
     !busy
@@ -171,7 +176,7 @@ export default function SetupDialog({
   }
 
   const setup: Setup = { size, items, bad: [] }
-  const view = setupView(setup, sets, templates, maxWidth, font)
+  const view = setupView(setup, sets, templates, maxWidth * blockWidth, font * blockFont)
   const area = frozen ?? grow(view.area, size ? 10 : 25)
   const fit = Math.max(
     0.1,
@@ -686,7 +691,7 @@ export default function SetupDialog({
                 templates={templates}
                 project={project}
                 unit={1}
-                maxWidth={maxWidth}
+                maxWidth={maxWidth * blockWidth}
                 width={area.w * scale}
                 svgRef={svg}
               >
@@ -857,6 +862,21 @@ export default function SetupDialog({
                     {num(t('documents.setupH'), size.h, (h) => setSize({ ...size, h }), 20)}
                   </div>
                 )}
+                <div className="dialog-row">
+                  {num(
+                    t('documents.blockWidth'),
+                    blockWidth * 100,
+                    (n) => setBlockWidth(Math.min(100, Math.max(10, n)) / 100),
+                    10
+                  )}
+                  {num(
+                    t('documents.blockFont'),
+                    blockFont * 100,
+                    (n) => setBlockFont(Math.min(300, Math.max(30, n)) / 100),
+                    30
+                  )}
+                </div>
+                <p className="muted small">{t('documents.blockSizeHint')}</p>
                 <p className="muted small">{t('documents.setupHint')}</p>
               </>
             )}
@@ -867,7 +887,7 @@ export default function SetupDialog({
           <button
             className="primary"
             disabled={!items.length}
-            onClick={() => onSave(setupSource({ size, items }))}
+            onClick={() => onSave(setupSource({ size, items, width: blockWidth, font: blockFont }))}
           >
             {t(initial ? 'documents.saveAnatomy' : 'documents.insert')}
           </button>

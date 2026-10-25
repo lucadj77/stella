@@ -9,7 +9,7 @@ import type { GroupLayer, HAlign, Layer, Side, Template } from './template'
 import { worldBounds } from './geometry'
 import { arrangeGroup } from './arrange'
 import type { Bounds } from './edit'
-import { parseSetup, SETUP_FENCE, type Setup } from './setup'
+import { blockSizeLine, blockSizeLines, parseSetup, SETUP_FENCE, type Setup } from './setup'
 import {
   cellParts,
   DEFAULT_TABLE_STYLE,
@@ -96,6 +96,10 @@ export interface Anatomy {
   /** Fronte e retro affiancati (riga `sides: both`): le etichette del retro stanno a destra */
   both: boolean
   callouts: Callout[]
+  /** Larghezza massima del blocco in frazione della riga (`width: 60%`); null = tutta */
+  width: number | null
+  /** Corpo delle etichette in frazione di quello di base (`font: 90%`); null = di base */
+  font: number | null
   /** Righe che non si capiscono */
   bad: { from: number; to: number }[]
 }
@@ -106,7 +110,15 @@ const CALLOUT_LINE =
   /^\s*[-*]\s*(.+?)(?:\s*\(((?:\s*(?:left|right|front|back)\s*,?)+)\))?\s*:\s*(.*)$/
 
 function parseAnatomy(lines: string[], starts: number[]): Anatomy {
-  const out: Anatomy = { card: '', cardFrom: -1, both: false, callouts: [], bad: [] }
+  const out: Anatomy = {
+    card: '',
+    cardFrom: -1,
+    both: false,
+    callouts: [],
+    width: null,
+    font: null,
+    bad: []
+  }
   lines.forEach((l, k) => {
     const from = starts[k]
     const to = from + l.length
@@ -120,6 +132,12 @@ function parseAnatomy(lines: string[], starts: number[]): Anatomy {
     const sides = /^\s*sides\s*:\s*(both|one)\s*$/i.exec(l)
     if (sides) {
       out.both = sides[1].toLowerCase() === 'both'
+      return
+    }
+    const size = blockSizeLine(l)
+    if (size) {
+      if (size.value === null) out.bad.push({ from, to })
+      else out[size.key] = size.value
       return
     }
     const m = CALLOUT_LINE.exec(l)
@@ -144,7 +162,8 @@ function parseAnatomy(lines: string[], starts: number[]): Anatomy {
 export function anatomySource(
   card: string,
   callouts: Omit<Callout, 'from' | 'to'>[],
-  both = false
+  both = false,
+  size: { width?: number | null; font?: number | null } = {}
 ): string {
   const opts = (c: Omit<Callout, 'from' | 'to'>): string => {
     const list = [both && c.face === 'back' ? 'back' : '', !both && c.side ? c.side : ''].filter(
@@ -156,6 +175,7 @@ export function anatomySource(
     '```' + ANATOMY_FENCE,
     `card: ${card.replace(/^card:/i, '')}`,
     ...(both ? ['sides: both'] : []),
+    ...blockSizeLines(size),
     ...callouts.map((c) => `- ${c.layer}${opts(c)}: ${c.label.replace(/\n/g, ' ')}`),
     '```'
   ].join('\n')
