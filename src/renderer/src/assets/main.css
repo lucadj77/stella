@@ -6503,3 +6503,9 @@ button.more-button {
 .help-tip:focus-visible {
   background: var(--accent-soft);
 }
+
+.layers h2 .help-tip {
+  margin-left: 6px;
+  margin-right: auto;
+  text-transform: none;
+}

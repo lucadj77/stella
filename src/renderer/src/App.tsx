@@ -113,6 +113,7 @@ import ColumnsMenu from './components/ColumnsMenu'
 import { confirmKey, showNotice } from './components/confirm'
 import FirstSteps from './components/FirstSteps'
 import { kindWords } from './i18n/kinds'
+import HelpTip from './components/HelpTip'
 import InlineEditor, { type InlineEdit } from './components/InlineEditor'
 import ValueInfo from './components/ValueInfo'
 import { AddColumnDialog, DuplicateDialog, NewSetDialog } from './components/setDialogs'
@@ -3403,6 +3404,9 @@ function SetView({
               {t('set.clearView')}
             </button>
           )}
+          {sheet.rows.length > 0 && (
+            <HelpTip text={view === 'grid' && template ? t('set.gridHint') : t('set.editHint')} />
+          )}
         </div>
         {compare && (
           <div className="compare-bar set-hint">
@@ -3433,15 +3437,11 @@ function SetView({
               {t('set.selectNone')}
             </button>
           </div>
-        ) : sheet.rows.length < 2 && !viewActive ? null : (
+        ) : viewActive ? (
           <p className="muted small set-hint">
-            {viewActive
-              ? t('set.viewHint', { shown: order.length, total: sheet.rows.length })
-              : view === 'grid' && template
-                ? t('set.gridHint')
-                : t('set.editHint')}
+            {t('set.viewHint', { shown: order.length, total: sheet.rows.length })}
           </p>
-        )}
+        ) : null}
         {sheet.rows.length === 0 && (
           <div className="set-empty">
             <p className="set-empty-title">{t('set.emptyTitle')}</p>

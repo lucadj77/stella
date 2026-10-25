@@ -1,4 +1,5 @@
 import type { MessageKey } from '../i18n/en'
+import HelpTip from '../components/HelpTip'
 import { useContext, useId, useMemo, useState } from 'react'
 import { smoothCss } from '../render/smoothGradient'
 import { palette, resolveFont } from '../../../shared/model/variables'
@@ -24,12 +25,15 @@ interface Base {
   label: string
   /** Suggerimento al passaggio del mouse: di solito la colonna del foglio */
   hint?: string
+  /** Spiegazione di un campo tecnico, dietro un «?» accanto al controllo */
+  help?: string
   disabled?: boolean
 }
 
 export function Row({
   label,
   hint,
+  help,
   disabled,
   labelProps,
   children
@@ -44,7 +48,10 @@ export function Row({
       <span className="field-label" {...labelProps}>
         {label}
       </span>
-      <span className="field-control">{children}</span>
+      <span className="field-control">
+        {children}
+        {help && <HelpTip text={help} />}
+      </span>
     </div>
   )
 }
@@ -105,6 +112,7 @@ const blurOnEnter = (e: React.KeyboardEvent<HTMLInputElement>): void => {
 export function NumberField({
   label,
   hint,
+  help,
   disabled,
   value,
   onChange,
@@ -176,6 +184,7 @@ export function NumberField({
     <Row
       label={label}
       hint={hint}
+      help={help}
       disabled={disabled}
       labelProps={
         disabled || deferred
@@ -323,6 +332,7 @@ export function FontField({
 export function SelectField<T extends string | number>({
   label,
   hint,
+  help,
   disabled,
   value,
   options,
@@ -333,7 +343,7 @@ export function SelectField<T extends string | number>({
   onChange(v: T): void
 }): React.JSX.Element {
   return (
-    <Row label={label} hint={hint} disabled={disabled}>
+    <Row label={label} hint={hint} help={help} disabled={disabled}>
       <select
         value={String(value)}
         disabled={disabled}

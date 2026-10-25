@@ -4,6 +4,7 @@ import { switchSource } from '../../../shared/model/bind'
 import type { Layer, Template, ValueSource } from '../../../shared/model/template'
 import { layerStatus, revertLayer } from '../../../shared/model/inherit'
 import { useI18n } from '../i18n/context'
+import HelpTip from '../components/HelpTip'
 import {
   ColumnIcon,
   FixedIcon,
@@ -307,6 +308,7 @@ export default function LayersPanel({
     <aside className="layers" data-side={panelSide} style={{ width }}>
       <h2 className="with-action">
         {t('layers.title')}
+        <HelpTip text={t('layers.hint')} />
         <PanelSideButton side={panelSide} onToggle={onToggleSide} />
       </h2>
       <div className="layers-list">
@@ -316,7 +318,6 @@ export default function LayersPanel({
           <p className="muted small">{t('layers.empty')}</p>
         )}
       </div>
-      <p className="muted small layers-hint">{t('layers.hint')}</p>
       <div className="layers-actions">
         <button disabled={!cmd.canMove} title={t('layers.up')} onClick={() => cmd.move('up')}>
           ↑

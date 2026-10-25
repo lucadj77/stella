@@ -244,7 +244,7 @@ function TemplateProperties({
       <Inherit keys={['kind']}>
         <SelectField<ComponentKind>
           label={t('prop.kind')}
-          hint={t('prop.kindHint')}
+          help={t('prop.kindHint')}
           value={kindOf(tpl)}
           options={COMPONENT_KINDS.map((k) => [k, t(`kind.${k}`)] as [ComponentKind, string])}
           onChange={(kind) => set({ kind: kind === 'card' ? undefined : kind }, 'kind')}
@@ -278,6 +278,7 @@ function TemplateProperties({
       <Inherit keys={['bleed']}>
         <NumberField
           label={t('prop.bleed')}
+          help={t('help.word.bleed')}
           value={tpl.bleed}
           min={0}
           unit="mm"
@@ -287,6 +288,7 @@ function TemplateProperties({
       <Inherit keys={['safeMargin']}>
         <NumberField
           label={t('prop.safeMargin')}
+          help={t('help.word.safe')}
           value={tpl.safeMargin}
           min={0}
           unit="mm"
@@ -296,7 +298,7 @@ function TemplateProperties({
       <Inherit keys={['shape']}>
         <SelectField<CardShape>
           label={t('prop.cardShape')}
-          hint={t('editor.cardShapeHint')}
+          help={t('editor.cardShapeHint')}
           value={tpl.shape ?? 'rect'}
           options={options(t, 'cardShape', ['rect', 'ellipse', 'hexagon', 'path'] as const)}
           onChange={(shape) => set({ shape }, 'shape')}
@@ -671,8 +673,8 @@ function GuideFields({
         >
           {t('editor.guideAddH')}
         </button>
+        <HelpTip text={t('editor.guidesHint')} />
       </div>
-      <p className="muted small">{t('editor.guidesHint')}</p>
     </>
   )
 }
