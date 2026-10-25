@@ -6585,3 +6585,11 @@ button.more-button {
   margin-right: auto;
   text-transform: none;
 }
+
+/* anteprima formattata delle celle: il testo scritto resta nel suggerimento e nella modifica */
+.cell-markup {
+  max-height: 5.5em;
+  overflow: hidden;
+  line-height: 1.35;
+  vertical-align: top;
+}

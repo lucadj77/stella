@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { dragHasFiles, importDropped } from './dropImages'
 import { confirmKey } from './confirm'
 import type { Sheet } from '../../../shared/project'
@@ -12,6 +12,10 @@ import {
 } from '../../../shared/model/sheet'
 import { useI18n } from '../i18n/context'
 import MarkupTextarea from './MarkupTextarea'
+import MarkupText from '../render/MarkupText'
+import { VariablesContext } from '../render/assets'
+import { variableFields } from '../../../shared/model/variables'
+import { substituteFields } from '../../../shared/model/bind'
 
 interface Props {
   sheet: Sheet
@@ -74,6 +78,15 @@ function DataTable({
   const write = (c: Cell, v: string): void => {
     if (isComputed(c.col)) return
     onChange(writeCells(sheet, [c.row], c.col, v), `cell:${c.row}:${c.col}`)
+  }
+  // i testi e i valori delle variabili valgono come campi, come sulla carta
+  const variables = useContext(VariablesContext)
+  const varFields = useMemo(() => variableFields(variables), [variables])
+  /** Campi della riga, per mostrare {icona*campo} con il valore della riga */
+  const rowFields = (r: number): Record<string, string> => {
+    const out: Record<string, string> = { ...varFields }
+    sheet.headers.forEach((h, i) => (out[h] = sheet.rows[r]?.[i] ?? ''))
+    return { ...out, ...computed(r) }
   }
   /** Valore di una casella: la cella, o il template se è vuota */
   const checked = (c: Cell): boolean => parseBool(value(c)) ?? booleans.get(c.col) ?? false
@@ -279,7 +292,7 @@ function DataTable({
                       }}
                     >
                       {calc ? (
-                        (computed(r)[h] ?? '')
+                        <CellText text={computed(r)[h] ?? ''} fields={() => rowFields(r)} />
                       ) : bool ? (
                         <input
                           type="checkbox"
@@ -303,7 +316,7 @@ function DataTable({
                           }}
                         />
                       ) : (
-                        raw
+                        <CellText text={raw} fields={() => rowFields(r)} />
                       )}
                     </td>
                   )
@@ -317,6 +330,33 @@ function DataTable({
       {sheet.rows.length > 0 && rows.length === 0 && (
         <p className="muted table-empty">{t('table.noMatch')}</p>
       )}
+    </div>
+  )
+}
+
+/** Segni del markup: graffe, parentesi quadre, asterischi, barra rovesciata, _corsivo_ */
+const MARKUP = /[[\]{}*\\]|(^|\s)_\S/
+
+/**
+ * Il valore di una cella come appare sulla carta: grassetto, colori, icone. Il testo scritto si
+ * vede passandoci sopra e quando si modifica la cella, come le formule nei fogli di calcolo.
+ */
+function CellText({
+  text,
+  fields
+}: {
+  text: string
+  fields(): Record<string, string>
+}): React.JSX.Element {
+  if (!MARKUP.test(text)) return <>{text}</>
+  return (
+    <div className="cell-markup" title={text}>
+      <MarkupText
+        text={substituteFields(text, fields())}
+        unit={3.5}
+        ratio={1}
+        paragraphSpacing={0}
+      />
     </div>
   )
 }
