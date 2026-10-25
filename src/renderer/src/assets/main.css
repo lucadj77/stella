@@ -1144,6 +1144,36 @@ textarea.invalid {
   background: var(--accent-soft);
 }
 
+.kind-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kind-choice-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: 6px;
+}
+
+.kind-choice-buttons button {
+  padding: 10px 6px;
+  font-size: 14px;
+}
+
+.kind-choice-buttons button.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.kind-choice-hint {
+  margin: 0;
+  font-size: 12px;
+  min-height: 2.6em;
+}
+
 .dialog-form {
   display: flex;
   flex-direction: column;

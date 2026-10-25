@@ -121,8 +121,13 @@ export const DEFAULT_TTS_OBJECT: TtsSetObject = {
 }
 
 /** Oggetto scelto per un set, con i valori mancanti presi da quelli predefiniti */
-export function ttsSetObject(o: Pick<TtsOptions, 'objects'>, set: string): TtsSetObject {
-  return { ...DEFAULT_TTS_OBJECT, ...o.objects?.[set] }
+export function ttsSetObject(
+  o: Pick<TtsOptions, 'objects'>,
+  set: string,
+  kind?: TtsObjectType
+): TtsSetObject {
+  // senza una scelta nell'esportazione vale il tipo di componente del template
+  return { ...DEFAULT_TTS_OBJECT, ...(kind ? { type: kind } : {}), ...o.objects?.[set] }
 }
 
 /** Opzioni salvate con un nome, per rilanciare un'esportazione o partire da un servizio di stampa */
@@ -215,6 +220,8 @@ export interface ExportCard {
 
 export interface ExportSet {
   name: string
+  /** Tipo di componente del template del set; assente vale carta */
+  kind?: TtsObjectType
   cards: ExportCard[]
 }
 

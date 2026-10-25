@@ -1,5 +1,12 @@
 import { useState } from 'react'
 import { guideSectionUrl, type GuideSection } from '../../../shared/donate'
+import { KIND_PRESETS, type KindPreset } from '../../../shared/model/kinds'
+import {
+  COMPONENT_KINDS,
+  type CardShape,
+  type ComponentKind
+} from '../../../shared/model/template'
+import type { MessageKey } from '../i18n/en'
 import { isValidTemplateName } from '../../../shared/model/normalize'
 import { useI18n } from '../i18n/context'
 import { RatioLock } from './fields'
@@ -54,16 +61,13 @@ export function Dialog({
   )
 }
 
-/** Formati comuni in mm: vedi docs/specifica.md, sezione 8.1 */
-const PRESETS: [string, number, number][] = [
-  ['poker', 63, 88],
-  ['bridge', 56, 87],
-  ['miniEuro', 44, 68],
-  ['miniUs', 41, 63],
-  ['tarot', 70, 120],
-  ['square', 70, 70],
-  ['a6', 105, 148]
-]
+export interface NewTemplate {
+  name: string
+  width: number
+  height: number
+  kind: ComponentKind
+  shape?: CardShape
+}
 
 export function NewTemplateDialog({
   existing,
@@ -71,13 +75,15 @@ export function NewTemplateDialog({
   onClose
 }: {
   existing: string[]
-  onCreate(name: string, width: number, height: number): void
+  onCreate(t: NewTemplate): void
   onClose(): void
 }): React.JSX.Element {
   const { t } = useI18n()
   const [name, setName] = useState('')
+  const [kind, setKind] = useState<ComponentKind>('card')
   const [width, setWidth] = useState('63')
   const [height, setHeight] = useState('88')
+  const [shape, setShape] = useState<CardShape | undefined>(undefined)
   const w = Number(width.replace(',', '.'))
   const h = Number(height.replace(',', '.'))
   const [locked, setLocked] = useRatioLock('template')
@@ -100,7 +106,14 @@ export function NewTemplateDialog({
         ? t('newTemplate.exists')
         : null
   const valid = name && !error && w >= 5 && h >= 5
-  const preset = PRESETS.find(([, pw, ph]) => pw === w && ph === h)?.[0] ?? 'custom'
+  const presets = KIND_PRESETS[kind]
+  const preset =
+    presets.find((p) => p.width === w && p.height === h && p.shape === shape)?.key ?? 'custom'
+  const usePreset = (p: KindPreset): void => {
+    setWidth(String(p.width))
+    setHeight(String(p.height))
+    setShape(p.shape)
+  }
 
   return (
     <Dialog title={t('newTemplate.title')} onClose={onClose} guide="template">
@@ -108,9 +121,31 @@ export function NewTemplateDialog({
         className="dialog-form"
         onSubmit={(e) => {
           e.preventDefault()
-          if (valid) onCreate(name, w, h)
+          if (valid) onCreate({ name, width: w, height: h, kind, ...(shape ? { shape } : {}) })
         }}
       >
+        <div className="kind-choice" role="radiogroup" aria-label={t('newTemplate.kind')}>
+          <span className="kind-choice-label">{t('newTemplate.kind')}</span>
+          <div className="kind-choice-buttons">
+            {COMPONENT_KINDS.map((k) => (
+              <button
+                key={k}
+                type="button"
+                role="radio"
+                aria-checked={kind === k}
+                className={kind === k ? 'active' : ''}
+                title={t(`kind.${k}.hint`)}
+                onClick={() => {
+                  setKind(k)
+                  usePreset(KIND_PRESETS[k][0])
+                }}
+              >
+                {t(`kind.${k}`)}
+              </button>
+            ))}
+          </div>
+          <p className="muted kind-choice-hint">{t(`kind.${kind}.hint`)}</p>
+        </div>
         <label>
           {t('prop.name')}
           <input autoFocus value={name} onChange={(e) => setName(e.target.value)} />
@@ -121,16 +156,13 @@ export function NewTemplateDialog({
           <select
             value={preset}
             onChange={(e) => {
-              const p = PRESETS.find(([k]) => k === e.target.value)
-              if (p) {
-                setWidth(String(p[1]))
-                setHeight(String(p[2]))
-              }
+              const p = presets.find((x) => x.key === e.target.value)
+              if (p) usePreset(p)
             }}
           >
-            {PRESETS.map(([k, pw, ph]) => (
-              <option key={k} value={k}>
-                {t(`format.${k}` as Parameters<typeof t>[0])} · {pw}×{ph} mm
+            {presets.map((p) => (
+              <option key={p.key} value={p.key}>
+                {t(`format.${p.key}` as MessageKey)} · {p.width}×{p.height} mm
               </option>
             ))}
             <option value="custom">{t('format.custom')}</option>

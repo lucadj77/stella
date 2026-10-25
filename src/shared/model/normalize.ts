@@ -13,7 +13,7 @@ import type {
   TextLayer,
   ValueLayer
 } from './template'
-import { isDrawn } from './template'
+import { isComponentKind, isDrawn } from './template'
 
 // Nei file i livelli riportano solo le proprietà diverse dai default; qui si completano.
 
@@ -265,8 +265,9 @@ export function normalizeTemplate(raw: RawTemplate): Template {
     }
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { changes: _ignored, ...plain } = raw
+  const { changes: _ignored, kind, ...plain } = raw
   return {
+    ...(isComponentKind(kind) && kind !== 'card' ? { kind } : {}),
     width: 63,
     height: 88,
     bleed: 3,
@@ -354,6 +355,7 @@ export function denormalizeTemplate(t: Template): RawTemplate {
   }
   return {
     name: t.name,
+    ...(t.kind && t.kind !== 'card' ? { kind: t.kind } : {}),
     width: t.width,
     height: t.height,
     bleed: t.bleed,

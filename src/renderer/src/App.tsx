@@ -105,12 +105,14 @@ import {
   DocumentsIcon
 } from './components/icons'
 import TemplateEditor, { EDITOR_UNDO } from './editor/TemplateEditor'
-import { Dialog, NewTemplateDialog } from './editor/dialogs'
+import { Dialog, NewTemplateDialog, type NewTemplate } from './editor/dialogs'
+import { KIND_CORNER } from '../../shared/model/kinds'
 import CardGrid from './components/CardGrid'
 import CardForm from './components/CardForm'
 import ColumnsMenu from './components/ColumnsMenu'
 import { confirmKey, showNotice } from './components/confirm'
 import FirstSteps from './components/FirstSteps'
+import { kindWords } from './i18n/kinds'
 import InlineEditor, { type InlineEdit } from './components/InlineEditor'
 import ValueInfo from './components/ValueInfo'
 import { AddColumnDialog, DuplicateDialog, NewSetDialog } from './components/setDialogs'
@@ -1425,11 +1427,14 @@ function App(): React.JSX.Element {
     return () => window.removeEventListener('keydown', onKey)
   })
 
-  const createTemplate = (name: string, width: number, height: number): void => {
+  const createTemplate = ({ name, width, height, kind, shape }: NewTemplate): void => {
     const tpl = normalizeTemplate({
       name,
+      kind,
       width,
       height,
+      cornerRadius: KIND_CORNER[kind],
+      ...(shape ? { shape } : {}),
       front: [
         {
           type: 'shape',
@@ -2820,6 +2825,7 @@ function SetView({
   const [view, setView] = useState<View>('grid')
 
   const template = templates.find((tpl) => tpl.name === set.template) ?? null
+  const words = kindWords(t, template)
   const bindCtx = useBindContext()
   const cards = useMemo<BoundCard[]>(() => {
     if (!template || !set.data) return []
@@ -2967,7 +2973,12 @@ function SetView({
   const remove = async (): Promise<void> => {
     if (
       selection.length > 1 &&
-      !(await confirmKey(t, 'set.deleteConfirm', { n: selection.length }, { danger: true }))
+      !(await confirmKey(
+        t,
+        'set.deleteConfirm',
+        { what: words.count(selection.length) },
+        { danger: true }
+      ))
     )
       return
     onChange(removeRows(sheet, selection))
@@ -3224,7 +3235,7 @@ function SetView({
                 </option>
               ))}
             </select>
-            · {t('set.counts', { rows: sheet.rows.length, cards: countCards(sheet) })}
+            · {t('set.counts', { rows: sheet.rows.length, what: words.count(countCards(sheet)) })}
             {readOnly && (
               <span className="readonly-badge" title={t('data.readOnlyHint')}>
                 {t('data.readOnlyBadge')}
@@ -3257,7 +3268,7 @@ function SetView({
         <div className="set-actions">
           <span className="action-group">
             <button onClick={addCard} title={t('tip.addCard')}>
-              {t('set.addCard')}
+              {words.add}
             </button>
             <button disabled={none} onClick={duplicate} title={t('tip.duplicateCards')}>
               {t('set.duplicate')}
@@ -3404,7 +3415,7 @@ function SetView({
         {selection.length > 1 ? (
           <div className="selection-bar set-hint">
             <strong title={t('set.selectedHint')}>
-              {t('set.selected', { n: selection.length })}
+              {t('set.selected', { what: words.count(selection.length) })}
             </strong>
             {selection.length < order.length && (
               <button title={t('tip.selectAll')} onClick={selectAll}>
@@ -3503,7 +3514,7 @@ function SetView({
         </>
       )}
       {big && card && (
-        <Dialog title={t('preview.bigTitle', { n: current + 1 })} onClose={() => setBig(false)}>
+        <Dialog title={t('preview.bigTitle', { what: words.title, n: current + 1 })} onClose={() => setBig(false)}>
           <div className="big-preview">
             <div className="big-preview-bar">
               <button

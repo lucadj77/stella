@@ -54,6 +54,6 @@ export function buildSets(
           ...(perCopy ? { perCopy } : {})
         }
       })
-      return [{ name: s.name, cards }]
+      return [{ name: s.name, ...(tpl.kind ? { kind: tpl.kind } : {}), cards }]
     })
 }

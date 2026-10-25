@@ -267,6 +267,17 @@ export type LayerType = Layer['type']
 
 export type CardShape = 'rect' | 'ellipse' | 'hexagon' | 'path'
 
+/**
+ * Tipo di componente disegnato dal template: cambia le parole dell'interfaccia (una faccia di dado,
+ * un segnalino) e l'oggetto proposto in Tabletop Simulator. Assente vale carta.
+ */
+export type ComponentKind = 'card' | 'token' | 'tile' | 'board' | 'die'
+export const COMPONENT_KINDS: ComponentKind[] = ['card', 'token', 'tile', 'board', 'die']
+export const isComponentKind = (v: unknown): v is ComponentKind =>
+  typeof v === 'string' && (COMPONENT_KINDS as string[]).includes(v)
+/** Il tipo di un template, carta se non è indicato */
+export const kindOf = (t: Pick<Template, 'kind'> | null | undefined): ComponentKind => t?.kind ?? 'card'
+
 export interface ManualGuides {
   x: number[]
   y: number[]
@@ -278,6 +289,8 @@ export interface Template {
   file?: string
   /** File in templates/ prima di una rinomina non ancora salvata; non si salva */
   origin?: string
+  /** Tipo di componente; assente vale carta */
+  kind?: ComponentKind
   width: number
   height: number
   bleed: number
@@ -303,6 +316,7 @@ export interface Template {
 
 /** Proprietà del template che un derivato può cambiare; le misure della carta no */
 export const INHERITABLE_TEMPLATE_KEYS = [
+  'kind',
   'bleed',
   'safeMargin',
   'cornerRadius',

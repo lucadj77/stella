@@ -11,6 +11,7 @@ import {
   uniqueName
 } from '../../../shared/model/edit'
 import { assetRefName, isImageAsset, resolveAsset } from '../../../shared/model/assets'
+import { COMPONENT_KINDS, kindOf, type ComponentKind } from '../../../shared/model/template'
 import type {
   Anchor,
   CardShape,
@@ -238,6 +239,15 @@ function TemplateProperties({
         <span className="field-label">{t('prop.name')}</span>
         <span className="field-control">{tpl.name}</span>
       </div>
+      <Inherit keys={['kind']}>
+        <SelectField<ComponentKind>
+          label={t('prop.kind')}
+          hint={t('prop.kindHint')}
+          value={kindOf(tpl)}
+          options={COMPONENT_KINDS.map((k) => [k, t(`kind.${k}`)] as [ComponentKind, string])}
+          onChange={(kind) => set({ kind: kind === 'card' ? undefined : kind }, 'kind')}
+        />
+      </Inherit>
       {base ? (
         // le misure della carta sono sempre quelle del base
         <div className="field" title={t('inherit.sizeFromBase')}>

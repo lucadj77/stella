@@ -151,7 +151,7 @@ One JSON file per template in `templates/`. Units are millimetres, text size is 
 ```
 
 - A derived template has a format of its own: see below.
-- Optional: `shape` (`rect` by default, `ellipse`, `hexagon`, `path` with `shapePath`, an SVG path in 0–1 coordinates of the card) and `guides` (`{ "x": [mm...], "y": [mm...] }`, the editor's manual guides).
+- Optional: `kind`, the kind of component (`card` by default, `token`, `tile`, `board`, `die` for a die face): it changes the words in the app ("+ Token", "6 faces") and the object proposed in the Tabletop Simulator export when `objects` does not name the set. `shape` (`rect` by default, `ellipse`, `hexagon`, `path` with `shapePath`, an SVG path in 0–1 coordinates of the card) and `guides` (`{ "x": [mm...], "y": [mm...] }`, the editor's manual guides).
 - The first layer of the list is the one on top.
 - Types: `text`, `image`, `shape` (`rect`, `ellipse`, `polygon`, `star`, `line`, `path`), `grid`, `group` (with `children`), `value`. A `line` goes from the centre of the left side to the centre of the right side of its box, rotated by `rotation`: `w` is the length. A `path` has in `path` the outline in 0–1 coordinates of the box, taken from the silhouette of an image.
 - A `grid` draws in its box `rows` × `columns` equal cells: `cell` (`square`, `circle`, `hex`, `triangle`, `diamond`), `interlock` (honeycomb, alternating triangles, diamonds and circles in the gaps between the others, brick-laid squares), `orientation` of the hexagons (`pointy`, `flat`), `cellRatio` (width/height of squares, circles and diamonds), `gap` and `padding` in mm, `zoom` (1 = the largest grid that fits the box without distorting the cells), `alignX` and `alignY` (`start`, `center`, `end`), `clip`, `radius` of the cells; `fill` and `stroke` of the cells, `background`, `border` and `backgroundRadius` of the background; `content` is the name of a group on the same side repeated in every cell (drawn in the first, moved in the others), with the fields `cell.index`, `cell.row`, `cell.column`, `cell.count`, `cell.random`. Geometry in `src/shared/model/grid.ts`.
@@ -185,7 +185,7 @@ A derived template has `extends` with the name of the base template and in `chan
 }
 ```
 
-- `changes.template`: the template properties that change, among `bleed`, `safeMargin`, `cornerRadius`, `shape`, `shapePath`, `guides`, `labelField`. The card size (`width`, `height`) is always that of the base.
+- `changes.template`: the template properties that change, among `kind`, `bleed`, `safeMargin`, `cornerRadius`, `shape`, `shapePath`, `guides`, `labelField`. The card size (`width`, `height`) is always that of the base.
 - `changes.layers`: by name of the base layer, the changed properties. A compound property (stroke, shadow, value source) is written in full.
 - `changes.added`: layers that exist only in the derived template, in the order they are inserted. `side` is `front` or `back`; `parent` the name of the inherited group that contains them (missing: top level of the side); `after` the layer after which they come in the list, that is right below it (missing: on top).
 - Inherited layers cannot be deleted or reordered: to remove them from the card write `"visible": false`. Their names are those of the base, and so are the columns.

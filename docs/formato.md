@@ -151,7 +151,7 @@ Un file JSON per template in `templates/`. Le unità sono millimetri, la dimensi
 ```
 
 - Un template derivato ha un formato a parte: vedi sotto.
-- Facoltativi: `shape` (`rect` di base, `ellipse`, `hexagon`, `path` con `shapePath`, tracciato SVG in coordinate 0–1 della carta) e `guides` (`{ "x": [mm...], "y": [mm...] }`, guide manuali dell'editor).
+- Facoltativi: `kind`, il tipo di componente (`card` di base, `token`, `tile`, `board`, `die` per una faccia di dado): cambia le parole dell'app («+ Segnalino», «6 facce») e l'oggetto proposto nell'esportazione per Tabletop Simulator quando `objects` non nomina il set. `shape` (`rect` di base, `ellipse`, `hexagon`, `path` con `shapePath`, tracciato SVG in coordinate 0–1 della carta) e `guides` (`{ "x": [mm...], "y": [mm...] }`, guide manuali dell'editor).
 - Il primo livello dell'elenco è quello in cima.
 - Tipi: `text`, `image`, `shape` (`rect`, `ellipse`, `polygon`, `star`, `line`, `path`), `grid`, `group` (con `children`), `value`. Una `line` va dal centro del lato sinistro al centro del lato destro del suo riquadro, ruotato di `rotation`: `w` è la lunghezza. Un `path` ha in `path` il tracciato in coordinate 0–1 del riquadro, ricavato dalla sagoma di un'immagine.
 - Una `grid` disegna nel riquadro `rows` × `columns` caselle uguali: `cell` (`square`, `circle`, `hex`, `triangle`, `diamond`), `interlock` (alveare, triangoli alternati, rombi e cerchi negli spazi tra gli altri, quadrati a mattoncino), `orientation` degli esagoni (`pointy`, `flat`), `cellRatio` (larghezza/altezza di quadrati, cerchi e rombi), `gap` e `padding` in mm, `zoom` (1 = la griglia più grande che sta nel riquadro senza deformare le caselle), `alignX` e `alignY` (`start`, `center`, `end`), `clip`, `radius` delle caselle; `fill` e `stroke` delle caselle, `background`, `border` e `backgroundRadius` dello sfondo; `content` è il nome di un gruppo dello stesso lato ripetuto in ogni casella (disegnato nella prima, spostato nelle altre), con i campi `cell.index`, `cell.row`, `cell.column`, `cell.count`, `cell.random`. Geometria in `src/shared/model/grid.ts`.
@@ -185,7 +185,7 @@ Un template derivato ha `extends` con il nome del template base e in `changes` s
 }
 ```
 
-- `changes.template`: le proprietà del template che cambiano tra `bleed`, `safeMargin`, `cornerRadius`, `shape`, `shapePath`, `guides`, `labelField`. Le misure della carta (`width`, `height`) sono sempre quelle del base.
+- `changes.template`: le proprietà del template che cambiano tra `kind`, `bleed`, `safeMargin`, `cornerRadius`, `shape`, `shapePath`, `guides`, `labelField`. Le misure della carta (`width`, `height`) sono sempre quelle del base.
 - `changes.layers`: per nome del livello del base, le proprietà cambiate. Una proprietà composta (contorno, ombra, fonte del valore) si scrive per intero.
 - `changes.added`: livelli che esistono solo nel derivato, nell'ordine in cui si inseriscono. `side` è `front` o `back`; `parent` il nome del gruppo ereditato che li contiene (assente: primo livello del lato); `after` il livello dopo il quale vengono nell'elenco, cioè subito sotto (assente: in cima).
 - I livelli ereditati non si eliminano e non cambiano ordine: per toglierli dalla carta si scrive `"visible": false`. I loro nomi sono quelli del base, e quindi anche le colonne.

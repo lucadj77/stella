@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { LoadedProject } from '../../../shared/project'
-import type { Side } from '../../../shared/model/template'
+import { kindOf, type Side } from '../../../shared/model/template'
 import { walkLayers } from '../../../shared/model/normalize'
 import { resolveAsset } from '../../../shared/model/assets'
 import { isGenericFont, markupFonts } from '../../../shared/model/fonts'
@@ -127,8 +127,13 @@ export default function ExportDialog({
     patch({ sets: next.length === setNames.length ? [] : next })
   }
 
+  /** Il tipo di componente del template del set, proposto come oggetto di Tabletop Simulator */
+  const componentKind = (name: string): TtsObjectType => {
+    const set = project.sets.find((s) => s.name === name)
+    return kindOf(project.templates.find((x) => x.name === set?.template))
+  }
   /** Almeno un set scelto esce come mazzo di carte: servono le opzioni dei fogli */
-  const hasCards = selected.some((name) => ttsSetObject(tts, name).type === 'card')
+  const hasCards = selected.some((name) => ttsSetObject(tts, name, componentKind(name)).type === 'card')
 
   const firstTemplate = useMemo(() => {
     const set = project.sets.find((s) => selected.includes(s.name))
@@ -796,7 +801,7 @@ export default function ExportDialog({
                 'export.ttsObjects',
                 <div className="tts-objects">
                   {selected.map((name) => {
-                    const obj = ttsSetObject(tts, name)
+                    const obj = ttsSetObject(tts, name, componentKind(name))
                     const set = (p: Partial<TtsSetObject>): void =>
                       patch({ objects: { ...tts.objects, [name]: { ...obj, ...p } } })
                     return (
