@@ -1,5 +1,7 @@
 import { useContext, useMemo, useState } from 'react'
 import AssetPicker from '../components/AssetPicker'
+import HelpTip from '../components/HelpTip'
+import Segmented from '../components/Segmented'
 import { ImageIcon } from '../components/icons'
 import { P, Section } from './advanced'
 import {
@@ -1995,16 +1997,22 @@ function ValueSource({
 
   return (
     <div className="value-source">
-      <SelectField<ValueSourceKind>
-        label={t('source.label')}
-        value={src.kind}
-        options={[
-          ['column', t('source.kind.column')],
-          ['fixed', t('source.kind.fixed')],
-          ['formula', t('source.kind.formula')]
-        ]}
-        onChange={(kind) => set({ source: switchSource(l, kind) })}
-      />
+      {/* da dove viene il valore: una riga sola, sempre in cima alle proprietà del livello */}
+      <div className="field source-line">
+        <span className="field-label">{t('source.label')}</span>
+        <span className="field-control">
+          <Segmented<ValueSourceKind>
+            value={src.kind}
+            options={[
+              ['column', t('source.short.column'), t('source.kind.column')],
+              ['fixed', t('source.kind.fixed'), t('source.fixedNote')],
+              ['formula', t('source.kind.formula'), t('source.formulaNote')]
+            ]}
+            onChange={(kind) => set({ source: switchSource(l, kind) })}
+          />
+          {fx}
+        </span>
+      </div>
       {src.kind === 'column' && (
         <>
           <TextField
@@ -2030,13 +2038,8 @@ function ValueSource({
           multiline
           rows={3}
           onChange={(expr) => set({ source: { kind: 'formula', expr } })}
-          action={fx}
+          action={<HelpTip text={t('source.formulaHelp')} />}
         />
-      )}
-      {src.kind !== 'formula' && (
-        <button type="button" className="fx-start" onClick={() => setAssistant(true)}>
-          <span className="fx-button">fx</span> {t('fx.start')}
-        </button>
       )}
       {assistant && (
         <FormulaDialog
@@ -2061,7 +2064,6 @@ function ValueSource({
           onClose={close}
         />
       )}
-      {src.kind === 'formula' && <p className="small muted">{t('source.formulaHelp')}</p>}
       <p className="small muted">
         {src.kind === 'fixed'
           ? t('source.fixedNote')
