@@ -14,7 +14,9 @@ await win
   .getByText(it ? 'Mercato' : 'Market', { exact: true })
   .click()
 await win.waitForTimeout(800)
-await win.getByRole('button', { name: T['set.generate'] }).click()
+// Genera sta nel menu Strumenti del set
+await win.getByRole('button', { name: `${T['set.tools']} ▾` }).click()
+await win.getByRole('menuitem', { name: T['set.generate'] }).click()
 await win.waitForTimeout(800)
 const set = dialog().locator('.generate-set').first()
 await set

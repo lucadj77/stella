@@ -3273,12 +3273,6 @@ function SetView({
             <button disabled={none} onClick={duplicate} title={t('tip.duplicateCards')}>
               {t('set.duplicate')}
             </button>
-            <button onClick={() => setGenerating(true)} title={t('tip.generateCards')}>
-              {t('set.generate')}
-            </button>
-            <button disabled={!template} onClick={() => setSplitting(true)} title={t('tip.split')}>
-              {t('set.split')}
-            </button>
           </span>
           <span className="action-group">
             <button onClick={() => setAddingColumn(true)} title={t('tip.addColumn')}>
@@ -3301,10 +3295,23 @@ function SetView({
             />
           </span>
           <span className="action-group">
+            {/* gli strumenti usati più di rado, in un menu solo */}
             <Menu
-              label={`${t('set.checks')} ▾`}
-              title={t('tip.checks')}
+              label={`${t('set.tools')} ▾`}
+              title={t('tip.setTools')}
               items={[
+                {
+                  label: t('set.generate'),
+                  title: t('tip.generateCards'),
+                  onClick: () => setGenerating(true)
+                },
+                {
+                  label: t('set.split'),
+                  title: t('tip.split'),
+                  disabled: !template,
+                  onClick: () => setSplitting(true)
+                },
+                'sep',
                 { label: t('set.stats'), title: t('tip.stats'), onClick: () => setShowStats(true) },
                 { label: t('set.compare'), title: t('tip.compare'), onClick: onCompare },
                 {
