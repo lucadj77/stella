@@ -19,3 +19,12 @@ statico; aperto come file:// il download non legge GitHub).
 ## Dominio
 
 Il sito risponde a `stella.lucadj.eu`: un record CNAME `stella` → `lucadj77.github.io` nel DNS di `lucadj.eu` (Hostinger) e il dominio personalizzato nelle impostazioni Pages del repo (Settings → Pages → Custom domain, con «Enforce HTTPS»). Con la pubblicazione tramite GitHub Actions il file `CNAME` non serve. Il vecchio indirizzo `lucadj77.github.io/stella/` rimanda a quello nuovo, sottocartelle comprese.
+
+## Privacy
+
+Il sito non usa cookie e non salva niente nel browser, quindi non serve un banner. I font (`fonts/`, dai pacchetti
+@fontsource, sottoinsieme latino) e le copertine dei video (scaricate da `build.mjs` in `img/yt/` durante la
+costruzione) stanno dentro il sito: chi visita non contatta Google né YouTube finché non apre un video, che è un
+semplice link. Le visite si contano con GoatCounter (account `lucadj77`, pannello su
+<https://lucadj77.goatcounter.com/>), che non usa cookie né raccoglie dati personali. L'unica altra richiesta
+esterna è quella a GitHub per sapere l'ultima versione da scaricare.

@@ -64,12 +64,29 @@ mkdirSync(`${out}/img/it`, { recursive: true })
 mkdirSync(`${out}/img/en`, { recursive: true })
 mkdirSync(`${out}/it`, { recursive: true })
 for (const f of ['style.css', 'site.js']) cpSync(`${here}${f}`, `${out}/${f}`)
+cpSync(`${here}fonts`, `${out}/fonts`, { recursive: true })
 for (const f of ['stella.svg', 'predigarama.png']) cpSync(`${here}img/${f}`, `${out}/img/${f}`)
 for (const [lang, dir] of [
   ['it', 'guida'],
   ['en', 'guide']
 ])
   for (const f of shots) cpSync(`${repo}docs/${dir}/img/${f}`, `${out}/img/${lang}/${f}`)
+
+// copertine dei video copiate nel sito durante la costruzione: chi visita non scarica niente da YouTube
+// finché non apre un video. Se il download non riesce resta l'indirizzo di YouTube.
+const ytId = (url) => (url.match(/(?:v=|youtu\.be\/)([\w-]+)/) || [])[1]
+const thumbs = {}
+mkdirSync(`${out}/img/yt`, { recursive: true })
+for (const id of videos.flatMap((v) => Object.values(v.url).map(ytId)).filter(Boolean)) {
+  try {
+    const res = await fetch(`https://i.ytimg.com/vi/${id}/hqdefault.jpg`)
+    if (!res.ok) throw new Error(res.status)
+    writeFileSync(`${out}/img/yt/${id}.jpg`, Buffer.from(await res.arrayBuffer()))
+    thumbs[id] = `img/yt/${id}.jpg`
+  } catch (e) {
+    console.warn(`copertina di ${id} non scaricata (${e.message}): resta quella di YouTube`)
+  }
+}
 
 for (const lang of ['it', 'en']) {
   const t = texts[lang]
@@ -103,9 +120,9 @@ for (const lang of ['it', 'en']) {
         ? videos
             .filter((v) => v.url[lang])
             .map((v) => {
-              const id = (v.url[lang].match(/(?:v=|youtu\.be\/)([\w-]+)/) || [])[1]
+              const id = ytId(v.url[lang])
               const thumb = id
-                ? `<img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="">`
+                ? `<img src="${thumbs[id] ? t.root + thumbs[id] : `https://i.ytimg.com/vi/${id}/hqdefault.jpg`}" alt="" loading="lazy">`
                 : esc(v[lang])
               return `<a class="video" href="${esc(v.url[lang])}"><div class="thumb">${thumb}</div><div class="meta"><h3>${esc(v[lang])}</h3><span>${v.minutes} min</span></div></a>`
             })
