@@ -414,9 +414,9 @@ function LayerProperties({
     const geo = gridGeometry(l)
     const c = geo.centers[0]
     if (!c) return
-    const inset = Math.min(geo.cell.w, geo.cell.h) * 0.1
-    const w = Math.max(1, geo.cell.w - 2 * inset)
-    const h = Math.max(1, geo.cell.h - 2 * inset)
+    // il livello è grande quanto la casella: uno sfondo nel testo resta centrato sulla casella
+    const w = Math.max(1, geo.cell.w)
+    const h = Math.max(1, geo.cell.h)
     const box = { x: l.x + c.x - w / 2, y: l.y + c.y - h / 2, w, h }
     const layer =
       kind === 'text'
@@ -425,8 +425,8 @@ function LayerProperties({
               type: 'text',
               name: uniqueName(tpl, `${l.name}_text`),
               text: '1',
-              // metà dell'altezza della casella, in punti (1 mm = 72/25.4 pt)
-              size: Math.max(4, Math.round((h * 0.5 * 72) / 25.4)),
+              // due quinti dell'altezza della casella, in punti (1 mm = 72/25.4 pt)
+              size: Math.max(4, Math.round((h * 0.4 * 72) / 25.4)),
               align: 'center',
               valign: 'middle',
               source: { kind: 'formula', expr: '={cell.index}' },
