@@ -511,6 +511,10 @@ a:focus-visible {
 .web p + p {
   margin-top: 10px;
 }
+.web-limits {
+  border-left: 4px solid var(--yellow);
+  padding-left: 14px;
+}
 
 /* tutorial */
 .playlist {
