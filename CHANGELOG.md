@@ -5,6 +5,34 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.5.0-beta.2
+
+### English
+
+- **Welcome screen**: the first time, with no recent projects, the start screen shows two big choices, **Start from scratch** and **Explore the example**, the three steps of the work (draw a template, fill a set, export) and links to the overview video, all the video tutorials and the guide. With recent projects the screen is as before, with a row of links under the list.
+- **New project**: the choice of the data file format is under **Data file options**, closed by default (Excel).
+- **First steps**: a new project shows a strip at the top with the four steps (draw a template, create a set, add the first component, export). Each step is ticked by itself, the button opens the next one, and the × hides the strip for good. Projects that already have components do not show it.
+- **Empty set**: instead of an empty table, a set with no components shows **+ Add the first component**, and the preview says where the component will appear.
+- **Edit template** under the preview opens the editor with that card already loaded, so its fields and formulas show the card's values instead of "Data: none".
+- **Help** (F1): the new **First steps** tab sums up the four steps with a link to the guide for each, the first two videos and the words to know (component, template, set, layer, bleed, safe area...). It opens there when the project has no components; otherwise on the tab used last.
+- The **?** next to the title of the windows New template, New set, Export, Generate and the formula assistant opens the guide section about them.
+- **Shortcuts** in tooltips and messages appear in the form of the system in use: ⌘ on the Mac, Ctrl on Windows and Linux.
+- **Confirmations** (delete a set, a template, a document or cards, discard changes, restore a backup...) appear in a Stella window instead of the system one, with a title, an explanation and a button that says what it does. When the action deletes something the button is red and Enter picks **Cancel**.
+- **Clearer texts**: **Copies** in the card form (the `amount` column, explained in the tooltip), "1 row · 1 card" in the singular, **Name in TTS (Nickname)** and **Description in TTS** in the Tabletop Simulator export. New layers get a name in the interface language (for example `testo`, `immagine` in Italian).
+
+### Italiano
+
+- **Schermata di benvenuto**: la prima volta, senza progetti recenti, la schermata di ingresso mostra due scelte grandi, **Comincia da zero** ed **Esplora l'esempio**, i tre passi del lavoro (disegnare un template, compilare un set, esportare) e i collegamenti al video di panoramica, a tutti i video tutorial e alla guida. Con dei progetti recenti la schermata è quella di prima, con una riga di collegamenti sotto l'elenco.
+- **Nuovo progetto**: la scelta del formato del file dei dati è sotto **Opzioni del file dei dati**, chiusa di base (Excel).
+- **Primi passi**: un progetto nuovo mostra in cima una striscia con i quattro passi (disegnare un template, creare un set, aggiungere il primo componente, esportare). Ogni passo si spunta da solo, il pulsante apre quello successivo e la × nasconde la striscia per sempre. I progetti che hanno già dei componenti non la mostrano.
+- **Set vuoto**: al posto della tabella vuota, un set senza componenti mostra **+ Aggiungi il primo componente**, e l'anteprima dice dove comparirà il componente.
+- **Modifica template** sotto l'anteprima apre l'editor con quella carta già caricata, così campi e formule mostrano i valori della carta invece di "Dati: nessuno".
+- **Aiuto** (F1): la nuova scheda **Primi passi** riassume i quattro passi con un collegamento alla guida per ciascuno, i primi due video e le parole da conoscere (componente, template, set, livello, abbondanza, area sicura...). Si apre lì quando il progetto non ha componenti; altrimenti sulla scheda usata l'ultima volta.
+- Il **?** accanto al titolo delle finestre Nuovo template, Nuovo set, Esporta, Genera e dell'assistente formule apre la sezione della guida che ne parla.
+- **Scorciatoie**: nei suggerimenti e nei messaggi compaiono nella forma del sistema in uso, ⌘ sul Mac e Ctrl su Windows e Linux.
+- **Conferme** (eliminare un set, un template, un documento o delle carte, scartare le modifiche, ripristinare un backup...): compaiono in una finestra di Stella invece che in quella del sistema, con un titolo, una spiegazione e un pulsante che dice cosa fa. Quando l'azione cancella qualcosa il pulsante è rosso e Invio sceglie **Annulla**.
+- **Testi più chiari**: **Copie** nel modulo della carta (la colonna `amount`, spiegata nel suggerimento), "1 riga · 1 carta" al singolare, **Nome in TTS (Nickname)** e **Descrizione (Description)** nell'esportazione per Tabletop Simulator. I livelli nuovi prendono un nome nella lingua dell'interfaccia (per esempio `testo`, `immagine`).
+
 ## 1.5.0-beta.1
 
 ### English

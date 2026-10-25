@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { confirmKey } from './confirm'
 import type { AgentLock } from '../../../shared/api'
 import { useI18n } from '../i18n/context'
 
@@ -27,7 +28,9 @@ export default function AgentLockOverlay({
 
   const since = new Date(lock.since)
   const unlock = (): void => {
-    if (window.confirm(t('agent.unlockConfirm'))) onUnlock()
+    void confirmKey(t, 'agent.unlockConfirm', undefined, { danger: true }).then(
+      (ok) => ok && onUnlock()
+    )
   }
 
   return (

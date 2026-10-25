@@ -40,7 +40,7 @@ export function NewSetDialog({
   const tpl = templates.find((x) => x.name === template)
 
   return (
-    <Dialog title={t('newSet.title')} onClose={onClose}>
+    <Dialog title={t('newSet.title')} onClose={onClose} guide="set">
       <form
         className="dialog-form"
         onSubmit={(e) => {

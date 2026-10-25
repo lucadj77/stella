@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { guideSectionUrl, type GuideSection } from '../../../shared/donate'
 import { isValidTemplateName } from '../../../shared/model/normalize'
 import { useI18n } from '../i18n/context'
 import { RatioLock } from './fields'
@@ -7,15 +8,22 @@ import { useRatioLock } from './ratioLock'
 export function Dialog({
   title,
   children,
-  onClose
+  onClose,
+  className,
+  guide
 }: {
   title: string
   children: React.ReactNode
   onClose(): void
+  /** Classe in più per lo sfondo, per esempio per stare sopra le altre finestre */
+  className?: string
+  /** Sezione della guida aperta dal «?» accanto al titolo */
+  guide?: GuideSection
 }): React.JSX.Element {
+  const { t, lang } = useI18n()
   return (
     <div
-      className="dialog-backdrop"
+      className={'dialog-backdrop' + (className ? ' ' + className : '')}
       onPointerDown={(e) => e.target === e.currentTarget && onClose()}
       onKeyDown={(e) => {
         if (e.key !== 'Escape') return
@@ -25,7 +33,21 @@ export function Dialog({
       }}
     >
       <div className="dialog" role="dialog" aria-label={title}>
-        <h2>{title}</h2>
+        <h2>
+          {title}
+          {guide && (
+            <a
+              className="dialog-guide"
+              href={guideSectionUrl(guide, lang)}
+              target="_blank"
+              rel="noreferrer"
+              title={t('dialog.guide')}
+              aria-label={t('dialog.guide')}
+            >
+              ?
+            </a>
+          )}
+        </h2>
         {children}
       </div>
     </div>
@@ -81,7 +103,7 @@ export function NewTemplateDialog({
   const preset = PRESETS.find(([, pw, ph]) => pw === w && ph === h)?.[0] ?? 'custom'
 
   return (
-    <Dialog title={t('newTemplate.title')} onClose={onClose}>
+    <Dialog title={t('newTemplate.title')} onClose={onClose} guide="template">
       <form
         className="dialog-form"
         onSubmit={(e) => {

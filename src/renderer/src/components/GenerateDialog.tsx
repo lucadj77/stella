@@ -1,4 +1,5 @@
 import { Fragment, useContext, useMemo, useState } from 'react'
+import { confirmKey } from './confirm'
 import type { Sheet } from '../../../shared/project'
 import { assetRefName, isImageAsset } from '../../../shared/model/assets'
 import {
@@ -124,7 +125,7 @@ export default function GenerateDialog({
   const cols = result.headers.length - 1
 
   return (
-    <Dialog title={t('generate.title')} onClose={onClose}>
+    <Dialog title={t('generate.title')} onClose={onClose} guide="generate">
       <div className="generate-dialog">
         <p className="field-note">{t('generate.intro')}</p>
         <datalist id="generate-columns">
@@ -407,11 +408,16 @@ export default function GenerateDialog({
           <button
             className="primary"
             disabled={!result.rows.length}
-            onClick={() => {
+            onClick={async () => {
               if (
                 mode === 'replace' &&
                 sheet.rows.length &&
-                !window.confirm(t('generate.replaceConfirm', { n: sheet.rows.length }))
+                !(await confirmKey(
+                  t,
+                  'generate.replaceConfirm',
+                  { n: sheet.rows.length },
+                  { danger: true }
+                ))
               )
                 return
               onApply(addGenerated(sheet, result, mode))

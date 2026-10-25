@@ -109,6 +109,8 @@ import { Dialog, NewTemplateDialog } from './editor/dialogs'
 import CardGrid from './components/CardGrid'
 import CardForm from './components/CardForm'
 import ColumnsMenu from './components/ColumnsMenu'
+import { confirmKey, showNotice } from './components/confirm'
+import FirstSteps from './components/FirstSteps'
 import InlineEditor, { type InlineEdit } from './components/InlineEditor'
 import ValueInfo from './components/ValueInfo'
 import { AddColumnDialog, DuplicateDialog, NewSetDialog } from './components/setDialogs'
@@ -257,6 +259,15 @@ function App(): React.JSX.Element {
   // icone e font importati: gli asset cambiano senza ricaricare il progetto
   useEffect(() => onAssetsUpdate((u) => setProject((p) => p && { ...p, ...u })), [setProject])
   const [selected, setSelected] = useState<Selected>({ kind: 'set', index: 0 })
+  /**
+   * Carta da mostrare nell'editor quando lo si apre da "Modifica template" di un set. Vale solo
+   * per quella scelta (`for`): riaprendo il template in un altro modo l'editor parte senza dati.
+   */
+  const [editPreview, setEditPreview] = useState<{
+    for: Selected
+    set: string
+    row: number
+  } | null>(null)
   /** Nota aperta nel pannello accanto alla schermata */
   const [openNote, setOpenNote] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -271,6 +282,8 @@ function App(): React.JSX.Element {
   const [editingVariable, setEditingVariable] = useState<string | null>(null)
   const [creatingSet, setCreatingSet] = useState(false)
   const [exporting, setExporting] = useState(false)
+  /** Progetto in cui si è aperta l'esportazione: l'ultimo dei primi passi */
+  const [exportedIn, setExportedIn] = useState<string | null>(null)
   const [backingUp, setBackingUp] = useState(false)
   const [trashOpen, setTrashOpen] = useState(false)
   const [sheetsOpen, setSheetsOpen] = useState(false)
@@ -507,8 +520,14 @@ function App(): React.JSX.Element {
     })
   }, [folder, load])
 
+  const openExport = (): void => {
+    setExporting(true)
+    if (project) setExportedIn(project.folder)
+  }
+
   /** Chiede conferma prima di perdere modifiche non salvate */
-  const discardOk = (): boolean => !anyDirty || window.confirm(t('app.discardChanges'))
+  const discardOk = async (): Promise<boolean> =>
+    !anyDirty || confirmKey(t, 'app.discardChanges', undefined, { danger: true })
 
   const open = async (): Promise<void> => {
     const folder = await window.api.chooseProjectFolder()
@@ -516,8 +535,8 @@ function App(): React.JSX.Element {
   }
 
   /** Torna alla schermata di ingresso */
-  const closeProject = (): void => {
-    if (!discardOk()) return
+  const closeProject = async (): Promise<void> => {
+    if (!(await discardOk())) return
     setProject(null)
     setError(null)
     setSelected({ kind: 'set', index: 0 })
@@ -559,10 +578,10 @@ function App(): React.JSX.Element {
   }
 
   /** Il derivato diventa un template normale, con i valori che ha ora */
-  const detachTemplate = (name: string): void => {
+  const detachTemplate = async (name: string): Promise<void> => {
     const tpl = project?.templates.find((x) => x.name === name)
     if (!tpl?.extends) return
-    if (!window.confirm(t('inherit.detachConfirm', { name, base: tpl.extends }))) return
+    if (!(await confirmKey(t, 'inherit.detachConfirm', { name, base: tpl.extends }))) return
     setProject(
       (p) => p && { ...p, templates: p.templates.map((x) => (x.name === name ? detach(x) : x)) }
     )
@@ -857,7 +876,7 @@ function App(): React.JSX.Element {
     if (name) setSelected({ kind: 'document', name })
   }
   const deleteDocument = async (name: string): Promise<void> => {
-    if (!window.confirm(t('documents.deleteConfirm', { name }))) return
+    if (!(await confirmKey(t, 'documents.deleteConfirm', { name }, { danger: true }))) return
     await documents.remove(name)
     if (openDocument === name) setSelected({ kind: 'set', index: 0 })
   }
@@ -943,14 +962,17 @@ function App(): React.JSX.Element {
     // grafici e simili che il salvataggio toglierebbe dal file dati: Stella li tiene quando cambia
     // solo celle, li perde quando deve riscrivere il file (fogli nuovi, rinominati o tolti)
     const losses = project.dataFileLosses ?? []
-    const lossConfirm = (): boolean =>
-      window.confirm(
-        t('save.dataLossConfirm', { what: losses.map((x) => t(`dataLoss.${x}`)).join(', ') })
+    const lossConfirm = (): Promise<boolean> =>
+      confirmKey(
+        t,
+        'save.dataLossConfirm',
+        { what: losses.map((x) => t(`dataLoss.${x}`)).join(', ') },
+        { danger: true }
       )
     const restructure =
       removed.length > 0 ||
       sheets.some((x) => x.origin || !(project.diskSheets ?? []).includes(x.name))
-    if (restructure && losses.length && !lossConfirm()) return
+    if (restructure && losses.length && !(await lossConfirm())) return
     setError(null)
     setSaving(true)
     try {
@@ -1117,7 +1139,7 @@ function App(): React.JSX.Element {
   }
 
   /** Nuovo nome di un set; il foglio dei dati prende lo stesso nome al salvataggio */
-  const renameSetAt = (index: number, name: string): void => {
+  const renameSetAt = async (index: number, name: string): Promise<void> => {
     if (!project) return
     const set = project.sets[index]
     const before = set.data
@@ -1130,7 +1152,12 @@ function App(): React.JSX.Element {
       !!project.file.dataReadOnly ||
       (!csv &&
         onDisk &&
-        !window.confirm(t('sidebar.renameSheetConfirm', { sheet: before.name, name })))
+        !(await confirmKey(
+          t,
+          'sidebar.renameSheetConfirm',
+          { sheet: before.name, name },
+          { cancel: true }
+        )))
     const { file, sets } = renameSet(project.file, project.sets, index, name, csv, keepSheet)
     // come per i template: la cronologia riparte, perché i passi precedenti hanno il nome
     // vecchio e, dopo un salvataggio, annullare ricreerebbe il foglio da capo
@@ -1150,10 +1177,11 @@ function App(): React.JSX.Element {
    * Toglie un set dal progetto. Al salvataggio il suo foglio esce dal file dati e va in deleted/,
    * così il nome torna libero; fino ad allora ⌘Z annulla.
    */
-  const deleteSet = (index: number): void => {
+  const deleteSet = async (index: number): Promise<void> => {
     if (!project) return
     const set = project.sets[index]
-    if (!window.confirm(t('sidebar.deleteSetConfirm', { name: set.name }))) return
+    if (!(await confirmKey(t, 'sidebar.deleteSetConfirm', { name: set.name }, { danger: true })))
+      return
     setHistory((h) => ({
       past: [...h.past, { sets: project.sets, file: project.file }],
       future: [],
@@ -1215,16 +1243,17 @@ function App(): React.JSX.Element {
     if (!project) return
     const users = project.sets.filter((s) => s.template === name).map((s) => s.name)
     if (users.length) {
-      window.alert(t('sidebar.templateInUse', { name, sets: users.join(', ') }))
+      await showNotice(t, t('sidebar.templateInUse', { name, sets: users.join(', ') }))
       return
     }
     const derived = derivedOf(project.templates, name).map((x) => x.name)
     if (derived.length) {
-      window.alert(t('inherit.hasDerived', { name, list: derived.join(', ') }))
+      await showNotice(t, t('inherit.hasDerived', { name, list: derived.join(', ') }))
       return
     }
     const tpl = project.templates.find((x) => x.name === name)
-    if (!tpl || !window.confirm(t('sidebar.deleteTemplateConfirm', { name }))) return
+    if (!tpl || !(await confirmKey(t, 'sidebar.deleteTemplateConfirm', { name }, { danger: true })))
+      return
     try {
       await window.api.deleteTemplate(tpl.origin ?? tpl.file ?? tpl.name)
     } catch (e) {
@@ -1437,6 +1466,16 @@ function App(): React.JSX.Element {
     selected.kind === 'template'
       ? project?.templates.find((x) => x.name === selected.name)
       : undefined
+  // i set del template, più quello da cui si è aperto se la carta usa un template suo
+  const fromSet = editPreview?.for === selected ? editPreview : null
+  const editorSets = editing
+    ? (project?.sets ?? []).filter(
+        (s) => s.template === editing.name || (fromSet && s.name === fromSet.set)
+      )
+    : []
+  const editorPreviewIndex = fromSet ? editorSets.findIndex((s) => s.name === fromSet.set) : -1
+  const editorPreview =
+    editorPreviewIndex >= 0 && fromSet ? { set: editorPreviewIndex, row: fromSet.row } : null
 
   // la barra laterale sta a sinistra o a destra, a scelta
   const allStyles = { ...BUILTIN_STYLES, ...project?.file.styles }
@@ -1964,7 +2003,7 @@ function App(): React.JSX.Element {
     {
       label: t('app.reloadFromDisk'),
       title: t('tip.reload'),
-      onClick: () => project && discardOk() && load(project.folder)
+      onClick: async () => project && (await discardOk()) && load(project.folder)
     },
     { label: t('app.closeProjectLong'), title: t('tip.closeProject'), onClick: closeProject }
   ]
@@ -1973,12 +2012,12 @@ function App(): React.JSX.Element {
   const menuCommands: Record<string, () => void> = {
     open: () => void open(),
     save: () => void saveAll(),
-    export: () => setExporting(true),
+    export: () => openExport(),
     backup: () => setBackingUp(true),
     trash: () => setTrashOpen(true),
     sheets: () => setSheetsOpen(true),
     languages: () => setLanguagesOpen(true),
-    reload: () => project && discardOk() && load(project.folder),
+    reload: async () => project && (await discardOk()) && load(project.folder),
     close: closeProject,
     uiBigger: () =>
       changeUiZoom(UI_ZOOMS[Math.min(UI_ZOOMS.indexOf(uiZoom) + 1, UI_ZOOMS.length - 1)]),
@@ -2161,7 +2200,14 @@ function App(): React.JSX.Element {
                     <Tooltip />
                     {contextMenu.node}
                     {!window.api.isWeb && <UpdateNotice dirty={anyDirty} />}
-                    {help && <HelpDialog onClose={() => setHelp(false)} />}
+                    {help && (
+                      <HelpDialog
+                        onClose={() => setHelp(false)}
+                        start={
+                          !project || !project.sets.some((s) => (s.data?.rows.length ?? 0) > 0)
+                        }
+                      />
+                    )}
                     {project && !sidebarCompact && (
                       <SidebarPreview
                         hover={sidebarPreview.hover}
@@ -2224,7 +2270,7 @@ function App(): React.JSX.Element {
                         >
                           {anyDirty ? t('app.save') : t('app.saved')}
                         </button>
-                        <button onClick={() => setExporting(true)} title={t('tip.export')}>
+                        <button onClick={() => openExport()} title={t('tip.export')}>
                           {t('app.export')}
                         </button>
                         <Menu
@@ -2244,7 +2290,7 @@ function App(): React.JSX.Element {
                     {project && dataChanged && !canReloadData && (
                       <div className="banner warning data-changed">
                         {t('data.changedOutside')}
-                        <button onClick={() => discardOk() && load(project.folder)}>
+                        <button onClick={async () => (await discardOk()) && load(project.folder)}>
                           {t('app.reload')}
                         </button>
                         <button onClick={() => setDataChanged(false)}>{t('data.ignore')}</button>
@@ -2255,6 +2301,18 @@ function App(): React.JSX.Element {
                         {t(w)}
                       </div>
                     ))}
+
+                    {project && (
+                      <FirstSteps
+                        key={project.folder}
+                        project={project}
+                        exported={exportedIn === project.folder}
+                        onNewTemplate={() => setCreating(true)}
+                        onNewSet={() => setCreatingSet(true)}
+                        onOpenSet={() => setSelected({ kind: 'set', index: 0 })}
+                        onExport={openExport}
+                      />
+                    )}
 
                     {project ? (
                       <main className="workspace">
@@ -2299,7 +2357,8 @@ function App(): React.JSX.Element {
                           <TemplateEditor
                             key={`${editing.name}:${editorRev}`}
                             template={editing}
-                            sets={project.sets.filter((s) => s.template === editing.name)}
+                            sets={editorSets}
+                            initialPreview={editorPreview}
                             projectName={project.file.name}
                             onChange={updateTemplate}
                             base={baseOf(project.templates, editing)}
@@ -2318,7 +2377,15 @@ function App(): React.JSX.Element {
                             onChange={(sheet, key) =>
                               updateSheet(selected.kind === 'set' ? selected.index : 0, sheet, key)
                             }
-                            onEditTemplate={(name) => setSelected({ kind: 'template', name })}
+                            onEditTemplate={(name, row) => {
+                              const sel: Selected = { kind: 'template', name }
+                              setEditPreview(
+                                row === undefined || row < 0
+                                  ? null
+                                  : { for: sel, set: current.name, row }
+                              )
+                              setSelected(sel)
+                            }}
                             menu={setMenu(selected.kind === 'set' ? selected.index : 0)}
 
                             onChangeTemplate={(name) =>
@@ -2548,8 +2615,8 @@ function App(): React.JSX.Element {
                   </div>
                   {importing && (
                     <ImportTtcDialog
-                      onOpen={(folder) => {
-                        if (!discardOk()) return
+                      onOpen={async (folder) => {
+                        if (!(await discardOk())) return
                         setImporting(false)
                         load(folder)
                       }}
@@ -2600,9 +2667,9 @@ function App(): React.JSX.Element {
                     <BackupDialog
                       dirty={anyDirty}
                       onSave={saveAll}
-                      onRestored={(folder) => {
+                      onRestored={async (folder) => {
                         setBackingUp(false)
-                        if (discardOk()) load(folder)
+                        if (await discardOk()) load(folder)
                       }}
                       onClose={() => setBackingUp(false)}
                     />
@@ -2697,7 +2764,8 @@ function SetView({
   /** Colonne nascoste e livelli calcolati mostrati */
   onChangeColumns(view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed'>): void
   /** Apre nell'editor un template: quello del set o quello di una carta */
-  onEditTemplate(name: string): void
+  /** row: la carta da mostrare nell'editor */
+  onEditTemplate(name: string, row?: number): void
   /** Duplica ed elimina il set */
   /** Rinomina, duplica, elimina: il menu ⋯ accanto al nome */
   menu: MenuItem[]
@@ -2896,8 +2964,11 @@ function SetView({
     const sorted = [...new Set(selection)].sort((a, b) => a - b)
     setSelection(sorted.map((row, k) => row + k + 1))
   }
-  const remove = (): void => {
-    if (selection.length > 1 && !window.confirm(t('set.deleteConfirm', { n: selection.length })))
+  const remove = async (): Promise<void> => {
+    if (
+      selection.length > 1 &&
+      !(await confirmKey(t, 'set.deleteConfirm', { n: selection.length }, { danger: true }))
+    )
       return
     onChange(removeRows(sheet, selection))
     setSelection([Math.min(Math.min(...selection), sheet.rows.length - selection.length - 1)])
@@ -3017,7 +3088,7 @@ function SetView({
               layer={info.layer}
               box={info.box}
               scale={scale}
-              onEditTemplate={() => onEditTemplate(cardTemplateName)}
+              onEditTemplate={() => onEditTemplate(cardTemplateName, current)}
               onClose={() => setInfo(null)}
             />
           )}
@@ -3089,7 +3160,7 @@ function SetView({
             <button
               className="preview-edit"
               title={t('tip.editTemplate', { name: cardTemplateName })}
-              onClick={() => onEditTemplate(cardTemplateName)}
+              onClick={() => onEditTemplate(cardTemplateName, current)}
             >
               <TemplateIcon /> {t('preview.editTemplate')}
             </button>
@@ -3111,7 +3182,9 @@ function SetView({
           )}
         </>
       ) : (
-        <p className="muted">{t('preview.selectRow')}</p>
+        <p className="muted">
+          {sheet.rows.length ? t('preview.selectRow') : t('preview.emptySet')}
+        </p>
       )}
       {!big && cardForm}
     </aside>
@@ -3342,7 +3415,7 @@ function SetView({
               {t('set.selectNone')}
             </button>
           </div>
-        ) : (
+        ) : sheet.rows.length < 2 && !viewActive ? null : (
           <p className="muted small set-hint">
             {viewActive
               ? t('set.viewHint', { shown: order.length, total: sheet.rows.length })
@@ -3351,7 +3424,18 @@ function SetView({
                 : t('set.editHint')}
           </p>
         )}
-        {view === 'table' || !template ? (
+        {sheet.rows.length === 0 && (
+          <div className="set-empty">
+            <p className="set-empty-title">{t('set.emptyTitle')}</p>
+            <p className="muted">{t('set.emptyText')}</p>
+            {!readOnly && (
+              <button className="primary big" onClick={addCard}>
+                {t('set.addFirst')}
+              </button>
+            )}
+          </div>
+        )}
+        {sheet.rows.length === 0 ? null : view === 'table' || !template ? (
           <DataTable
             sheet={sheet}
             columns={columns}

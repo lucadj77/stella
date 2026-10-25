@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { confirmKey } from './confirm'
 import changelog from '../../../../CHANGELOG.md?raw'
 import {
   changelogSection,
@@ -94,7 +95,7 @@ export default function UpdateNotice({
     setUpdate(null)
   }
   const install = async (): Promise<void> => {
-    if (dirty && !window.confirm(t('update.unsaved'))) return
+    if (dirty && !(await confirmKey(t, 'update.unsaved', undefined, { danger: true }))) return
     setFailed(null)
     setInstalling(0)
     const stop = window.api.onUpdateProgress((p) => setInstalling(p))

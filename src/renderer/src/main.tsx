@@ -4,6 +4,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
 import { I18nProvider } from './i18n'
+import { ConfirmHost } from './components/ConfirmHost'
 import { loadTheme, setTheme } from './theme/theme'
 import ExportPage from './export/ExportPage'
 import DocumentExportPage from './export/DocumentExportPage'
@@ -31,6 +32,7 @@ if (location.hash === '#export') {
     <StrictMode>
       <I18nProvider>
         <App />
+        <ConfirmHost />
       </I18nProvider>
     </StrictMode>
   )

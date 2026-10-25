@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { confirmKey } from './confirm'
 import type { Sheet } from '../../../shared/project'
 import {
   boolText,
@@ -182,8 +183,15 @@ function DataTable({
                     <button
                       className="icon-btn danger th-remove"
                       title={t('table.removeColumn')}
-                      onClick={() => {
-                        if (window.confirm(t('table.removeColumnConfirm', { column: h })))
+                      onClick={async () => {
+                        if (
+                          await confirmKey(
+                            t,
+                            'table.removeColumnConfirm',
+                            { column: h },
+                            { danger: true }
+                          )
+                        )
                           onChange(removeColumn(sheet, i))
                       }}
                     >

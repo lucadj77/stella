@@ -2,20 +2,27 @@ import { useState } from 'react'
 import { ATTRIBUTES, BUILTIN_SHAPES, BUILTIN_STYLES } from '../../../shared/model/markup'
 import { IMAGE_ATTRIBUTES } from '../../../shared/model/variables'
 import { SYSTEM_VARIABLES } from '../../../shared/model/system'
-import { DONATE_URL, siteUrl } from '../../../shared/donate'
+import {
+  DONATE_URL,
+  guideSectionUrl,
+  guideUrl,
+  siteUrl,
+  tutorialsUrl,
+  videoUrl,
+  type GuideSection
+} from '../../../shared/donate'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import type { MessageKey } from '../i18n/en'
 import Segmented from './Segmented'
+import { isMacPlatform, platformKeys } from '../../../shared/keys'
 
 // Aiuto interno: markup, campi e variabili (anche quelle di sistema), formule e scorciatoie, da
 // consultare senza aprire la guida. Le parole chiave restano in inglese; vedi docs/guida.
 
-type Tab = 'text' | 'variables' | 'formulas' | 'keys'
+type Tab = 'start' | 'text' | 'variables' | 'formulas' | 'keys'
 
-/** Guida completa su GitHub, nella lingua dell'interfaccia */
-const GUIDE = 'https://github.com/lucadj77/stella/blob/main/docs'
-const guideUrl = (lang: string): string => `${GUIDE}/${lang === 'it' ? 'guida' : 'guide'}/README.md`
+const TAB_KEY = 'help.tab'
 
 /** Markdown: cosa si scrive ($ è un testo di esempio) e la chiave della spiegazione */
 const MARKDOWN: [string, MessageKey][] = [
@@ -53,18 +60,6 @@ const FUNCTIONS = [
   'MOD',
   'PICK'
 ] as const
-
-const isMac = navigator.userAgent.includes('Mac')
-
-/** Le scorciatoie sono scritte con ⌘; su Windows e Linux diventano Ctrl */
-function keysFor(code: string): string {
-  if (isMac) return code
-  return code
-    .replace(/⇧⌘/g, 'Ctrl+Shift+')
-    .replace(/⌘ \+/g, 'Ctrl +')
-    .replace(/⌘(?=[A-Z])/g, 'Ctrl+')
-    .replace(/⌘/g, 'Ctrl')
-}
 
 const KEYS: [string, MessageKey][] = [
   ['⌘S', 'help.keys.save'],
@@ -112,9 +107,57 @@ function Table({
   )
 }
 
-export default function HelpDialog({ onClose }: { onClose(): void }): React.JSX.Element {
+/** I primi passi: cosa si fa, con il capitolo della guida */
+const STEPS: [MessageKey, MessageKey, GuideSection][] = [
+  ['help.start.template', 'help.start.templateText', 'template'],
+  ['help.start.set', 'help.start.setText', 'set'],
+  ['help.start.component', 'help.start.componentText', 'set'],
+  ['help.start.export', 'help.start.exportText', 'export']
+]
+
+/** Le parole che tornano in tutta l'app */
+const GLOSSARY: MessageKey[] = [
+  'help.word.component',
+  'help.word.template',
+  'help.word.set',
+  'help.word.layer',
+  'help.word.column',
+  'help.word.bleed',
+  'help.word.safe',
+  'help.word.variable',
+  'help.word.style',
+  'help.word.assets'
+]
+
+function savedTab(): Tab | null {
+  try {
+    const v = localStorage.getItem(TAB_KEY)
+    return v === 'start' || v === 'text' || v === 'variables' || v === 'formulas' || v === 'keys'
+      ? v
+      : null
+  } catch {
+    return null
+  }
+}
+
+export default function HelpDialog({
+  onClose,
+  start = false
+}: {
+  onClose(): void
+  /** Apre sui primi passi: nessun progetto aperto, o un progetto ancora senza componenti */
+  start?: boolean
+}): React.JSX.Element {
   const { t, lang } = useI18n()
-  const [tab, setTab] = useState<Tab>('text')
+  const [tab, setTabState] = useState<Tab>(() => (start ? 'start' : (savedTab() ?? 'start')))
+  const setTab = (v: Tab): void => {
+    setTabState(v)
+    try {
+      localStorage.setItem(TAB_KEY, v)
+    } catch {
+      // la scheda torna quella di base
+    }
+  }
   const field = t('help.sampleField')
   const icon = t('help.sampleIcon')
 
@@ -139,6 +182,7 @@ export default function HelpDialog({ onClose }: { onClose(): void }): React.JSX.
           value={tab}
           onChange={setTab}
           options={[
+            ['start', t('help.tab.start')],
             ['text', t('help.tab.text')],
             ['variables', t('help.tab.variables')],
             ['formulas', t('help.tab.formulas')],
@@ -146,6 +190,35 @@ export default function HelpDialog({ onClose }: { onClose(): void }): React.JSX.
           ]}
         />
         <div className="help-body">
+          {tab === 'start' && (
+            <>
+              <h3>{t('help.start.title')}</h3>
+              <ol className="help-steps">
+                {STEPS.map(([title, text, section]) => (
+                  <li key={title}>
+                    <strong>{t(title)}</strong> {t(text)}{' '}
+                    <a href={guideSectionUrl(section, lang)} target="_blank" rel="noreferrer">
+                      {t('help.start.inGuide')}
+                    </a>
+                  </li>
+                ))}
+              </ol>
+              <h3>{t('help.start.videos')}</h3>
+              <p className="help-videos">
+                <a href={videoUrl('overview', lang)} target="_blank" rel="noreferrer">
+                  {t('help.start.overview')}
+                </a>
+                <a href={videoUrl('firstComponent', lang)} target="_blank" rel="noreferrer">
+                  {t('help.start.firstComponent')}
+                </a>
+                <a href={tutorialsUrl(lang)} target="_blank" rel="noreferrer">
+                  {t('welcome.allVideos')}
+                </a>
+              </p>
+              <h3>{t('help.start.words')}</h3>
+              <Table rows={GLOSSARY.map((k) => [t(`${k}.name` as MessageKey), t(k)])} />
+            </>
+          )}
           {tab === 'text' && (
             <>
               <h3>{t('help.markdown')}</h3>
@@ -220,8 +293,7 @@ export default function HelpDialog({ onClose }: { onClose(): void }): React.JSX.
           )}
           {tab === 'keys' && (
             <>
-              <p>{t('help.keysIntro')}</p>
-              <Table rows={KEYS.map(([c, k]) => [keysFor(c), t(k)])} />
+              <Table rows={KEYS.map(([c, k]) => [platformKeys(c, isMacPlatform(), lang), t(k)])} />
             </>
           )}
         </div>

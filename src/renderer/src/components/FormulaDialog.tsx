@@ -401,7 +401,7 @@ export default function FormulaDialog({
   )
 
   return (
-    <Dialog title={title ?? t('fx.title')} onClose={onClose}>
+    <Dialog title={title ?? t('fx.title')} onClose={onClose} guide="formulaAssistant">
       <div className={`formula-dialog fx-mode-${mode}`}>
         {mode === 'start' && (
           <StartScreen
