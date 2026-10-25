@@ -42,6 +42,7 @@ import { assetChanged, assetUrl, openAssets } from './assets'
 import { addImages, copySystemFont, downloadGoogleFont, dropImages, systemFonts } from './library'
 import { addRecent, hasThumbnail, listRecent, removeRecent, saveThumbnail } from './recent'
 import { FrameWindow, exportPageApi } from './exportFrame'
+import { prepareWebExample } from './example'
 
 // window.api nella versione web: le stesse funzioni dell'app desktop (src/preload), fatte nel
 // browser. Il codice dei progetti è quello di src/main/project, che qui legge e scrive i file
@@ -112,8 +113,8 @@ export const webApi: Api = {
   chooseProjectFolder: () => pickFolder('stella-project'),
   recentProjects: () => listRecent(),
   removeRecentProject: (f) => removeRecent(f),
-  // l'esempio incluso c'è solo nell'app desktop: la schermata iniziale non mostra il tasto
-  prepareExampleProject: () => Promise.reject(new Error('desktop only')),
+  // l'esempio incluso nella build, copiato nello spazio del sito
+  prepareExampleProject: (lang) => prepareWebExample(lang),
   saveThumbnail: async (template, context, onlyIfMissing) => {
     const f = folder
     if (!f || (onlyIfMissing && (await hasThumbnail(f)))) return

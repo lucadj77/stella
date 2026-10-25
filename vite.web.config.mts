@@ -39,6 +39,7 @@ export default defineConfig({
     alias: [
       { find: '@renderer', replacement: resolve('src/renderer/src') },
       { find: /^(node:)?fs\/promises$/, replacement: resolve(shims, 'fs.ts') },
+      { find: /^(node:)?fs$/, replacement: resolve(shims, 'fsSync.ts') },
       { find: /^(node:)?path$/, replacement: resolve(shims, 'path.ts') },
       { find: /^(node:)?zlib$/, replacement: resolve(shims, 'zlib.ts') },
       { find: /^(node:)?url$/, replacement: resolve(shims, 'url.ts') },

@@ -6,6 +6,7 @@ export default function SidebarSection({
   icon,
   title,
   open,
+  count,
   onToggle,
   actions,
   children
@@ -14,6 +15,8 @@ export default function SidebarSection({
   icon: React.ReactNode
   title: string
   open: boolean
+  /** Numero di voci, mostrato accanto al titolo */
+  count?: number
   onToggle(open: boolean): void
   /** Pulsanti a destra del titolo, per esempio "+" */
   actions?: React.ReactNode
@@ -26,6 +29,7 @@ export default function SidebarSection({
           <ChevronIcon open={open} />
           <span className="section-icon">{icon}</span>
           {title}
+          {count !== undefined && <span className="section-count">{count}</span>}
         </button>
         {actions}
       </h2>

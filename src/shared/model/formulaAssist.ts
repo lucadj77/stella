@@ -436,7 +436,14 @@ export function firstEmpty(n: FormulaNode, path: NodePath = []): NodePath | null
 export type SentencePart =
   | { text: string }
   /** Uno spazio da riempire: il nodo in `blank`; `also` sono copie da tenere uguali */
-  | { blank: NodePath; kind: SlotKind; label: string; also?: NodePath[] }
+  | {
+      blank: NodePath
+      kind: SlotKind
+      label: string
+      also?: NodePath[]
+      /** Lo spazio vuole un'immagine anche se la formula dà un testo: un'icona */
+      image?: boolean
+    }
   | { op: NodePath; ops: readonly BinaryOperator[] }
   /** Aggiunge una voce: un argomento alla funzione in `add`, o una fascia se `band` (con il campo in `field`) */
   | { add: NodePath; label: string; band?: boolean; field?: NodePath }
@@ -451,6 +458,8 @@ export interface SentenceDefaults {
   /** Risultati proposti secondo ciò che il livello si aspetta */
   yes: FormulaNode
   no: FormulaNode
+  /** L'immagine da proporre per un'icona: la prima variabile immagine, se c'è */
+  icon?: string
 }
 
 export interface SentenceTemplate {
@@ -461,6 +470,8 @@ export interface SentenceTemplate {
   counter?: boolean
   /** Dà vero o falso: per il filtro del generatore e per mostrare o nascondere un gruppo */
   condition?: boolean
+  /** Dà un testo da mostrare: solo nei livelli testo */
+  text?: boolean
   make(ctx: CatalogContext, d: SentenceDefaults): FormulaNode
   /** I pezzi della frase, o null se il nodo non ha questa forma */
   parts(node: FormulaNode, ctx: CatalogContext): SentencePart[] | null
@@ -712,6 +723,36 @@ const join: SentenceTemplate = {
   parts: (n) => (readText(n) ? [txt('fx.s.text'), blank([], 'text', 'fx.b.text')] : null)
 }
 
+const str = (v: string): FormulaNode => ({ k: 'str', v })
+const isStr = (n: FormulaNode, v: string): boolean => n.k === 'str' && n.v === v
+
+/** "{" & icona & "*" & quante & "}": l'icona ripetuta, come {spada*3} nel testo */
+const repeatIcon: SentenceTemplate = {
+  id: 'repeatIcon',
+  text: true,
+  make: (_, d) =>
+    bin(
+      '&',
+      bin('&', bin('&', bin('&', str('{'), d.icon ? str(d.icon) : E), str('*')), field(d.field)),
+      str('}')
+    ),
+  parts: (n) => {
+    if (!isBin(n, ['&']) || !isStr(n.r, '}')) return null
+    const a = n.l
+    if (!isBin(a, ['&'])) return null
+    const b = a.l
+    if (!isBin(b, ['&']) || !isStr(b.r, '*')) return null
+    const c = b.l
+    if (!isBin(c, ['&']) || !isStr(c.l, '{')) return null
+    return [
+      txt('fx.s.repeatIcon'),
+      { ...blank([0, 0, 0, 1], 'result', 'fx.b.icon'), image: true },
+      txt('fx.s.repeatTimes'),
+      blank([0, 1], 'number', 'fx.b.times')
+    ]
+  }
+}
+
 /** a op b: vero o falso, per il filtro e i gruppi */
 const comparing: SentenceTemplate = {
   id: 'compare',
@@ -747,6 +788,7 @@ export const SENTENCES: SentenceTemplate[] = [
   notEmptyCond,
   comparing,
   calc,
+  repeatIcon,
   join
 ]
 
@@ -762,6 +804,7 @@ export const START_ORDER = [
   'ranges',
   'calc',
   'join',
+  'repeatIcon',
   'compare',
   'notEmptyCond'
 ]
@@ -773,6 +816,8 @@ export interface SentenceContext extends CatalogContext {
   onGrid: boolean
   /** Il risultato è vero o falso (un gruppo da mostrare o nascondere): valgono anche le condizioni */
   bool?: boolean
+  /** Il risultato è un testo da mostrare: valgono anche i casi solo per i testi */
+  text?: boolean
 }
 
 /** I modelli proposti in questo contesto, nell'ordine della schermata iniziale */
@@ -780,6 +825,7 @@ export function availableSentences(ctx: SentenceContext): SentenceTemplate[] {
   return START_ORDER.map((id) => SENTENCES.find((s) => s.id === id)!).filter((s) => {
     if (s.cell && !ctx.inCell) return false
     if (s.counter && ctx.onGrid) return false
+    if (s.text && !ctx.text) return false
     if (ctx.condition) return !!s.condition
     return !s.condition || !!ctx.bool
   })

@@ -92,3 +92,38 @@ export function useClosedSections(
   }
   return [closed, update]
 }
+
+/** Elenchi della barra laterale che oltre questo numero di voci partono chiusi */
+export const LONG_LIST = 6
+
+/**
+ * Sezioni aperte o chiuse a mano in un progetto, ricordate per cartella.
+ * Una sezione mai toccata usa la regola data da chi chiama (per esempio: chiusa se l'elenco è lungo).
+ */
+export function useProjectSections(
+  folder: string | null
+): [(section: string, fallback: boolean) => boolean, (section: string, open: boolean) => void] {
+  const [, setRev] = useState(0)
+  const storageKey = `projectSections.${folder ?? ''}`
+  const read = (): Record<string, boolean> => {
+    try {
+      const saved: unknown = JSON.parse(localStorage.getItem(storageKey) ?? '{}')
+      return saved && typeof saved === 'object' ? (saved as Record<string, boolean>) : {}
+    } catch {
+      return {}
+    }
+  }
+  const isOpen = (section: string, fallback: boolean): boolean => {
+    const v = read()[section]
+    return typeof v === 'boolean' ? v : fallback
+  }
+  const update = (section: string, open: boolean): void => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify({ ...read(), [section]: open }))
+    } catch {
+      // preferenza non essenziale
+    }
+    setRev((r) => r + 1)
+  }
+  return [isOpen, update]
+}

@@ -1013,7 +1013,7 @@ function TextProperties({
         <Inherit keys={['text']}>
           <TextField
             label={t('prop.text')}
-            hint={col()}
+            hint={`${col()} ${t('prop.textFxHint')}`}
             value={l.text}
             multiline
             markupFields={fields}
@@ -2001,7 +2001,10 @@ function ValueSource({
     <div className="value-source">
       {/* da dove viene il valore: una riga sola, sempre in cima alle proprietà del livello */}
       <div className="field source-line">
-        <span className="field-label">{t('source.label')}</span>
+        <span className="source-head">
+          <span className="field-label">{t('source.label')}</span>
+          {fx}
+        </span>
         <span className="field-control">
           <Segmented<ValueSourceKind>
             value={src.kind}
@@ -2012,7 +2015,6 @@ function ValueSource({
             ]}
             onChange={(kind) => set({ source: switchSource(l, kind) })}
           />
-          {fx}
         </span>
       </div>
       {src.kind === 'column' && (

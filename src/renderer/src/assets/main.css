@@ -1442,7 +1442,7 @@ th.prop-col {
   display: inline-flex;
   justify-content: center;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .layer-source-wrap {
@@ -1696,7 +1696,7 @@ button.layer-source.open {
 
 .markup-help-kind {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .markup-help .swatch {
@@ -1735,7 +1735,7 @@ button.layer-source.open {
   display: flex;
   flex-direction: column;
   color: #e5484d;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 /* il campo cresce con il testo, così si legge tutto senza scorrere */
@@ -1760,7 +1760,7 @@ button.layer-source.open {
 }
 
 .small-btn {
-  font-size: 11px;
+  font-size: 12px;
   padding: 1px 8px;
 }
 
@@ -2222,7 +2222,7 @@ label.check {
 }
 
 .asset-name {
-  font-size: 11px;
+  font-size: 12px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3011,7 +3011,7 @@ button.big {
 /* titolo della sezione come fascia, per distinguere set, template, stili e variabili */
 .sidebar-section h2 {
   margin: 0 -4px 6px;
-  padding: 5px 6px;
+  padding: 2px 6px;
   border-radius: 6px;
   background: var(--accent-soft);
   color: var(--text);
@@ -3030,12 +3030,43 @@ button.big {
 
 .sidebar-section h2 .icon-btn {
   font-size: 16px;
+  min-width: 28px;
+  min-height: 28px;
   padding: 2px 5px;
   color: var(--text);
 }
 
 .sidebar-section h2 .icon-btn.sort-alpha {
-  font-size: 11px;
+  font-size: 12px;
+}
+
+.sidebar-section h2 .section-count {
+  margin-left: 2px;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.section-count::before {
+  content: '· ';
+}
+
+/* "+ Documento" al posto dell'elenco vuoto */
+.sidebar-add {
+  display: block;
+  width: 100%;
+  margin: 0 0 16px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: none;
+  color: var(--text);
+  text-align: left;
+  font-size: 13px;
+}
+
+.sidebar-add:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .sidebar-section h2 .section-icon {
@@ -3335,7 +3366,7 @@ details.advanced > button.link {
   box-sizing: border-box;
   margin-top: 4px;
   font-family: ui-monospace, Menlo, Consolas, monospace;
-  font-size: 11.5px;
+  font-size: 12px;
   resize: vertical;
 }
 
@@ -3587,7 +3618,7 @@ input[type='checkbox'].bool-default {
 }
 
 .inline-editor-hint {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
   background: var(--panel);
   padding: 1px 4px;
@@ -3853,7 +3884,7 @@ select.from-template {
 
 .color-popover h4 {
   margin: 2px 0 0;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--muted);
 }
@@ -3955,7 +3986,7 @@ select.from-template {
 
 .color-mode button {
   padding: 2px 6px;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.3;
 }
 
@@ -3974,7 +4005,7 @@ select.from-template {
 }
 
 .color-num span {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
 }
 
@@ -4074,7 +4105,7 @@ select.from-template {
   color: #fff;
   padding: 1px 6px;
   border-radius: 4px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .iconify-info {
@@ -4551,7 +4582,7 @@ details.usages button.link {
 }
 
 .trash-kind {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
   width: 64px;
   flex-shrink: 0;
@@ -5069,7 +5100,7 @@ details.usages button.link {
   align-items: center;
   gap: 4px;
   padding: 6px 4px;
-  font-size: 11px;
+  font-size: 12px;
   border: 2px solid transparent;
   background: none;
 }
@@ -5432,7 +5463,7 @@ button.more-button {
 }
 
 .setup-ref {
-  font-size: 11px;
+  font-size: 12px;
   word-break: break-all;
 }
 
@@ -5872,7 +5903,7 @@ button.more-button {
 }
 
 .fx-fn {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--mk-value);
   font-family: ui-monospace, Menlo, Consolas, monospace;
@@ -5965,7 +5996,7 @@ button.more-button {
 }
 
 .fx-preview {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--mk-ref);
   font-family: ui-monospace, Menlo, Consolas, monospace;
   overflow-wrap: anywhere;
@@ -6060,14 +6091,14 @@ button.more-button {
 .fx-list small {
   color: var(--muted);
   font-family: ui-monospace, Menlo, Consolas, monospace;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .fx-list em {
   grid-column: 1 / -1;
   font-style: normal;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .fx-row {
@@ -6105,6 +6136,21 @@ button.more-button {
 
 .fx-compose p {
   margin: 0;
+}
+
+/* bordo normale: l'arancione resta per gli errori */
+.fx-compose textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.fx-compose-closed {
+  margin: 0 0 6px;
+  font-size: 12px;
+}
+
+.fx-compose-closed code {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
 }
 
 .fx-compose textarea,
@@ -6149,7 +6195,7 @@ button.more-button {
   padding: 3px 4px;
   border: 1px solid var(--border);
   border-radius: 4px;
-  font-size: 11px;
+  font-size: 12px;
   text-align: center;
   max-width: 140px;
   overflow: hidden;
@@ -6293,7 +6339,7 @@ button.more-button {
 .fx-sub-head {
   all: unset;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--muted);
   text-transform: uppercase;
@@ -6473,14 +6519,44 @@ button.more-button {
   font-size: 13px;
 }
 
+/* etichetta sopra e controllo a tutta larghezza: regge anche un pannello stretto */
+.source-line {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.source-line .source-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.source-line .field-label {
+  width: auto;
+}
+
 .source-line .field-control {
   flex-wrap: nowrap;
   gap: 6px;
 }
 
+.source-line .segmented {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+}
+
 .source-line .segmented button {
-  padding: 3px 7px;
+  flex: 1;
+  min-width: 0;
+  padding: 3px 4px;
   font-size: 12px;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .help-tip {
@@ -6488,12 +6564,12 @@ button.more-button {
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   border: 1px solid var(--border);
   color: var(--accent);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   cursor: help;
   user-select: none;
@@ -6508,4 +6584,12 @@ button.more-button {
   margin-left: 6px;
   margin-right: auto;
   text-transform: none;
+}
+
+/* anteprima formattata delle celle: il testo scritto resta nel suggerimento e nella modifica */
+.cell-markup {
+  max-height: 5.5em;
+  overflow: hidden;
+  line-height: 1.35;
+  vertical-align: top;
 }

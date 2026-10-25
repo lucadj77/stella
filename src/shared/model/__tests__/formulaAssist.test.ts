@@ -93,7 +93,8 @@ describe('frasi guidate', () => {
   const d = {
     field: 'forza',
     yes: { k: 'str', v: 'A' } as const,
-    no: { k: 'str', v: 'B' } as const
+    no: { k: 'str', v: 'B' } as const,
+    icon: 'spada'
   }
 
   it('ogni modello riconosce ciò che produce', async () => {

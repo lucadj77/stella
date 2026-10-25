@@ -5,6 +5,30 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.5.0-beta.4
+
+### English
+
+- **Set table**: cells show the text as it looks on the card, with bold, colors, icons and variables; `{sword*strength}` shows as many swords as the row says. The written text shows on hover and while editing the cell.
+- **Formula assistant**: in a text blank that holds a single field or a plain text, the list comes first and the text is a closed line **Text: {strength} · edit**; the text field opens by itself only for mixed or formatted texts. The text field no longer has an orange outline, which looked like an error.
+- **Formula assistant**: new **Repeat an icon** case on text layers: "Show the icon sword as many times as strength". The text field of a text layer says where to find the assistant.
+- **Web version**: **Open the example project** and **Explore the example** now work in the browser too. The example is copied into the storage the browser keeps for the site and is saved there.
+- **Sidebar**: **Styles** and **Variables** show how many items they hold and start closed above six items; the choice is remembered for each project. Empty **Documents** and **Notes** show **+ Document** and **+ Note** buttons.
+- **Value on cards** fits narrow panels: the heading and the **fx** button are on top, the three choices take the whole width below.
+- Small texts are at least 12 px, and the buttons in the sidebar headings are larger.
+- Web version: automatic backups no longer fail with an error in the browser console.
+
+### Italiano
+
+- **Tabella del set**: le celle mostrano il testo come appare sulla carta, con grassetto, colori, icone e variabili; `{spada*forza}` mostra tante spade quante dice la riga. Il testo scritto si vede passando il mouse e quando si modifica la cella.
+- **Assistente formule**: in uno spazio di testo con un solo campo o un testo semplice viene prima l'elenco, e il testo è una riga chiusa **Testo: {forza} · modifica**; il campo del testo si apre da solo solo per i testi misti o formattati. Il campo non ha più il bordo arancione, che sembrava un errore.
+- **Assistente formule**: nuovo caso **Ripeti un'icona** sui livelli di testo: «Mostra l'icona spada tante volte quanto forza». Il campo del testo di un livello di testo dice dove trovare l'assistente.
+- **Versione web**: **Apri il progetto di esempio** ed **Esplora l'esempio** funzionano anche nel browser. L'esempio si copia nello spazio che il browser riserva al sito e si salva lì.
+- **Barra laterale**: **Stili** e **Variabili** mostrano il numero delle voci e oltre sei voci partono chiusi; la scelta si ricorda per ogni progetto. **Documenti** e **Note** vuoti mostrano i pulsanti **+ Documento** e **+ Nota**.
+- **Valore sulle carte** sta anche nei pannelli stretti: il titolo e il tasto **fx** sono in alto, le tre scelte occupano sotto tutta la larghezza.
+- I testi piccoli sono almeno di 12 px, e i pulsanti nei titoli della barra laterale sono più grandi.
+- Versione web: i backup automatici non danno più un errore nella console del browser.
+
 ## 1.5.0-beta.3
 
 ### English
