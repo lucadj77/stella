@@ -2060,6 +2060,8 @@ export const en = {
   'fx.textPlaceholder': 'Text, with {field} for the values of the card',
   'fx.insertField': 'Insert a field…',
   'fx.formatThis': 'Format this value…',
+  'fx.composeHint':
+    'Type the text; the tabs below insert a field or a variable where the cursor is, as {name}. Format… applies to the whole text.',
   'fx.format': 'Format…',
   'fx.formatted': 'Formatting: {attrs}',
   'fx.removeFormat': 'Remove',

@@ -5698,6 +5698,26 @@ button.more-button {
   gap: 6px;
 }
 
+.fx-compose {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.fx-compose .fx-row {
+  align-items: flex-start;
+}
+
+.fx-compose textarea {
+  flex: 1;
+}
+
+.fx-compose p {
+  margin: 0;
+}
+
+.fx-compose textarea,
 .fx-text-tab textarea,
 .fx-text textarea {
   font-family: ui-monospace, Menlo, Consolas, monospace;

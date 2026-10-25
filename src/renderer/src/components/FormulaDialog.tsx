@@ -1,4 +1,4 @@
-import { useContext, useMemo, useState } from 'react'
+import { useContext, useMemo, useRef, useState } from 'react'
 import {
   COMPARISON_OPERATORS,
   evaluateNodeText,
@@ -963,31 +963,130 @@ const ALL_TABS: Tab[] = [
   'formula'
 ]
 
+/** Il contenuto di una casella letto come testo con campi, se è fatto solo di quello */
+function composeText(n: FormulaNode): FormattedText | null {
+  if (n.k === 'empty') return { parts: [], attrs: { styles: [] } }
+  if (n.k === 'field') return { parts: [{ field: n.name }], attrs: { styles: [] } }
+  if (n.k === 'num') return { parts: [{ text: String(n.v) }], attrs: { styles: [] } }
+  if (n.k === 'str' || n.k === 'bin') return readText(n)
+  return null
+}
+
+/** Caselle in cui si compone un testo: il campo di testo resta visibile e le schede ci inseriscono */
+const COMPOSE_KINDS: SlotKind[] = ['text', 'result', 'value']
+const COMPOSE_TABS: Tab[] = ['field', 'system', 'variable']
+
 function SlotPicker(p: PickerProps): React.JSX.Element {
   const { t } = useI18n()
+  // "cosa mostrare": si scrive il testo e le schede sotto inseriscono campi e variabili
+  const compose =
+    COMPOSE_KINDS.includes(p.kind) && !['color', 'image', 'bool'].includes(p.expect)
+      ? composeText(p.node)
+      : null
   // una formula nuova parte dal catalogo
   const [tab, setTab] = useState<Tab>(() =>
-    !p.path.length && p.node.k === 'empty' ? 'formula' : firstTab(p.kind, p.expect, p.node)
+    compose
+      ? 'field'
+      : !p.path.length && p.node.k === 'empty'
+        ? 'formula'
+        : firstTab(p.kind, p.expect, p.node)
   )
   const [all, setAll] = useState(false)
   const [formatting, setFormatting] = useState(false)
+  const [src, setSrc] = useState(compose ? templateFromParts(compose.parts) : '')
+  const [attrs, setAttrs] = useState<Attrs>(compose?.attrs ?? { styles: [] })
+  const area = useRef<HTMLTextAreaElement>(null)
+  const [written, setWritten] = useState<FormulaNode | null>(null)
+  // la casella è cambiata da fuori (per esempio svuotata): il testo la segue
+  const [prevNode, setPrevNode] = useState(p.node)
+  if (p.node !== prevNode) {
+    setPrevNode(p.node)
+    if (compose && p.node !== written) {
+      setSrc(templateFromParts(compose.parts))
+      setAttrs(compose.attrs)
+    }
+  }
+  const write = (text: string, a: Attrs = attrs): void => {
+    setSrc(text)
+    setAttrs(a)
+    const node: FormulaNode =
+      text === '' && !serializeAttrs(a)
+        ? { k: 'empty' }
+        : writeText({ parts: partsFromTemplate(text, p.known), attrs: a })
+    setWritten(node)
+    p.onPick(node)
+  }
+  const insert = (name: string): void => {
+    const el = area.current
+    const from = el?.selectionStart ?? src.length
+    const to = el?.selectionEnd ?? from
+    const piece = `{${name}}`
+    write(src.slice(0, from) + piece + src.slice(to))
+    requestAnimationFrame(() => {
+      el?.focus()
+      el?.setSelectionRange(from + piece.length, from + piece.length)
+    })
+  }
+  // nelle schede, un campo o una variabile si inserisce nel testo invece di sostituire la casella
+  const tabProps: PickerProps = compose
+    ? {
+        ...p,
+        onPick: (n, sel) => {
+          if (n.k === 'field') insert(n.name)
+          else p.onPick(n, sel)
+        }
+      }
+    : p
   // un campo o un testo nella casella si formatta direttamente, senza passare dalla scheda Testo
-  const formattable: FormattedText | null =
-    p.kind === 'condition' || p.kind === 'number'
+  const formattable: FormattedText | null = compose
+    ? null
+    : p.kind === 'condition' || p.kind === 'number'
       ? null
       : p.node.k === 'field'
         ? { parts: [{ field: p.node.name }], attrs: { styles: [] } }
         : p.node.k === 'str' || p.node.k === 'bin'
           ? readText(p.node)
           : null
-  const few = relevantTabs(p.kind, p.expect)
+  const few = compose ? [...COMPOSE_TABS] : relevantTabs(p.kind, p.expect)
   // dentro una griglia le variabili della casella servono quasi sempre
   if (p.ctx.inCell && !few.includes('system') && p.kind !== 'condition') few.splice(2, 0, 'system')
   if (!few.includes(tab)) few.push(tab)
-  const tabs = (all ? ALL_TABS : few).filter((x) => x !== 'image' || p.expect === 'image')
+  const tabs = (all ? ALL_TABS : few).filter(
+    (x) => (x !== 'image' || p.expect === 'image') && (x !== 'text' || !compose)
+  )
+  const fmt = serializeAttrs(attrs)
   return (
     <div className="fx-picker">
       <span className="fx-picker-title">{p.title}</span>
+      {compose && (
+        <div className="fx-compose">
+          <div className="fx-row">
+            <textarea
+              ref={area}
+              rows={2}
+              autoFocus
+              value={src}
+              placeholder={t('fx.textPlaceholder')}
+              onChange={(e) => write(e.target.value)}
+            />
+            <button type="button" onClick={() => setFormatting(true)}>
+              {t('fx.format')}
+            </button>
+          </div>
+          <p className="muted small">
+            {fmt && (
+              <>
+                {t('fx.formatted', { attrs: fmt })}{' '}
+                <button type="button" className="link" onClick={() => write(src, { styles: [] })}>
+                  {t('fx.removeFormat')}
+                </button>
+                <br />
+              </>
+            )}
+            {t('fx.composeHint')}
+          </p>
+        </div>
+      )}
       <div className="fx-tabs" role="tablist">
         {tabs.map((x) => (
           <button
@@ -1006,9 +1105,9 @@ function SlotPicker(p: PickerProps): React.JSX.Element {
         </button>
       </div>
       <div className="fx-tab-body">
-        {tab === 'field' && <FieldTab {...p} />}
-        {tab === 'variable' && <VariableTab {...p} />}
-        {tab === 'system' && <SystemTab {...p} />}
+        {tab === 'field' && <FieldTab {...tabProps} />}
+        {tab === 'variable' && <VariableTab {...tabProps} />}
+        {tab === 'system' && <SystemTab {...tabProps} />}
         {tab === 'number' && <NumberTab {...p} />}
         {tab === 'text' && <TextTab {...p} />}
         {tab === 'color' && <ColorTab {...p} />}
@@ -1043,14 +1142,26 @@ function SlotPicker(p: PickerProps): React.JSX.Element {
           </button>
         )}
       </div>
+      {formatting && compose && (
+        <FormatDialog
+          initial={attrs}
+          sample={src || t('fx.textSample')}
+          mode="text"
+          onApply={(a) => {
+            setFormatting(false)
+            write(src, a)
+          }}
+          onClose={() => setFormatting(false)}
+        />
+      )}
       {formatting && formattable && (
         <FormatDialog
           initial={formattable.attrs}
           sample={templateFromParts(formattable.parts) || t('fx.textSample')}
           mode="text"
-          onApply={(attrs) => {
+          onApply={(a) => {
             setFormatting(false)
-            p.onPick(writeText({ parts: formattable.parts, attrs }))
+            p.onPick(writeText({ parts: formattable.parts, attrs: a }))
           }}
           onClose={() => setFormatting(false)}
         />

@@ -2090,6 +2090,8 @@ export const it: Record<MessageKey, string> = {
   'fx.textPlaceholder': 'Testo, con {campo} per i valori della carta',
   'fx.insertField': 'Inserisci un campo…',
   'fx.formatThis': 'Formatta questo valore…',
+  'fx.composeHint':
+    "Scrivi il testo; le schede sotto inseriscono un campo o una variabile dove c'è il cursore, come {nome}. Formatta… vale per tutto il testo.",
   'fx.format': 'Formatta…',
   'fx.formatted': 'Formattazione: {attrs}',
   'fx.removeFormat': 'Togli',
