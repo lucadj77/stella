@@ -240,7 +240,7 @@ export default function SetupDialog({
       if (!e.ctrlKey && !e.metaKey) return
       e.preventDefault()
       const d = Math.sign(e.deltaY) * Math.min(Math.abs(e.deltaY), 50)
-      zoomToRef.current(zoomRef.current * Math.exp(-d * 0.006), e.clientX, e.clientY)
+      zoomToRef.current(zoomRef.current * Math.exp(-d * 0.004), e.clientX, e.clientY)
     }
     vp.addEventListener('wheel', onWheel, { passive: false })
     return () => vp.removeEventListener('wheel', onWheel)

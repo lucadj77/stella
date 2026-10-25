@@ -1390,8 +1390,8 @@ export const it: Record<MessageKey, string> = {
   'documents.setupOrder.downHint': 'Un passo più giù tra gli elementi dello stesso tipo',
   'documents.setupOrder.bottomHint':
     'Sotto tutti gli elementi dello stesso tipo. Le zone restano sempre sotto carte e immagini, testi e frecce sopra',
-  'documents.blockWidth': 'Larghezza (% della riga)',
-  'documents.blockFont': 'Testo didascalie (%)',
+  'documents.blockWidth': 'Larghezza (% riga)',
+  'documents.blockFont': 'Didascalie (%)',
   'documents.blockSizeHint':
     'Nel documento il disegno occupa al massimo questa parte della larghezza della riga; le didascalie mantengono la dimensione scelta qui.',
   'documents.pickCard': 'Scegli una carta',
