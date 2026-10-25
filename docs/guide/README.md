@@ -18,6 +18,7 @@ Video tutorials on YouTube, no voice ([whole playlist](https://www.youtube.com/p
 10. [Data from the spreadsheet](https://www.youtube.com/watch?v=55U-lu3N3AE) (9 minutes)
 11. [Images, icons and fonts](https://www.youtube.com/watch?v=PWL7IkAG4qo) (6 minutes)
 12. [A game in several languages](https://www.youtube.com/watch?v=gszofbPThzU) (6 minutes)
+13. [The formula assistant](https://www.youtube.com/watch?v=ZTHGyxE3_80) (11 minutes)
 
 Versione italiana: [../guida/README.md](../guida/README.md).
 
