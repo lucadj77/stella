@@ -22,6 +22,7 @@ import {
 } from '../../../shared/model/variables'
 import { AssetsContext, StylesContext, VariablesContext, assetUrl } from './assets'
 import { useImageSize } from './imageSize'
+import { imageBackdrop, shapePath } from '../../../shared/model/shapes'
 
 // Disegna il markup del testo (docs/specifica.md, 2.1) come HTML dentro il foreignObject del
 // livello. Le misure sono nel sistema scalato del livello: `unit` pixel per millimetro.
@@ -244,26 +245,6 @@ function SpanView({
   )
 }
 
-const SHAPES: Record<string, (p: React.SVGProps<SVGElement>) => React.JSX.Element> = {
-  circle: (p) => (
-    <ellipse cx={50} cy={50} rx={50} ry={50} {...(p as React.SVGProps<SVGEllipseElement>)} />
-  ),
-  square: (p) => <rect width={100} height={100} {...(p as React.SVGProps<SVGRectElement>)} />,
-  rounded: (p) => (
-    <rect width={100} height={100} rx={22} {...(p as React.SVGProps<SVGRectElement>)} />
-  ),
-  hexagon: (p) => (
-    <polygon
-      // esagono regolare: alto √3 / 2 della larghezza, al centro del quadrato
-      points="25,6.7 75,6.7 100,50 75,93.3 25,93.3 0,50"
-      {...(p as React.SVGProps<SVGPolygonElement>)}
-    />
-  ),
-  diamond: (p) => (
-    <polygon points="50,0 100,50 50,100 0,50" {...(p as React.SVGProps<SVGPolygonElement>)} />
-  )
-}
-
 /**
  * Margini di un'immagine nel testo: un po' di spazio, più la spaziatura del testo divisa sui due
  * lati. Tutta a destra, l'ultima icona sporgerebbe e una riga centrata finirebbe spostata.
@@ -286,7 +267,7 @@ function Background({
 }): React.JSX.Element {
   const assets = useContext(AssetsContext)
   const variables = useContext(VariablesContext)
-  const shape = SHAPES[name]
+  const shape = shapePath(name)
   if (shape)
     return (
       <svg
@@ -294,12 +275,13 @@ function Background({
         preserveAspectRatio="none"
         style={{ ...FILL, overflow: 'visible' }}
       >
-        {shape({
-          fill: color ?? 'currentColor',
-          stroke: border?.color,
-          strokeWidth: border ? border.width * unit : undefined,
-          vectorEffect: 'non-scaling-stroke'
-        })}
+        <path
+          d={shape}
+          fill={color ?? 'currentColor'}
+          stroke={border?.color}
+          strokeWidth={border ? border.width * unit : undefined}
+          vectorEffect="non-scaling-stroke"
+        />
       </svg>
     )
   // una variabile immagine prevale su un file con lo stesso nome, e porta la sua tinta
@@ -379,6 +361,50 @@ function Ref({
     opacity: set.opacity
   }
   const tint = set.tint ? resolveColor(set.tint, palette(variables)) : null
+  const backdrop = imageBackdrop(v, variables)
+  if (backdrop) {
+    // lo sfondo della variabile: un quadrato alto quanto l'icona, con l'immagine al centro
+    const inner = height * (1 - 2 * backdrop.pad)
+    const one: CSSProperties = {
+      ...style,
+      transform: undefined,
+      display: 'inline-grid',
+      placeItems: 'center',
+      position: 'relative',
+      width: `${height}em`
+    }
+    const icon: CSSProperties = {
+      position: 'relative',
+      height: `${inner}em`,
+      transform: transform || undefined
+    }
+    return (
+      <>
+        {Array.from({ length: count }, (_, i) => (
+          <span key={i} style={one}>
+            <Background
+              name={backdrop.shape ?? backdrop.src ?? ''}
+              color={backdrop.color ? resolveColor(backdrop.color, palette(variables)) : undefined}
+              unit={1}
+            />
+            {tint ? (
+              <span
+                style={{
+                  ...icon,
+                  display: 'inline-block',
+                  width: `${size ? (inner * size.w) / size.h : inner}em`,
+                  background: tint,
+                  WebkitMask: `url("${url}") center / contain no-repeat`
+                }}
+              />
+            ) : (
+              <img src={url} alt="" style={{ ...icon, width: 'auto' }} />
+            )}
+          </span>
+        ))}
+      </>
+    )
+  }
   return (
     <>
       {Array.from({ length: count }, (_, i) =>

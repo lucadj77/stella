@@ -5,6 +5,28 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.5.0-beta.1
+
+### English
+
+- **Table setup**: the window is much larger and has a **Full screen** button that uses the whole app window. The drawing can be zoomed with − and +, with ⌘/Ctrl + mouse wheel, by pinching the trackpad or with ⌘+ and ⌘− / Ctrl++ and Ctrl+−; **Fit** (⌘0 / Ctrl+0) shows it all again. When zoomed in, move it with the scroll bars, the wheel or by dragging with the space bar held down.
+- **Table setup**: several elements can be selected with Shift or ⌘/Ctrl + click, by dragging a box on an empty spot or with ⌘A / Ctrl+A. They move together, and the panel aligns them and distributes them with equal gaps. **Order** brings an element to the front, forward, backward or to the back among the elements of the same kind.
+- **Table setup**: **Image** also offers image variables, and the drawing shows their tint, rotation, flip, opacity and background.
+- **Image variables** can have a **Background**: a shape (circle, square, rounded, hexagon, diamond), an image or another image variable, with its colour and the space around the image. It shows wherever the variable is used: in texts, image layers, documents (also in Word and Markdown exports) and table setups. For example a white drop in a red circle.
+- **Card anatomy and table setup**: **Width (% of line)** makes the block take at most that share of the line, and **Captions (%)** changes the size of the labels. In the text they are the `width: 60%` and `font: 90%` lines.
+- **Table setup**: ⌘C, ⌘X and ⌘V / Ctrl+C, Ctrl+X and Ctrl+V copy, cut and paste the selected elements, also into another table setup, and ⌘D / Ctrl+D duplicates them.
+- **Dark theme**: in the table setup and card anatomy windows the captions stayed light on the white drawing and could not be read. Now they are dark, as on the page.
+
+### Italiano
+
+- **Schema del tavolo**: la finestra è molto più grande e ha il tasto **Schermo intero**, che usa tutta la finestra dell'app. Il disegno si ingrandisce con − e +, con ⌘/Ctrl + rotella del mouse, pizzicando il trackpad o con ⌘+ e ⌘− / Ctrl++ e Ctrl+−; **Adatta** (⌘0 / Ctrl+0) lo mostra di nuovo tutto. Ingrandito, si sposta con le barre di scorrimento, con la rotella o trascinando con la barra spaziatrice premuta.
+- **Schema del tavolo**: si possono scegliere più elementi con Maiuscolo o ⌘/Ctrl + clic, trascinando un riquadro su uno spazio vuoto o con ⌘A / Ctrl+A. Si spostano insieme, e il pannello li allinea e li distribuisce con spazi uguali. **Ordine** porta un elemento in primo piano, avanti, indietro o sullo sfondo tra gli elementi dello stesso tipo.
+- **Schema del tavolo**: **Immagine** propone anche le variabili immagine, e il disegno ne mostra tinta, rotazione, ribaltamento, opacità e sfondo.
+- **Variabili immagine**: possono avere uno **Sfondo**, cioè una forma (circle, square, rounded, hexagon, diamond), un'immagine o un'altra variabile immagine, con il suo colore e lo spazio attorno all'immagine. Si vede ovunque si usi la variabile: nei testi, nei livelli immagine, nei documenti (anche negli export Word e Markdown) e negli schemi del tavolo. Per esempio una goccia bianca in un cerchio rosso.
+- **Anatomia della carta e schema del tavolo**: **Larghezza (% riga)** fa occupare al blocco al massimo quella parte della riga, **Didascalie (%)** cambia la dimensione delle etichette. Nel testo sono le righe `width: 60%` e `font: 90%`.
+- **Schema del tavolo**: ⌘C, ⌘X e ⌘V / Ctrl+C, Ctrl+X e Ctrl+V copiano, tagliano e incollano gli elementi scelti, anche in un altro schema, e ⌘D / Ctrl+D li duplica.
+- **Tema scuro**: nelle finestre dello schema del tavolo e dell'anatomia della carta le didascalie restavano chiare sul disegno bianco e non si leggevano. Ora sono scure, come sulla pagina.
+
 ## 1.4.1
 
 ### English

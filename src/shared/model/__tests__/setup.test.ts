@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { parseSetup, setupSource } from '../setup'
-import { documentProblems, parseDocument } from '../document'
+import {
+  alignSetupItems,
+  canReorderSetupItem,
+  distributeSetupItems,
+  moveSetupItem,
+  parseSetup,
+  reorderSetupItem,
+  setupSource,
+  type SetupItem
+} from '../setup'
+import { anatomySource, documentProblems, parseDocument } from '../document'
 import type { LoadedSet } from '../../project'
 
 const lines = (src: string): { lines: string[]; starts: number[] } => {
@@ -77,5 +86,75 @@ describe('schema del tavolo', () => {
     expect(parseDocument(text)[0].kind).toBe('setup')
     const keys = documentProblems(text, { sets }).map((p) => p.message.key)
     expect(keys.sort()).toEqual(['doc.card.noRow', 'doc.setup.badLine'])
+  })
+})
+
+describe('disposizione nello schema', () => {
+  const zone = (x: number, y: number, w = 10, h = 10): SetupItem => ({
+    kind: 'zone',
+    x,
+    y,
+    w,
+    h,
+    label: '',
+    from: 0,
+    to: 0
+  })
+  const boxesOf = (items: SetupItem[]): { x: number; y: number; w: number; h: number }[] =>
+    items.map((it) => (it.kind === 'zone' ? it : { x: it.x, y: it.y, w: 5, h: 5 }))
+
+  it('allinea ai lati della selezione', () => {
+    const items = [zone(0, 0), zone(20, 5, 20), zone(50, 50)]
+    const left = alignSetupItems(items, boxesOf(items), [0, 1], 'left')
+    expect(left.map((i) => i.x)).toEqual([0, 0, 50])
+    const right = alignSetupItems(items, boxesOf(items), [0, 1], 'right')
+    expect(right.map((i) => i.x)).toEqual([30, 20, 50])
+    const mid = alignSetupItems(items, boxesOf(items), [0, 1], 'vcenter')
+    expect(mid.map((i) => i.y)).toEqual([2.5, 2.5, 50])
+  })
+
+  it('sposta la freccia con tutte e due le punte', () => {
+    const arrow: SetupItem = { kind: 'arrow', x: 0, y: 0, x2: 10, y2: 5, label: '', from: 0, to: 0 }
+    expect(moveSetupItem(arrow, 2, 3)).toMatchObject({ x: 2, y: 3, x2: 12, y2: 8 })
+  })
+
+  it('distribuisce con spazi uguali', () => {
+    const items = [zone(0, 0), zone(12, 0), zone(40, 0)]
+    const out = distributeSetupItems(items, boxesOf(items), [2, 0, 1], 'h')
+    expect(out.map((i) => i.x)).toEqual([0, 20, 40])
+  })
+
+  it("cambia l'ordine solo dentro lo stesso strato", () => {
+    const text: SetupItem = { kind: 'text', x: 0, y: 0, w: 10, text: 't', from: 0, to: 0 }
+    const items = [zone(0, 0), text, zone(1, 1), zone(2, 2)]
+    const up = reorderSetupItem(items, 0, 'up')
+    expect(up.items.map((i) => i.x)).toEqual([1, 0, 0, 2])
+    expect(up.index).toBe(2)
+    const top = reorderSetupItem(items, 0, 'top')
+    expect(top.items.map((i) => i.x)).toEqual([1, 0, 2, 0])
+    expect(top.index).toBe(3)
+    expect(top.items[1]).toBe(text)
+    expect(reorderSetupItem(items, 1, 'up').items).toBe(items)
+    expect(canReorderSetupItem(items, 1, true)).toBe(false)
+    expect(canReorderSetupItem(items, 2, false)).toBe(true)
+  })
+})
+
+describe('larghezza e testo dei blocchi', () => {
+  it('legge e scrive width e font nello schema', () => {
+    const s = parse('width 60%\nfont: 80%\nzone 0,0 10x10\nwidth 5%')
+    expect(s.width).toBe(0.6)
+    expect(s.font).toBe(0.8)
+    expect(s.bad).toHaveLength(1)
+    expect(setupSource(s)).toContain('width: 60%\nfont: 80%\nzone')
+    expect(setupSource({ ...s, width: 1, font: 1 })).not.toContain('width:')
+  })
+
+  it("legge width e font nell'anatomia", () => {
+    const [b] = parseDocument('```anatomy\ncard: P/1\nwidth: 50%\nfont: 120%\n- nome: Nome\n```')
+    expect(b).toMatchObject({ kind: 'anatomy', width: 0.5, font: 1.2, bad: [] })
+    expect(anatomySource('P/1', [{ layer: 'nome', label: 'Nome' }], false, { width: 0.5 })).toBe(
+      '```anatomy\ncard: P/1\nwidth: 50%\n- nome: Nome\n```'
+    )
   })
 })

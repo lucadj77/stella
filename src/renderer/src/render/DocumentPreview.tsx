@@ -234,8 +234,8 @@ function Block({
                 templates={templates}
                 project={ctx.project}
                 unit={DOC_UNIT}
-                maxWidth={DOC_PAGES[settings.page][0] - 2 * settings.margin}
-                font={settings.size * 0.88 * PT}
+                maxWidth={(DOC_PAGES[settings.page][0] - 2 * settings.margin) * (b.width ?? 1)}
+                font={settings.size * 0.88 * PT * (b.font ?? 1)}
               />
             )}
           </figure>
@@ -244,14 +244,21 @@ function Block({
     }
     case 'setup': {
       const setup = setupWithText(b, (s) => documentText(s, ctx))
-      const maxWidth = DOC_PAGES[settings.page][0] - 2 * settings.margin
+      // width: e font: restringono lo schema e cambiano il corpo delle didascalie
+      const maxWidth = (DOC_PAGES[settings.page][0] - 2 * settings.margin) * (b.width ?? 1)
       const sets = ctx.sets ?? []
       return (
         <div className="doc-figure">
           <figure data-from={b.from}>
             <SetupDiagram
               setup={setup}
-              view={setupView(setup, sets, templates, maxWidth, settings.size * 0.88 * PT)}
+              view={setupView(
+                setup,
+                sets,
+                templates,
+                maxWidth,
+                settings.size * 0.88 * PT * (b.font ?? 1)
+              )}
               sets={sets}
               templates={templates}
               project={ctx.project}

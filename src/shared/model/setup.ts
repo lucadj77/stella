@@ -9,6 +9,9 @@
 //   text 140,30 width=50 "Pesca **2** carte"
 //   arrow 40,50 -> 60,80 "pesca"
 //   image icons/moneta.png 200,20 width=10
+//
+// Con `width 60%` lo schema occupa al massimo il 60% della riga, con `font 90%` le didascalie
+// hanno il 90% del corpo di base.
 
 export const SETUP_FENCE = 'setup'
 
@@ -35,8 +38,41 @@ export interface Setup {
   /** Misure dell'area in mm; senza, quelle degli elementi */
   size: { w: number; h: number } | null
   items: SetupItem[]
+  /** Larghezza massima in frazione della riga; null = tutta */
+  width?: number | null
+  /** Corpo delle didascalie in frazione di quello di base; null = di base */
+  font?: number | null
   /** Righe che non si capiscono */
   bad: { from: number; to: number }[]
+}
+
+/** Limiti di `width:` e `font:` negli schemi del tavolo e nelle anatomie (model/document.ts), in frazione */
+export const BLOCK_WIDTH = { min: 0.1, max: 1 }
+export const BLOCK_FONT = { min: 0.3, max: 3 }
+
+/**
+ * Righe `width: 60%` e `font: 90%` dell'anatomia e dello schema del tavolo (anche senza i due
+ * punti); value null se il valore non va bene
+ */
+export function blockSizeLine(
+  line: string
+): { key: 'width' | 'font'; value: number | null } | null {
+  const m = /^\s*(width|font)\s*:?\s*(\S*)\s*$/i.exec(line)
+  if (!m) return null
+  const key = m[1].toLowerCase() as 'width' | 'font'
+  const pct = /^(\d+(?:[.,]\d+)?)%$/.exec(m[2])
+  const n = pct ? Number(pct[1].replace(',', '.')) / 100 : NaN
+  const lim = key === 'width' ? BLOCK_WIDTH : BLOCK_FONT
+  return { key, value: n >= lim.min && n <= lim.max ? n : null }
+}
+
+/** Le righe `width:` e `font:` da scrivere nel blocco */
+export function blockSizeLines(o: { width?: number | null; font?: number | null }): string[] {
+  const pct = (n: number): string => `${Math.round(n * 1000) / 10}%`
+  return [
+    ...(o.width && o.width < 1 ? [`width: ${pct(o.width)}`] : []),
+    ...(o.font && o.font !== 1 ? [`font: ${pct(o.font)}`] : [])
+  ]
 }
 
 /** Larghezza di base dei testi e delle immagini, in mm */
@@ -147,10 +183,16 @@ function parseItem(line: string, from: number): SetupItem | null {
 
 /** Legge le righe del blocco; `starts` è la posizione di ogni riga nel documento */
 export function parseSetup(lines: string[], starts: number[]): Setup {
-  const out: Setup = { size: null, items: [], bad: [] }
+  const out: Setup = { size: null, items: [], width: null, font: null, bad: [] }
   lines.forEach((l, k) => {
     const from = starts[k]
     if (!l.trim() || l.trim().startsWith('#')) return
+    const block = blockSizeLine(l)
+    if (block) {
+      if (block.value === null) out.bad.push({ from, to: from + l.length })
+      else out[block.key] = block.value
+      return
+    }
     const size = /^\s*size\s*:?\s*(\S+)\s*$/i.exec(l)
     const sz = size && SIZE.exec(size[1])
     if (sz) {
@@ -188,11 +230,147 @@ export function setupLine(it: SetupItem): string {
 }
 
 /** Il testo del blocco ```setup */
-export function setupSource(s: Pick<Setup, 'size' | 'items'>): string {
+export function setupSource(s: Pick<Setup, 'size' | 'items' | 'width' | 'font'>): string {
   return [
     '```' + SETUP_FENCE,
     ...(s.size ? [`size ${r(s.size.w)}x${r(s.size.h)}`] : []),
+    ...blockSizeLines(s),
     ...s.items.map(setupLine),
     '```'
   ].join('\n')
+}
+
+// Disposizione degli elementi nell'editor dello schema: spostamento, allineamento, distribuzione
+// e ordine. I riquadri (render/setupGeometry.ts) arrivano da fuori, nello stesso ordine.
+
+interface Box {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+/** L'elemento spostato di dx, dy mm; la freccia si sposta con tutte e due le punte */
+export function moveSetupItem(it: SetupItem, dx: number, dy: number): SetupItem {
+  const tenth = (n: number): number => Math.round(n * 10) / 10
+  const moved = { ...it, x: tenth(it.x + dx), y: tenth(it.y + dy) }
+  return moved.kind === 'arrow'
+    ? { ...moved, x2: tenth(moved.x2 + dx), y2: tenth(moved.y2 + dy) }
+    : moved
+}
+
+export type SetupAlign = 'left' | 'hcenter' | 'right' | 'top' | 'vcenter' | 'bottom'
+
+/** Allinea gli elementi scelti al riquadro che li contiene tutti */
+export function alignSetupItems(
+  items: SetupItem[],
+  boxes: Box[],
+  chosen: number[],
+  mode: SetupAlign
+): SetupItem[] {
+  const list = chosen.filter((i) => boxes[i])
+  if (list.length < 2) return items
+  const x1 = Math.min(...list.map((i) => boxes[i].x))
+  const y1 = Math.min(...list.map((i) => boxes[i].y))
+  const x2 = Math.max(...list.map((i) => boxes[i].x + boxes[i].w))
+  const y2 = Math.max(...list.map((i) => boxes[i].y + boxes[i].h))
+  return items.map((it, i) => {
+    if (!list.includes(i)) return it
+    const b = boxes[i]
+    const dx =
+      mode === 'left'
+        ? x1 - b.x
+        : mode === 'right'
+          ? x2 - (b.x + b.w)
+          : mode === 'hcenter'
+            ? (x1 + x2) / 2 - (b.x + b.w / 2)
+            : 0
+    const dy =
+      mode === 'top'
+        ? y1 - b.y
+        : mode === 'bottom'
+          ? y2 - (b.y + b.h)
+          : mode === 'vcenter'
+            ? (y1 + y2) / 2 - (b.y + b.h / 2)
+            : 0
+    return dx || dy ? moveSetupItem(it, dx, dy) : it
+  })
+}
+
+/** Spazi uguali tra gli elementi scelti, lasciando fermi il primo e l'ultimo */
+export function distributeSetupItems(
+  items: SetupItem[],
+  boxes: Box[],
+  chosen: number[],
+  axis: 'h' | 'v'
+): SetupItem[] {
+  const list = chosen.filter((i) => boxes[i])
+  if (list.length < 3) return items
+  const pos = (i: number): number => (axis === 'h' ? boxes[i].x : boxes[i].y)
+  const len = (i: number): number => (axis === 'h' ? boxes[i].w : boxes[i].h)
+  const sorted = [...list].sort((a, b) => pos(a) - pos(b))
+  const first = sorted[0]
+  const last = sorted[sorted.length - 1]
+  const total = sorted.reduce((s, i) => s + len(i), 0)
+  const gap = (pos(last) + len(last) - pos(first) - total) / (sorted.length - 1)
+  const target = new Map<number, number>()
+  let at = pos(first)
+  for (const i of sorted) {
+    target.set(i, at)
+    at += len(i) + gap
+  }
+  return items.map((it, i) => {
+    const t = target.get(i)
+    if (t === undefined) return it
+    const d = t - pos(i)
+    return Math.abs(d) < 0.05 ? it : moveSetupItem(it, axis === 'h' ? d : 0, axis === 'v' ? d : 0)
+  })
+}
+
+/**
+ * Strato in cui il disegno mette l'elemento: le zone sotto, poi carte, mazzi e immagini, poi testi
+ * e frecce. Dentro uno strato vale l'ordine delle righe: le ultime stanno sopra.
+ */
+export const setupLayer = (kind: SetupKind): number =>
+  kind === 'zone' ? 0 : kind === 'text' || kind === 'arrow' ? 2 : 1
+
+export type SetupOrder = 'up' | 'down' | 'top' | 'bottom'
+
+/**
+ * Porta l'elemento avanti o indietro tra quelli dello stesso strato; restituisce le righe e la
+ * nuova posizione dell'elemento
+ */
+export function reorderSetupItem(
+  items: SetupItem[],
+  index: number,
+  to: SetupOrder
+): { items: SetupItem[]; index: number } {
+  const it = items[index]
+  if (!it) return { items, index }
+  const layer = setupLayer(it.kind)
+  const same = items.flatMap((x, i) => (setupLayer(x.kind) === layer ? [i] : []))
+  const k = same.indexOf(index)
+  const goal =
+    to === 'up'
+      ? Math.min(same.length - 1, k + 1)
+      : to === 'down'
+        ? Math.max(0, k - 1)
+        : to === 'top'
+          ? same.length - 1
+          : 0
+  if (goal === k) return { items, index }
+  const order = same.filter((i) => i !== index)
+  order.splice(goal, 0, index)
+  // le posizioni dello strato restano le stesse, cambia solo chi le occupa
+  const out = [...items]
+  same.forEach((slot, n) => (out[slot] = items[order[n]]))
+  return { items: out, index: same[goal] }
+}
+
+/** Si può portare avanti (o indietro) tra gli elementi dello stesso strato? */
+export function canReorderSetupItem(items: SetupItem[], index: number, up: boolean): boolean {
+  const it = items[index]
+  if (!it) return false
+  const layer = setupLayer(it.kind)
+  return items.some((x, i) => (up ? i > index : i < index) && setupLayer(x.kind) === layer)
 }

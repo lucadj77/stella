@@ -16,6 +16,7 @@ import {
   type Anatomy,
   type CardRef
 } from '../../../shared/model/document'
+import { BLOCK_FONT, BLOCK_WIDTH } from '../../../shared/model/setup'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import CardSvg from '../render/CardSvg'
@@ -112,6 +113,9 @@ export default function InsertCardDialog({
   /** Anatomia con fronte e retro affiancati */
   const [both, setBoth] = useState(initial?.both ?? false)
   const [width, setWidth] = useState(start?.ref.width ? String(start.ref.width) : '')
+  /** Larghezza massima dell'anatomia nel documento e corpo delle etichette, in % (width: e font:) */
+  const [blockWidth, setBlockWidth] = useState(String(Math.round((initial?.width ?? 1) * 100)))
+  const [blockFont, setBlockFont] = useState(String(Math.round((initial?.font ?? 1) * 100)))
   /** Etichette dell'anatomia per faccia e livello (labelKey); un livello senza voce non si spiega */
   const [labels, setLabels] = useState<Map<string, string>>(
     () =>
@@ -181,7 +185,11 @@ export default function InsertCardDialog({
                   side: initial?.callouts.find((c) => c.layer === l.name)?.side
                 }))
             ),
-            both
+            both,
+            {
+              width: percent(blockWidth, BLOCK_WIDTH),
+              font: percent(blockFont, BLOCK_FONT)
+            }
           )
         : `![${alt.replace(/[[\]]/g, '')}](${cardRefSource(ref)})`
 
@@ -291,6 +299,32 @@ export default function InsertCardDialog({
           </select>
         </label>
       </div>
+      {anatomy && (
+        <div className="dialog-row" title={t('documents.blockSizeHint')}>
+          <label>
+            {t('documents.blockWidth')}
+            <input
+              className="num"
+              type="number"
+              min={10}
+              max={100}
+              value={blockWidth}
+              onChange={(e) => setBlockWidth(e.target.value)}
+            />
+          </label>
+          <label>
+            {t('documents.blockFont')}
+            <input
+              className="num"
+              type="number"
+              min={30}
+              max={300}
+              value={blockFont}
+              onChange={(e) => setBlockFont(e.target.value)}
+            />
+          </label>
+        </div>
+      )}
       {key !== '' && !byField && (
         <p className="muted small">
           {t(repeated ? 'documents.repeatedValue' : 'documents.emptyValue', { field: key })}
@@ -378,8 +412,8 @@ export default function InsertCardDialog({
                       templates={templates}
                       project={project}
                       unit={3}
-                      maxWidth={160}
-                      font={3.2}
+                      maxWidth={160 * (preview.width ?? 1)}
+                      font={3.2 * (preview.font ?? 1)}
                     />
                   </div>
                 )}
@@ -421,4 +455,10 @@ export default function InsertCardDialog({
       </div>
     </Dialog>
   )
+}
+
+/** Un campo in % come frazione dentro i limiti, o null se è vuoto o fuori */
+function percent(text: string, lim: { min: number; max: number }): number | null {
+  const n = Number(text.replace(',', '.')) / 100
+  return text.trim() !== '' && n >= lim.min && n <= lim.max ? n : null
 }

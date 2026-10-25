@@ -177,7 +177,7 @@ export default function AlignSection({
 }
 
 /** Icone di allineamento: una linea di riferimento e due barre */
-function AlignIcon({ mode }: { mode: AlignMode }): React.JSX.Element {
+export function AlignIcon({ mode }: { mode: AlignMode }): React.JSX.Element {
   const vertical = mode === 'left' || mode === 'hcenter' || mode === 'right'
   const bars = vertical
     ? (() => {
@@ -219,7 +219,7 @@ function AlignIcon({ mode }: { mode: AlignMode }): React.JSX.Element {
   )
 }
 
-function DistributeIcon({ axis }: { axis: 'h' | 'v' }): React.JSX.Element {
+export function DistributeIcon({ axis }: { axis: 'h' | 'v' }): React.JSX.Element {
   return (
     <svg
       width="1em"

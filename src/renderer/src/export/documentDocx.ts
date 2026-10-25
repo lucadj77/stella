@@ -16,16 +16,16 @@ import {
 } from '../../../shared/model/document'
 import { cellBorders, cellImageKey, cellParts } from '../../../shared/model/docTable'
 import type { DocBox } from '../../../shared/model/docBox'
+import { imageBackdrop } from '../../../shared/model/shapes'
 import { assetUrl } from '../render/assets'
 import { cardPng } from './documentExport'
-import { dataUri } from './toSvg'
+import { backdropPng, loadImage, raster } from './iconPng'
 
 // Esportazione di un documento in Word (.docx), da modificare o da mandare a chi usa Word: testo
 // con titoli, elenchi, tabelle e citazioni come stili di Word, le carte, gli schemi e le immagini
 // come PNG a 300 punti per pollice. Formato pagina, margini e caratteri vengono dalle impostazioni
 // del documento. Si ricava dall'anteprima già disegnata, come il Markdown.
 
-const DPI = 300
 /** Unità di Word: twip (1/20 di punto) ed EMU (per le immagini) per millimetro */
 const TWIP = 1440 / 25.4
 const EMU = 36000
@@ -130,7 +130,12 @@ export async function documentDocx(
   }
 
   /** Un'icona nel testo, alta quanto la riga: con la tinta della variabile, se ne ha una */
-  const icon = async (refName: string, size: number, tintOf?: string | null): Promise<string> => {
+  const icon = async (
+    refName: string,
+    size: number,
+    tintOf?: string | null,
+    ink?: string
+  ): Promise<string> => {
     const v = imageVariable(refName, ctx.variables)
     const r = resolveAsset(v ? v.src : refName, ctx.assets ?? [])
     if (!r.ok) return ''
@@ -140,7 +145,19 @@ export async function documentDocx(
     const ratio = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 1
     const w = h * ratio
     const tint = tintOf !== undefined ? tintOf : v?.tint
-    const data = await raster(img, w, h, tint ? resolveColor(tint, pal) : undefined)
+    const color = tint ? resolveColor(tint, pal) : undefined
+    const backdrop = imageBackdrop(v, ctx.variables)
+    if (backdrop) {
+      // lo sfondo della variabile: un quadrato alto quanto l'icona
+      const data = await backdropPng(img, backdrop, h, {
+        assets: ctx.assets ?? [],
+        pal,
+        tint: color,
+        ink: ink ? `#${ink}` : undefined
+      })
+      return picture(data, h, h)
+    }
+    const data = await raster(img, w, h, color)
     return picture(data, w, h)
   }
 
@@ -150,7 +167,7 @@ export async function documentDocx(
       if (n.t === 'text') out += textRun(n.text, base)
       else if (n.t === 'br') out += '<w:r><w:br/></w:r>'
       else if (n.t === 'ref') {
-        const one = await icon(n.name, base.size ?? baseSize, n.image?.tint)
+        const one = await icon(n.name, base.size ?? baseSize, n.image?.tint, base.color)
         out += one ? one.repeat(n.count) : textRun(n.raw, base)
       } else {
         const a = resolveStyles(n.attrs, styles)
@@ -587,41 +604,4 @@ function numberingXml(starts: number[]): string {
       .join('') +
     `</w:numbering>`
   )
-}
-
-/**
- * L'immagine da un data: URL: una caricata dal progetto direttamente renderebbe la tela
- * illeggibile, come ogni immagine di un'altra origine
- */
-async function loadImage(url: string): Promise<HTMLImageElement | null> {
-  const img = new Image()
-  img.src = await dataUri(url)
-  try {
-    await img.decode()
-    return img
-  } catch {
-    return null
-  }
-}
-
-/** PNG di un'immagine a 300 punti per pollice, larga w e alta h millimetri, con la tinta */
-async function raster(
-  img: HTMLImageElement,
-  w: number,
-  h: number,
-  tint?: string
-): Promise<Uint8Array> {
-  const canvas = document.createElement('canvas')
-  canvas.width = Math.max(1, Math.round((w / 25.4) * DPI))
-  canvas.height = Math.max(1, Math.round((h / 25.4) * DPI))
-  const c = canvas.getContext('2d')!
-  c.drawImage(img, 0, 0, canvas.width, canvas.height)
-  if (tint) {
-    c.globalCompositeOperation = 'source-in'
-    c.fillStyle = tint
-    c.fillRect(0, 0, canvas.width, canvas.height)
-  }
-  const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/png'))
-  if (!blob) throw new Error('PNG encoding failed')
-  return new Uint8Array(await blob.arrayBuffer())
 }

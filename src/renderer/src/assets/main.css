@@ -4977,9 +4977,26 @@ button.more-button {
   padding-right: 10px;
 }
 
-/* schema della preparazione del tavolo nei documenti */
+/* schema della preparazione del tavolo nei documenti: quasi tutta la finestra, o tutta */
 .dialog:has(.setup-dialog) {
   max-width: none;
+  width: min(1600px, 96vw);
+  height: 92vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog:has(.setup-full) {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  border-radius: 0;
+}
+
+.setup-dialog {
+  flex: 1;
+  min-height: 0;
 }
 
 .setup-toolbar {
@@ -4989,22 +5006,56 @@ button.more-button {
   flex-wrap: wrap;
 }
 
+.setup-toolbar-gap {
+  flex: 1;
+}
+
+.setup-toolbar button.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.setup-zoom {
+  min-width: 44px;
+  text-align: center;
+}
+
 .setup-body {
   display: flex;
   gap: 14px;
-  align-items: flex-start;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
 }
 
 .setup-canvas {
   position: relative;
-  display: grid;
-  place-items: center;
+  flex: 1;
+  min-width: 0;
+  display: flex;
   background: #fafaf8;
+  /* il disegno è come sulla pagina, chiaro anche con il tema scuro: le didascalie restano scure */
+  color: #1d1d1f;
   border: 1px solid var(--border);
   border-radius: 6px;
-  overflow: hidden;
+  overflow: auto;
   touch-action: none;
   user-select: none;
+}
+
+/* margin: auto centra il disegno quando è più piccolo e lo lascia scorrere quando è più grande */
+.setup-stage {
+  margin: auto;
+}
+
+.setup-canvas.pan,
+.setup-canvas.pan [data-item] {
+  cursor: grab;
+}
+
+.setup-canvas.panning,
+.setup-canvas.panning [data-item] {
+  cursor: grabbing;
 }
 
 .setup-canvas:focus-visible {
@@ -5023,10 +5074,31 @@ button.more-button {
 }
 
 .setup-props {
-  width: 230px;
+  width: 260px;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  overflow-y: auto;
+}
+
+.setup-arrange {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.setup-order {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.setup-order-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
 }
 
 .setup-props h3 {
@@ -5269,6 +5341,8 @@ button.more-button {
   justify-content: center;
   flex-shrink: 0;
   background: #fff;
+  /* come sulla pagina: le etichette restano scure anche con il tema scuro */
+  color: #1d1d1f;
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 8px;

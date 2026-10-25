@@ -155,6 +155,11 @@ export interface ImageLayer extends LayerBase {
   radius: number
   stroke: Stroke | null
   missing: 'placeholder' | 'hide'
+  /**
+   * Sfondo della variabile immagine scritta come sorgente (model/shapes.ts): c'è solo nelle carte
+   * legate ai dati, non si salva nel template
+   */
+  backdrop?: { shape?: string; src?: string; color: string | null; pad: number }
 }
 
 export type ShapeKind = 'rect' | 'ellipse' | 'polygon' | 'star' | 'line' | 'path'

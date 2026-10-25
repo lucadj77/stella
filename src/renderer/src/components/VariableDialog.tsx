@@ -14,6 +14,8 @@ import {
   type VariableType,
   type Variables
 } from '../../../shared/model/variables'
+import { BUILTIN_SHAPES } from '../../../shared/model/markup'
+import { BACKDROP_PAD } from '../../../shared/model/shapes'
 import { Dialog } from '../editor/dialogs'
 import { ColorField, NumberField, TextField } from '../editor/fields'
 import { useI18n } from '../i18n/context'
@@ -28,6 +30,7 @@ import { ImageIcon } from './icons'
 // Editor di una variabile del progetto (docs/specifica.md, 6.1), con l'anteprima in una frase.
 
 const IMAGE_LIST = 'variable-images'
+const BG_LIST = 'variable-backgrounds'
 
 export default function VariableDialog({
   name: initialName,
@@ -58,6 +61,7 @@ export default function VariableDialog({
   // si tiene il contenuto di ogni tipo, così cambiare tipo per prova non lo perde
   const [byType, setByType] = useState<Partial<Record<VariableType, Variable>>>({})
   const [picking, setPicking] = useState(false)
+  const [pickingBg, setPickingBg] = useState(false)
   const [importing, setImporting] = useState(false)
   const pickImage = (src: string): void => {
     setV((cur) => (cur.type === 'image' ? { ...cur, src } : cur))
@@ -224,6 +228,55 @@ export default function VariableDialog({
                 unit="%"
                 onChange={(opacity) => setV({ ...v, opacity })}
               />
+              <TextField
+                label={t('variable.bg')}
+                hint={t('variable.bgHint')}
+                value={v.bg ?? ''}
+                list={BG_LIST}
+                onChange={(bg) => setV({ ...v, bg: bg || undefined })}
+                action={
+                  <button
+                    className="pick-btn"
+                    title={t('assetPicker.open')}
+                    onClick={() => setPickingBg(true)}
+                  >
+                    <ImageIcon />
+                  </button>
+                }
+              />
+              <datalist id={BG_LIST}>
+                {[
+                  ...BUILTIN_SHAPES,
+                  ...Object.keys(variables)
+                    .filter((n) => n !== name && variables[n].type === 'image')
+                    .sort(),
+                  ...images
+                ].map((n) => (
+                  <option key={n} value={n} />
+                ))}
+              </datalist>
+              {v.bg?.trim() && (
+                <>
+                  <ColorField
+                    label={t('variable.bgColor')}
+                    hint={t('variable.bgColorHint')}
+                    value={v.bgColor ?? null}
+                    nullable
+                    onChange={(bgColor) => setV({ ...v, bgColor: bgColor ?? undefined })}
+                  />
+                  <NumberField
+                    label={t('variable.bgPad')}
+                    hint={t('variable.bgPadHint')}
+                    value={v.bgPad ?? BACKDROP_PAD}
+                    factor={100}
+                    step={2}
+                    min={0}
+                    max={0.45}
+                    unit="%"
+                    onChange={(bgPad) => setV({ ...v, bgPad })}
+                  />
+                </>
+              )}
               <p className="muted small">{t('variable.attrsHint')}</p>
             </>
           )}
@@ -293,6 +346,14 @@ export default function VariableDialog({
           onClose={() => setPicking(false)}
         />
       )}
+      {pickingBg && v.type === 'image' && (
+        <AssetPicker
+          extras
+          value={v.bg ?? ''}
+          onPick={(bg) => setV({ ...v, bg })}
+          onClose={() => setPickingBg(false)}
+        />
+      )}
       {importing && (
         <IconBrowser
           onImported={(names) => names.length === 1 && pickImage(names[0])}
@@ -313,6 +374,11 @@ function clean(v: Variable): Variable {
   if (v.rotate) out.rotate = v.rotate
   if (v.flip) out.flip = v.flip
   if (v.opacity !== undefined && v.opacity !== 1) out.opacity = v.opacity
+  if (v.bg?.trim()) {
+    out.bg = v.bg.trim()
+    if (v.bgColor) out.bgColor = v.bgColor
+    if (v.bgPad !== undefined && v.bgPad !== BACKDROP_PAD) out.bgPad = v.bgPad
+  }
   return out
 }
 

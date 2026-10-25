@@ -1370,7 +1370,30 @@ export const it: Record<MessageKey, string> = {
   'documents.setupTable': 'Tavolo',
   'documents.setupFixedSize': 'Misura del tavolo fissa',
   'documents.setupHint':
-    'Clicca un elemento per sceglierlo, trascinalo per spostarlo, usa le frecce della tastiera per spostarlo di 1 mm (5 con Maiusc) e Canc per eliminarlo. Senza misura fissa il disegno si adatta agli elementi (contorno tratteggiato).',
+    'Clicca un elemento per sceglierlo e trascinalo per spostarlo. Maiuscolo o ⌘/Ctrl + clic aggiunge elementi alla scelta, come trascinare un riquadro su uno spazio vuoto; ⌘A / Ctrl+A li sceglie tutti, ⌘C, ⌘X e ⌘V / Ctrl+C, Ctrl+X e Ctrl+V copiano, tagliano e incollano, ⌘D / Ctrl+D duplica. Le frecce della tastiera spostano la scelta di 1 mm (5 con Maiusc) e Canc la elimina. Senza misura fissa il disegno si adatta agli elementi (contorno tratteggiato).',
+  'documents.setupZoomFitHint': 'Adatta tutto il disegno alla finestra (⌘0 / Ctrl+0)',
+  'documents.setupZoomHint':
+    'Zoom con ⌘/Ctrl + rotella del mouse, pizzicando il trackpad o con ⌘+ e ⌘− / Ctrl++ e Ctrl+−. La vista si sposta con le barre di scorrimento, con la rotella o trascinando con la barra spaziatrice premuta',
+  'documents.setupFull': 'Schermo intero',
+  'documents.setupFullExit': 'Esci da schermo intero',
+  'documents.setupFullHint': "Usa tutta la finestra dell'app per il disegno",
+  'documents.setupChosen': '{n} elementi scelti',
+  'documents.setupAlignHint':
+    'Allinea e distribuisci lavorano sul riquadro che contiene tutti gli elementi scelti. Trascinandone uno si spostano tutti.',
+  'documents.setupOrder': 'Ordine',
+  'documents.setupOrder.top': 'In primo piano',
+  'documents.setupOrder.up': 'Porta avanti',
+  'documents.setupOrder.down': 'Porta indietro',
+  'documents.setupOrder.bottom': 'Sullo sfondo',
+  'documents.setupOrder.topHint': 'Sopra tutti gli elementi dello stesso tipo',
+  'documents.setupOrder.upHint': 'Un passo più su tra gli elementi dello stesso tipo',
+  'documents.setupOrder.downHint': 'Un passo più giù tra gli elementi dello stesso tipo',
+  'documents.setupOrder.bottomHint':
+    'Sotto tutti gli elementi dello stesso tipo. Le zone restano sempre sotto carte e immagini, testi e frecce sopra',
+  'documents.blockWidth': 'Larghezza (% riga)',
+  'documents.blockFont': 'Didascalie (%)',
+  'documents.blockSizeHint':
+    'Nel documento il disegno occupa al massimo questa parte della larghezza della riga; le didascalie mantengono la dimensione scelta qui.',
   'documents.pickCard': 'Scegli una carta',
   'documents.pick': 'Scegli',
   'documents.insertCard': 'Inserisci carta',
@@ -1426,6 +1449,14 @@ export const it: Record<MessageKey, string> = {
   'variable.flip.v': 'Verticale',
   'variable.flip.hv': 'Entrambi',
   'variable.opacity': 'Opacità',
+  'variable.bg': 'Sfondo',
+  'variable.bgHint':
+    "Una forma (circle, square, rounded, hexagon, diamond), un'immagine o un'altra variabile immagine dietro l'immagine, ovunque si usi la variabile: nei testi, nei livelli immagine e nei documenti",
+  'variable.bgColor': 'Colore dello sfondo',
+  'variable.bgColorHint':
+    "Senza colore una forma prende il colore del testo e un'immagine tiene i suoi colori",
+  'variable.bgPad': 'Spazio attorno',
+  'variable.bgPadHint': "Spazio tra l'immagine e il bordo dello sfondo, per ogni lato",
   'variable.attrsHint':
     'Nel testo si possono cambiare per un singolo uso: {spada tint=red size=150% rotate=90 flip=h opacity=50%}',
   'variable.text': 'Testo',

@@ -24,7 +24,8 @@ function loadSize(): number {
 /**
  * Finestra con le miniature delle immagini di assets/: un clic sceglie l'immagine e restituisce
  * il nome con cui richiamarla (nome breve, o con la cartella se è ambiguo). Con `extras` propone
- * prima le forme predefinite e le variabili immagine, come serve per bg= nel markup.
+ * prima le forme predefinite e le variabili immagine, come serve per bg= nel markup; con
+ * `extras="variables"` solo le variabili, come per le immagini dello schema del tavolo.
  */
 export default function AssetPicker({
   value,
@@ -36,7 +37,7 @@ export default function AssetPicker({
   value: string
   onPick(name: string): void
   onClose(): void
-  extras?: boolean
+  extras?: boolean | 'variables'
 }): React.JSX.Element {
   const { t } = useI18n()
   const assets = useContext(AssetsContext)
@@ -92,7 +93,7 @@ export default function AssetPicker({
 
   // forme e variabili non stanno in una cartella: si vedono solo con "Tutte"
   const shapes = useMemo(
-    () => (extras && !folder ? fuzzyFilter([...BUILTIN_SHAPES], query, (x) => x) : []),
+    () => (extras === true && !folder ? fuzzyFilter([...BUILTIN_SHAPES], query, (x) => x) : []),
     [extras, folder, query]
   )
   const imageVars = useMemo(
