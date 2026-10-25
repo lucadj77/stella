@@ -7,7 +7,7 @@ import type { NamedProfile } from './export'
 
 export interface ExportPreset {
   /** Chiave del nome tradotto */
-  label: 'preset.mpc' | 'preset.tgc' | 'preset.homeA4' | 'preset.homeLetter'
+  label: 'preset.mpc' | 'preset.tgc' | 'preset.homeA4' | 'preset.homeLetter' | 'preset.printShop'
   profile: Omit<NamedProfile, 'name'>
 }
 
@@ -35,6 +35,21 @@ const homePdf = {
   split: 'single'
 } as const
 
+const printShopPdf = {
+  bleed: true,
+  rounded: false,
+  marks: 'corners',
+  sides: 'both',
+  duplex: 'none',
+  copies: true,
+  layout: 'auto',
+  autoRotate: true,
+  landscape: false,
+  margin: 10,
+  spacing: 0,
+  split: 'single'
+} as const
+
 export const EXPORT_PRESETS: ExportPreset[] = [
   // fronti e retri in cartelle separate, come si caricano sul sito
   {
@@ -46,5 +61,11 @@ export const EXPORT_PRESETS: ExportPreset[] = [
     profile: { kind: 'images', options: { ...cardImages, pattern: '%set/%n_%side' } }
   },
   { label: 'preset.homeA4', profile: { kind: 'pdf', options: { ...homePdf, page: 'A4' } } },
-  { label: 'preset.homeLetter', profile: { kind: 'pdf', options: { ...homePdf, page: 'Letter' } } }
+  { label: 'preset.homeLetter', profile: { kind: 'pdf', options: { ...homePdf, page: 'Letter' } } },
+  // per una tipografia: con l'abbondanza e i segni di taglio, fronti e retri su pagine alterne
+  { label: 'preset.printShop', profile: { kind: 'pdf', options: printShopPdf } }
 ]
+
+/** Cosa si vuole fare con l'esportazione: sceglie il tipo e, per il PDF, parte da un preset */
+export type ExportGoal = 'home' | 'shop' | 'tts' | 'images'
+export const EXPORT_GOALS: ExportGoal[] = ['home', 'shop', 'tts', 'images']
