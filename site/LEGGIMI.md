@@ -10,6 +10,7 @@ alle novità e alla CLI. In inglese alla radice, in italiano in `it/`. La versio
   indirizzo YouTube per lingua; finché l'indirizzo è vuoto il video non compare).
 - `style.css`, `site.js`: stile e script del download; `img/`: logo e logo Predigarama; gli screenshot vengono
   da `docs/guida/img` e `docs/guide/img` (elenco `shots` in `build.mjs`).
+- `dcount/index.html`: pagina nascosta con i download letti dalle release di GitHub, su `/dcount/` (nessun link dal sito, `noindex`).
 - `build.mjs <cartella>`: costruisce il sito nella cartella data (`node site/build.mjs pages`). L'azione Web lo fa a
   ogni tag e sulle PR che toccano `site/`, e pubblica tutto su GitHub Pages.
 
