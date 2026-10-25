@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { confirmKey } from './confirm'
 import type { BackupSettings, BackupState } from '../../../shared/api'
 import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
@@ -66,7 +67,7 @@ export default function BackupDialog({
       parent = (await window.api.chooseFolder()) ?? undefined
       if (!parent) return
     }
-    if (!window.confirm(t(window.api.isWeb ? 'web.restoreConfirm' : 'backup.restoreConfirm')))
+    if (!(await confirmKey(t, window.api.isWeb ? 'web.restoreConfirm' : 'backup.restoreConfirm')))
       return
     run(async () => onRestored(await window.api.restoreBackup(file, parent)))
   }

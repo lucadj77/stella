@@ -217,6 +217,7 @@ function CardForm({
     const labelKey = opts.prop && layer ? propLabel(layer, propKey) : null
     const label =
       h === 'amount' ? t('cardForm.amount') : opts.prop ? (labelKey ? t(labelKey) : propKey) : h
+    const labelTitle = h === 'amount' ? t('cardForm.amountHint') : undefined
     // visibilità del livello su questa carta: la colonna livello.visible
     const visibleColumn = `${h}.visible`
     const ownVisible = layerOf.has(h) ? parseBool(valueOf(visibleColumn) ?? '') : null
@@ -305,7 +306,9 @@ function CardForm({
       }
       return (
         <label key={h} className={className}>
-          <span className="field-label">{label}</span>
+          <span className="field-label" title={labelTitle}>
+            {label}
+          </span>
           <span className="field-control">
             {control.kind === 'select' ? (
               <select
@@ -370,7 +373,9 @@ function CardForm({
       const own = value === null ? null : parseBool(value)
       return (
         <label key={h} className={className}>
-          <span className="field-label">{label}</span>
+          <span className="field-label" title={labelTitle}>
+            {label}
+          </span>
           <span className="field-control">
             <input
               type="checkbox"
@@ -393,7 +398,9 @@ function CardForm({
       dot > 0 && !colors.has(h) ? colorPartOf(propKey, common.value, fallback) : null
     return (
       <label key={h} className={index < 0 && !opts.prop ? className + ' new-field' : className}>
-        <span className="field-label">{label}</span>
+        <span className="field-label" title={labelTitle}>
+          {label}
+        </span>
         <span className="field-control">
           {textColumns.has(h) ? (
             <MarkupTextarea

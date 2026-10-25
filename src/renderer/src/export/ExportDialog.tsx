@@ -389,7 +389,7 @@ export default function ExportDialog({
   }
 
   return (
-    <Dialog title={t('export.title')} onClose={running ? () => undefined : onClose}>
+    <Dialog title={t('export.title')} onClose={running ? () => undefined : onClose} guide="export">
       <div className="export-dialog">
         <Segmented<ExportKind>
           value={kind}

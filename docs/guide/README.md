@@ -114,6 +114,10 @@ Sizes are in millimeters, text sizes in points. Markup and formula keywords are 
 
 When it starts, Stella shows the start screen.
 
+The first time, when there are no recent projects yet, the screen welcomes you with two big choices: **Start from scratch** creates an empty project, **Explore the example** opens the example project (desktop app only). Below them are the three steps of the work (draw a template, fill a set, export) and links to the overview video, to all the video tutorials and to this guide. From the first project on, the screen is the one described below, with a row of links under the recent projects.
+
+![The welcome screen on first start](img/benvenuto.png)
+
 ![The start screen with a recent project](img/ingresso.png)
 
 - **New project…** creates an empty folder with the structure of a project.
@@ -130,11 +134,17 @@ In the ⚙ menu, **Updates** chooses the channel. **Stable** offers only officia
 
 On the start screen, at the bottom right, **What's new** shows what changed in the installed version, even offline, and **Check for updates** asks GitHub right away whether a newer version exists, and says so when you already have the latest.
 
-To create a project you write its name and location. The default location is `Documents/Stella`; the data file can be Excel (`.xlsx`, recommended) or OpenDocument (`.ods`). With **A file you already have (.xlsx, .ods, .csv)…**, under **Data file**, the project starts from a file you already have: Stella makes a copy in the project's `data` folder and its sheets become sets with **New set** (see [Using an Excel file you already have](existing-excel.md)).
+To create a project you write its name and location. By default the location is `Documents/Stella` and the data file is Excel (`.xlsx`). **Data file options** shows the choice of format: Excel, OpenDocument (`.ods`) or **A file you already have (.xlsx, .ods, .csv)…**. With the last one the project starts from a file you already have: Stella makes a copy in the project's `data` folder and its sheets become sets with **New set** (see [Using an Excel file you already have](existing-excel.md)).
 
 ![The window to create a new project](img/nuovo-progetto.png)
 
-A new project is empty: the app suggests creating a template first, then a set that uses it.
+A new project is empty. At the top of the window the **First steps** strip shows the four steps to take: draw a template, create a set, add the first component and export. Each step is ticked by itself when it is done, and the button next to them opens the next one. The × hides the strip, also in other projects. Projects that already have components when they open do not show it.
+
+![The First steps strip and a set that is still empty](img/primi-passi.png)
+
+The "?" next to the title of some windows (new template, new set, export, generate, formula assistant) opens the section of this guide about them.
+
+Requests for confirmation, for example before deleting a set or closing a project with unsaved changes, appear in a Stella window that says what will happen. The confirming button says what it does (**Delete the set**, **Discard the changes**); when the action deletes something it is red, and the Enter key picks **Cancel**.
 
 ## 3. The project window
 
@@ -146,7 +156,7 @@ A new project is empty: the app suggests creating a template first, then a set t
 4. Project text **styles** ([chapter 7](#7-variables-and-styles)).
 5. Project **variables**, with a preview.
 6. **Cards of the set**, in a table or a grid.
-7. **Preview** of the selected card, front or back. **Edit template** opens the card's template, that is the set's or the one chosen for the card; **Enlarge** opens the card large with the form next to it.
+7. **Preview** of the selected card, front or back. **Edit template** opens the card's template, that is the set's or the one chosen for the card, with this card already loaded in the editor's preview (the **Data** menu at the top right shows the set and the card number); **Enlarge** opens the card large with the form next to it.
 8. **Fields of the selected card**, editable like the table cells.
 
 The ⋯ button next to the name of the open set or template opens a menu to rename it, duplicate it, delete it and, for a template, create a derived one (**Derive**). The same menu opens from the ⋯ that appears when you hover an item in the sidebar, or with a right click on the item. Renaming a set also renames its sheet in the data file (if the sheet is already in the file Stella asks first, because formulas in other sheets that refer to it would break); renaming a template renames its file, and the new name goes into the sets, derived templates and `template` column of the cards that use it. Files are renamed when you save. A deleted template goes to the project's `deleted` folder. The sheet of a deleted set also leaves the data file when you save and goes to `deleted` as a file of its own, so its name is free again. **Trash…**, in the **Project** menu, lists what is in `deleted` (templates, sets, notes and documents, newest first) and **Restore** puts an item back in the project: a set gets the template you choose (Stella proposes the one with most columns in common), a name already taken gets a number. Restored templates and sets leave the trash when you save. Sidebar items are reordered by dragging them; the + next to each heading creates a new item. Styles and variables can be split into groups with the **Group** field of their window: the items of a group sit under its heading, which closes and opens with a click, after the items without a group. An item dragged onto a group heading joins that group; dragged onto another item, it takes that item's group (or none). With more than 12 items, a field above the list filters them by name. In the window of a style or variable, **Where it is used** lists the templates (with their layers), the sets (with card numbers) and the other variables and styles that refer to it; clicking a template or set opens it. Hovering over an item shows a preview: the first cards of a set, the front and back of a template, a sentence in a style, the icon or color of a variable. The **Notes** section holds notes about the project: the + creates a note, a click opens it in a panel beside any screen, where you write in Markdown (**Preview** shows it formatted) and rename it from its title. A note already written opens in **Preview**, a new one ready for writing. Notes save themselves as you type, as `notes/<name>.md` files of the project; the bin moves them to `deleted`. An AI working on the project reads them with `stella notes`. The button at the top left collapses the sidebar to icons, and the arrows next to panel headings move panels to the other side of the window.
@@ -288,7 +298,9 @@ A set opens in the **grid**, with the cards drawn; **Table** shows it as a sprea
 
 The **table** works like a spreadsheet: double-click or type to edit a cell, Alt+Enter for a new line inside the cell, drag the row number to move a card. **+ Card**, **Duplicate** and **Delete** act on the selected rows (Shift or ⌘ / Ctrl to select more than one, in the grid too). With several cards selected the form on the right edits them in bulk: what you type in a field goes into all of them, while fields with different values stay empty and do not change until you touch them.
 
-The `amount` column says how many copies of each card to print; empty means 1.
+The **Copies** field (the `amount` column of the sheet) says how many copies of each card to print; empty means 1.
+
+A set with no components shows the **+ Add the first component** button instead of the table.
 
 The table and the form show every column you can edit: the sheet's columns and the ones the template reads but the sheet does not have yet (with an italic heading), which are created when you type a value. The **Columns** button chooses which ones to hide; **Reset** goes back to the basic view, with only the columns read by layers linked to a column (columns left in the sheet without a layer, for example from an imported TTC project, are hidden) and the field details closed. In the card form the eye next to a layer's field shows or hides that layer on the card. The sliders icon opens the layer's properties for the card (color, italic, shape, position...), with menus for fixed sets of values, number fields and a color picker: a value typed there applies to that card only and creates the `layer.property` column, while an empty field shows the template value in grey. The number on the icon tells how many properties the card changes. Columns of fixed or formula layers do not reach the card and stay hidden; **Show fixed and formula layers** adds them read only, with the ƒ sign and the value they have on each card.
 
@@ -415,7 +427,9 @@ The shapes `circle`, `square`, `rounded`, `hexagon` and `diamond` are always ava
 
 Stella knows some values by itself, the **system variables**, written like fields, also in formulas: `{project.name}` (the game), `{set.name}`, `{template.name}`, `{card.number}` (the card's row in the set), `{set.rows}`, `{set.cards}` (cards with copies), `{card.copies}`, `{card.copy}` (the printed copy, for example to write `{card.copy}/{card.copies}`), `{card.side}` (`front` or `back`) and `{date}`. A footer like `{set.name} {card.number}/{set.rows}` numbers the cards by itself.
 
-The **Help** button in the top bar and on the start screen, or the F1 key, opens a summary of markup, fields and variables, system variables, formulas and shortcuts.
+The **Help** button in the top bar and on the start screen, or the F1 key, opens a summary of markup, fields and variables, system variables, formulas and shortcuts. The first tab, **First steps**, sums up the four steps from an empty project to printed components, with a link to the guide section for each, the first videos and the words to know (component, template, set, layer, bleed...). It opens there when the project has no components yet; otherwise on the tab used last. Shortcuts appear in the form of the system in use: ⌘ on the Mac, Ctrl on Windows and Linux.
+
+![The Help window, First steps tab](img/aiuto-primi-passi.png)
 
 <table><tr>
 <td width="50%"><img src="img/aiuto.png" alt="The Help window, Text tab"></td>

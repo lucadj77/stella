@@ -114,6 +114,10 @@ Le misure sono in millimetri, le dimensioni del testo in punti. Le parole chiave
 
 All'avvio Stella mostra la schermata di ingresso.
 
+La prima volta, quando non ci sono ancora progetti recenti, la schermata dà il benvenuto con due scelte grandi: **Comincia da zero** crea un progetto vuoto, **Esplora l'esempio** apre il progetto di esempio (solo nell'app per computer). Sotto ci sono i tre passi del lavoro (disegnare un template, compilare un set, esportare) e i collegamenti al video di panoramica, a tutti i video tutorial e a questa guida. Dal primo progetto in poi la schermata è quella descritta qui sotto, con una riga di collegamenti sotto i progetti recenti.
+
+![La schermata di benvenuto del primo avvio](img/benvenuto.png)
+
 ![La schermata di ingresso con un progetto recente](img/ingresso.png)
 
 - **Nuovo progetto…** crea una cartella vuota con la struttura di un progetto.
@@ -130,11 +134,17 @@ Nel menu ⚙, **Aggiornamenti** sceglie il canale. **Stabile** propone solo le v
 
 Nella schermata di ingresso, in basso a destra, **Novità** mostra le novità della versione in uso, anche senza rete, e **Controlla aggiornamenti** chiede subito a GitHub se c'è una versione più recente, e lo dice anche quando hai già l'ultima.
 
-Per creare un progetto si scrivono il nome e la posizione. Di base la posizione è `Documenti/Stella`; il file dei dati può essere Excel (`.xlsx`, consigliato) o OpenDocument (`.ods`). Con **Un file che hai già (.xlsx, .ods, .csv)…**, alla voce **File dei dati**, il progetto parte da un file che hai già: Stella ne fa una copia nella cartella `data` del progetto e i suoi fogli diventano set con **Nuovo set** (vedi [Usare un file Excel che hai già](excel-esistente.md)).
+Per creare un progetto si scrivono il nome e la posizione. Di base la posizione è `Documenti/Stella` e il file dei dati è Excel (`.xlsx`). **Opzioni del file dei dati** mostra la scelta del formato: Excel, OpenDocument (`.ods`) o **Un file che hai già (.xlsx, .ods, .csv)…**. Con quest'ultimo il progetto parte da un file che hai già: Stella ne fa una copia nella cartella `data` del progetto e i suoi fogli diventano set con **Nuovo set** (vedi [Usare un file Excel che hai già](excel-esistente.md)).
 
 ![La finestra per creare un nuovo progetto](img/nuovo-progetto.png)
 
-Un progetto nuovo è vuoto: l'app suggerisce di creare prima un template e poi un set che lo usa.
+Un progetto nuovo è vuoto. In cima alla finestra compare la striscia **Primi passi**, con i quattro passi da fare: disegnare un template, creare un set, aggiungere il primo componente ed esportare. Ogni passo si spunta da solo quando è fatto, e il pulsante accanto apre quello successivo. La × nasconde la striscia, anche negli altri progetti. Nei progetti che hanno già dei componenti quando si aprono la striscia non compare.
+
+![La striscia Primi passi e un set ancora vuoto](img/primi-passi.png)
+
+Il «?» accanto al titolo di alcune finestre (nuovo template, nuovo set, esporta, genera, assistente formule) apre la sezione di questa guida che ne parla.
+
+Le richieste di conferma, per esempio prima di eliminare un set o di chiudere un progetto con modifiche non salvate, compaiono in una finestra di Stella che dice cosa succede. Il pulsante che conferma dice cosa fa (**Elimina il set**, **Scarta le modifiche**); quando l'azione cancella qualcosa è rosso, e il tasto Invio sceglie **Annulla**.
 
 ## 3. La finestra del progetto
 
@@ -146,7 +156,7 @@ Un progetto nuovo è vuoto: l'app suggerisce di creare prima un template e poi u
 4. **Stili** di testo del progetto ([capitolo 7](#7-variabili-e-stili)).
 5. **Variabili** del progetto, con un'anteprima.
 6. **Carte del set**, in tabella o in griglia.
-7. **Anteprima** della carta selezionata, fronte o retro. **Modifica template** apre il template della carta, cioè quello del set o quello scelto per la carta; **Ingrandisci** apre la carta grande con il modulo accanto.
+7. **Anteprima** della carta selezionata, fronte o retro. **Modifica template** apre il template della carta, cioè quello del set o quello scelto per la carta, con questa carta già caricata nell'anteprima dell'editor (il menu **Dati** in alto a destra mostra il set e il numero della carta); **Ingrandisci** apre la carta grande con il modulo accanto.
 8. **Campi della carta** selezionata, modificabili come le celle della tabella.
 
 Il pulsante ⋯ accanto al nome del set o del template aperto apre un menu per rinominarlo, duplicarlo, eliminarlo e, per un template, crearne un derivato (**Deriva**). Lo stesso menu si apre dal ⋯ che compare passando col mouse su una voce della barra laterale, o con il tasto destro sulla voce. Rinominando un set cambia nome anche il suo foglio nel file dei dati (se il foglio è già nel file Stella prima chiede, perché le formule di altri fogli che lo citano si romperebbero); rinominando un template cambia nome il suo file, e il nome nuovo va nei set, nei derivati e nella colonna `template` delle carte che lo usano. I file cambiano nome quando si salva. Un template eliminato va nella cartella `deleted` del progetto. Anche il foglio di un set eliminato, al salvataggio, esce dal file dei dati e va in `deleted` come file a sé, così il suo nome torna libero. **Cestino…**, nel menu **Progetto**, elenca quello che c'è in `deleted` (template, set, note e documenti, dal più recente) e **Ripristina** rimette un elemento nel progetto: un set prende il template scelto (Stella propone quello con più colonne in comune), un nome già usato riceve un numero. Template e set ripristinati escono dal cestino quando si salva. Le voci della barra laterale si riordinano trascinandole; il + accanto a ciascun titolo crea un elemento nuovo. Stili e variabili si dividono in gruppi con il campo **Gruppo** della loro finestra: le voci di un gruppo stanno sotto il suo titolo, che si chiude e si apre con un clic, dopo quelle senza gruppo. Una voce trascinata sul titolo di un gruppo entra nel gruppo; trascinata su un'altra voce prende il gruppo di quella voce (anche nessuno). Con più di 12 voci compare sopra l'elenco un campo per filtrarle per nome. Nella finestra di uno stile o di una variabile, **Dove si usa** elenca i template (con i livelli), i set (con i numeri delle carte) e le altre variabili e stili che lo richiamano; un clic su un template o su un set lo apre. Soffermando il mouse su una voce compare un'anteprima: le prime carte di un set, fronte e retro di un template, una frase con lo stile, l'icona o il colore di una variabile. Nella sezione **Note** si tengono appunti sul progetto: il + crea una nota, un clic la apre in un pannello accanto a qualsiasi schermata, dove si scrive in Markdown (con **Anteprima** per vederla formattata) e si rinomina dal titolo. Una nota già scritta si apre in **Anteprima**, una nuova pronta per scrivere. Le note si salvano da sole mentre si scrive, come file `notes/<nome>.md` del progetto; il cestino le sposta in `deleted`. Un'IA che lavora sul progetto le legge con `stella notes`. Il pulsante in alto a sinistra riduce la barra a sole icone, e le frecce accanto ai titoli dei pannelli li spostano dall'altro lato della finestra.
@@ -288,7 +298,9 @@ Un set si apre nella **griglia**, con le carte disegnate; **Tabella** lo mostra 
 
 La **tabella** funziona come un foglio di calcolo: doppio clic o digitazione per modificare una cella, Alt+Invio per andare a capo dentro la cella, trascinamento del numero di riga per spostare una carta. **+ Carta**, **Duplica** ed **Elimina** agiscono sulle righe selezionate (Maiuscolo o ⌘ / Ctrl per selezionarne più di una, anche nella griglia). Con più carte selezionate il modulo a destra le modifica in blocco: ciò che si scrive in un campo va in tutte, mentre i campi con valori diversi restano vuoti e non cambiano finché non li si tocca.
 
-La colonna `amount` indica quante copie stampare di ogni carta; vuota vale 1.
+Il campo **Copie** (la colonna `amount` del foglio) indica quante copie stampare di ogni carta; vuoto vale 1.
+
+Un set senza componenti mostra al posto della tabella il pulsante **+ Aggiungi il primo componente**.
 
 Tabella e modulo mostrano tutte le colonne che si possono modificare: quelle del foglio e quelle che il template legge ma il foglio non ha ancora (con l'intestazione in corsivo), che si creano scrivendoci un valore. Il pulsante **Colonne** sceglie quali nascondere; **Ripristina** torna alla vista di base, con le sole colonne lette dai livelli collegati a una colonna (le colonne rimaste nel foglio senza un livello, per esempio da un progetto TTC importato, si nascondono) e i dettagli dei campi chiusi. Nel modulo della carta l'occhio accanto al campo di un livello lo mostra o lo nasconde su quella carta. L'icona con i cursori apre le proprietà del livello per la carta (colore, corsivo, forma, posizione...), con menu per i valori prestabiliti, campi numerici e selettore del colore: un valore scritto lì vale solo per quella carta e crea la colonna `livello.proprietà`, mentre un campo vuoto mostra in grigio il valore del template. Il numero sull'icona dice quante proprietà la carta cambia. Le colonne dei livelli fissi o con formula non arrivano alla carta e restano nascoste; **Mostra i livelli fissi e con formula** le aggiunge in sola lettura, con il simbolo ƒ e il valore che hanno su ogni carta.
 
@@ -415,7 +427,9 @@ Le forme `circle`, `square`, `rounded`, `hexagon` e `diamond` sono sempre dispon
 
 Stella conosce da sé alcuni valori, le **variabili di sistema**, che si scrivono come i campi, anche nelle formule: `{project.name}` (il gioco), `{set.name}`, `{template.name}`, `{card.number}` (la riga della carta nel set), `{set.rows}`, `{set.cards}` (le carte con le copie), `{card.copies}`, `{card.copy}` (la copia stampata, per scrivere per esempio `{card.copy}/{card.copies}`), `{card.side}` (`front` o `back`) e `{date}`. Un piè di pagina come `{set.name} {card.number}/{set.rows}` numera le carte da solo.
 
-Il pulsante **Aiuto** nella barra in alto e nella schermata di ingresso, o il tasto F1, apre un riepilogo del markup, dei campi e delle variabili, delle variabili di sistema, delle formule e delle scorciatoie.
+Il pulsante **Aiuto** nella barra in alto e nella schermata di ingresso, o il tasto F1, apre un riepilogo del markup, dei campi e delle variabili, delle variabili di sistema, delle formule e delle scorciatoie. La prima scheda, **Primi passi**, riassume i quattro passi da un progetto vuoto ai componenti stampati, con un collegamento alla sezione della guida per ciascuno, i primi video e le parole da conoscere (componente, template, set, livello, abbondanza...). Si apre lì quando il progetto non ha ancora componenti; altrimenti sulla scheda usata l'ultima volta. Le scorciatoie compaiono nella forma del sistema in uso: ⌘ sul Mac, Ctrl su Windows e Linux.
+
+![La finestra Aiuto, scheda Primi passi](img/aiuto-primi-passi.png)
 
 <table><tr>
 <td width="50%"><img src="img/aiuto.png" alt="La finestra Aiuto, scheda Testo"></td>

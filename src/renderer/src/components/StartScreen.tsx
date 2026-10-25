@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { RecentProject } from '../../../shared/api'
 import { projectFolderName } from '../../../shared/model/projectName'
 import { isPrerelease } from '../../../shared/update'
-import { DONATE_URL, siteUrl } from '../../../shared/donate'
+import { DONATE_URL, guideUrl, siteUrl, tutorialsUrl, videoUrl } from '../../../shared/donate'
 import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
@@ -56,6 +56,12 @@ export default function StartScreen({
     }
   }, [])
 
+  /** Primo avvio, o nessun progetto recente: la schermata spiega da dove si comincia */
+  const firstRun = recent !== null && recent.length === 0
+  const openExample = (): void => {
+    window.api.prepareExampleProject(lang).then(onOpen, (e) => console.error(e))
+  }
+
   const remove = async (folder: string): Promise<void> => {
     await window.api.removeRecentProject(folder)
     setRecent((list) => list && list.filter((p) => p.folder !== folder))
@@ -84,34 +90,42 @@ export default function StartScreen({
       </header>
       {error && <div className="banner error">{t(error)}</div>}
       <div className="start-body">
-        <div className="start-actions">
-          <button className="primary" onClick={() => setCreating(true)} title={t('tip.newProject')}>
-            {t('start.newProject')}
-          </button>
-          <button onClick={onChoose} title={t('tip.openProject')}>
-            {t('start.openProject')}
-          </button>
-          <button onClick={onImport} title={t('tip.importTtc')}>
-            {t('start.importTtc')}
-          </button>
-          {!window.api.isWeb && (
+        {firstRun ? (
+          <Welcome
+            loading={loading}
+            onCreate={() => setCreating(true)}
+            onExample={openExample}
+            onChoose={onChoose}
+            onImport={onImport}
+            onHelp={onHelp}
+          />
+        ) : (
+          <div className="start-actions">
             <button
-              disabled={loading}
-              title={t('tip.example')}
-              onClick={() => {
-                window.api.prepareExampleProject(lang).then(onOpen, (e) => console.error(e))
-              }}
+              className="primary"
+              onClick={() => setCreating(true)}
+              title={t('tip.newProject')}
             >
-              {t('start.example')}
+              {t('start.newProject')}
             </button>
-          )}
-          <button onClick={onHelp} title={t('tip.help')}>
-            {t('app.help')}
-          </button>
-          {loading && <span className="muted">{t('app.loading')}</span>}
-        </div>
-        <h2 className="start-title">{t('start.recent')}</h2>
-        {recent && recent.length === 0 && <p className="muted">{t('start.noRecent')}</p>}
+            <button onClick={onChoose} title={t('tip.openProject')}>
+              {t('start.openProject')}
+            </button>
+            <button onClick={onImport} title={t('tip.importTtc')}>
+              {t('start.importTtc')}
+            </button>
+            {!window.api.isWeb && (
+              <button disabled={loading} title={t('tip.example')} onClick={openExample}>
+                {t('start.example')}
+              </button>
+            )}
+            <button onClick={onHelp} title={t('tip.help')}>
+              {t('app.help')}
+            </button>
+            {loading && <span className="muted">{t('app.loading')}</span>}
+          </div>
+        )}
+        {!firstRun && <h2 className="start-title">{t('start.recent')}</h2>}
         <ul className="recent-list">
           {recent?.map((p) => (
             <li key={p.folder} className={p.missing ? 'missing' : ''}>
@@ -144,6 +158,18 @@ export default function StartScreen({
             </li>
           ))}
         </ul>
+        {!firstRun && recent !== null && (
+          <p className="start-learn muted">
+            {t('welcome.learnShort')}{' '}
+            <a href={videoUrl('overview', lang)} target="_blank" rel="noreferrer">
+              {t('welcome.overviewVideo')}
+            </a>
+            {' · '}
+            <a href={guideUrl(lang)} target="_blank" rel="noreferrer">
+              {t('welcome.guide')}
+            </a>
+          </p>
+        )}
       </div>
       <footer className="start-footer">
         <a className="about-link" href={siteUrl(lang)} target="_blank" rel="noreferrer">
@@ -181,6 +207,77 @@ export default function StartScreen({
         />
       )}
     </div>
+  )
+}
+
+/** Primo avvio: due strade grandi, i tre passi di Stella e dove imparare */
+function Welcome({
+  loading,
+  onCreate,
+  onExample,
+  onChoose,
+  onImport,
+  onHelp
+}: {
+  loading: boolean
+  onCreate(): void
+  onExample(): void
+  onChoose(): void
+  onImport(): void
+  onHelp(): void
+}): React.JSX.Element {
+  const { t, lang } = useI18n()
+  return (
+    <section className="welcome">
+      <h2 className="welcome-title">{t('welcome.title')}</h2>
+      <p className="welcome-lead">{t('welcome.lead')}</p>
+      <div className="welcome-choices">
+        <button className="welcome-choice main" disabled={loading} onClick={onCreate}>
+          <span className="welcome-choice-title">{t('welcome.scratch')}</span>
+          <span className="welcome-choice-text">{t('welcome.scratchText')}</span>
+        </button>
+        {!window.api.isWeb && (
+          <button className="welcome-choice" disabled={loading} onClick={onExample}>
+            <span className="welcome-choice-title">{t('welcome.example')}</span>
+            <span className="welcome-choice-text">{t('welcome.exampleText')}</span>
+          </button>
+        )}
+      </div>
+      <ol className="welcome-steps">
+        <li>
+          <strong>{t('welcome.step1')}</strong> {t('welcome.step1Text')}
+        </li>
+        <li>
+          <strong>{t('welcome.step2')}</strong> {t('welcome.step2Text')}
+        </li>
+        <li>
+          <strong>{t('welcome.step3')}</strong> {t('welcome.step3Text')}
+        </li>
+      </ol>
+      <p className="welcome-links">
+        <a href={videoUrl('overview', lang)} target="_blank" rel="noreferrer">
+          {t('welcome.overviewVideo')}
+        </a>
+        <a href={tutorialsUrl(lang)} target="_blank" rel="noreferrer">
+          {t('welcome.allVideos')}
+        </a>
+        <a href={guideUrl(lang)} target="_blank" rel="noreferrer">
+          {t('welcome.guide')}
+        </a>
+      </p>
+      <p className="welcome-other">
+        <button onClick={onChoose} title={t('tip.openProject')}>
+          {t('start.openProject')}
+        </button>
+        <button onClick={onImport} title={t('tip.importTtc')}>
+          {t('start.importTtc')}
+        </button>
+        <button onClick={onHelp} title={t('tip.help')}>
+          {t('app.help')}
+        </button>
+        {loading && <span className="muted">{t('app.loading')}</span>}
+      </p>
+    </section>
   )
 }
 
@@ -260,32 +357,36 @@ function NewProjectDialog({
             </button>
           </span>
         </label>
-        <label>
-          {t('newProject.dataFile')}
-          <select value={data} onChange={(e) => setData(e.target.value as typeof data)}>
-            <option value="xlsx">{t('newProject.xlsx')}</option>
-            <option value="ods">{t('newProject.ods')}</option>
-            {!window.api.isWeb && <option value="existing">{t('newProject.existing')}</option>}
-          </select>
-        </label>
-        {data === 'existing' && (
+        <details className="new-project-more" open={data !== 'xlsx'}>
+          <summary>{t('newProject.more')}</summary>
+          <p className="field-note">{t('newProject.dataNote')}</p>
           <label>
-            {t('newProject.existingFile')}
-            <span className="field-control">
-              <input value={existing} title={existing} readOnly />
-              <button
-                type="button"
-                onClick={async () => {
-                  const f = await window.api.chooseDataFile()
-                  if (f) setExisting(f)
-                }}
-              >
-                {t('export.choose')}
-              </button>
-            </span>
+            {t('newProject.dataFile')}
+            <select value={data} onChange={(e) => setData(e.target.value as typeof data)}>
+              <option value="xlsx">{t('newProject.xlsx')}</option>
+              <option value="ods">{t('newProject.ods')}</option>
+              {!window.api.isWeb && <option value="existing">{t('newProject.existing')}</option>}
+            </select>
           </label>
-        )}
-        {data === 'existing' && <p className="field-note">{t('newProject.existingNote')}</p>}
+          {data === 'existing' && (
+            <label>
+              {t('newProject.existingFile')}
+              <span className="field-control">
+                <input value={existing} title={existing} readOnly />
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const f = await window.api.chooseDataFile()
+                    if (f) setExisting(f)
+                  }}
+                >
+                  {t('export.choose')}
+                </button>
+              </span>
+            </label>
+          )}
+          {data === 'existing' && <p className="field-note">{t('newProject.existingNote')}</p>}
+        </details>
         <p className="field-note">
           {target ? t('newProject.folder', { folder: target }) : t('newProject.hint')}
         </p>

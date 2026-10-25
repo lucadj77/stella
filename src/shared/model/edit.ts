@@ -377,7 +377,25 @@ export function pasteLayers(
   return { template: out, ids: copies.map((c) => c.id) }
 }
 
-export function newLayer(t: Template, type: LayerType, shape?: string): Layer {
+/** Nomi dei livelli nuovi nella lingua dell'interfaccia; mancano: i nomi inglesi */
+export interface LayerNames {
+  text?: string
+  image?: string
+  value?: string
+  grid?: string
+  shape?: string
+  /** Il testo di prova di un livello di testo nuovo */
+  sample?: string
+  /** Nomi delle forme: rect, ellipse, polygon, star, line, path */
+  shapes?: Partial<Record<string, string>>
+}
+
+export function newLayer(
+  t: Template,
+  type: LayerType,
+  shape?: string,
+  names: LayerNames = {}
+): Layer {
   // testo largo e basso, forme e immagini quadrate
   const w = Math.round(t.width * (type === 'text' ? 0.6 : 0.4))
   // una linea è orizzontale: il riquadro alto 0 serve solo a selezionarla
@@ -390,18 +408,28 @@ export function newLayer(t: Template, type: LayerType, shape?: string): Layer {
   }
   switch (type) {
     case 'text':
-      return normalizeLayer({ type, name: uniqueName(t, 'text'), text: 'Text', ...base }, 0)
-    case 'image':
-      return normalizeLayer({ type, name: uniqueName(t, 'image'), ...base }, 0)
-    case 'value':
-      return normalizeLayer({ type, name: uniqueName(t, 'value') }, 0)
-    case 'grid':
-      return normalizeLayer({ type, name: uniqueName(t, 'grid'), ...base }, 0)
-    default:
       return normalizeLayer(
-        { type: 'shape', shape: shape ?? 'rect', name: uniqueName(t, shape ?? 'shape'), ...base },
+        {
+          type,
+          name: uniqueName(t, names.text ?? 'text'),
+          text: names.sample ?? 'Text',
+          ...base
+        },
         0
       )
+    case 'image':
+      return normalizeLayer({ type, name: uniqueName(t, names.image ?? 'image'), ...base }, 0)
+    case 'value':
+      return normalizeLayer({ type, name: uniqueName(t, names.value ?? 'value') }, 0)
+    case 'grid':
+      return normalizeLayer({ type, name: uniqueName(t, names.grid ?? 'grid'), ...base }, 0)
+    default: {
+      const base0 = shape ? (names.shapes?.[shape] ?? shape) : (names.shape ?? 'shape')
+      return normalizeLayer(
+        { type: 'shape', shape: shape ?? 'rect', name: uniqueName(t, base0), ...base },
+        0
+      )
+    }
   }
 }
 

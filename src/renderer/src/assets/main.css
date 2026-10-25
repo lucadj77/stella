@@ -1091,6 +1091,17 @@ textarea.invalid {
   z-index: 10;
 }
 
+.dialog-backdrop.confirm-backdrop {
+  /* sopra le altre finestre, anche il blocco dell'agente IA */
+  z-index: 2000;
+}
+
+.confirm-message {
+  margin: 0 0 16px;
+  max-width: 60ch;
+  line-height: 1.45;
+}
+
 .dialog {
   background: var(--panel);
   border-radius: 10px;
@@ -1106,6 +1117,31 @@ textarea.invalid {
   /* anche le finestre aperte dal pannello delle proprietà, i cui titoli sono in maiuscolo */
   text-transform: none;
   color: var(--text);
+}
+
+.dialog h2:has(.dialog-guide) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dialog-guide {
+  margin-left: auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.dialog-guide:hover {
+  background: var(--accent-soft);
 }
 
 .dialog-form {
@@ -2573,6 +2609,219 @@ div.font-row {
 
 .start-actions button {
   padding: 8px 16px;
+}
+
+.welcome {
+  max-width: 860px;
+  margin: 8px auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.welcome-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+.welcome-lead {
+  margin: 0;
+  max-width: 68ch;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.welcome-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+/* le due strade del primo avvio: tasti grandi, con una frase sotto il titolo */
+.welcome-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 18px 20px;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.welcome-choice:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.welcome-choice.main {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.welcome-choice-title {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.welcome-choice.main .welcome-choice-title {
+  color: var(--accent);
+}
+
+.welcome-choice-text {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.welcome-steps {
+  margin: 0;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  line-height: 1.45;
+}
+
+.welcome-links {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.welcome-links a {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.welcome-other {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.welcome-other button {
+  padding: 8px 16px;
+}
+
+.new-project-more {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.new-project-more summary {
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.new-project-more[open] summary {
+  margin-bottom: 6px;
+}
+
+.set-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 48px auto;
+  max-width: 46ch;
+  text-align: center;
+}
+
+.set-empty p {
+  margin: 0;
+}
+
+.set-empty-title {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+button.big {
+  margin-top: 8px;
+  padding: 10px 22px;
+  font-size: 15px;
+}
+
+.first-steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--accent-soft);
+}
+
+.first-steps-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.first-steps-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+}
+
+.first-steps-list li.current {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.first-steps-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  font-size: 12px;
+}
+
+.first-steps-list li.done .first-steps-mark {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--panel);
+}
+
+.first-steps-list li.current .first-steps-mark {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.help-steps {
+  margin: 0 0 12px;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  line-height: 1.45;
+}
+
+.help-videos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+
+.start-learn {
+  margin: 20px 0 0;
+}
+
+.start-learn a {
+  color: var(--accent);
 }
 
 .start-title {

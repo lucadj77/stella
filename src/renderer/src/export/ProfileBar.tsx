@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { confirmKey } from '../components/confirm'
 import type { ExportKind, NamedProfile } from '../../../shared/export'
 import { useI18n } from '../i18n/context'
 
@@ -88,8 +89,15 @@ export default function ProfileBar({
               type="button"
               className="icon-btn"
               title={t('export.profileDelete')}
-              onClick={() => {
-                if (window.confirm(t('export.profileDeleteConfirm', { name: own.name })))
+              onClick={async () => {
+                if (
+                  await confirmKey(
+                    t,
+                    'export.profileDeleteConfirm',
+                    { name: own.name },
+                    { danger: true }
+                  )
+                )
                   onChange(
                     profiles.filter((p) => p !== own),
                     ''

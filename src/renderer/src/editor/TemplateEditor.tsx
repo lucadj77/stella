@@ -38,6 +38,8 @@ interface Props {
   menu?: MenuItem[]
   /** Dice se ci sono passi da annullare o ripetere: i pulsanti stanno nella barra dell'app */
   onHistory?(h: { undo: boolean; redo: boolean }): void
+  /** Set (indice in `sets`) e riga da mostrare all'apertura, invece di nessun dato */
+  initialPreview?: { set: number; row: number } | null
 }
 
 /** Evento della barra dell'app per annullare o ripetere nell'editor */
@@ -54,19 +56,39 @@ export default function TemplateEditor({
   onOpen,
   onDetach,
   menu,
-  onHistory
+  onHistory,
+  initialPreview = null
 }: Props): React.JSX.Element {
   const { t } = useI18n()
   // in un derivato ogni modifica passa per le sue regole: si salvano solo le differenze
   const normalize = useMemo(() => (base ? (x: Template) => rebase(base, x) : undefined), [base])
   const [state, dispatch] = useEditor(template, normalize)
   const [resizing, setResizing] = useState<[number, number] | null>(null)
-  const [preview, setPreview] = useState<{ set: number; row: number } | null>(null)
+  const [preview, setPreview] = useState<{ set: number; row: number } | null>(initialPreview)
   const inheritedIds = useMemo(
     () => (base ? new Set(walkLayers([...base.front, ...base.back]).map((l) => l.id)) : null),
     [base]
   )
-  const cmd = commands(state, dispatch, (id) => !!inheritedIds?.has(id))
+  const layerNames = useMemo(
+    () => ({
+      text: t('layerName.text'),
+      image: t('layerName.image'),
+      value: t('layerName.value'),
+      grid: t('layerName.grid'),
+      shape: t('layerName.shape'),
+      sample: t('layerName.sample'),
+      shapes: {
+        rect: t('layerName.rect'),
+        ellipse: t('layerName.ellipse'),
+        polygon: t('layerName.polygon'),
+        star: t('layerName.star'),
+        line: t('layerName.line'),
+        path: t('layerName.path')
+      }
+    }),
+    [t]
+  )
+  const cmd = commands(state, dispatch, (id) => !!inheritedIds?.has(id), layerNames)
   const inheritProblems = useMemo(
     () => (base ? resolveTemplate(base, state.template).problems : []),
     [base, state.template]

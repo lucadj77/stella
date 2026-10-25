@@ -8,6 +8,7 @@ import {
   layersToClipboard,
   moveLayer,
   newLayer,
+  type LayerNames,
   pasteLayers,
   patchLayer,
   removeLayers,
@@ -47,7 +48,8 @@ export interface Commands {
 export function commands(
   state: EditorState,
   dispatch: React.Dispatch<EditorAction>,
-  inherited: (id: string) => boolean = () => false
+  inherited: (id: string) => boolean = () => false,
+  names: LayerNames = {}
 ): Commands {
   const { template: tpl, side, selection } = state
   const layers = tpl[side]
@@ -65,7 +67,7 @@ export function commands(
     canMove: selection.length > 0 && !fixed,
 
     add(type, shape) {
-      const layer = newLayer(tpl, type, shape)
+      const layer = newLayer(tpl, type, shape, names)
       // dentro il gruppo in cui si è entrati, sopra al livello selezionato
       const scopeGroup = state.scope ? findLayer(layers, state.scope) : null
       const above =
