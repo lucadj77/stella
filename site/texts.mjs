@@ -140,11 +140,33 @@ export const texts = {
       cliLink: 'Leggi docs/cli.md',
       cliHref: 'https://github.com/lucadj77/stella/blob/main/docs/cli.md'
     },
+    contact: {
+      title: 'Scrivimi',
+      pageTitle: 'Scrivimi – Stella Game Center',
+      intro:
+        'Domande, problemi, idee per Stella o il racconto del gioco che stai creando: scrivimi qui e ti rispondo all’indirizzo che indichi.',
+      name: 'Nome',
+      email: 'La tua email',
+      subject: 'Oggetto',
+      subjectHint: 'facoltativo',
+      message: 'Messaggio',
+      send: 'Invia',
+      sending: 'Invio in corso…',
+      ok: 'Grazie, il messaggio è partito. Ti rispondo appena posso.',
+      error:
+        'Il messaggio non è partito. Riprova tra poco, oppure apri una segnalazione su GitHub.',
+      inactive: 'Il modulo non è ancora attivo.',
+      privacy:
+        'Il modulo invia solo quello che scrivi qui (nome, email, oggetto e messaggio), tramite il servizio Web3Forms, e solo a me. L’email mi serve per risponderti: non la uso per altro e non la passo a nessuno. Il resto del sito e il programma non raccolgono dati personali.',
+      issues: 'Per segnalare un errore puoi anche aprire una segnalazione su GitHub.',
+      back: 'Torna al sito'
+    },
     footer: {
       license:
         'Stella è software libero, licenza GNU GPL 3 o successive. Le carte che crei sono tue.',
       source: 'Codice sorgente su GitHub',
       support: 'Offrimi un caffè',
+      contact: 'Scrivimi',
       by: 'Un progetto di Luca Di Gialleonardo · Predigarama Games'
     }
   },
@@ -286,10 +308,31 @@ export const texts = {
       cliLink: 'Read docs/cli.en.md',
       cliHref: 'https://github.com/lucadj77/stella/blob/main/docs/cli.en.md'
     },
+    contact: {
+      title: 'Contact me',
+      pageTitle: 'Contact – Stella Game Center',
+      intro:
+        'Questions, problems, ideas for Stella, or the story of the game you are making: write here and I will reply to the address you give.',
+      name: 'Name',
+      email: 'Your email',
+      subject: 'Subject',
+      subjectHint: 'optional',
+      message: 'Message',
+      send: 'Send',
+      sending: 'Sending…',
+      ok: 'Thank you, your message is on its way. I will reply as soon as I can.',
+      error: 'The message was not sent. Try again in a moment, or open an issue on GitHub.',
+      inactive: 'The form is not active yet.',
+      privacy:
+        'The form sends only what you write here (name, email, subject and message), through the Web3Forms service, and only to me. I need your email to reply: I do not use it for anything else and I do not pass it on. The rest of the site and the program collect no personal data.',
+      issues: 'To report a bug you can also open an issue on GitHub.',
+      back: 'Back to the site'
+    },
     footer: {
       license: 'Stella is free software, GNU GPL 3 or later. The cards you make are yours.',
       source: 'Source code on GitHub',
       support: 'Buy me a coffee',
+      contact: 'Contact me',
       by: 'A project by Luca Di Gialleonardo · Predigarama Games'
     }
   }
@@ -412,3 +455,7 @@ export const playlists = {
   it: 'https://www.youtube.com/playlist?list=PLd3mtbjgiPEo',
   en: 'https://www.youtube.com/playlist?list=PLC6t-d7-3DO0'
 }
+
+// Chiave di Web3Forms per il modulo di contatto (manda i messaggi solo all'indirizzo di Luca, quindi può
+// stare nella pagina). Vuota: il modulo resta visibile ma dice che non è ancora attivo.
+export const contactKey = 'bf5614a4-6724-4594-b19c-7ce1473a371a'

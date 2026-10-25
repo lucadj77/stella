@@ -1,12 +1,13 @@
 // Costruisce il sito di presentazione in una cartella: index.html (italiano), en/index.html, stile, script,
 // immagini (logo e screenshot presi dalla guida). Uso: node site/build.mjs <cartella di uscita>
 import { cpSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { playlists, texts, videos } from './texts.mjs'
+import { contactKey, playlists, texts, videos } from './texts.mjs'
 
 const here = new URL('.', import.meta.url).pathname
 const repo = new URL('..', import.meta.url).pathname
 const out = process.argv[2] || `${repo}pages`
 const template = readFileSync(`${here}template.html`, 'utf8')
+const contactTemplate = readFileSync(`${here}contact.html`, 'utf8')
 const esc = (s) =>
   String(s)
     .replace(/&/g, '&amp;')
@@ -73,7 +74,7 @@ const ORNAMENT = `<svg class="ornament" viewBox="0 0 92 18" width="92" height="1
 mkdirSync(`${out}/img/it`, { recursive: true })
 mkdirSync(`${out}/img/en`, { recursive: true })
 mkdirSync(`${out}/it`, { recursive: true })
-for (const f of ['style.css', 'site.js']) cpSync(`${here}${f}`, `${out}/${f}`)
+for (const f of ['style.css', 'site.js', 'contact.js']) cpSync(`${here}${f}`, `${out}/${f}`)
 cpSync(`${here}fonts`, `${out}/fonts`, { recursive: true })
 // pagina nascosta con i conteggi dei download (nessun link dal sito, noindex)
 cpSync(`${here}dcount`, `${out}/dcount`, { recursive: true })
@@ -154,11 +155,14 @@ for (const lang of ['it', 'en']) {
       version: t.hero.version
     })
   }
-  const get = (key) => {
-    if (key in data) return typeof data[key] === 'string' ? data[key] : ''
-    const v = key.split('.').reduce((o, k) => (o == null ? undefined : o[k]), data)
-    if (typeof v !== 'string') throw new Error(`chiave mancante nel template: ${key}`)
-    return v
+  const render = (tpl, d) => {
+    const get = (key) => {
+      if (key in d) return typeof d[key] === 'string' ? d[key] : ''
+      const v = key.split('.').reduce((o, k) => (o == null ? undefined : o[k]), d)
+      if (typeof v !== 'string') throw new Error(`chiave mancante nel template: ${key}`)
+      return v
+    }
+    return tpl.replace(/\{\{([\w.]+)\}\}/g, (_, key) => (raw.has(key) ? get(key) : esc(get(key))))
   }
   const raw = new Set([
     'features.items',
@@ -166,11 +170,28 @@ for (const lang of ['it', 'en']) {
     'shots.items',
     'videos',
     'downloadJson',
+    'contactJson',
     'flag',
     'ornament'
   ])
-  const html = template.replace(/\{\{([\w.]+)\}\}/g, (_, key) =>
-    raw.has(key) ? get(key) : esc(get(key))
+  const html = render(template, data)
+  // pagina dei contatti: contact/ in inglese, it/contact/ in italiano
+  const contactDir = lang === 'en' ? `${out}/contact` : `${out}/it/contact`
+  mkdirSync(contactDir, { recursive: true })
+  writeFileSync(
+    `${contactDir}/index.html`,
+    render(contactTemplate, {
+      ...data,
+      root: lang === 'en' ? '../' : '../../',
+      home: '../',
+      contactOtherHref: lang === 'en' ? '../it/contact/' : '../../contact/',
+      contactKey,
+      contactJson: JSON.stringify({
+        ...t.contact,
+        lang,
+        defaultSubject: lang === 'it' ? 'Messaggio da' : 'Message from'
+      }).replace(/</g, '\\u003c')
+    })
   )
   writeFileSync(lang === 'en' ? `${out}/index.html` : `${out}/it/index.html`, html)
 }
