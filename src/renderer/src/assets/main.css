@@ -5034,6 +5034,8 @@ button.more-button {
   min-width: 0;
   display: flex;
   background: #fafaf8;
+  /* il disegno è come sulla pagina, chiaro anche con il tema scuro: le didascalie restano scure */
+  color: #1d1d1f;
   border: 1px solid var(--border);
   border-radius: 6px;
   overflow: auto;
@@ -5339,6 +5341,8 @@ button.more-button {
   justify-content: center;
   flex-shrink: 0;
   background: #fff;
+  /* come sulla pagina: le etichette restano scure anche con il tema scuro */
+  color: #1d1d1f;
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 8px;
