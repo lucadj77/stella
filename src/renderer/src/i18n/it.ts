@@ -1370,7 +1370,7 @@ export const it: Record<MessageKey, string> = {
   'documents.setupTable': 'Tavolo',
   'documents.setupFixedSize': 'Misura del tavolo fissa',
   'documents.setupHint':
-    'Clicca un elemento per sceglierlo e trascinalo per spostarlo. Maiuscolo o ⌘/Ctrl + clic aggiunge elementi alla scelta, come trascinare un riquadro su uno spazio vuoto; ⌘A / Ctrl+A li sceglie tutti. Le frecce della tastiera spostano la scelta di 1 mm (5 con Maiusc) e Canc la elimina. Senza misura fissa il disegno si adatta agli elementi (contorno tratteggiato).',
+    'Clicca un elemento per sceglierlo e trascinalo per spostarlo. Maiuscolo o ⌘/Ctrl + clic aggiunge elementi alla scelta, come trascinare un riquadro su uno spazio vuoto; ⌘A / Ctrl+A li sceglie tutti, ⌘C, ⌘X e ⌘V / Ctrl+C, Ctrl+X e Ctrl+V copiano, tagliano e incollano, ⌘D / Ctrl+D duplica. Le frecce della tastiera spostano la scelta di 1 mm (5 con Maiusc) e Canc la elimina. Senza misura fissa il disegno si adatta agli elementi (contorno tratteggiato).',
   'documents.setupZoomFitHint': 'Adatta tutto il disegno alla finestra (⌘0 / Ctrl+0)',
   'documents.setupZoomHint':
     'Zoom con ⌘/Ctrl + rotella del mouse, pizzicando il trackpad o con ⌘+ e ⌘− / Ctrl++ e Ctrl+−. La vista si sposta con le barre di scorrimento, con la rotella o trascinando con la barra spaziatrice premuta',

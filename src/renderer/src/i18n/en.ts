@@ -1349,7 +1349,7 @@ export const en = {
   'documents.setupTable': 'Table',
   'documents.setupFixedSize': 'Fixed table size',
   'documents.setupHint':
-    'Click an element to select it and drag it to move it. Shift or ⌘/Ctrl + click adds elements to the selection, and so does dragging a box on an empty spot; ⌘A / Ctrl+A selects everything. The arrow keys nudge the selection by 1 mm (5 with Shift) and Delete removes it. Without a fixed size the drawing fits its elements (dashed outline).',
+    'Click an element to select it and drag it to move it. Shift or ⌘/Ctrl + click adds elements to the selection, and so does dragging a box on an empty spot; ⌘A / Ctrl+A selects everything, ⌘C, ⌘X and ⌘V / Ctrl+C, Ctrl+X and Ctrl+V copy, cut and paste, ⌘D / Ctrl+D duplicates. The arrow keys nudge the selection by 1 mm (5 with Shift) and Delete removes it. Without a fixed size the drawing fits its elements (dashed outline).',
   'documents.setupZoomFitHint': 'Fit the whole drawing in the window (⌘0 / Ctrl+0)',
   'documents.setupZoomHint':
     'Zoom with ⌘/Ctrl + mouse wheel, by pinching the trackpad or with ⌘+ and ⌘− / Ctrl++ and Ctrl+−. Move the view with the scroll bars, the wheel, or by dragging while holding the space bar',

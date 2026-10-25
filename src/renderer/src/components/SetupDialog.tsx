@@ -10,6 +10,7 @@ import {
   distributeSetupItems,
   moveSetupItem,
   reorderSetupItem,
+  setupLine,
   setupSource,
   type Setup,
   type SetupAlign,
@@ -41,6 +42,19 @@ const MAX_ZOOM = 12
 const ZOOM_STEPS = [0.25, 0.33, 0.5, 0.67, 0.8, 1, 1.25, 1.5, 2, 3, 4, 6, 8, 12]
 const ALIGN: SetupAlign[] = ['left', 'hcenter', 'right', 'top', 'vcenter', 'bottom']
 const FULL_KEY = 'setupFullScreen'
+
+/** Elementi copiati con ⌘C / Ctrl+C: restano anche chiudendo la finestra, per un altro schema */
+const clipboard: { items: SetupItem[]; pasted: number } = { items: [], pasted: 0 }
+function copyItems(list: SetupItem[]): void {
+  clipboard.items = list
+  clipboard.pasted = 0
+}
+/** Gli elementi da incollare, ogni volta 5 mm più in basso a destra */
+function pasteItems(): SetupItem[] {
+  if (!clipboard.items.length) return []
+  const d = 5 * ++clipboard.pasted
+  return clipboard.items.map((it) => moveSetupItem(it, d, d))
+}
 
 type Item = SetupItem
 const KINDS = {
@@ -319,6 +333,18 @@ export default function SetupDialog({
     setItems([...items, ...copies])
     setSelection(copies.map((_, n) => items.length + n))
   }
+  /** Copia gli elementi scelti, anche come righe dello schema per incollarle nel testo */
+  const copy = (): void => {
+    const list = chosen.map((k) => items[k])
+    copyItems(list)
+    navigator.clipboard?.writeText(list.map(setupLine).join('\n')).catch(() => {})
+  }
+  const paste = (): void => {
+    const copies = pasteItems()
+    if (!copies.length) return
+    setItems([...items, ...copies])
+    setSelection(copies.map((_, n) => items.length + n))
+  }
   const reorder = (to: SetupOrder): void => {
     if (single === null) return
     const r = reorderSetupItem(items, single, to)
@@ -474,12 +500,30 @@ export default function SetupDialog({
   }
   const onKeyDown = (e: React.KeyboardEvent): void => {
     if (e.target !== e.currentTarget) return
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'a') {
+    const mod = (e.metaKey || e.ctrlKey) && !e.altKey
+    const key = e.key.toLowerCase()
+    if (mod && key === 'a') {
       e.preventDefault()
       setSelection(items.map((_, k) => k))
       return
     }
+    if (mod && key === 'v') {
+      e.preventDefault()
+      paste()
+      return
+    }
     if (!chosen.length) return
+    if (mod && (key === 'c' || key === 'x')) {
+      e.preventDefault()
+      copy()
+      if (key === 'x') remove()
+      return
+    }
+    if (mod && key === 'd') {
+      e.preventDefault()
+      duplicate()
+      return
+    }
     if (e.key === 'Delete' || e.key === 'Backspace') {
       e.preventDefault()
       remove()
