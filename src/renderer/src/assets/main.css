@@ -5883,6 +5883,60 @@ button.more-button {
   font-size: 15px;
 }
 
+/* una frase dentro uno spazio: riquadro rientrato, con il nome dello spazio in alto */
+.fx-sub {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px dashed var(--muted);
+  border-radius: 10px;
+  padding: 4px 6px 6px;
+  background: var(--panel, var(--bg));
+  max-width: 100%;
+}
+
+.fx-sub.selected {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.fx-sub-head {
+  all: unset;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fx-sub-head:hover,
+.fx-sub-head:focus-visible {
+  color: var(--accent);
+}
+
+.fx-sentence.fx-sentence-sub {
+  padding: 4px 6px;
+  border: none;
+  background: none;
+  font-size: 15px;
+}
+
+.fx-cards.fx-cards-small {
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.fx-cards-small .fx-card {
+  padding: 6px 10px;
+  min-height: 0;
+}
+
+.fx-cards-small .fx-card strong {
+  font-size: 13px;
+}
+
 .fx-sentence .fx-chip,
 .fx-sentence .fx-empty {
   font-size: 15px;
@@ -5968,4 +6022,45 @@ button.more-button {
   gap: 6px;
   align-items: center;
   margin: 4px 0;
+}
+
+/* modo avanzato: funzioni annidate chiuse in una riga, apertura da sola e percorso */
+.fx-node-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fx-collapsed {
+  all: unset;
+  cursor: pointer;
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 3px 8px;
+  border: 1px dashed var(--muted);
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.fx-collapsed:hover,
+.fx-collapsed:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.fx-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.fx-crumb-sep {
+  margin: 0 4px;
+  color: var(--muted);
 }

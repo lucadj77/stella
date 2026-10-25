@@ -120,6 +120,30 @@ await win.waitForTimeout(500)
 await shot(win, `${lang}/assistente-formule-testo`, {
   clip: await win.locator('.dialog').boundingBox()
 })
+// una formula annidata: due confronti uniti da «e anche» e una frase dentro lo spazio «mostra»
+await win.locator('.fx-details summary').click()
+await win.waitForTimeout(300)
+await win
+  .locator('.fx-details textarea')
+  .fill(
+    '=IF(AND({cell.row} = 1; {cell.column} > 5); IF(MOD({cell.index}; 2) = 0; "[" & {cell.index} & "]{color=#A33A2A weight=800}"; {cell.index}); {cell.index})'
+  )
+await win.waitForTimeout(500)
+await win.locator('.fx-details summary').click()
+await win.locator('.fx-sub .fx-leaf').first().click()
+await win.waitForTimeout(500)
+await shot(win, `${lang}/assistente-formule-annidata`, {
+  clip: await win.locator('.dialog').boundingBox()
+})
+// Avanzato: la funzione annidata aperta da sola, con il percorso in alto
+await win.getByRole('button', { name: T['fx.advanced'] }).click()
+await win.waitForTimeout(400)
+await win.locator('.fx-drill').first().click()
+await win.mouse.move(5, 5)
+await win.waitForTimeout(700)
+await shot(win, `${lang}/assistente-formule-avanzato`, {
+  clip: await win.locator('.dialog').boundingBox()
+})
 // «Ricomincia»: la schermata «Cosa vuoi fare?»
 await win.getByRole('button', { name: T['fx.startOver'] }).click()
 await win.waitForTimeout(500)

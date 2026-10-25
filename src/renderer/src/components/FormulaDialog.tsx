@@ -2,6 +2,7 @@ import { useContext, useMemo, useRef, useState } from 'react'
 import {
   COMPARISON_OPERATORS,
   evaluateNodeText,
+  printExpression,
   type BinaryOperator,
   type FormulaNode
 } from '../../../shared/model/formula'
@@ -12,7 +13,10 @@ import {
   catalogEntries,
   chainLength,
   defaultField,
-  findSentence,
+  firstGuidedBlank,
+  guide,
+  guidedBlanks,
+  type GuidedPart,
   firstEmpty,
   FORMULA_CATEGORIES,
   FUNCTION_SPECS,
@@ -33,7 +37,6 @@ import {
   type NodePath,
   type SentenceContext,
   type SentenceDefaults,
-  type SentencePart,
   type SentenceTemplate,
   type SlotKind
 } from '../../../shared/model/formulaAssist'
@@ -168,14 +171,14 @@ export default function FormulaDialog({
   const [mode, setMode] = useState<Mode>(() =>
     startScreen || !value.trim()
       ? 'start'
-      : opened.node && findSentence(opened.node, ctx)
+      : opened.node && guide(opened.node, ctx)
         ? 'guided'
         : 'advanced'
   )
   // in modalità guidata parte selezionato il primo spazio della frase, non l'intera formula
   const [selected, setSelected] = useState<NodePath | null>(() => {
-    const first = mode === 'guided' && opened.node ? findSentence(opened.node, ctx) : null
-    return (first && firstBlank(first.parts)) ?? []
+    const first = mode === 'guided' && opened.node ? guide(opened.node, ctx) : null
+    return (opened.node && firstGuidedBlank(first, opened.node)) ?? []
   })
 
   const fields = useMemo(() => {
@@ -186,16 +189,23 @@ export default function FormulaDialog({
   }, [sample, cells])
   const known = (name: string): boolean =>
     name in fields || columns.includes(name) || layers.includes(name)
-  const sentence = findSentence(root, ctx)
+  const sentence = guide(root, ctx)
+  const blanks = sentence ? guidedBlanks(sentence) : []
+  // nel modo avanzato una funzione annidata si può aprire da sola: `view` è dove parte la vista
+  const [focus, setFocus] = useState<NodePath>([])
+  const view = focus.length && nodeAt(root, focus)?.k === 'call' ? focus : []
 
   const change = (next: FormulaNode, select?: NodePath | null): void => {
     setRoot(next)
     setText(formulaText(next))
     setTextError(null)
     setTyped(false)
-    if (select !== undefined) setSelected(select)
+    const g = guide(next, ctx)
+    // nel modo guidato, senza una scelta, si passa al primo spazio da riempire
+    if (select === null && mode === 'guided' && g) setSelected(firstGuidedBlank(g, next))
+    else if (select !== undefined) setSelected(select)
     // una frase che non corrisponde più a un modello si vede solo a caselle
-    if (mode === 'guided' && !findSentence(next, ctx)) setMode('advanced')
+    if (mode === 'guided' && !g) setMode('advanced')
   }
   const typeText = (s: string): void => {
     setText(s)
@@ -205,14 +215,14 @@ export default function FormulaDialog({
       setRoot(o.node)
       setTextError(null)
       setSelected([])
-      if (mode === 'guided' && !findSentence(o.node, ctx)) setMode('advanced')
+      if (mode === 'guided' && !guide(o.node, ctx)) setMode('advanced')
     } else setTextError(o.error ?? null)
   }
   const start = (template: SentenceTemplate): void => {
     const [yes, no] = defaultResults(expect, t)
     const d: SentenceDefaults = { field: defaultField(columns, fields, ctx.inCell), yes, no }
     const n = template.make(ctx, d)
-    change(n, firstEmpty(n) ?? firstBlank(template.parts(n, ctx)))
+    change(n, firstGuidedBlank(guide(n, ctx), n) ?? firstEmpty(n))
     setMode('guided')
   }
 
@@ -243,7 +253,7 @@ export default function FormulaDialog({
   }
   /** Nel modo guidato lo spazio selezionato ha il suo nome */
   const blankLabel = (path: NodePath): string => {
-    const part = sentence?.parts.find((p) => 'blank' in p && same(p.blank, path))
+    const part = blanks.find((p) => same(p.blank, path))
     return part && 'blank' in part ? t(part.label as MessageKey) : slotLabel(path)
   }
 
@@ -257,12 +267,41 @@ export default function FormulaDialog({
     })
   }, [cells, incomplete, root, sample])
 
+  /** I casi proposti dentro una casella: le condizioni per una condizione, i calcoli per un numero */
+  const slotTemplates = (kind: SlotKind): SentenceTemplate[] => {
+    if (kind === 'condition') return availableSentences({ ...sctx, condition: true })
+    const all = availableSentences({ ...sctx, condition: false, bool: false })
+    if (kind === 'number') return all.filter((x) => ['calc', 'if', 'ranges'].includes(x.id))
+    // il testo con i campi si scrive già nel campo del testo
+    return all.filter((x) => x.id !== 'join')
+  }
+  const slotDefaults = (kind: SlotKind): SentenceDefaults => {
+    const f = defaultField(columns, fields, ctx.inCell)
+    if (kind === 'number') return { field: f, yes: { k: 'num', v: 1 }, no: { k: 'num', v: 0 } }
+    const [yes, no] = defaultResults(expect, t)
+    return { field: f, yes, no }
+  }
+
   const pick = (n: FormulaNode, select?: NodePath | null): void => {
     if (!selected) return
     let next = replaceAt(root, selected, n)
     // gli spazi gemelli di una frase (lo stesso campo in ogni fascia) cambiano insieme
-    const part = sentence?.parts.find((p) => 'blank' in p && same(p.blank, selected))
+    const part = blanks.find((p) => same(p.blank, selected))
     if (part && 'blank' in part) for (const p of part.also ?? []) next = replaceAt(next, p, n)
+    // un caso scelto dentro la casella: si va al primo spazio della sua frase
+    if (select === null && mode === 'guided') {
+      const g = guide(next, ctx)
+      const inside = g
+        ? guidedBlanks(g).filter(
+            (b) =>
+              !b.sub &&
+              b.blank.length > selected.length &&
+              same(b.blank.slice(0, selected.length), selected)
+          )
+        : []
+      const first = inside.find((b) => nodeAt(next, b.blank)?.k === 'empty') ?? inside[0]
+      if (first) return change(next, first.blank)
+    }
     // dopo una scelta si passa alla prossima casella da riempire
     change(next, select ?? firstEmpty(next) ?? selected)
   }
@@ -283,6 +322,8 @@ export default function FormulaDialog({
       fields={fields}
       known={known}
       variables={variables}
+      templates={slotTemplates(slotKind(selected))}
+      defaults={slotDefaults(slotKind(selected))}
       onPick={pick}
       onRemove={
         canRemove(root, selected)
@@ -372,7 +413,7 @@ export default function FormulaDialog({
           <div className="fx-guided">
             {gridNotice}
             <Sentence
-              parts={sentence.parts}
+              parts={sentence}
               root={root}
               selected={selected}
               onSelect={setSelected}
@@ -395,14 +436,35 @@ export default function FormulaDialog({
             <div className="fx-main">
               <div className="fx-tree">
                 {root.k === 'empty' && <p className="fx-steps">{t('fx.steps')}</p>}
+                {view.length > 0 && (
+                  <nav className="fx-crumbs" aria-label={t('fx.crumbs')}>
+                    {[[], ...view.map((_, i) => view.slice(0, i + 1))].map((at, i, all) => (
+                      <span key={i}>
+                        {i > 0 && <span className="fx-crumb-sep">›</span>}
+                        {i < all.length - 1 ? (
+                          <button type="button" className="link" onClick={() => setFocus(at)}>
+                            {at.length ? slotLabel(at) : t('fx.formula')}
+                          </button>
+                        ) : (
+                          <strong>{slotLabel(at)}</strong>
+                        )}
+                      </span>
+                    ))}
+                  </nav>
+                )}
                 <NodeView
-                  node={root}
-                  path={[]}
+                  node={nodeAt(root, view) ?? root}
+                  path={view}
                   root={root}
                   selected={selected}
                   onSelect={setSelected}
                   onChange={change}
                   preview={preview}
+                  base={view}
+                  onDrill={(at) => {
+                    setFocus(at)
+                    setSelected(at)
+                  }}
                 />
                 <p className="muted small">{t('fx.treeHint')}</p>
               </div>
@@ -438,7 +500,7 @@ export default function FormulaDialog({
                 type="button"
                 onClick={() => {
                   setMode('guided')
-                  setSelected(firstEmpty(root) ?? firstBlank(sentence.parts))
+                  setSelected(firstGuidedBlank(sentence, root))
                 }}
               >
                 {t('fx.guided')}
@@ -460,11 +522,6 @@ export default function FormulaDialog({
       </div>
     </Dialog>
   )
-}
-
-const firstBlank = (parts: SentencePart[] | null): NodePath | null => {
-  const b = parts?.find((p) => 'blank' in p)
-  return b && 'blank' in b ? b.blank : null
 }
 
 /** Il colore di un testo formattato tutto insieme, [10]{color=red}, per la striscia delle caselle */
@@ -560,17 +617,20 @@ function Sentence({
   root,
   selected,
   onSelect,
-  onChange
+  onChange,
+  nested = false
 }: {
-  parts: SentencePart[]
+  parts: GuidedPart[]
   root: FormulaNode
   selected: NodePath | null
   onSelect(p: NodePath): void
   onChange(n: FormulaNode, select?: NodePath | null): void
+  /** Frase dentro uno spazio di un'altra frase */
+  nested?: boolean
 }): React.JSX.Element {
   const { t } = useI18n()
   return (
-    <div className="fx-sentence">
+    <div className={nested ? 'fx-sentence fx-sentence-sub' : 'fx-sentence'}>
       {parts.map((p, i) => {
         if ('text' in p) return <span key={i}>{t(p.text as MessageKey)}</span>
         if ('op' in p) {
@@ -593,6 +653,52 @@ function Sentence({
             </select>
           )
         }
+        if ('join' in p) {
+          // un confronto in più nella condizione: e anche (AND), oppure (OR)
+          const add = (): void => {
+            const cond = nodeAt(root, p.join)
+            if (!cond) return
+            const cmp: FormulaNode = { k: 'bin', op: '=', l: { k: 'empty' }, r: { k: 'empty' } }
+            if (cond.k === 'call' && cond.fn === p.fn)
+              onChange(replaceAt(root, p.join, { ...cond, args: [...cond.args, cmp] }), [
+                ...p.join,
+                cond.args.length,
+                0
+              ])
+            else
+              onChange(replaceAt(root, p.join, { k: 'call', fn: p.fn, args: [cond, cmp] }), [
+                ...p.join,
+                1,
+                0
+              ])
+          }
+          return (
+            <button key={i} type="button" className="fx-add" onClick={add}>
+              {t(p.label as MessageKey)}
+            </button>
+          )
+        }
+        if ('drop' in p) {
+          const drop = (): void => {
+            const at = p.drop.slice(0, -1)
+            const parent = nodeAt(root, at)
+            if (parent?.k !== 'call') return
+            const args = parent.args.filter((_, j) => j !== p.drop[p.drop.length - 1])
+            onChange(replaceAt(root, at, args.length === 1 ? args[0] : { ...parent, args }), null)
+          }
+          return (
+            <button
+              key={i}
+              type="button"
+              className="fx-mini"
+              title={t(p.label as MessageKey)}
+              aria-label={t(p.label as MessageKey)}
+              onClick={drop}
+            >
+              ×
+            </button>
+          )
+        }
         if ('add' in p) {
           const add = (): void => {
             if (!p.band) {
@@ -604,7 +710,7 @@ function Sentence({
             // una fascia in più prima di "altrimenti", con lo stesso campo delle altre
             const last = nodeAt(root, p.add)
             if (last?.k !== 'call') return
-            const f = nodeAt(root, [0, 0]) ?? { k: 'empty' }
+            const f = (p.field && nodeAt(root, p.field)) ?? { k: 'empty' }
             const band: FormulaNode = {
               k: 'call',
               fn: 'IF',
@@ -620,6 +726,30 @@ function Sentence({
         }
         const n = nodeAt(root, p.blank)
         if (!n) return null
+        if (p.sub) {
+          // una funzione dentro lo spazio: la sua frase, in un riquadro che si può scegliere e cambiare
+          const isSel = same(p.blank, selected)
+          return (
+            <span key={i} className={`fx-sub${isSel ? ' selected' : ''}`}>
+              <button
+                type="button"
+                className="fx-sub-head"
+                title={t('fx.subChange')}
+                onClick={() => onSelect(p.blank)}
+              >
+                {t(p.label as MessageKey)}
+              </button>
+              <Sentence
+                parts={p.sub}
+                root={root}
+                selected={selected}
+                onSelect={onSelect}
+                onChange={onChange}
+                nested
+              />
+            </span>
+          )
+        }
         return (
           <Leaf
             key={i}
@@ -644,11 +774,35 @@ interface ViewProps {
   onSelect(p: NodePath): void
   onChange(n: FormulaNode, select?: NodePath | null): void
   preview(n: FormulaNode): { value: string; error?: string } | null
+  /** Da dove parte la vista: la funzione aperta da sola (la radice se vuoto) */
+  base: NodePath
+  /** Apre da sola la funzione in `path`, con il percorso per tornare indietro */
+  onDrill(path: NodePath): void
 }
 
 function NodeView(props: ViewProps): React.JSX.Element {
-  const { node, path, root, selected, onSelect, onChange, preview } = props
+  const { node, path, root, selected, onSelect, onChange, preview, base, onDrill } = props
   const { t } = useI18n()
+  const inner = path.length > base.length
+  const holdsSelection =
+    !!selected && selected.length >= path.length && same(selected.slice(0, path.length), path)
+  // una funzione annidata già completa si chiude in una riga; si riapre scegliendola
+  if (
+    inner &&
+    !holdsSelection &&
+    (node.k === 'call' || (node.k === 'bin' && !readText(node))) &&
+    !hasEmpty(node)
+  )
+    return (
+      <button
+        type="button"
+        className="fx-collapsed"
+        title={t('fx.expand')}
+        onClick={() => onSelect(path)}
+      >
+        <code>{printExpression(node)}</code>
+      </button>
+    )
   const sub = (child: FormulaNode, i: number): React.JSX.Element => (
     <NodeView {...props} node={child} path={[...path, i]} />
   )
@@ -671,14 +825,27 @@ function NodeView(props: ViewProps): React.JSX.Element {
   )
   const isSel = same(path, selected)
   const head = (name: string, fn?: string): React.JSX.Element => (
-    <button
-      type="button"
-      className={`fx-node-head${isSel ? ' selected' : ''}`}
-      onClick={() => onSelect(path)}
-    >
-      <strong>{name}</strong>
-      {fn && <span className="fx-fn">{fn}</span>}
-    </button>
+    <span className="fx-node-top">
+      <button
+        type="button"
+        className={`fx-node-head${isSel ? ' selected' : ''}`}
+        onClick={() => onSelect(path)}
+      >
+        <strong>{name}</strong>
+        {fn && <span className="fx-fn">{fn}</span>}
+      </button>
+      {inner && (
+        <button
+          type="button"
+          className="fx-mini fx-drill"
+          title={t('fx.drill')}
+          aria-label={t('fx.drill')}
+          onClick={() => onDrill(path)}
+        >
+          ⤢
+        </button>
+      )}
+    </span>
   )
 
   // una catena di IF è un elenco di casi
@@ -855,6 +1022,8 @@ function Leaf({
   let body: React.ReactNode
   if (node.k === 'empty') body = <span className="fx-empty">{t('fx.choose')}</span>
   else if (node.k === 'num') body = <span className="fx-chip">{node.v}</span>
+  else if (node.k === 'neg' && node.v.k === 'num')
+    body = <span className="fx-chip">-{node.v.v}</span>
   else if (node.k === 'bool')
     body = <span className="fx-chip">{node.v ? t('fx.yes') : t('fx.no')}</span>
   else if (node.k === 'field') body = <span className="fx-chip fx-var">{label(node.name)}</span>
@@ -907,6 +1076,9 @@ interface PickerProps {
   fields: Record<string, string>
   known(name: string): boolean
   variables: React.ContextType<typeof VariablesContext>
+  /** I casi di «Cosa vuoi fare?» che si possono mettere in questa casella, con i valori proposti */
+  templates: SentenceTemplate[]
+  defaults: SentenceDefaults
   onPick(n: FormulaNode, select?: NodePath | null): void
   onRemove?(): void
 }
@@ -974,7 +1146,7 @@ function composeText(n: FormulaNode): FormattedText | null {
 
 /** Caselle in cui si compone un testo: il campo di testo resta visibile e le schede ci inseriscono */
 const COMPOSE_KINDS: SlotKind[] = ['text', 'result', 'value']
-const COMPOSE_TABS: Tab[] = ['field', 'system', 'variable']
+const COMPOSE_TABS: Tab[] = ['field', 'system', 'variable', 'formula']
 
 function SlotPicker(p: PickerProps): React.JSX.Element {
   const { t } = useI18n()
@@ -1435,6 +1607,28 @@ function FormulaTab(p: PickerProps): React.JSX.Element {
   const [wrap, setWrap] = useState(false)
   return (
     <>
+      {p.templates.length > 0 && (
+        <>
+          <span className="fx-picker-title">{t('fx.whatHere')}</span>
+          <div className="fx-cards fx-cards-small">
+            {p.templates.map((x) => {
+              const k = `fx.card.${x.id}${x.counter && !p.ctx.inCell ? '.out' : ''}`
+              return (
+                <button
+                  key={x.id}
+                  type="button"
+                  className="fx-card"
+                  title={t(`${k}.hint` as MessageKey)}
+                  onClick={() => p.onPick(x.make(p.ctx, p.defaults), null)}
+                >
+                  <strong>{t(k as MessageKey)}</strong>
+                </button>
+              )
+            })}
+          </div>
+          <span className="fx-picker-title">{t('fx.allFunctions')}</span>
+        </>
+      )}
       <div className="fx-categories">
         {FORMULA_CATEGORIES.map((c) => (
           <button

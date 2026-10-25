@@ -136,3 +136,46 @@ describe('frasi guidate', () => {
     ])
   })
 })
+
+describe('frasi annidate e condizioni composte', () => {
+  const node = (src: string): ReturnType<typeof parseExpression>['node'] & object =>
+    parseExpression(src).node!
+
+  it('una funzione conosciuta dentro uno spazio diventa una frase annidata', async () => {
+    const { guide, guidedBlanks } = await import('../formulaAssist')
+    const n = node('IF({forza} > 3; IF(MOD({cell.index}; 10) = 0; "a"; "b"); "c")')
+    const parts = guide(n, { inCell: true })
+    expect(parts).not.toBeNull()
+    const show = parts!.find((p) => 'blank' in p && p.blank.join() === '1')
+    expect(show && 'sub' in show && show.sub?.length).toBeTruthy()
+    // gli spazi annidati hanno il percorso dalla radice
+    expect(guidedBlanks(parts!).map((b) => b.blank.join('.'))).toContain('1.0.0.1')
+  })
+
+  it('una funzione sconosciuta dentro uno spazio porta al modo avanzato', async () => {
+    const { guide } = await import('../formulaAssist')
+    expect(guide(node('IF({forza} > 3; UPPER("a"); "b")'), { inCell: false })).toBeNull()
+  })
+
+  it('riconosce le condizioni con e anche / oppure', async () => {
+    const { findSentence } = await import('../formulaAssist')
+    const and = findSentence(node('IF(AND({forza} >= 3; {costo} < 2); "a"; "b")'), {
+      inCell: false
+    })
+    expect(and?.template.id).toBe('if')
+    expect(and!.parts.filter((p) => 'join' in p).map((p) => 'join' in p && p.fn)).toEqual(['AND'])
+    expect(and!.parts.filter((p) => 'drop' in p)).toHaveLength(2)
+    const single = findSentence(node('IF({forza} > 3; "a"; "b")'), { inCell: false })
+    expect(single!.parts.filter((p) => 'join' in p)).toHaveLength(2)
+    // nel filtro del generatore
+    expect(findSentence(node('OR({forza} > 3; {costo} = 1)'), { inCell: false })?.template.id).toBe(
+      'compare'
+    )
+  })
+
+  it('il primo spazio da riempire è il primo vuoto', async () => {
+    const { firstGuidedBlank, guide } = await import('../formulaAssist')
+    const n = replaceAt(node('IF({forza} > 3; "a"; "b")'), [2], { k: 'empty' })
+    expect(firstGuidedBlank(guide(n, { inCell: false }), n)).toEqual([2])
+  })
+})
