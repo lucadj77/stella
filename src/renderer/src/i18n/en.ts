@@ -1319,6 +1319,8 @@ export const en = {
   'notes.empty': 'The note is empty.',
   'notes.hint': 'Saved as you type in {file}.',
   'sidebar.documents': 'Documents',
+  'sidebar.addDocument': '+ Document',
+  'sidebar.addNote': '+ Note',
   'sidebar.newDocument': 'New document',
   'sidebar.noDocuments': 'Rules, sell sheet, appendix: text with the cards of the game, to export.',
   'documents.newName': 'Rules',

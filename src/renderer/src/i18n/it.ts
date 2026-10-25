@@ -1336,6 +1336,8 @@ export const it: Record<MessageKey, string> = {
   'notes.empty': 'La nota è vuota.',
   'notes.hint': 'Si salva mentre scrivi in {file}.',
   'sidebar.documents': 'Documenti',
+  'sidebar.addDocument': '+ Documento',
+  'sidebar.addNote': '+ Nota',
   'sidebar.newDocument': 'Nuovo documento',
   'sidebar.noDocuments':
     'Regolamento, sell sheet, appendice: testi con le carte del gioco, da esportare.',

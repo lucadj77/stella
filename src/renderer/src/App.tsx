@@ -74,6 +74,8 @@ import Segmented from './components/Segmented'
 import Resizer from './components/Resizer'
 import {
   useClosedSections,
+  useProjectSections,
+  LONG_LIST,
   usePanelCompact,
   usePanelSide,
   usePanelWidth
@@ -358,6 +360,8 @@ function App(): React.JSX.Element {
   const [sidebarSide, toggleSidebarSide] = usePanelSide('sidebar', 'left')
   const [sidebarCompact, setSidebarCompact] = usePanelCompact('sidebar')
   const [closedSections, setSectionClosed] = useClosedSections('sidebar')
+  // stili e variabili: aperti o chiusi per progetto, chiusi da soli se l'elenco è lungo
+  const [projectSectionOpen, setProjectSectionOpen] = useProjectSections(project?.folder ?? null)
   /** Testo per filtrare stili e variabili nella barra laterale */
   const [listFilter, setListFilter] = useState<Partial<Record<GroupKind, string>>>({})
   /** Titolo del gruppo su cui si sta trascinando una voce */
@@ -1655,6 +1659,7 @@ function App(): React.JSX.Element {
             onClick={() => {
               // apre il pannello sulla sezione scelta
               setSectionClosed(id, false)
+              if (id === 'styles' || id === 'variables') setProjectSectionOpen(id, true)
               setSidebarCompact(false)
               requestAnimationFrame(() =>
                 document.getElementById(`sidebar-${id}`)?.scrollIntoView({ block: 'start' })
@@ -1790,8 +1795,9 @@ function App(): React.JSX.Element {
             id="styles"
             icon={<StylesIcon />}
             title={t('sidebar.styles')}
-            open={!closedSections.has('styles')}
-            onToggle={(open) => setSectionClosed('styles', !open)}
+            count={styleList.length}
+            open={projectSectionOpen('styles', styleList.length <= LONG_LIST)}
+            onToggle={(open) => setProjectSectionOpen('styles', open)}
             actions={
               <>
                 {sortButton(styleList, () => setListOrder('styles', null))}
@@ -1823,8 +1829,9 @@ function App(): React.JSX.Element {
             id="variables"
             icon={<VariablesIcon />}
             title={t('sidebar.variables')}
-            open={!closedSections.has('variables')}
-            onToggle={(open) => setSectionClosed('variables', !open)}
+            count={variableList.length}
+            open={projectSectionOpen('variables', variableList.length <= LONG_LIST)}
+            onToggle={(open) => setProjectSectionOpen('variables', open)}
             actions={
               <>
                 {sortButton(
@@ -1895,7 +1902,13 @@ function App(): React.JSX.Element {
               ))}
             </ul>
             {!project.documents?.length && (
-              <p className="muted small">{t('sidebar.noDocuments')}</p>
+              <button
+                className="sidebar-add"
+                title={t('sidebar.noDocuments')}
+                onClick={() => void newDocument()}
+              >
+                {t('sidebar.addDocument')}
+              </button>
             )}
           </SidebarSection>
           <SidebarSection
@@ -1929,7 +1942,15 @@ function App(): React.JSX.Element {
                 </li>
               ))}
             </ul>
-            {!project.notes?.length && <p className="muted small">{t('sidebar.noNotes')}</p>}
+            {!project.notes?.length && (
+              <button
+                className="sidebar-add"
+                title={t('sidebar.noNotes')}
+                onClick={() => void newNote()}
+              >
+                {t('sidebar.addNote')}
+              </button>
+            )}
           </SidebarSection>
           {project.unusedSheets.length > 0 && (
             <p className="muted small">
