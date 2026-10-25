@@ -79,7 +79,7 @@ export function arithmetic(src: string): number | null {
 
 // --- espressioni ---
 
-type Value = number | string | boolean
+export type Value = number | string | boolean
 
 type Token =
   | { t: 'num'; v: number }
@@ -245,8 +245,32 @@ const FUNCTIONS: Record<string, Fn> = {
 
 export const FORMULA_FUNCTIONS = Object.keys(FUNCTIONS)
 
-function evaluateExpression(src: string, fields: Record<string, string>): FormulaResult {
-  const missing: string[] = []
+/** Nodo dell'albero di un'espressione con =: lo legge parseExpression, lo scrive printExpression */
+export type FormulaNode =
+  | { k: 'num'; v: number }
+  | { k: 'str'; v: string }
+  | { k: 'bool'; v: boolean }
+  | { k: 'field'; name: string }
+  | { k: 'call'; fn: string; args: FormulaNode[] }
+  | { k: 'bin'; op: BinaryOperator; l: FormulaNode; r: FormulaNode }
+  | { k: 'neg'; v: FormulaNode }
+  /** Casella ancora da riempire, solo nell'assistente: non si calcola */
+  | { k: 'empty' }
+
+export const COMPARISON_OPERATORS = ['=', '<>', '<', '>', '<=', '>='] as const
+export type ComparisonOperator = (typeof COMPARISON_OPERATORS)[number]
+export type BinaryOperator = ComparisonOperator | '&' | '+' | '-' | '*' | '/'
+
+export interface ParsedExpression {
+  node?: FormulaNode
+  /** Campi citati, in ordine e con le ripetizioni, anche quelli letti prima di un errore */
+  fields: string[]
+  error?: string
+}
+
+/** Legge un'espressione senza il = iniziale */
+export function parseExpression(src: string): ParsedExpression {
+  const fields: string[] = []
   try {
     const tokens = tokenize(src)
     let i = 0
@@ -256,68 +280,29 @@ function evaluateExpression(src: string, fields: Record<string, string>): Formul
       if (!isOp(v)) throw new FormulaError(`expected "${v}"`)
       i++
     }
+    const binary = (ops: string[], next: () => FormulaNode) => (): FormulaNode => {
+      let l = next()
+      while (ops.some(isOp)) {
+        const op = tokens[i++].v as BinaryOperator
+        l = { k: 'bin', op, l, r: next() }
+      }
+      return l
+    }
 
-    // ogni regola restituisce una funzione: così IF valuta solo il ramo scelto
-    const comparison = (): (() => Value) => {
-      const left = concat()
+    // un solo confronto per livello, come prima: a = b = c è un errore
+    const comparison = (): FormulaNode => {
+      const l = concat()
       const t = peek()
-      if (t?.t === 'op' && ['=', '<>', '<', '>', '<=', '>='].includes(t.v)) {
+      if (t?.t === 'op' && (COMPARISON_OPERATORS as readonly string[]).includes(t.v)) {
         i++
-        const right = concat()
-        return () => {
-          const c = compare(left(), right())
-          return {
-            '=': c === 0,
-            '<>': c !== 0,
-            '<': c < 0,
-            '>': c > 0,
-            '<=': c <= 0,
-            '>=': c >= 0
-          }[t.v]!
-        }
+        return { k: 'bin', op: t.v as BinaryOperator, l, r: concat() }
       }
-      return left
+      return l
     }
-    const concat = (): (() => Value) => {
-      let left = additive()
-      while (isOp('&')) {
-        i++
-        const l = left
-        const r = additive()
-        left = () => toText(l()) + toText(r())
-      }
-      return left
-    }
-    const additive = (): (() => Value) => {
-      let left = term()
-      while (isOp('+') || isOp('-')) {
-        const op = tokens[i++].v
-        const l = left
-        const r = term()
-        left = () => (op === '+' ? toNumber(l()) + toNumber(r()) : toNumber(l()) - toNumber(r()))
-      }
-      return left
-    }
-    const term = (): (() => Value) => {
-      let left = unary()
-      while (isOp('*') || isOp('/')) {
-        const op = tokens[i++].v
-        const l = left
-        const r = unary()
-        left = () => {
-          if (op === '*') return toNumber(l()) * toNumber(r())
-          const d = toNumber(r())
-          if (d === 0) throw new FormulaError('division by zero')
-          return toNumber(l()) / d
-        }
-      }
-      return left
-    }
-    const unary = (): (() => Value) => {
+    const unary = (): FormulaNode => {
       if (isOp('-')) {
         i++
-        const v = unary()
-        return () => -toNumber(v())
+        return { k: 'neg', v: unary() }
       }
       if (isOp('+')) {
         i++
@@ -325,22 +310,24 @@ function evaluateExpression(src: string, fields: Record<string, string>): Formul
       }
       return primary()
     }
-    const primary = (): (() => Value) => {
+    const term = binary(['*', '/'], unary)
+    const additive = binary(['+', '-'], term)
+    const concat = binary(['&'], additive)
+    const primary = (): FormulaNode => {
       const t = tokens[i++]
       if (!t) throw new FormulaError('unexpected end')
-      if (t.t === 'num') return () => t.v
-      if (t.t === 'str') return () => t.v
+      if (t.t === 'num') return { k: 'num', v: t.v }
+      if (t.t === 'str') return { k: 'str', v: t.v }
       if (t.t === 'field') {
-        if (!Object.prototype.hasOwnProperty.call(fields, t.v)) missing.push(t.v)
-        return () => fieldValue(fields[t.v] ?? '')
+        fields.push(t.v)
+        return { k: 'field', name: t.v }
       }
       if (t.t === 'id') {
-        if (t.v === 'TRUE') return () => true
-        if (t.v === 'FALSE') return () => false
-        const fn = FUNCTIONS[t.v]
-        if (!fn) throw new FormulaError(`unknown function ${t.v}`)
+        if (t.v === 'TRUE') return { k: 'bool', v: true }
+        if (t.v === 'FALSE') return { k: 'bool', v: false }
+        if (!FUNCTIONS[t.v]) throw new FormulaError(`unknown function ${t.v}`)
         expect('(')
-        const args: (() => Value)[] = []
+        const args: FormulaNode[] = []
         if (!isOp(')')) {
           args.push(comparison())
           // ; come in Excel in italiano, oppure ,
@@ -350,7 +337,7 @@ function evaluateExpression(src: string, fields: Record<string, string>): Formul
           }
         }
         expect(')')
-        return () => fn(args)
+        return { k: 'call', fn: t.v, args }
       }
       if (t.v === '(') {
         const v = comparison()
@@ -360,11 +347,120 @@ function evaluateExpression(src: string, fields: Record<string, string>): Formul
       throw new FormulaError(`unexpected "${t.v}"`)
     }
 
-    const root = comparison()
+    const node = comparison()
     if (i < tokens.length) throw new FormulaError(`unexpected "${tokens[i].v}"`)
-    return { value: toText(root()), missing }
+    return { node, fields }
   } catch (e) {
-    if (e instanceof FormulaError) return { value: '', missing, error: e.message }
+    if (e instanceof FormulaError) return { fields, error: e.message }
     throw e
   }
+}
+
+/** Calcola un nodo; gli argomenti delle funzioni solo se servono (IF non calcola il ramo scartato) */
+export function evaluateNode(node: FormulaNode, fields: Record<string, string>): Value {
+  const ev = (n: FormulaNode): Value => evaluateNode(n, fields)
+  switch (node.k) {
+    case 'num':
+    case 'str':
+    case 'bool':
+      return node.v
+    case 'empty':
+      throw new FormulaError('empty slot')
+    case 'field':
+      return fieldValue(fields[node.name] ?? '')
+    case 'neg':
+      return -toNumber(ev(node.v))
+    case 'call': {
+      const fn = FUNCTIONS[node.fn]
+      if (!fn) throw new FormulaError(`unknown function ${node.fn}`)
+      return fn(node.args.map((a) => () => ev(a)))
+    }
+    case 'bin': {
+      const { op } = node
+      if (op === '&') return toText(ev(node.l)) + toText(ev(node.r))
+      if (op === '+') return toNumber(ev(node.l)) + toNumber(ev(node.r))
+      if (op === '-') return toNumber(ev(node.l)) - toNumber(ev(node.r))
+      if (op === '*') return toNumber(ev(node.l)) * toNumber(ev(node.r))
+      if (op === '/') {
+        const l = toNumber(ev(node.l))
+        const d = toNumber(ev(node.r))
+        if (d === 0) throw new FormulaError('division by zero')
+        return l / d
+      }
+      const c = compare(ev(node.l), ev(node.r))
+      return { '=': c === 0, '<>': c !== 0, '<': c < 0, '>': c > 0, '<=': c <= 0, '>=': c >= 0 }[op]
+    }
+  }
+}
+
+/** Il valore di un nodo come lo darebbe la formula, o l'errore */
+export function evaluateNodeText(
+  node: FormulaNode,
+  fields: Record<string, string>
+): { value: string; error?: string } {
+  try {
+    return { value: toText(evaluateNode(node, fields)) }
+  } catch (e) {
+    if (e instanceof FormulaError) return { value: '', error: e.message }
+    throw e
+  }
+}
+
+const PRECEDENCE: Record<BinaryOperator, number> = {
+  '=': 1,
+  '<>': 1,
+  '<': 1,
+  '>': 1,
+  '<=': 1,
+  '>=': 1,
+  '&': 2,
+  '+': 3,
+  '-': 3,
+  '*': 4,
+  '/': 4
+}
+
+function precedence(n: FormulaNode): number {
+  if (n.k === 'bin') return PRECEDENCE[n.op]
+  if (n.k === 'neg') return 5
+  return 6
+}
+
+/** Scrive un nodo come testo, senza il = iniziale; le parentesi solo dove servono */
+export function printExpression(node: FormulaNode): string {
+  const wrap = (n: FormulaNode, min: number): string => {
+    const s = printExpression(n)
+    return precedence(n) < min ? `(${s})` : s
+  }
+  switch (node.k) {
+    case 'num':
+      return String(node.v)
+    case 'str':
+      return `"${node.v.replace(/"/g, '""')}"`
+    case 'bool':
+      return node.v ? 'TRUE' : 'FALSE'
+    case 'field':
+      return `{${node.name}}`
+    case 'empty':
+      return ''
+    case 'neg':
+      return `-${wrap(node.v, 5)}`
+    case 'call':
+      return `${node.fn}(${node.args.map(printExpression).join('; ')})`
+    case 'bin': {
+      const p = PRECEDENCE[node.op]
+      // a sinistra basta la stessa precedenza (a - b - c); a destra serve più alta: a - (b - c)
+      const l = wrap(node.l, p === 1 ? 2 : p)
+      const r = wrap(node.r, p + 1)
+      return p === 1 || p === 2 ? `${l} ${node.op} ${r}` : `${l}${node.op}${r}`
+    }
+  }
+}
+
+function evaluateExpression(src: string, fields: Record<string, string>): FormulaResult {
+  const parsed = parseExpression(src)
+  const missing = parsed.fields.filter((f) => !Object.prototype.hasOwnProperty.call(fields, f))
+  if (!parsed.node) return { value: '', missing, error: parsed.error }
+  const r = evaluateNodeText(parsed.node, fields)
+  return r.error ? { value: '', missing, error: r.error } : { value: r.value, missing }
 }
