@@ -18,6 +18,7 @@ Video tutorial su YouTube, senza voce ([tutta la playlist](https://www.youtube.c
 10. [I dati dal foglio di calcolo](https://www.youtube.com/watch?v=m_DN9LW7OTU) (9 minuti)
 11. [Immagini, icone e font](https://www.youtube.com/watch?v=aDtusbkTleY) (6 minuti)
 12. [Un gioco in più lingue](https://www.youtube.com/watch?v=1eV4QzH_3XI) (6 minuti)
+13. [L'assistente formule](https://www.youtube.com/watch?v=Gfg5Odyo-lo) (11 minuti)
 
 English version: [../guide/README.md](../guide/README.md).
 

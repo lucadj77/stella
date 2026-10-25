@@ -453,6 +453,15 @@ export const videos = [
       it: 'https://www.youtube.com/watch?v=1eV4QzH_3XI',
       en: 'https://www.youtube.com/watch?v=gszofbPThzU'
     }
+  },
+  {
+    it: 'L’assistente formule',
+    en: 'The formula assistant',
+    minutes: 11,
+    url: {
+      it: 'https://www.youtube.com/watch?v=Gfg5Odyo-lo',
+      en: 'https://www.youtube.com/watch?v=ZTHGyxE3_80'
+    }
   }
 ]
 
