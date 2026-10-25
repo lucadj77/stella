@@ -6138,6 +6138,21 @@ button.more-button {
   margin: 0;
 }
 
+/* bordo normale: l'arancione resta per gli errori */
+.fx-compose textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.fx-compose-closed {
+  margin: 0 0 6px;
+  font-size: 12px;
+}
+
+.fx-compose-closed code {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+}
+
 .fx-compose textarea,
 .fx-text-tab textarea,
 .fx-text textarea {

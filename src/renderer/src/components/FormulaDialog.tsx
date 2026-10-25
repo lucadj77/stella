@@ -1176,6 +1176,11 @@ function SlotPicker(p: PickerProps): React.JSX.Element {
         : firstTab(p.kind, p.expect, p.node)
   )
   const [all, setAll] = useState(false)
+  // un solo campo, un numero o un testo semplice: prima l'elenco, il testo resta chiuso in una riga.
+  // Si apre da solo quando la casella contiene già testo misto, come «Forza {forza}»
+  const [editing, setEditing] = useState(
+    () => !!compose && (compose.parts.length > 1 || !!serializeAttrs(compose.attrs))
+  )
   const [formatting, setFormatting] = useState(false)
   const [src, setSrc] = useState(compose ? templateFromParts(compose.parts) : '')
   const [attrs, setAttrs] = useState<Attrs>(compose?.attrs ?? { styles: [] })
@@ -1223,15 +1228,16 @@ function SlotPicker(p: PickerProps): React.JSX.Element {
     })
   }
   // nelle schede, un campo o una variabile si inserisce nel testo invece di sostituire la casella
-  const tabProps: PickerProps = compose
-    ? {
-        ...p,
-        onPick: (n, sel) => {
-          if (n.k === 'field') insert(n.name)
-          else p.onPick(n, sel)
+  const tabProps: PickerProps =
+    compose && editing
+      ? {
+          ...p,
+          onPick: (n, sel) => {
+            if (n.k === 'field') insert(n.name)
+            else p.onPick(n, sel)
+          }
         }
-      }
-    : p
+      : p
   // un campo o un testo nella casella si formatta direttamente, senza passare dalla scheda Testo
   const formattable: FormattedText | null = compose
     ? null
@@ -1253,7 +1259,7 @@ function SlotPicker(p: PickerProps): React.JSX.Element {
   return (
     <div className="fx-picker">
       <span className="fx-picker-title">{p.title}</span>
-      {compose && (
+      {compose && editing && (
         <div className="fx-compose">
           <div className="fx-row">
             <textarea
@@ -1281,6 +1287,14 @@ function SlotPicker(p: PickerProps): React.JSX.Element {
             {t('fx.composeHint')}
           </p>
         </div>
+      )}
+      {compose && !editing && (
+        <p className="fx-compose-closed">
+          <span className="muted">{t('fx.textLine')}</span> <code>{src || '—'}</code>{' '}
+          <button type="button" className="link" onClick={() => setEditing(true)}>
+            {t('fx.editText')}
+          </button>
+        </p>
       )}
       <div className="fx-tabs" role="tablist">
         {tabs.map((x) => (

@@ -2291,6 +2291,8 @@ export const en = {
   'fx.expand': 'Open this part',
   'fx.drill': 'Open this function on its own',
   'fx.crumbs': 'Where you are in the formula',
+  'fx.textLine': 'Text:',
+  'fx.editText': 'edit',
   'fx.format': 'Format…',
   'fx.formatted': 'Formatting: {attrs}',
   'fx.removeFormat': 'Remove',

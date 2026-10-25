@@ -2321,6 +2321,8 @@ export const it: Record<MessageKey, string> = {
   'fx.expand': 'Apri questa parte',
   'fx.drill': 'Apri questa funzione da sola',
   'fx.crumbs': 'Dove sei nella formula',
+  'fx.textLine': 'Testo:',
+  'fx.editText': 'modifica',
   'fx.format': 'Formatta…',
   'fx.formatted': 'Formattazione: {attrs}',
   'fx.removeFormat': 'Togli',
