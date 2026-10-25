@@ -61,6 +61,8 @@ const api: Api = {
   systemFonts: () => ipcRenderer.invoke('library:system-fonts'),
   copySystemFont: (family) => ipcRenderer.invoke('library:copy-system-font', family),
   addImages: () => ipcRenderer.invoke('library:add-images'),
+  dropImages: (files: { name: string; data: Uint8Array }[]) =>
+    ipcRenderer.invoke('library:drop-images', files),
   saveCredits: (text) => ipcRenderer.invoke('library:save-credits', text),
   chooseFolder: (current) => ipcRenderer.invoke('folder:choose', current),
   backups: () => ipcRenderer.invoke('backup:list'),

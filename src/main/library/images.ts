@@ -1,4 +1,4 @@
-import { copyFile, mkdir } from 'fs/promises'
+import { copyFile, mkdir, writeFile } from 'fs/promises'
 import { basename, extname, join } from 'path'
 import { IMAGES_FOLDER } from '../../shared/library'
 import { exists } from '../fs'
@@ -13,6 +13,22 @@ export async function freeName(dir: string, name: string): Promise<string> {
   let target = join(dir, name)
   for (let n = 2; await exists(target); n++) target = join(dir, `${base} ${n}${ext}`)
   return target
+}
+
+/** Scrive in assets/images/ le immagini trascinate nella finestra; restituisce i loro percorsi in assets/ */
+export async function writeImages(
+  folder: string,
+  files: { name: string; data: Uint8Array }[]
+): Promise<string[]> {
+  const dir = join(folder, 'assets', IMAGES_FOLDER)
+  await mkdir(dir, { recursive: true })
+  const out: string[] = []
+  for (const f of files) {
+    const target = await freeName(dir, basename(f.name))
+    await writeFile(target, f.data)
+    out.push(`${IMAGES_FOLDER}/${basename(target)}`)
+  }
+  return out
 }
 
 export async function copyImages(folder: string, files: string[]): Promise<void> {

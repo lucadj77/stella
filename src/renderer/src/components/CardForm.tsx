@@ -1,4 +1,5 @@
 import { kindWords } from '../i18n/kinds'
+import { dragHasFiles, importDropped } from './dropImages'
 import { Fragment, useContext, useEffect, useRef, useState } from 'react'
 import type { Sheet } from '../../../shared/project'
 import {
@@ -434,7 +435,18 @@ function CardForm({
             </span>
           ) : imageColumns.has(h) ? (
             <>
-              <input {...common} />
+              <input
+                {...common}
+                onDragOver={(e) => {
+                  if (dragHasFiles(e)) e.preventDefault()
+                }}
+                onDrop={async (e) => {
+                  if (!dragHasFiles(e)) return
+                  e.preventDefault()
+                  const [name] = await importDropped(e)
+                  if (name) write(h, name)
+                }}
+              />
               <button
                 className="pick-btn"
                 title={t('assetPicker.open')}

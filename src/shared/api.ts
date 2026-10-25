@@ -256,6 +256,10 @@ export interface Api {
   copySystemFont(family: string): Promise<AssetsUpdate>
   /** Copia in assets/images/ immagini scelte dal computer; null se l'utente annulla */
   addImages(): Promise<AssetsUpdate | null>
+  /** Copia in assets/images/ immagini trascinate nella finestra; `paths` sono i loro percorsi in assets/ */
+  dropImages(
+    files: { name: string; data: Uint8Array }[]
+  ): Promise<{ update: AssetsUpdate; paths: string[] }>
   /** Scrive i crediti in export/credits.txt e restituisce il percorso */
   saveCredits(text: string): Promise<string>
   /** Sceglie una cartella qualsiasi, partendo da current */

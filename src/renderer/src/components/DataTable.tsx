@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { dragHasFiles, importDropped } from './dropImages'
 import { confirmKey } from './confirm'
 import type { Sheet } from '../../../shared/project'
 import {
@@ -265,6 +266,17 @@ function DataTable({
                       }
                       onClick={() => activate(c)}
                       onDoubleClick={() => !bool && startEdit(c)}
+                      // un'immagine trascinata dal computer sulla cella ne diventa il valore
+                      onDragOver={(e) => {
+                        if (!calc && !bool && dragHasFiles(e)) e.preventDefault()
+                      }}
+                      onDrop={async (e) => {
+                        if (calc || bool || !dragHasFiles(e)) return
+                        e.preventDefault()
+                        e.stopPropagation()
+                        const [name] = await importDropped(e)
+                        if (name) write(c, name)
+                      }}
                     >
                       {calc ? (
                         (computed(r)[h] ?? '')

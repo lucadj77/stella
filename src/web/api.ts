@@ -39,7 +39,7 @@ import { defaultTarget, importTtc } from '../main/import/ttc'
 import { readRealPath, realPathMatches, toRealPath, virtualRoot } from '../shared/realPath'
 import { ensurePermission, hasPermission, pickFolder } from './fs/roots'
 import { assetChanged, assetUrl, openAssets } from './assets'
-import { addImages, copySystemFont, downloadGoogleFont, systemFonts } from './library'
+import { addImages, copySystemFont, downloadGoogleFont, dropImages, systemFonts } from './library'
 import { addRecent, hasThumbnail, listRecent, removeRecent, saveThumbnail } from './recent'
 import { FrameWindow, exportPageApi } from './exportFrame'
 
@@ -221,6 +221,7 @@ export const webApi: Api = {
   systemFonts: () => systemFonts(),
   copySystemFont: (family) => copySystemFont(projectFolder(), family),
   addImages: () => addImages(projectFolder()),
+  dropImages: (files) => dropImages(projectFolder(), files),
   saveCredits: async (text) => {
     const dir = join(projectFolder(), 'export')
     await mkdir(dir, { recursive: true })

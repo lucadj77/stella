@@ -6454,3 +6454,21 @@ button.more-button {
   margin: 0 4px;
   color: var(--muted);
 }
+
+/* immagini trascinate sulla tela dell'editor */
+.editor-center.dropping {
+  outline: 3px dashed var(--accent);
+  outline-offset: -6px;
+}
+
+.tool.labelled {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: auto;
+  padding: 3px 9px;
+}
+
+.tool.labelled .tool-label {
+  font-size: 13px;
+}

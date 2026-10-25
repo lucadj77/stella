@@ -11,6 +11,12 @@ import DocumentExportPage from './export/DocumentExportPage'
 
 const root = createRoot(document.getElementById('root')!)
 
+// un file lasciato cadere fuori dai punti che lo accettano non deve aprire il file nella finestra
+// (si perderebbero le modifiche): il trascinamento si ferma qui
+const hasFiles = (e: DragEvent): boolean => !!e.dataTransfer?.types.includes('Files')
+window.addEventListener('dragover', (e) => hasFiles(e) && e.preventDefault())
+window.addEventListener('drop', (e) => hasFiles(e) && e.preventDefault())
+
 if (location.hash === '#export') {
   // finestra nascosta delle esportazioni: senza StrictMode, che registrerebbe due volte gli ascolti
   root.render(

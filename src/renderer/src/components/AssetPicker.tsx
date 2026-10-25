@@ -31,12 +31,15 @@ export default function AssetPicker({
   value,
   onPick,
   onClose,
+  onSkip,
   extras = false
 }: {
   /** Nome scritto ora nel campo: la sua immagine appare selezionata */
   value: string
   onPick(name: string): void
   onClose(): void
+  /** Per un livello nuovo: «Senza immagine» lo crea vuoto, da collegare poi a una colonna */
+  onSkip?(): void
   extras?: boolean | 'variables'
 }): React.JSX.Element {
   const { t } = useI18n()
@@ -238,6 +241,11 @@ export default function AssetPicker({
           <span className="muted small spacer-right">
             {t('assetPicker.count', { n: shown.length, total: images.length })}
           </span>
+          {onSkip && (
+            <button onClick={onSkip} title={t('assetPicker.skipHint')}>
+              {t('assetPicker.skip')}
+            </button>
+          )}
           <button onClick={onClose}>{t('dialog.cancel')}</button>
         </div>
       </div>

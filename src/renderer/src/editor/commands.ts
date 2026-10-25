@@ -22,7 +22,10 @@ import type { EditorAction, EditorState } from './useEditor'
 // Comandi dell'editor, condivisi tra pannello livelli, barra degli strumenti e tastiera.
 
 export interface Commands {
-  add(type: LayerType, shape?: ShapeKind): void
+  /** `props` completa il livello nuovo, per esempio con l'immagine scelta */
+  add(type: LayerType, shape?: ShapeKind, props?: Partial<Layer>): void
+  /** Un livello immagine per ogni immagine, in un solo passo da annullare */
+  addImages(srcs: string[]): void
   remove(): void
   duplicate(): void
   /** Testo da mettere negli appunti per i livelli selezionati, o null se non ce ne sono */
@@ -66,13 +69,24 @@ export function commands(
     canUngroup: selected.some((l) => l.type === 'group' && !inherited(l.id)),
     canMove: selection.length > 0 && !fixed,
 
-    add(type, shape) {
-      const layer = newLayer(tpl, type, shape, names)
+    add(type, shape, props) {
+      const layer = { ...newLayer(tpl, type, shape, names), ...props } as Layer
       // dentro il gruppo in cui si è entrati, sopra al livello selezionato
       const scopeGroup = state.scope ? findLayer(layers, state.scope) : null
       const above =
         selection[0] ?? (scopeGroup?.type === 'group' ? scopeGroup.children[0]?.id : undefined)
       change(insertLayer(tpl, side, layer, above), [layer.id])
+    },
+
+    addImages(srcs) {
+      let t = tpl
+      const ids: string[] = []
+      for (const src of srcs) {
+        const layer = { ...newLayer(t, 'image', undefined, names), src } as Layer
+        t = insertLayer(t, side, layer, ids[ids.length - 1] ?? selection[0])
+        ids.push(layer.id)
+      }
+      if (ids.length) change(t, ids)
     },
 
     remove() {

@@ -2,7 +2,7 @@ import { app, shell, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, net } fr
 import type { MenuItemConstructorOptions } from 'electron'
 import { existsSync } from 'fs'
 import { mkdir, readFile, writeFile } from 'fs/promises'
-import { basename, dirname, join, resolve } from 'path'
+import { basename, dirname, extname, join, resolve } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { loadProject } from './project/load'
@@ -61,7 +61,7 @@ import {
   importIconifyIcons
 } from './library/iconify'
 import { importIcons } from './library/icons'
-import { copyImages } from './library/images'
+import { copyImages, writeImages } from './library/images'
 import { assetsUpdate } from './library/sources'
 import { IMAGE_EXTENSIONS } from '../shared/model/assets'
 import { downloadGoogleFont } from './library/googleFonts'
@@ -452,6 +452,19 @@ function registerIpc(): void {
     await copyImages(folder, result.filePaths)
     return assetsUpdate(folder)
   })
+
+  ipcMain.handle(
+    'library:drop-images',
+    async (_, files: { name: string; data: Uint8Array }[]) => {
+      const folder = getProjectFolder()
+      if (!folder) throw new MessageError(msg('template.noProject'))
+      const ok = files.filter((f) =>
+        IMAGE_EXTENSIONS.includes(extname(f.name).toLowerCase())
+      )
+      const paths = await writeImages(folder, ok)
+      return { update: await assetsUpdate(folder), paths }
+    }
+  )
 
   ipcMain.handle('library:save-credits', async (_, text: string) => {
     const folder = getProjectFolder()
