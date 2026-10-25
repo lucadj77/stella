@@ -6,3 +6,4 @@ tsconfig.json
 tsconfig.*.json
 examples/**/templates/*.json
 resources/examples/**
+site/dcount/**

@@ -1,7 +1,7 @@
 // Costruisce il sito di presentazione in una cartella: index.html (italiano), en/index.html, stile, script,
 // immagini (logo e screenshot presi dalla guida). Uso: node site/build.mjs <cartella di uscita>
 import { cpSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { texts, videos } from './texts.mjs'
+import { playlists, texts, videos } from './texts.mjs'
 
 const here = new URL('.', import.meta.url).pathname
 const repo = new URL('..', import.meta.url).pathname
@@ -46,6 +46,16 @@ const ICONS = [
     '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 10v6M9.5 13.5 12 16l2.5-2.5"/>'
   )
 ]
+// icone della sezione sui dati locali: computer con lucchetto, documento, cartella con freccia
+const LOCAL_ICONS = [
+  icon(
+    '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><rect x="9" y="10" width="6" height="4" rx="1"/><path d="M10.5 10V8.5a1.5 1.5 0 0 1 3 0V10"/>'
+  ),
+  icon('<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h6"/>'),
+  icon(
+    '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 14h6M13 11.5 15.5 14 13 16.5"/>'
+  )
+]
 // fregio delle sezioni: le cinque carte della stella, in fila
 const ORNAMENT = `<svg class="ornament" viewBox="0 0 92 18" width="92" height="18" aria-hidden="true">${[
   '#a33a2a',
@@ -64,12 +74,31 @@ mkdirSync(`${out}/img/it`, { recursive: true })
 mkdirSync(`${out}/img/en`, { recursive: true })
 mkdirSync(`${out}/it`, { recursive: true })
 for (const f of ['style.css', 'site.js']) cpSync(`${here}${f}`, `${out}/${f}`)
+cpSync(`${here}fonts`, `${out}/fonts`, { recursive: true })
+// pagina nascosta con i conteggi dei download (nessun link dal sito, noindex)
+cpSync(`${here}dcount`, `${out}/dcount`, { recursive: true })
 for (const f of ['stella.svg', 'predigarama.png']) cpSync(`${here}img/${f}`, `${out}/img/${f}`)
 for (const [lang, dir] of [
   ['it', 'guida'],
   ['en', 'guide']
 ])
   for (const f of shots) cpSync(`${repo}docs/${dir}/img/${f}`, `${out}/img/${lang}/${f}`)
+
+// copertine dei video copiate nel sito durante la costruzione: chi visita non scarica niente da YouTube
+// finché non apre un video. Se il download non riesce resta l'indirizzo di YouTube.
+const ytId = (url) => (url.match(/(?:v=|youtu\.be\/)([\w-]+)/) || [])[1]
+const thumbs = {}
+mkdirSync(`${out}/img/yt`, { recursive: true })
+for (const id of videos.flatMap((v) => Object.values(v.url).map(ytId)).filter(Boolean)) {
+  try {
+    const res = await fetch(`https://i.ytimg.com/vi/${id}/hqdefault.jpg`)
+    if (!res.ok) throw new Error(res.status)
+    writeFileSync(`${out}/img/yt/${id}.jpg`, Buffer.from(await res.arrayBuffer()))
+    thumbs[id] = `img/yt/${id}.jpg`
+  } catch (e) {
+    console.warn(`copertina di ${id} non scaricata (${e.message}): resta quella di YouTube`)
+  }
+}
 
 for (const lang of ['it', 'en']) {
   const t = texts[lang]
@@ -80,6 +109,7 @@ for (const lang of ['it', 'en']) {
     zoomClose: lang === 'it' ? 'Chiudi' : 'Close',
     guideDir: lang === 'it' ? 'guida' : 'guide',
     guideDirOther: lang === 'it' ? 'guide' : 'guida',
+    playlistHref: playlists[lang],
     installHref:
       lang === 'it'
         ? 'https://github.com/lucadj77/stella/blob/main/docs/guida/README.md#installare-stella'
@@ -89,6 +119,12 @@ for (const lang of ['it', 'en']) {
       .map(
         ([h, p], i) =>
           `<div class="feature"><div class="icon">${ICONS[i] ?? ''}</div><h3>${esc(h)}</h3><p>${esc(p)}</p></div>`
+      )
+      .join('\n'),
+    'local.items': t.local.items
+      .map(
+        ([h, p], i) =>
+          `<div class="local-item"><div class="icon">${LOCAL_ICONS[i]}</div><div><h3>${esc(h)}</h3><p>${esc(p)}</p></div></div>`
       )
       .join('\n'),
     'shots.items': t.shots.items
@@ -102,9 +138,9 @@ for (const lang of ['it', 'en']) {
         ? videos
             .filter((v) => v.url[lang])
             .map((v) => {
-              const id = (v.url[lang].match(/(?:v=|youtu\.be\/)([\w-]+)/) || [])[1]
+              const id = ytId(v.url[lang])
               const thumb = id
-                ? `<img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="">`
+                ? `<img src="${thumbs[id] ? t.root + thumbs[id] : `https://i.ytimg.com/vi/${id}/hqdefault.jpg`}" alt="" loading="lazy">`
                 : esc(v[lang])
               return `<a class="video" href="${esc(v.url[lang])}"><div class="thumb">${thumb}</div><div class="meta"><h3>${esc(v[lang])}</h3><span>${v.minutes} min</span></div></a>`
             })
@@ -126,6 +162,7 @@ for (const lang of ['it', 'en']) {
   }
   const raw = new Set([
     'features.items',
+    'local.items',
     'shots.items',
     'videos',
     'downloadJson',

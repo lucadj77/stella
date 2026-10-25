@@ -1,4 +1,47 @@
 /* Sito di Stella. Colori dall'icona: perla, inchiostro, le cinque carte della stella. Niente sfumature. */
+/* font dentro il sito (dai pacchetti @fontsource, sottoinsieme latino): nessuna richiesta a Google */
+@font-face {
+  font-family: 'Nunito';
+  src: url('fonts/nunito-latin-700-normal.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Nunito';
+  src: url('fonts/nunito-latin-800-normal.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Nunito Sans';
+  src: url('fonts/nunito-sans-latin-400-normal.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Nunito Sans';
+  src: url('fonts/nunito-sans-latin-400-italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Nunito Sans';
+  src: url('fonts/nunito-sans-latin-600-normal.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Nunito Sans';
+  src: url('fonts/nunito-sans-latin-700-normal.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 :root {
   --bg: #f8f6f1;
   --bg-2: #efebe2;
@@ -347,6 +390,44 @@ a:focus-visible {
   color: var(--fg-2);
 }
 
+/* dati locali */
+.local {
+  background: var(--bg-2);
+}
+.local-items {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px 36px;
+}
+.local-item {
+  display: flex;
+  gap: 14px;
+  min-width: 0;
+}
+.local-item .icon {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  background: var(--card);
+  border: 1.5px solid var(--accent);
+}
+.local-item h3 {
+  margin-bottom: 6px;
+}
+.local-item p,
+.local-note {
+  color: var(--fg-2);
+}
+.local-note {
+  margin-top: 28px;
+  font-size: 0.92rem;
+  max-width: 70ch;
+}
+
 /* schermate */
 .shots {
   display: grid;
@@ -432,6 +513,11 @@ a:focus-visible {
 }
 
 /* tutorial */
+.playlist {
+  margin: 28px 0 0;
+  text-align: center;
+  font-weight: 600;
+}
 .videos {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -520,6 +606,7 @@ footer .by img {
 @media (max-width: 900px) {
   .hero .wrap,
   .features,
+  .local-items,
   .shots,
   .dl-grid,
   .links {

@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Download di Stella</title>
+<style>
+/* Stessi colori del sito: perla, inchiostro, accento blu. Niente sfumature. */
+:root {
+  --bg: #f8f6f1; --bg-2: #efebe2; --fg: #2a241c; --fg-2: #5f564a; --line: #d9d2c4;
+  --accent: #2f5da8; --mac: #2f5da8; --win: #a33a2a; --linux: #8c7a00; --cli: #5f8a4e; --card: #ffffff;
+  --font: 'Nunito Sans', 'Segoe UI', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #1d1a16; --bg-2: #27231e; --fg: #ede8df; --fg-2: #b3aa9c; --line: #3d372f;
+    --accent: #7fa6e8; --mac: #7fa6e8; --win: #e0806f; --linux: #e5c440; --cli: #9fc28e; --card: #2b2721; color-scheme: dark;
+  }
+}
+:root[data-theme='dark'] {
+  --bg: #1d1a16; --bg-2: #27231e; --fg: #ede8df; --fg-2: #b3aa9c; --line: #3d372f;
+  --accent: #7fa6e8; --mac: #7fa6e8; --win: #e0806f; --linux: #e5c440; --cli: #9fc28e; --card: #2b2721; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 var(--font); }
+main { max-width: 1000px; margin: 0 auto; padding: 32px max(16px, env(safe-area-inset-right)) 48px max(16px, env(safe-area-inset-left)); display: grid; gap: 32px; }
+main > * { min-width: 0; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px; }
+h1 { font-size: 1.8rem; margin: 0; }
+h2 { font-size: 1.2rem; margin: 0 0 12px; }
+p { margin: 0; }
+.muted { color: var(--fg-2); font-size: .92rem; }
+button { font: inherit; font-weight: 700; padding: 10px 18px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: var(--bg); cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--fg); outline-offset: 2px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.tile { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 4px; align-content: start; }
+.tile b { font-size: 2.2rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.tile.main b { color: var(--accent); }
+.oss { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.os { border-top: 4px solid var(--c); padding-top: 8px; }
+.os b { font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { font-size: .85rem; color: var(--fg-2); font-weight: 700; }
+td.bar { width: 30%; min-width: 120px; }
+.bar span { display: block; height: 10px; border-radius: 3px; background: var(--accent); min-width: 2px; }
+.tag { font-size: .75rem; padding: 1px 6px; border-radius: 4px; background: var(--bg-2); color: var(--fg-2); margin-left: 6px; }
+.tag.stable { background: var(--accent); color: var(--bg); }
+.notes { background: var(--bg-2); border-radius: 10px; padding: 16px 20px; display: grid; gap: 8px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+details summary { cursor: pointer; font-weight: 700; }
+#error { color: var(--win); font-weight: 700; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Download di Stella</h1>
+      <p class="muted" id="when">Lettura dei dati da GitHub…</p>
+    </div>
+    <button id="reload" type="button">Aggiorna</button>
+  </header>
+  <p id="error" hidden></p>
+
+  <section class="tiles" aria-label="Totali">
+    <div class="tile main"><span>Installazioni scaricate</span><b id="t-inst">—</b><span class="muted">dmg, setup e portable di Windows, AppImage, deb, CLI</span></div>
+    <div class="tile"><span>Aggiornamenti su Mac</span><b id="t-upd">—</b><span class="muted">file zip scaricati dall'aggiornamento automatico</span></div>
+    <div class="tile"><span>Copie per i vecchi Naibi</span><b id="t-dup">—</b><span class="muted">zip Naibi-… usati dalle installazioni non ancora rinominate</span></div>
+    <div class="tile"><span>Ultima versione stabile</span><b id="t-last">—</b><span class="muted" id="t-last-sub">&nbsp;</span></div>
+  </section>
+
+  <section>
+    <h2>Per sistema</h2>
+    <div class="oss">
+      <div class="os" style="--c: var(--mac)"><span>Mac</span><br><b id="os-mac">—</b><p class="muted" id="os-mac-sub"></p></div>
+      <div class="os" style="--c: var(--win)"><span>Windows</span><br><b id="os-win">—</b><p class="muted" id="os-win-sub"></p></div>
+      <div class="os" style="--c: var(--linux)"><span>Linux</span><br><b id="os-linux">—</b><p class="muted" id="os-linux-sub"></p></div>
+      <div class="os" style="--c: var(--cli)"><span>CLI</span><br><b id="os-cli">—</b><p class="muted">stella-cli / naibi-cli .tgz</p></div>
+    </div>
+    <p class="muted" style="margin-top:10px">Qui contano installazioni e aggiornamenti insieme; le copie Naibi e i file tecnici sono esclusi.</p>
+  </section>
+
+  <section>
+    <h2>Per versione</h2>
+    <p class="muted" style="margin-bottom:10px">Ogni riga conta tutti i download di quella versione fino a oggi; la data è quella di pubblicazione. GitHub non dice quando è avvenuto ogni download.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Versione</th><th>Pubblicata il</th><th>Mac</th><th>Windows</th><th>Linux</th><th>CLI</th><th>Totale</th><th></th></tr></thead>
+        <tbody id="rows"><tr><td colspan="8" class="muted">—</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="notes">
+    <h2>Come leggere i numeri</h2>
+    <ul>
+      <li>GitHub aggiorna i conteggi con qualche minuto di ritardo, a volte di più: un download appena fatto può comparire dopo.</li>
+      <li>GitHub conta ogni scaricamento di un file, non le persone. Lo stesso utente che reinstalla conta due volte, e anche i tuoi download di prova sono inclusi.</li>
+      <li>Su Windows e Linux l'aggiornamento automatico scarica lo stesso file del primo download (setup.exe, AppImage), quindi lì installazioni e aggiornamenti non si possono separare. Su Mac sì: chi installa scarica il dmg, l'aggiornamento scarica lo zip.</li>
+      <li>Le copie <code>Naibi-…-mac-*.zip</code> esistono solo perché i Mac con la vecchia app Naibi trovino l'aggiornamento. Nelle versioni prima del cambio di nome, i file Naibi erano gli unici e contano normalmente.</li>
+      <li>Restano fuori i file tecnici (<code>latest*.yml</code>, <code>*.blockmap</code>), che l'app legge per controllare e scaricare gli aggiornamenti.</li>
+      <li>La versione web (stella.lucadj.eu/app/) non passa da GitHub Releases e non è contata qui.</li>
+    </ul>
+  </section>
+
+  <details>
+    <summary>Tutti i file</summary>
+    <div class="scroll"><table><thead><tr><th>File</th><th>Versione</th><th>Tipo</th><th>Download</th></tr></thead><tbody id="files"></tbody></table></div>
+  </details>
+</main>
+<script>
+const API = 'https://api.github.com/repos/lucadj77/stella/releases?per_page=100'
+const fmt = (n) => n.toLocaleString('it-IT')
+const $ = (id) => document.getElementById(id)
+
+function osOf(name) {
+  const n = name.toLowerCase()
+  if (n.endsWith('.tgz')) return 'cli'
+  if (n.includes('mac') || n.endsWith('.dmg')) return 'mac'
+  if (n.includes('win') || n.endsWith('.exe')) return 'win'
+  if (n.includes('linux') || n.endsWith('.appimage') || n.endsWith('.deb')) return 'linux'
+  return 'other'
+}
+
+// Tipo di ogni file: installazione, aggiornamento Mac, copia Naibi, tecnico.
+function kindOf(asset, names) {
+  const n = asset.name
+  const l = n.toLowerCase()
+  if (l.endsWith('.yml') || l.endsWith('.blockmap')) return 'tech'
+  if (l.endsWith('.zip') && l.includes('mac')) {
+    if (/^naibi-/i.test(n) && names.has(n.replace(/^naibi-/i, 'Stella-'))) return 'dup'
+    return 'upd'
+  }
+  if (/\.(dmg|exe|appimage|deb|tgz)$/i.test(n)) return 'inst'
+  return 'tech'
+}
+
+const kindLabel = { inst: 'installazione', upd: 'aggiornamento Mac', dup: 'copia Naibi', tech: 'tecnico' }
+
+function td(text, cls) { const c = document.createElement('td'); c.textContent = text; if (cls) c.className = cls; return c }
+
+function render(releases) {
+  let inst = 0, upd = 0, dup = 0
+  const os = { mac: 0, win: 0, linux: 0, cli: 0 }
+  const osInst = { mac: 0, win: 0, linux: 0 }
+  const osUpd = { mac: 0 }
+  const rows = []
+  const files = []
+  for (const r of releases) {
+    if (r.draft) continue
+    const names = new Set(r.assets.map((a) => a.name))
+    const row = { tag: r.tag_name, date: r.published_at, pre: r.prerelease, mac: 0, win: 0, linux: 0, cli: 0 }
+    for (const a of r.assets) {
+      const k = kindOf(a, names)
+      const o = osOf(a.name)
+      const n = a.download_count
+      files.push({ name: a.name, tag: r.tag_name, kind: k, n })
+      if (k === 'tech' || k === 'dup') { if (k === 'dup') dup += n; continue }
+      if (k === 'inst') inst += n
+      if (k === 'upd') upd += n
+      if (o in os) { os[o] += n; row[o] += n }
+      if (k === 'inst' && o in osInst) osInst[o] += n
+      if (k === 'upd' && o === 'mac') osUpd.mac += n
+    }
+    row.total = row.mac + row.win + row.linux + row.cli
+    rows.push(row)
+  }
+  $('t-inst').textContent = fmt(inst)
+  $('t-upd').textContent = fmt(upd)
+  $('t-dup').textContent = fmt(dup)
+  const stable = releases.find((r) => !r.prerelease && !r.draft)
+  if (stable) {
+    const s = rows.find((x) => x.tag === stable.tag_name)
+    $('t-last').textContent = stable.tag_name
+    $('t-last-sub').textContent = `${fmt(s ? s.total : 0)} download, pubblicata il ${new Date(stable.published_at).toLocaleDateString('it-IT')}`
+  }
+  for (const k of Object.keys(os)) $(`os-${k}`).textContent = fmt(os[k])
+  $('os-mac-sub').textContent = `${fmt(osInst.mac)} installazioni (dmg), ${fmt(osUpd.mac)} aggiornamenti (zip)`
+  $('os-win-sub').textContent = 'setup e portable, aggiornamenti compresi'
+  $('os-linux-sub').textContent = 'AppImage e deb, aggiornamenti compresi'
+
+  const max = Math.max(1, ...rows.map((r) => r.total))
+  const body = $('rows')
+  body.replaceChildren()
+  for (const r of rows) {
+    const tr = document.createElement('tr')
+    const first = td(r.tag)
+    const tag = document.createElement('span')
+    tag.className = r.pre ? 'tag' : 'tag stable'
+    tag.textContent = r.pre ? 'beta' : 'stabile'
+    first.append(tag)
+    tr.append(first, td(new Date(r.date).toLocaleDateString('it-IT')), td(fmt(r.mac)), td(fmt(r.win)), td(fmt(r.linux)), td(fmt(r.cli)), td(fmt(r.total)))
+    const bar = td('', 'bar')
+    const span = document.createElement('span')
+    span.style.width = `${(r.total / max) * 100}%`
+    if (!r.total) span.style.opacity = '0.25'
+    bar.append(span)
+    tr.append(bar)
+    body.append(tr)
+  }
+  const fb = $('files')
+  fb.replaceChildren()
+  for (const f of files.sort((a, b) => b.n - a.n)) {
+    const tr = document.createElement('tr')
+    tr.append(td(f.name), td(f.tag), td(kindLabel[f.kind]), td(fmt(f.n)))
+    fb.append(tr)
+  }
+}
+
+async function load() {
+  $('error').hidden = true
+  $('when').textContent = 'Lettura dei dati da GitHub…'
+  try {
+    let all = []
+    for (let page = 1; page <= 5; page++) {
+      const res = await fetch(`${API}&page=${page}`, { headers: { Accept: 'application/vnd.github+json' }, cache: 'no-store' })
+      if (!res.ok) throw new Error(res.status === 403 ? 'GitHub ha rifiutato la richiesta: troppe letture nell\'ultima ora (il limite è 60). Riprova più tardi.' : `GitHub ha risposto ${res.status}.`)
+      const list = await res.json()
+      all = all.concat(list)
+      if (list.length < 100) break
+    }
+    render(all)
+    $('when').textContent = `${all.length} release, dati letti da GitHub il ${new Date().toLocaleString('it-IT')}`
+  } catch (e) {
+    $('error').textContent = e.message || 'Non riesco a leggere GitHub. Controlla la connessione e premi Aggiorna.'
+    $('error').hidden = false
+    $('when').textContent = 'Dati non disponibili'
+  }
+}
+$('reload').addEventListener('click', load)
+load()
+</script>
+</body>
+</html>

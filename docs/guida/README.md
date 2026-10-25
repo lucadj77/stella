@@ -4,7 +4,20 @@ Stella è un'app per creare carte e altri elementi di gioco stampati a partire d
 
 Questa guida segue l'ordine in cui di solito si lavora: creare un progetto, disegnare un template, inserire le carte, rifinire testi e immagini, esportare. Gli esempi vengono da un piccolo progetto con tre set: personaggi, oggetti e carte mercato.
 
-Video tutorial su YouTube: [panoramica delle funzioni di base](https://www.youtube.com/watch?v=7d_1IyStpQg) (3 minuti) e [il tuo primo componente da zero](https://www.youtube.com/watch?v=Lqd52U51KVk) (8 minuti), senza voce.
+Video tutorial su YouTube, senza voce ([tutta la playlist](https://www.youtube.com/playlist?list=PLd3mtbjgiPEo)):
+
+1. [Panoramica delle funzioni di base](https://www.youtube.com/watch?v=7d_1IyStpQg) (3 minuti)
+2. [Il tuo primo componente da zero](https://www.youtube.com/watch?v=Lqd52U51KVk) (8 minuti)
+3. [Da Stella a Tabletop Simulator](https://www.youtube.com/watch?v=gkobeD8ERD4) (5 minuti)
+4. [Testo, icone, stili e formule](https://www.youtube.com/watch?v=2I0ABob4DoQ) (5 minuti)
+5. [Il regolamento e gli altri documenti](https://www.youtube.com/watch?v=psMiWRUQ4k4) (5 minuti)
+6. [Stella con un agente IA](https://www.youtube.com/watch?v=ymvGmxgpxgA) (4 minuti)
+7. [Plance, tessere, segnalini e dadi](https://www.youtube.com/watch?v=kf8xqR-5BDU) (8 minuti)
+8. [Le griglie e le formule nelle caselle](https://www.youtube.com/watch?v=wY4PRv9vN1o) (14 minuti)
+9. [Stampare i componenti](https://www.youtube.com/watch?v=hOHibzzWdtw) (7 minuti)
+10. [I dati dal foglio di calcolo](https://www.youtube.com/watch?v=m_DN9LW7OTU) (9 minuti)
+11. [Immagini, icone e font](https://www.youtube.com/watch?v=aDtusbkTleY) (6 minuti)
+12. [Un gioco in più lingue](https://www.youtube.com/watch?v=1eV4QzH_3XI) (6 minuti)
 
 English version: [../guide/README.md](../guide/README.md).
 

@@ -1,6 +1,6 @@
 // Video 12: un gioco in più lingue (circa 4 minuti, senza voce), sul progetto di esempio. La finestra delle
 // lingue, le colonne @lingua nel foglio, le carte mostrate nell'altra lingua, una formula che restituisce una
-// variabile tradotta, i testi ancora da tradurre e l'esportazione per lingua.
+// variabile tradotta, il regolamento nell'altra lingua, i testi ancora da tradurre e l'esportazione per lingua.
 // Uso: xvfb-run -a -s "-screen 0 2000x1300x24" node --experimental-strip-types --no-warnings scripts/video/lingue.mjs it|en
 // Il video italiano aggiunge l'inglese, quello inglese l'italiano.
 // FAST=1 accorcia attese e scrittura; GUIDE_HOME=/tmp/prova per provarlo mentre un altro video si registra.
@@ -55,7 +55,10 @@ const S = it
       vars: [
         ['eroe', 'Eroe', 'Hero'],
         ['gregario', 'Gregario', 'Follower']
-      ]
+      ],
+      knight: 'Cavaliere',
+      // il regolamento in inglese: il testo si scrive già in inglese, carte e variabili seguono la lingua
+      rules: ['# Rules', '', 'At the start of the turn, every {eroe} draws a card.']
     }
   : {
       folder: 'Example',
@@ -76,7 +79,9 @@ const S = it
       vars: [
         ['hero', 'Hero', 'Eroe'],
         ['follower', 'Follower', 'Gregario']
-      ]
+      ],
+      knight: 'Knight',
+      rules: ['# Regolamento', '', 'All’inizio del turno, ogni {hero} pesca una carta.']
     }
 const project = `${docs(lang)}/Stella/${S.folder}`
 rmSync(project, { recursive: true, force: true })
@@ -425,6 +430,77 @@ await r.focus(
   { pad: 6, wide: true }
 )
 
+// ---- il regolamento nell'altra lingua
+await r.title(t('Il regolamento in inglese', 'The rulebook in Italian'))
+const editor = () => win.locator('.document-editor .markup-field textarea').first()
+const docPreview = () => win.locator('.document-preview').first()
+const docTool = (key) =>
+  win.locator('.document-toolbar button', { hasText: new RegExp(`^${T[key]}$`) }).first()
+await titled('sidebar.newDocument').scrollIntoViewIfNeeded()
+await r.click(titled('sidebar.newDocument'))
+await r.clear(1200)
+await r.overlay()
+await r.click(editor(), { after: 300 })
+for (const [i, row] of S.rules.entries()) {
+  if (row) await r.type(row)
+  // Esc chiude i suggerimenti prima dell'a capo
+  await win.keyboard.press('Escape')
+  if (i < S.rules.length - 1) await win.keyboard.press('Enter')
+  await r.wait(150)
+}
+await win.keyboard.press('Enter')
+await win.keyboard.press('Enter')
+await r.click(docTool('documents.insertCard'))
+await r.clear(900)
+await r.click(dialog().getByText(S.knight, { exact: true }).first(), { after: 500 })
+await r.click(dialog().locator('button.primary').last())
+await r.clear(1200)
+await r.focus(
+  docPreview(),
+  t(
+    'Il testo è in inglese, ma la carta e la variabile {eroe} sono in italiano: un documento usa la lingua principale',
+    'The text is in Italian, but the card and the {hero} variable are in English: a document uses the main language'
+  ),
+  'left',
+  { pad: 0, wide: true }
+)
+await r.click(button('documents.page'))
+await r.clear(800)
+const docLang = win.locator('aside.document-settings select').first()
+await r.click(docLang, { after: 200 })
+await win.keyboard.press('Escape')
+await docLang.selectOption(S.other)
+await r.wait(1200)
+await r.focus(
+  docLang,
+  t(
+    'Pagina → Lingua delle carte: en. Carte e variabili del documento passano all’inglese',
+    'Page → Card language: it. The document’s cards and variables switch to Italian'
+  ),
+  'left',
+  { wide: true }
+)
+await editor().evaluate((el) => el.scrollTo({ top: 0 }))
+await r.focus(
+  editor(),
+  t(
+    `In testa al documento compare language: ${S.other}: si può anche scrivere a mano`,
+    `The document header now says language: ${S.other}: you can also type it by hand`
+  ),
+  'right',
+  { pad: 4, wide: true }
+)
+await docPreview().evaluate((el) => el.scrollTo({ top: 0 }))
+await r.focus(
+  docPreview(),
+  t(
+    'Ora la carta è Knight, con il testo tradotto, e la variabile scrive Hero',
+    'Now the card is Cavaliere, with the translated text, and the variable writes Eroe'
+  ),
+  'left',
+  { pad: 0, wide: true }
+)
+
 // ---- quanto resta da tradurre, l'esportazione
 await r.title(t('Quanto resta da tradurre', 'What is left to translate'))
 await projectMenu('app.languages')
@@ -451,13 +527,6 @@ await r.click(dialog().getByRole('button', { name: T['dialog.close'], exact: tru
 await r.clear(600)
 
 // ---- chiusura
-await r.title(
-  t(
-    'Anche il regolamento: language: en nella testa del documento',
-    'The rulebook too: language: it in the document header'
-  ),
-  4200
-)
 await r.title(
   t(
     'Tutto il resto è nella guida: stella.lucadj.eu',

@@ -5,16 +5,20 @@
 // Uso: xvfb-run -a -s "-screen 0 2000x1300x24" node --experimental-strip-types --no-warnings scripts/video/dati.mjs it|en
 // FAST=1 accorcia attese e scrittura, per provare il percorso senza badare al ritmo.
 import { launch } from './lib.mjs'
+import { scrivania } from './scrivania.mjs'
 import { docs } from '../guide/lib.mjs'
 import { createRequire } from 'node:module'
 import { rmSync } from 'node:fs'
 const require = createRequire(import.meta.url)
 const ExcelJS = require('exceljs')
+const XLSX = { col: (i) => String.fromCharCode(64 + i) }
 const lang = process.argv[2] || 'it'
 const it = lang === 'it'
 const t = (a, b) => (it ? a : b)
 const r = await launch({ lang, ...(process.env.UD ? { ud: process.env.UD } : {}) })
 const { win, T } = r
+// la scrivania con il gestore dei file e LibreOffice, registrata a parte e montata con componi.sh
+const s = await scrivania(r, { lang })
 if (process.env.FAST) {
   const wait = r.wait.bind(r)
   r.wait = (ms) => wait(Math.min(ms, 120))
@@ -52,7 +56,10 @@ const S = it
       bardText: 'Ogni alleato guadagna {spada} fino a fine turno.',
       monsters: 'Mostri',
       goblin: 'Goblin',
-      thiefText: 'Ruba {moneta*3} a un altro giocatore.'
+      thiefText: 'Ruba {moneta*3} a un altro giocatore.',
+      thief: 'Ladro',
+      points: 'punti',
+      bardFlavor: '{.flavor} La sua musica dà coraggio.'
     }
   : {
       folder: 'Example',
@@ -67,7 +74,10 @@ const S = it
       bardText: 'Every ally gains {sword} until the end of the turn.',
       monsters: 'Monsters',
       goblin: 'Goblin',
-      thiefText: 'Steal {coin*3} from another player.'
+      thiefText: 'Steal {coin*3} from another player.',
+      thief: 'Thief',
+      points: 'points',
+      bardFlavor: '{.flavor} Their song gives courage.'
     }
 const project = `${docs(lang)}/Stella/${S.folder}`
 rmSync(project, { recursive: true, force: true })
@@ -140,8 +150,11 @@ async function clickWith(loc, key) {
   await win.keyboard.up(key)
   await r.wait(700)
 }
-/** doppio clic su una cella, nuovo valore, Invio */
-async function editCell(row, col, value) {
+/**
+ * doppio clic su una cella, nuovo valore, Invio. Invio passa alla riga sotto: Freccia su torna alla riga
+ * modificata, così l'anteprima mostra la carta appena cambiata
+ */
+async function editCell(row, col, value, { key = 'Enter' } = {}) {
   await r.unzoom()
   const c = td(row, col)
   await c.scrollIntoViewIfNeeded()
@@ -154,8 +167,12 @@ async function editCell(row, col, value) {
   await win.keyboard.press('Control+A')
   await r.type(value)
   await r.wait(300)
-  await win.keyboard.press('Enter')
+  await win.keyboard.press(key)
   await r.wait(700)
+  if (key === 'Enter') {
+    await win.keyboard.press('ArrowUp')
+    await r.wait(500)
+  }
 }
 async function view(key) {
   await r.click(win.locator('.set-header .segmented button').filter({ hasText: T[key] }).first(), {
@@ -174,6 +191,8 @@ async function closeDialog() {
 
 // ---- apertura
 await r.overlay()
+await s.sync()
+s.show('app')
 await r.title(t('I dati dal foglio di calcolo', 'Data from the spreadsheet'))
 await r.title(
   t(
@@ -186,6 +205,12 @@ const example = button('start.example')
 await r.click(example)
 await r.clear(2200)
 await r.overlay()
+// Stili e Variabili chiusi: la barra laterale resta corta e il file dei dati in fondo si vede
+for (const id of ['styles', 'variables']) {
+  const sec = win.locator(`#sidebar-${id}:not(.closed) .section-toggle`)
+  if (await sec.count()) await sec.click()
+}
+await r.wait(400)
 await r.click(side(S.sets[0]))
 await r.clear(900)
 await r.overlay()
@@ -237,8 +262,8 @@ await editCell(3, S.strength, '7')
 await r.focus(
   td(3, S.strength),
   t(
-    'Doppio clic su una cella, il valore nuovo, Invio: la carta cambia subito',
-    'Double-click a cell, type the new value, Enter: the card changes at once'
+    'Doppio clic su una cella, il valore nuovo, Invio: la carta cambia subito. Invio scende alla riga sotto, Freccia su torna indietro',
+    'Double-click a cell, type the new value, Enter: the card changes at once. Enter moves down a row, Up arrow goes back'
   ),
   'below'
 )
@@ -281,9 +306,49 @@ await r.focus(
   'below'
 )
 await r.click(button('set.duplicate'))
-await editCell(5, S.name, S.bard)
+await editCell(5, S.name, S.bard, { key: 'Tab' })
+await r.focus(
+  win.locator('.data-table td.active-cell').first(),
+  t(
+    'Tab conferma e passa alla cella a destra (Maiuscolo+Tab a sinistra)',
+    'Tab confirms and moves to the cell on the right (Shift+Tab to the left)'
+  ),
+  'below'
+)
 await editCell(5, 'amount', '1')
-await editCell(5, S.text, S.bardText)
+// il testo su due righe: Alt+Invio va a capo dentro la cella
+await r.unzoom()
+{
+  const c = td(5, S.text)
+  await c.scrollIntoViewIfNeeded()
+  await r.clear(150)
+  const b = await c.boundingBox()
+  await r.glide(b.x + b.width / 2, b.y + b.height / 2, 600)
+  await r.wait(300)
+  await win.mouse.dblclick(r.cx, r.cy)
+  await r.wait(400)
+  await win.keyboard.press('Control+A')
+  await r.type(S.bardText)
+  await r.wait(400)
+  await win.keyboard.press('Alt+Enter')
+  await r.wait(400)
+  await r.type(S.bardFlavor)
+  await r.wait(300)
+  await r.focus(
+    win.locator('.data-table .cell-editor').first(),
+    t(
+      'Per andare a capo dentro una cella: ⌥+Invio / Alt+Invio. Invio da solo conferma',
+      'To start a new line inside a cell: ⌥+Return / Alt+Enter. Enter alone confirms'
+    ),
+    'below',
+    { dim: false }
+  )
+  await r.clear(150)
+  await win.keyboard.press('Enter')
+  await r.wait(600)
+  await win.keyboard.press('ArrowUp')
+  await r.wait(500)
+}
 await r.focus(
   win.locator('.data-table tbody tr').nth(5),
   t(
@@ -478,41 +543,122 @@ await r.focus(
 )
 await save()
 
-// ---- il file fuori da Stella
+// ---- il file fuori da Stella: la cartella del progetto, LibreOffice, e Stella che rilegge il file
 await r.title(t('Il file dei dati in Excel', 'The data file in Excel'))
 await r.click(side(S.sets[0]))
 await r.clear(900)
 await view('set.table')
 await r.title(
   t(
-    'Il file dei dati è un normale foglio di calcolo: si apre con Excel, LibreOffice o Numbers, anche con il progetto aperto',
-    'The data file is an ordinary spreadsheet: it opens in Excel, LibreOffice or Numbers, even with the project open'
+    'Il file dei dati è un normale file Excel: si apre con Excel, LibreOffice o Numbers, anche con il progetto aperto',
+    'The data file is an ordinary Excel file: it opens in Excel, LibreOffice or Numbers, even with the project open'
   ),
   5200
 )
-// un altro programma cambia il testo del Ladro e salva il file
+// dove stanno le colonne e la riga del Ladro nel foglio, per scriverle in LibreOffice
+const dataFile = `${project}/data/${S.file}`
 const wb = new ExcelJS.Workbook()
-await wb.xlsx.readFile(`${project}/data/${S.file}`)
+await wb.xlsx.readFile(dataFile)
 const ws = wb.getWorksheet(S.sets[0])
 const heads = ws.getRow(1).values
-const col = heads.indexOf(S.text)
+const L = (h) => XLSX.col(heads.indexOf(h))
+let thiefRow = 0
+let lastRow = 1
 ws.eachRow((row, i) => {
-  if (i > 1 && row.getCell(heads.indexOf(S.name)).value === (it ? 'Ladro' : 'Thief'))
-    row.getCell(col).value = S.thiefText
+  if (i > 1 && row.getCell(heads.indexOf(S.name)).value) lastRow = i
+  if (i > 1 && row.getCell(heads.indexOf(S.name)).value === S.thief) thiefRow = i
 })
-await wb.xlsx.writeFile(`${project}/data/${S.file}`)
-await r.wait(2500)
-const thief = win
-  .locator('.data-table tbody tr')
-  .filter({ hasText: it ? 'Ladro' : 'Thief' })
-  .first()
+const newCol = XLSX.col(heads.length)
+const nameBox = (ref) => s.keys('click:90,111', 'wait:300', `type:${ref}`, 'key:Return', 'wait:500')
+
+s.show(null)
+s.run('pcmanfm', ['--no-desktop', project])
+s.keys(
+  'until:pcmanfm',
+  'wait:1000',
+  'geom:pcmanfm,214,140,1300,800',
+  'bg:#3b4a5a',
+  'wait:800',
+  'move:860,600'
+)
+await s.say(
+  t(
+    `La cartella del progetto sul computer: Documenti › Stella › ${S.folder}`,
+    `The project folder on the computer: Documents › Stella › ${S.folder}`
+  )
+)
+s.keys('type:data', 'wait:600')
+await s.say(t('I dati stanno nella cartella data', 'The data is in the data folder'), 2200)
+s.keys('key:Return', 'wait:900', `type:${S.file.slice(0, 4)}`, 'wait:400')
+await s.say(
+  t(
+    `${S.file}: un normale foglio di lavoro di Excel. Lo apriamo con LibreOffice`,
+    `${S.file}: an ordinary Excel worksheet. Let’s open it with LibreOffice`
+  )
+)
+s.show(null)
+s.keys('key:Return', 'until:libreoffice-calc', 'wait:6000')
+await s.say(
+  t(
+    'Lo stesso file in LibreOffice: un foglio per set, una riga per carta, una colonna per campo',
+    'The same file in LibreOffice: one sheet per set, one row per card, one column per field'
+  )
+)
+nameBox(`${L(S.text)}${thiefRow}`)
+s.show('term', t('Cambiamo il testo del Ladro…', 'Let’s change the Thief’s text…'))
+s.keys(`type:${S.thiefText}`, 'key:Return', 'wait:800')
+await s.pause(1200)
+nameBox(`${newCol}1`)
+s.show(
+  'term',
+  t(
+    `…e aggiungiamo una colonna, ${S.points}, calcolata con una formula: la forza per due`,
+    `…and add a column, ${S.points}, computed with a formula: strength times two`
+  )
+)
+s.keys(`type:${S.points}`, 'key:Return', `type:=${L(S.strength)}2*2`, 'key:Return', 'wait:600')
+nameBox(`${newCol}2:${newCol}${lastRow}`)
+s.keys('key:ctrl+d', 'wait:1500')
+await s.pause(1500)
+s.keys('key:ctrl+s', 'wait:1500')
+await s.say(t('Si salva tenendo il formato di Excel', 'Save it keeping the Excel format'), 2400)
+s.keys(`click:${process.env.KEEP || '1059,613'}`, 'wait:1500')
+await s.pause(1500)
+s.show(null)
+await r.wait(1500)
+s.show('app')
+const thief = win.locator('.data-table tbody tr').filter({ hasText: S.thief }).first()
 await r.focus(
   thief,
   t(
-    'Qui il file è stato cambiato da un altro programma: appena lo salvi, Stella lo rilegge da sola',
-    'Here another program changed the file: as soon as you save it, Stella reads it again by itself'
+    'Appena il file è salvato, Stella lo rilegge da sola: il Ladro ha il testo nuovo',
+    'As soon as the file is saved, Stella reads it again by itself: the Thief has the new text'
   ),
   'below'
+)
+await r.focus(
+  th(S.points),
+  t(
+    `La colonna ${S.points} è un campo nuovo: i template possono usarla come {${S.points}}`,
+    `The ${S.points} column is a new field: templates can use it as {${S.points}}`
+  ),
+  'below'
+)
+await r.focus(
+  th(S.points),
+  t(
+    'Delle formule Stella legge il risultato salvato e non le ricalcola: se cambi la forza qui, punti si aggiorna quando riapri e salvi il file in Excel o LibreOffice',
+    'For formulas Stella reads the saved result and does not recalculate them: if you change the strength here, points updates when you open and save the file again in Excel or LibreOffice'
+  ),
+  'below',
+  { ms: 7500 }
+)
+await r.title(
+  t(
+    'Il resto del file resta com’è: i fogli che non sono set, come calcoli e analisi, Stella li elenca ma non li tocca. Quando salva, cambia solo le celle modificate',
+    'The rest of the file stays as it is: sheets that are not sets, such as calculations and analysis, are listed but never touched. When Stella saves, it changes only the edited cells'
+  ),
+  8000
 )
 await r.focus(
   win.locator('.data-readonly').first(),
@@ -576,5 +722,6 @@ await r.title(
   4000
 )
 await r.clear(600)
-const p = await r.finish()
-console.log('VIDEO', p)
+s.show(null)
+await s.sync()
+console.log('EDL', await s.finish('dati'))

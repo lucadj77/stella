@@ -45,7 +45,7 @@ export const texts = {
         ],
         [
           'Stampa e Tabletop Simulator',
-          'PDF con crocini e fronte-retro, immagini singole, e oggetti pronti per Tabletop Simulator: mazzi, segnalini, tessere, plance e dadi a sei facce, da caricare nel gioco così come sono.'
+          'PDF da stampare con crocini e fronte-retro, oppure immagini singole. Per Tabletop Simulator Stella crea direttamente gli oggetti del gioco: mazzi, segnalini, tessere, plance e dadi a sei facce compaiono già pronti in Saved Objects, da mettere sul tavolo con un clic.'
         ],
         [
           'Regolamento con le carte',
@@ -56,6 +56,26 @@ export const texts = {
           'I progetti di Tabletop Creator si aprono e si convertono, con template, dati e immagini.'
         ]
       ]
+    },
+    local: {
+      title: 'I tuoi dati restano sul tuo computer',
+      intro:
+        'Un progetto di Stella è una normale cartella sul tuo computer: il foglio di calcolo con i dati, i template, le immagini e i documenti. Niente account, niente cloud, niente abbonamenti.',
+      items: [
+        [
+          'Nessun dato inviato',
+          'Stella non manda i tuoi progetti da nessuna parte e non raccoglie statistiche su come la usi. Il tuo gioco resta tuo, anche prima di annunciarlo.'
+        ],
+        [
+          'File aperti, sempre leggibili',
+          'Fogli Excel, immagini e testi in Markdown: si aprono con altri programmi anche senza Stella, oggi e tra dieci anni.'
+        ],
+        [
+          'La cartella va dove vuoi',
+          'Su una chiavetta, in Dropbox o Google Drive per lavorare da più computer, in un repository git per tenere la storia delle modifiche.'
+        ]
+      ],
+      note: 'Stella si collega a internet solo per controllare gli aggiornamenti, per scaricare font e icone quando li scegli tu e per leggere un foglio Google se ne colleghi uno.'
     },
     shots: {
       title: 'Uno sguardo',
@@ -102,6 +122,7 @@ export const texts = {
       title: 'Tutorial',
       text: 'Video brevi, senza voce: il testo compare accanto a ciò che va guardato.',
       soon: 'I primi video arrivano a breve.',
+      playlist: 'Tutti i video nella playlist di YouTube',
       watch: 'Guarda su YouTube'
     },
     guide: {
@@ -172,7 +193,7 @@ export const texts = {
         ],
         [
           'Print and Tabletop Simulator',
-          'PDFs with crop marks and duplex, single images, and ready-made Tabletop Simulator objects: decks, tokens, tiles, boards and six-sided dice, loaded into the game as they are.'
+          'Print-ready PDFs with crop marks and duplex, or single images. For Tabletop Simulator, Stella creates the game objects directly: decks, tokens, tiles, boards and six-sided dice show up ready-made in Saved Objects, one click away from the table.'
         ],
         [
           'Rulebook with the cards',
@@ -183,6 +204,26 @@ export const texts = {
           'Tabletop Creator projects open and convert, with templates, data and images.'
         ]
       ]
+    },
+    local: {
+      title: 'Your data stays on your computer',
+      intro:
+        'A Stella project is an ordinary folder on your computer: the spreadsheet with the data, the templates, the images and the documents. No account, no cloud, no subscription.',
+      items: [
+        [
+          'Nothing is sent',
+          'Stella does not send your projects anywhere and does not collect statistics on how you use it. Your game stays yours, even before you announce it.'
+        ],
+        [
+          'Open files, always readable',
+          'Excel sheets, images and Markdown text: they open in other programs even without Stella, today and ten years from now.'
+        ],
+        [
+          'The folder goes where you want',
+          'On a USB stick, in Dropbox or Google Drive to work from several computers, in a git repository to keep the history of your changes.'
+        ]
+      ],
+      note: 'Stella goes online only to check for updates, to download fonts and icons when you pick them, and to read a Google sheet if you link one.'
     },
     shots: {
       title: 'A look',
@@ -228,6 +269,7 @@ export const texts = {
       title: 'Tutorials',
       text: 'Short videos, no voice: the text appears next to what to look at.',
       soon: 'The first videos are coming soon.',
+      playlist: 'All the videos in the YouTube playlist',
       watch: 'Watch on YouTube'
     },
     guide: {
@@ -272,5 +314,101 @@ export const videos = [
       it: 'https://www.youtube.com/watch?v=Lqd52U51KVk',
       en: 'https://www.youtube.com/watch?v=_sPWwTv96P0'
     }
+  },
+  {
+    it: 'Da Stella a Tabletop Simulator',
+    en: 'From Stella to Tabletop Simulator',
+    minutes: 5,
+    url: {
+      it: 'https://www.youtube.com/watch?v=gkobeD8ERD4',
+      en: 'https://www.youtube.com/watch?v=OZ-Jm4cf3Zo'
+    }
+  },
+  {
+    it: 'Testo, icone, stili e formule',
+    en: 'Text, icons, styles and formulas',
+    minutes: 5,
+    url: {
+      it: 'https://www.youtube.com/watch?v=2I0ABob4DoQ',
+      en: 'https://www.youtube.com/watch?v=SKoi6EaFY6k'
+    }
+  },
+  {
+    it: 'Il regolamento e gli altri documenti',
+    en: 'The rulebook and other documents',
+    minutes: 5,
+    url: {
+      it: 'https://www.youtube.com/watch?v=psMiWRUQ4k4',
+      en: 'https://www.youtube.com/watch?v=skHh2Uz2VxE'
+    }
+  },
+  {
+    it: 'Stella con un agente IA',
+    en: 'Stella with an AI agent',
+    minutes: 4,
+    url: {
+      it: 'https://www.youtube.com/watch?v=ymvGmxgpxgA',
+      en: 'https://www.youtube.com/watch?v=7EylDX9GKOU'
+    }
+  },
+  {
+    it: 'Plance, tessere, segnalini e dadi',
+    en: 'Boards, tiles, tokens and dice',
+    minutes: 8,
+    url: {
+      it: 'https://www.youtube.com/watch?v=kf8xqR-5BDU',
+      en: 'https://www.youtube.com/watch?v=tLgcDV6DZc4'
+    }
+  },
+  {
+    it: 'Le griglie e le formule nelle caselle',
+    en: 'Grids and cell formulas',
+    minutes: 14,
+    url: {
+      it: 'https://www.youtube.com/watch?v=wY4PRv9vN1o',
+      en: 'https://www.youtube.com/watch?v=DgaXcUt2N-M'
+    }
+  },
+  {
+    it: 'Stampare i componenti',
+    en: 'Printing your components',
+    minutes: 7,
+    url: {
+      it: 'https://www.youtube.com/watch?v=hOHibzzWdtw',
+      en: 'https://www.youtube.com/watch?v=f-ks0NMbs6k'
+    }
+  },
+  {
+    it: 'I dati dal foglio di calcolo',
+    en: 'Data from the spreadsheet',
+    minutes: 9,
+    url: {
+      it: 'https://www.youtube.com/watch?v=m_DN9LW7OTU',
+      en: 'https://www.youtube.com/watch?v=55U-lu3N3AE'
+    }
+  },
+  {
+    it: 'Immagini, icone e font',
+    en: 'Images, icons and fonts',
+    minutes: 6,
+    url: {
+      it: 'https://www.youtube.com/watch?v=aDtusbkTleY',
+      en: 'https://www.youtube.com/watch?v=PWL7IkAG4qo'
+    }
+  },
+  {
+    it: 'Un gioco in più lingue',
+    en: 'A game in several languages',
+    minutes: 6,
+    url: {
+      it: 'https://www.youtube.com/watch?v=1eV4QzH_3XI',
+      en: 'https://www.youtube.com/watch?v=gszofbPThzU'
+    }
   }
 ]
+
+// Le playlist con tutti i video, una per lingua
+export const playlists = {
+  it: 'https://www.youtube.com/playlist?list=PLd3mtbjgiPEo',
+  en: 'https://www.youtube.com/playlist?list=PLC6t-d7-3DO0'
+}
