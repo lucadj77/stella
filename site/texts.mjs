@@ -102,6 +102,7 @@ export const texts = {
       title: 'Tutorial',
       text: 'Video brevi, senza voce: il testo compare accanto a ciò che va guardato.',
       soon: 'I primi video arrivano a breve.',
+      playlist: 'Tutti i video nella playlist di YouTube',
       watch: 'Guarda su YouTube'
     },
     guide: {
@@ -228,6 +229,7 @@ export const texts = {
       title: 'Tutorials',
       text: 'Short videos, no voice: the text appears next to what to look at.',
       soon: 'The first videos are coming soon.',
+      playlist: 'All the videos in the YouTube playlist',
       watch: 'Watch on YouTube'
     },
     guide: {
@@ -272,5 +274,74 @@ export const videos = [
       it: 'https://www.youtube.com/watch?v=Lqd52U51KVk',
       en: 'https://www.youtube.com/watch?v=_sPWwTv96P0'
     }
+  },
+  {
+    it: 'Da Stella a Tabletop Simulator',
+    en: 'From Stella to Tabletop Simulator',
+    minutes: 5,
+    url: {
+      it: 'https://www.youtube.com/watch?v=gkobeD8ERD4',
+      en: 'https://www.youtube.com/watch?v=OZ-Jm4cf3Zo'
+    }
+  },
+  {
+    it: 'Testo, icone, stili e formule',
+    en: 'Text, icons, styles and formulas',
+    minutes: 5,
+    url: {
+      it: 'https://www.youtube.com/watch?v=2I0ABob4DoQ',
+      en: 'https://www.youtube.com/watch?v=SKoi6EaFY6k'
+    }
+  },
+  {
+    it: 'Il regolamento e gli altri documenti',
+    en: 'The rulebook and other documents',
+    minutes: 5,
+    url: {
+      it: 'https://www.youtube.com/watch?v=psMiWRUQ4k4',
+      en: 'https://www.youtube.com/watch?v=skHh2Uz2VxE'
+    }
+  },
+  {
+    it: 'Stella con un agente IA',
+    en: 'Stella with an AI agent',
+    minutes: 4,
+    url: {
+      it: 'https://www.youtube.com/watch?v=ymvGmxgpxgA',
+      en: 'https://www.youtube.com/watch?v=7EylDX9GKOU'
+    }
+  },
+  {
+    it: 'Plance, tessere, segnalini e dadi',
+    en: 'Boards, tiles, tokens and dice',
+    minutes: 8,
+    url: {
+      it: 'https://www.youtube.com/watch?v=kf8xqR-5BDU',
+      en: 'https://www.youtube.com/watch?v=tLgcDV6DZc4'
+    }
+  },
+  {
+    it: 'Le griglie e le formule nelle caselle',
+    en: 'Grids and cell formulas',
+    minutes: 14,
+    url: {
+      it: 'https://www.youtube.com/watch?v=wY4PRv9vN1o',
+      en: 'https://www.youtube.com/watch?v=DgaXcUt2N-M'
+    }
+  },
+  {
+    it: 'Stampare i componenti',
+    en: 'Printing your components',
+    minutes: 7,
+    url: {
+      it: 'https://www.youtube.com/watch?v=hOHibzzWdtw',
+      en: 'https://www.youtube.com/watch?v=f-ks0NMbs6k'
+    }
   }
 ]
+
+// Le playlist con tutti i video, una per lingua
+export const playlists = {
+  it: 'https://www.youtube.com/playlist?list=PLd3mtbjgiPEo',
+  en: 'https://www.youtube.com/playlist?list=PLC6t-d7-3DO0'
+}

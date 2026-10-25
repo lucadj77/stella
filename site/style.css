@@ -432,6 +432,11 @@ a:focus-visible {
 }
 
 /* tutorial */
+.playlist {
+  margin: 28px 0 0;
+  text-align: center;
+  font-weight: 600;
+}
 .videos {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
