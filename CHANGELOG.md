@@ -5,6 +5,20 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.4.1
+
+### English
+
+#### Fixed
+
+- **AI tools**: the skill given to the agent had the command and the version written in place of the placeholders everywhere, also in the sentences that talk about them. So step 1 called the real command "the placeholder", and after the automatic update of the skill the agent looked for text that is not in the file downloaded from GitHub, and could leave the command block with the placeholder. Now only the command block and the line with the version are filled in, and step 4 says exactly which two places to fill in. To fix a skill already installed, open **AI tools…** again and save or copy it.
+
+### Italiano
+
+#### Correzioni
+
+- **Strumenti IA**: nella skill da dare all'agente il comando e la versione prendevano il posto dei segnaposto ovunque, anche nelle frasi che ne parlano. Così il passo 1 chiamava "segnaposto" il comando vero, e dopo l'aggiornamento automatico della skill l'agente cercava un testo che nel file scaricato da GitHub non c'è, e poteva lasciare il blocco del comando con il segnaposto. Ora si riempiono solo il blocco del comando e la riga della versione, e il passo 4 dice esattamente quali sono i due punti da riempire. Per correggere una skill già installata, riapri **Strumenti IA…** e salvala o copiala di nuovo.
+
 ## 1.4.0
 
 ### English

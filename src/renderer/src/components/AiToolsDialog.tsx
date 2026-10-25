@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { messageFromError, type Message } from '../../../shared/messages'
+import { fillSkill } from '../../../shared/skill'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import skillSource from '../../../../skill/stella/SKILL.md?raw'
@@ -19,11 +20,7 @@ export default function AiToolsDialog({ onClose }: { onClose(): void }): React.J
   }, [])
 
   // nel web non c'è un comando di questo computer: lo cerca (o lo installa) la skill stessa
-  const skill = command
-    ? skillSource
-        .replaceAll('{{STELLA_VERSION}}', __APP_VERSION__)
-        .replaceAll('{{STELLA_COMMAND}}', command.command || '{{STELLA_COMMAND}}')
-    : ''
+  const skill = command ? fillSkill(skillSource, __APP_VERSION__, command.command) : ''
 
   const copy = async (): Promise<void> => {
     setError(null)
