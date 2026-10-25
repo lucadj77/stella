@@ -5784,3 +5784,168 @@ button.more-button {
   flex: 1;
   min-width: 0;
 }
+
+/* assistente formule: schermata iniziale e modo guidato */
+.fx-start-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.fx-start-screen h3 {
+  margin: 0;
+  padding: 0;
+  border: none;
+  font-size: 15px;
+  text-align: left;
+}
+
+.fx-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 8px;
+}
+
+.fx-card {
+  all: unset;
+  cursor: pointer;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  min-height: 92px;
+}
+
+.fx-card:hover,
+.fx-card:focus-visible {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.fx-card strong {
+  font-size: 14px;
+}
+
+.fx-card span {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.fx-card-plain {
+  border-style: dashed;
+}
+
+.fx-guided {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fx-sentence {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  font-size: 17px;
+  line-height: 1.5;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.fx-sentence .fx-leaf {
+  font-size: 15px;
+}
+
+.fx-sentence .fx-chip,
+.fx-sentence .fx-empty {
+  font-size: 15px;
+  padding: 4px 12px;
+}
+
+.fx-sentence .fx-op {
+  font-size: 15px;
+}
+
+.fx-guided-picker .fx-picker {
+  max-height: 300px;
+  overflow: auto;
+}
+
+.fx-result-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fx-result-box > p {
+  font-size: 15px;
+}
+
+.fx-details summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.fx-details .fx-text {
+  margin-top: 6px;
+}
+
+.fx-steps {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  font-size: 13px;
+}
+
+.fx-notice {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: var(--warning-bg);
+  font-size: 13px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+}
+
+.fx-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fx-modes {
+  display: flex;
+  gap: 6px;
+  margin-right: auto;
+}
+
+.fx-more {
+  font-size: 12px;
+  padding: 3px 8px;
+  color: var(--muted);
+}
+
+.fx-fn-chip {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  color: var(--mk-value);
+  border-color: var(--mk-value);
+}
+
+.fx-content-create {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin: 4px 0;
+}

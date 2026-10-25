@@ -2,7 +2,14 @@ import { useContext, useMemo, useState } from 'react'
 import AssetPicker from '../components/AssetPicker'
 import { ImageIcon } from '../components/icons'
 import { P, Section } from './advanced'
-import { findLayer, isNameTaken, patchLayers } from '../../../shared/model/edit'
+import {
+  findLayer,
+  groupLayers,
+  insertLayer,
+  isNameTaken,
+  patchLayers,
+  uniqueName
+} from '../../../shared/model/edit'
 import { assetRefName, isImageAsset, resolveAsset } from '../../../shared/model/assets'
 import type {
   Anchor,
@@ -22,7 +29,7 @@ import type {
   TextLayer,
   ValueLayer
 } from '../../../shared/model/template'
-import { isArranged, walkLayers } from '../../../shared/model/normalize'
+import { isArranged, normalizeLayer, walkLayers } from '../../../shared/model/normalize'
 import { gridGeometry } from '../../../shared/model/grid'
 import { baseLayer, baseTemplateValue, changedTemplateKeys } from '../../../shared/model/inherit'
 import {
@@ -109,6 +116,9 @@ export default function PropertiesPanel({
   // con più livelli il pannello mostra i valori del primo e ogni modifica vale per tutti
   const many = selection.length > 1 ? selection.map((id) => findLayer(tpl[side], id)) : []
   const first = many.length && many.every(Boolean) ? many[0] : null
+  // livello appena creato nelle caselle di una griglia: l'assistente si apre da solo
+  // (lo stato sta qui perché il pannello del livello si rimonta a ogni selezione)
+  const [fxFor, setFxFor] = useState<string | null>(null)
 
   // nei colori si può richiamare un livello valore con {nome}
   const valueLayers = walkLayers([...tpl.front, ...tpl.back])
@@ -162,6 +172,8 @@ export default function PropertiesPanel({
               dispatch={dispatch}
               sheets={sheets}
               base={base}
+              fxFor={fxFor}
+              setFxFor={setFxFor}
             />
             {layer.type === 'group' && (
               <div className="selection-actions">
@@ -352,7 +364,9 @@ function LayerProperties({
   state,
   dispatch,
   sheets,
-  base = null
+  base = null,
+  fxFor = null,
+  setFxFor
 }: {
   layer: Layer
   /** Livelli selezionati quando sono più di uno: le modifiche valgono per tutti */
@@ -362,6 +376,9 @@ function LayerProperties({
   sheets: Props['sheets']
   /** Base del template derivato */
   base?: Template | null
+  /** Livello per cui aprire subito l'assistente formule */
+  fxFor?: string | null
+  setFxFor?(id: string | null): void
 }): React.JSX.Element {
   const { t } = useI18n()
   const { template: tpl, side } = state
@@ -387,6 +404,59 @@ function LayerProperties({
 
   // con una formula il valore principale è calcolato: il campo del valore non serve
   const computed = l.source.kind === 'formula'
+
+  /**
+   * Crea un testo o una forma nella prima casella della griglia, lo chiude in un gruppo e
+   * lo imposta come contenuto: così le formule del livello variano casella per casella.
+   */
+  const createContent = (kind: 'text' | 'shape'): void => {
+    if (l.type !== 'grid') return
+    const geo = gridGeometry(l)
+    const c = geo.centers[0]
+    if (!c) return
+    const inset = Math.min(geo.cell.w, geo.cell.h) * 0.1
+    const w = Math.max(1, geo.cell.w - 2 * inset)
+    const h = Math.max(1, geo.cell.h - 2 * inset)
+    const box = { x: l.x + c.x - w / 2, y: l.y + c.y - h / 2, w, h }
+    const layer =
+      kind === 'text'
+        ? normalizeLayer(
+            {
+              type: 'text',
+              name: uniqueName(tpl, `${l.name}_text`),
+              text: '1',
+              // metà dell'altezza della casella, in punti (1 mm = 72/25.4 pt)
+              size: Math.max(4, Math.round((h * 0.5 * 72) / 25.4)),
+              align: 'center',
+              valign: 'middle',
+              source: { kind: 'formula', expr: '={cell.index}' },
+              ...box
+            },
+            0
+          )
+        : normalizeLayer(
+            {
+              type: 'shape',
+              shape: 'rect',
+              name: uniqueName(tpl, `${l.name}_shape`),
+              fill: '#dddddd',
+              ...box
+            },
+            0
+          )
+    const t1 = insertLayer(tpl, side, layer, l.id)
+    const { template: t2, groupId } = groupLayers(t1, side, [layer.id])
+    if (!groupId) return
+    const group = findLayer(t2[side], groupId)
+    if (!group) return
+    const name = uniqueName(t2, `${l.name}_cell`)
+    const t3 = patchLayers(t2, side, [groupId], group, { name })
+    const grid = findLayer(t3[side], l.id)
+    if (!grid) return
+    const t4 = patchLayers(t3, side, [l.id], grid, { content: name } as Partial<Layer>)
+    dispatch({ type: 'change', template: t4, selection: [layer.id] })
+    if (kind === 'text') setFxFor?.(layer.id)
+  }
 
   // livello ereditato da un base: ogni proprietà mostra se è del base o cambiata
   const from = base && !multi ? baseLayer(base, l.id) : null
@@ -426,7 +496,16 @@ function LayerProperties({
           />
           {base && !from && <p className="muted small">{t('inherit.addedLayer')}</p>}
           <Inherit keys={['source']}>
-            <ValueSource layer={l} template={tpl} sheets={sheets} set={set} />
+            <ValueSource
+              key={l.id}
+              layer={l}
+              template={tpl}
+              sheets={sheets}
+              set={set}
+              autoOpen={fxFor === l.id}
+              onAutoOpened={() => setFxFor?.(null)}
+              onVaryCells={l.type === 'grid' ? () => createContent('text') : undefined}
+            />
           </Inherit>
         </>
       )}
@@ -460,6 +539,7 @@ function LayerProperties({
             const patch = { x: l.x + c.x - g.w / 2, y: l.y + c.y - g.h / 2 }
             dispatch({ type: 'change', template: patchLayers(tpl, side, [g.id], g, patch) })
           }}
+          onCreate={createContent}
         />
       )}
       {same && !multi && l.type === 'value' && (
@@ -1596,12 +1676,15 @@ function GridProperties({
   col,
   computed,
   groups,
-  onPlace
+  onPlace,
+  onCreate
 }: TypeProps<GridLayer> & {
   /** Gruppi dello stesso lato, da ripetere nelle caselle */
   groups: GroupLayer[]
   /** Porta il gruppo del contenuto nella prima casella */
   onPlace(group: GroupLayer): void
+  /** Crea un testo o una forma nelle caselle, già raggruppato e impostato come contenuto */
+  onCreate(kind: 'text' | 'shape'): void
 }): React.JSX.Element {
   const { t } = useI18n()
   const set = setLayer as SetFn<GridLayer>
@@ -1817,7 +1900,19 @@ function GridProperties({
           {t('editor.gridContentPlace')}
         </button>
       ) : (
-        !groups.length && <p className="muted small">{t('editor.gridContentNoGroups')}</p>
+        <div className="fx-content-create">
+          {!groups.length && <p className="muted small">{t('editor.gridContentNoGroups')}</p>}
+          <span>{t('editor.gridContentCreate')}</span>
+          <div className="fx-buttons">
+            <button type="button" onClick={() => onCreate('text')}>
+              {t('editor.gridContentText')}
+            </button>
+            <button type="button" onClick={() => onCreate('shape')}>
+              {t('editor.gridContentShape')}
+            </button>
+          </div>
+          <p className="muted small">{t('editor.gridContentCreateHint')}</p>
+        </div>
       )}
       <p className="muted small">{t('editor.gridContentFields')}</p>
     </>
@@ -1829,12 +1924,20 @@ function ValueSource({
   layer: l,
   template,
   sheets,
-  set
+  set,
+  autoOpen = false,
+  onAutoOpened,
+  onVaryCells
 }: {
   layer: Layer
   template: Template
   sheets: Props['sheets']
   set(patch: Partial<Layer>): void
+  /** Apre l'assistente appena il livello compare (testo creato nelle caselle) */
+  autoOpen?: boolean
+  onAutoOpened?(): void
+  /** Su una griglia: crea il contenuto delle caselle al posto della formula */
+  onVaryCells?(): void
 }): React.JSX.Element {
   const { t } = useI18n()
   const src = l.source
@@ -1862,7 +1965,12 @@ function ValueSource({
   const result = src.kind === 'formula' ? evaluateFormula(src.expr, fields) : null
   // come sulla carta: i {campo} rimasti nel risultato si sostituiscono
   const preview = result && { ...result, value: substituteFields(result.value, fields) }
-  const [assistant, setAssistant] = useState(false)
+  // il componente è montato per livello (key), quindi l'apertura automatica è lo stato iniziale
+  const [assistant, setAssistant] = useState(autoOpen)
+  const close = (): void => {
+    setAssistant(false)
+    onAutoOpened?.()
+  }
   const fx = (
     <button
       type="button"
@@ -1931,8 +2039,16 @@ function ValueSource({
           sample={fields}
           sampleLabel={sample ? t('fx.firstCardOf', { set: sample.set }) : undefined}
           cells={cells}
+          startScreen={autoOpen}
+          onVaryCells={
+            onVaryCells &&
+            (() => {
+              close()
+              onVaryCells()
+            })
+          }
           onApply={(expr) => set({ source: { kind: 'formula', expr } })}
-          onClose={() => setAssistant(false)}
+          onClose={close}
         />
       )}
       {src.kind === 'formula' && <p className="small muted">{t('source.formulaHelp')}</p>}

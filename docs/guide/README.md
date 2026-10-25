@@ -548,15 +548,21 @@ A field's value is, in order of precedence: the calculated value layer, the non-
 
 ### 9.1 The formula assistant
 
-The **fx** button next to the **Formula** field opens the assistant, which builds the formula box by box. On a layer with **Sheet column** or **Fixed** the same assistant opens with **Build a formula with the assistant…**, under **Value on cards**: when you confirm, the layer switches to **Formula**. It is also next to the **Filter** of the generator (section 10), where the formula must give true or false.
+The **fx** button next to the **Formula** field opens the assistant. On a layer with **Sheet column** or **Fixed** the same assistant opens with **Build a formula with the assistant…**, under **Value on cards**: when you confirm, the layer switches to **Formula**. It is also next to the **Filter** of the generator (section 10), where the formula must give true or false.
 
-- On the left the formula as blocks: each function has its boxes with a name (for `IF`: **Condition**, **If true**, **If false**) and under each box the value it gives on the first card. Empty boxes say **Choose…**.
-- On the right what to put in the chosen box: **Field** (columns and layers), **Variable**, **Card & cell** (the system variables with a readable name, such as **Cell number** for `{cell.index}`; the cell ones only inside the content of a grid), **Number**, **Text** (with fields between braces and **Format…** for colour, weight and the other attributes), **Color**, **Image** (for image layers), **Yes / No**, **Comparison** and **Formula**, which nests another function. The tab offered first depends on the box and on the layer: for a shape the result starts from **Color**.
-- **Formula** groups the functions by category: **Condition**, **Selection**, **Math**, **Text** and **Recipes**. Recipes set up common cases: **Every N** (`MOD`), **Alternate**, **Checkerboard**, **Cycle through a list** and **Pick at random** (`PICK`), **Only if not empty**, **By range**. Inside a grid they count cells, outside the components of the set. With **Put the current value inside** the chosen function takes the value of the box as its first argument.
-- **Several cases** shows a chain of `IF` as a list of **When… Then…** rows with **Otherwise** at the end; **+ Case** adds one.
-- Below, the formula text: it updates while you fill the boxes and you can also write it by hand. Inside a grid you see the result of the first cells. **Use formula** writes the formula in the field; a formula opened and not changed stays as it was.
+With an empty formula the assistant asks **What do you want to do?** and offers the common cases as cards: a different value depending on a condition, change something every N cells (or components), alternate two values, checkerboard, cycle through a list, pick at random, show only if a field is not empty, low/medium/high, calculate a number, join texts and fields. Next to the generator filter the cards are conditions (compare a field with a value, a field is not empty). **Write it myself** switches to the advanced mode.
+
+![The start screen of the assistant](img/assistente-formule-inizio.png)
+
+Once you pick a card, the formula appears as a sentence to complete, already filled with sensible values: for example **Every 10 cells, show "Yes" otherwise "No"**. Each blank is a button: the selected one has the picker below with what can go in it (**Field**, **Number**, **Text** with **Format…** for colour and weight, **Variable**, **Card & cell**, **Formula**…; **More…** shows the remaining tabs). Under the sentence the result on the first card and, inside a grid, the result of the first cells; **Show formula** opens the formula text, which you can also write by hand. When you open an existing formula that matches one of the sentences, the assistant shows it as that sentence.
 
 ![The formula assistant on the number of the score track](img/assistente-formule.png)
+
+**Advanced** shows the formula as nested blocks: each function has its boxes with a name (for `IF`: **Condition**, **If true**, **If false**) and under each box the value it gives on the first card; **Formula** in the picker groups the functions by category (**Condition**, **Selection**, **Math**, **Text**, **Recipes**) and **Several cases** shows a chain of `IF` as a list of **When… Then…** rows with **Otherwise** at the end. **Guided** goes back to the sentence while the formula still has that shape; **Start over** returns to **What do you want to do?**. **Use formula** writes the formula in the field; a formula opened and not changed stays as it was.
+
+On a **grid** layer the formula applies to the whole grid (for example the cell colour of a card): to change the cells one by one, the formula goes on a layer of the **cell content** (section 4.8). That is why, on a grid without content, the **Cell content** section has **Text in each cell** and **Shape in each cell**: they create a layer in the first cell, wrap it in a group and set it as the content; for the text the assistant opens right away. The same choice is on the start screen of the assistant as **Vary cell by cell**.
+
+![The buttons that create the cell content](img/griglia-contenuto-crea.png)
 
 ## 10. Generating cards
 

@@ -8,8 +8,11 @@ import {
 import {
   addArg,
   argSpec,
+  availableSentences,
   catalogEntries,
   chainLength,
+  defaultField,
+  findSentence,
   firstEmpty,
   FORMULA_CATEGORIES,
   FUNCTION_SPECS,
@@ -27,6 +30,10 @@ import {
   type CellContext,
   type FormulaCategory,
   type NodePath,
+  type SentenceContext,
+  type SentenceDefaults,
+  type SentencePart,
+  type SentenceTemplate,
   type SlotKind
 } from '../../../shared/model/formulaAssist'
 import { cellFields } from '../../../shared/model/bind'
@@ -41,9 +48,10 @@ import AssetPicker from './AssetPicker'
 import { ColorSwatch } from './ColorPicker'
 import FormatDialog from './FormatDialog'
 
-// Assistente formule (tasto fx): costruisce una formula a caselle. A sinistra la formula come
-// blocchi, a destra cosa mettere nella casella scelta; sotto il testo della formula, che si può
-// anche scrivere a mano, e il risultato sulla carta d'esempio. Vedi docs/specifica.md, "Formule".
+// Assistente formule (tasto fx). Tre modi: la schermata iniziale chiede cosa si vuole fare; il
+// modo guidato mostra la formula come una frase con gli spazi da riempire; il modo avanzato la
+// mostra a caselle annidate, con il testo della formula che si può anche scrivere a mano. In
+// tutti i casi il risultato si vede sulla carta d'esempio. Vedi docs/specifica.md, "Formule".
 
 /** Cosa produce la formula: decide la scheda proposta per i risultati */
 export type FormulaExpect = 'text' | 'image' | 'color' | 'bool' | 'value'
@@ -63,6 +71,13 @@ interface Props {
   cells?: CellContext | null
   /** La formula deve dare vero o falso, come il filtro del generatore */
   condition?: boolean
+  /**
+   * Il livello è una griglia: le variazioni casella per casella non si fanno qui ma sul
+   * contenuto delle caselle, che questo crea (e chiude la finestra)
+   */
+  onVaryCells?(): void
+  /** Apre su «Cosa vuoi fare?» anche se c'è già una formula (testo appena creato nelle caselle) */
+  startScreen?: boolean
   onApply(expr: string): void
   onClose(): void
 }
@@ -79,12 +94,45 @@ type Tab =
   | 'compare'
   | 'formula'
 
+type Mode = 'start' | 'guided' | 'advanced'
+
 const CELL_VARIABLES = ['cell.index', 'cell.row', 'cell.column', 'cell.count', 'cell.random']
 const ARITHMETIC: BinaryOperator[] = ['+', '-', '*', '/']
 const STRIP = 12
 
 const same = (a: NodePath, b: NodePath | null): boolean =>
   !!b && a.length === b.length && a.every((x, i) => x === b[i])
+
+/** Risultati proposti dai modelli, secondo ciò che il livello si aspetta */
+function defaultResults(
+  expect: FormulaExpect,
+  t: (k: MessageKey) => string
+): [FormulaNode, FormulaNode] {
+  switch (expect) {
+    case 'color':
+      return [
+        { k: 'str', v: '#A33A2A' },
+        { k: 'str', v: '#FFFFFF' }
+      ]
+    case 'bool':
+      return [
+        { k: 'bool', v: true },
+        { k: 'bool', v: false }
+      ]
+    case 'value':
+      return [
+        { k: 'num', v: 1 },
+        { k: 'num', v: 0 }
+      ]
+    case 'image':
+      return [{ k: 'empty' }, { k: 'empty' }]
+    default:
+      return [
+        { k: 'str', v: t('fx.yes.sample') },
+        { k: 'str', v: t('fx.no.sample') }
+      ]
+  }
+}
 
 export default function FormulaDialog({
   title,
@@ -96,19 +144,38 @@ export default function FormulaDialog({
   sampleLabel,
   cells,
   condition,
+  onVaryCells,
+  startScreen = false,
   onApply,
   onClose
 }: Props): React.JSX.Element {
   const { t } = useI18n()
   const variables = useContext(VariablesContext)
+  const ctx: CatalogContext = useMemo(() => ({ inCell: !!cells }), [cells])
+  const sctx: SentenceContext = {
+    inCell: !!cells,
+    condition: !!condition,
+    onGrid: !!onVaryCells,
+    bool: expect === 'bool'
+  }
   const opened = useMemo(() => openFormula(value), [value])
   const [root, setRoot] = useState<FormulaNode>(opened.node ?? { k: 'empty' })
   const [text, setText] = useState(value)
   const [textError, setTextError] = useState(opened.error ?? null)
   /** L'ultima modifica è nel testo: si scrive com'è, senza riformattarlo */
   const [typed, setTyped] = useState(true)
-  const [selected, setSelected] = useState<NodePath | null>([])
-  const ctx: CatalogContext = { inCell: !!cells }
+  const [mode, setMode] = useState<Mode>(() =>
+    startScreen || !value.trim()
+      ? 'start'
+      : opened.node && findSentence(opened.node, ctx)
+        ? 'guided'
+        : 'advanced'
+  )
+  // in modalità guidata parte selezionato il primo spazio della frase, non l'intera formula
+  const [selected, setSelected] = useState<NodePath | null>(() => {
+    const first = mode === 'guided' && opened.node ? findSentence(opened.node, ctx) : null
+    return (first && firstBlank(first.parts)) ?? []
+  })
 
   const fields = useMemo(() => {
     const out = { ...sample }
@@ -118,6 +185,7 @@ export default function FormulaDialog({
   }, [sample, cells])
   const known = (name: string): boolean =>
     name in fields || columns.includes(name) || layers.includes(name)
+  const sentence = findSentence(root, ctx)
 
   const change = (next: FormulaNode, select?: NodePath | null): void => {
     setRoot(next)
@@ -125,6 +193,8 @@ export default function FormulaDialog({
     setTextError(null)
     setTyped(false)
     if (select !== undefined) setSelected(select)
+    // una frase che non corrisponde più a un modello si vede solo a caselle
+    if (mode === 'guided' && !findSentence(next, ctx)) setMode('advanced')
   }
   const typeText = (s: string): void => {
     setText(s)
@@ -134,7 +204,15 @@ export default function FormulaDialog({
       setRoot(o.node)
       setTextError(null)
       setSelected([])
+      if (mode === 'guided' && !findSentence(o.node, ctx)) setMode('advanced')
     } else setTextError(o.error ?? null)
+  }
+  const start = (template: SentenceTemplate): void => {
+    const [yes, no] = defaultResults(expect, t)
+    const d: SentenceDefaults = { field: defaultField(columns, fields, ctx.inCell), yes, no }
+    const n = template.make(ctx, d)
+    change(n, firstEmpty(n) ?? firstBlank(template.parts(n, ctx)))
+    setMode('guided')
   }
 
   const preview = (n: FormulaNode): { value: string; error?: string } | null =>
@@ -153,6 +231,20 @@ export default function FormulaDialog({
       return parent.op === '&' ? 'text' : ARITHMETIC.includes(parent.op) ? 'number' : 'value'
     return 'number'
   }
+  /** Il nome della casella in `path`, come lo mostra la formula a caselle */
+  const slotLabel = (path: NodePath): string => {
+    if (!path.length) return t(condition ? 'fx.kind.condition' : 'fx.kind.result')
+    const parent = nodeAt(root, path.slice(0, -1))
+    const i = path[path.length - 1]
+    if (parent?.k === 'call') return argLabel(t, parent, i)
+    if (parent?.k === 'bin') return t(binLabel(parent.op, i))
+    return t('fx.arg.number')
+  }
+  /** Nel modo guidato lo spazio selezionato ha il suo nome */
+  const blankLabel = (path: NodePath): string => {
+    const part = sentence?.parts.find((p) => 'blank' in p && same(p.blank, path))
+    return part && 'blank' in part ? t(part.label as MessageKey) : slotLabel(path)
+  }
 
   // dentro una griglia si mostra la formula sulle prime caselle
   const strip = useMemo(() => {
@@ -164,96 +256,198 @@ export default function FormulaDialog({
     })
   }, [cells, incomplete, root, sample])
 
-  const view = (
-    <NodeView
-      node={root}
-      path={[]}
-      root={root}
-      selected={selected}
-      onSelect={setSelected}
-      onChange={change}
-      preview={preview}
+  const pick = (n: FormulaNode, select?: NodePath | null): void => {
+    if (!selected) return
+    let next = replaceAt(root, selected, n)
+    // gli spazi gemelli di una frase (lo stesso campo in ogni fascia) cambiano insieme
+    const part = sentence?.parts.find((p) => 'blank' in p && same(p.blank, selected))
+    if (part && 'blank' in part) for (const p of part.also ?? []) next = replaceAt(next, p, n)
+    // dopo una scelta si passa alla prossima casella da riempire
+    change(next, select ?? firstEmpty(next) ?? selected)
+  }
+
+  const picker = selected && nodeAt(root, selected) && (
+    <SlotPicker
+      key={`${mode}-${selected.join('.')}`}
+      title={t('fx.filling', {
+        what: mode === 'guided' ? blankLabel(selected) : slotLabel(selected)
+      })}
+      node={nodeAt(root, selected)!}
+      path={selected}
+      kind={slotKind(selected)}
+      expect={expect}
+      ctx={ctx}
+      columns={columns}
+      layers={layers}
+      fields={fields}
+      known={known}
+      variables={variables}
+      onPick={pick}
+      onRemove={
+        canRemove(root, selected)
+          ? () => change(removeArg(root, selected), selected.slice(0, -1))
+          : undefined
+      }
     />
+  )
+
+  const gridNotice = onVaryCells && mode !== 'start' && (
+    <p className="fx-notice">
+      {t('fx.gridNotice')}{' '}
+      <button
+        type="button"
+        onClick={() => {
+          onVaryCells()
+          onClose()
+        }}
+      >
+        {t('fx.gridNoticeButton')}
+      </button>
+    </p>
+  )
+
+  const resultLine = (
+    <p className={`small ${textError || result?.error ? 'fx-error' : 'muted'}`}>
+      {textError
+        ? t('fx.syntaxError', { error: textError })
+        : incomplete
+          ? t('fx.incomplete')
+          : result?.error
+            ? t('fx.resultError', { error: result.error })
+            : sampleLabel
+              ? t('fx.result', { value: result?.value || '∅', card: sampleLabel })
+              : t('fx.resultDefaults', { value: result?.value || '∅' })}
+    </p>
+  )
+  const stripView = strip && (
+    <div className="fx-strip" aria-label={t('fx.cells')}>
+      <span className="muted small">{t('fx.cells')}</span>
+      {strip.map((r, i) => (
+        <span
+          key={i}
+          className={r.error ? 'fx-error' : undefined}
+          title={r.error ?? r.value}
+          style={{ color: r.error ? undefined : markupColor(r.value) }}
+        >
+          {r.error ? '!' : plainText(r.value) || '∅'}
+        </span>
+      ))}
+    </div>
+  )
+  const formulaBox = (
+    <label className="fx-text">
+      <span>{t('fx.formula')}</span>
+      <textarea
+        value={text}
+        rows={2}
+        spellCheck={false}
+        onChange={(e) => typeText(e.target.value)}
+      />
+    </label>
   )
 
   return (
     <Dialog title={title ?? t('fx.title')} onClose={onClose}>
-      <div className="formula-dialog">
-        <div className="fx-main">
-          <div className="fx-tree">
-            {view}
-            <p className="muted small">{t('fx.treeHint')}</p>
-          </div>
-          <div className="fx-side">
-            {selected && nodeAt(root, selected) && (
-              <SlotPicker
-                key={selected.join('.')}
-                node={nodeAt(root, selected)!}
-                path={selected}
-                kind={slotKind(selected)}
-                expect={expect}
-                ctx={ctx}
-                columns={columns}
-                layers={layers}
-                fields={fields}
-                known={known}
-                variables={variables}
-                onPick={(n, select) => {
-                  const next = replaceAt(root, selected, n)
-                  // dopo una scelta si passa alla prossima casella da riempire
-                  change(next, select ?? firstEmpty(next) ?? selected)
-                }}
-                onRemove={
-                  canRemove(root, selected)
-                    ? () => change(removeArg(root, selected), selected.slice(0, -1))
-                    : undefined
-                }
-              />
-            )}
-          </div>
-        </div>
-        <div className="fx-foot">
-          <label className="fx-text">
-            <span>{t('fx.formula')}</span>
-            <textarea
-              value={text}
-              rows={2}
-              spellCheck={false}
-              onChange={(e) => typeText(e.target.value)}
+      <div className={`formula-dialog fx-mode-${mode}`}>
+        {mode === 'start' && (
+          <StartScreen
+            templates={availableSentences(sctx)}
+            ctx={ctx}
+            onVaryCells={
+              onVaryCells &&
+              (() => {
+                onVaryCells()
+                onClose()
+              })
+            }
+            onPick={start}
+            onWrite={() => {
+              setMode('advanced')
+              setSelected([])
+            }}
+          />
+        )}
+        {mode === 'guided' && sentence && (
+          <div className="fx-guided">
+            {gridNotice}
+            <Sentence
+              parts={sentence.parts}
+              root={root}
+              selected={selected}
+              onSelect={setSelected}
+              onChange={change}
             />
-          </label>
-          <p className={`small ${textError || result?.error ? 'fx-error' : 'muted'}`}>
-            {textError
-              ? t('fx.syntaxError', { error: textError })
-              : incomplete
-                ? t('fx.incomplete')
-                : result?.error
-                  ? t('fx.resultError', { error: result.error })
-                  : sampleLabel
-                    ? t('fx.result', { value: result?.value || '∅', card: sampleLabel })
-                    : t('fx.resultDefaults', { value: result?.value || '∅' })}
-          </p>
-          {strip && (
-            <div className="fx-strip" aria-label={t('fx.cells')}>
-              <span className="muted small">{t('fx.cells')}</span>
-              {strip.map((r, i) => (
-                <span
-                  key={i}
-                  className={r.error ? 'fx-error' : undefined}
-                  title={r.error ?? r.value}
-                  style={{ color: r.error ? undefined : markupColor(r.value) }}
-                >
-                  {r.error ? '!' : plainText(r.value) || '∅'}
-                </span>
-              ))}
+            <div className="fx-guided-picker">{picker}</div>
+            <div className="fx-result-box">
+              {resultLine}
+              {stripView}
             </div>
-          )}
-        </div>
-        <div className="dialog-buttons">
+            <details className="fx-details">
+              <summary>{t('fx.showFormula')}</summary>
+              {formulaBox}
+            </details>
+          </div>
+        )}
+        {mode === 'advanced' && (
+          <>
+            {gridNotice}
+            <div className="fx-main">
+              <div className="fx-tree">
+                {root.k === 'empty' && <p className="fx-steps">{t('fx.steps')}</p>}
+                <NodeView
+                  node={root}
+                  path={[]}
+                  root={root}
+                  selected={selected}
+                  onSelect={setSelected}
+                  onChange={change}
+                  preview={preview}
+                />
+                <p className="muted small">{t('fx.treeHint')}</p>
+              </div>
+              <div className="fx-side">{picker}</div>
+            </div>
+            <div className="fx-foot">
+              {formulaBox}
+              {resultLine}
+              {stripView}
+            </div>
+          </>
+        )}
+        <div className="dialog-buttons fx-buttons">
+          <span className="fx-modes">
+            {mode !== 'start' && (
+              <button
+                type="button"
+                onClick={() => {
+                  change({ k: 'empty' }, [])
+                  setMode('start')
+                }}
+              >
+                {t('fx.startOver')}
+              </button>
+            )}
+            {mode === 'guided' && (
+              <button type="button" onClick={() => setMode('advanced')}>
+                {t('fx.advanced')}
+              </button>
+            )}
+            {mode === 'advanced' && sentence && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('guided')
+                  setSelected(firstEmpty(root) ?? firstBlank(sentence.parts))
+                }}
+              >
+                {t('fx.guided')}
+              </button>
+            )}
+          </span>
           <button onClick={onClose}>{t('dialog.cancel')}</button>
           <button
             className="primary"
-            disabled={!!textError || incomplete}
+            disabled={mode === 'start' || !!textError || incomplete}
             onClick={() => {
               onApply(unchanged ? value : typed ? text.trim() : formulaText(root))
               onClose()
@@ -265,6 +459,11 @@ export default function FormulaDialog({
       </div>
     </Dialog>
   )
+}
+
+const firstBlank = (parts: SentencePart[] | null): NodePath | null => {
+  const b = parts?.find((p) => 'blank' in p)
+  return b && 'blank' in b ? b.blank : null
 }
 
 /** Il colore di un testo formattato tutto insieme, [10]{color=red}, per la striscia delle caselle */
@@ -280,6 +479,158 @@ function canRemove(root: FormulaNode, path: NodePath): boolean {
   if (parent?.k !== 'call') return false
   const spec = FUNCTION_SPECS[parent.fn]
   return !!spec?.variadic && parent.args.length > (spec.min ?? spec.args.length)
+}
+
+/** Etichetta dell'argomento i di una funzione, numerata se ripetibile */
+function argLabel(
+  t: (k: MessageKey, p?: Record<string, string | number>) => string,
+  call: Extract<FormulaNode, { k: 'call' }>,
+  i: number
+): string {
+  const spec = FUNCTION_SPECS[call.fn]
+  const base = t(`fx.arg.${argSpec(call.fn, i).key}` as MessageKey)
+  return spec?.variadic && i >= spec.args.length - 1 ? `${base} ${i - spec.args.length + 2}` : base
+}
+
+const binLabel = (op: BinaryOperator, i: number): MessageKey =>
+  (COMPARISON_OPERATORS as readonly string[]).includes(op)
+    ? i === 0
+      ? 'fx.arg.compareLeft'
+      : 'fx.arg.compareRight'
+    : i === 0
+      ? 'fx.arg.first'
+      : 'fx.arg.second'
+
+// --- schermata iniziale ---
+
+function StartScreen({
+  templates,
+  ctx,
+  onVaryCells,
+  onPick,
+  onWrite
+}: {
+  templates: SentenceTemplate[]
+  ctx: CatalogContext
+  onVaryCells?: () => void
+  onPick(template: SentenceTemplate): void
+  onWrite(): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const card = (
+    key: string,
+    label: string,
+    hint: string,
+    onClick: () => void
+  ): React.JSX.Element => (
+    <button key={key} type="button" className="fx-card" onClick={onClick}>
+      <strong>{label}</strong>
+      <span>{hint}</span>
+    </button>
+  )
+  const cards = templates.map((s) => {
+    const k = `fx.card.${s.id}${s.counter && !ctx.inCell ? '.out' : ''}`
+    return card(s.id, t(k as MessageKey), t(`${k}.hint` as MessageKey), () => onPick(s))
+  })
+  if (onVaryCells)
+    cards.splice(
+      1,
+      0,
+      card('vary', t('fx.start.varyCells'), t('fx.start.varyCellsHint'), onVaryCells)
+    )
+  return (
+    <div className="fx-start-screen">
+      <h3>{t('fx.start.title')}</h3>
+      <div className="fx-cards">
+        {cards}
+        <button type="button" className="fx-card fx-card-plain" onClick={onWrite}>
+          <strong>{t('fx.start.writeMyself')}</strong>
+          <span>{t('fx.start.writeMyselfHint')}</span>
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// --- la frase con gli spazi ---
+
+function Sentence({
+  parts,
+  root,
+  selected,
+  onSelect,
+  onChange
+}: {
+  parts: SentencePart[]
+  root: FormulaNode
+  selected: NodePath | null
+  onSelect(p: NodePath): void
+  onChange(n: FormulaNode, select?: NodePath | null): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  return (
+    <div className="fx-sentence">
+      {parts.map((p, i) => {
+        if ('text' in p) return <span key={i}>{t(p.text as MessageKey)}</span>
+        if ('op' in p) {
+          const n = nodeAt(root, p.op)
+          if (n?.k !== 'bin') return null
+          return (
+            <select
+              key={i}
+              className="fx-op"
+              value={n.op}
+              onChange={(e) =>
+                onChange(replaceAt(root, p.op, { ...n, op: e.target.value as BinaryOperator }))
+              }
+            >
+              {p.ops.map((o) => (
+                <option key={o} value={o}>
+                  {t(`fx.op.${o}` as MessageKey)}
+                </option>
+              ))}
+            </select>
+          )
+        }
+        if ('add' in p) {
+          const add = (): void => {
+            if (!p.band) {
+              const target = nodeAt(root, p.add)
+              const next = addArg(root, p.add)
+              onChange(next, target?.k === 'call' ? [...p.add, target.args.length] : undefined)
+              return
+            }
+            // una fascia in più prima di "altrimenti", con lo stesso campo delle altre
+            const last = nodeAt(root, p.add)
+            if (last?.k !== 'call') return
+            const f = nodeAt(root, [0, 0]) ?? { k: 'empty' }
+            const band: FormulaNode = {
+              k: 'call',
+              fn: 'IF',
+              args: [{ k: 'bin', op: '>=', l: f, r: { k: 'empty' } }, { k: 'empty' }, last.args[2]]
+            }
+            onChange(replaceAt(root, [...p.add, 2], band), [...p.add, 2, 0, 1])
+          }
+          return (
+            <button key={i} type="button" className="fx-add" onClick={add}>
+              {t(p.label as MessageKey)}
+            </button>
+          )
+        }
+        const n = nodeAt(root, p.blank)
+        if (!n) return null
+        return (
+          <Leaf
+            key={i}
+            node={n}
+            selected={same(p.blank, selected)}
+            title={t(p.label as MessageKey)}
+            onClick={() => onSelect(p.blank)}
+          />
+        )
+      })}
+    </div>
+  )
 }
 
 // --- la formula a caselle ---
@@ -395,15 +746,7 @@ function NodeView(props: ViewProps): React.JSX.Element {
     return (
       <div className="fx-node">
         {head(t(`fx.fn.${node.fn}` as MessageKey), node.fn)}
-        {node.args.map((arg, i) =>
-          slot(
-            spec?.variadic && i >= spec.args.length - 1
-              ? `${t(`fx.arg.${argSpec(node.fn, i).key}` as MessageKey)} ${i - spec.args.length + 2}`
-              : t(`fx.arg.${argSpec(node.fn, i).key}` as MessageKey),
-            arg,
-            i
-          )
-        )}
+        {node.args.map((arg, i) => slot(argLabel(t, node, i), arg, i))}
         {spec?.variadic && (
           <button
             type="button"
@@ -429,7 +772,7 @@ function NodeView(props: ViewProps): React.JSX.Element {
     return (
       <div className="fx-node">
         {head(t(`fx.entry.${kind}` as MessageKey))}
-        {slot(t('fx.arg.left'), node.l, 0)}
+        {slot(t(binLabel(node.op, 0)), node.l, 0)}
         {ops.length > 1 && (
           <div className="fx-slot">
             <span className="fx-slot-label">{t('fx.arg.operator')}</span>
@@ -448,7 +791,7 @@ function NodeView(props: ViewProps): React.JSX.Element {
             </select>
           </div>
         )}
-        {slot(t('fx.arg.right'), node.r, 1)}
+        {slot(t(binLabel(node.op, 1)), node.r, 1)}
       </div>
     )
   }
@@ -494,10 +837,12 @@ function useFieldLabel(): (name: string) => string {
 function Leaf({
   node,
   selected,
+  title,
   onClick
 }: {
   node: FormulaNode
   selected: boolean
+  title?: string
   onClick(): void
 }): React.JSX.Element {
   const { t } = useI18n()
@@ -533,9 +878,12 @@ function Leaf({
         {attrs && <span className="fx-chip fx-attrs">{attrs}</span>}
       </>
     )
-  } else body = <span className="fx-chip">?</span>
+  } else {
+    // una formula annidata dentro uno spazio della frase: si apre nel modo avanzato
+    body = <span className="fx-chip fx-fn-chip">{node.k === 'call' ? node.fn : '…'}</span>
+  }
   return (
-    <button type="button" className={cls} onClick={onClick}>
+    <button type="button" className={cls} title={title} onClick={onClick}>
       {body}
     </button>
   )
@@ -547,6 +895,7 @@ const isColorText = (v: string, pal: Record<string, string>): boolean =>
 // --- cosa mettere nella casella ---
 
 interface PickerProps {
+  title: string
   node: FormulaNode
   path: NodePath
   kind: SlotKind
@@ -573,27 +922,61 @@ function firstTab(kind: SlotKind, expect: FormulaExpect, node: FormulaNode): Tab
   return expect === 'value' ? 'field' : expect === 'bool' ? 'bool' : expect
 }
 
+/** Le schede che servono di solito per questa casella; le altre sotto "Altro…" */
+function relevantTabs(kind: SlotKind, expect: FormulaExpect): Tab[] {
+  switch (kind) {
+    case 'condition':
+      return ['compare', 'formula', 'field', 'bool']
+    case 'number':
+      return ['number', 'field', 'system', 'formula']
+    case 'text':
+      return ['text', 'field', 'variable', 'formula']
+    case 'value':
+      return ['field', 'number', 'text', 'variable']
+    default:
+      switch (expect) {
+        case 'color':
+          return ['color', 'variable', 'field', 'formula']
+        case 'image':
+          return ['image', 'variable', 'field', 'formula']
+        case 'bool':
+          return ['bool', 'compare', 'formula', 'field']
+        case 'value':
+          return ['field', 'number', 'text', 'formula']
+        default:
+          return ['text', 'field', 'variable', 'formula']
+      }
+  }
+}
+
+const ALL_TABS: Tab[] = [
+  'field',
+  'variable',
+  'system',
+  'number',
+  'text',
+  'color',
+  'image',
+  'bool',
+  'compare',
+  'formula'
+]
+
 function SlotPicker(p: PickerProps): React.JSX.Element {
   const { t } = useI18n()
   // una formula nuova parte dal catalogo
   const [tab, setTab] = useState<Tab>(() =>
     !p.path.length && p.node.k === 'empty' ? 'formula' : firstTab(p.kind, p.expect, p.node)
   )
-  const tabs: Tab[] = [
-    'field',
-    'variable',
-    'system',
-    'number',
-    'text',
-    'color',
-    ...(p.expect === 'image' ? (['image'] as Tab[]) : []),
-    'bool',
-    'compare',
-    'formula'
-  ]
+  const [all, setAll] = useState(false)
+  const few = relevantTabs(p.kind, p.expect)
+  // dentro una griglia le variabili della casella servono quasi sempre
+  if (p.ctx.inCell && !few.includes('system') && p.kind !== 'condition') few.splice(2, 0, 'system')
+  if (!few.includes(tab)) few.push(tab)
+  const tabs = (all ? ALL_TABS : few).filter((x) => x !== 'image' || p.expect === 'image')
   return (
     <div className="fx-picker">
-      <span className="fx-picker-title">{t(`fx.kind.${p.kind}` as MessageKey)}</span>
+      <span className="fx-picker-title">{p.title}</span>
       <div className="fx-tabs" role="tablist">
         {tabs.map((x) => (
           <button
@@ -607,6 +990,9 @@ function SlotPicker(p: PickerProps): React.JSX.Element {
             {t(`fx.tab.${x}` as MessageKey)}
           </button>
         ))}
+        <button type="button" className="fx-more" onClick={() => setAll(!all)}>
+          {all ? t('fx.less') : t('fx.more')}
+        </button>
       </div>
       <div className="fx-tab-body">
         {tab === 'field' && <FieldTab {...p} />}
@@ -780,6 +1166,12 @@ function TextTab(p: PickerProps): React.JSX.Element {
         value={src}
         placeholder={t('fx.textPlaceholder')}
         onChange={(e) => setSrc(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault()
+            pick()
+          }
+        }}
       />
       <div className="fx-row">
         <select
@@ -797,6 +1189,9 @@ function TextTab(p: PickerProps): React.JSX.Element {
         <button type="button" onClick={() => setFormatting(true)}>
           {t('fx.format')}
         </button>
+        <button type="button" className="primary" onClick={pick}>
+          {t('fx.use')}
+        </button>
       </div>
       {fmt && (
         <p className="small">
@@ -807,9 +1202,6 @@ function TextTab(p: PickerProps): React.JSX.Element {
         </p>
       )}
       <p className="muted small">{t('fx.textHint')}</p>
-      <button type="button" className="primary" onClick={pick}>
-        {t('fx.use')}
-      </button>
       {formatting && (
         <FormatDialog
           initial={attrs}

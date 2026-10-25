@@ -548,15 +548,21 @@ Un campo vale, in ordine di precedenza: il livello valore calcolato, la cella no
 
 ### 9.1 L'assistente formule
 
-Il tasto **fx** accanto al campo **Formula** apre l'assistente, che costruisce la formula casella per casella. Su un livello con **Colonna del foglio** o **Fisso** lo stesso assistente si apre con **Crea una formula con l'assistente…**, sotto **Valore sulle carte**: confermando, il livello passa a **Formula**. C'è anche accanto al **Filtro** del generatore (sezione 10), dove la formula deve dare vero o falso.
+Il tasto **fx** accanto al campo **Formula** apre l'assistente. Su un livello con **Colonna del foglio** o **Fisso** lo stesso assistente si apre con **Crea una formula con l'assistente…**, sotto **Valore sulle carte**: confermando, il livello passa a **Formula**. C'è anche accanto al **Filtro** del generatore (sezione 10), dove la formula deve dare vero o falso.
 
-- A sinistra la formula come blocchi: ogni funzione ha le sue caselle con un nome (per `IF`: **Condizione**, **Se vero**, **Se falso**) e sotto ogni casella il valore che dà sulla prima carta. Le caselle vuote dicono **Scegli…**.
-- A destra cosa mettere nella casella scelta: **Campo** (colonne e livelli), **Variabile**, **Componente e casella** (le variabili di sistema con un nome leggibile, come **Numero della casella** per `{cell.index}`; quelle della casella solo dentro il contenuto di una griglia), **Numero**, **Testo** (con i campi tra graffe e **Formatta…** per colore, peso e gli altri attributi), **Colore**, **Immagine** (per i livelli immagine), **Sì / No**, **Confronto** e **Formula**, che annida un'altra funzione. La scheda proposta per prima dipende dalla casella e dal livello: per una forma il risultato parte da **Colore**.
-- **Formula** raccoglie le funzioni per categoria: **Condizione**, **Selezione**, **Calcolo**, **Testo** e **Ricette**. Le ricette impostano i casi frequenti: **Ogni N** (`MOD`), **Alterna**, **Scacchiera**, **Scorri un elenco** e **Scegli a caso** (`PICK`), **Solo se non vuoto**, **Per fasce**. Dentro una griglia contano le caselle, fuori i componenti del set. Con **Metti dentro il valore attuale** la funzione scelta prende il valore della casella come primo argomento.
-- **Più casi** mostra una catena di `IF` come elenco di righe **Quando… Allora…** con **Altrimenti** in fondo; **+ Caso** ne aggiunge una.
-- Sotto, il testo della formula: si aggiorna mentre si riempiono le caselle e si può anche scrivere a mano. Dentro una griglia compare il risultato delle prime caselle. **Usa la formula** scrive la formula nel campo; una formula aperta e non cambiata resta com'era.
+Con una formula vuota l'assistente chiede **Cosa vuoi fare?** e propone i casi frequenti come schede: un valore diverso secondo una condizione, cambia qualcosa ogni N caselle (o componenti), alterna due valori, scacchiera, scorri un elenco, scegli a caso, mostra solo se un campo non è vuoto, basso/medio/alto, calcola un numero, unisci testi e campi. Accanto al filtro del generatore le schede sono condizioni (confronta un campo con un valore, un campo non è vuoto). **La scrivo io** passa alla modalità avanzata.
+
+![La schermata iniziale dell'assistente](img/assistente-formule-inizio.png)
+
+Scelta una scheda, la formula compare come una frase da completare, già riempita con valori sensati: per esempio **Ogni 10 caselle, mostra "Sì" altrimenti "No"**. Ogni spazio è un pulsante: quello selezionato ha sotto il selettore con quello che ci si può mettere (**Campo**, **Numero**, **Testo** con **Formatta…** per colore e peso, **Variabile**, **Componente e casella**, **Formula**…; **Altro…** mostra le schede restanti). Sotto la frase il risultato sulla prima carta e, dentro una griglia, quello delle prime caselle; **Mostra formula** apre il testo della formula, che si può anche scrivere a mano. Aprendo una formula esistente che corrisponde a una delle frasi, l'assistente la mostra già come frase.
 
 ![L'assistente formule sul numero del tracciato del punteggio](img/assistente-formule.png)
+
+**Avanzato** mostra la formula come blocchi annidati: ogni funzione ha le sue caselle con un nome (per `IF`: **Condizione**, **Se vero**, **Se falso**) e sotto ogni casella il valore che dà sulla prima carta; **Formula** nel selettore raccoglie le funzioni per categoria (**Condizione**, **Selezione**, **Calcolo**, **Testo**, **Ricette**) e **Più casi** mostra una catena di `IF` come elenco di righe **Quando… Allora…** con **Altrimenti** in fondo. **Guidato** torna alla frase quando la formula ha ancora quella forma; **Ricomincia** riporta a **Cosa vuoi fare?**. **Usa la formula** scrive la formula nel campo; una formula aperta e non cambiata resta com'era.
+
+Su un livello **griglia** la formula vale per tutta la griglia (per esempio il colore delle caselle di una carta): per cambiare le caselle una per una la formula va su un livello del **contenuto delle caselle** (sezione 4.8). Per questo, su una griglia senza contenuto, la sezione **Contenuto delle caselle** ha **Testo in ogni casella** e **Forma in ogni casella**: creano un livello nella prima casella, lo chiudono in un gruppo e lo impostano come contenuto; per il testo si apre subito l'assistente. La stessa scelta è nella schermata iniziale dell'assistente come **Varia casella per casella**.
+
+![I pulsanti che creano il contenuto delle caselle](img/griglia-contenuto-crea.png)
 
 ## 10. Generare le carte
 

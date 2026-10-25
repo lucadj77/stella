@@ -1,5 +1,5 @@
 // gruppo M: assistente formule (tasto fx) sul numero del tracciato del punteggio
-import { launch, makeProject, mockOpen, shot } from './lib.mjs'
+import { launch, makeProject, mockOpen, shot, shotEl } from './lib.mjs'
 import { writeFileSync } from 'node:fs'
 const lang = process.argv[2]
 const it = lang === 'it'
@@ -112,8 +112,31 @@ await win.locator('aside.layers').getByText(numName, { exact: true }).first().cl
 await win.waitForTimeout(800)
 await win.locator('.value-source .fx-button').click()
 await win.waitForTimeout(800)
-// la casella "se vero", con il testo formattato
-await win.locator('.formula-dialog .fx-leaf').nth(3).click()
-await win.waitForTimeout(500)
+// la formula del numero riconosciuta come frase «Ogni 10 caselle…»
 await shot(win, `${lang}/assistente-formule`, { clip: await win.locator('.dialog').boundingBox() })
+// «Ricomincia»: la schermata «Cosa vuoi fare?»
+await win.getByRole('button', { name: T['fx.startOver'] }).click()
+await win.waitForTimeout(500)
+await shot(win, `${lang}/assistente-formule-inizio`, {
+  clip: await win.locator('.dialog').boundingBox()
+})
+await win.getByRole('button', { name: T['dialog.cancel'] }).click()
+await win.waitForTimeout(400)
+// la griglia senza contenuto: i pulsanti che creano il testo o la forma nelle caselle
+await win
+  .locator('aside.layers')
+  .getByText(it ? 'caselle' : 'cells', { exact: true })
+  .first()
+  .click()
+await win.waitForTimeout(800)
+await win
+  .locator('.properties select')
+  .filter({ has: win.locator(`option[value="${it ? 'casella' : 'cell'}"]`) })
+  .last()
+  .selectOption('')
+await win.waitForTimeout(500)
+const create = win.locator('.fx-content-create')
+await create.scrollIntoViewIfNeeded()
+await win.waitForTimeout(300)
+await shotEl(win, `${lang}/griglia-contenuto-crea`, create)
 await app.close()

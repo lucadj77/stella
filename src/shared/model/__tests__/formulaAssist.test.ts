@@ -87,3 +87,52 @@ describe('assistente', () => {
     expect(openFormula('').node).toEqual({ k: 'empty' })
   })
 })
+
+describe('frasi guidate', () => {
+  const ctx = { inCell: true }
+  const d = {
+    field: 'forza',
+    yes: { k: 'str', v: 'A' } as const,
+    no: { k: 'str', v: 'B' } as const
+  }
+
+  it('ogni modello riconosce ciò che produce', async () => {
+    const { SENTENCES, findSentence } = await import('../formulaAssist')
+    for (const s of SENTENCES) {
+      const n = s.make(ctx, d)
+      const found = findSentence(n, ctx)
+      expect(found?.template.id, s.id).toBe(s.id)
+      // anche dopo scrittura e rilettura
+      const again = parseExpression(printExpression(n)).node!
+      expect(findSentence(again, ctx)?.template.id, s.id).toBe(s.id)
+    }
+  })
+
+  it('riconosce la formula della guida e le fasce', async () => {
+    const { findSentence } = await import('../formulaAssist')
+    const guide = parseExpression(
+      'IF(MOD({cell.index}; 10) = 0; "[" & {cell.index} & "]{color=red}"; {cell.index})'
+    ).node!
+    expect(findSentence(guide, ctx)?.template.id).toBe('everyN')
+    // fuori da una griglia non è un "ogni N": resta un IF con un confronto
+    expect(findSentence(guide, { inCell: false })?.template.id).toBe('if')
+    const r = findSentence(parseExpression('IF({f}>=7;"a";IF({f}>=4;"b";"c"))').node!, ctx)
+    expect(r?.template.id).toBe('ranges')
+    expect(r?.parts.filter((p) => 'blank' in p).length).toBe(6)
+    expect(findSentence(parseExpression('UPPER({nome})').node!, ctx)).toBeNull()
+  })
+
+  it('propone i modelli secondo il contesto', async () => {
+    const { availableSentences } = await import('../formulaAssist')
+    const ids = (c: Parameters<typeof availableSentences>[0]): string[] =>
+      availableSentences(c).map((s) => s.id)
+    expect(ids({ inCell: true, condition: false, onGrid: false })).toContain('checkerboard')
+    expect(ids({ inCell: false, condition: false, onGrid: false })).not.toContain('checkerboard')
+    expect(ids({ inCell: false, condition: false, onGrid: false })).toContain('everyN')
+    expect(ids({ inCell: false, condition: false, onGrid: true })).not.toContain('everyN')
+    expect(ids({ inCell: false, condition: true, onGrid: false })).toEqual([
+      'compare',
+      'notEmptyCond'
+    ])
+  })
+})

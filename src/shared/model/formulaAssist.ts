@@ -2,7 +2,13 @@
 // sull'albero di una formula (vedi FormulaNode in formula.ts). La finestra lavora sull'albero e
 // scrive la formula come testo: il formato dei template non cambia.
 
-import { parseExpression, printExpression, type BinaryOperator, type FormulaNode } from './formula'
+import {
+  COMPARISON_OPERATORS,
+  parseExpression,
+  printExpression,
+  type BinaryOperator,
+  type FormulaNode
+} from './formula'
 import { gridSize } from './grid'
 import { parseAttrs, serializeAttrs, type Attrs } from './markup'
 import { walkLayers } from './normalize'
@@ -420,3 +426,356 @@ export function firstEmpty(n: FormulaNode, path: NodePath = []): NodePath | null
   }
   return null
 }
+
+// --- frasi guidate ---
+// Il modo guidato mostra la formula come una frase con gli spazi da riempire. Ogni modello
+// riconosce la propria forma nell'albero e ne elenca i pezzi: testo, spazio (un nodo), operatore
+// o pulsante per aggiungere una voce. Una formula che non corrisponde a nessun modello si apre nel
+// modo avanzato.
+
+export type SentencePart =
+  | { text: string }
+  /** Uno spazio da riempire: il nodo in `blank`; `also` sono copie da tenere uguali */
+  | { blank: NodePath; kind: SlotKind; label: string; also?: NodePath[] }
+  | { op: NodePath; ops: readonly BinaryOperator[] }
+  /** Aggiunge una voce: un argomento alla funzione in `add`, o una fascia se `band` */
+  | { add: NodePath; label: string; band?: boolean }
+
+export interface SentenceDefaults {
+  /** Il campo da proporre: la prima colonna numerica, se c'è */
+  field: string
+  /** Risultati proposti secondo ciò che il livello si aspetta */
+  yes: FormulaNode
+  no: FormulaNode
+}
+
+export interface SentenceTemplate {
+  id: string
+  /** Vale solo dentro il contenuto di una griglia */
+  cell?: boolean
+  /** Usa il contatore (casella o componente): fuori da una griglia conta i componenti */
+  counter?: boolean
+  /** Dà vero o falso: per il filtro del generatore e per mostrare o nascondere un gruppo */
+  condition?: boolean
+  make(ctx: CatalogContext, d: SentenceDefaults): FormulaNode
+  /** I pezzi della frase, o null se il nodo non ha questa forma */
+  parts(node: FormulaNode, ctx: CatalogContext): SentencePart[] | null
+}
+
+const isCall = (
+  n: FormulaNode,
+  fn: string,
+  args?: number
+): n is Extract<FormulaNode, { k: 'call' }> =>
+  n.k === 'call' && n.fn === fn && (args === undefined || n.args.length === args)
+const isBin = (n: FormulaNode, ops: readonly string[]): n is Extract<FormulaNode, { k: 'bin' }> =>
+  n.k === 'bin' && ops.includes(n.op)
+const isNum = (n: FormulaNode, v?: number): boolean =>
+  n.k === 'num' && (v === undefined || n.v === v)
+const isCounter = (n: FormulaNode, ctx: CatalogContext): boolean =>
+  n.k === 'field' && n.name === (ctx.inCell ? 'cell.index' : 'card.number')
+const ARITH: readonly BinaryOperator[] = ['+', '-', '*', '/']
+
+const blank = (path: NodePath, kind: SlotKind, label: string, also?: NodePath[]): SentencePart => ({
+  blank: path,
+  kind,
+  label,
+  also
+})
+const txt = (text: string): SentencePart => ({ text })
+
+/** IF(MOD(contatore; N) = 0; A; B) */
+const everyNth: SentenceTemplate = {
+  id: 'everyN',
+  counter: true,
+  make: (c, d) => call('IF', bin('=', call('MOD', counter(c), num(10)), num(0)), d.yes, d.no),
+  parts: (n, c) => {
+    if (!isCall(n, 'IF', 3) || !isBin(n.args[0], ['=']) || !isNum(n.args[0].r, 0)) return null
+    const mod = n.args[0].l
+    if (!isCall(mod, 'MOD', 2) || !isCounter(mod.args[0], c)) return null
+    return [
+      txt('fx.s.every'),
+      blank([0, 0, 1], 'number', 'fx.b.n'),
+      txt(c.inCell ? 'fx.s.cellsShow' : 'fx.s.componentsShow'),
+      blank([1], 'result', 'fx.b.show'),
+      txt('fx.s.otherwise'),
+      blank([2], 'result', 'fx.b.otherwise')
+    ]
+  }
+}
+
+/** IF(MOD(contatore; 2) = 1; A; B) */
+const alternating: SentenceTemplate = {
+  id: 'alternate',
+  counter: true,
+  make: (c, d) => call('IF', bin('=', call('MOD', counter(c), num(2)), num(1)), d.yes, d.no),
+  parts: (n, c) => {
+    if (!isCall(n, 'IF', 3) || !isBin(n.args[0], ['=']) || !isNum(n.args[0].r)) return null
+    const mod = n.args[0].l
+    if (!isCall(mod, 'MOD', 2) || !isCounter(mod.args[0], c) || !isNum(mod.args[1], 2)) return null
+    return [
+      txt('fx.s.alternate'),
+      blank([1], 'result', 'fx.b.first'),
+      txt('fx.s.and'),
+      blank([2], 'result', 'fx.b.second')
+    ]
+  }
+}
+
+/** IF(MOD({cell.row} + {cell.column}; 2) = 0; A; B) */
+const checker: SentenceTemplate = {
+  id: 'checkerboard',
+  cell: true,
+  make: (_, d) =>
+    call(
+      'IF',
+      bin('=', call('MOD', bin('+', field('cell.row'), field('cell.column')), num(2)), num(0)),
+      d.yes,
+      d.no
+    ),
+  parts: (n) => {
+    if (!isCall(n, 'IF', 3) || !isBin(n.args[0], ['=']) || !isNum(n.args[0].r)) return null
+    const mod = n.args[0].l
+    if (!isCall(mod, 'MOD', 2) || !isNum(mod.args[1], 2)) return null
+    const sum = mod.args[0]
+    if (!isBin(sum, ['+']) || sum.l.k !== 'field' || sum.r.k !== 'field') return null
+    if (![sum.l.name, sum.r.name].every((x) => x === 'cell.row' || x === 'cell.column')) return null
+    return [
+      txt('fx.s.checkerboard'),
+      blank([1], 'result', 'fx.b.first'),
+      txt('fx.s.and'),
+      blank([2], 'result', 'fx.b.second')
+    ]
+  }
+}
+
+const pickParts = (n: FormulaNode, intro: string): SentencePart[] => [
+  txt(intro),
+  ...(n.k === 'call' ? n.args.slice(1).map((_, i) => blank([i + 1], 'result', 'fx.b.item')) : []),
+  { add: [], label: 'fx.addItem' }
+]
+
+/** PICK(contatore; voci…) */
+const cycling: SentenceTemplate = {
+  id: 'cycle',
+  counter: true,
+  make: (c, d) => call('PICK', counter(c), d.yes, d.no),
+  parts: (n, c) =>
+    isCall(n, 'PICK') && n.args.length >= 2 && isCounter(n.args[0], c)
+      ? pickParts(n, 'fx.s.cycle')
+      : null
+}
+
+/** PICK({cell.random}; voci…) */
+const randomPick: SentenceTemplate = {
+  id: 'random',
+  cell: true,
+  make: (_, d) => call('PICK', field('cell.random'), d.yes, d.no),
+  parts: (n) =>
+    isCall(n, 'PICK') &&
+    n.args.length >= 2 &&
+    n.args[0].k === 'field' &&
+    n.args[0].name === 'cell.random'
+      ? pickParts(n, 'fx.s.random')
+      : null
+}
+
+/** IF(campo >= soglia; A; IF(campo >= soglia; B; C)): fasce dalla più alta */
+const ranges: SentenceTemplate = {
+  id: 'ranges',
+  make: (_, d) =>
+    call(
+      'IF',
+      bin('>=', field(d.field), num(7)),
+      d.yes,
+      call('IF', bin('>=', field(d.field), num(4)), { k: 'str', v: '' }, d.no)
+    ),
+  parts: (n) => {
+    const len = chainLength(n)
+    if (len < 2) return null
+    const out: SentencePart[] = []
+    const fieldPaths: NodePath[] = []
+    for (let i = 0; i < len; i++) {
+      const at = Array<number>(i).fill(2)
+      const ifNode = nodeAt(n, at) as Extract<FormulaNode, { k: 'call' }>
+      const cond = ifNode.args[0]
+      if (!isBin(cond, ['>=']) || cond.l.k !== 'field') return null
+      fieldPaths.push([...at, 0, 0])
+    }
+    for (let i = 0; i < len; i++) {
+      const at = Array<number>(i).fill(2)
+      out.push(txt(i === 0 ? 'fx.s.when' : 'fx.s.whenAlso'))
+      if (i === 0) out.push(blank([0, 0], 'value', 'fx.b.field', fieldPaths.slice(1)))
+      out.push(txt('fx.s.atLeast'))
+      out.push(blank([...at, 0, 1], 'number', 'fx.b.threshold'))
+      out.push(txt('fx.s.show'))
+      out.push(blank([...at, 1], 'result', 'fx.b.show'))
+    }
+    out.push(txt('fx.s.otherwise'))
+    out.push(blank(Array<number>(len).fill(2), 'result', 'fx.b.otherwise'))
+    out.push({ add: Array<number>(len - 1).fill(2), label: 'fx.addBand', band: true })
+    return out
+  }
+}
+
+/** IF(a op b; A; B) */
+const ifThen: SentenceTemplate = {
+  id: 'if',
+  make: (_, d) => call('IF', bin('>', field(d.field), num(3)), d.yes, d.no),
+  parts: (n) => {
+    if (!isCall(n, 'IF') || n.args.length < 2 || n.args.length > 3) return null
+    if (!isBin(n.args[0], COMPARISON_OPERATORS)) return null
+    return [
+      txt('fx.s.if'),
+      blank([0, 0], 'value', 'fx.b.value'),
+      { op: [0], ops: COMPARISON_OPERATORS },
+      blank([0, 1], 'value', 'fx.b.comparedWith'),
+      txt('fx.s.show'),
+      blank([1], 'result', 'fx.b.show'),
+      ...(n.args.length === 3
+        ? [txt('fx.s.otherwise'), blank([2], 'result', 'fx.b.otherwise')]
+        : [])
+    ]
+  }
+}
+
+/** IF(ISBLANK(campo); ""; A) */
+const notEmpty: SentenceTemplate = {
+  id: 'notEmpty',
+  make: (_, d) => call('IF', call('ISBLANK', field(d.field)), { k: 'str', v: '' }, field(d.field)),
+  parts: (n) => {
+    if (!isCall(n, 'IF', 3) || !isCall(n.args[0], 'ISBLANK', 1)) return null
+    if (n.args[1].k !== 'str' || n.args[1].v !== '') return null
+    return [
+      txt('fx.s.if'),
+      blank([0, 0], 'value', 'fx.b.field'),
+      txt('fx.s.isEmptyShowNothing'),
+      blank([2], 'result', 'fx.b.show')
+    ]
+  }
+}
+
+/** a op b con + - * / */
+const calc: SentenceTemplate = {
+  id: 'calc',
+  make: (_, d) => bin('+', field(d.field), num(1)),
+  parts: (n) =>
+    isBin(n, ARITH)
+      ? [
+          txt('fx.s.calc'),
+          blank([0], 'number', 'fx.b.first'),
+          { op: [], ops: ARITH },
+          blank([1], 'number', 'fx.b.second')
+        ]
+      : null
+}
+
+/** Testo con campi, anche formattato */
+const join: SentenceTemplate = {
+  id: 'join',
+  make: (_, d) => bin('&', field(d.field), { k: 'str', v: '' }),
+  parts: (n) => (readText(n) ? [txt('fx.s.text'), blank([], 'text', 'fx.b.text')] : null)
+}
+
+/** a op b: vero o falso, per il filtro e i gruppi */
+const comparing: SentenceTemplate = {
+  id: 'compare',
+  condition: true,
+  make: (_, d) => bin('>', field(d.field), num(3)),
+  parts: (n) =>
+    isBin(n, COMPARISON_OPERATORS)
+      ? [
+          txt('fx.s.trueWhen'),
+          blank([0], 'value', 'fx.b.value'),
+          { op: [], ops: COMPARISON_OPERATORS },
+          blank([1], 'value', 'fx.b.comparedWith')
+        ]
+      : null
+}
+
+/** NOT(ISBLANK(campo)) */
+const notEmptyCond: SentenceTemplate = {
+  id: 'notEmptyCond',
+  condition: true,
+  make: (_, d) => call('NOT', call('ISBLANK', field(d.field))),
+  parts: (n) =>
+    isCall(n, 'NOT', 1) && isCall(n.args[0], 'ISBLANK', 1)
+      ? [txt('fx.s.trueWhen'), blank([0, 0], 'value', 'fx.b.field'), txt('fx.s.isNotEmpty')]
+      : null
+}
+
+/** In ordine di riconoscimento: le forme più specifiche prima */
+export const SENTENCES: SentenceTemplate[] = [
+  everyNth,
+  alternating,
+  checker,
+  randomPick,
+  cycling,
+  ranges,
+  ifThen,
+  notEmpty,
+  notEmptyCond,
+  comparing,
+  calc,
+  join
+]
+
+/** Ordine della schermata "cosa vuoi fare" */
+export const START_ORDER = [
+  'if',
+  'everyN',
+  'alternate',
+  'checkerboard',
+  'cycle',
+  'random',
+  'notEmpty',
+  'ranges',
+  'calc',
+  'join',
+  'compare',
+  'notEmptyCond'
+]
+
+export interface SentenceContext extends CatalogContext {
+  /** La formula deve dare vero o falso */
+  condition: boolean
+  /** Il livello è una griglia: le variazioni per casella passano dal contenuto, non da qui */
+  onGrid: boolean
+  /** Il risultato è vero o falso (un gruppo da mostrare o nascondere): valgono anche le condizioni */
+  bool?: boolean
+}
+
+/** I modelli proposti in questo contesto, nell'ordine della schermata iniziale */
+export function availableSentences(ctx: SentenceContext): SentenceTemplate[] {
+  return START_ORDER.map((id) => SENTENCES.find((s) => s.id === id)!).filter((s) => {
+    if (s.cell && !ctx.inCell) return false
+    if (s.counter && ctx.onGrid) return false
+    if (ctx.condition) return !!s.condition
+    return !s.condition || !!ctx.bool
+  })
+}
+
+export function findSentence(
+  node: FormulaNode,
+  ctx: CatalogContext
+): { template: SentenceTemplate; parts: SentencePart[] } | null {
+  for (const template of SENTENCES) {
+    const parts = template.parts(node, ctx)
+    if (parts) return { template, parts }
+  }
+  return null
+}
+
+/** Il campo da proporre: la prima colonna con un numero nella carta d'esempio, o la prima */
+export function defaultField(
+  columns: string[],
+  fields: Record<string, string>,
+  inCell = false
+): string {
+  const numeric = columns.find(
+    (c) => fields[c] !== undefined && fields[c].trim() !== '' && readNumberLike(fields[c])
+  )
+  return numeric ?? columns[0] ?? (inCell ? 'cell.index' : 'card.number')
+}
+
+const readNumberLike = (v: string): boolean => Number.isFinite(Number(v.trim().replace(',', '.')))
