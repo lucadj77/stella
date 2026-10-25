@@ -46,6 +46,16 @@ const ICONS = [
     '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 10v6M9.5 13.5 12 16l2.5-2.5"/>'
   )
 ]
+// icone della sezione sui dati locali: computer con lucchetto, documento, cartella con freccia
+const LOCAL_ICONS = [
+  icon(
+    '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><rect x="9" y="10" width="6" height="4" rx="1"/><path d="M10.5 10V8.5a1.5 1.5 0 0 1 3 0V10"/>'
+  ),
+  icon('<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h6"/>'),
+  icon(
+    '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 14h6M13 11.5 15.5 14 13 16.5"/>'
+  )
+]
 // fregio delle sezioni: le cinque carte della stella, in fila
 const ORNAMENT = `<svg class="ornament" viewBox="0 0 92 18" width="92" height="18" aria-hidden="true">${[
   '#a33a2a',
@@ -111,6 +121,12 @@ for (const lang of ['it', 'en']) {
           `<div class="feature"><div class="icon">${ICONS[i] ?? ''}</div><h3>${esc(h)}</h3><p>${esc(p)}</p></div>`
       )
       .join('\n'),
+    'local.items': t.local.items
+      .map(
+        ([h, p], i) =>
+          `<div class="local-item"><div class="icon">${LOCAL_ICONS[i]}</div><div><h3>${esc(h)}</h3><p>${esc(p)}</p></div></div>`
+      )
+      .join('\n'),
     'shots.items': t.shots.items
       .map(
         ([f, c]) =>
@@ -146,6 +162,7 @@ for (const lang of ['it', 'en']) {
   }
   const raw = new Set([
     'features.items',
+    'local.items',
     'shots.items',
     'videos',
     'downloadJson',

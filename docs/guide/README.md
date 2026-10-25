@@ -15,6 +15,9 @@ Video tutorials on YouTube, no voice ([whole playlist](https://www.youtube.com/p
 7. [Boards, tiles, tokens and dice](https://www.youtube.com/watch?v=tLgcDV6DZc4) (8 minutes)
 8. [Grids and cell formulas](https://www.youtube.com/watch?v=DgaXcUt2N-M) (14 minutes)
 9. [Printing your components](https://www.youtube.com/watch?v=f-ks0NMbs6k) (7 minutes)
+10. [Data from the spreadsheet](https://www.youtube.com/watch?v=55U-lu3N3AE) (9 minutes)
+11. [Images, icons and fonts](https://www.youtube.com/watch?v=PWL7IkAG4qo) (6 minutes)
+12. [A game in several languages](https://www.youtube.com/watch?v=gszofbPThzU) (6 minutes)
 
 Versione italiana: [../guida/README.md](../guida/README.md).
 
