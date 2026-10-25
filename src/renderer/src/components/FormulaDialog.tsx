@@ -160,7 +160,8 @@ export default function FormulaDialog({
     inCell: !!cells,
     condition: !!condition,
     onGrid: !!onVaryCells,
-    bool: expect === 'bool'
+    bool: expect === 'bool',
+    text: expect === 'text'
   }
   const opened = useMemo(() => openFormula(value), [value])
   const [root, setRoot] = useState<FormulaNode>(opened.node ?? { k: 'empty' })
@@ -220,7 +221,15 @@ export default function FormulaDialog({
   }
   const start = (template: SentenceTemplate): void => {
     const [yes, no] = defaultResults(expect, t)
-    const d: SentenceDefaults = { field: defaultField(columns, fields, ctx.inCell), yes, no }
+    const icon = Object.keys(variables ?? {})
+      .sort((a, b) => a.localeCompare(b))
+      .find((n) => variables?.[n]?.type === 'image')
+    const d: SentenceDefaults = {
+      field: defaultField(columns, fields, ctx.inCell),
+      yes,
+      no,
+      icon
+    }
     const n = template.make(ctx, d)
     change(n, firstGuidedBlank(guide(n, ctx), n) ?? firstEmpty(n))
     setMode('guided')
@@ -256,6 +265,11 @@ export default function FormulaDialog({
   const pickerKind = (path: NodePath): SlotKind => {
     const part = mode === 'guided' ? blanks.find((p) => same(p.blank, path)) : undefined
     return part && 'blank' in part ? part.kind : slotKind(path)
+  }
+  /** Uno spazio per un'icona sceglie un'immagine anche dentro un testo */
+  const pickerExpect = (path: NodePath): FormulaExpect => {
+    const part = mode === 'guided' ? blanks.find((p) => same(p.blank, path)) : undefined
+    return part && 'blank' in part && part.image ? 'image' : expect
   }
   const blankLabel = (path: NodePath): string => {
     const part = blanks.find((p) => same(p.blank, path))
@@ -320,7 +334,7 @@ export default function FormulaDialog({
       node={nodeAt(root, selected)!}
       path={selected}
       kind={pickerKind(selected)}
-      expect={expect}
+      expect={pickerExpect(selected)}
       ctx={ctx}
       columns={columns}
       layers={layers}
@@ -1171,9 +1185,11 @@ function SlotPicker(p: PickerProps): React.JSX.Element {
   const [tab, setTab] = useState<Tab>(() =>
     compose
       ? 'field'
-      : !p.path.length && p.node.k === 'empty'
-        ? 'formula'
-        : firstTab(p.kind, p.expect, p.node)
+      : p.expect === 'image' && p.node.k === 'str' && p.variables?.[p.node.v]?.type === 'image'
+        ? 'variable'
+        : !p.path.length && p.node.k === 'empty'
+          ? 'formula'
+          : firstTab(p.kind, p.expect, p.node)
   )
   const [all, setAll] = useState(false)
   // un solo campo, un numero o un testo semplice: prima l'elenco, il testo resta chiuso in una riga.
@@ -1241,7 +1257,7 @@ function SlotPicker(p: PickerProps): React.JSX.Element {
   // un campo o un testo nella casella si formatta direttamente, senza passare dalla scheda Testo
   const formattable: FormattedText | null = compose
     ? null
-    : p.kind === 'condition' || p.kind === 'number'
+    : p.kind === 'condition' || p.kind === 'number' || p.expect === 'image'
       ? null
       : p.node.k === 'field'
         ? { parts: [{ field: p.node.name }], attrs: { styles: [] } }

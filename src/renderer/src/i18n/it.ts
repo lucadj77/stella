@@ -725,6 +725,8 @@ export const it: Record<MessageKey, string> = {
   'prop.shadowBlur': 'Sfocatura',
   'prop.shadowDx': 'Scostamento X',
   'prop.shadowDy': 'Scostamento Y',
+  'prop.textFxHint':
+    "Per un testo che cambia secondo i dati, come un'icona ripetuta quante volte dice un campo, c'è l'assistente fx in cima.",
   'prop.text': 'Testo',
   'prop.style': 'Stile',
   'prop.font': 'Font',
@@ -2540,6 +2542,13 @@ export const it: Record<MessageKey, string> = {
   'fx.card.ranges.hint': 'Un valore per ogni fascia di un numero',
   'fx.card.calc': 'Calcola un numero',
   'fx.card.calc.hint': 'Somma, sottrai, moltiplica o dividi',
+  'fx.card.repeatIcon': "Ripeti un'icona",
+  'fx.card.repeatIcon.hint':
+    'Tante icone quanto dice un campo, per esempio una spada per ogni punto di forza',
+  'fx.s.repeatIcon': "Mostra l'icona",
+  'fx.s.repeatTimes': 'tante volte quanto',
+  'fx.b.icon': 'Icona',
+  'fx.b.times': 'Quante volte',
   'fx.card.join': 'Unisci testi e campi',
   'fx.card.join.hint': 'Per esempio “Forza {forza}”, anche con la formattazione',
   'fx.card.compare': 'Confronta un campo con un valore',

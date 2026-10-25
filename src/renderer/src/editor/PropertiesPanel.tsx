@@ -1013,7 +1013,7 @@ function TextProperties({
         <Inherit keys={['text']}>
           <TextField
             label={t('prop.text')}
-            hint={col()}
+            hint={`${col()} ${t('prop.textFxHint')}`}
             value={l.text}
             multiline
             markupFields={fields}

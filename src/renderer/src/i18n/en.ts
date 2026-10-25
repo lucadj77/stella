@@ -718,6 +718,8 @@ export const en = {
   'prop.shadowBlur': 'Blur',
   'prop.shadowDx': 'Offset X',
   'prop.shadowDy': 'Offset Y',
+  'prop.textFxHint':
+    'For a text that changes with the data, such as an icon repeated as many times as a field says, use the fx assistant at the top.',
   'prop.text': 'Text',
   'prop.style': 'Style',
   'prop.font': 'Font',
@@ -2511,6 +2513,13 @@ export const en = {
   'fx.card.ranges.hint': 'A value for each range of a number',
   'fx.card.calc': 'Calculate a number',
   'fx.card.calc.hint': 'Add, subtract, multiply or divide',
+  'fx.card.repeatIcon': 'Repeat an icon',
+  'fx.card.repeatIcon.hint':
+    'As many icons as a field says, for example one sword for each point of strength',
+  'fx.s.repeatIcon': 'Show the icon',
+  'fx.s.repeatTimes': 'as many times as',
+  'fx.b.icon': 'Icon',
+  'fx.b.times': 'How many times',
   'fx.card.join': 'Join texts and fields',
   'fx.card.join.hint': 'For example “Strength {strength}”, with formatting if you like',
   'fx.card.compare': 'Compare a field with a value',
