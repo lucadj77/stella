@@ -86,9 +86,10 @@ details summary { cursor: pointer; font-weight: 700; }
 
   <section>
     <h2>Per versione</h2>
+    <p class="muted" style="margin-bottom:10px">Ogni riga conta tutti i download di quella versione fino a oggi; la data è quella di pubblicazione. GitHub non dice quando è avvenuto ogni download.</p>
     <div class="scroll">
       <table>
-        <thead><tr><th>Versione</th><th>Data</th><th>Mac</th><th>Windows</th><th>Linux</th><th>CLI</th><th>Totale</th><th></th></tr></thead>
+        <thead><tr><th>Versione</th><th>Pubblicata il</th><th>Mac</th><th>Windows</th><th>Linux</th><th>CLI</th><th>Totale</th><th></th></tr></thead>
         <tbody id="rows"><tr><td colspan="8" class="muted">—</td></tr></tbody>
       </table>
     </div>
@@ -97,6 +98,7 @@ details summary { cursor: pointer; font-weight: 700; }
   <section class="notes">
     <h2>Come leggere i numeri</h2>
     <ul>
+      <li>GitHub aggiorna i conteggi con qualche minuto di ritardo, a volte di più: un download appena fatto può comparire dopo.</li>
       <li>GitHub conta ogni scaricamento di un file, non le persone. Lo stesso utente che reinstalla conta due volte, e anche i tuoi download di prova sono inclusi.</li>
       <li>Su Windows e Linux l'aggiornamento automatico scarica lo stesso file del primo download (setup.exe, AppImage), quindi lì installazioni e aggiornamenti non si possono separare. Su Mac sì: chi installa scarica il dmg, l'aggiornamento scarica lo zip.</li>
       <li>Le copie <code>Naibi-…-mac-*.zip</code> esistono solo perché i Mac con la vecchia app Naibi trovino l'aggiornamento. Nelle versioni prima del cambio di nome, i file Naibi erano gli unici e contano normalmente.</li>
@@ -174,7 +176,7 @@ function render(releases) {
   if (stable) {
     const s = rows.find((x) => x.tag === stable.tag_name)
     $('t-last').textContent = stable.tag_name
-    $('t-last-sub').textContent = `${fmt(s ? s.total : 0)} download dal ${new Date(stable.published_at).toLocaleDateString('it-IT')}`
+    $('t-last-sub').textContent = `${fmt(s ? s.total : 0)} download, pubblicata il ${new Date(stable.published_at).toLocaleDateString('it-IT')}`
   }
   for (const k of Object.keys(os)) $(`os-${k}`).textContent = fmt(os[k])
   $('os-mac-sub').textContent = `${fmt(osInst.mac)} installazioni (dmg), ${fmt(osUpd.mac)} aggiornamenti (zip)`
@@ -215,7 +217,7 @@ async function load() {
   try {
     let all = []
     for (let page = 1; page <= 5; page++) {
-      const res = await fetch(`${API}&page=${page}`, { headers: { Accept: 'application/vnd.github+json' } })
+      const res = await fetch(`${API}&page=${page}`, { headers: { Accept: 'application/vnd.github+json' }, cache: 'no-store' })
       if (!res.ok) throw new Error(res.status === 403 ? 'GitHub ha rifiutato la richiesta: troppe letture nell\'ultima ora (il limite è 60). Riprova più tardi.' : `GitHub ha risposto ${res.status}.`)
       const list = await res.json()
       all = all.concat(list)
