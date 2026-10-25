@@ -58,6 +58,8 @@ await win.getByRole('button', { name: T['preview.front'], exact: true }).first()
 // nuovo template
 await win.getByTitle(T['sidebar.newTemplate']).first().click()
 await win.waitForTimeout(600)
+// un segnalino: il tipo propone i formati tondi
+await win.locator('[role="dialog"]').getByRole('radio', { name: T['kind.token'] }).click()
 await win
   .locator('[role="dialog"] input')
   .first()

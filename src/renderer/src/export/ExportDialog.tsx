@@ -132,7 +132,9 @@ export default function ExportDialog({
     return kindOf(project.templates.find((x) => x.name === set?.template))
   }
   /** Almeno un set scelto esce come mazzo di carte: servono le opzioni dei fogli */
-  const hasCards = selected.some((name) => ttsSetObject(tts, name, componentKind(name)).type === 'card')
+  const hasCards = selected.some(
+    (name) => ttsSetObject(tts, name, componentKind(name)).type === 'card'
+  )
 
   const firstTemplate = useMemo(() => {
     const set = project.sets.find((s) => selected.includes(s.name))
@@ -203,7 +205,8 @@ export default function ExportDialog({
       setActiveProfile('')
       return
     }
-    const label = g === 'shop' ? 'preset.printShop' : ui === 'en' ? 'preset.homeLetter' : 'preset.homeA4'
+    const label =
+      g === 'shop' ? 'preset.printShop' : ui === 'en' ? 'preset.homeLetter' : 'preset.homeA4'
     const p = presets.find((x) => x.name === t(label))
     if (p) pickProfile(p)
   }

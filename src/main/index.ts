@@ -453,18 +453,13 @@ function registerIpc(): void {
     return assetsUpdate(folder)
   })
 
-  ipcMain.handle(
-    'library:drop-images',
-    async (_, files: { name: string; data: Uint8Array }[]) => {
-      const folder = getProjectFolder()
-      if (!folder) throw new MessageError(msg('template.noProject'))
-      const ok = files.filter((f) =>
-        IMAGE_EXTENSIONS.includes(extname(f.name).toLowerCase())
-      )
-      const paths = await writeImages(folder, ok)
-      return { update: await assetsUpdate(folder), paths }
-    }
-  )
+  ipcMain.handle('library:drop-images', async (_, files: { name: string; data: Uint8Array }[]) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    const ok = files.filter((f) => IMAGE_EXTENSIONS.includes(extname(f.name).toLowerCase()))
+    const paths = await writeImages(folder, ok)
+    return { update: await assetsUpdate(folder), paths }
+  })
 
   ipcMain.handle('library:save-credits', async (_, text: string) => {
     const folder = getProjectFolder()

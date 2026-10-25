@@ -2826,7 +2826,6 @@ function SetView({
   const [view, setView] = useState<View>('grid')
 
   const template = templates.find((tpl) => tpl.name === set.template) ?? null
-  const words = kindWords(t, template)
   const bindCtx = useBindContext()
   const cards = useMemo<BoundCard[]>(() => {
     if (!template || !set.data) return []
@@ -2886,6 +2885,8 @@ function SetView({
     (row: number): Record<string, string> => computedRows[row] ?? {},
     [computedRows]
   )
+  // le parole per i componenti del set: carte, segnalini, facce...
+  const words = kindWords(t, template)
 
   // PagSu e PagGiù passano alla carta precedente o successiva, nell'ordine della vista, anche
   // mentre si scrive nei campi della carta (il campo resta lo stesso)
@@ -3521,7 +3522,10 @@ function SetView({
         </>
       )}
       {big && card && (
-        <Dialog title={t('preview.bigTitle', { what: words.title, n: current + 1 })} onClose={() => setBig(false)}>
+        <Dialog
+          title={t('preview.bigTitle', { what: words.title, n: current + 1 })}
+          onClose={() => setBig(false)}
+        >
           <div className="big-preview">
             <div className="big-preview-bar">
               <button

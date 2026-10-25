@@ -36,8 +36,11 @@ describe('tipo di componente del template', () => {
     expect(ttsSetObject({}, 'Dadi', 'die').type).toBe('die')
     expect(ttsSetObject({}, 'Carte').type).toBe('card')
     expect(
-      ttsSetObject({ objects: { Dadi: { type: 'card', thickness: 2, edgeColor: '#FFF' } } }, 'Dadi', 'die')
-        .type
+      ttsSetObject(
+        { objects: { Dadi: { type: 'card', thickness: 2, edgeColor: '#FFF' } } },
+        'Dadi',
+        'die'
+      ).type
     ).toBe('card')
   })
 })

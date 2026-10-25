@@ -97,7 +97,8 @@ export const it: Record<MessageKey, string> = {
   'columns.reset': 'Ripristina',
   'columns.resetHint':
     'Mostra solo le colonne dei livelli collegati a una colonna e chiude i dettagli dei campi',
-  'tip.columns': 'Scegli quali campi (colonne del foglio) mostrare; si possono mostrare anche i livelli fissi e con formula',
+  'tip.columns':
+    'Scegli quali campi (colonne del foglio) mostrare; si possono mostrare anche i livelli fissi e con formula',
   'table.removeColumn': 'Elimina colonna',
   'table.removeColumnConfirm': 'Se ne vanno anche i suoi valori in tutte le righe.',
   'table.removeColumnConfirm.title': 'Eliminare la colonna “{column}”?',
@@ -451,7 +452,8 @@ export const it: Record<MessageKey, string> = {
   'tip.addCard': 'Aggiungi una carta in fondo al set',
   'tip.duplicateCards': 'Duplica le carte selezionate',
   'tip.deleteCards': 'Elimina le carte selezionate',
-  'tip.addColumn': 'Aggiungi un campo, cioè una colonna del foglio, per un livello o una sua proprietà',
+  'tip.addColumn':
+    'Aggiungi un campo, cioè una colonna del foglio, per un livello o una sua proprietà',
   'tip.addThisColumn': 'Aggiungi la colonna {column} al foglio',
   'tip.tableView': 'Modifica le carte in una tabella, come in un foglio di calcolo',
   'tip.gridView': 'Guarda le carte come appariranno e modifica quella selezionata',
@@ -599,7 +601,8 @@ export const it: Record<MessageKey, string> = {
   'tool.short.value': 'Valore',
   'tool.shapes': 'Rettangolo, ellisse, poligono, stella o linea',
   'assetPicker.skip': 'Per ora nessuna immagine',
-  'assetPicker.skipHint': "Crea il livello vuoto: l'immagine si sceglie dopo, o viene da una colonna del foglio",
+  'assetPicker.skipHint':
+    "Crea il livello vuoto: l'immagine si sceglie dopo, o viene da una colonna del foglio",
   'tool.rect': 'Rettangolo (R)',
   'tool.ellipse': 'Ellisse (E)',
   'tool.polygon': 'Poligono',
@@ -853,7 +856,8 @@ export const it: Record<MessageKey, string> = {
   'format.custom': 'Personalizzato',
   'newTemplate.kind': 'Cosa stai creando?',
   'prop.kind': 'Componente',
-  'prop.kindHint': 'Il tipo di componente: cambia le parole nel set e l\'oggetto proposto per Tabletop Simulator',
+  'prop.kindHint':
+    "Il tipo di componente: cambia le parole nel set e l'oggetto proposto per Tabletop Simulator",
   'kind.card': 'Carta',
   'kind.card.hint': 'Una carta di un mazzo, con fronte e retro.',
   'kind.card.one': 'carta',
@@ -2152,7 +2156,7 @@ export const it: Record<MessageKey, string> = {
   'app.closeProjectLong': 'Chiudi progetto',
   'app.more': 'Altre azioni',
   'set.tools': 'Strumenti',
-  'tip.setTools': 'Genera, dividi un\'immagine, statistiche, confronto, controllo dei testi',
+  'tip.setTools': "Genera, dividi un'immagine, statistiche, confronto, controllo dei testi",
   'set.checks': 'Controlli',
   'tip.checks': 'Statistiche, confronto con una versione precedente, controllo dei testi',
   'documents.rename': 'Rinomina',

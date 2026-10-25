@@ -1,11 +1,7 @@
 import { useState } from 'react'
 import { guideSectionUrl, type GuideSection } from '../../../shared/donate'
 import { KIND_PRESETS, type KindPreset } from '../../../shared/model/kinds'
-import {
-  COMPONENT_KINDS,
-  type CardShape,
-  type ComponentKind
-} from '../../../shared/model/template'
+import { COMPONENT_KINDS, type CardShape, type ComponentKind } from '../../../shared/model/template'
 import type { MessageKey } from '../i18n/en'
 import { isValidTemplateName } from '../../../shared/model/normalize'
 import { useI18n } from '../i18n/context'
@@ -109,7 +105,7 @@ export function NewTemplateDialog({
   const presets = KIND_PRESETS[kind]
   const preset =
     presets.find((p) => p.width === w && p.height === h && p.shape === shape)?.key ?? 'custom'
-  const usePreset = (p: KindPreset): void => {
+  const applyPreset = (p: KindPreset): void => {
     setWidth(String(p.width))
     setHeight(String(p.height))
     setShape(p.shape)
@@ -137,7 +133,7 @@ export function NewTemplateDialog({
                 title={t(`kind.${k}.hint`)}
                 onClick={() => {
                   setKind(k)
-                  usePreset(KIND_PRESETS[k][0])
+                  applyPreset(KIND_PRESETS[k][0])
                 }}
               >
                 {t(`kind.${k}`)}
@@ -157,7 +153,7 @@ export function NewTemplateDialog({
             value={preset}
             onChange={(e) => {
               const p = presets.find((x) => x.key === e.target.value)
-              if (p) usePreset(p)
+              if (p) applyPreset(p)
             }}
           >
             {presets.map((p) => (

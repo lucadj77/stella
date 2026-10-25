@@ -276,7 +276,8 @@ export const COMPONENT_KINDS: ComponentKind[] = ['card', 'token', 'tile', 'board
 export const isComponentKind = (v: unknown): v is ComponentKind =>
   typeof v === 'string' && (COMPONENT_KINDS as string[]).includes(v)
 /** Il tipo di un template, carta se non è indicato */
-export const kindOf = (t: Pick<Template, 'kind'> | null | undefined): ComponentKind => t?.kind ?? 'card'
+export const kindOf = (t: Pick<Template, 'kind'> | null | undefined): ComponentKind =>
+  t?.kind ?? 'card'
 
 export interface ManualGuides {
   x: number[]

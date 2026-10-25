@@ -221,18 +221,23 @@ export default function TemplateEditor({
   )
 
   // ogni strumento ha l'icona e il nome; le forme stanno in un menu
-  const tool = (icon: React.ReactNode, label: string, title: string, run: () => void): React.JSX.Element => (
+  const tool = (
+    icon: React.ReactNode,
+    label: string,
+    title: string,
+    run: () => void
+  ): React.JSX.Element => (
     <button key={label} className="tool labelled" title={title} onClick={run}>
       <span className="tool-icon">{icon}</span>
       <span className="tool-label">{label}</span>
     </button>
   )
-  const shapeItems: MenuItem[] = (['rect', 'ellipse', 'polygon', 'star', 'line'] as ShapeKind[]).map(
-    (s) => ({
-      label: t(`tool.${s}` as Parameters<typeof t>[0]),
-      onClick: () => cmd.add('shape', s)
-    })
-  )
+  const shapeItems: MenuItem[] = (
+    ['rect', 'ellipse', 'polygon', 'star', 'line'] as ShapeKind[]
+  ).map((s) => ({
+    label: t(`tool.${s}` as Parameters<typeof t>[0]),
+    onClick: () => cmd.add('shape', s)
+  }))
   const toolButtons = (
     <>
       {tool('T', t('tool.short.text'), t('tool.text'), () => cmd.add('text'))}
@@ -336,9 +341,7 @@ export default function TemplateEditor({
             </button>
           </span>
         )}
-        <div className="tool-group">
-          {toolButtons}
-        </div>
+        <div className="tool-group">{toolButtons}</div>
         <Segmented<Side>
           value={state.side}
           options={[

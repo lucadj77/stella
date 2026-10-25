@@ -169,7 +169,9 @@ In the desktop app the same commands are also in the app menu (on the Mac in the
 
 ### 4.1 Creating a template
 
-The + next to **Templates** opens the new template window: name, format (poker, bridge, mini, tarot, square, A6 or custom) and size. The lock between width and height keeps the proportions.
+The + next to **Templates** opens the new template window. At the top, **What are you making?** picks the kind of component: **Card**, **Token**, **Tile**, **Board** or **Die face**. The kind suggests suitable formats (20, 25 and 38 mm rounds for a token, squares and hexagons for a tile, 30 cm, A3 and A4 for a board) and changes the words of the app: in the set the button becomes **+ Token** or **+ Face**, and counts say "6 faces". For a die each row of the set is a face, and six faces in a row make a die. Then you write the name, the format and the size; the lock between width and height keeps the proportions.
+
+The kind can be changed later with **Component** in the template properties. In the Tabletop Simulator export each set starts from the object of its kind: tokens, tiles, boards or dice.
 
 ![The new template window](img/nuovo-template.png)
 
@@ -177,7 +179,7 @@ The + next to **Templates** opens the new template window: name, format (poker, 
 
 ![The template editor, with numbered parts](img/editor.png)
 
-1. **Tools** to add a layer: text (T), image, rectangle (R), ellipse (E), polygon, star, line, grid and value (#). **Front** and **Back** switch between the sides of the card; the arrows undo and redo.
+1. **Tools** to add a layer, each with its name: **Text** (T), **Image**, **Shapes** (a menu with rectangle (R), ellipse (E), polygon, star and line), **Grid** and **Value**. **Image** opens the image picker right away; **No image for now** creates the layer empty, for example when the image comes from a column. An image dragged from the computer onto the canvas becomes an image layer and is copied into `assets/images`. **Front** and **Back** switch between the sides of the card; the arrows undo and redo.
 2. **Layers**, top to bottom as they overlap on the card. Next to each layer are the source of its value (sheet column, or _fx_ for a formula), the lock and the eye to hide it.
 3. **Canvas** with the card. The red dashed line is the trim edge, the area outside it is the bleed, the light blue dashed line is the safe area.
 4. **Properties** of the selected layer, or of the template when nothing is selected.
@@ -192,7 +194,7 @@ Selected layers are copied with ⌘C / Ctrl+C (⌘X / Ctrl+X to cut them) and pa
 
 ### 4.3 Template properties
 
-With no layer selected, the panel shows the template properties: size, bleed (3 mm by default), safe margin, card shape (rectangle with rounded corners, circle or ellipse, hexagon, outline taken from an image), manual guides and **Card name**, the field shown under each card in the grid. The hexagon is always regular, the largest that fits in the card: to fill it, the short side must be the long side × 0.866, and the **Fit the card to the hexagon** button changes the short side that way. In polygon and star shapes, **Make regular** turns the frame into a square around the same center, so all sides and angles are equal.
+With no layer selected, the panel shows the template properties: the kind of component, size, bleed (3 mm by default), safe margin, card shape (rectangle with rounded corners, circle or ellipse, hexagon, outline taken from an image), manual guides and **Card name**, the field shown under each card in the grid. The hexagon is always regular, the largest that fits in the card: to fill it, the short side must be the long side × 0.866, and the **Fit the card to the hexagon** button changes the short side that way. In polygon and star shapes, **Make regular** turns the frame into a square around the same center, so all sides and angles are equal.
 
 When you change the size of a template that already has layers, the app asks whether to scale the layers in proportion or leave them where they are. In the second case each layer follows its **constraints**: two menus in the position section, one horizontal and one vertical, that say what the layer stays attached to when the card changes size.
 
@@ -225,9 +227,9 @@ In number fields you can drag the label right or left to change the value like a
 </tr>
 </table>
 
-At the top of every layer are its **name**, which is also the name of the sheet column, and its **value on cards**:
+At the top of every layer are its **name**, which is also the name of the sheet column, and its **value on cards**, on one line with three choices and the **fx** button of the formula assistant:
 
-- **Sheet column**: by default the one with the same name as the layer. An empty cell keeps the value written in the template.
+- **Column**: the sheet column, by default the one with the same name as the layer. An empty cell keeps the value written in the template.
 - **Fixed**: the same value on every card.
 - **Formula**: the value is calculated from the other fields of the card ([chapter 9](#9-formulas-and-calculated-fields)).
 
@@ -300,9 +302,13 @@ The **table** works like a spreadsheet: double-click or type to edit a cell, Alt
 
 The **Copies** field (the `amount` column of the sheet) says how many copies of each card to print; empty means 1.
 
+An image file dragged from the computer onto a cell of the table, or onto an image field of the form, is copied into `assets/images` and its name goes into the cell.
+
+The short explanations of the set, the editor and the template properties are behind a small **?**: the mouse pointer on it shows the text.
+
 A set with no components shows the **+ Add the first component** button instead of the table.
 
-The table and the form show every column you can edit: the sheet's columns and the ones the template reads but the sheet does not have yet (with an italic heading), which are created when you type a value. The **Columns** button chooses which ones to hide; **Reset** goes back to the basic view, with only the columns read by layers linked to a column (columns left in the sheet without a layer, for example from an imported TTC project, are hidden) and the field details closed. In the card form the eye next to a layer's field shows or hides that layer on the card. The sliders icon opens the layer's properties for the card (color, italic, shape, position...), with menus for fixed sets of values, number fields and a color picker: a value typed there applies to that card only and creates the `layer.property` column, while an empty field shows the template value in grey. The number on the icon tells how many properties the card changes. Columns of fixed or formula layers do not reach the card and stay hidden; **Show fixed and formula layers** adds them read only, with the ƒ sign and the value they have on each card.
+The table and the form show every column you can edit: the sheet's columns and the ones the template reads but the sheet does not have yet (with an italic heading), which are created when you type a value. The **Fields** button chooses which columns to hide; **Reset** goes back to the basic view, with only the columns read by layers linked to a column (columns left in the sheet without a layer, for example from an imported TTC project, are hidden) and the field details closed. In the card form the eye next to a layer's field shows or hides that layer on the card. The sliders icon opens the layer's properties for the card (color, italic, shape, position...), with menus for fixed sets of values, number fields and a color picker: a value typed there applies to that card only and creates the `layer.property` column, while an empty field shows the template value in grey. The number on the icon tells how many properties the card changes. Columns of fixed or formula layers do not reach the card and stay hidden; **Show fixed and formula layers** adds them read only, with the ƒ sign and the value they have on each card.
 
 True/false columns (properties such as `crest.visible` or `name.italic`, and columns where every cell is `true` or `false`) have a checkbox: a click, or the space bar on the cell, ticks or clears it. A faded checkbox means an empty cell: the template value applies.
 
@@ -324,7 +330,7 @@ Sorting and filtering change only the view: the sheet and the export stay as the
 
 ![Cards sorted by strength and filtered](img/ordina-filtra.png)
 
-The checks on the set are in the **Checks** menu of the button row.
+The checks on the set are in the **Tools** menu of the button row, together with **Generate…** and **Split image…**.
 
 **Statistics…** shows how many cards have each value of a column, also of a formula layer, with a bar to compare them: useful to balance the set (for example how many cards per cost). For numeric columns it also gives sum, average, minimum and maximum. Copies from the `amount` column count, unless you untick the box; with an active filter only the filtered cards count.
 
@@ -334,7 +340,7 @@ The checks on the set are in the **Checks** menu of the button row.
 
 ### 5.4 Property columns
 
-Besides the main value, every property of a layer can change card by card with a `layer.property` column: for example `name.color` for the title color, or `icon.tint` for the tint of an icon. **+ Column** suggests the columns the template reads and the sheet lacks, the properties of a layer of your choice, or a free column.
+Besides the main value, every property of a layer can change card by card with a `layer.property` column: for example `name.color` for the title color, or `icon.tint` for the tint of an icon. **+ Field** suggests the columns the template reads and the sheet lacks, the properties of a layer of your choice, or a free column.
 
 ![The window to add a column](img/aggiungi-colonna.png)
 
@@ -576,7 +582,7 @@ A field's value is, in order of precedence: the calculated value layer, the non-
 
 ### 9.1 The formula assistant
 
-The **fx** button next to the **Formula** field opens the assistant. On a layer with **Sheet column** or **Fixed** the same assistant opens with **Build a formula with the assistant…**, under **Value on cards**: when you confirm, the layer switches to **Formula**. It is also next to the **Filter** of the generator (section 10), where the formula must give true or false.
+The **fx** button, on the **Value on cards** line, opens the assistant. On a layer with **Column** or **Fixed**, confirming the formula switches the layer to **Formula**. It is also next to the **Filter** of the generator (section 10), where the formula must give true or false.
 
 With an empty formula the assistant asks **What do you want to do?** and offers the common cases as cards: a different value depending on a condition, change something every N cells (or components), alternate two values, checkerboard, cycle through a list, pick at random, show only if a field is not empty, low/medium/high, calculate a number, join texts and fields. Next to the generator filter the cards are conditions (compare a field with a value, a field is not empty). **Write it myself** switches to the advanced mode.
 
@@ -602,7 +608,7 @@ On a **grid** layer the formula applies to the whole grid (for example the cell 
 
 ## 10. Generating cards
 
-**Generate…**, in the set header, creates rows by combining sets of values. Each value set has a target column, a list of values (one per line or comma separated; `1-5` becomes 1, 2, 3, 4, 5) and how many values to put on each card.
+**Generate…**, in the set's **Tools** menu, creates rows by combining sets of values. Each value set has a target column, a list of values (one per line or comma separated; `1-5` becomes 1, 2, 3, 4, 5) and how many values to put on each card.
 
 - Several value sets are combined in every possible way: 6 suits and the numbers 1-5 give 30 cards.
 - With more than one value per card you choose whether repetitions are allowed and whether order matters. Under **Limits per value** you set a minimum and maximum for each value.
@@ -621,7 +627,7 @@ Each card shows the part of the image under its layer, as if the image covered t
 
 ## 11. Exporting
 
-**Export…** opens a window with three tabs: images, PDF and Tabletop Simulator. In each tab you choose the sets and whether to repeat cards as the `amount` column says. Cards are drawn by the same engine as the preview, including unsaved changes.
+**Export…** opens a window that starts from what you want to do: **Print at home** (a PDF with the components side by side, front and back), **Print shop** (a PDF with bleed and crop marks), **Tabletop Simulator** or **Images**. The first two start from a preset you can then change. For each one you choose the sets and whether to repeat cards as the `amount` column says. Cards are drawn by the same engine as the preview, including unsaved changes.
 
 ### 11.1 Images
 

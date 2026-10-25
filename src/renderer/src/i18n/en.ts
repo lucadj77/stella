@@ -94,7 +94,8 @@ export const en = {
   'columns.reset': 'Reset',
   'columns.resetHint':
     'Show only the columns of layers linked to a column and close the field details',
-  'tip.columns': 'Choose which fields (columns of the sheet) to show; fixed and formula layers can be shown too',
+  'tip.columns':
+    'Choose which fields (columns of the sheet) to show; fixed and formula layers can be shown too',
   'table.removeColumn': 'Remove column',
   'table.removeColumnConfirm': 'Its values in every row go too.',
   'table.removeColumnConfirm.title': 'Remove the column “{column}”?',
@@ -447,7 +448,8 @@ export const en = {
   'tip.addCard': 'Add a new card at the end of the set',
   'tip.duplicateCards': 'Duplicate the selected cards',
   'tip.deleteCards': 'Delete the selected cards',
-  'tip.addColumn': 'Add a field, that is a column of the sheet, for a layer or one of its properties',
+  'tip.addColumn':
+    'Add a field, that is a column of the sheet, for a layer or one of its properties',
   'tip.addThisColumn': 'Add the column {column} to the sheet',
   'tip.tableView': 'Edit the cards in a table, like a spreadsheet',
   'tip.gridView': 'See the cards as they will look, and edit the selected one',
@@ -593,7 +595,8 @@ export const en = {
   'tool.short.value': 'Value',
   'tool.shapes': 'Rectangle, ellipse, polygon, star or line',
   'assetPicker.skip': 'No image for now',
-  'assetPicker.skipHint': 'Creates the layer empty: choose the image later, or take it from a column of the sheet',
+  'assetPicker.skipHint':
+    'Creates the layer empty: choose the image later, or take it from a column of the sheet',
   'tool.rect': 'Rectangle (R)',
   'tool.ellipse': 'Ellipse (E)',
   'tool.polygon': 'Polygon',
@@ -845,7 +848,8 @@ export const en = {
   'format.custom': 'Custom',
   'newTemplate.kind': 'What are you making?',
   'prop.kind': 'Component',
-  'prop.kindHint': 'The kind of component: it changes the words in the set and the object proposed for Tabletop Simulator',
+  'prop.kindHint':
+    'The kind of component: it changes the words in the set and the object proposed for Tabletop Simulator',
   'kind.card': 'Card',
   'kind.card.hint': 'A card of a deck, with a front and a back.',
   'kind.card.one': 'card',
