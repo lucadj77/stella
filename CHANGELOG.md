@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.4.0-beta.5
+
+### English
+
+- **Automatic update on Windows and Linux**: installing an update stopped with *Cannot set properties of undefined (setting 'logger')*. The updater module was loaded the wrong way and never started; it now loads correctly. Versions up to 1.4.0-beta.4 cannot install this fix by themselves: download it once from the release page, then updates work again.
+
+### Italiano
+
+- **Aggiornamento automatico su Windows e Linux**: l'installazione di un aggiornamento si fermava con *Cannot set properties of undefined (setting 'logger')*. Il modulo degli aggiornamenti era caricato nel modo sbagliato e non partiva mai; ora si carica correttamente. Le versioni fino alla 1.4.0-beta.4 non possono installare da sole questa correzione: va scaricata una volta dalla pagina della release, poi gli aggiornamenti tornano a funzionare.
+
 ## 1.4.0-beta.4
 
 ### English
