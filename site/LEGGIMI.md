@@ -29,3 +29,5 @@ costruzione) stanno dentro il sito: chi visita non contatta Google né YouTube f
 semplice link. Le visite si contano con GoatCounter (account `lucadj77`, pannello su
 <https://lucadj77.goatcounter.com/>), che non usa cookie né raccoglie dati personali. L'unica altra richiesta
 esterna è quella a GitHub per sapere l'ultima versione da scaricare.
+
+La pagina dei contatti (`contact.html` → `contact/` e `it/contact/`, script `contact.js`) manda nome, email, oggetto e messaggio a Web3Forms, che li inoltra per email a Luca con `[STELLA]` nell'oggetto e la risposta all'email di chi scrive. La chiave (`contactKey` in `texts.mjs`) può stare nella pagina perché manda messaggi solo a quell'indirizzo; contro lo spam c'è un campo nascosto (`botcheck`). Se arrivasse spam: hCaptcha di Web3Forms o una chiave nuova su web3forms.com.

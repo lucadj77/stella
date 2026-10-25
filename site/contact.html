@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="{{lang}}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{contact.pageTitle}}</title>
+    <meta name="description" content="{{contact.intro}}" />
+    <link rel="icon" href="{{root}}img/stella.svg" type="image/svg+xml" />
+    <link rel="alternate" hreflang="en" href="https://stella.lucadj.eu/contact/" />
+    <link rel="alternate" hreflang="it" href="https://stella.lucadj.eu/it/contact/" />
+    <link rel="stylesheet" href="{{root}}style.css" />
+  </head>
+  <body>
+    <header class="top" id="top">
+      <div class="wrap">
+        <a class="brand" href="{{home}}"
+          ><img src="{{root}}img/stella.svg" alt="" /> Stella <span>Game Center</span></a
+        >
+        <nav>
+          <a href="{{home}}#download">{{nav.download}}</a>
+          <a href="{{home}}#tutorial">{{nav.tutorial}}</a>
+          <a href="{{home}}#guide">{{nav.guide}}</a>
+          <a class="lang" href="{{contactOtherHref}}" lang="{{otherLang}}" hreflang="{{otherLang}}"
+            >{{flag}} {{otherLangLabel}}</a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <section class="contact">
+      <div class="wrap">
+        <div class="section-head">
+          {{ornament}}
+          <h1>{{contact.title}}</h1>
+          <p>{{contact.intro}}</p>
+        </div>
+        <form id="contact-form" class="contact-form" novalidate>
+          <input type="hidden" name="access_key" value="{{contactKey}}" />
+          <input type="hidden" name="from_name" value="Stella Game Center" />
+          <!-- campo trappola: le persone non lo vedono, i programmi che riempiono tutto sì -->
+          <input
+            type="checkbox"
+            name="botcheck"
+            class="trap"
+            tabindex="-1"
+            autocomplete="off"
+            aria-hidden="true"
+          />
+          <label
+            >{{contact.name}}
+            <input name="name" type="text" required maxlength="120" autocomplete="name"
+          /></label>
+          <label
+            >{{contact.email}}
+            <input name="email" type="email" required maxlength="200" autocomplete="email"
+          /></label>
+          <label
+            ><span>{{contact.subject}} <small>({{contact.subjectHint}})</small></span>
+            <input name="topic" type="text" maxlength="150"
+          /></label>
+          <label
+            >{{contact.message}}
+            <textarea name="message" required rows="8" maxlength="5000"></textarea>
+          </label>
+          <div class="contact-actions">
+            <button class="btn primary" type="submit">{{contact.send}}</button>
+            <p id="contact-status" class="contact-status" role="status" aria-live="polite"></p>
+          </div>
+        </form>
+        <p class="contact-note">{{contact.privacy}}</p>
+        <p class="contact-note">
+          <a href="https://github.com/lucadj77/stella/issues">{{contact.issues}}</a>
+        </p>
+        <p class="contact-back"><a href="{{home}}">{{contact.back}}</a></p>
+      </div>
+    </section>
+
+    <footer>
+      <div class="wrap">
+        <span>{{footer.license}}</span>
+        <a href="https://github.com/lucadj77/stella">{{footer.source}}</a>
+        <a href="https://paypal.me/DiGialleonardo">{{footer.support}}</a>
+        <span class="by"
+          ><img src="{{root}}img/predigarama.png" alt="Predigarama Games" /> {{footer.by}}</span
+        >
+      </div>
+    </footer>
+    <script>
+      window.CONTACT_TEXTS = {{contactJson}}
+    </script>
+    <script src="{{root}}contact.js"></script>
+    <script
+      data-goatcounter="https://lucadj77.goatcounter.com/count"
+      async
+      src="https://gc.zgo.at/count.js"
+    ></script>
+  </body>
+</html>
