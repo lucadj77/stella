@@ -114,11 +114,9 @@ export default function StartScreen({
             <button onClick={onImport} title={t('tip.importTtc')}>
               {t('start.importTtc')}
             </button>
-            {!window.api.isWeb && (
-              <button disabled={loading} title={t('tip.example')} onClick={openExample}>
-                {t('start.example')}
-              </button>
-            )}
+            <button disabled={loading} title={t('tip.example')} onClick={openExample}>
+              {t('start.example')}
+            </button>
             <button onClick={onHelp} title={t('tip.help')}>
               {t('app.help')}
             </button>
@@ -236,12 +234,10 @@ function Welcome({
           <span className="welcome-choice-title">{t('welcome.scratch')}</span>
           <span className="welcome-choice-text">{t('welcome.scratchText')}</span>
         </button>
-        {!window.api.isWeb && (
-          <button className="welcome-choice" disabled={loading} onClick={onExample}>
-            <span className="welcome-choice-title">{t('welcome.example')}</span>
-            <span className="welcome-choice-text">{t('welcome.exampleText')}</span>
-          </button>
-        )}
+        <button className="welcome-choice" disabled={loading} onClick={onExample}>
+          <span className="welcome-choice-title">{t('welcome.example')}</span>
+          <span className="welcome-choice-text">{t('welcome.exampleText')}</span>
+        </button>
       </div>
       <ol className="welcome-steps">
         <li>
