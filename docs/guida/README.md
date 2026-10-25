@@ -559,6 +559,24 @@ Un livello valore può dare anche un colore: nei campi colore (riempimento, colo
 
 Un campo vale, in ordine di precedenza: il livello valore calcolato, la cella non vuota della riga, il valore scritto nel template. Gli errori delle formule compaiono sotto la carta e nel pannello delle proprietà.
 
+### 9.1 L'assistente formule
+
+Il tasto **fx** accanto al campo **Formula** apre l'assistente. Su un livello con **Colonna del foglio** o **Fisso** lo stesso assistente si apre con **Crea una formula con l'assistente…**, sotto **Valore sulle carte**: confermando, il livello passa a **Formula**. C'è anche accanto al **Filtro** del generatore (sezione 10), dove la formula deve dare vero o falso.
+
+Con una formula vuota l'assistente chiede **Cosa vuoi fare?** e propone i casi frequenti come schede: un valore diverso secondo una condizione, cambia qualcosa ogni N caselle (o componenti), alterna due valori, scacchiera, scorri un elenco, scegli a caso, mostra solo se un campo non è vuoto, basso/medio/alto, calcola un numero, unisci testi e campi. Accanto al filtro del generatore le schede sono condizioni (confronta un campo con un valore, un campo non è vuoto). **La scrivo io** passa alla modalità avanzata.
+
+![La schermata iniziale dell'assistente](img/assistente-formule-inizio.png)
+
+Scelta una scheda, la formula compare come una frase da completare, già riempita con valori sensati: per esempio **Ogni 10 caselle, mostra "Sì" altrimenti "No"**. Ogni spazio è un pulsante: quello selezionato ha sotto il selettore. Per uno spazio di testo (**Cosa mostrare**, **Altrimenti**…) il selettore ha in alto il campo del testo, sempre visibile: ci si scrive e le schede **Campo**, **Componente e casella** e **Variabile** inseriscono il valore scelto dove c'è il cursore, come `{forza}` o `{cell.index}`; **Formatta…** dà colore, peso e gli altri attributi a tutto il testo, per esempio il numero della casella in rosso ogni sei caselle. **Altro…** mostra le schede restanti (**Numero**, **Colore**, **Formula** per annidare una funzione…), che sostituiscono il contenuto dello spazio. Sotto la frase il risultato sulla prima carta e, dentro una griglia, quello delle prime caselle; **Mostra formula** apre il testo della formula, che si può anche scrivere a mano. Aprendo una formula esistente che corrisponde a una delle frasi, l'assistente la mostra già come frase.
+
+![L'assistente formule sul numero del tracciato del punteggio](img/assistente-formule.png)
+
+**Avanzato** mostra la formula come blocchi annidati: ogni funzione ha le sue caselle con un nome (per `IF`: **Condizione**, **Se vero**, **Se falso**) e sotto ogni casella il valore che dà sulla prima carta; **Formula** nel selettore raccoglie le funzioni per categoria (**Condizione**, **Selezione**, **Calcolo**, **Testo**, **Ricette**) e **Più casi** mostra una catena di `IF` come elenco di righe **Quando… Allora…** con **Altrimenti** in fondo. **Guidato** torna alla frase quando la formula ha ancora quella forma; **Ricomincia** riporta a **Cosa vuoi fare?**. **Usa la formula** scrive la formula nel campo; una formula aperta e non cambiata resta com'era.
+
+Su un livello **griglia** la formula vale per tutta la griglia (per esempio il colore delle caselle di una carta): per cambiare le caselle una per una la formula va su un livello del **contenuto delle caselle** (sezione 4.8). Per questo, su una griglia senza contenuto, la sezione **Contenuto delle caselle** ha **Testo in ogni casella** e **Forma in ogni casella**: creano un livello nella prima casella, lo chiudono in un gruppo e lo impostano come contenuto; per il testo si apre subito l'assistente. La stessa scelta è nella schermata iniziale dell'assistente come **Varia casella per casella**.
+
+![I pulsanti che creano il contenuto delle caselle](img/griglia-contenuto-crea.png)
+
 ## 10. Generare le carte
 
 **Genera…**, nell'intestazione del set, crea le righe combinando insiemi di valori. Ogni insieme ha una colonna di destinazione, un elenco di valori (uno per riga o separati da virgole; `1-5` diventa 1, 2, 3, 4, 5) e quanti valori mettere su ogni carta.

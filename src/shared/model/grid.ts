@@ -29,6 +29,8 @@ export interface GridGeometry {
   bounds: { x: number; y: number; w: number; h: number }
   /** Centro di ogni casella, nello stesso ordine */
   centers: { x: number; y: number }[]
+  /** Misura di una casella in mm */
+  cell: { w: number; h: number }
 }
 
 /** Limite alle caselle, per non bloccare il disegno con un numero sbagliato nel foglio */
@@ -247,6 +249,7 @@ export function gridGeometry(g: GridSpec): GridGeometry {
   return {
     cells: placed.map((c) => cellPath(g, c, w, h)),
     bounds: { x: bx, y: by, w: bw, h: bh },
-    centers: placed.map((c) => ({ x: c.cx, y: c.cy }))
+    centers: placed.map((c) => ({ x: c.cx, y: c.cy })),
+    cell: { w, h }
   }
 }

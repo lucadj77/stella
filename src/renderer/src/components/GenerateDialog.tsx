@@ -19,6 +19,7 @@ import { useI18n } from '../i18n/context'
 import { AssetsContext } from '../render/assets'
 import MarkupText from '../render/MarkupText'
 import Segmented from './Segmented'
+import FormulaDialog from './FormulaDialog'
 
 // Generatore di carte: insiemi di valori → tutte le combinazioni come righe del set.
 // Vedi docs/specifica.md, sezione 8.3.
@@ -85,6 +86,7 @@ export default function GenerateDialog({
   const [list, setList] = useState<Draft[]>(() => [draft(columns[0] ?? '')])
   const [filter, setFilter] = useState('')
   const [copies, setCopies] = useState(1)
+  const [assistant, setAssistant] = useState(false)
   const [mode, setMode] = useState<GenerateMode>(sheet.rows.length ? 'append' : 'replace')
 
   const update = (i: number, patch: Partial<Draft>): void =>
@@ -297,11 +299,21 @@ export default function GenerateDialog({
         <div className="generate-row">
           <label className="grow">
             {t('generate.filter')}
-            <input
-              value={filter}
-              placeholder={t('generate.filterHint')}
-              onChange={(e) => setFilter(e.target.value)}
-            />
+            <span className="generate-filter">
+              <input
+                value={filter}
+                placeholder={t('generate.filterHint')}
+                onChange={(e) => setFilter(e.target.value)}
+              />
+              <button
+                type="button"
+                className="pick-btn fx-button"
+                title={t('fx.open')}
+                onClick={() => setAssistant(true)}
+              >
+                fx
+              </button>
+            </span>
           </label>
           <label>
             {t('generate.copies')}
@@ -411,6 +423,47 @@ export default function GenerateDialog({
           </button>
         </div>
       </div>
+      {assistant && (
+        <FilterAssistant
+          filter={filter}
+          list={list}
+          onApply={setFilter}
+          onClose={() => setAssistant(false)}
+        />
+      )}
     </Dialog>
+  )
+}
+
+/** Assistente formule sul filtro: la condizione si calcola sulla prima carta senza filtro */
+function FilterAssistant({
+  filter,
+  list,
+  onApply,
+  onClose
+}: {
+  filter: string
+  list: GeneratorColumn[]
+  onApply(filter: string): void
+  onClose(): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const first = useMemo(() => generateCards({ columns: list, filter: '', copies: 1 }), [list])
+  const sample: Record<string, string> = {}
+  first.headers.forEach((h, i) => h !== 'amount' && (sample[h] = first.rows[0]?.[i] ?? ''))
+  const f = filter.trim()
+  return (
+    <FormulaDialog
+      title={t('fx.filterTitle')}
+      value={f && !f.startsWith('=') ? '=' + f : f}
+      expect="bool"
+      condition
+      columns={first.headers.filter((h) => h !== 'amount')}
+      layers={[]}
+      sample={sample}
+      sampleLabel={first.rows.length ? t('fx.firstGenerated') : undefined}
+      onApply={(expr) => onApply(expr.trim().replace(/^=/, ''))}
+      onClose={onClose}
+    />
   )
 }
