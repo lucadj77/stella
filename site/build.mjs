@@ -65,6 +65,8 @@ mkdirSync(`${out}/img/en`, { recursive: true })
 mkdirSync(`${out}/it`, { recursive: true })
 for (const f of ['style.css', 'site.js']) cpSync(`${here}${f}`, `${out}/${f}`)
 cpSync(`${here}fonts`, `${out}/fonts`, { recursive: true })
+// pagina nascosta con i conteggi dei download (nessun link dal sito, noindex)
+cpSync(`${here}dcount`, `${out}/dcount`, { recursive: true })
 for (const f of ['stella.svg', 'predigarama.png']) cpSync(`${here}img/${f}`, `${out}/img/${f}`)
 for (const [lang, dir] of [
   ['it', 'guida'],
