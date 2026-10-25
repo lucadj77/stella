@@ -297,7 +297,7 @@ await r.focus(
   props.locator('.value-source .fx-start').first(),
   it
     ? 'Un livello che legge una colonna ha «Crea una formula con l’assistente…»'
-    : 'A layer that reads a column has “Create a formula with the assistant…”',
+    : 'A layer that reads a column has “Build a formula with the assistant…”',
   'left',
   { pad: 4 }
 )
@@ -359,7 +359,7 @@ await r.focus(
 await r.unzoom()
 await r.focus(
   sentence().locator('.fx-add').first(),
-  it ? '«+ Fascia» aggiunge un gradino' : '“+ Band” adds one more step',
+  it ? '«+ Fascia» aggiunge un gradino' : '“+ Range” adds one more step',
   'below',
   { pad: 4 }
 )
@@ -637,8 +637,8 @@ await r.zoom(create, { max: 1.7, fill: 0.6 })
 await r.focus(
   create,
   it
-    ? 'Per le caselle serve un contenuto: «Testo» lo crea e apre l’assistente'
-    : 'Cells need content: “Text” creates it and opens the assistant',
+    ? 'Per le caselle serve un contenuto: «Testo in ogni casella» lo crea e apre l’assistente'
+    : 'Cells need content: “Text in each cell” creates it and opens the assistant',
   'left',
   { pad: 4 }
 )
@@ -679,7 +679,7 @@ await r.focus(
   picker(),
   it
     ? 'Il numero della casella, dalla scheda «Componente e casella», rosso e grassetto'
-    : 'The cell number, from the “Component and cell” tab, red and bold',
+    : 'The cell number, from the “Card & cell” tab, red and bold',
   'left',
   { pad: 4 }
 )
