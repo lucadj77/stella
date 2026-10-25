@@ -4,7 +4,17 @@ Stella is an app for making cards and other printed game components from a sprea
 
 This guide follows the usual order of work: create a project, design a template, enter the cards, refine texts and images, export. The examples come from a small project with three sets: characters, items and market cards.
 
-Video tutorials on YouTube: [an overview of the basic functions](https://www.youtube.com/watch?v=JOD09G8No_c) (3 minutes) and [your first component from scratch](https://www.youtube.com/watch?v=_sPWwTv96P0) (8 minutes), no voice.
+Video tutorials on YouTube, no voice ([whole playlist](https://www.youtube.com/playlist?list=PLC6t-d7-3DO0)):
+
+1. [An overview of the basic functions](https://www.youtube.com/watch?v=JOD09G8No_c) (3 minutes)
+2. [Your first component from scratch](https://www.youtube.com/watch?v=_sPWwTv96P0) (8 minutes)
+3. [From Stella to Tabletop Simulator](https://www.youtube.com/watch?v=OZ-Jm4cf3Zo) (5 minutes)
+4. [Text, icons, styles and formulas](https://www.youtube.com/watch?v=SKoi6EaFY6k) (5 minutes)
+5. [The rulebook and other documents](https://www.youtube.com/watch?v=skHh2Uz2VxE) (5 minutes)
+6. [Stella with an AI agent](https://www.youtube.com/watch?v=7EylDX9GKOU) (4 minutes)
+7. [Boards, tiles, tokens and dice](https://www.youtube.com/watch?v=tLgcDV6DZc4) (8 minutes)
+8. [Grids and cell formulas](https://www.youtube.com/watch?v=DgaXcUt2N-M) (14 minutes)
+9. [Printing your components](https://www.youtube.com/watch?v=f-ks0NMbs6k) (7 minutes)
 
 Versione italiana: [../guida/README.md](../guida/README.md).
 

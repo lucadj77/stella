@@ -1,7 +1,7 @@
 // Costruisce il sito di presentazione in una cartella: index.html (italiano), en/index.html, stile, script,
 // immagini (logo e screenshot presi dalla guida). Uso: node site/build.mjs <cartella di uscita>
 import { cpSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { texts, videos } from './texts.mjs'
+import { playlists, texts, videos } from './texts.mjs'
 
 const here = new URL('.', import.meta.url).pathname
 const repo = new URL('..', import.meta.url).pathname
@@ -80,6 +80,7 @@ for (const lang of ['it', 'en']) {
     zoomClose: lang === 'it' ? 'Chiudi' : 'Close',
     guideDir: lang === 'it' ? 'guida' : 'guide',
     guideDirOther: lang === 'it' ? 'guide' : 'guida',
+    playlistHref: playlists[lang],
     installHref:
       lang === 'it'
         ? 'https://github.com/lucadj77/stella/blob/main/docs/guida/README.md#installare-stella'
