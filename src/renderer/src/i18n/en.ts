@@ -1536,6 +1536,8 @@ export const en = {
   'help.guide': 'Open the complete user guide (online)',
   'help.support':
     'Stella Game Center is a free app. If it is useful to you, you can buy me a coffee (PayPal)',
+  'help.site': 'Website: stella.lucadj.eu',
+  'start.site': 'Website',
   'start.support': 'Support Stella',
   'help.tab.text': 'Text',
   'help.tab.variables': 'Fields and variables',

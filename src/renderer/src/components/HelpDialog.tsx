@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { ATTRIBUTES, BUILTIN_SHAPES, BUILTIN_STYLES } from '../../../shared/model/markup'
 import { IMAGE_ATTRIBUTES } from '../../../shared/model/variables'
 import { SYSTEM_VARIABLES } from '../../../shared/model/system'
-import { DONATE_URL } from '../../../shared/donate'
+import { DONATE_URL, siteUrl } from '../../../shared/donate'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import type { MessageKey } from '../i18n/en'
@@ -124,6 +124,10 @@ export default function HelpDialog({ onClose }: { onClose(): void }): React.JSX.
         <p className="help-guide">
           <a href={guideUrl(lang)} target="_blank" rel="noreferrer">
             {t('help.guide')}
+          </a>
+          {' · '}
+          <a href={siteUrl(lang)} target="_blank" rel="noreferrer">
+            {t('help.site')}
           </a>
         </p>
         <p className="help-support">

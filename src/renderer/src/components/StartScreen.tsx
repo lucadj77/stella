@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { RecentProject } from '../../../shared/api'
 import { projectFolderName } from '../../../shared/model/projectName'
 import { isPrerelease } from '../../../shared/update'
-import { DONATE_URL } from '../../../shared/donate'
+import { DONATE_URL, siteUrl } from '../../../shared/donate'
 import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
@@ -146,6 +146,9 @@ export default function StartScreen({
         </ul>
       </div>
       <footer className="start-footer">
+        <a className="about-link" href={siteUrl(lang)} target="_blank" rel="noreferrer">
+          {t('start.site')}
+        </a>
         <a className="about-link" href={DONATE_URL} target="_blank" rel="noreferrer">
           {t('start.support')}
         </a>

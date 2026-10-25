@@ -571,6 +571,8 @@ Scelta una scheda, la formula compare come una frase da completare, già riempit
 
 ![L'assistente formule sul numero del tracciato del punteggio](img/assistente-formule.png)
 
+![Lo spazio «mostra»: il campo del testo e le schede che ci inseriscono campi e variabili](img/assistente-formule-testo.png)
+
 **Avanzato** mostra la formula come blocchi annidati: ogni funzione ha le sue caselle con un nome (per `IF`: **Condizione**, **Se vero**, **Se falso**) e sotto ogni casella il valore che dà sulla prima carta; **Formula** nel selettore raccoglie le funzioni per categoria (**Condizione**, **Selezione**, **Calcolo**, **Testo**, **Ricette**) e **Più casi** mostra una catena di `IF` come elenco di righe **Quando… Allora…** con **Altrimenti** in fondo. **Guidato** torna alla frase quando la formula ha ancora quella forma; **Ricomincia** riporta a **Cosa vuoi fare?**. **Usa la formula** scrive la formula nel campo; una formula aperta e non cambiata resta com'era.
 
 Su un livello **griglia** la formula vale per tutta la griglia (per esempio il colore delle caselle di una carta): per cambiare le caselle una per una la formula va su un livello del **contenuto delle caselle** (sezione 4.8). Per questo, su una griglia senza contenuto, la sezione **Contenuto delle caselle** ha **Testo in ogni casella** e **Forma in ogni casella**: creano un livello nella prima casella, lo chiudono in un gruppo e lo impostano come contenuto; per il testo si apre subito l'assistente. La stessa scelta è nella schermata iniziale dell'assistente come **Varia casella per casella**.

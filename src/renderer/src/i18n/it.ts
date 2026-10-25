@@ -1560,6 +1560,8 @@ export const it: Record<MessageKey, string> = {
   'help.guide': 'Apri la guida completa (online)',
   'help.support':
     "Stella Game Center è un'app gratuita. Se ti è utile, puoi offrirmi un caffè (PayPal)",
+  'help.site': 'Sito: stella.lucadj.eu/it',
+  'start.site': 'Sito web',
   'start.support': 'Sostieni Stella',
   'help.tab.text': 'Testo',
   'help.tab.variables': 'Campi e variabili',
