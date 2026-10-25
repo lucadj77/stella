@@ -16,7 +16,8 @@ const SUBTITLES = {
   griglie: ['Le griglie e le formule nelle caselle', 'Grids and cell formulas'],
   dati: ['I dati dal foglio di calcolo', 'Data from the spreadsheet'],
   icone: ['Immagini, icone e font', 'Images, icons and fonts'],
-  lingue: ['Un gioco in più lingue', 'A game in several languages']
+  lingue: ['Un gioco in più lingue', 'A game in several languages'],
+  assistente: ['L’assistente formule', 'The formula assistant']
 }
 if (!SUBTITLES[video]) throw new Error('video sconosciuto: ' + video)
 const subtitle = SUBTITLES[video][it ? 0 : 1]
