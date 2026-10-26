@@ -516,11 +516,37 @@ a:focus-visible {
   padding-left: 14px;
 }
 
-/* tutorial */
+/* tutorial: i video divisi in gruppi; «Inizia qui» in un riquadro, gli altri in fila sotto */
 .playlist {
-  margin: 28px 0 0;
+  margin: 0 0 32px;
   text-align: center;
   font-weight: 600;
+}
+.video-group {
+  display: grid;
+  gap: 8px;
+}
+.video-group + .video-group {
+  margin-top: 48px;
+}
+.video-group.start {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--yellow);
+  border-radius: 12px;
+  padding: 24px;
+}
+.video-group h3 {
+  font-size: 1.5rem;
+}
+@media (max-width: 600px) {
+  .video-group.start {
+    padding: 16px;
+  }
+}
+.video-group .group-text {
+  color: var(--fg-2);
+  margin-bottom: 12px;
 }
 .videos {
   display: grid;
@@ -566,6 +592,27 @@ a:focus-visible {
   color: var(--fg-2);
   font-size: 0.95rem;
   white-space: nowrap;
+}
+.video {
+  color: inherit;
+  text-decoration: none;
+}
+.video h4 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.video:hover h4 {
+  color: var(--accent);
+}
+.video .num {
+  color: var(--fg-2);
+  font-variant-numeric: tabular-nums;
+}
+.video p {
+  color: var(--fg-2);
+  font-size: 0.95rem;
 }
 
 /* guida e novità */

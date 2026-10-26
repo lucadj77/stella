@@ -123,9 +123,18 @@ export const texts = {
     },
     tutorial: {
       title: 'Tutorial',
-      text: 'Video brevi, senza voce: il testo compare accanto a ciò che va guardato.',
+      text: 'Video brevi, per imparare subito a usare Stella Game Center.',
       soon: 'I primi video arrivano a breve.',
       playlist: 'Tutti i video nella playlist di YouTube',
+      // i gruppi della sezione, nell'ordine in cui compaiono
+      groups: {
+        start: ['Inizia qui', 'Il percorso consigliato per cominciare.'],
+        components: ['Componenti', 'Carte, plance, segnalini, tessere e dadi.'],
+        text: ['Testo e formule', 'Cosa c’è scritto sulle carte e come cambia da una all’altra.'],
+        data: ['Dati e lingue', 'Il foglio di calcolo e i giochi in più lingue.'],
+        table: ['Dal file al tavolo', 'Stampa, Tabletop Simulator e regolamento.'],
+        tools: ['Strumenti', 'Per lavorare meglio e senza perdere niente.']
+      },
       watch: 'Guarda su YouTube'
     },
     guide: {
@@ -165,8 +174,7 @@ export const texts = {
       back: 'Torna al sito'
     },
     footer: {
-      license:
-        'Stella è software libero, licenza GNU GPL 3 o successive. Le carte che crei sono tue.',
+      license: 'Stella è software libero, licenza GNU GPL 3 o successive. Il gioco che crei è tuo.',
       source: 'Codice sorgente su GitHub',
       support: 'Offrimi un caffè',
       contact: 'Scrivimi',
@@ -295,9 +303,20 @@ export const texts = {
     },
     tutorial: {
       title: 'Tutorials',
-      text: 'Short videos, no voice: the text appears next to what to look at.',
+      text: 'Short videos to start using Stella Game Center right away.',
       soon: 'The first videos are coming soon.',
       playlist: 'All the videos in the YouTube playlist',
+      groups: {
+        start: ['Start here', 'The suggested path to get started.'],
+        components: ['Components', 'Cards, boards, tokens, tiles and dice.'],
+        text: [
+          'Text and formulas',
+          'What is written on the cards and how it changes from one to the next.'
+        ],
+        data: ['Data and languages', 'The spreadsheet and games in several languages.'],
+        table: ['From file to table', 'Printing, Tabletop Simulator and the rulebook.'],
+        tools: ['Tools', 'To work better and never lose anything.']
+      },
       watch: 'Watch on YouTube'
     },
     guide: {
@@ -335,7 +354,7 @@ export const texts = {
       back: 'Back to the site'
     },
     footer: {
-      license: 'Stella is free software, GNU GPL 3 or later. The cards you make are yours.',
+      license: 'Stella is free software, GNU GPL 3 or later. The game you make is yours.',
       source: 'Source code on GitHub',
       support: 'Buy me a coffee',
       contact: 'Contact me',
@@ -344,11 +363,17 @@ export const texts = {
   }
 }
 
-// I video dei tutorial: titolo per lingua e indirizzo YouTube (vuoto finché non è caricato)
+// I video dei tutorial: numero su YouTube, titolo e riga di presentazione per lingua, indirizzo YouTube
+// (vuoto finché non è caricato)
 export const videos = [
   {
+    n: 1,
     it: 'Panoramica delle funzioni di base',
     en: 'An overview of the basic functions',
+    about: {
+      it: 'Cosa fa Stella, in quattro minuti: template, set, esportazione.',
+      en: 'What Stella does, in four minutes: templates, sets, export.'
+    },
     minutes: 4,
     url: {
       it: 'https://www.youtube.com/watch?v=0JnZ92Jy_JU',
@@ -356,8 +381,13 @@ export const videos = [
     }
   },
   {
+    n: 2,
     it: 'Il tuo primo componente da zero',
     en: 'Your first component from scratch',
+    about: {
+      it: 'Un template e un set da un progetto vuoto, passo per passo.',
+      en: 'A template and a set from an empty project, step by step.'
+    },
     minutes: 10,
     url: {
       it: 'https://www.youtube.com/watch?v=kUgGQ_ab8Yg',
@@ -365,8 +395,13 @@ export const videos = [
     }
   },
   {
+    n: 3,
     it: 'Da Stella a Tabletop Simulator',
     en: 'From Stella to Tabletop Simulator',
+    about: {
+      it: 'Mazzi, segnalini e plance pronti da caricare in Tabletop Simulator.',
+      en: 'Decks, tokens and boards ready to load into Tabletop Simulator.'
+    },
     minutes: 5,
     url: {
       it: 'https://www.youtube.com/watch?v=XxKgcgba9wE',
@@ -374,8 +409,13 @@ export const videos = [
     }
   },
   {
+    n: 4,
     it: 'Testo, icone, stili e formule',
     en: 'Text, icons, styles and formulas',
+    about: {
+      it: 'Il testo sulle carte: icone nel testo, stili e le prime formule.',
+      en: 'Text on the cards: icons in the text, styles and the first formulas.'
+    },
     minutes: 5,
     url: {
       it: 'https://www.youtube.com/watch?v=2I0ABob4DoQ',
@@ -383,8 +423,13 @@ export const videos = [
     }
   },
   {
+    n: 5,
     it: 'Il regolamento e gli altri documenti',
     en: 'The rulebook and other documents',
+    about: {
+      it: 'Il regolamento con le carte vere dentro, esportato in PDF e Word.',
+      en: 'The rulebook with the real cards in it, exported to PDF and Word.'
+    },
     minutes: 5,
     url: {
       it: 'https://www.youtube.com/watch?v=psMiWRUQ4k4',
@@ -392,8 +437,13 @@ export const videos = [
     }
   },
   {
+    n: 6,
     it: 'Stella con un agente IA',
     en: 'Stella with an AI agent',
+    about: {
+      it: 'Il comando stella e la skill per lavorare con un agente IA.',
+      en: 'The stella command and the skill for working with an AI agent.'
+    },
     minutes: 4,
     url: {
       it: 'https://www.youtube.com/watch?v=ymvGmxgpxgA',
@@ -401,8 +451,13 @@ export const videos = [
     }
   },
   {
+    n: 7,
     it: 'Plance, tessere, segnalini e dadi',
     en: 'Boards, tiles, tokens and dice',
+    about: {
+      it: 'Gli altri componenti oltre alle carte: forme, misure e dadi.',
+      en: 'The components beyond cards: shapes, sizes and dice.'
+    },
     minutes: 9,
     url: {
       it: 'https://www.youtube.com/watch?v=02s-e9wMHU8',
@@ -410,8 +465,13 @@ export const videos = [
     }
   },
   {
+    n: 8,
     it: 'Le griglie e le formule nelle caselle',
     en: 'Grids and cell formulas',
+    about: {
+      it: 'Griglie di caselle per plance e tracciati, con le formule.',
+      en: 'Grids of cells for boards and tracks, with formulas.'
+    },
     minutes: 14,
     url: {
       it: 'https://www.youtube.com/watch?v=wY4PRv9vN1o',
@@ -419,8 +479,13 @@ export const videos = [
     }
   },
   {
+    n: 9,
     it: 'Stampare i componenti',
     en: 'Printing your components',
+    about: {
+      it: 'Il PDF da stampare a casa o in tipografia, fronte e retro.',
+      en: 'The PDF for home or print shop, fronts and backs.'
+    },
     minutes: 9,
     url: {
       it: 'https://www.youtube.com/watch?v=TG-WWQqBDUk',
@@ -428,8 +493,13 @@ export const videos = [
     }
   },
   {
+    n: 10,
     it: 'I dati dal foglio di calcolo',
     en: 'Data from the spreadsheet',
+    about: {
+      it: 'Le carte da un foglio Excel, LibreOffice o Google Sheets.',
+      en: 'Cards from an Excel, LibreOffice or Google Sheets file.'
+    },
     minutes: 9,
     url: {
       it: 'https://www.youtube.com/watch?v=EtS5nl_aKAg',
@@ -437,8 +507,13 @@ export const videos = [
     }
   },
   {
+    n: 11,
     it: 'Immagini, icone e font',
     en: 'Images, icons and fonts',
+    about: {
+      it: 'Immagini, cataloghi di icone e font per i componenti.',
+      en: 'Images, icon catalogs and fonts for your components.'
+    },
     minutes: 6,
     url: {
       it: 'https://www.youtube.com/watch?v=LhgecwJeUWU',
@@ -446,8 +521,13 @@ export const videos = [
     }
   },
   {
+    n: 12,
     it: 'Un gioco in più lingue',
     en: 'A game in several languages',
+    about: {
+      it: 'Gli stessi componenti in più lingue, dal foglio e nei testi fissi.',
+      en: 'The same components in several languages, from the sheet and in fixed texts.'
+    },
     minutes: 6,
     url: {
       it: 'https://www.youtube.com/watch?v=1eV4QzH_3XI',
@@ -455,8 +535,13 @@ export const videos = [
     }
   },
   {
+    n: 13,
     it: 'L’assistente formule',
     en: 'The formula assistant',
+    about: {
+      it: 'Le formule costruite a parole, senza scriverle a mano.',
+      en: 'Formulas built in plain words, without typing them.'
+    },
     minutes: 12,
     url: {
       it: 'https://www.youtube.com/watch?v=azgDlcktVfk',
@@ -464,8 +549,13 @@ export const videos = [
     }
   },
   {
+    n: 16,
     it: 'Generare le carte e dividere un’immagine',
     en: 'Generating cards and splitting an image',
+    about: {
+      it: 'Tante carte in un colpo solo, e una mappa divisa tra le carte.',
+      en: 'Many cards in one go, and a map split across cards.'
+    },
     minutes: 6,
     url: {
       it: 'https://www.youtube.com/watch?v=TR5Eiuatdec',
@@ -473,8 +563,13 @@ export const videos = [
     }
   },
   {
+    n: 17,
     it: 'Backup e recupero',
     en: 'Backups and recovery',
+    about: {
+      it: 'Annullare, i backup automatici, il ripristino e il cestino.',
+      en: 'Undo, automatic backups, restoring and the trash.'
+    },
     minutes: 5,
     url: {
       it: 'https://www.youtube.com/watch?v=2fPQwU0LlFg',
@@ -482,8 +577,13 @@ export const videos = [
     }
   },
   {
+    n: 18,
     it: 'Lavorare più veloce',
     en: 'Working faster',
+    about: {
+      it: 'Le scorciatoie e i gesti per il lavoro di tutti i giorni.',
+      en: 'Shortcuts and gestures for everyday work.'
+    },
     minutes: 5,
     url: {
       it: 'https://www.youtube.com/watch?v=p1nM-sH1cvE',
@@ -493,6 +593,16 @@ export const videos = [
 ]
 
 // Le playlist con tutti i video, una per lingua
+// i gruppi della sezione Tutorial e l'ordine dei video in ciascuno (i numeri restano quelli di YouTube)
+export const videoGroups = {
+  start: [15, 1, 2, 14],
+  components: [7, 8, 11, 16],
+  text: [4, 13],
+  data: [10, 12],
+  table: [9, 3, 5],
+  tools: [6, 17, 18]
+}
+
 export const playlists = {
   it: 'https://www.youtube.com/playlist?list=PLd3mtbjgiPEo',
   en: 'https://www.youtube.com/playlist?list=PLC6t-d7-3DO0'
