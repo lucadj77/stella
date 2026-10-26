@@ -92,7 +92,9 @@ const thumbs = {}
 mkdirSync(`${out}/img/yt`, { recursive: true })
 for (const id of videos.flatMap((v) => Object.values(v.url).map(ytId)).filter(Boolean)) {
   try {
-    const res = await fetch(`https://i.ytimg.com/vi/${id}/hqdefault.jpg`)
+    // maxresdefault è 16:9 come la copertina; hqdefault è 4:3 con due bande nere, solo se manca l'altra
+    let res = await fetch(`https://i.ytimg.com/vi/${id}/maxresdefault.jpg`)
+    if (!res.ok) res = await fetch(`https://i.ytimg.com/vi/${id}/hqdefault.jpg`)
     if (!res.ok) throw new Error(res.status)
     writeFileSync(`${out}/img/yt/${id}.jpg`, Buffer.from(await res.arrayBuffer()))
     thumbs[id] = `img/yt/${id}.jpg`
