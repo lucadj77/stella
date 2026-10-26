@@ -706,7 +706,9 @@ function ImageBody({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
 
 /**
  * Regolazioni dell'immagine e tinta, in quest'ordine: saturazione (zero per la scala di
- * grigi), luminosità e contrasto, poi la tinta che ricolora mantenendo la trasparenza.
+ * grigi), luminosità e contrasto, poi la tinta che ricolora mantenendo la trasparenza. La tinta
+ * si stende sopra l'immagine: piena la ricolora del tutto, semitrasparente (#00000033) la
+ * scurisce o la colora solo in parte, e l'immagine resta opaca.
  */
 function ImageFilter({ id, layer: l }: { id: string; layer: ImageLayer }): React.JSX.Element {
   const sat = l.grayscale ? 0 : l.saturation
@@ -714,9 +716,9 @@ function ImageFilter({ id, layer: l }: { id: string; layer: ImageLayer }): React
   const intercept = 0.5 - 0.5 * l.contrast
   return (
     <filter id={id} colorInterpolationFilters="sRGB">
-      {sat !== 1 && <feColorMatrix type="saturate" values={String(sat)} />}
+      {sat !== 1 && <feColorMatrix type="saturate" values={String(sat)} result="adjusted" />}
       {(l.brightness !== 1 || l.contrast !== 1) && (
-        <feComponentTransfer>
+        <feComponentTransfer result="adjusted">
           <feFuncR type="linear" slope={slope} intercept={intercept} />
           <feFuncG type="linear" slope={slope} intercept={intercept} />
           <feFuncB type="linear" slope={slope} intercept={intercept} />
@@ -726,6 +728,10 @@ function ImageFilter({ id, layer: l }: { id: string; layer: ImageLayer }): React
         <>
           <feFlood floodColor={l.tint} />
           <feComposite in2="SourceAlpha" operator="in" />
+          <feComposite
+            in2={sat !== 1 || l.brightness !== 1 || l.contrast !== 1 ? 'adjusted' : 'SourceGraphic'}
+            operator="over"
+          />
         </>
       )}
     </filter>

@@ -13,6 +13,8 @@ import {
   type Gradient
 } from '../../../shared/model/gradient'
 import { useI18n } from '../i18n/context'
+import { useLengthUnit } from '../units'
+import { MM_PER_UNIT, UNIT_LABEL, unitStep } from '../../../shared/model/units'
 import MarkupTextarea from '../components/MarkupTextarea'
 import { APP_FONTS, useProjectFonts } from '../render/fonts'
 import FontPicker from '../components/FontPicker'
@@ -116,11 +118,11 @@ export function NumberField({
   disabled,
   value,
   onChange,
-  step = 0.5,
+  step: stepProp = 0.5,
   min,
   max,
-  unit,
-  factor = 1,
+  unit: unitProp,
+  factor: factorProp = 1,
   deferred
 }: Base & {
   value: number
@@ -129,10 +131,16 @@ export function NumberField({
   step?: number
   min?: number
   max?: number
+  /** "mm" mostra la misura nell'unità scelta nelle impostazioni */
   unit?: string
   /** Moltiplicatore per la visualizzazione, per esempio 100 per le percentuali */
   factor?: number
 }): React.JSX.Element {
+  const lengthUnit = useLengthUnit()
+  const isLength = unitProp === 'mm'
+  const unit = isLength ? UNIT_LABEL[lengthUnit] : unitProp
+  const factor = isLength ? factorProp / MM_PER_UNIT[lengthUnit] : factorProp
+  const step = isLength ? unitStep(stepProp, lengthUnit) : stepProp
   const clamp = (n: number): number => {
     let v = n / factor
     if (min !== undefined) v = Math.max(min, v)

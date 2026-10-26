@@ -39,6 +39,8 @@ import { languageName } from '../i18n/languageName'
 import { cardFingerprints } from '../../../shared/model/compare'
 import { ColorSwatch } from '../components/ColorPicker'
 import { useI18n } from '../i18n/context'
+import { useLengthUnit } from '../units'
+import { UNIT_LABEL, fromUnit, toUnit, unitStep } from '../../../shared/model/units'
 import type { MessageKey } from '../i18n/en'
 import { browserViewable } from '../../../shared/viewable'
 
@@ -62,6 +64,7 @@ export default function ExportDialog({
   onClose(): void
 }): React.JSX.Element {
   const { t, lang: ui } = useI18n()
+  const lengthUnit = useLengthUnit()
   const saved = project.file.export ?? {}
   const languages = projectLanguages(project.file)
   /** Lingua da esportare: un codice, o * per tutte (le altre lingue nelle loro sottocartelle) */
@@ -349,6 +352,7 @@ export default function ExportDialog({
       ))}
     </select>
   )
+  /** Misura in mm, mostrata e scritta nell'unità scelta nelle impostazioni */
   const mm = (
     value: number,
     onChange: (v: number) => void,
@@ -358,13 +362,16 @@ export default function ExportDialog({
       <input
         className="num"
         type="number"
-        step={0.5}
+        step={unitStep(0.5, lengthUnit)}
         min={0}
-        value={value}
+        value={toUnit(value, lengthUnit)}
         disabled={disabled}
-        onChange={(e) => onChange(num(e.target.value, value))}
+        onChange={(e) => {
+          const v = parseFloat(e.target.value.replace(',', '.'))
+          onChange(Number.isFinite(v) ? fromUnit(v, lengthUnit) : value)
+        }}
       />
-      <span className="unit">mm</span>
+      <span className="unit">{UNIT_LABEL[lengthUnit]}</span>
     </>
   )
   const folderField = (
@@ -699,12 +706,17 @@ export default function ExportDialog({
                           className="num narrow"
                           type="number"
                           min={0}
-                          value={pdf.posterOverlap}
+                          value={toUnit(pdf.posterOverlap, lengthUnit)}
                           onChange={(e) =>
-                            patch({ posterOverlap: Math.max(0, num(e.target.value, 10)) })
+                            patch({
+                              posterOverlap: Math.max(
+                                0,
+                                fromUnit(num(e.target.value, toUnit(10, lengthUnit)), lengthUnit)
+                              )
+                            })
                           }
                         />
-                        <span className="unit">mm</span>
+                        <span className="unit">{UNIT_LABEL[lengthUnit]}</span>
                       </>
                     )}
                   </>,
@@ -846,21 +858,24 @@ export default function ExportDialog({
                             <input
                               className="num narrow"
                               type="number"
-                              step={0.5}
-                              min={0.1}
-                              max={50}
-                              value={obj.thickness}
-                              title={t('export.ttsThicknessHint')}
+                              step={unitStep(0.5, lengthUnit)}
+                              value={toUnit(obj.thickness, lengthUnit)}
                               onChange={(e) =>
                                 set({
                                   thickness: Math.max(
                                     0.1,
-                                    Math.min(50, num(e.target.value, obj.thickness))
+                                    Math.min(
+                                      50,
+                                      fromUnit(
+                                        num(e.target.value, toUnit(obj.thickness, lengthUnit)),
+                                        lengthUnit
+                                      )
+                                    )
                                   )
                                 })
                               }
                             />
-                            <span className="unit">mm</span>
+                            <span className="unit">{UNIT_LABEL[lengthUnit]}</span>
                           </>
                         )}
                         {(obj.type === 'tile' || obj.type === 'board') && (

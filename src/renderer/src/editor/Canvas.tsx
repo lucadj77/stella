@@ -31,6 +31,8 @@ import { isDrawn, type GroupLayer, type Layer, type Template } from '../../../sh
 import CardSvg, { CardOutline } from '../render/CardSvg'
 import { ShowEmptyContext } from '../render/assets'
 import { useI18n } from '../i18n/context'
+import { useLengthUnit } from '../units'
+import { UNIT_LABEL, fromUnit, toUnit } from '../../../shared/model/units'
 import type { EditorAction, EditorState } from './useEditor'
 import { isRatioLocked } from './ratioLock'
 
@@ -97,6 +99,7 @@ interface Props {
 
 export default function Canvas({ state, display, dispatch }: Props): React.JSX.Element {
   const { t } = useI18n()
+  const lengthUnit = useLengthUnit()
   const { template: tpl, side, selection, scope } = state
   const viewportRef = useRef<HTMLDivElement>(null)
   const overlayRef = useRef<SVGSVGElement>(null)
@@ -113,7 +116,8 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     x: null,
     y: null
   })
-  const [stepText, setStepText] = useState(String(guides.gridStep))
+  const [stepText, setStepText] = useState(String(toUnit(guides.gridStep, lengthUnit)))
+  useEffect(() => setStepText(String(toUnit(guides.gridStep, lengthUnit))), [lengthUnit]) // eslint-disable-line react-hooks/exhaustive-deps
   const setGuide = <K extends keyof Guides>(key: K, value: Guides[K]): void => {
     const next = { ...guides, [key]: value }
     setGuides(next)
@@ -720,15 +724,15 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
           value={stepText}
           onChange={(e) => {
             setStepText(e.target.value)
-            const n = Number(e.target.value.replace(',', '.'))
+            const n = fromUnit(Number(e.target.value.replace(',', '.')), lengthUnit)
             if (Number.isFinite(n) && n >= 0.1 && n <= 50) setGuide('gridStep', n)
           }}
-          onBlur={() => setStepText(String(guides.gridStep))}
+          onBlur={() => setStepText(String(toUnit(guides.gridStep, lengthUnit)))}
           onKeyDown={(e) => {
             if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
           }}
         />
-        <span className="muted small">mm</span>
+        <span className="muted small">{UNIT_LABEL[lengthUnit]}</span>
         <span className="zoom-sep" />
         <span className="muted small" title={t('editor.snapHint')}>
           {t('editor.snap')}

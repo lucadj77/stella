@@ -3251,7 +3251,7 @@ button.big {
 
 /* backup */
 .backup-dialog {
-  width: min(560px, 90vw);
+  width: min(640px, 90vw);
 }
 .backup-actions,
 .backup-folder {
@@ -3271,6 +3271,19 @@ button.big {
 }
 .backup-list td:last-child {
   text-align: right;
+}
+.backup-label-input {
+  flex: 1 1 220px;
+}
+.backup-label button.link {
+  border: none;
+  background: none;
+  padding: 2px 0;
+  color: var(--text);
+  text-align: left;
+}
+.backup-label input {
+  width: 100%;
 }
 .backup-settings {
   display: grid;

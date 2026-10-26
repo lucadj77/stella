@@ -228,6 +228,11 @@ export const en = {
   'app.channel.beta': 'Beta',
   'app.channelHint':
     'Stable offers only official versions. Beta also offers the test versions, with new features earlier and more chance of bugs. Going from Beta back to Stable does not install an older version: you wait for the next official one.',
+  'app.lengthUnit': 'Units',
+  'app.lengthUnitHint': 'Unit for positions, sizes and margins. Text stays in points and line widths in mm.',
+  'app.lengthUnit.mm': 'Millimeters (mm)',
+  'app.lengthUnit.cm': 'Centimeters (cm)',
+  'app.lengthUnit.in': 'Inches (in)',
   'app.theme': 'Theme',
   'app.theme.system': 'System',
   'app.theme.light': 'Light',
@@ -472,7 +477,7 @@ export const en = {
   'tip.clearFormat': 'Remove all formatting from the selected text',
   'tip.chooseFolder': 'Choose the folder on disk',
   'editor.showGrid': 'Grid',
-  'editor.gridStep': 'Grid spacing in mm',
+  'editor.gridStep': 'Grid spacing',
   'editor.snap': 'Snap:',
   'editor.snapGrid': 'Grid',
   'editor.snapObjects': 'Objects',
@@ -608,7 +613,7 @@ export const en = {
   'prop.bleed': 'Bleed',
   'prop.safeMargin': 'Safe margin',
   'prop.cardShape': 'Card shape',
-  'editor.hexagonFit': 'Fit the card to the hexagon ({w} × {h} mm)',
+  'editor.hexagonFit': 'Fit the card to the hexagon ({w} × {h})',
   'editor.hexagonFitHint':
     'The hexagon is always regular and as large as the card allows. To fill the card, its short side must be the long side × 0.866.',
   'editor.regular': 'Make regular',
@@ -1266,7 +1271,6 @@ export const en = {
   'export.ttsDicePadded':
     'Set “{set}”: the cards are not a multiple of six, the last die repeats its first faces.',
   'export.ttsThickness': 'Thickness',
-  'export.ttsThicknessHint': 'In mm',
   'export.ttsEdge': 'Edge',
   'export.ttsBack': 'Back',
   'export.backAuto': 'Automatic: one image if all backs are equal',
@@ -1898,6 +1902,10 @@ export const en = {
   'backup.working': 'One moment…',
   'backup.auto': 'automatic',
   'backup.manual': 'manual',
+  'backup.label': 'Backup name',
+  'backup.labelPlaceholder': 'Name (optional), e.g. before the new rules',
+  'backup.addLabel': 'Add a name',
+  'backup.rename': 'Change the name of this backup',
   'backup.restore': 'Restore…',
   'backup.restoreConfirm':
     'The backup is extracted to a new folder next to the project, which opens in place of this one. The current project stays as it is.',

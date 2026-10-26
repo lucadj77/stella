@@ -160,6 +160,8 @@ import { useDocuments } from './components/useDocuments'
 import { BUILTIN_STYLES, parseAttrs, serializeAttrs } from '../../shared/model/markup'
 import { LANGUAGES, useI18n, type Language } from './i18n/context'
 import { THEMES, applyTheme, loadTheme } from './theme/theme'
+import { setLengthUnit, useLengthUnit } from './units'
+import { LENGTH_UNITS, type LengthUnit } from '../../shared/model/units'
 import type { AgentLock, Theme } from '../../shared/api'
 
 const NO_STYLES: Record<string, string> = {}
@@ -231,6 +233,7 @@ function App(): React.JSX.Element {
     window.api.setUpdateChannel(c).then(checkForUpdateNow, () => {})
   }
   const [theme, setTheme] = useState(loadTheme)
+  const lengthUnit = useLengthUnit()
   const changeTheme = (th: Theme): void => {
     setTheme(th)
     applyTheme(th)
@@ -2154,6 +2157,21 @@ function App(): React.JSX.Element {
                 </select>
               </>
             )}
+            <label className="muted" htmlFor="ui-unit" title={t('app.lengthUnitHint')}>
+              {t('app.lengthUnit')}
+            </label>
+            <select
+              id="ui-unit"
+              value={lengthUnit}
+              title={t('app.lengthUnitHint')}
+              onChange={(e) => setLengthUnit(e.target.value as LengthUnit)}
+            >
+              {LENGTH_UNITS.map((u) => (
+                <option key={u} value={u}>
+                  {t(`app.lengthUnit.${u}`)}
+                </option>
+              ))}
+            </select>
             <label className="muted" htmlFor="ui-theme">
               {t('app.theme')}
             </label>

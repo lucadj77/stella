@@ -73,6 +73,7 @@ import {
   autoBackup,
   backupsSize,
   createBackup,
+  labelBackup,
   listBackups,
   readBackupSettings,
   restoreBackup,
@@ -516,12 +517,16 @@ function registerIpc(): void {
   })
 
   ipcMain.handle('backup:list', () => backupState())
-  ipcMain.handle('backup:create', async () => {
+  ipcMain.handle('backup:create', async (_, label?: string) => {
     const folder = getProjectFolder()
     if (!folder) throw new MessageError(msg('template.noProject'))
     const dir = await backupDir()
     const name = projectName
-    return queued(() => createBackup(folder, name, dir))
+    return queued(() => createBackup(folder, name, dir, false, new Date(), label))
+  })
+  ipcMain.handle('backup:label', async (_, file: string, label: string) => {
+    if (dirname(resolve(file)) !== resolve(await backupDir())) throw new Error('not a backup')
+    return queued(() => labelBackup(file, label))
   })
   ipcMain.handle('backup:settings', async (_, settings: BackupSettings) => {
     await writeBackupSettings(backupSettingsFile(), settings)

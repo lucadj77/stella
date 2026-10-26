@@ -72,6 +72,8 @@ export interface BackupItem {
   /** Dimensione dello zip, senza le immagini che condivide con gli altri backup */
   size: number
   auto: boolean
+  /** Nome dato al backup, per ricordare che cosa contiene */
+  label?: string
 }
 
 export interface BackupState {
@@ -266,8 +268,10 @@ export interface Api {
   chooseFolder(current?: string): Promise<string | null>
   /** Backup del progetto aperto e impostazioni */
   backups(): Promise<BackupState>
-  /** Crea subito un backup del progetto aperto (dei file salvati) */
-  createBackup(): Promise<BackupItem>
+  /** Crea subito un backup del progetto aperto (dei file salvati), con un nome se c'è */
+  createBackup(label?: string): Promise<BackupItem>
+  /** Cambia il nome di un backup del progetto aperto (vuoto lo toglie) */
+  labelBackup(file: string, label: string): Promise<BackupItem>
   saveBackupSettings(settings: BackupSettings): Promise<BackupState>
   /**
    * Estrae un backup in una cartella nuova accanto al progetto e ne restituisce il percorso. Nel

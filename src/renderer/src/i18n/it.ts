@@ -230,6 +230,11 @@ export const it: Record<MessageKey, string> = {
   'app.channel.beta': 'Beta',
   'app.channelHint':
     'Stabile propone solo le versioni ufficiali. Beta propone anche quelle di prova, con le novità prima e più probabilità di difetti. Tornando da Beta a Stabile non si installa una versione più vecchia: si aspetta la prossima ufficiale.',
+  'app.lengthUnit': 'Unità di misura',
+  'app.lengthUnitHint': 'Unità per posizioni, misure e margini. Il testo resta in punti e gli spessori delle linee in mm.',
+  'app.lengthUnit.mm': 'Millimetri (mm)',
+  'app.lengthUnit.cm': 'Centimetri (cm)',
+  'app.lengthUnit.in': 'Pollici (in)',
   'app.theme': 'Tema',
   'app.theme.system': 'Sistema',
   'app.theme.light': 'Chiaro',
@@ -476,7 +481,7 @@ export const it: Record<MessageKey, string> = {
   'tip.clearFormat': 'Togli tutta la formattazione dal testo selezionato',
   'tip.chooseFolder': 'Scegli la cartella sul disco',
   'editor.showGrid': 'Griglia',
-  'editor.gridStep': 'Passo della griglia in mm',
+  'editor.gridStep': 'Passo della griglia',
   'editor.snap': 'Aggancia:',
   'editor.snapGrid': 'Griglia',
   'editor.snapObjects': 'Oggetti',
@@ -614,7 +619,7 @@ export const it: Record<MessageKey, string> = {
   'prop.bleed': 'Abbondanza',
   'prop.safeMargin': 'Margine di sicurezza',
   'prop.cardShape': 'Forma della carta',
-  'editor.hexagonFit': "Adatta la carta all'esagono ({w} × {h} mm)",
+  'editor.hexagonFit': "Adatta la carta all'esagono ({w} × {h})",
   'editor.hexagonFitHint':
     "L'esagono è sempre regolare e grande quanto la carta permette. Per riempire la carta il lato corto deve essere il lato lungo × 0,866.",
   'editor.regular': 'Rendi regolare',
@@ -1283,7 +1288,6 @@ export const it: Record<MessageKey, string> = {
   'export.ttsDicePadded':
     "Set «{set}»: le carte non sono un multiplo di sei, l'ultimo dado ripete le sue prime facce.",
   'export.ttsThickness': 'Spessore',
-  'export.ttsThicknessHint': 'In mm',
   'export.ttsEdge': 'Bordo',
   'export.ttsBack': 'Retro',
   'export.backAuto': "Automatico: un'immagine se i retri sono tutti uguali",
@@ -1922,6 +1926,10 @@ export const it: Record<MessageKey, string> = {
   'backup.working': 'Un momento…',
   'backup.auto': 'automatico',
   'backup.manual': 'a mano',
+  'backup.label': 'Nome del backup',
+  'backup.labelPlaceholder': 'Nome (facoltativo), es. prima delle nuove regole',
+  'backup.addLabel': 'Aggiungi un nome',
+  'backup.rename': 'Cambia il nome di questo backup',
   'backup.restore': 'Ripristina…',
   'backup.restoreConfirm':
     "Il backup viene estratto in una nuova cartella accanto al progetto, che si apre al posto di questo. Il progetto attuale resta com'è.",

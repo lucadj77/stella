@@ -82,7 +82,21 @@ interface Manifest {
   assets: Record<string, string>
 }
 
-const NAME_RE = /^(.*) (\d{4})-(\d\d)-(\d\d) (\d\d)\.(\d\d)\.(\d\d)( auto)?\.zip$/
+const NAME_RE = /^(.*) (\d{4})-(\d\d)-(\d\d) (\d\d)\.(\d\d)\.(\d\d)( auto)?(?: - (.+))?\.zip$/
+
+/**
+ * Nome dato a un backup fatto a mano, scritto nel nome del file dopo la data: senza i caratteri
+ * che i sistemi non accettano nei nomi dei file, su una riga, non troppo lungo
+ */
+export function cleanBackupLabel(label: string | undefined): string {
+  return (label ?? '')
+    .replace(/[\\/:*?"<>|\u0000-\u001f]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\.+$/, '')
+    .slice(0, 80)
+    .trim()
+}
 
 export async function listBackups(dir: string): Promise<BackupItem[]> {
   let names: string[]
@@ -95,10 +109,17 @@ export async function listBackups(dir: string): Promise<BackupItem[]> {
   for (const name of names) {
     const m = NAME_RE.exec(name)
     if (!m) continue
-    const [, , y, mo, d, h, mi, s, auto] = m
+    const [, , y, mo, d, h, mi, s, auto, label] = m
     const date = new Date(+y, +mo - 1, +d, +h, +mi, +s).getTime()
     const size = (await stat(join(dir, name))).size
-    items.push({ file: join(dir, name), name, date, size, auto: !!auto })
+    items.push({
+      file: join(dir, name),
+      name,
+      date,
+      size,
+      auto: !!auto,
+      ...(label ? { label } : {})
+    })
   }
   return items.sort((a, b) => b.date - a.date)
 }
@@ -124,7 +145,8 @@ export async function createBackup(
   projectName: string,
   dir: string,
   auto = false,
-  now = new Date()
+  now = new Date(),
+  label?: string
 ): Promise<BackupItem> {
   const root = resolve(folder)
   const files = await projectFiles(root, [join(root, 'export'), resolve(dir)])
@@ -151,14 +173,37 @@ export async function createBackup(
     })
   }
   zip.file(MANIFEST, JSON.stringify(manifest, null, 1))
-  const name = `${backupDirName(projectName)} ${stamp(now)}${auto ? ' auto' : ''}.zip`
+  const clean = cleanBackupLabel(label)
+  const name = `${backupDirName(projectName)} ${stamp(now)}${auto ? ' auto' : ''}${clean ? ` - ${clean}` : ''}.zip`
   const file = join(dir, name)
   const tmp = file + '.tmp'
   // lo zip si fa in memoria: i file di assets/ non ci sono, quindi resta piccolo (e così si
   // scrive anche nella versione web, che non ha gli stream di Node)
   await writeFile(tmp, await zip.generateAsync({ type: 'nodebuffer', streamFiles: true }))
   await rename(tmp, file)
-  return { file, name, date: now.getTime(), size: (await stat(file)).size, auto }
+  return {
+    file,
+    name,
+    date: now.getTime(),
+    size: (await stat(file)).size,
+    auto,
+    ...(clean ? { label: clean } : {})
+  }
+}
+
+/** Cambia (o toglie, se vuoto) il nome di un backup: si rinomina il file */
+export async function labelBackup(file: string, label: string): Promise<BackupItem> {
+  const m = NAME_RE.exec(basename(file))
+  if (!m) throw new Error('not a backup')
+  const clean = cleanBackupLabel(label)
+  // tutto fino alla data (e a " auto"), poi il nome nuovo
+  const head = basename(file).slice(0, basename(file).length - '.zip'.length - (m[9] ? m[9].length + 3 : 0))
+  const name = `${head}${clean ? ` - ${clean}` : ''}.zip`
+  const target = join(dirname(file), name)
+  if (target !== file) await rename(file, target)
+  const item = (await listBackups(dirname(file))).find((b) => b.name === name)
+  if (!item) throw new Error('not a backup')
+  return item
 }
 
 async function readManifest(zip: JSZip): Promise<Manifest> {
@@ -169,11 +214,11 @@ async function readManifest(zip: JSZip): Promise<Manifest> {
 }
 
 /**
- * Toglie i backup automatici oltre i più recenti `keep` (quelli fatti a mano restano), poi i
- * file della cartella comune che nessun backup rimasto usa
+ * Toglie i backup automatici oltre i più recenti `keep` (quelli fatti a mano e quelli con un
+ * nome restano), poi i file della cartella comune che nessun backup rimasto usa
  */
 export async function pruneBackups(dir: string, keep: number): Promise<void> {
-  const auto = (await listBackups(dir)).filter((b) => b.auto)
+  const auto = (await listBackups(dir)).filter((b) => b.auto && !b.label)
   for (const b of auto.slice(Math.max(0, keep))) await rm(b.file, { force: true })
   const used = new Set<string>()
   for (const b of await listBackups(dir)) {
@@ -235,7 +280,7 @@ export async function autoBackup(
 export async function restoreBackup(file: string, parent: string): Promise<string> {
   const zip = await JSZip.loadAsync(await readFile(file))
   const manifest = await readManifest(zip)
-  const base = basename(file, '.zip').replace(/ auto$/, '')
+  const base = basename(file, '.zip').replace(/ auto( - |$)/, '$1')
   // il nome del backup contiene già la data: basta aggiungere un numero se esiste
   let target = join(parent, base)
   for (let n = 2; await exists(target); n++) target = join(parent, `${base} ${n}`)

@@ -43,6 +43,8 @@ import { Inherit } from './inheritance'
 import { InheritContext, type InheritCtx } from './inheritContext'
 import { hexagonFit, lineEnds, lineFromEnds, type Point } from '../../../shared/model/geometry'
 import { useI18n, type Translate } from '../i18n/context'
+import { useLengthUnit } from '../units'
+import { formatLength, toUnit } from '../../../shared/model/units'
 import { evaluateFormula } from '../../../shared/model/formula'
 import {
   cardFields,
@@ -213,7 +215,8 @@ function TemplateProperties({
   sheets: Props['sheets']
   onResize(width: number, height: number): void
 }): React.JSX.Element {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
+  const lengthUnit = useLengthUnit()
   const [locked, setLocked] = useRatioLock('template')
   const set = (p: Partial<Template>, key: string): void =>
     dispatch({ type: 'change', template: { ...tpl, ...p }, key: `template.${key}` })
@@ -255,7 +258,8 @@ function TemplateProperties({
         <div className="field" title={t('inherit.sizeFromBase')}>
           <span className="field-label">{t('prop.size')}</span>
           <span className="field-control muted">
-            {tpl.width} × {tpl.height} mm
+            {toUnit(tpl.width, lengthUnit).toLocaleString(lang)} ×{' '}
+            {formatLength(tpl.height, lengthUnit, lang)}
           </span>
         </div>
       ) : (
@@ -325,7 +329,10 @@ function TemplateProperties({
               <span className="field-label" />
               <div className="field-control">
                 <button type="button" onClick={() => onResize(fit.w, fit.h)}>
-                  {t('editor.hexagonFit', { w: fit.w, h: fit.h })}
+                  {t('editor.hexagonFit', {
+                    w: toUnit(fit.w, lengthUnit).toLocaleString(lang),
+                    h: formatLength(fit.h, lengthUnit, lang)
+                  })}
                 </button>
               </div>
               <p className="field-note">{t('editor.hexagonFitHint')}</p>
