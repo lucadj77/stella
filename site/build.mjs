@@ -1,7 +1,7 @@
 // Costruisce il sito di presentazione in una cartella: index.html (italiano), en/index.html, stile, script,
 // immagini (logo e screenshot presi dalla guida). Uso: node site/build.mjs <cartella di uscita>
 import { cpSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { contactKey, playlists, texts, videos } from './texts.mjs'
+import { contactKey, playlists, texts, videoGroups, videos } from './texts.mjs'
 
 const here = new URL('.', import.meta.url).pathname
 const repo = new URL('..', import.meta.url).pathname
@@ -136,16 +136,26 @@ for (const lang of ['it', 'en']) {
           `<figure><img class="zoomable" src="${t.img}${f}" alt="${esc(c)}" loading="lazy"><figcaption>${esc(c)}</figcaption></figure>`
       )
       .join('\n'),
+    // un gruppo per riga di videoGroups, solo con i video già su YouTube; i gruppi vuoti non compaiono
     videos:
       videos.length && videos.some((v) => v.url[lang])
-        ? videos
-            .filter((v) => v.url[lang])
-            .map((v) => {
-              const id = ytId(v.url[lang])
-              const thumb = id
-                ? `<img src="${thumbs[id] ? t.root + thumbs[id] : `https://i.ytimg.com/vi/${id}/hqdefault.jpg`}" alt="" loading="lazy">`
-                : esc(v[lang])
-              return `<a class="video" href="${esc(v.url[lang])}"><div class="thumb">${thumb}</div><div class="meta"><h3>${esc(v[lang])}</h3><span>${v.minutes} min</span></div></a>`
+        ? Object.entries(videoGroups)
+            .map(([key, ns]) => {
+              const items = ns
+                .map((n) => videos.find((v) => v.n === n))
+                .filter((v) => v && v.url[lang])
+              if (!items.length) return ''
+              const [title, text] = t.tutorial.groups[key]
+              const cards = items
+                .map((v) => {
+                  const id = ytId(v.url[lang])
+                  const thumb = id
+                    ? `<img src="${thumbs[id] ? t.root + thumbs[id] : `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`}" alt="" loading="lazy">`
+                    : esc(v[lang])
+                  return `<a class="video" href="${esc(v.url[lang])}"><div class="thumb">${thumb}</div><div class="meta"><h4><span class="num">${v.n}</span> ${esc(v[lang])}</h4><span>${v.minutes} min</span></div><p>${esc(v.about[lang])}</p></a>`
+                })
+                .join('\n')
+              return `<div class="video-group${key === 'start' ? ' start' : ''}"><h3>${esc(title)}</h3><p class="group-text">${esc(text)}</p><div class="videos">${cards}</div></div>`
             })
             .join('\n')
         : `<p>${esc(t.tutorial.soon)}</p>`,

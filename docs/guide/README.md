@@ -6,21 +6,39 @@ This guide follows the usual order of work: create a project, design a template,
 
 Video tutorials on YouTube, no voice ([whole playlist](https://www.youtube.com/playlist?list=PLC6t-d7-3DO0)):
 
-1. [An overview of the basic functions](https://www.youtube.com/watch?v=51ZJAKmUprc) (4 minutes)
-2. [Your first component from scratch](https://www.youtube.com/watch?v=YISuOjfzjJU) (10 minutes)
-3. [From Stella to Tabletop Simulator](https://www.youtube.com/watch?v=N6VXi-RPIpg) (5 minutes)
-4. [Text, icons, styles and formulas](https://www.youtube.com/watch?v=SKoi6EaFY6k) (5 minutes)
-5. [The rulebook and other documents](https://www.youtube.com/watch?v=skHh2Uz2VxE) (5 minutes)
-6. [Stella with an AI agent](https://www.youtube.com/watch?v=7EylDX9GKOU) (4 minutes)
-7. [Boards, tiles, tokens and dice](https://www.youtube.com/watch?v=WUIWgrg5zLk) (9 minutes)
-8. [Grids and cell formulas](https://www.youtube.com/watch?v=DgaXcUt2N-M) (14 minutes)
-9. [Printing your components](https://www.youtube.com/watch?v=RbO56oqJSFo) (9 minutes)
-10. [Data from the spreadsheet](https://www.youtube.com/watch?v=hlKHMJOoNos) (9 minutes)
-11. [Images, icons and fonts](https://www.youtube.com/watch?v=Rw60_QDED9Q) (6 minutes)
-12. [A game in several languages](https://www.youtube.com/watch?v=gszofbPThzU) (6 minutes)
-13. [The formula assistant](https://www.youtube.com/watch?v=V2qYi4r4uJA) (12 minutes)
-16. [Generating cards and splitting an image](https://www.youtube.com/watch?v=heP9Y82zsjA) (6 minutes)
-17. [Backups and recovery](https://www.youtube.com/watch?v=AeSwGYOWRCs) (5 minutes)
+**Start here**
+
+- 1 · [An overview of the basic functions](https://www.youtube.com/watch?v=51ZJAKmUprc) (4 minutes)
+- 2 · [Your first component from scratch](https://www.youtube.com/watch?v=YISuOjfzjJU) (10 minutes)
+
+**Components**
+
+- 7 · [Boards, tiles, tokens and dice](https://www.youtube.com/watch?v=WUIWgrg5zLk) (9 minutes)
+- 8 · [Grids and cell formulas](https://www.youtube.com/watch?v=DgaXcUt2N-M) (14 minutes)
+- 11 · [Images, icons and fonts](https://www.youtube.com/watch?v=Rw60_QDED9Q) (6 minutes)
+- 16 · [Generating cards and splitting an image](https://www.youtube.com/watch?v=heP9Y82zsjA) (6 minutes)
+
+**Text and formulas**
+
+- 4 · [Text, icons, styles and formulas](https://www.youtube.com/watch?v=SKoi6EaFY6k) (5 minutes)
+- 13 · [The formula assistant](https://www.youtube.com/watch?v=V2qYi4r4uJA) (12 minutes)
+
+**Data and languages**
+
+- 10 · [Data from the spreadsheet](https://www.youtube.com/watch?v=hlKHMJOoNos) (9 minutes)
+- 12 · [A game in several languages](https://www.youtube.com/watch?v=gszofbPThzU) (6 minutes)
+
+**From file to table**
+
+- 9 · [Printing your components](https://www.youtube.com/watch?v=RbO56oqJSFo) (9 minutes)
+- 3 · [From Stella to Tabletop Simulator](https://www.youtube.com/watch?v=N6VXi-RPIpg) (5 minutes)
+- 5 · [The rulebook and other documents](https://www.youtube.com/watch?v=skHh2Uz2VxE) (5 minutes)
+
+**Tools**
+
+- 6 · [Stella with an AI agent](https://www.youtube.com/watch?v=7EylDX9GKOU) (4 minutes)
+- 17 · [Backups and recovery](https://www.youtube.com/watch?v=AeSwGYOWRCs) (5 minutes)
+- 18 · [Working faster](https://www.youtube.com/watch?v=sdlhIDNbUyg) (5 minutes)
 
 Versione italiana: [../guida/README.md](../guida/README.md).
 

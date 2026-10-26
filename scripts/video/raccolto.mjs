@@ -97,7 +97,7 @@ const S = it
         '',
         '## Il turno',
         '',
-        'Tira il {dado}: la coltura uscita cresce in tutti i campi che la ospitano. Poi puoi comprare una carta coltura pagando il suo costo in monete e piantarla in un campo libero.',
+        'Tira il dado: la coltura uscita cresce in tutti i campi che la ospitano. Poi puoi comprare una carta coltura pagando il suo costo in {moneta} e piantarla in un campo libero.',
         '',
         'Vince chi arriva per primo a 20 punti sul tracciato.',
         ''
@@ -160,7 +160,7 @@ const S = it
         '',
         '## The turn',
         '',
-        'Roll the {die}: the crop rolled grows in every field that holds it. Then you may buy a crop card, paying its cost in coins, and plant it in a free field.',
+        'Roll the die: the crop rolled grows in every field that holds it. Then you may buy a crop card, paying its cost in {coin}, and plant it in a free field.',
         '',
         'The first to reach 20 points on the track wins.',
         ''
@@ -911,8 +911,8 @@ await quickly(false)
 await r.focus(
   docPreview(),
   t(
-    'Il testo in Markdown, con le icone del gioco: {dado} è l’icona del dado',
-    'Text in Markdown, with the game icons'
+    'Il testo in Markdown, con le icone del gioco: {moneta} è l’icona della moneta',
+    'Text in Markdown, with the game icons: {coin} is the coin icon'
   ),
   'left',
   { pad: 0 }
