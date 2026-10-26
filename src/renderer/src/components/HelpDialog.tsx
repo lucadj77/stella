@@ -63,12 +63,13 @@ const FUNCTIONS = [
 
 const KEYS: [string, MessageKey][] = [
   ['⌘S', 'help.keys.save'],
+  ['⌘O  ⌘W', 'help.keys.project'],
   ['⌘Z  ⇧⌘Z', 'help.keys.undo'],
   ['⌘A  Esc', 'help.keys.selectCards'],
   ['Alt+Enter', 'help.keys.cellBreak'],
   ['{  ↑ ↓  Enter', 'help.keys.suggest'],
   ['PgUp  PgDn', 'help.keys.page'],
-  ['T  R  E', 'help.keys.tools'],
+  ['T  R  E  I  G  V', 'help.keys.tools'],
   ['⌘D', 'help.keys.duplicate'],
   ['⌘C  ⌘X  ⌘V', 'help.keys.copy'],
   ['⌘G  ⇧⌘G', 'help.keys.group'],

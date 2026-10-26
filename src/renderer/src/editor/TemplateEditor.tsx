@@ -126,7 +126,9 @@ export default function TemplateEditor({
     return () => window.removeEventListener(EDITOR_UNDO, run)
   }, [dispatch])
 
-  // la tastiera: le scorciatoie usano Cmd su macOS e Ctrl altrove
+  // la tastiera: le scorciatoie usano Cmd su macOS e Ctrl altrove. Le lettere senza modificatori
+  // aggiungono un livello: testo, rettangolo, ellisse, immagine, griglia, valore
+  const TOOL_KEYS = ['t', 'r', 'e', 'i', 'g', 'v']
   const onKey = (e: KeyboardEvent): void => {
     const mod = e.metaKey || e.ctrlKey
     const k = e.key.toLowerCase()
@@ -160,10 +162,16 @@ export default function TemplateEditor({
         arrowdown: [0, d]
       }[k] ?? [0, 0]
       cmd.nudge(dx, dy)
-    } else if (!mod && k === 't') cmd.add('text')
-    else if (!mod && k === 'r') cmd.add('shape', 'rect')
-    else if (!mod && k === 'e') cmd.add('shape', 'ellipse')
-    else return
+    } else if (!mod && !e.altKey && TOOL_KEYS.includes(k)) {
+      // il retro della pedina è il fronte specchiato: non ha livelli suoi
+      if (isStandee(state.template) && state.side === 'back') return
+      if (k === 't') cmd.add('text')
+      else if (k === 'r') cmd.add('shape', 'rect')
+      else if (k === 'e') cmd.add('shape', 'ellipse')
+      else if (k === 'i') setPickingImage(true)
+      else if (k === 'g') cmd.add('grid')
+      else cmd.add('value')
+    } else return
     e.preventDefault()
   }
   // copia, taglia e incolla passano dagli appunti del sistema: i livelli si incollano anche in un

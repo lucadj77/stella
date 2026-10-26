@@ -2083,7 +2083,7 @@ function App(): React.JSX.Element {
       {
         label: t('menu.file'),
         items: [
-          { id: 'open', label: t('menu.openProject') },
+          { id: 'open', label: t('menu.openProject'), accelerator: 'CmdOrCtrl+O' },
           sep,
           {
             id: 'save',
@@ -2100,7 +2100,12 @@ function App(): React.JSX.Element {
           { id: 'languages', label: t('app.languages'), enabled: hasProject },
           sep,
           { id: 'reload', label: t('app.reloadFromDisk'), enabled: hasProject },
-          { id: 'close', label: t('app.closeProjectLong'), enabled: hasProject },
+          {
+            id: 'close',
+            label: t('app.closeProjectLong'),
+            accelerator: 'CmdOrCtrl+W',
+            enabled: hasProject
+          },
           ...(isMac ? [] : [sep, { role: 'quit', label: t('menu.quit') }])
         ]
       },
