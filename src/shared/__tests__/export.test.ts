@@ -195,6 +195,18 @@ describe('Tabletop Simulator', () => {
     ) as { ObjectStates: Record<string, unknown>[] }
     expect(one.ObjectStates[0]).toMatchObject({ Name: 'Card', CardID: 100, Nickname: 'Eroi' })
   })
+  it('le carte orizzontali vanno di traverso, con la scala del lato corto', () => {
+    const sheet = { faceUrl: 'f', backUrl: 'b', cols: 1, rows: 1, uniqueBack: false }
+    const card = [{ sheet: 0, slot: 0, nickname: '', description: '' }]
+    // plancia grande come due carte da poker affiancate: 126 × 88
+    const wide = ttsSavedObject('Plancia', [sheet], card, 126, 88) as {
+      ObjectStates: { SidewaysCard: boolean; Transform: { scaleX: number } }[]
+    }
+    expect(wide.ObjectStates[0].SidewaysCard).toBe(true)
+    expect(wide.ObjectStates[0].Transform.scaleX).toBeCloseTo(1.397, 3)
+    const tall = ttsSavedObject('Eroi', [sheet], card, 63, 88) as typeof wide
+    expect(tall.ObjectStates[0]).toMatchObject({ SidewaysCard: false, Transform: { scaleX: 1 } })
+  })
   it('su Windows scrive le immagini nella forma che legge Tabletop Simulator', () => {
     const p = 'C:\\Users\\Anna\\Giochi\\Fora arma/export/tts/images/Armeria_faces_1.png'
     expect(ttsImageUrl(p, 'win32')).toBe(

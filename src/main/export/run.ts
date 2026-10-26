@@ -385,7 +385,7 @@ async function exportTts(
           uniqueBack: s.uniqueBack
         })
       }
-      const object = ttsSavedObject(set.name, ttsSheets, deck, t0.width)
+      const object = ttsSavedObject(set.name, ttsSheets, deck, t0.width, t0.height)
       await write(ctx, join(target, `${stem}.json`), JSON.stringify(object, null, 2) + '\n')
       // miniatura mostrata da Tabletop Simulator tra gli oggetti salvati
       await write(ctx, join(target, `${stem}.png`), thumb)

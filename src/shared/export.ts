@@ -719,9 +719,14 @@ export function ttsSavedObject(
   sheets: TtsSheet[],
   cards: TtsDeckCard[],
   /** Larghezza della carta in mm, per la scala */
-  cardWidth = 63
+  cardWidth = 63,
+  /** Altezza della carta in mm: le carte orizzontali sono "di traverso" in TTS */
+  cardHeight = 88
 ): Record<string, unknown> {
-  const scale = ttsCardScale(cardWidth)
+  // TTS disegna sempre la carta nelle proporzioni di una carta da poker, in verticale; una carta
+  // orizzontale va messa di traverso, e la scala si calcola sul lato corto
+  const sideways = cardWidth > cardHeight
+  const scale = ttsCardScale(Math.min(cardWidth, cardHeight))
   const customDeck = (i: number): Record<string, unknown> => ({
     [String(i + 1)]: {
       FaceURL: sheets[i].faceUrl,
@@ -745,7 +750,7 @@ export function ttsSavedObject(
     Grid: true,
     Snap: true,
     Hands: true,
-    SidewaysCard: false
+    SidewaysCard: sideways
   })
   const object =
     cards.length === 1
@@ -762,7 +767,7 @@ export function ttsSavedObject(
           Grid: true,
           Snap: true,
           Hands: false,
-          SidewaysCard: false
+          SidewaysCard: sideways
         }
   return savedFile(object)
 }
