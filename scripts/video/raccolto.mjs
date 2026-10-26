@@ -102,7 +102,14 @@ const S = it
         'Vince chi arriva per primo a 20 punti sul tracciato.',
         ''
       ],
-      setupTitle: ['', '## Preparazione', '']
+      cardsTitle: ['', '## Le carte coltura', ''],
+      anatomy: [
+        ['icona', 'La coltura'],
+        ['valore', 'Il valore'],
+        ['costo', 'Il costo in monete']
+      ],
+      setupTitle: ['', '## Preparazione', ''],
+      table: { deck: 'Mazzo', market: 'Mercato', coins: 'Banca', die: 'Dado' }
     }
   : {
       project: 'Harvest',
@@ -165,7 +172,14 @@ const S = it
         'The first to reach 20 points on the track wins.',
         ''
       ],
-      setupTitle: ['', '## Setup', '']
+      cardsTitle: ['', '## The crop cards', ''],
+      anatomy: [
+        ['icon', 'The crop'],
+        ['value', 'The value'],
+        ['cost', 'The cost in coins']
+      ],
+      setupTitle: ['', '## Setup', ''],
+      table: { deck: 'Deck', market: 'Market', coins: 'Bank', die: 'Die' }
     }
 const L = S.L
 // il progetto si crea nella cartella proposta dall'app: deve essere nuova
@@ -179,7 +193,9 @@ const prow = (label, scope = props) =>
     .filter({ has: win.locator('.field-label', { hasText: new RegExp(`^${label}$`) }) })
     .first()
 const field = (label, scope = props) =>
-  prow(label, scope).locator('input:not([type=range]):not([type=checkbox]), textarea, select').first()
+  prow(label, scope)
+    .locator('input:not([type=range]):not([type=checkbox]), textarea, select')
+    .first()
 const source = (kind) =>
   props
     .locator('.source-line .segmented button')
@@ -294,16 +310,25 @@ async function rect(name, { color, box, radius }) {
   await place(...box)
 }
 async function newTemplate(name, kind) {
-  await r.click(win.locator(`[title="${T['sidebar.newTemplate']}"], [data-tip="${T['sidebar.newTemplate']}"]`).first())
+  await r.click(
+    win
+      .locator(`[title="${T['sidebar.newTemplate']}"], [data-tip="${T['sidebar.newTemplate']}"]`)
+      .first()
+  )
   await r.clear(400)
   await r.type(name)
   await r.click(
-    dialog().locator('.kind-choice button').filter({ hasText: T['kind.' + kind] }).first()
+    dialog()
+      .locator('.kind-choice button')
+      .filter({ hasText: T['kind.' + kind] })
+      .first()
   )
   await r.wait(600)
 }
 async function newSet(name, template) {
-  await r.click(win.locator(`[title="${T['sidebar.newSet']}"], [data-tip="${T['sidebar.newSet']}"]`).first())
+  await r.click(
+    win.locator(`[title="${T['sidebar.newSet']}"], [data-tip="${T['sidebar.newSet']}"]`).first()
+  )
   await r.clear(400)
   await r.type(name)
   await r.wait(400)
@@ -318,14 +343,18 @@ async function addCard(kind) {
   if (kind === 'first') {
     await r.click(win.getByRole('button', { name: T['set.addFirst'], exact: true }).first())
   } else {
-    await r.click(win.getByRole('button', { name: T['kind.' + kind + '.add'], exact: true }).first())
+    await r.click(
+      win.getByRole('button', { name: T['kind.' + kind + '.add'], exact: true }).first()
+    )
   }
   await r.clear(600)
 }
 const copiesField = () =>
   form
     .locator('label')
-    .filter({ has: win.locator('.field-label', { hasText: new RegExp(`^${it ? 'Copie' : 'Copies'}$`) }) })
+    .filter({
+      has: win.locator('.field-label', { hasText: new RegExp(`^${it ? 'Copie' : 'Copies'}$`) })
+    })
     .locator('input')
     .first()
 
@@ -381,12 +410,7 @@ await r.click(steps().locator('button.primary'))
 await r.clear(400)
 await r.type(S.card)
 await r.wait(400)
-await r.focus(
-  dialog(),
-  t('Una carta, formato poker', 'A card, poker size'),
-  'right',
-  { pad: 0 }
-)
+await r.focus(dialog(), t('Una carta, formato poker', 'A card, poker size'), 'right', { pad: 0 })
 await r.click(dialog().locator('button[type=submit]'))
 await r.clear(1500)
 await r.overlay()
@@ -450,10 +474,7 @@ await text(L.name, { size: 16, weight: 800, color: '#3B2A14', box: [6, 6, 51, 10
 await fill(field(T['prop.text']), S.crops[0][0])
 await r.focus(
   props.locator('.value-source').first(),
-  t(
-    'Il nome: Colonna. Ogni coltura ha il suo',
-    'The name: Column. Each crop has its own'
-  ),
+  t('Il nome: Colonna. Ogni coltura ha il suo', 'The name: Column. Each crop has its own'),
   'left',
   { pad: 4 }
 )
@@ -532,12 +553,9 @@ await r.clear(800)
 await r.click(fxd().getByRole('button', { name: T['fx.startOver'], exact: true }), { after: 600 })
 await r.click(fxd().locator('.fx-card').filter({ hasText: T['fx.card.if'] }).first())
 await r.wait(600)
-await r.focus(
-  sentence(),
-  t('Se … allora … altrimenti …', 'If … then … otherwise …'),
-  'below',
-  { pad: 6 }
-)
+await r.focus(sentence(), t('Se … allora … altrimenti …', 'If … then … otherwise …'), 'below', {
+  pad: 6
+})
 // la condizione: tipo uguale a orto
 await r.click(leaf(0), { after: 400 })
 await r.click(
@@ -608,7 +626,10 @@ await save()
 // il retro: tutto Fisso
 await r.title(t('Il retro', 'The back'))
 await r.click(
-  win.locator('.editor-toolbar button, .editor-header button').filter({ hasText: new RegExp(`^${T['preview.back']}$`) }).first(),
+  win
+    .locator('.editor-toolbar button, .editor-header button')
+    .filter({ hasText: new RegExp(`^${T['preview.back']}$`) })
+    .first(),
   { after: 900 }
 )
 await r.click(layer('back_background'), { after: 400 })
@@ -639,7 +660,10 @@ await r.focus(
   { pad: 0 }
 )
 await r.click(
-  win.locator('.editor-toolbar button, .editor-header button').filter({ hasText: new RegExp(`^${T['preview.front']}$`) }).first(),
+  win
+    .locator('.editor-toolbar button, .editor-header button')
+    .filter({ hasText: new RegExp(`^${T['preview.front']}$`) })
+    .first(),
   { after: 700 }
 )
 await save()
@@ -718,25 +742,24 @@ await r.focus(
   'right',
   { pad: 6 }
 )
-await r.click(win.getByRole('button', { name: T['preview.back'], exact: true }).first(), { after: 800 })
+await r.click(win.getByRole('button', { name: T['preview.back'], exact: true }).first(), {
+  after: 800
+})
 await r.focus(
   win.locator('.preview-card').first(),
   t('E il retro, uguale per tutte', 'And the back, the same for all'),
   'left',
   { pad: 4 }
 )
-await r.click(win.getByRole('button', { name: T['preview.front'], exact: true }).first(), { after: 600 })
+await r.click(win.getByRole('button', { name: T['preview.front'], exact: true }).first(), {
+  after: 600
+})
 await save()
 
 // ============ 4. la moneta
 await r.title(t('La moneta', 'The coin'))
 await newTemplate(S.coin, 'token')
-await r.focus(
-  dialog(),
-  t('Segnalino: tondo, 25 mm', 'Token: round, 25 mm'),
-  'right',
-  { pad: 0 }
-)
+await r.focus(dialog(), t('Segnalino: tondo, 25 mm', 'Token: round, 25 mm'), 'right', { pad: 0 })
 await r.click(dialog().locator('button[type=submit]'))
 await r.clear(1500)
 await r.overlay()
@@ -770,15 +793,11 @@ await save()
 // ============ 5. la plancia
 await r.title(t('La plancia', 'The board'))
 await newTemplate(S.board, 'board')
-const dimField = (label) => dialog().locator('label').filter({ hasText: label }).locator('input').first()
+const dimField = (label) =>
+  dialog().locator('label').filter({ hasText: label }).locator('input').first()
 await fill(dimField(T['prop.width']), '240')
 await fill(dimField(T['prop.height']), '160')
-await r.focus(
-  dialog(),
-  t('Plancia: 240 × 160 mm', 'Board: 240 × 160 mm'),
-  'right',
-  { pad: 0 }
-)
+await r.focus(dialog(), t('Plancia: 240 × 160 mm', 'Board: 240 × 160 mm'), 'right', { pad: 0 })
 await r.click(dialog().locator('button[type=submit]'))
 await r.clear(1500)
 await r.overlay()
@@ -817,10 +836,19 @@ await fill(field(T['prop.rows']), '5')
 await fill(field(T['prop.columns']), '4')
 await place(142, 28, 88, 110)
 await r.click(props.getByRole('button', { name: T['editor.gridContentText'], exact: true }))
-await r.wait(900)
-// l'assistente si apre da solo sul testo nuovo: il numero della casella va già bene
-if (await fxd().isVisible().catch(() => false))
-  await r.click(fxd().getByRole('button', { name: T['fx.apply'], exact: true }), { after: 600 })
+// l'assistente si apre da solo sul testo nuovo: il numero della casella va già bene, quindi Annulla
+await fxd()
+  .waitFor({ timeout: 4000 })
+  .catch(() => {})
+if (
+  await fxd()
+    .isVisible()
+    .catch(() => false)
+)
+  await r.click(fxd().getByRole('button', { name: T['dialog.cancel'], exact: true }), {
+    after: 800
+  })
+await r.click(layer(L.track), { after: 400 })
 await r.focus(
   stage(),
   t(
@@ -862,7 +890,7 @@ await r.clear(800)
 await r.click(dialog().locator(`[title*="${S.icons[0][1]}"]`).first())
 await r.clear(1000)
 await fill(field(T['prop.name']), L.face)
-await place(2, 2, 14, 14)
+await place(2, 2, 12, 12)
 await save()
 await newSet(S.dice, S.die)
 await r.click(dialog().locator('button[type=submit]'))
@@ -877,10 +905,7 @@ await quickly(false)
 await gridView()
 await r.focus(
   grid(),
-  t(
-    'Sei righe, sei facce: una coltura per faccia',
-    'Six rows, six faces: one crop per face'
-  ),
+  t('Sei righe, sei facce: una coltura per faccia', 'Six rows, six faces: one crop per face'),
   'right',
   { pad: 6 }
 )
@@ -888,7 +913,13 @@ await save()
 
 // ============ 7. il regolamento
 await r.title(t('Il regolamento', 'The rulebook'))
-await r.click(win.locator('[title="' + T['sidebar.newDocument'] + '"], [data-tip="' + T['sidebar.newDocument'] + '"]').first())
+await r.click(
+  win
+    .locator(
+      '[title="' + T['sidebar.newDocument'] + '"], [data-tip="' + T['sidebar.newDocument'] + '"]'
+    )
+    .first()
+)
 await r.clear(1200)
 await r.overlay()
 const editor = () => win.locator('.document-editor .markup-field textarea').first()
@@ -917,27 +948,74 @@ await r.focus(
   'left',
   { pad: 0 }
 )
-await r.click(tb('documents.insertCard'))
+// l'anatomia della carta: le parti della carta con le etichette
+await editor().focus()
+await win.keyboard.press('Control+End')
+await lines(S.cardsTitle)
+await r.click(tb('documents.anatomy'))
 await r.clear(900)
 await r.click(dialog().getByText(S.crops[4][0], { exact: true }).first(), { after: 500 })
+const layerRow = (n) =>
+  dialog()
+    .locator('.anatomy-layer')
+    .filter({ has: win.locator('label', { hasText: new RegExp(`^\\s*${n}\\s*$`) }) })
+    .first()
+await quickly(true)
+for (const [n, label] of S.anatomy) {
+  await r.click(layerRow(n).locator('input[type=checkbox]'), { after: 200, ms: 350 })
+  await fill(layerRow(n).locator('textarea'), label, { tab: false })
+}
+await quickly(false)
+await r.focus(
+  dialog().locator('.anatomy-layers').first(),
+  t(
+    'L’anatomia della carta: si spuntano le parti e si scrivono le etichette',
+    'The card anatomy: tick the parts and write the labels'
+  ),
+  'left',
+  { pad: 4 }
+)
 await r.click(dialog().locator('button.primary').last())
 await r.clear(1000)
+
+// lo schema del tavolo apparecchiato: plancia, mazzo coperto, mercato, monete e dado
 await editor().focus()
 await win.keyboard.press('Control+End')
 await lines(S.setupTitle)
 await r.click(tb('documents.setup'))
 await r.clear(900)
 const add = (label) => dialog().getByRole('button', { name: label, exact: true })
-await r.click(add(it ? 'Mazzo' : 'Deck'))
-await r.clear(800)
-await r.click(dialog().getByText(S.crops[0][0], { exact: true }).first(), { after: 500 })
-await r.click(dialog().locator('button.primary').last())
-await r.clear(800)
+const pos = dialog().locator('.setup-props input')
+/** aggiunge una carta o un mazzo dal set, dal lato e dalla riga scelti, e la mette in x, y (mm) */
+async function piece(kind, set, { row = 0, back = false, x, y, label }) {
+  await r.click(add(kind === 'deck' ? (it ? 'Mazzo' : 'Deck') : it ? 'Carta' : 'Card'))
+  await r.clear(700)
+  await choose(dialog().locator('select').first(), set)
+  if (back)
+    await r.click(dialog().getByRole('button', { name: T['documents.back'], exact: true }).first())
+  await r.click(dialog().locator('.insert-card-grid button').nth(row), { after: 300 })
+  await r.click(dialog().locator('button.primary').last())
+  await r.clear(600)
+  await fill(pos.nth(0), String(x))
+  await fill(pos.nth(1), String(y))
+  if (label) await fill(dialog().locator('.setup-text textarea').last(), label, { tab: false })
+}
+await quickly(true)
+await piece('card', S.boards, { x: 0, y: 0 })
+await piece('deck', S.cards, { back: true, x: 252, y: 0, label: S.table.deck })
+await piece('card', S.cards, { row: 0, x: 325, y: 0, label: S.table.market })
+await piece('card', S.cards, { row: 2, x: 395, y: 0 })
+await piece('deck', S.coins, { row: 0, x: 255, y: 105, label: S.table.coins })
+await piece('deck', S.coins, { row: 1, x: 290, y: 105 })
+await piece('card', S.dice, { row: 0, x: 335, y: 110, label: S.table.die })
+await quickly(false)
+await r.click(dialog().getByRole('button', { name: T['editor.zoomFit'], exact: true }).first())
+await r.wait(600)
 await r.focus(
   dialog(),
   t(
-    'Lo schema del tavolo, con le carte vere',
-    'The table setup, with the real cards'
+    'Il tavolo apparecchiato: plancia, mazzo coperto, due carte scoperte, monete e dado',
+    'The table set up: board, face-down deck, two face-up cards, coins and die'
   ),
   'none',
   { pad: 0, dim: false }
@@ -947,8 +1025,8 @@ await r.clear(1000)
 await r.focus(
   docPreview(),
   t(
-    'Il regolamento: testo, una carta vera e lo schema del tavolo',
-    'The rulebook: text, a real card and the table setup'
+    'Il regolamento: testo, anatomia della carta e schema del tavolo',
+    'The rulebook: text, card anatomy and table setup'
   ),
   'left',
   { pad: 0 }
@@ -958,7 +1036,11 @@ await r.focus(
 await r.title(t('Stampare', 'Printing'))
 await r.click(win.locator('header.toolbar').getByText(T['app.export'], { exact: true }).first())
 await r.clear(800)
-const goal = (g) => dialog().locator('.export-goal').filter({ hasText: T['export.goal.' + g] }).first()
+const goal = (g) =>
+  dialog()
+    .locator('.export-goal')
+    .filter({ hasText: T['export.goal.' + g] })
+    .first()
 await r.click(goal('home'))
 await r.wait(600)
 await r.focus(
@@ -970,6 +1052,23 @@ await r.focus(
   'left',
   { pad: 4 }
 )
+// l'anteprima: le pagine come verranno stampate
+await r.click(dialog().getByRole('button', { name: T['export.preview'], exact: true }).first())
+await r.clear(1500)
+await r.focus(
+  dialog().locator('.export-preview-stage').first(),
+  t(
+    'L’anteprima mostra le pagine prima di stampare: carte, monete, plancia e dado',
+    'The preview shows the pages before printing: cards, coins, board and die'
+  ),
+  'left',
+  { pad: 4 }
+)
+const nextPage = dialog().locator('.export-preview-nav button').last()
+for (let i = 0; i < 3 && (await nextPage.isEnabled().catch(() => false)); i++)
+  await r.click(nextPage, { after: 1400 })
+await r.click(dialog().getByRole('button', { name: T['export.close'], exact: true }).first())
+await r.wait(600)
 const run = dialog().getByRole('button', { name: T['export.run'], exact: true })
 await r.click(run)
 await win.waitForTimeout(1000)
