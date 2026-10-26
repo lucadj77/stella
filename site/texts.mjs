@@ -471,6 +471,15 @@ export const videos = [
       it: 'https://www.youtube.com/watch?v=TR5Eiuatdec',
       en: 'https://www.youtube.com/watch?v=heP9Y82zsjA'
     }
+  },
+  {
+    it: 'Backup e recupero',
+    en: 'Backups and recovery',
+    minutes: 5,
+    url: {
+      it: 'https://www.youtube.com/watch?v=2fPQwU0LlFg',
+      en: 'https://www.youtube.com/watch?v=AeSwGYOWRCs'
+    }
   }
 ]
 
