@@ -229,7 +229,8 @@ export const en = {
   'app.channelHint':
     'Stable offers only official versions. Beta also offers the test versions, with new features earlier and more chance of bugs. Going from Beta back to Stable does not install an older version: you wait for the next official one.',
   'app.lengthUnit': 'Units',
-  'app.lengthUnitHint': 'Unit for positions, sizes and margins. Text stays in points and line widths in mm.',
+  'app.lengthUnitHint':
+    'Unit for positions, sizes and margins. Text stays in points and line widths in mm.',
   'app.lengthUnit.mm': 'Millimeters (mm)',
   'app.lengthUnit.cm': 'Centimeters (cm)',
   'app.lengthUnit.in': 'Inches (in)',
@@ -614,7 +615,8 @@ export const en = {
   'prop.safeMargin': 'Safe margin',
   'prop.cardShape': 'Card shape',
   'prop.shapeOrientation': 'Shape orientation',
-  'editor.shapeOrientationHint': 'Turns or mirrors only the outline of the component, not its content. A quarter turn swaps width and height: a hexagon with a flat top gets a point on top. Useful for a shape traced from an image, such as an upside-down shield.',
+  'editor.shapeOrientationHint':
+    'Turns or mirrors only the outline of the component, not its content. A quarter turn swaps width and height: a hexagon with a flat top gets a point on top. Useful for a shape traced from an image, such as an upside-down shield.',
   'editor.shapeTurnLeft': 'Turn the shape 90° left (swaps width and height)',
   'editor.shapeTurnRight': 'Turn the shape 90° right (swaps width and height)',
   'editor.shapeHalfTurn': 'Turn the shape upside down',
@@ -2231,6 +2233,13 @@ export const en = {
   'gridCell.hex': 'Hexagon',
   'gridCell.triangle': 'Triangle',
   'gridCell.diamond': 'Diamond',
+  'gridCell.path': 'Shape from an image',
+  'editor.interlockHint.path': 'Odd rows shift by half a cell, like bricks.',
+  'prop.cellRotation': 'Cell rotation',
+  'editor.cellRotationHint':
+    'Turns only the outline of each cell around its center: the cells stay in place and their content does not turn.',
+  'editor.cellOutlineHint':
+    'The cells take the outline and the proportions of the image (its transparent part stays outside).',
   'prop.rows': 'Rows',
   'prop.interlock': 'Interlocking',
   'editor.interlockHint.square': 'Odd rows shift by half a cell, like bricks.',

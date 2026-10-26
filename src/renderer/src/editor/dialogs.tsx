@@ -111,8 +111,7 @@ export function NewTemplateDialog({
   const presets = KIND_PRESETS[kind]
   const near = (a: number, b: number): boolean => Math.abs(a - b) < 0.05
   const preset =
-    presets.find((p) => near(p.width, w) && near(p.height, h) && p.shape === shape)?.key ??
-    'custom'
+    presets.find((p) => near(p.width, w) && near(p.height, h) && p.shape === shape)?.key ?? 'custom'
   const applyPreset = (p: KindPreset): void => {
     setWidth(String(toUnit(p.width, unit)))
     setHeight(String(toUnit(p.height, unit)))

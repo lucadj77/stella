@@ -364,7 +364,10 @@ function TemplateProperties({
           }}
           onHalfTurn={() =>
             set(
-              { shapeRotation: ((((tpl.shapeRotation ?? 0) + 180) % 360) as ShapeRotation) || undefined },
+              {
+                shapeRotation:
+                  ((((tpl.shapeRotation ?? 0) + 180) % 360) as ShapeRotation) || undefined
+              },
               'shapeRotation'
             )
           }
@@ -1711,7 +1714,7 @@ function ShapeProperties({
   )
 }
 
-const GRID_CELLS: GridCell[] = ['square', 'circle', 'hex', 'triangle', 'diamond']
+const GRID_CELLS: GridCell[] = ['square', 'circle', 'hex', 'triangle', 'diamond', 'path']
 
 /** Griglia: caselle, disposizione, misura nel riquadro, colori; vedi model/grid.ts */
 function GridProperties({
@@ -1735,7 +1738,8 @@ function GridProperties({
   const count = (v: number): number => Math.max(1, Math.round(v))
   const content = groups.find((g) => g.name === l.content)
   // esagoni e triangoli hanno le proporzioni fisse
-  const ratio = l.cell === 'square' || l.cell === 'circle' || l.cell === 'diamond'
+  const ratio =
+    l.cell === 'square' || l.cell === 'circle' || l.cell === 'diamond' || l.cell === 'path'
   return (
     <>
       <Section scope="grid">
@@ -1774,6 +1778,24 @@ function GridProperties({
             hint={`${t(`editor.interlockHint.${l.cell}` as MessageKey)} ${col('interlock')}`}
             value={l.interlock}
             onChange={(interlock) => set({ interlock })}
+          />
+        </P>
+        {l.cell === 'path' && (
+          <OutlineField
+            hint={t('editor.cellOutlineHint')}
+            empty={!l.cellPath.trim()}
+            // le caselle prendono le proporzioni dell'immagine
+            onTraced={({ path, ratio }) => set({ cellPath: path, cellRatio: ratio })}
+          />
+        )}
+        <P id="cellRotation">
+          <NumberField
+            label={t('prop.cellRotation')}
+            hint={`${t('editor.cellRotationHint')} ${col('cellRotation')}`}
+            value={l.cellRotation}
+            step={15}
+            unit="°"
+            onChange={(cellRotation) => set({ cellRotation: ((cellRotation % 360) + 360) % 360 })}
           />
         </P>
         {l.cell === 'hex' && (
@@ -1818,7 +1840,7 @@ function GridProperties({
             onChange={(stroke) => set({ stroke })}
           />
         </P>
-        {l.cell !== 'circle' && (
+        {l.cell !== 'circle' && l.cell !== 'path' && (
           <P id="radius">
             <NumberField
               label={t('prop.radius')}

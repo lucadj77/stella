@@ -231,7 +231,8 @@ export const it: Record<MessageKey, string> = {
   'app.channelHint':
     'Stabile propone solo le versioni ufficiali. Beta propone anche quelle di prova, con le novità prima e più probabilità di difetti. Tornando da Beta a Stabile non si installa una versione più vecchia: si aspetta la prossima ufficiale.',
   'app.lengthUnit': 'Unità di misura',
-  'app.lengthUnitHint': 'Unità per posizioni, misure e margini. Il testo resta in punti e gli spessori delle linee in mm.',
+  'app.lengthUnitHint':
+    'Unità per posizioni, misure e margini. Il testo resta in punti e gli spessori delle linee in mm.',
   'app.lengthUnit.mm': 'Millimetri (mm)',
   'app.lengthUnit.cm': 'Centimetri (cm)',
   'app.lengthUnit.in': 'Pollici (in)',
@@ -620,7 +621,8 @@ export const it: Record<MessageKey, string> = {
   'prop.safeMargin': 'Margine di sicurezza',
   'prop.cardShape': 'Forma della carta',
   'prop.shapeOrientation': 'Orientamento della forma',
-  'editor.shapeOrientationHint': "Gira o specchia solo il contorno del componente, non il contenuto. Un quarto di giro scambia larghezza e altezza: un esagono con un lato in alto diventa con la punta in alto. Serve anche per una forma ricavata da un'immagine, come uno scudo capovolto.",
+  'editor.shapeOrientationHint':
+    "Gira o specchia solo il contorno del componente, non il contenuto. Un quarto di giro scambia larghezza e altezza: un esagono con un lato in alto diventa con la punta in alto. Serve anche per una forma ricavata da un'immagine, come uno scudo capovolto.",
   'editor.shapeTurnLeft': 'Gira la forma di 90° a sinistra (scambia larghezza e altezza)',
   'editor.shapeTurnRight': 'Gira la forma di 90° a destra (scambia larghezza e altezza)',
   'editor.shapeHalfTurn': 'Capovolgi la forma',
@@ -2255,6 +2257,13 @@ export const it: Record<MessageKey, string> = {
   'gridCell.hex': 'Esagonali',
   'gridCell.triangle': 'Triangolari',
   'gridCell.diamond': 'A rombo',
+  'gridCell.path': "Forma da un'immagine",
+  'editor.interlockHint.path': 'Le righe dispari si spostano di mezza casella, come i mattoni.',
+  'prop.cellRotation': 'Rotazione della casella',
+  'editor.cellRotationHint':
+    'Gira solo il contorno di ogni casella intorno al suo centro: le caselle restano al loro posto e il contenuto non gira.',
+  'editor.cellOutlineHint':
+    "Le caselle prendono il contorno e le proporzioni dell'immagine (la parte trasparente resta fuori).",
   'prop.rows': 'Righe',
   'prop.interlock': 'A incastro',
   'editor.interlockHint.square': 'Le righe dispari si spostano di mezza casella, come i mattoni.',

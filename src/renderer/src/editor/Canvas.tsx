@@ -117,7 +117,12 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     y: null
   })
   const [stepText, setStepText] = useState(String(toUnit(guides.gridStep, lengthUnit)))
-  useEffect(() => setStepText(String(toUnit(guides.gridStep, lengthUnit))), [lengthUnit]) // eslint-disable-line react-hooks/exhaustive-deps
+  // cambiata l'unità nelle impostazioni, il passo si riscrive nella nuova
+  const [stepUnit, setStepUnit] = useState(lengthUnit)
+  if (stepUnit !== lengthUnit) {
+    setStepUnit(lengthUnit)
+    setStepText(String(toUnit(guides.gridStep, lengthUnit)))
+  }
   const setGuide = <K extends keyof Guides>(key: K, value: Guides[K]): void => {
     const next = { ...guides, [key]: value }
     setGuides(next)

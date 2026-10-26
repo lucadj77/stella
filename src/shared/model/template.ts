@@ -178,7 +178,7 @@ export interface ShapeLayer extends LayerBase {
 }
 
 /** Forma delle caselle di una griglia */
-export type GridCell = 'square' | 'circle' | 'hex' | 'triangle' | 'diamond'
+export type GridCell = 'square' | 'circle' | 'hex' | 'triangle' | 'diamond' | 'path'
 
 /**
  * Griglia di caselle uguali (una plancia, un tracciato a punti, una mappa a esagoni), disegnata
@@ -194,6 +194,13 @@ export interface GridLayer extends LayerBase {
   cellRatio: number
   /** Esagoni con la punta in alto (pointy) o con un lato in alto (flat) */
   orientation: 'pointy' | 'flat'
+  /**
+   * Rotazione della forma di ogni casella intorno al suo centro, in gradi: gira solo il contorno,
+   * non il posto delle caselle né il loro contenuto
+   */
+  cellRotation: number
+  /** Forma delle caselle per cell = 'path': tracciato SVG in coordinate 0-1 della casella */
+  cellPath: string
   /**
    * Caselle a incastro: esagoni ad alveare, cerchi e quadrati sfalsati di mezza casella, triangoli
    * alternati, rombi che si toccano sui lati

@@ -97,6 +97,8 @@ const GRID_DEFAULTS: Omit<GridLayer, keyof LayerBase | 'type'> = {
   columns: 4,
   cellRatio: 1,
   orientation: 'pointy',
+  cellRotation: 0,
+  cellPath: '',
   interlock: false,
   gap: 1,
   padding: 0,

@@ -46,7 +46,14 @@ describe('backup', () => {
     const folder = await project()
     const dir = join(folder, '..', 'backup')
     const at = new Date(2026, 9, 19, 15, 30, 5)
-    const item = await createBackup(folder, 'Assedio', dir, false, at, ' prima: delle/nuove regole ')
+    const item = await createBackup(
+      folder,
+      'Assedio',
+      dir,
+      false,
+      at,
+      ' prima: delle/nuove regole '
+    )
     expect(item.name).toBe('Assedio 2026-10-19 15.30.05 - prima delle nuove regole.zip')
     expect(item.label).toBe('prima delle nuove regole')
     const [listed] = await listBackups(dir)

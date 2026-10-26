@@ -90,7 +90,7 @@ const NAME_RE = /^(.*) (\d{4})-(\d\d)-(\d\d) (\d\d)\.(\d\d)\.(\d\d)( auto)?(?: -
  */
 export function cleanBackupLabel(label: string | undefined): string {
   return (label ?? '')
-    .replace(/[\\/:*?"<>|\u0000-\u001f]/g, ' ')
+    .replace(/[\\/:*?"<>|]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
     .replace(/\.+$/, '')
@@ -197,7 +197,10 @@ export async function labelBackup(file: string, label: string): Promise<BackupIt
   if (!m) throw new Error('not a backup')
   const clean = cleanBackupLabel(label)
   // tutto fino alla data (e a " auto"), poi il nome nuovo
-  const head = basename(file).slice(0, basename(file).length - '.zip'.length - (m[9] ? m[9].length + 3 : 0))
+  const head = basename(file).slice(
+    0,
+    basename(file).length - '.zip'.length - (m[9] ? m[9].length + 3 : 0)
+  )
   const name = `${head}${clean ? ` - ${clean}` : ''}.zip`
   const target = join(dirname(file), name)
   if (target !== file) await rename(file, target)

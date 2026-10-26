@@ -66,9 +66,7 @@ export default function TemplateEditor({
   const normalize = useMemo(() => (base ? (x: Template) => rebase(base, x) : undefined), [base])
   const [state, dispatch] = useEditor(template, normalize)
   /** Misure nuove della carta, con le altre proprietà che cambiano insieme (forma ruotata) */
-  const [resizing, setResizing] = useState<
-    [number, number, Partial<Template>?] | null
-  >(null)
+  const [resizing, setResizing] = useState<[number, number, Partial<Template>?] | null>(null)
   // un livello immagine nuovo nasce dalla scelta dell'immagine
   const [pickingImage, setPickingImage] = useState(false)
   const [dropping, setDropping] = useState(false)
