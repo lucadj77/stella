@@ -88,7 +88,7 @@ await r.title(it ? 'L’esportazione' : 'The export')
 await r.clear()
 await r.click(win.locator('header.toolbar').getByText(T['app.export'], { exact: true }).first())
 await r.clear(800)
-await r.click(dialog().getByRole('button', { name: T['export.tts'], exact: true }))
+await r.click(dialog().locator('.export-goal').filter({ hasText: T['export.goal.tts'] }).first())
 await r.wait(600)
 await r.focus(
   dialog().locator('.tts-objects').first(),

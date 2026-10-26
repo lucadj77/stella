@@ -189,7 +189,7 @@ await r.title(
   )
 )
 await r.clear()
-await r.click(button('start.example'))
+await r.click(win.locator('.welcome-choice').filter({ hasText: T['welcome.example'] }).first())
 await r.clear(2200)
 await r.overlay()
 await r.click(side(S.sets[0]))
@@ -246,6 +246,7 @@ await cancel()
 
 // ---- una variabile icona: si importa l'icona e si colora
 await r.title(t('Un’icona nel testo', 'An icon in the text'))
+await r.openSection('variables')
 await r.focus(
   side('{' + (it ? 'scudo' : 'shield') + '}'),
   t(

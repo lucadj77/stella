@@ -82,6 +82,11 @@ const field = (label, scope = props) =>
 const layer = (n) => win.locator('.layers .layer-name', { hasText: new RegExp(`^${n}$`) }).first()
 const tool = (key) =>
   win.locator(`button.tool[title="${T[key]}"], button.tool[data-tip="${T[key]}"]`).first()
+const source = (kind) =>
+  win
+    .locator('aside.properties .source-line .segmented button')
+    .filter({ hasText: new RegExp(`^${kind === 'column' ? T['source.short.column'] : T['source.kind.' + kind]}$`) })
+    .first()
 const side = (name) => win.locator('.sidebar').getByText(name, { exact: true }).first()
 // con il mouse sopra, il suggerimento dell'app sposta title in data-tip
 const asset = (name) =>
@@ -251,13 +256,13 @@ await r.focus(
   'below'
 )
 await r.click(layer(N.icon), { after: 500 })
-await choose(field(T['source.label']), 'fixed')
-await r.click(props.locator('.pick-btn').first())
+await r.click(source('fixed'), { after: 400 })
+await r.click(props.locator('.pick-btn:not(.fx-button)').first())
 await r.clear(800)
 await r.click(asset(N.coin))
 await r.clear(800)
 await r.click(layer(N.background), { after: 500 })
-await choose(field(T['source.label']), 'fixed')
+await r.click(source('fixed'), { after: 400 })
 await fill(
   props
     .locator('.field')
@@ -489,7 +494,7 @@ for (const [face, icon] of [
   [7, N.coin],
   [8, N.sword]
 ]) {
-  await r.click(win.getByRole('button', { name: T['set.addCard'], exact: true }))
+  await r.click(win.locator(`button[title="${T['tip.addCard']}"], button[data-tip="${T['tip.addCard']}"]`).first())
   await r.clear(600)
   await fill(cardField(N.face), String(face))
   await fill(cardField(N.icon), icon)
@@ -515,7 +520,7 @@ await r.clear()
 await save()
 await r.click(win.locator('header.toolbar').getByText(T['app.export'], { exact: true }).first())
 await r.clear(800)
-await r.click(dialog().getByRole('button', { name: T['export.tts'], exact: true }))
+await r.click(dialog().locator('.export-goal').filter({ hasText: T['export.goal.tts'] }).first())
 await r.wait(600)
 // solo il set del dado
 const sets = dialog().locator('.export-sets label')

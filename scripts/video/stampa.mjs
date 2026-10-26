@@ -56,6 +56,8 @@ async function zf(locs, text) {
   await r.focus(locs, text, b.y + b.height / 2 > H * 0.55 ? 'above' : 'below')
 }
 
+const goal = (g) =>
+  exp().locator('.export-goal').filter({ hasText: T['export.goal.' + g] }).first()
 const cards = it ? 'Personaggi' : 'Characters'
 const items = it ? 'Oggetti' : 'Items'
 const market = it ? 'Mercato' : 'Market'
@@ -131,11 +133,20 @@ await r.clear(2200)
 await r.overlay()
 await r.click(win.locator('header.toolbar').getByText(T['app.export'], { exact: true }).first())
 await r.clear(800)
+await r.focus(
+  exp().locator('.export-goals'),
+  t(
+    'Si comincia da cosa vuoi fare: stampa a casa, tipografia, Tabletop Simulator o immagini',
+    'You start from what you want to do: home printing, print shop, Tabletop Simulator or images'
+  ),
+  'below'
+)
+await r.clear()
 
 // ---- 1. le immagini
 await r.title(t('Le immagini', 'Images'))
 await r.clear()
-await r.click(button('export.images'))
+await r.click(goal('images'))
 await r.wait(600)
 await only(cards)
 await zf(
@@ -178,7 +189,7 @@ await preview(
 // ---- 2. il PDF
 await r.title(t('Il PDF da stampare', 'The PDF to print'))
 await r.clear()
-await r.click(button('export.pdf'))
+await r.click(goal('home'))
 await r.wait(600)
 await only(cards, items)
 await zf(
@@ -321,6 +332,15 @@ await tick('export.autoRotate')
 // ---- 5. per la tipografia
 await r.title(t('Per la tipografia', 'For a print shop'))
 await r.clear()
+await r.click(goal('shop'))
+await r.wait(600)
+await zf(
+  goal('shop'),
+  t(
+    'Tipografia: PDF con abbondanza e segni di taglio, già impostati',
+    'Print shop: a PDF with bleed and crop marks, already set'
+  )
+)
 const profile = exp().locator('.profile-bar select').first()
 await zf(
   profile,

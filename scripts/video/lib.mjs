@@ -13,7 +13,7 @@ export async function launch({
   h = 900,
   // interfaccia ingrandita: 1440×900 punti diventano 1728×1080 pixel, un video a 1080p
   scale = Number(process.env.SCALE || 1.2),
-  ud = `/tmp/stella-guide/video-ud-${lang}`
+  ud = process.env.VIDEO_UD || `/tmp/stella-guide/video-ud-${lang}`
 } = {}) {
   const H = home(lang)
   mkdirSync(`${H}/.config`, { recursive: true })
@@ -127,6 +127,12 @@ export class Recorder {
   }
 
   /** clic su un elemento, con una pausa prima e dopo */
+  /** apre una sezione della barra laterale chiusa (stili e variabili si chiudono da sole se sono tante) */
+  async openSection(id) {
+    const closed = this.win.locator(`#sidebar-${id}.closed .section-toggle`)
+    if (await closed.count()) await this.click(closed.first(), { after: 500 })
+  }
+
   async click(loc0, { ms = 700, before = 400, after = 900 } = {}) {
     const loc = loc0.first()
     await loc.waitFor({ timeout: 10000 })

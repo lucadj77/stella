@@ -69,6 +69,12 @@ const field = (label, scope = props) =>
     .filter({ has: win.locator('.field-label', { hasText: new RegExp(`^${label}$`) }) })
     .locator('input:not([type=range]), textarea, select')
     .first()
+/** Valore sulle carte: Colonna, Fisso o Formula, una riga sola in cima alle proprietà */
+const source = (kind) =>
+  props
+    .locator('.source-line .segmented button')
+    .filter({ hasText: new RegExp(`^${kind === 'column' ? T['source.short.column'] : T['source.kind.' + kind]}$`) })
+    .first()
 const layer = (n) => win.locator('.layers .layer-name', { hasText: new RegExp(`^${n}$`) }).first()
 // il suggerimento dell'app sposta il title in data-tip al passaggio del mouse
 const tool = (key) =>
@@ -144,34 +150,55 @@ await r.clear()
 
 // progetto vuoto
 await r.focus(
-  win.getByText(T['start.newProject']),
-  it ? 'Si parte da un progetto nuovo' : 'We start from a new project',
-  'right'
+  win.locator('.welcome').first(),
+  it
+    ? 'Al primo avvio: comincia da zero o esplora il progetto di esempio'
+    : 'On first launch: start from scratch or explore the example project',
+  'none',
+  { pad: 4, dim: false }
 )
-await r.click(win.getByText(T['start.newProject']))
+const scratch = win.locator('.welcome-choice.main').first()
+await r.focus(scratch, it ? 'Si parte da un progetto nuovo' : 'We start from a new project', 'below')
+await r.click(scratch)
 await r.clear(400)
 await r.type(S.project)
 await r.wait(400)
 await r.focus(
   dialog(),
   it
-    ? 'Nome e cartella; i dati delle carte vanno in un file Excel'
-    : 'Name and folder; the card data goes into an Excel file',
+    ? 'Il nome e la cartella. I dati dei componenti vanno in un file Excel'
+    : 'Name and folder. The component data goes into an Excel file',
   'right',
   { pad: 0 }
 )
 await r.click(dialog().locator('button[type=submit]'))
 await r.clear(1800)
 await r.overlay()
+const steps = win.locator('.first-steps').first()
 await r.focus(
-  win.getByRole('button', { name: T['sidebar.newTemplate'], exact: true }).last(),
+  steps,
+  it
+    ? 'Primi passi: Stella indica ogni volta il passo successivo'
+    : 'First steps: Stella shows you the next step each time',
+  'below',
+  { pad: 4 }
+)
+await r.focus(
+  steps.locator('button.primary'),
   it ? 'Prima il template: il disegno della carta' : 'First the template: the drawing of the card',
   'below'
 )
-await r.click(win.getByRole('button', { name: T['sidebar.newTemplate'], exact: true }).last())
+await r.click(steps.locator('button.primary'))
 await r.clear(400)
 await r.type(S.template)
 await r.wait(400)
+await r.focus(
+  dialog().locator('.kind-choice'),
+  it
+    ? 'Cosa stai creando: carta, segnalino, tessera, plancia o faccia di dado'
+    : 'What are you making: card, token, tile, board or die face',
+  'right'
+)
 await r.focus(
   dlgField(T['newTemplate.format']),
   it
@@ -195,8 +222,8 @@ await r.focus(
 await r.focus(
   win.locator('.editor-toolbar').first(),
   it
-    ? 'Gli strumenti: testo, immagine, forme, griglia, valore'
-    : 'The tools: text, image, shapes, grid, value',
+    ? 'Gli strumenti, con il loro nome: testo, immagine, forme, griglia, valore'
+    : 'The tools, with their names: text, image, shapes, grid, value',
   'below',
   { pad: 4 }
 )
@@ -217,8 +244,8 @@ await fill(field(T['prop.name']), S.name)
 await r.focus(
   props.locator('.value-source').first(),
   it
-    ? 'Valore sulle carte: dalla colonna «' + S.name + '». Ogni carta mostra il suo'
-    : 'Value on cards: from the “' + S.name + '” column. Each card shows its own',
+    ? 'Valore sulle carte, sempre in cima: Colonna «' + S.name + '». Ogni carta mostra il suo'
+    : 'Value on cards, always on top: Column “' + S.name + '”. Each card shows its own',
   'left',
   { pad: 4 }
 )
@@ -243,18 +270,15 @@ await r.clear()
 // la colonna del nome resta la prima
 await r.click(layer('background'), { after: 400 })
 await r.click(tool('tool.image'))
-await r.clear(400)
-await fill(field(T['prop.name']), S.emblem)
-await r.focus(
-  field(T['source.label']),
-  it
-    ? 'Questa immagine è uguale su tutte le carte: valore fisso'
-    : 'This image is the same on every card: a fixed value',
-  'left'
-)
-await choose(field(T['source.label']), 'fixed')
-await r.click(props.locator('.pick-btn').first())
 await r.clear(800)
+await r.focus(
+  dialog(),
+  it
+    ? 'Immagine apre subito la scelta: le immagini del progetto, o dal computer'
+    : 'Image opens the picker right away: the project images, or from your computer',
+  'none',
+  { pad: 0, dim: false }
+)
 await r.focus(
   dialog().getByRole('button', { name: T['assetPicker.importIcons'] }),
   it
@@ -305,6 +329,15 @@ await r.click(dialog().locator('button.primary'))
 await r.clear(1500)
 await r.click(dialog().locator('[title*="crossed-swords"]').first())
 await r.clear(1000)
+await fill(field(T['prop.name']), S.emblem)
+if ((await source('fixed').getAttribute('aria-pressed')) !== 'true') await r.click(source('fixed'))
+await r.focus(
+  source('fixed'),
+  it
+    ? 'Questa immagine è uguale su tutte le carte: valore Fisso'
+    : 'This image is the same on every card: a Fixed value',
+  'left'
+)
 // sulla tela: trascinare, ridimensionare con le maniglie, ruotare
 const stage = win.locator('.canvas-stage').first()
 await r.focus(
@@ -393,9 +426,13 @@ await r.focus(
   { pad: 4 }
 )
 await r.click(layer(S.emblem), { after: 400 })
+// le scorciatoie tra parentesi cambiano con il sistema (⌘ sul Mac, Ctrl altrove)
+const base = (s) => s.replace(/\s*\([^)]*\)$/, '')
 const layerBtn = (key) =>
   win
-    .locator(`aside.layers button[title="${T[key]}"], aside.layers button[data-tip="${T[key]}"]`)
+    .locator(
+      `aside.layers button[title^="${base(T[key])}"], aside.layers button[data-tip^="${base(T[key])}"]`
+    )
     .first()
 await r.click(layerBtn('layers.down'), { after: 800 })
 await r.focus(
@@ -429,13 +466,14 @@ await r.clear()
 await r.click(layer('background'))
 await r.clear(400)
 await r.focus(
-  field(T['source.label']),
+  source('formula'),
   it
     ? 'Lo sfondo cambia colore con il tipo: una formula, come in Excel'
     : 'The background changes color with the type: a formula, as in Excel',
   'left'
 )
-await choose(field(T['source.label']), 'formula')
+await r.click(source('formula'))
+await r.wait(400)
 await fill(field(T['source.formula']), `=IF({${S.type}}="${S.fire}"; "#F4B9A4"; "#B8CCEC")`, {
   tab: false
 })
@@ -456,11 +494,13 @@ await r.clear(800)
 await r.title(it ? 'Le carte' : 'The cards')
 await r.clear()
 await r.focus(
-  win.locator('.sidebar button', { hasText: /^\+$/ }).first(),
-  it ? 'Un set: le carte che usano il template' : 'A set: the cards that use the template',
-  'right'
+  steps.locator('button.primary'),
+  it
+    ? 'Secondo passo, un set: le carte che usano il template'
+    : 'Second step, a set: the cards that use the template',
+  'below'
 )
-await r.click(win.locator('.sidebar button', { hasText: /^\+$/ }).first())
+await r.click(steps.locator('button.primary'))
 await r.clear(400)
 await r.type(S.set)
 await r.wait(400)
@@ -478,8 +518,8 @@ await r.overlay()
 await r.focus(
   win.getByRole('button', { name: T['set.addColumn'] }),
   it
-    ? 'Manca la colonna «' + S.type + '», quella della formula'
-    : 'The “' + S.type + '” column, used by the formula, is missing',
+    ? '+ Campo: manca la colonna «' + S.type + '», quella della formula'
+    : '+ Field: the “' + S.type + '” column, used by the formula, is missing',
   'below'
 )
 await r.click(win.getByRole('button', { name: T['set.addColumn'] }))
@@ -496,8 +536,19 @@ const cardField = (col) =>
     .locator('input, textarea')
     .first()
 for (const [i, [name, type, text]] of S.cards.entries()) {
-  if (i > 0 || !(await form.count())) {
-    await r.click(win.getByRole('button', { name: T['set.addCard'], exact: true }))
+  if (i === 0 && !(await form.count())) {
+    const first = win.getByRole('button', { name: T['set.addFirst'], exact: true }).first()
+    await r.focus(
+      first,
+      it
+        ? 'Il set è vuoto: si aggiunge il primo componente'
+        : 'The set is empty: add the first component',
+      'below'
+    )
+    await r.click(first)
+    await r.clear(600)
+  } else if (i > 0) {
+    await r.click(win.getByRole('button', { name: T['kind.card.add'], exact: true }).first())
     await r.clear(600)
   }
   if (i === 0)
@@ -559,15 +610,16 @@ await r.title(it ? 'Il PDF per la stampa' : 'The PDF for printing')
 await r.clear()
 await r.click(win.locator('header.toolbar').getByText(T['app.export'], { exact: true }).first())
 await r.clear(800)
+const goal = (g) => dialog().locator('.export-goal').filter({ hasText: T['export.goal.' + g] }).first()
 await r.focus(
-  dialog(),
+  dialog().locator('.export-goals'),
   it
-    ? 'Immagini, PDF o oggetti per Tabletop Simulator. Scegliamo il PDF'
-    : 'Images, PDF or Tabletop Simulator objects. Let’s pick the PDF',
-  'none',
-  { pad: 0, dim: false }
+    ? 'Cosa vuoi fare? Stampare a casa, in tipografia, Tabletop Simulator o immagini'
+    : 'What do you want to do? Print at home, print shop, Tabletop Simulator or images',
+  'below',
+  { pad: 4 }
 )
-await r.click(dialog().getByRole('button', { name: T['export.pdf'], exact: true }))
+await r.click(goal('home'))
 await r.wait(600)
 await r.focus(
   dialog(),
@@ -578,10 +630,10 @@ await r.focus(
   { pad: 0, dim: false }
 )
 await r.focus(
-  dialog().locator('select').first(),
+  goal('shop'),
   it
-    ? 'I profili pronti per tipografie e stampa in casa'
-    : 'Ready profiles for print shops and home printing',
+    ? 'Per la tipografia: abbondanza e segni di taglio già impostati'
+    : 'For a print shop: bleed and crop marks already set',
   'below'
 )
 await r.click(dialog().getByRole('button', { name: T['export.run'], exact: true }))
@@ -606,16 +658,19 @@ await r.clear()
 await r.click(win.getByTitle(T['sidebar.newTemplate']).first())
 await r.clear(400)
 await r.type(S.token)
-await choose(dlgField(T['newTemplate.format']), 'custom')
-await fill(dlgField(T['prop.width']), '25')
-await fill(dlgField(T['prop.height']), '25')
-await r.focus(dialog(), it ? 'Un segnalino rotondo da 25 mm' : 'A round 25 mm token', 'right', {
-  pad: 0
-})
+await r.click(dialog().locator('.kind-choice button').filter({ hasText: T['kind.token'] }).first())
+await r.wait(500)
+await r.focus(
+  dialog(),
+  it
+    ? 'Segnalino: il formato proposto è tondo, 25 mm'
+    : 'Token: the suggested format is round, 25 mm',
+  'right',
+  { pad: 0 }
+)
 await r.click(dialog().locator('button[type=submit]'))
 await r.clear(1500)
 await r.overlay()
-await choose(field(T['prop.cardShape']), 'ellipse')
 await r.focus(
   win.locator('.canvas-stage').first(),
   it
