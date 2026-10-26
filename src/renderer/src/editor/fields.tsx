@@ -1,4 +1,5 @@
 import type { MessageKey } from '../i18n/en'
+import NumInput from '../components/NumInput'
 import HelpTip from '../components/HelpTip'
 import { useContext, useId, useMemo, useState } from 'react'
 import { smoothCss } from '../render/smoothGradient'
@@ -736,9 +737,8 @@ export function FillField({
             </select>
             {g.kind === 'linear' && (
               <>
-                <input
+                <NumInput
                   className="num narrow"
-                  type="number"
                   step={15}
                   title={t('fill.angle')}
                   value={g.angle}
@@ -759,9 +759,8 @@ export function FillField({
                   setG({ ...g, stops: g.stops.map((x, k) => (k === i ? { ...x, color } : x)) })
                 }
               />
-              <input
+              <NumInput
                 className="num narrow"
-                type="number"
                 min={0}
                 max={100}
                 title={t('fill.position')}
@@ -870,9 +869,8 @@ export function FadeFields({
           value={pct(v)}
           onChange={(e) => set(Number(e.target.value) / 100)}
         />
-        <input
+        <NumInput
           className="num narrow"
-          type="number"
           min={0}
           max={100}
           value={pct(v)}
@@ -918,9 +916,8 @@ export function FadeFields({
         <div className="field-group">
           {dir === 'angle' && (
             <Row label={t('fill.angle')}>
-              <input
+              <NumInput
                 className="num narrow"
-                type="number"
                 step={15}
                 value={value.angle}
                 onChange={(e) => {

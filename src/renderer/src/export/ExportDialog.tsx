@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import NumInput from '../components/NumInput'
 import type { LoadedProject } from '../../../shared/project'
 import { kindOf, type Side } from '../../../shared/model/template'
 import { walkLayers } from '../../../shared/model/normalize'
@@ -359,9 +360,8 @@ export default function ExportDialog({
     disabled = false
   ): React.JSX.Element => (
     <>
-      <input
+      <NumInput
         className="num"
-        type="number"
         step={unitStep(0.5, lengthUnit)}
         min={0}
         value={toUnit(value, lengthUnit)}
@@ -507,9 +507,8 @@ export default function ExportDialog({
                   {(img.format === 'jpg' || img.format === 'webp') && (
                     <>
                       <span className="unit">{t('export.quality')}</span>
-                      <input
+                      <NumInput
                         className="num narrow"
-                        type="number"
                         min={1}
                         max={100}
                         value={img.quality}
@@ -536,9 +535,8 @@ export default function ExportDialog({
                     )}
                     {(customDpi || !DPIS.includes(img.dpi)) && (
                       <>
-                        <input
+                        <NumInput
                           className="num"
-                          type="number"
                           min={30}
                           max={1200}
                           value={img.dpi}
@@ -658,9 +656,8 @@ export default function ExportDialog({
                   )}
                   {pdf.layout === 'fixed' && (
                     <>
-                      <input
+                      <NumInput
                         className="num narrow"
-                        type="number"
                         min={1}
                         value={pdf.cols}
                         onChange={(e) =>
@@ -668,9 +665,8 @@ export default function ExportDialog({
                         }
                       />
                       <span className="unit">×</span>
-                      <input
+                      <NumInput
                         className="num narrow"
-                        type="number"
                         min={1}
                         value={pdf.rows}
                         onChange={(e) =>
@@ -702,9 +698,8 @@ export default function ExportDialog({
                     {pdf.poster && (
                       <>
                         <span className="unit">{t('export.posterOverlap')}</span>
-                        <input
+                        <NumInput
                           className="num narrow"
-                          type="number"
                           min={0}
                           value={toUnit(pdf.posterOverlap, lengthUnit)}
                           onChange={(e) =>
@@ -855,9 +850,8 @@ export default function ExportDialog({
                         {obj.type !== 'card' && obj.type !== 'die' && (
                           <>
                             <span className="unit">{t('export.ttsThickness')}</span>
-                            <input
+                            <NumInput
                               className="num narrow"
-                              type="number"
                               step={unitStep(0.5, lengthUnit)}
                               value={toUnit(obj.thickness, lengthUnit)}
                               onChange={(e) =>
@@ -921,9 +915,8 @@ export default function ExportDialog({
                     )}
                     {tts.grid === 'fixed' && (
                       <>
-                        <input
+                        <NumInput
                           className="num narrow"
-                          type="number"
                           min={2}
                           max={10}
                           value={tts.cols}
@@ -937,9 +930,8 @@ export default function ExportDialog({
                           }
                         />
                         <span className="unit">×</span>
-                        <input
+                        <NumInput
                           className="num narrow"
-                          type="number"
                           min={2}
                           max={7}
                           value={tts.rows}

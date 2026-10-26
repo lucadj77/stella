@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import NumInput from './NumInput'
 import { confirmKey } from './confirm'
 import type { BackupSettings, BackupState } from '../../../shared/api'
 import { messageFromError, type Message } from '../../../shared/messages'
@@ -183,8 +184,7 @@ export default function BackupDialog({
               </label>
               <label>
                 {t('backup.keep')}
-                <input
-                  type="number"
+                <NumInput
                   min={1}
                   max={100}
                   value={state.settings.keep}

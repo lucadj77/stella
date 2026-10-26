@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import NumInput from './NumInput'
 import { MIN_CROP, cropRect } from '../../../shared/model/crop'
 import type { Crop } from '../../../shared/model/template'
 import { Dialog } from '../editor/dialogs'
@@ -124,8 +125,7 @@ export default function CropDialog({
   const field = (key: keyof Crop, label: string): React.JSX.Element => (
     <label className="crop-num">
       <span>{label}</span>
-      <input
-        type="number"
+      <NumInput
         step={1}
         min={0}
         max={100}

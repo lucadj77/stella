@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import NumInput from './NumInput'
 import { useUndo } from './useUndo'
 import type { LoadedSet } from '../../../shared/project'
 import type { Template } from '../../../shared/model/template'
@@ -664,9 +665,8 @@ export default function SetupDialog({
   ): React.JSX.Element => (
     <label>
       {label}
-      <input
+      <NumInput
         className="num"
-        type="number"
         min={min}
         value={Math.round(value * 10) / 10}
         onChange={(e) => {

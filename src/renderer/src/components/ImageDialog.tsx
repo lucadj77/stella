@@ -1,4 +1,5 @@
 import { useContext, useState } from 'react'
+import NumInput from './NumInput'
 import { resolveAsset } from '../../../shared/model/assets'
 import { imageSourceWith, splitImageSource, type FigureAlign } from '../../../shared/model/document'
 import { imageVariable } from '../../../shared/model/variables'
@@ -63,9 +64,9 @@ export default function ImageDialog({
         <div className="dialog-row">
           <label>
             {t('documents.width')}
-            <input
+            <NumInput
+              allowEmpty
               className="num"
-              type="number"
               min={1}
               value={width}
               placeholder={t('docImage.auto')}

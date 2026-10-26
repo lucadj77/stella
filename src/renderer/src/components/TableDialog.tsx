@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import NumInput from './NumInput'
 import { useUndo } from './useUndo'
 import type { LoadedSet } from '../../../shared/project'
 import type { HAlign, Template } from '../../../shared/model/template'
@@ -167,9 +168,9 @@ export default function TableDialog({
                     >
                       ×
                     </button>
-                    <input
+                    <NumInput
+                      allowEmpty
                       className="num"
-                      type="number"
                       min={0}
                       max={100}
                       title={t('documents.tableColumnWidth')}
