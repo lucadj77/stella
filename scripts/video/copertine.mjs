@@ -17,6 +17,7 @@ const SUBTITLES = {
   genera: ["Generare le carte e dividere un'immagine", 'Generating cards and splitting an image'],
   backup: ['Backup e recupero', 'Backups and recovery'],
   veloce: ['Lavorare più veloce', 'Working faster'],
+  raccolto: ['Un gioco completo, dall’idea al tavolo', 'A complete game, from idea to table'],
   dati: ['I dati dal foglio di calcolo', 'Data from the spreadsheet'],
   icone: ['Immagini, icone e font', 'Images, icons and fonts'],
   lingue: ['Un gioco in più lingue', 'A game in several languages'],
