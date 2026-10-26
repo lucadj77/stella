@@ -657,6 +657,7 @@ export const it: Record<MessageKey, string> = {
   'prop.outline': 'Sagoma',
   'editor.outlinePick': 'Scegli immagine…',
   'editor.outlineEmpty': 'nessuna immagine scelta',
+  'editor.outlineUnreadable': 'Non riesco a leggere questa immagine: {error}',
   'editor.outlineFailed': 'In questa immagine non ho trovato un contorno.',
   'editor.outlineHint':
     "La forma prende il contorno di un'immagine del progetto (PNG con trasparenza o SVG; nelle immagini senza trasparenza, le parti scure). L'altezza segue le proporzioni dell'immagine.",

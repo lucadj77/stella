@@ -614,19 +614,28 @@ function OutlineField({
   const { t } = useI18n()
   const assets = useContext(AssetsContext)
   const [picking, setPicking] = useState(false)
-  const [error, setError] = useState(false)
+  // messaggio d'errore: immagine senza contorno, o immagine che non si legge (con il motivo)
+  const [error, setError] = useState('')
   const pick = async (name: string): Promise<void> => {
     setPicking(false)
     const r = resolveAsset(name, assets)
-    try {
-      if (!r.ok) throw new Error(name)
-      const traced = await traceImage(assetUrl(r.path))
-      if (!traced.path) throw new Error(name)
-      setError(false)
-      onTraced(traced)
-    } catch {
-      setError(true)
+    if (!r.ok) {
+      setError(t('editor.outlineUnreadable', { error: name }))
+      return
     }
+    let traced: { path: string; ratio: number }
+    try {
+      traced = await traceImage(assetUrl(r.path))
+    } catch (e) {
+      setError(t('editor.outlineUnreadable', { error: (e as Error)?.message || String(e) }))
+      return
+    }
+    if (!traced.path) {
+      setError(t('editor.outlineFailed'))
+      return
+    }
+    setError('')
+    onTraced(traced)
   }
   return (
     <>
@@ -639,7 +648,7 @@ function OutlineField({
           {empty && <span className="muted small">{t('editor.outlineEmpty')}</span>}
         </div>
       </div>
-      {error && <p className="field-error">{t('editor.outlineFailed')}</p>}
+      {error && <p className="field-error">{error}</p>}
       <p className="muted small">{hint}</p>
       {picking && <AssetPicker value="" onPick={pick} onClose={() => setPicking(false)} />}
     </>

@@ -42,7 +42,12 @@ export async function traceImage(url: string): Promise<{ path: string; ratio: nu
       const lum = 0.299 * d[i * 4] + 0.587 * d[i * 4 + 1] + 0.114 * d[i * 4 + 2]
       alpha[i] = 255 - lum
     }
-  return { path: outlinePath(alpha, w, h), ratio: iw / ih }
+  // un'immagine tutta semitrasparente ha comunque una sagoma: la soglia scende a metà dell'alfa
+  // più alto
+  let top = 0
+  for (let i = 0; i < w * h; i++) if (alpha[i] > top) top = alpha[i]
+  const threshold = Math.min(128, Math.max(1, Math.ceil(top / 2)))
+  return { path: outlinePath(alpha, w, h, { threshold }), ratio: iw / ih }
 }
 
 /**

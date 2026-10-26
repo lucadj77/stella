@@ -650,6 +650,7 @@ export const en = {
   'prop.outline': 'Silhouette',
   'editor.outlinePick': 'Choose image…',
   'editor.outlineEmpty': 'no image chosen yet',
+  'editor.outlineUnreadable': 'Could not read this image: {error}',
   'editor.outlineFailed': 'No outline found in this image.',
   'editor.outlineHint':
     'The shape takes the outline of a project image (PNG with transparency or SVG; in images without transparency, the dark parts). The height follows the image proportions.',
