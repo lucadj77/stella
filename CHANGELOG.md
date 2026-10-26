@@ -5,6 +5,30 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.6.0-beta.1
+
+### English
+
+- **Units**: in ⚙ you can choose millimeters, centimeters or inches for positions, sizes and margins everywhere in the app. Files stay in millimeters.
+- **Shape orientation**: in the template properties the card shape can be turned a quarter (width and height swap, so a flat-top hexagon becomes pointy-top), turned upside down or mirrored. Only the outline turns, not the content.
+- **Grid cells**: a new **Cell rotation** turns the shape of every cell, whatever its kind, and cells can take their shape from an image. The cells and their content stay in place.
+- **Tint**: a semi-transparent tint is laid over the image instead of making it transparent. Black at 20% darkens a picture that stays opaque; a solid tint still recolors icons.
+- **Backup names**: a manual backup can get a name, and the name of any backup can be changed from the list. Named automatic backups are no longer deleted.
+- **Standees**: new component for upright figures on a transparent background. The back is the front mirrored, drawn by Stella, to print, cut and glue; in Tabletop Simulator they become standing tokens with the chosen thickness.
+- **Number fields**: in the windows (export, generator, crop, table setup, backup) numbers can be typed freely. The value is checked when you leave the field or press Enter, and Esc cancels the edit.
+- **Table setup**: stacked components follow the template shape and each has a thin outline.
+
+### Italiano
+
+- **Unità di misura**: in ⚙ si sceglie tra millimetri, centimetri e pollici per posizioni, misure e margini in tutta l'app. I file restano in millimetri.
+- **Orientamento della forma**: nelle proprietà del template la forma della carta si gira di un quarto (larghezza e altezza si scambiano, così un esagono con un lato in alto diventa con la punta in alto), si capovolge o si specchia. Gira solo il contorno, non il contenuto.
+- **Caselle della griglia**: la nuova **Rotazione della casella** gira la forma di ogni casella, di qualsiasi tipo, e le caselle possono prendere la forma da un'immagine. Le caselle e il loro contenuto restano al loro posto.
+- **Colorazione**: una colorazione semitrasparente si stende sopra l'immagine invece di renderla trasparente. Il nero al 20% scurisce un'immagine che resta opaca; una colorazione piena ricolora le icone come prima.
+- **Nome dei backup**: a un backup fatto a mano si può dare un nome, e il nome di ogni backup si cambia dall'elenco. I backup automatici con un nome non si cancellano più.
+- **Pedine**: nuovo componente per le figure in piedi su fondo trasparente. Il retro è il fronte specchiato, disegnato da Stella, da stampare, ritagliare e incollare; in Tabletop Simulator diventano segnalini in piedi con lo spessore scelto.
+- **Campi numerici**: nelle finestre (esportazione, generatore, ritaglio, schema del tavolo, backup) i numeri si scrivono liberamente. Il valore si controlla uscendo dal campo o con Invio, ed Esc annulla la modifica.
+- **Schema del tavolo**: i componenti impilati seguono la forma del template e hanno un sottile contorno.
+
 ## 1.5.0
 
 ### English

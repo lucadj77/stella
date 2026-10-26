@@ -161,7 +161,7 @@ import { BUILTIN_STYLES, parseAttrs, serializeAttrs } from '../../shared/model/m
 import { LANGUAGES, useI18n, type Language } from './i18n/context'
 import { THEMES, applyTheme, loadTheme } from './theme/theme'
 import { setLengthUnit, useLengthUnit } from './units'
-import { LENGTH_UNITS, type LengthUnit } from '../../shared/model/units'
+import { LENGTH_UNITS, toUnit, type LengthUnit } from '../../shared/model/units'
 import type { AgentLock, Theme } from '../../shared/api'
 
 const NO_STYLES: Record<string, string> = {}
@@ -1788,7 +1788,9 @@ function App(): React.JSX.Element {
                       className={tpl.extends ? 'muted derived-base' : 'muted'}
                       title={tpl.extends ? `${t('inherit.derivedFrom')} ${tpl.extends}` : undefined}
                     >
-                      {tpl.extends ? `↳ ${tpl.extends}` : `${tpl.width}×${tpl.height}`}
+                      {tpl.extends
+                        ? `↳ ${tpl.extends}`
+                        : `${toUnit(tpl.width, lengthUnit)}×${toUnit(tpl.height, lengthUnit)}`}
                     </span>
                   </button>
                   <button

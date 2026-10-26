@@ -1,6 +1,6 @@
 # Stella user guide
 
-Stella is an app for making cards and other printed game components from a spreadsheet. You design the card layout once, the **template**, and every row of the spreadsheet becomes a card. Cards are exported as images, as print-ready PDFs or as Tabletop Simulator objects: decks, tokens, tiles, boards and dice, ready to load into the game.
+Stella is an app for making cards and other printed game components from a spreadsheet. You design the card layout once, the **template**, and every row of the spreadsheet becomes a card. Cards are exported as images, as print-ready PDFs or as Tabletop Simulator objects: decks, tokens, standees, tiles, boards and dice, ready to load into the game.
 
 This guide follows the usual order of work: create a project, design a template, enter the cards, refine texts and images, export. The examples come from a small project with three sets: characters, items and market cards.
 
@@ -146,7 +146,7 @@ The first time, when there are no recent projects yet, the screen welcomes you w
 - **Open the example project** opens the project used in this guide and in the videos: three sets (Characters, Items, Market), icons, variables and styles. The first time it is copied into Documents/Stella/Example, where it can be changed freely; after that the copy is opened. In the web version the copy lives in the storage the browser keeps for the site: you change and save it without choosing a folder, but it stays in that browser only.
 - **Recent projects** shows up to 24 projects, with their first card as thumbnail. The × removes a project from the list without deleting the folder.
 
-The ⚙ button at the top right, on every screen, opens the settings: the interface size, the theme (light, dark or the system's), the language (English or Italian) and **AI tools…**, which prepares an AI agent to work on projects ([chapter 15](#15-working-with-an-ai-agent)).
+The ⚙ button at the top right, on every screen, opens the settings: the interface size, the **units** (millimeters, centimeters or inches) for positions, sizes and margins across the app (text stays in points, line widths in mm), the theme (light, dark or the system's), the language (English or Italian) and **AI tools…**, which prepares an AI agent to work on projects ([chapter 15](#15-working-with-an-ai-agent)).
 
 When a new version is out, a strip appears at the top of the window at startup: **What's new** shows what changes, **Update and restart** downloads the new version, installs it and reopens Stella. This works for Stella installed with the setup on Windows, for the AppImage on Linux, and on the Mac for the app in Applications (or another folder you can write to); if there are unsaved changes Stella asks first. The Windows portable version, the .deb package and an app opened from the downloaded disk image have **Download** instead, which opens the page to download it; the same happens if the automatic update fails. **Skip this version** stops showing it, **Remind me later** hides it until the next start.
 
@@ -189,9 +189,11 @@ In the desktop app the same commands are also in the app menu (on the Mac in the
 
 ### 4.1 Creating a template
 
-The + next to **Templates** opens the new template window. At the top, **What are you making?** picks the kind of component: **Card**, **Token**, **Tile**, **Board** or **Die face**. The kind suggests suitable formats (20, 25 and 38 mm rounds for a token, squares and hexagons for a tile, 30 cm, A3 and A4 for a board) and changes the words of the app: in the set the button becomes **+ Token** or **+ Face**, and counts say "6 faces". For a die each row of the set is a face, and six faces in a row make a die. Then you write the name, the format and the size; the lock between width and height keeps the proportions.
+The + next to **Templates** opens the new template window. At the top, **What are you making?** picks the kind of component: **Card**, **Token**, **Tile**, **Board**, **Die face** or **Standee**. The kind suggests suitable formats (20, 25 and 38 mm rounds for a token, squares and hexagons for a tile, 30 cm, A3 and A4 for a board) and changes the words of the app: in the set the button becomes **+ Token** or **+ Face**, and counts say "6 faces". For a die each row of the set is a face, and six faces in a row make a die. Then you write the name, the format and the size; the lock between width and height keeps the proportions.
 
-The kind can be changed later with **Component** in the template properties. In the Tabletop Simulator export each set starts from the object of its kind: tokens, tiles, boards or dice.
+The kind can be changed later with **Component** in the template properties. In the Tabletop Simulator export each set starts from the object of its kind: tokens, standees, tiles, boards or dice.
+
+A **standee** is a figure that stands upright, for example a character drawn on a transparent background. The template starts with no background and no bleed, and in the editor a checkerboard shows under the figure. You do not draw the back: it is the front mirrored, and Stella makes it on its own. So the PDF has both faces to cut out and glue together, and they always match. They print with the usual rectangular crop marks around the frame, and you cut the silhouette by hand. In Tabletop Simulator the standee becomes an upright token, with the chosen thickness, cut out along the non-transparent part of the front.
 
 ![The new template window](img/nuovo-template.png)
 
@@ -214,7 +216,7 @@ Selected layers are copied with ⌘C / Ctrl+C (⌘X / Ctrl+X to cut them) and pa
 
 ### 4.3 Template properties
 
-With no layer selected, the panel shows the template properties: the kind of component, size, bleed (3 mm by default), safe margin, card shape (rectangle with rounded corners, circle or ellipse, hexagon, outline taken from an image), manual guides and **Card name**, the field shown under each card in the grid. The hexagon is always regular, the largest that fits in the card: to fill it, the short side must be the long side × 0.866, and the **Fit the card to the hexagon** button changes the short side that way. In polygon and star shapes, **Make regular** turns the frame into a square around the same center, so all sides and angles are equal.
+With no layer selected, the panel shows the template properties: the kind of component, size, bleed (3 mm by default), safe margin, card shape (rectangle with rounded corners, circle or ellipse, hexagon, outline taken from an image), shape orientation, manual guides and **Card name**, the field shown under each card in the grid. **Shape orientation** turns or mirrors only the outline, not the content: ⟲ and ⟳ make a quarter turn and swap width and height (a hexagon with a flat top gets a point on top), **180°** turns the shape upside down (a shield taken from an image ends up point up), ⇆ and ⇅ mirror it. With a quarter turn the layers adjust as when you change the size. The hexagon is always regular, the largest that fits in the card: to fill it, the short side must be the long side × 0.866, and the **Fit the card to the hexagon** button changes the short side that way. In polygon and star shapes, **Make regular** turns the frame into a square around the same center, so all sides and angles are equal.
 
 When you change the size of a template that already has layers, the app asks whether to scale the layers in proportion or leave them where they are. In the second case each layer follows its **constraints**: two menus in the position section, one horizontal and one vertical, that say what the layer stays attached to when the card changes size.
 
@@ -275,7 +277,7 @@ With two or more layers selected, the buttons at the top of the panel align them
 
 ### 4.6 The back
 
-**Back** in the editor bar shows the layers of the back, which work like those of the front: they can be the same for every card or take values from the sheet. In the set grid, **Back** shows the back of every card.
+**Back** in the editor bar shows the layers of the back, which work like those of the front: they can be the same for every card or take values from the sheet. For standees the back is the front mirrored: you can see it but not edit it. In the set grid, **Back** shows the back of every card.
 
 ![The backs of the cards in the grid](img/griglia-retro.png)
 
@@ -296,7 +298,7 @@ You work as on a normal template, with a few differences:
 
 ### 4.8 The grid
 
-The **grid** layer (the tool with the cells) draws equal cells inside its frame: for boards, score tracks, maps, tables to fill in by hand. Cells are square, round, hexagonal, triangular or diamond-shaped, in rows and columns with a gap between them. **Interlocking** arranges hexagons as a honeycomb (point up or side up), triangles alternating up and down, diamonds and circles in the spaces between the others, and squares like bricks. Cells have a fill, an outline and a corner radius (not circles); the **grid background** fills the space behind and between the cells up to the **grid border**, which has its own outline. Under Advanced: the padding between cells and border, the background corner radius, the cell width compared with its height, the zoom (100% is the largest grid that fits the frame without stretching the cells), the position in the frame and cutting what goes outside. The cell fill is the layer's value, so it can change from card to card; for other properties use columns such as `grid.rows`.
+The **grid** layer (the tool with the cells) draws equal cells inside its frame: for boards, score tracks, maps, tables to fill in by hand. Cells are square, round, hexagonal, triangular, diamond-shaped or take their shape from an image (the outline of its non-transparent part, with its proportions), in rows and columns with a gap between them. **Cell rotation** turns the shape of each cell around its center, for any shape: the cells stay in place and their content does not turn. **Interlocking** arranges hexagons as a honeycomb (point up or side up), triangles alternating up and down, diamonds and circles in the spaces between the others, and squares like bricks. Cells have a fill, an outline and a corner radius (not circles); the **grid background** fills the space behind and between the cells up to the **grid border**, which has its own outline. Under Advanced: the padding between cells and border, the background corner radius, the cell width compared with its height, the zoom (100% is the largest grid that fits the frame without stretching the cells), the position in the frame and cutting what goes outside. The cell fill is the layer's value, so it can change from card to card; for other properties use columns such as `grid.rows`.
 
 ![A grid layer with interlocking hexagonal cells](img/griglia-livello.png)
 
@@ -525,7 +527,7 @@ The image button next to the fields opens thumbnails of the assets, with search 
 
 ![Choosing an image](img/scegli-immagine.png)
 
-Single-color icons (black SVGs on a transparent background) are recolored with the layer's **Tint** property or with the variable's tint.
+Single-color icons (black SVGs on a transparent background) are recolored with the layer's **Tint** property or with the variable's tint. The tint is laid over the image: a solid color recolors it completely, a semi-transparent one tints it only partly. For example black at 20% (`#00000033`) darkens a forest, and the image stays opaque.
 
 ### 8.2 Importing icons
 
@@ -689,11 +691,12 @@ With **Copies** on, **Copies on the sheet** decides where a card's copies go: on
 
 - **Cards**: the deck from the sheets, as above.
 - **Tokens**: one image per card, cut out along the card shape (rectangle, rounded corners, circle, hexagon or silhouette). Tabletop Simulator turns it into a thick piece whose edge takes the image color; underneath it shows the front mirrored, so the card back is not used.
+- **Standees**: like tokens, but standing upright on the table. Only the front is uploaded; the transparent part stays outside the silhouette.
 - **Tiles**: front and back of the card. The shape (square, rounded, hexagonal or round) comes from the card shape; a silhouette becomes a square. **Edge** is the color of the thickness.
 - **Boards**: like tiles (front, back, edge and thickness), but they do not stack and do not go into a bag: each board, copies included, lands on the table next to the others.
 - **Dice (6 faces)**: every six cards of the set make one die, in sheet order: the first card goes on face 1, the second on face 2 and so on; opposite faces add up to 7 (1-6, 2-5, 3-4). If the cards are not a multiple of six, the last die repeats its first faces and the export warns about it. The die's copies are those (`amount`) of its first card. The value Tabletop Simulator shows when you roll it is the field chosen in **Name** for the card, or the face number. Use a square template: the die face is square, as wide as the card, and a rectangular card gets squashed. Stella also writes the cube model (`models/<set>_d6.obj`) next to the images.
 
-For tokens and tiles, **Thickness** is in mm. The pieces of a set go into a bag, copies included; a set with a single piece becomes that piece. Cards, tokens and tiles reach Tabletop Simulator in their true proportions: a 63 mm card has Tabletop Simulator's default size, and everything else is larger or smaller in proportion.
+Tokens, standees and tiles have a **Thickness**. The pieces of a set go into a bag, copies included; a set with a single piece becomes that piece. Cards, tokens and tiles reach Tabletop Simulator in their true proportions: a 63 mm card has Tabletop Simulator's default size, and everything else is larger or smaller in proportion.
 
 Sheets are referenced by local addresses, so the deck works on the computer that exported it. To play online, upload the images to a web service and change the addresses in Tabletop Simulator.
 
@@ -806,7 +809,7 @@ Below the text the problems are listed: cards that are not found, images not in 
 
 ## 13. Backup
 
-**Backup…**, in the **Project** menu, opens the project's backups. By default the app makes an automatic backup when the project opens (at most once an hour) and keeps the last 10; those made with **Back up now** are never deleted automatically.
+**Backup…**, in the **Project** menu, opens the project's backups. By default the app makes an automatic backup when the project opens (at most once an hour) and keeps the last 10; those made with **Back up now** are never deleted automatically. In the field next to the button you can give the backup a name, to remember what it holds (for example "before the new rules"); clicking the name in the list changes it, for automatic backups too, which are then no longer deleted.
 
 Backups are kept outside the project, by default in `Documents/Stella/Backup`. Images are stored once for all backups of the project, so one more backup takes little space. **Restore…** extracts the backup into a new folder next to the project and opens it: the current project is not touched.
 
