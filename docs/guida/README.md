@@ -20,6 +20,7 @@ Video tutorial su YouTube, senza voce ([tutta la playlist](https://www.youtube.c
 12. [Un gioco in più lingue](https://www.youtube.com/watch?v=1eV4QzH_3XI) (6 minuti)
 13. [L'assistente formule](https://www.youtube.com/watch?v=azgDlcktVfk) (12 minuti)
 16. [Generare le carte e dividere un'immagine](https://www.youtube.com/watch?v=TR5Eiuatdec) (6 minuti)
+17. [Backup e recupero](https://www.youtube.com/watch?v=2fPQwU0LlFg) (5 minuti)
 
 English version: [../guide/README.md](../guide/README.md).
 
