@@ -480,6 +480,15 @@ export const videos = [
       it: 'https://www.youtube.com/watch?v=2fPQwU0LlFg',
       en: 'https://www.youtube.com/watch?v=AeSwGYOWRCs'
     }
+  },
+  {
+    it: 'Lavorare più veloce',
+    en: 'Working faster',
+    minutes: 5,
+    url: {
+      it: 'https://www.youtube.com/watch?v=p1nM-sH1cvE',
+      en: 'https://www.youtube.com/watch?v=sdlhIDNbUyg'
+    }
   }
 ]
 

@@ -21,6 +21,7 @@ Video tutorial su YouTube, senza voce ([tutta la playlist](https://www.youtube.c
 13. [L'assistente formule](https://www.youtube.com/watch?v=azgDlcktVfk) (12 minuti)
 16. [Generare le carte e dividere un'immagine](https://www.youtube.com/watch?v=TR5Eiuatdec) (6 minuti)
 17. [Backup e recupero](https://www.youtube.com/watch?v=2fPQwU0LlFg) (5 minuti)
+18. [Lavorare più veloce](https://www.youtube.com/watch?v=p1nM-sH1cvE) (5 minuti)
 
 English version: [../guide/README.md](../guide/README.md).
 

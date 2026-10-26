@@ -21,6 +21,7 @@ Video tutorials on YouTube, no voice ([whole playlist](https://www.youtube.com/p
 13. [The formula assistant](https://www.youtube.com/watch?v=V2qYi4r4uJA) (12 minutes)
 16. [Generating cards and splitting an image](https://www.youtube.com/watch?v=heP9Y82zsjA) (6 minutes)
 17. [Backups and recovery](https://www.youtube.com/watch?v=AeSwGYOWRCs) (5 minutes)
+18. [Working faster](https://www.youtube.com/watch?v=sdlhIDNbUyg) (5 minutes)
 
 Versione italiana: [../guida/README.md](../guida/README.md).
 
