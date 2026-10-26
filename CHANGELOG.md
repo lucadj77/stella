@@ -17,6 +17,11 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Standees**: new component for upright figures on a transparent background. The back is the front mirrored, drawn by Stella, to print, cut and glue; in Tabletop Simulator they become standing tokens with the chosen thickness.
 - **Number fields**: in the windows (export, generator, crop, table setup, backup) numbers can be typed freely. The value is checked when you leave the field or press Enter, and Esc cancels the edit.
 - **Table setup**: stacked components follow the template shape and each has a thin outline.
+- **Search in the properties panel**: a field at the top of the panel (⌘F / Ctrl+F) keeps only the properties whose name contains the text, or the whole section when the text is in its title.
+- **Shortcuts**: I, G and V add an image, a grid and a value layer, like T, R and E. ⌘O / Ctrl+O and ⌘W / Ctrl+W open and close the project in the desktop app.
+- **Tabletop Simulator proportions**: tokens and standees are sized on their width, so a tall standee no longer comes out about twice as large. Landscape cards (a board as wide as two cards) are placed sideways at their true size instead of four times larger.
+- **Standee thickness**: 15 mm by default, so the figure stands up.
+- **Outline from an image**: works with semi-transparent images too, and if the image cannot be read the message says why.
 
 ### Italiano
 
@@ -28,6 +33,11 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Pedine**: nuovo componente per le figure in piedi su fondo trasparente. Il retro è il fronte specchiato, disegnato da Stella, da stampare, ritagliare e incollare; in Tabletop Simulator diventano segnalini in piedi con lo spessore scelto.
 - **Campi numerici**: nelle finestre (esportazione, generatore, ritaglio, schema del tavolo, backup) i numeri si scrivono liberamente. Il valore si controlla uscendo dal campo o con Invio, ed Esc annulla la modifica.
 - **Schema del tavolo**: i componenti impilati seguono la forma del template e hanno un sottile contorno.
+- **Ricerca nel pannello delle proprietà**: un campo in cima al pannello (⌘F / Ctrl+F) lascia solo le proprietà il cui nome contiene il testo, o l'intera sezione se il testo è nel suo titolo.
+- **Scorciatoie**: I, G e V aggiungono un livello immagine, griglia e valore, come T, R ed E. ⌘O / Ctrl+O e ⌘W / Ctrl+W aprono e chiudono il progetto nell'app per computer.
+- **Proporzioni in Tabletop Simulator**: segnalini e pedine si misurano sulla larghezza, quindi una pedina alta non esce più grande circa il doppio. Le carte orizzontali (una plancia larga quanto due carte) sono messe di traverso, nella misura vera invece che quattro volte più grandi.
+- **Spessore delle pedine**: 15 mm di base, perché la figura stia in piedi.
+- **Contorno da un'immagine**: funziona anche con le immagini semitrasparenti, e se l'immagine non si legge il messaggio dice perché.
 
 ## 1.5.0
 

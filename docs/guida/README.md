@@ -193,7 +193,7 @@ Il + accanto a **Template** apre la finestra del nuovo template. In cima, **Cosa
 
 Il tipo si cambia anche dopo, con **Componente** nelle proprietà del template. Nell'esportazione per Tabletop Simulator ogni set parte dall'oggetto del suo tipo: segnalini, pedine, tessere, plance o dadi.
 
-Una **pedina** è una figura che sta in piedi, per esempio un personaggio disegnato su fondo trasparente. Il template nasce senza sfondo e senza abbondanza, e nell'editor sotto la figura si vede una scacchiera. Il retro non si disegna: è il fronte specchiato, e Stella lo ricava da solo. Così nel PDF ci sono le due facce da ritagliare e incollare, e combaciano sempre. Si stampano con i normali segni di taglio rettangolari attorno al riquadro, e la sagoma si ritaglia a mano. In Tabletop Simulator la pedina diventa un segnalino in piedi, con lo spessore scelto, ritagliato sulla parte non trasparente del fronte.
+Una **pedina** è una figura che sta in piedi, per esempio un personaggio disegnato su fondo trasparente. Il template nasce senza sfondo e senza abbondanza, e nell'editor sotto la figura si vede una scacchiera. Il retro non si disegna: è il fronte specchiato, e Stella lo ricava da solo. Così nel PDF ci sono le due facce da ritagliare e incollare, e combaciano sempre. Si stampano con i normali segni di taglio rettangolari attorno al riquadro, e la sagoma si ritaglia a mano. In Tabletop Simulator la pedina diventa un segnalino in piedi, con lo spessore scelto (15 mm se non lo si cambia, perché la base deve tenerla dritta), ritagliato sulla parte non trasparente del fronte.
 
 ![La finestra del nuovo template](img/nuovo-template.png)
 
@@ -233,6 +233,8 @@ I vincoli servono quando lo stesso disegno deve stare su due formati, per esempi
 ### 4.4 Le proprietà dei livelli
 
 Il pannello delle proprietà è diviso in sezioni. Ogni sezione mostra le voci più usate e raccoglie le altre in **Avanzate**. Passando con il mouse su una voce compare una freccia che la sposta in Avanzate o la riporta fuori; la disposizione vale per tutti i progetti.
+
+In cima al pannello c'è un campo di ricerca (⌘F / Ctrl+F nell'editor). Scrivendo parte del nome di una voce restano solo le voci che la contengono, con il titolo della loro sezione: per esempio «cont» mostra **Contorno** in **Tipografia**. Se il testo è nel titolo di una sezione, la sezione si mostra intera: «pos» mostra tutta **Posizione e dimensioni**. Le voci trovate in **Avanzate** compaiono aperte; Esc cancella la ricerca.
 
 Nei campi numerici si può trascinare l'etichetta a destra o a sinistra per cambiare il valore come con un cursore (Maiuscolo per passi più grandi, Alt per passi più fini); rotazione e opacità hanno anche un cursore accanto alla casella.
 
@@ -696,7 +698,7 @@ Con **Copie** attivo, **Copie nel foglio** decide dove finiscono le copie di una
 - **Plance**: come le tessere (fronte, retro, bordo e spessore), ma non si impilano e non vanno in un sacchetto: ogni plancia, copie comprese, arriva sul tavolo accanto alle altre.
 - **Dadi (6 facce)**: ogni sei carte del set fanno un dado, nell'ordine del foglio: la prima carta va sulla faccia 1, la seconda sulla 2 e così via; le facce opposte fanno 7 (1-6, 2-5, 3-4). Se le carte non sono un multiplo di sei, l'ultimo dado ripete le sue prime facce e l'esportazione lo segnala. Le copie del dado sono quelle (`amount`) della sua prima carta. Il valore che Tabletop Simulator mostra quando lo tiri è il campo scelto in **Nome** della carta, oppure il numero della faccia. Usa un template quadrato: la faccia del dado è quadrata, larga quanto la carta, e una carta rettangolare viene schiacciata. Stella scrive anche il modello del cubo (`models/<set>_d6.obj`) accanto alle immagini.
 
-Per segnalini, pedine e tessere c'è lo **Spessore**. I pezzi di un set vanno in un sacchetto, copie comprese; un set con un pezzo solo diventa quel pezzo. Carte, segnalini e tessere arrivano in Tabletop Simulator nelle proporzioni vere: una carta da 63 mm ha la misura predefinita di Tabletop Simulator, e tutto il resto è più grande o più piccolo in proporzione.
+Per segnalini, pedine e tessere c'è lo **Spessore**. I pezzi di un set vanno in un sacchetto, copie comprese; un set con un pezzo solo diventa quel pezzo. Carte, segnalini, pedine e tessere arrivano in Tabletop Simulator nelle proporzioni vere: una carta da 63 mm ha la misura predefinita di Tabletop Simulator, e tutto il resto è più grande o più piccolo in proporzione. Le carte orizzontali, come una plancia larga quanto due carte, sono messe di traverso.
 
 I fogli si richiamano con indirizzi locali, quindi il mazzo funziona sul computer che l'ha esportato. Per giocare online bisogna caricare le immagini su un servizio web e cambiare gli indirizzi in Tabletop Simulator.
 
@@ -897,13 +899,15 @@ Ogni scorciatoia è scritta prima con il tasto ⌘ del Mac e poi, dopo la barra,
 | Dove          | Tasti                                            | Azione                                                                                                       |
 | ------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
 | ovunque       | ⌘S / Ctrl+S                                      | salva template, dati e impostazioni                                                                          |
+| ovunque       | ⌘O / Ctrl+O, ⌘W / Ctrl+W                         | apre e chiude il progetto (app per computer)                                                                 |
 | set           | ⌘Z / Ctrl+Z, ⇧⌘Z / Ctrl+Maiusc+Z                 | annulla e ripete le modifiche ai dati                                                                        |
 | ovunque       | ⌘+, ⌘−, ⌘0 / Ctrl+, Ctrl−, Ctrl+0                | ingrandisce, riduce e riporta normale l'interfaccia (app per computer)                                       |
 | set           | ⌘A / Ctrl+A, Esc                                 | seleziona tutte le carte, torna a una sola                                                                   |
 | tabella       | Alt+Invio                                        | a capo dentro una cella                                                                                      |
 | testo         | `{`, poi ↑ ↓, Invio                              | suggerimenti di campi e variabili                                                                            |
 | editor        | ⌘Z / Ctrl+Z, ⇧⌘Z / Ctrl+Maiusc+Z (o ⌘Y / Ctrl+Y) | annulla e ripete                                                                                             |
-| editor        | T, R, E                                          | nuovo testo, rettangolo, ellisse                                                                             |
+| editor        | T, R, E, I, G, V                                 | nuovo testo, rettangolo, ellisse, immagine, griglia, valore                                                  |
+| editor        | ⌘F / Ctrl+F                                      | cerca nel pannello delle proprietà                                                                           |
 | editor        | ⌘D / Ctrl+D                                      | duplica i livelli selezionati                                                                                |
 | editor        | ⌘C / Ctrl+C, ⌘X / Ctrl+X, ⌘V / Ctrl+V            | copia, taglia e incolla livelli tra template                                                                 |
 | editor        | ⌘G / Ctrl+G, ⇧⌘G / Ctrl+Maiusc+G                 | raggruppa e separa                                                                                           |

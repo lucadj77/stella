@@ -193,7 +193,7 @@ The + next to **Templates** opens the new template window. At the top, **What ar
 
 The kind can be changed later with **Component** in the template properties. In the Tabletop Simulator export each set starts from the object of its kind: tokens, standees, tiles, boards or dice.
 
-A **standee** is a figure that stands upright, for example a character drawn on a transparent background. The template starts with no background and no bleed, and in the editor a checkerboard shows under the figure. You do not draw the back: it is the front mirrored, and Stella makes it on its own. So the PDF has both faces to cut out and glue together, and they always match. They print with the usual rectangular crop marks around the frame, and you cut the silhouette by hand. In Tabletop Simulator the standee becomes an upright token, with the chosen thickness, cut out along the non-transparent part of the front.
+A **standee** is a figure that stands upright, for example a character drawn on a transparent background. The template starts with no background and no bleed, and in the editor a checkerboard shows under the figure. You do not draw the back: it is the front mirrored, and Stella makes it on its own. So the PDF has both faces to cut out and glue together, and they always match. They print with the usual rectangular crop marks around the frame, and you cut the silhouette by hand. In Tabletop Simulator the standee becomes an upright token, with the chosen thickness (15 mm unless you change it, so that the base keeps it upright), cut out along the non-transparent part of the front.
 
 ![The new template window](img/nuovo-template.png)
 
@@ -233,6 +233,8 @@ Constraints are useful when the same design must fit two sizes, for example a po
 ### 4.4 Layer properties
 
 The properties panel is split into sections. Each section shows the most used items and keeps the others under **Advanced**. Hovering an item shows an arrow that moves it to Advanced or back out; the layout applies to all projects.
+
+At the top of the panel there is a search field (⌘F / Ctrl+F in the editor). Typing part of an item's name keeps only the items that contain it, with the title of their section: for example "cont" shows **Stroke** under **Typography**. If the text is in a section title, the whole section shows: "pos" shows all of **Position and size**. Items found under **Advanced** appear open; Esc clears the search.
 
 In number fields you can drag the label right or left to change the value like a slider (Shift for bigger steps, Alt for finer ones); rotation and opacity also have a slider next to the box.
 
@@ -696,7 +698,7 @@ With **Copies** on, **Copies on the sheet** decides where a card's copies go: on
 - **Boards**: like tiles (front, back, edge and thickness), but they do not stack and do not go into a bag: each board, copies included, lands on the table next to the others.
 - **Dice (6 faces)**: every six cards of the set make one die, in sheet order: the first card goes on face 1, the second on face 2 and so on; opposite faces add up to 7 (1-6, 2-5, 3-4). If the cards are not a multiple of six, the last die repeats its first faces and the export warns about it. The die's copies are those (`amount`) of its first card. The value Tabletop Simulator shows when you roll it is the field chosen in **Name** for the card, or the face number. Use a square template: the die face is square, as wide as the card, and a rectangular card gets squashed. Stella also writes the cube model (`models/<set>_d6.obj`) next to the images.
 
-Tokens, standees and tiles have a **Thickness**. The pieces of a set go into a bag, copies included; a set with a single piece becomes that piece. Cards, tokens and tiles reach Tabletop Simulator in their true proportions: a 63 mm card has Tabletop Simulator's default size, and everything else is larger or smaller in proportion.
+Tokens, standees and tiles have a **Thickness**. The pieces of a set go into a bag, copies included; a set with a single piece becomes that piece. Cards, tokens, standees and tiles reach Tabletop Simulator in their true proportions: a 63 mm card has Tabletop Simulator's default size, and everything else is larger or smaller in proportion. Landscape cards, such as a board as wide as two cards, are placed sideways.
 
 Sheets are referenced by local addresses, so the deck works on the computer that exported it. To play online, upload the images to a web service and change the addresses in Tabletop Simulator.
 
@@ -897,13 +899,15 @@ Every shortcut is written first with the Mac ⌘ key and then, after the slash, 
 | Where        | Keys                                             | Action                                                                                        |
 | ------------ | ------------------------------------------------ | --------------------------------------------------------------------------------------------- |
 | anywhere     | ⌘S / Ctrl+S                                      | save templates, data and settings                                                             |
+| anywhere     | ⌘O / Ctrl+O, ⌘W / Ctrl+W                         | open and close the project (desktop app)                                                      |
 | set          | ⌘Z / Ctrl+Z, ⇧⌘Z / Ctrl+Shift+Z                  | undo and redo data changes                                                                    |
 | anywhere     | ⌘+, ⌘−, ⌘0 / Ctrl+, Ctrl−, Ctrl+0                | enlarge, shrink and reset the interface (desktop app)                                         |
 | set          | ⌘A / Ctrl+A, Esc                                 | select all cards, go back to one                                                              |
 | table        | Alt+Enter                                        | new line inside a cell                                                                        |
 | text         | `{`, then ↑ ↓, Enter                             | field and variable suggestions                                                                |
 | editor       | ⌘Z / Ctrl+Z, ⇧⌘Z / Ctrl+Shift+Z (or ⌘Y / Ctrl+Y) | undo and redo                                                                                 |
-| editor       | T, R, E                                          | new text, rectangle, ellipse                                                                  |
+| editor       | T, R, E, I, G, V                                 | new text, rectangle, ellipse, image, grid, value                                              |
+| editor       | ⌘F / Ctrl+F                                      | search the properties panel                                                                   |
 | editor       | ⌘D / Ctrl+D                                      | duplicate the selected layers                                                                 |
 | editor       | ⌘C / Ctrl+C, ⌘X / Ctrl+X, ⌘V / Ctrl+V            | copy, cut and paste layers                                                                    |
 | editor       | ⌘G / Ctrl+G, ⇧⌘G / Ctrl+Shift+G                  | group and ungroup                                                                             |
