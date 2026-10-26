@@ -462,6 +462,15 @@ export const videos = [
       it: 'https://www.youtube.com/watch?v=azgDlcktVfk',
       en: 'https://www.youtube.com/watch?v=V2qYi4r4uJA'
     }
+  },
+  {
+    it: 'Generare le carte e dividere un’immagine',
+    en: 'Generating cards and splitting an image',
+    minutes: 6,
+    url: {
+      it: 'https://www.youtube.com/watch?v=TR5Eiuatdec',
+      en: 'https://www.youtube.com/watch?v=heP9Y82zsjA'
+    }
   }
 ]
 
