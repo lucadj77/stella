@@ -172,6 +172,11 @@ export class Recorder {
         .first()
         .waitFor({ timeout: 10000 })
         .catch(() => {})
+      // un campo in fondo a un pannello lungo: prima lo si porta in vista, poi si misura
+      await l
+        .first()
+        .scrollIntoViewIfNeeded({ timeout: 2000 })
+        .catch(() => {})
       const b = await l.first().boundingBox()
       if (b) boxes.push(b)
     }

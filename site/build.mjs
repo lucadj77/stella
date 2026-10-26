@@ -155,7 +155,9 @@ for (const lang of ['it', 'en']) {
                   return `<a class="video" href="${esc(v.url[lang])}"><div class="thumb">${thumb}</div><div class="meta"><h4><span class="num">${v.n}</span> ${esc(v[lang])}</h4><span>${v.minutes} min</span></div><p>${esc(v.about[lang])}</p></a>`
                 })
                 .join('\n')
-              return `<div class="video-group${key === 'start' ? ' start' : ''}"><h3>${esc(title)}</h3><p class="group-text">${esc(text)}</p><div class="videos">${cards}</div></div>`
+              // a fisarmonica: con lo stesso name si apre un gruppo alla volta; Inizia qui parte aperto
+              const count = `${items.length} ${lang === 'en' && items.length > 1 ? 'videos' : 'video'}`
+              return `<details class="video-group${key === 'start' ? ' start' : ''}" name="video-groups"${key === 'start' ? ' open' : ''}><summary><h3>${esc(title)} <span class="count">(${count})</span></h3><p class="group-text">${esc(text)}</p></summary><div class="videos">${cards}</div></details>`
             })
             .join('\n')
         : `<p>${esc(t.tutorial.soon)}</p>`,

@@ -130,3 +130,10 @@
     })
     .catch(fallback)
 })()
+
+// tutorial a fisarmonica: quando un gruppo si apre e quello sopra si chiude, il titolo resta in vista
+document.querySelectorAll('details.video-group').forEach((d) => {
+  d.addEventListener('toggle', () => {
+    if (d.open && d.getBoundingClientRect().top < 0) d.scrollIntoView({ block: 'start' })
+  })
+})
