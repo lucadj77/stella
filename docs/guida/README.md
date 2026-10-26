@@ -6,19 +6,19 @@ Questa guida segue l'ordine in cui di solito si lavora: creare un progetto, dise
 
 Video tutorial su YouTube, senza voce ([tutta la playlist](https://www.youtube.com/playlist?list=PLd3mtbjgiPEo)):
 
-1. [Panoramica delle funzioni di base](https://www.youtube.com/watch?v=7d_1IyStpQg) (3 minuti)
-2. [Il tuo primo componente da zero](https://www.youtube.com/watch?v=Lqd52U51KVk) (8 minuti)
-3. [Da Stella a Tabletop Simulator](https://www.youtube.com/watch?v=gkobeD8ERD4) (5 minuti)
+1. [Panoramica delle funzioni di base](https://www.youtube.com/watch?v=0JnZ92Jy_JU) (4 minuti)
+2. [Il tuo primo componente da zero](https://www.youtube.com/watch?v=kUgGQ_ab8Yg) (10 minuti)
+3. [Da Stella a Tabletop Simulator](https://www.youtube.com/watch?v=XxKgcgba9wE) (5 minuti)
 4. [Testo, icone, stili e formule](https://www.youtube.com/watch?v=2I0ABob4DoQ) (5 minuti)
 5. [Il regolamento e gli altri documenti](https://www.youtube.com/watch?v=psMiWRUQ4k4) (5 minuti)
 6. [Stella con un agente IA](https://www.youtube.com/watch?v=ymvGmxgpxgA) (4 minuti)
-7. [Plance, tessere, segnalini e dadi](https://www.youtube.com/watch?v=kf8xqR-5BDU) (8 minuti)
+7. [Plance, tessere, segnalini e dadi](https://www.youtube.com/watch?v=02s-e9wMHU8) (9 minuti)
 8. [Le griglie e le formule nelle caselle](https://www.youtube.com/watch?v=wY4PRv9vN1o) (14 minuti)
-9. [Stampare i componenti](https://www.youtube.com/watch?v=hOHibzzWdtw) (7 minuti)
-10. [I dati dal foglio di calcolo](https://www.youtube.com/watch?v=m_DN9LW7OTU) (9 minuti)
-11. [Immagini, icone e font](https://www.youtube.com/watch?v=aDtusbkTleY) (6 minuti)
+9. [Stampare i componenti](https://www.youtube.com/watch?v=TG-WWQqBDUk) (9 minuti)
+10. [I dati dal foglio di calcolo](https://www.youtube.com/watch?v=EtS5nl_aKAg) (9 minuti)
+11. [Immagini, icone e font](https://www.youtube.com/watch?v=LhgecwJeUWU) (6 minuti)
 12. [Un gioco in più lingue](https://www.youtube.com/watch?v=1eV4QzH_3XI) (6 minuti)
-13. [L'assistente formule](https://www.youtube.com/watch?v=Gfg5Odyo-lo) (11 minuti)
+13. [L'assistente formule](https://www.youtube.com/watch?v=azgDlcktVfk) (12 minuti)
 
 English version: [../guide/README.md](../guide/README.md).
 
