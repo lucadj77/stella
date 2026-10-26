@@ -24,7 +24,8 @@ writeFileSync(
     : `# Rules\n\n## Components\n\nEach player gets **{hand}** character cards and 3 {coin}.\n\n![The witch](card:${S.set}/${S.name}=${S.knight}?width=40)\n\n| Card | Strength | Cost |\n| :-- | :-: | :-: |\n| Knight | 4 | 2 {coin} |\n| Witch | 3 | 1 {coin} {wood} |\n\n## The turn\n\n1. Draw a card.\n2. Play a character.\n3. Attack with {sword} or defend.\n`
 )
 const side = (sel) => win.locator('.sidebar').getByText(sel, { exact: true }).first()
-const sideSection = (key) => win.locator('.sidebar').getByText(T[key], { exact: true }).first()
+// il titolo della sezione, con il numero di voci accanto
+const sideSection = (key) => win.locator(`#sidebar-${key.split('.')[1]} .section-toggle`).first()
 const topButton = (key) => win.locator('header.toolbar').getByText(T[key], { exact: true }).first()
 // il tasto Salva si chiama «Salvato» quando non c'è nulla da salvare
 const saveButton = () =>
@@ -42,25 +43,23 @@ await r.title(
     : 'Stella Game Center: cards, boards, tokens, tiles, dice and rulebooks for your prototypes'
 )
 await r.clear()
+// alla prima apertura Stella mostra la schermata di benvenuto
 await r.focus(
-  win.getByText(T['start.newProject']),
+  win.locator('.welcome-choice.main'),
   it
-    ? 'Nuovo progetto: nome, cartella e formato delle carte'
-    : 'New project: name, folder and card size',
-  'right'
+    ? 'Comincia da zero: Stella ti indica ogni volta il passo successivo'
+    : 'Start from scratch: Stella shows you the next step every time',
+  'below'
 )
 await r.focus(
-  win.getByText(T['start.importTtc']),
-  it ? 'Oppure importa un progetto di Tabletop Creator' : 'Or import a Tabletop Creator project',
-  'right'
-)
-await r.focus(
-  win.getByText(T['start.openProject']),
-  it ? 'Apri un progetto che hai già' : 'Open a project you already have',
-  'right'
+  win.locator('.welcome-other'),
+  it
+    ? 'Oppure apri un progetto che hai già, o importalo da Tabletop Creator'
+    : 'Or open a project you already have, or import it from Tabletop Creator',
+  'above'
 )
 // il tasto copia l'esempio in Documenti/Stella; makeProject l'ha già preparato con il regolamento
-const example = win.getByRole('button', { name: T['start.example'], exact: true })
+const example = win.locator('.welcome-choice').filter({ hasText: T['welcome.example'] }).first()
 await r.focus(
   example,
   it ? 'Apriamo il progetto di esempio' : 'Let’s open the example project',
@@ -244,16 +243,16 @@ await r.title(it ? 'Esportare' : 'Exporting')
 await r.clear()
 await r.click(topButton('app.export'))
 await r.clear(800)
+const goal = (g) => dialog().locator('.export-goal').filter({ hasText: T['export.goal.' + g] }).first()
 await r.focus(
-  dialog(),
+  dialog().locator('.export-goals'),
   it
-    ? 'PDF per la stampa, immagini singole e Tabletop Simulator'
-    : 'PDFs for printing, single images and Tabletop Simulator',
-  'none',
-  { pad: 0, dim: false }
+    ? 'Prima scegli cosa vuoi fare: stampa a casa, tipografia, Tabletop Simulator o immagini'
+    : 'First choose what you want to do: home printing, print shop, Tabletop Simulator or images',
+  'below'
 )
 // Tabletop Simulator: non immagini, ma oggetti pronti da caricare nel gioco
-await r.click(dialog().getByRole('button', { name: T['export.tts'], exact: true }))
+await r.click(goal('tts'))
 await r.clear(800)
 await r.focus(
   dialog(),
@@ -264,13 +263,13 @@ await r.focus(
   { pad: 0, dim: false }
 )
 await r.clear(400)
-await r.click(dialog().getByRole('button', { name: T['export.pdf'], exact: true }))
+await r.click(goal('shop'))
 await r.clear(600)
 await r.focus(
-  dialog().locator('select').first(),
+  goal('shop'),
   it
-    ? 'I profili pronti per tipografie e stampa in casa'
-    : 'Ready profiles for print shops and home printing',
+    ? 'Per la tipografia: abbondanza e segni di taglio già impostati'
+    : 'For the print shop: bleed and crop marks already set',
   'below'
 )
 await r.clear()

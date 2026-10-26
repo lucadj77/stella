@@ -194,9 +194,15 @@ async function openTemplate(name) {
   await r.clear(1200)
   await r.overlay()
 }
+/** la riga del testo chiusa («Testo: … modifica») si apre per scriverci */
+async function openText() {
+  const edit = picker().locator('.fx-compose-closed button')
+  if (await edit.count()) await r.click(edit.first(), { after: 400, ms: 450 })
+}
 /** un numero nello spazio scelto: la scheda Numero si apre da sola */
 async function number(loc, v) {
   await r.click(loc, { after: 400 })
+  await openText()
   // in un confronto lo spazio è un valore: si scrive nel campo del testo, e un numero resta un numero
   const area = picker().locator('.fx-compose textarea')
   if (await area.count()) {
@@ -218,6 +224,7 @@ async function number(loc, v) {
 /** un testo nello spazio scelto: il campo del testo è sempre visibile */
 async function words(loc, text) {
   await r.click(loc, { after: 400 })
+  await openText()
   const area = picker().locator('.fx-compose textarea')
   await area.focus()
   await win.keyboard.press('Control+A')
@@ -262,7 +269,7 @@ await r.title(
     : 'On the example project: open it too and follow along'
 )
 await r.clear()
-const example = win.getByRole('button', { name: T['start.example'], exact: true })
+const example = win.locator('.welcome-choice').filter({ hasText: T['welcome.example'] }).first()
 await r.focus(
   example,
   it ? 'Il progetto di esempio è a un clic' : 'The example project is one click away',
@@ -294,10 +301,10 @@ await r.click(layer(S.name))
 await r.clear(500)
 await r.zoom(props.locator('.value-source').first(), { max: 1.8 })
 await r.focus(
-  props.locator('.value-source .fx-start').first(),
+  props.locator('.value-source button.fx-button').first(),
   it
-    ? 'Un livello che legge una colonna ha «Crea una formula con l’assistente…»'
-    : 'A layer that reads a column has “Build a formula with the assistant…”',
+    ? 'Ogni livello ha fx accanto a «Valore sulle carte»: apre l’assistente'
+    : 'Every layer has fx next to “Value on cards”: it opens the assistant',
   'left',
   { pad: 4 }
 )
@@ -461,6 +468,7 @@ await r.click(
     .first()
 )
 await r.wait(500)
+await openText()
 const area = picker().locator('.fx-compose textarea')
 await area.focus()
 await win.keyboard.press('Control+A')
@@ -556,17 +564,18 @@ await r.clear()
 await openTemplate(S.template)
 await r.click(layer(S.name))
 await r.clear(400)
-await r.click(props.locator('.value-source .fx-start').first())
+await r.click(props.locator('.value-source button.fx-button').first())
 await r.clear(800)
 await r.click(card('fx.card.join'))
 await r.wait(500)
+await openText()
 const text = picker().locator('.fx-compose textarea')
 await r.zoom(picker().locator('.fx-compose'), { max: 1.6, fill: 0.6 })
 await r.focus(
   text,
   it
-    ? 'Il campo del testo è sempre visibile: si scrive e si inseriscono i campi'
-    : 'The text field is always visible: type, and insert the fields',
+    ? 'Nel campo del testo si scrive e si inseriscono i campi'
+    : 'In the text field you type and insert the fields',
   'below',
   { pad: 4 }
 )
@@ -625,6 +634,72 @@ await r.focus(
 await r.click(button('dialog.cancel'))
 await r.wait(500)
 
+// --- 5b. un'icona ripetuta ---
+await r.title(it ? 'Un’icona ripetuta' : 'A repeated icon')
+await r.clear()
+await r.click(layer(S.name))
+await r.clear(400)
+await fxOpen()
+await r.zoom(card('fx.card.repeatIcon'), { max: 1.6 })
+await r.focus(
+  card('fx.card.repeatIcon'),
+  it
+    ? 'Ripeti un’icona: tante icone quanto dice un campo'
+    : 'Repeat an icon: as many icons as a field says',
+  'below',
+  { pad: 4 }
+)
+await r.unzoom()
+await r.click(card('fx.card.repeatIcon'))
+await r.wait(600)
+// l'icona: una variabile immagine del progetto
+await r.click(leaf(0), { after: 400 })
+const swordVar = picker()
+  .locator('.fx-list button')
+  .filter({ hasText: new RegExp(`^${it ? 'spada' : 'sword'}`) })
+  .first()
+if (!(await swordVar.count())) await r.click(tab('fx.tab.variable'), { after: 300 })
+// l'elenco è lungo: si cerca
+const search = picker().locator('input[type=search], input[placeholder]').first()
+if (await search.count()) {
+  await r.click(search, { after: 200, ms: 450 })
+  await r.type(it ? 'spada' : 'sword')
+  await r.wait(400)
+}
+await swordVar.scrollIntoViewIfNeeded()
+await r.click(swordVar)
+await r.wait(400)
+// quante volte: il campo forza
+await r.click(leaf(1), { after: 400 })
+const strengthField = picker()
+  .locator('.fx-list button')
+  .filter({ hasText: new RegExp(`^${S.strength}`) })
+  .first()
+if (!(await strengthField.count())) await r.click(tab('fx.tab.field'), { after: 300 })
+await strengthField.scrollIntoViewIfNeeded()
+await r.click(strengthField)
+await r.wait(600)
+await r.zoom([sentence(), result()], { max: 1.5 })
+await r.focus(
+  sentence(),
+  it
+    ? 'Mostra l’icona spada tante volte quanto la forza'
+    : 'Show the sword icon as many times as the strength',
+  'below',
+  { pad: 4 }
+)
+await r.focus(
+  result(),
+  it
+    ? 'Nel testo diventa {spada*4}: con forza 4, quattro spade sulla carta'
+    : 'In the text it becomes {sword*4}: with strength 4, four swords on the card',
+  'below',
+  { pad: 4 }
+)
+await r.unzoom()
+await r.click(button('dialog.cancel'))
+await r.wait(500)
+
 // --- 6. ogni N caselle, su una griglia ---
 await r.title(it ? 'Ogni N caselle, su una griglia' : 'Every N cells, on a grid')
 await r.clear()
@@ -657,6 +732,7 @@ await r.focus(
 await r.unzoom()
 async function cellNumber(loc, format) {
   await r.click(loc, { after: 400 })
+  await openText()
   const a = picker().locator('.fx-compose textarea')
   await a.focus()
   await win.keyboard.press('Control+A')
@@ -720,7 +796,9 @@ await r.click(saveButton())
 await r.title(it ? 'Il filtro del generatore' : 'The generator filter')
 await r.clear()
 await openSet(S.sets[0])
-await r.click(win.getByRole('button', { name: T['set.generate'], exact: true }).first())
+await r.click(win.locator('button').filter({ hasText: T['set.tools'] }).first())
+await r.wait(400)
+await r.click(win.getByRole('menuitem', { name: T['set.generate'] }).first())
 await r.wait(800)
 const gen = dialog()
 const col = gen.locator('.generate-set input[list="generate-columns"]').first()

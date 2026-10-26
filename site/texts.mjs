@@ -349,19 +349,19 @@ export const videos = [
   {
     it: 'Panoramica delle funzioni di base',
     en: 'An overview of the basic functions',
-    minutes: 3,
+    minutes: 4,
     url: {
-      it: 'https://www.youtube.com/watch?v=7d_1IyStpQg',
-      en: 'https://www.youtube.com/watch?v=JOD09G8No_c'
+      it: 'https://www.youtube.com/watch?v=0JnZ92Jy_JU',
+      en: 'https://www.youtube.com/watch?v=51ZJAKmUprc'
     }
   },
   {
     it: 'Il tuo primo componente da zero',
     en: 'Your first component from scratch',
-    minutes: 8,
+    minutes: 10,
     url: {
-      it: 'https://www.youtube.com/watch?v=Lqd52U51KVk',
-      en: 'https://www.youtube.com/watch?v=_sPWwTv96P0'
+      it: 'https://www.youtube.com/watch?v=kUgGQ_ab8Yg',
+      en: 'https://www.youtube.com/watch?v=YISuOjfzjJU'
     }
   },
   {
@@ -369,8 +369,8 @@ export const videos = [
     en: 'From Stella to Tabletop Simulator',
     minutes: 5,
     url: {
-      it: 'https://www.youtube.com/watch?v=gkobeD8ERD4',
-      en: 'https://www.youtube.com/watch?v=OZ-Jm4cf3Zo'
+      it: 'https://www.youtube.com/watch?v=XxKgcgba9wE',
+      en: 'https://www.youtube.com/watch?v=N6VXi-RPIpg'
     }
   },
   {
@@ -403,10 +403,10 @@ export const videos = [
   {
     it: 'Plance, tessere, segnalini e dadi',
     en: 'Boards, tiles, tokens and dice',
-    minutes: 8,
+    minutes: 9,
     url: {
-      it: 'https://www.youtube.com/watch?v=kf8xqR-5BDU',
-      en: 'https://www.youtube.com/watch?v=tLgcDV6DZc4'
+      it: 'https://www.youtube.com/watch?v=02s-e9wMHU8',
+      en: 'https://www.youtube.com/watch?v=WUIWgrg5zLk'
     }
   },
   {
@@ -421,10 +421,10 @@ export const videos = [
   {
     it: 'Stampare i componenti',
     en: 'Printing your components',
-    minutes: 7,
+    minutes: 9,
     url: {
-      it: 'https://www.youtube.com/watch?v=hOHibzzWdtw',
-      en: 'https://www.youtube.com/watch?v=f-ks0NMbs6k'
+      it: 'https://www.youtube.com/watch?v=TG-WWQqBDUk',
+      en: 'https://www.youtube.com/watch?v=RbO56oqJSFo'
     }
   },
   {
@@ -432,8 +432,8 @@ export const videos = [
     en: 'Data from the spreadsheet',
     minutes: 9,
     url: {
-      it: 'https://www.youtube.com/watch?v=m_DN9LW7OTU',
-      en: 'https://www.youtube.com/watch?v=55U-lu3N3AE'
+      it: 'https://www.youtube.com/watch?v=EtS5nl_aKAg',
+      en: 'https://www.youtube.com/watch?v=hlKHMJOoNos'
     }
   },
   {
@@ -441,8 +441,8 @@ export const videos = [
     en: 'Images, icons and fonts',
     minutes: 6,
     url: {
-      it: 'https://www.youtube.com/watch?v=aDtusbkTleY',
-      en: 'https://www.youtube.com/watch?v=PWL7IkAG4qo'
+      it: 'https://www.youtube.com/watch?v=LhgecwJeUWU',
+      en: 'https://www.youtube.com/watch?v=Rw60_QDED9Q'
     }
   },
   {
@@ -457,10 +457,10 @@ export const videos = [
   {
     it: 'L’assistente formule',
     en: 'The formula assistant',
-    minutes: 11,
+    minutes: 12,
     url: {
-      it: 'https://www.youtube.com/watch?v=Gfg5Odyo-lo',
-      en: 'https://www.youtube.com/watch?v=ZTHGyxE3_80'
+      it: 'https://www.youtube.com/watch?v=azgDlcktVfk',
+      en: 'https://www.youtube.com/watch?v=V2qYi4r4uJA'
     }
   }
 ]

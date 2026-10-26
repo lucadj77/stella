@@ -201,7 +201,7 @@ await r.title(
   )
 )
 await r.clear()
-const example = button('start.example')
+const example = win.locator('.welcome-choice').filter({ hasText: T['welcome.example'] }).first()
 await r.click(example)
 await r.clear(2200)
 await r.overlay()
@@ -358,7 +358,7 @@ await r.focus(
   'below'
 )
 await r.focus(
-  button('set.addCard'),
+  button('kind.card.add'),
   t(
     '+ Carta aggiunge una riga vuota, Elimina toglie le righe selezionate',
     '+ Card adds an empty row, Delete removes the selected rows'
@@ -436,7 +436,7 @@ await r.wait(600)
 // ---- statistiche
 await r.title(t('Statistiche', 'Statistics'))
 await r.click(
-  win.locator('.set-header ~ * button, button').filter({ hasText: T['set.checks'] }).first()
+  win.locator('.set-header ~ * button, button').filter({ hasText: T['set.tools'] }).first()
 )
 await r.wait(400)
 await r.click(win.getByRole('menuitem', { name: T['set.stats'] }).first())
@@ -528,7 +528,7 @@ await r.focus(
 await r.click(button('newSet.create', dialog()))
 await r.clear(1000)
 await view('set.table')
-await r.click(button('set.addCard'))
+await r.click(button('set.addFirst'))
 await r.wait(600)
 await editCell(0, S.name, S.goblin)
 await editCell(0, S.strength, '2')

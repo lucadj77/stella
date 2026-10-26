@@ -6,19 +6,19 @@ This guide follows the usual order of work: create a project, design a template,
 
 Video tutorials on YouTube, no voice ([whole playlist](https://www.youtube.com/playlist?list=PLC6t-d7-3DO0)):
 
-1. [An overview of the basic functions](https://www.youtube.com/watch?v=JOD09G8No_c) (3 minutes)
-2. [Your first component from scratch](https://www.youtube.com/watch?v=_sPWwTv96P0) (8 minutes)
-3. [From Stella to Tabletop Simulator](https://www.youtube.com/watch?v=OZ-Jm4cf3Zo) (5 minutes)
+1. [An overview of the basic functions](https://www.youtube.com/watch?v=51ZJAKmUprc) (4 minutes)
+2. [Your first component from scratch](https://www.youtube.com/watch?v=YISuOjfzjJU) (10 minutes)
+3. [From Stella to Tabletop Simulator](https://www.youtube.com/watch?v=N6VXi-RPIpg) (5 minutes)
 4. [Text, icons, styles and formulas](https://www.youtube.com/watch?v=SKoi6EaFY6k) (5 minutes)
 5. [The rulebook and other documents](https://www.youtube.com/watch?v=skHh2Uz2VxE) (5 minutes)
 6. [Stella with an AI agent](https://www.youtube.com/watch?v=7EylDX9GKOU) (4 minutes)
-7. [Boards, tiles, tokens and dice](https://www.youtube.com/watch?v=tLgcDV6DZc4) (8 minutes)
+7. [Boards, tiles, tokens and dice](https://www.youtube.com/watch?v=WUIWgrg5zLk) (9 minutes)
 8. [Grids and cell formulas](https://www.youtube.com/watch?v=DgaXcUt2N-M) (14 minutes)
-9. [Printing your components](https://www.youtube.com/watch?v=f-ks0NMbs6k) (7 minutes)
-10. [Data from the spreadsheet](https://www.youtube.com/watch?v=55U-lu3N3AE) (9 minutes)
-11. [Images, icons and fonts](https://www.youtube.com/watch?v=PWL7IkAG4qo) (6 minutes)
+9. [Printing your components](https://www.youtube.com/watch?v=RbO56oqJSFo) (9 minutes)
+10. [Data from the spreadsheet](https://www.youtube.com/watch?v=hlKHMJOoNos) (9 minutes)
+11. [Images, icons and fonts](https://www.youtube.com/watch?v=Rw60_QDED9Q) (6 minutes)
 12. [A game in several languages](https://www.youtube.com/watch?v=gszofbPThzU) (6 minutes)
-13. [The formula assistant](https://www.youtube.com/watch?v=ZTHGyxE3_80) (11 minutes)
+13. [The formula assistant](https://www.youtube.com/watch?v=V2qYi4r4uJA) (12 minutes)
 
 Versione italiana: [../guida/README.md](../guida/README.md).
 
