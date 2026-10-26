@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  shapeFrame,
   lineEnds,
   lineFromEnds,
   constrainAxis,
@@ -188,5 +189,23 @@ describe('modificatori del trascinamento', () => {
     expect(
       resizeWithHandle(l as never, 'se', { x: 40, y: 15 }, { fromCenter: true, keepRatio: true })
     ).toEqual({ x: 0, y: 5, w: 40, h: 20 })
+  })
+})
+
+describe('forma della carta girata', () => {
+  it('senza rotazione né specchi non trasforma', () => {
+    expect(shapeFrame({}, 0, 0, 50, 43.3)).toEqual({ x: 0, y: 0, w: 50, h: 43.3 })
+  })
+
+  it('un quarto di giro disegna nel riquadro con i lati scambiati e lo gira', () => {
+    const f = shapeFrame({ shapeRotation: 90 }, 0, 0, 43.3, 50)
+    expect([f.w, f.h]).toEqual([50, 43.3])
+    expect(f.transform).toBe('translate(21.65 25) rotate(90) translate(-25 -21.65)')
+  })
+
+  it('gli specchi vengono dopo la rotazione', () => {
+    const f = shapeFrame({ shapeRotation: 180, shapeFlipH: true }, 1, 1, 40, 60)
+    expect([f.w, f.h]).toEqual([40, 60])
+    expect(f.transform).toBe('translate(21 31) scale(-1 1) rotate(180) translate(-20 -30)')
   })
 })

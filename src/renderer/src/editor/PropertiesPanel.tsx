@@ -28,6 +28,7 @@ import type {
   Layer,
   ShapeKind,
   ShapeLayer,
+  ShapeRotation,
   Template,
   TextLayer,
   ValueLayer
@@ -97,7 +98,7 @@ interface Props {
   sheets: { set: string; headers: string[]; rows: string[][] }[]
   width: number
   /** Cambio di formato: chiede se scalare i livelli */
-  onResize(width: number, height: number): void
+  onResize(width: number, height: number, patch?: Partial<Template>): void
   side: PanelSide
   onToggleSide(): void
   /** Template base già risolto, se il template è derivato */
@@ -213,7 +214,7 @@ function TemplateProperties({
   base: Template | null
   dispatch: React.Dispatch<EditorAction>
   sheets: Props['sheets']
-  onResize(width: number, height: number): void
+  onResize(width: number, height: number, patch?: Partial<Template>): void
 }): React.JSX.Element {
   const { t, lang } = useI18n()
   const lengthUnit = useLengthUnit()
@@ -348,6 +349,28 @@ function TemplateProperties({
           />
         </Inherit>
       )}
+      <Inherit keys={['shapeRotation', 'shapeFlipH', 'shapeFlipV']}>
+        <ShapeOrientation
+          template={tpl}
+          // in un derivato le misure sono quelle del base: niente quarti di giro
+          canTurn={!base}
+          onTurn={(by) => {
+            const shapeRotation = (((tpl.shapeRotation ?? 0) + by + 360) % 360) as ShapeRotation
+            // un quarto di giro scambia larghezza e altezza: il contenuto resta com'è, come quando
+            // si cambiano le misure
+            if (tpl.width === tpl.height)
+              set({ shapeRotation: shapeRotation || undefined }, 'shapeRotation')
+            else onResize(tpl.height, tpl.width, { shapeRotation: shapeRotation || undefined })
+          }}
+          onHalfTurn={() =>
+            set(
+              { shapeRotation: ((((tpl.shapeRotation ?? 0) + 180) % 360) as ShapeRotation) || undefined },
+              'shapeRotation'
+            )
+          }
+          onFlip={(key) => set({ [key]: tpl[key] ? undefined : true }, key)}
+        />
+      </Inherit>
       <Inherit keys={['guides']}>
         <GuideFields template={tpl} set={set} />
       </Inherit>
@@ -2110,4 +2133,88 @@ const FORMULA_EXPECT: Record<Layer['type'], FormulaExpect> = {
   grid: 'color',
   group: 'bool',
   value: 'value'
+}
+
+/**
+ * Orientamento della forma della carta: quarti di giro (scambiano le misure), mezzo giro e
+ * specchi. Gira solo il contorno, non i livelli
+ */
+function ShapeOrientation({
+  template: tpl,
+  canTurn,
+  onTurn,
+  onHalfTurn,
+  onFlip
+}: {
+  template: Template
+  canTurn: boolean
+  onTurn(by: 90 | -90): void
+  onHalfTurn(): void
+  onFlip(key: 'shapeFlipH' | 'shapeFlipV'): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const state = [
+    tpl.shapeRotation ? `${tpl.shapeRotation}°` : '',
+    tpl.shapeFlipH ? t('editor.shapeFlippedH') : '',
+    tpl.shapeFlipV ? t('editor.shapeFlippedV') : ''
+  ]
+    .filter(Boolean)
+    .join(', ')
+  return (
+    <div className="field">
+      <span className="field-label">
+        {t('prop.shapeOrientation')}
+        <HelpTip text={t('editor.shapeOrientationHint')} />
+      </span>
+      <div className="field-control shape-orientation">
+        <button
+          type="button"
+          disabled={!canTurn}
+          title={t('editor.shapeTurnLeft')}
+          aria-label={t('editor.shapeTurnLeft')}
+          onClick={() => onTurn(-90)}
+        >
+          ⟲
+        </button>
+        <button
+          type="button"
+          disabled={!canTurn}
+          title={t('editor.shapeTurnRight')}
+          aria-label={t('editor.shapeTurnRight')}
+          onClick={() => onTurn(90)}
+        >
+          ⟳
+        </button>
+        <button
+          type="button"
+          title={t('editor.shapeHalfTurn')}
+          aria-label={t('editor.shapeHalfTurn')}
+          onClick={onHalfTurn}
+        >
+          180°
+        </button>
+        <button
+          type="button"
+          className={tpl.shapeFlipH ? 'active' : ''}
+          aria-pressed={!!tpl.shapeFlipH}
+          title={t('editor.shapeFlipH')}
+          aria-label={t('editor.shapeFlipH')}
+          onClick={() => onFlip('shapeFlipH')}
+        >
+          ⇆
+        </button>
+        <button
+          type="button"
+          className={tpl.shapeFlipV ? 'active' : ''}
+          aria-pressed={!!tpl.shapeFlipV}
+          title={t('editor.shapeFlipV')}
+          aria-label={t('editor.shapeFlipV')}
+          onClick={() => onFlip('shapeFlipV')}
+        >
+          ⇅
+        </button>
+        {state && <span className="muted small">{state}</span>}
+      </div>
+    </div>
+  )
 }

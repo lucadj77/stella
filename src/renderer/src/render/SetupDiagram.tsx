@@ -7,7 +7,7 @@ import { resolveAsset } from '../../../shared/model/assets'
 import { backdropInner, imageBackdrop } from '../../../shared/model/shapes'
 import { imageVariable, palette, resolveColor } from '../../../shared/model/variables'
 import { SvgBackdrop } from './backdrop'
-import CardSvg from './CardSvg'
+import CardSvg, { CardOutline } from './CardSvg'
 import { MarkupInline } from './MarkupText'
 import { AssetsContext, VariablesContext, assetUrl } from './assets'
 import { useBoundCard } from './useBoundCard'
@@ -177,9 +177,22 @@ function CardItem({
   // misure della carta dritta
   const { w: cw, h: ch } = itemCardSize(it.card, sets, templates)
   const t = card?.template
-  const radius = t ? (t.cornerRadius * cw) / t.width : 3
+  const k = t ? cw / t.width : 1
+  // il contorno segue la forma della carta: una moneta tonda resta tonda anche nel mazzo
+  const outline = (paint: React.SVGProps<SVGPathElement>): React.JSX.Element =>
+    t ? (
+      <g transform={`scale(${k})`}>
+        <CardOutline template={t} {...paint} scale={k} strokeWidth={0.25 / k} />
+      </g>
+    ) : (
+      <rect width={cw} height={ch} rx={3} {...(paint as React.SVGProps<SVGRectElement>)} />
+    )
   const face = t ? (
-    <CardSvg template={t} side={card.ref.side} scale={cw / t.width} />
+    <>
+      <CardSvg template={t} side={card.ref.side} scale={k} />
+      {/* un filo attorno alla carta, perché una faccia chiara non si perda sul foglio */}
+      {outline({ fill: 'none', stroke: '#a1a1a6' })}
+    </>
   ) : (
     <rect width={cw} height={ch} rx={3} fill="#f3f3f0" stroke="#e5484d" strokeDasharray="2 1" />
   )
@@ -192,14 +205,7 @@ function CardItem({
     <g data-item={i}>
       {Array.from({ length: layers }, (_, k) => (
         <g key={k} transform={rotated((layers - k) * DECK_STEP)}>
-          <rect
-            width={cw}
-            height={ch}
-            rx={radius}
-            fill="#ffffff"
-            stroke="#a1a1a6"
-            strokeWidth={0.25}
-          />
+          {outline({ fill: '#ffffff', stroke: '#a1a1a6' })}
         </g>
       ))}
       <g transform={rotated(0)}>{face}</g>

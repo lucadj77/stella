@@ -6,6 +6,7 @@ import {
   anchorPoint,
   hexagonPoints,
   polygonVertices,
+  shapeFrame,
   roundedPolygonPath
 } from '../../../shared/model/geometry'
 import { useI18n } from '../i18n/context'
@@ -156,10 +157,15 @@ export function CardOutline({
   /** Pixel per mm: serve al contorno di un tracciato, che non scala con la carta */
   scale?: number
 } & React.SVGProps<SVGPathElement>): React.JSX.Element {
-  const x = inset
-  const y = inset
-  const w = Math.max(0, t.width - 2 * inset)
-  const h = Math.max(0, t.height - 2 * inset)
+  // la forma si disegna nel suo riquadro, poi la trasformazione la gira e la specchia
+  const frame = shapeFrame(
+    t,
+    inset,
+    inset,
+    Math.max(0, t.width - 2 * inset),
+    Math.max(0, t.height - 2 * inset)
+  )
+  const { x, y, w, h, transform } = frame
   switch (t.shape ?? 'rect') {
     case 'ellipse':
       return (
@@ -168,6 +174,7 @@ export function CardOutline({
           cy={y + h / 2}
           rx={w / 2}
           ry={h / 2}
+          transform={transform}
           {...(paint as React.SVGProps<SVGEllipseElement>)}
         />
       )
@@ -177,6 +184,7 @@ export function CardOutline({
           d={`M${hexagonPoints(x, y, w, h)
             .map((p) => `${p.x} ${p.y}`)
             .join('L')}Z`}
+          transform={transform}
           {...paint}
         />
       )
@@ -185,7 +193,7 @@ export function CardOutline({
         return (
           <path
             d={t.shapePath}
-            transform={`translate(${x} ${y}) scale(${w} ${h})`}
+            transform={`${transform ?? ''} translate(${x} ${y}) scale(${w} ${h})`.trim()}
             {...paint}
             // il tracciato è in coordinate 0-1: il tratto si misura in pixel dello schermo
             vectorEffect="non-scaling-stroke"
@@ -211,6 +219,7 @@ export function CardOutline({
       width={w}
       height={h}
       rx={Math.max(0, t.cornerRadius - inset)}
+      transform={transform}
       {...(paint as React.SVGProps<SVGRectElement>)}
     />
   )

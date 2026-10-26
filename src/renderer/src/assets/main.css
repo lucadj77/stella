@@ -6606,3 +6606,19 @@ button.more-button {
   line-height: 1.35;
   vertical-align: top;
 }
+
+/* orientamento della forma della carta */
+.shape-orientation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+.shape-orientation button {
+  min-width: 34px;
+}
+.shape-orientation button.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}

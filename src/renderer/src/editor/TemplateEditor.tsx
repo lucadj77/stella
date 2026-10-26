@@ -65,7 +65,10 @@ export default function TemplateEditor({
   // in un derivato ogni modifica passa per le sue regole: si salvano solo le differenze
   const normalize = useMemo(() => (base ? (x: Template) => rebase(base, x) : undefined), [base])
   const [state, dispatch] = useEditor(template, normalize)
-  const [resizing, setResizing] = useState<[number, number] | null>(null)
+  /** Misure nuove della carta, con le altre proprietà che cambiano insieme (forma ruotata) */
+  const [resizing, setResizing] = useState<
+    [number, number, Partial<Template>?] | null
+  >(null)
   // un livello immagine nuovo nasce dalla scelta dell'immagine
   const [pickingImage, setPickingImage] = useState(false)
   const [dropping, setDropping] = useState(false)
@@ -280,7 +283,7 @@ export default function TemplateEditor({
         sheets={sets.flatMap((s) =>
           s.data ? [{ set: s.name, headers: s.data.headers, rows: s.data.rows }] : []
         )}
-        onResize={(w, h) => setResizing([w, h])}
+        onResize={(w, h, patch) => setResizing([w, h, patch])}
         side={propsSide}
         onToggleSide={togglePropsSide}
         base={base}
@@ -430,12 +433,15 @@ export default function TemplateEditor({
       {resizing && (
         <ResizeDialog
           from={[state.template.width, state.template.height]}
-          to={resizing}
+          to={[resizing[0], resizing[1]]}
           onClose={() => setResizing(null)}
           onChoose={(mode) => {
             dispatch({
               type: 'change',
-              template: resizeTemplate(state.template, resizing[0], resizing[1], mode)
+              template: {
+                ...resizeTemplate(state.template, resizing[0], resizing[1], mode),
+                ...resizing[2]
+              }
             })
             setResizing(null)
           }}

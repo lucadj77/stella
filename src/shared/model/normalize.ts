@@ -13,7 +13,7 @@ import type {
   TextLayer,
   ValueLayer
 } from './template'
-import { isComponentKind, isDrawn } from './template'
+import { isComponentKind, isDrawn, isShapeRotation } from './template'
 
 // Nei file i livelli riportano solo le proprietà diverse dai default; qui si completano.
 
@@ -265,7 +265,7 @@ export function normalizeTemplate(raw: RawTemplate): Template {
     }
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { changes: _ignored, kind, ...plain } = raw
+  const { changes: _ignored, kind, shapeRotation, ...plain } = raw
   return {
     ...(isComponentKind(kind) && kind !== 'card' ? { kind } : {}),
     width: 63,
@@ -274,6 +274,7 @@ export function normalizeTemplate(raw: RawTemplate): Template {
     safeMargin: 3,
     cornerRadius: 3,
     ...plain,
+    ...(isShapeRotation(shapeRotation) && shapeRotation ? { shapeRotation } : {}),
     front: (raw.front ?? []).map(normalizeLayer),
     back: (raw.back ?? []).map(normalizeLayer)
   }
@@ -363,6 +364,9 @@ export function denormalizeTemplate(t: Template): RawTemplate {
     cornerRadius: t.cornerRadius,
     ...(t.shape && t.shape !== 'rect' ? { shape: t.shape } : {}),
     ...(t.shape === 'path' && t.shapePath ? { shapePath: t.shapePath } : {}),
+    ...(t.shapeRotation ? { shapeRotation: t.shapeRotation } : {}),
+    ...(t.shapeFlipH ? { shapeFlipH: true } : {}),
+    ...(t.shapeFlipV ? { shapeFlipV: true } : {}),
     ...(t.guides && (t.guides.x.length || t.guides.y.length)
       ? { guides: tidy(t.guides) as ManualGuides }
       : {}),

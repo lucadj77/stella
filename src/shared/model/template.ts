@@ -266,6 +266,9 @@ export type Layer = TextLayer | ImageLayer | ShapeLayer | GridLayer | GroupLayer
 export type LayerType = Layer['type']
 
 export type CardShape = 'rect' | 'ellipse' | 'hexagon' | 'path'
+export type ShapeRotation = 0 | 90 | 180 | 270
+export const isShapeRotation = (v: unknown): v is ShapeRotation =>
+  v === 0 || v === 90 || v === 180 || v === 270
 
 /**
  * Tipo di componente disegnato dal template: cambia le parole dell'interfaccia (una faccia di dado,
@@ -301,6 +304,16 @@ export interface Template {
   shape?: CardShape
   /** Contorno per shape = 'path': tracciato SVG in coordinate 0-1 rispetto alla carta */
   shapePath?: string
+  /**
+   * Rotazione della forma in gradi (0, 90, 180, 270): ruota solo il contorno, non il contenuto.
+   * Con 90 e 270 la forma è disegnata nel riquadro con i lati scambiati e poi girata: l'editor
+   * scambia anche larghezza e altezza della carta, così un esagono con un lato in alto diventa
+   * con la punta in alto. Assente vale 0
+   */
+  shapeRotation?: ShapeRotation
+  /** Forma specchiata in orizzontale o in verticale, dopo la rotazione; solo il contorno */
+  shapeFlipH?: boolean
+  shapeFlipV?: boolean
   /** Guide manuali dell'editor in mm: linee verticali (x) e orizzontali (y) */
   guides?: ManualGuides
   /** Campo che dà il nome alle carte nelle anteprime dei set; null usa la prima colonna */
@@ -323,6 +336,9 @@ export const INHERITABLE_TEMPLATE_KEYS = [
   'cornerRadius',
   'shape',
   'shapePath',
+  'shapeRotation',
+  'shapeFlipH',
+  'shapeFlipV',
   'guides',
   'labelField'
 ] as const
