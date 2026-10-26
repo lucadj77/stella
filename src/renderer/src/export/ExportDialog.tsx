@@ -22,6 +22,7 @@ import {
   type ImageOptions,
   type PdfOptions,
   ttsSetObject,
+  ttsDefaultThickness,
   type TtsObjectType,
   type TtsOptions,
   type TtsSetObject
@@ -846,7 +847,13 @@ export default function ExportDialog({
                             ['board', t('export.ttsBoard')],
                             ['die', t('export.ttsDie')]
                           ],
-                          (type) => set({ type })
+                          (type) =>
+                            // lo spessore lasciato al valore predefinito segue il nuovo tipo
+                            set(
+                              obj.thickness === ttsDefaultThickness(obj.type)
+                                ? { type, thickness: ttsDefaultThickness(type) }
+                                : { type }
+                            )
                         )}
                         {obj.type !== 'card' && obj.type !== 'die' && (
                           <>

@@ -18,6 +18,7 @@ import {
   ttsSavedObject,
   ttsCardScale,
   ttsPieceScale,
+  ttsSetObject,
   ttsSavedPieces,
   ttsSavedDice,
   ttsDieObj,
@@ -302,6 +303,20 @@ describe('Tabletop Simulator: segnalini e tessere', () => {
     // misurati in TTS: tessera da 45 mm larga 2 a scala 1, stella da 27 mm (29 con il margine) 3
     expect(ttsPieceScale('tile', 45, 45)).toBeCloseTo(0.804, 3)
     expect(ttsPieceScale('token', 29, 29)).toBeCloseTo(0.324, 3)
+    // il segnalino si misura sulla larghezza: una pedina 25 × 50 (27 × 52 con il margine) è larga
+    // 27 mm, non 52
+    expect(ttsPieceScale('standee', 27, 52)).toBeCloseTo(0.301, 3)
+  })
+
+  it('le pedine hanno uno spessore predefinito di 15 mm, gli altri pezzi di 2 mm', () => {
+    expect(ttsSetObject({}, 'Eroi', 'standee').thickness).toBe(15)
+    expect(ttsSetObject({}, 'Segnalini', 'token').thickness).toBe(2)
+    expect(
+      ttsSetObject(
+        { objects: { Eroi: { type: 'standee', thickness: 20, edgeColor: '#FFFFFF' } } },
+        'Eroi'
+      ).thickness
+    ).toBe(20)
   })
 })
 

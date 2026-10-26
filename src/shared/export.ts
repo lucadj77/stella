@@ -114,6 +114,9 @@ export interface TtsSetObject {
   edgeColor: string
 }
 
+/** Spessore predefinito delle pedine, in mm */
+export const STANDEE_THICKNESS = 15
+
 export const DEFAULT_TTS_OBJECT: TtsSetObject = {
   type: 'card',
   thickness: 2,
@@ -127,7 +130,19 @@ export function ttsSetObject(
   kind?: TtsObjectType
 ): TtsSetObject {
   // senza una scelta nell'esportazione vale il tipo di componente del template
-  return { ...DEFAULT_TTS_OBJECT, ...(kind ? { type: kind } : {}), ...o.objects?.[set] }
+  const chosen = o.objects?.[set]
+  const type = chosen?.type ?? kind ?? DEFAULT_TTS_OBJECT.type
+  return {
+    ...DEFAULT_TTS_OBJECT,
+    thickness: ttsDefaultThickness(type),
+    ...(kind ? { type: kind } : {}),
+    ...chosen
+  }
+}
+
+/** Spessore predefinito in mm: le pedine devono stare in piedi, quindi hanno una base larga */
+export function ttsDefaultThickness(type: TtsObjectType): number {
+  return type === 'standee' ? STANDEE_THICKNESS : DEFAULT_TTS_OBJECT.thickness
 }
 
 /** Opzioni salvate con un nome, per rilanciare un'esportazione o partire da un servizio di stampa */
@@ -658,8 +673,9 @@ export interface TtsDeckCard {
 // Misure in Tabletop Simulator. TTS non ha una scala assoluta: un oggetto a scala 1 ha una misura
 // fissa per tipo, qualunque sia la sua immagine. Queste sono misurate in TTS (ottobre 2026) con il
 // righello, in unità (che TTS mostra come pollici): una carta larga 63 mm è larga 2,25, una
-// tessera 2 sul lato lungo, un segnalino circa 3,2 sul lato lungo dell'immagine. Le scale si
-// calcolano in modo che tutto stia nelle proporzioni vere rispetto a una carta da 63 mm.
+// tessera 2 sul lato lungo, un segnalino circa 3,2 in larghezza (l'altezza segue le proporzioni
+// dell'immagine: una pedina alta e stretta resta larga 3,2). Le scale si calcolano in modo che
+// tutto stia nelle proporzioni vere rispetto a una carta da 63 mm.
 
 /** Unità di TTS per mm: la carta da 63 mm a scala 1 è larga 2,25 */
 export const TTS_UNITS_PER_MM = 2.25 / 63
@@ -676,8 +692,9 @@ export function ttsCardScale(w: number): number {
 
 /** Scala di un segnalino o di una tessera la cui immagine misura w × h mm */
 export function ttsPieceScale(kind: TtsPieceKind, w: number, h: number): number {
-  const base = isTokenLike(kind) ? TTS_TOKEN_SIZE : TTS_TILE_SIZE
-  return round3((Math.max(w, h) * TTS_UNITS_PER_MM) / base)
+  // il segnalino si misura sulla larghezza, la tessera sul lato lungo
+  if (isTokenLike(kind)) return round3((w * TTS_UNITS_PER_MM) / TTS_TOKEN_SIZE)
+  return round3((Math.max(w, h) * TTS_UNITS_PER_MM) / TTS_TILE_SIZE)
 }
 
 /** Posizione sul tavolo: le carte a faccia in giù, segnalini e tessere a faccia in su */
