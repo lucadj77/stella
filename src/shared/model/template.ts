@@ -281,13 +281,19 @@ export const isShapeRotation = (v: unknown): v is ShapeRotation =>
  * Tipo di componente disegnato dal template: cambia le parole dell'interfaccia (una faccia di dado,
  * un segnalino) e l'oggetto proposto in Tabletop Simulator. Assente vale carta.
  */
-export type ComponentKind = 'card' | 'token' | 'tile' | 'board' | 'die'
-export const COMPONENT_KINDS: ComponentKind[] = ['card', 'token', 'tile', 'board', 'die']
+export type ComponentKind = 'card' | 'token' | 'tile' | 'board' | 'die' | 'standee'
+export const COMPONENT_KINDS: ComponentKind[] = ['card', 'token', 'tile', 'board', 'die', 'standee']
 export const isComponentKind = (v: unknown): v is ComponentKind =>
   typeof v === 'string' && (COMPONENT_KINDS as string[]).includes(v)
 /** Il tipo di un template, carta se non è indicato */
 export const kindOf = (t: Pick<Template, 'kind'> | null | undefined): ComponentKind =>
   t?.kind ?? 'card'
+/**
+ * Pedina: una sagoma da tenere in piedi, su fondo trasparente. Il retro non si disegna: è il
+ * fronte specchiato, così stampando le due facce, ritagliandole e incollandole combaciano
+ */
+export const isStandee = (t: Pick<Template, 'kind'> | null | undefined): boolean =>
+  kindOf(t) === 'standee'
 
 export interface ManualGuides {
   x: number[]

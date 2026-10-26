@@ -37,6 +37,7 @@ import {
   type SceneLine,
   type ScenePage,
   type TtsOptions,
+  isTokenLike,
   type TtsPieceKind,
   type TtsSetObject
 } from './export'
@@ -694,7 +695,7 @@ export const TOKEN_MARGIN = 1
  * forma (esagono, cerchio, angoli arrotondati) la dà Tabletop Simulator.
  */
 export function piecePage(t: Template, side: Side, kind: TtsPieceKind): ScenePage {
-  if (kind !== 'token') return cardPage(t, side, false, 'cut')
+  if (!isTokenLike(kind)) return cardPage(t, side, false, 'cut')
   const m = TOKEN_MARGIN
   return {
     width: t.width + 2 * m,

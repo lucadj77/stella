@@ -630,6 +630,8 @@ export const it: Record<MessageKey, string> = {
   'editor.shapeFlipV': "Specchia la forma dall'alto in basso",
   'editor.shapeFlippedH': 'specchiata ⇆',
   'editor.shapeFlippedV': 'specchiata ⇅',
+  'editor.standeeBack':
+    'Il retro della pedina è il fronte specchiato, e lo disegna Stella: modifica il fronte.',
   'editor.hexagonFit': "Adatta la carta all'esagono ({w} × {h})",
   'editor.hexagonFitHint':
     "L'esagono è sempre regolare e grande quanto la carta permette. Per riempire la carta il lato corto deve essere il lato lungo × 0,866.",
@@ -901,6 +903,12 @@ export const it: Record<MessageKey, string> = {
   'kind.die.one': 'faccia',
   'kind.die.many': 'facce',
   'kind.die.add': '+ Faccia',
+  'kind.standee': 'Pedina',
+  'kind.standee.hint':
+    'Una figura che sta in piedi, su fondo trasparente. Il retro è il fronte specchiato: stampi le due facce, le ritagli e le incolli.',
+  'kind.standee.one': 'pedina',
+  'kind.standee.many': 'pedine',
+  'kind.standee.add': '+ Pedina',
   'format.round20': 'Tondo 20 mm',
   'format.round25': 'Tondo 25 mm',
   'format.round38': 'Tondo 38 mm',
@@ -916,6 +924,9 @@ export const it: Record<MessageKey, string> = {
   'format.face16': 'Faccia 16 mm',
   'format.face19': 'Faccia 19 mm',
   'format.face25': 'Faccia 25 mm',
+  'format.standee25': 'Piccola',
+  'format.standee30': 'Media',
+  'format.standee40': 'Grande',
   'resize.title': 'Cambia formato della carta',
   'resize.question':
     'La carta passa da {from} mm a {to} mm. Scalo i livelli sul nuovo formato o lascio posizione e dimensioni come sono?',
@@ -1197,7 +1208,7 @@ export const it: Record<MessageKey, string> = {
   'export.goal.shop': 'Tipografia',
   'export.goal.shop.text': 'PDF con abbondanza e segni di taglio.',
   'export.goal.tts': 'Tabletop Simulator',
-  'export.goal.tts.text': 'Mazzi, segnalini, tessere, plance e dadi.',
+  'export.goal.tts.text': 'Mazzi, segnalini, pedine, tessere, plance e dadi.',
   'export.goal.images': 'Immagini',
   'export.goal.images.text': 'Un file per componente, anche per MakePlayingCards.',
   'export.title': 'Esporta',
@@ -1293,6 +1304,7 @@ export const it: Record<MessageKey, string> = {
     "Carte: un mazzo dai fogli. Segnalini: un'immagine per carta, ritagliata sulla forma della carta; sotto mostra il fronte specchiato. Tessere: fronte e retro, quadrate, arrotondate, esagonali o rotonde come la carta, con il bordo del colore scelto. Segnalini e tessere di un set vanno in un sacchetto, copie comprese. Plancia: come una tessera ma non impilabile, ognuna sul tavolo accanto all'altra. Dado: sei carte per dado, nell'ordine del foglio (la carta 1 sulla faccia 1 e così via, le facce opposte fanno 7); usa un template quadrato.",
   'export.ttsCard': 'Carte',
   'export.ttsToken': 'Segnalini',
+  'export.ttsStandee': 'Pedine',
   'export.ttsTile': 'Tessere',
   'export.ttsBoard': 'Plance',
   'export.ttsDie': 'Dadi (6 facce)',

@@ -841,6 +841,7 @@ export default function ExportDialog({
                           [
                             ['card', t('export.ttsCard')],
                             ['token', t('export.ttsToken')],
+                            ['standee', t('export.ttsStandee')],
                             ['tile', t('export.ttsTile')],
                             ['board', t('export.ttsBoard')],
                             ['die', t('export.ttsDie')]

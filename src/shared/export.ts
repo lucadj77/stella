@@ -104,7 +104,7 @@ export interface TtsOptions extends Omit<CommonOptions, 'folder'> {
  * Carte in un mazzo, segnalini ritagliati sulla sagoma, tessere con fronte, retro e bordo, plance
  * (tessere grandi, non impilabili) o dadi a sei facce (sei carte per dado)
  */
-export type TtsObjectType = 'card' | 'token' | 'tile' | 'board' | 'die'
+export type TtsObjectType = 'card' | 'token' | 'tile' | 'board' | 'die' | 'standee'
 
 export interface TtsSetObject {
   type: TtsObjectType
@@ -676,7 +676,7 @@ export function ttsCardScale(w: number): number {
 
 /** Scala di un segnalino o di una tessera la cui immagine misura w × h mm */
 export function ttsPieceScale(kind: TtsPieceKind, w: number, h: number): number {
-  const base = kind === 'token' ? TTS_TOKEN_SIZE : TTS_TILE_SIZE
+  const base = isTokenLike(kind) ? TTS_TOKEN_SIZE : TTS_TILE_SIZE
   return round3((Math.max(w, h) * TTS_UNITS_PER_MM) / base)
 }
 
@@ -806,7 +806,10 @@ export function ttsColor(hex: string): { r: number; g: number; b: number } {
 }
 
 /** Oggetti fatti da un'immagine per carta: segnalini, tessere e plance */
-export type TtsPieceKind = 'token' | 'tile' | 'board'
+export type TtsPieceKind = 'token' | 'tile' | 'board' | 'standee'
+
+/** Segnalini e pedine: Custom_Token ritagliato sulla sagoma, con la sola immagine del fronte */
+export const isTokenLike = (kind: TtsPieceKind): boolean => kind === 'token' || kind === 'standee'
 
 /**
  * Oggetto salvato con segnalini, tessere o plance. Segnalini e tessere: uno solo se il set ne ha
@@ -826,27 +829,28 @@ export function ttsSavedPieces(
   const thickness = round3(Math.max(0.1, settings.thickness) * TTS_UNITS_PER_MM)
   const scale = ttsPieceScale(kind, size.w, size.h)
   const pieceObject = (p: TtsPiece, x = 0): Record<string, unknown> => ({
-    Name: kind === 'token' ? 'Custom_Token' : 'Custom_Tile',
+    Name: isTokenLike(kind) ? 'Custom_Token' : 'Custom_Tile',
     Transform: transform(1, false, scale, x),
     Nickname: p.nickname,
     Description: p.description,
     // nelle tessere e nelle plance la tinta colora solo i lati, non le immagini
-    ColorDiffuse: kind === 'token' ? { r: 1, g: 1, b: 1 } : ttsColor(settings.edgeColor),
+    ColorDiffuse: isTokenLike(kind) ? { r: 1, g: 1, b: 1 } : ttsColor(settings.edgeColor),
     Locked: false,
     Grid: true,
     Snap: true,
     Hands: false,
     CustomImage: {
       ImageURL: p.faceUrl,
-      ImageSecondaryURL: kind === 'token' ? '' : p.backUrl,
+      ImageSecondaryURL: isTokenLike(kind) ? '' : p.backUrl,
       ImageScalar: 1,
       WidthScale: 0,
-      ...(kind === 'token'
+      ...(isTokenLike(kind)
         ? {
+            // la pedina sta in piedi sul tavolo
             CustomToken: {
               Thickness: thickness,
               MergeDistancePixels: 15,
-              StandUp: false,
+              StandUp: kind === 'standee',
               Stackable: true
             }
           }

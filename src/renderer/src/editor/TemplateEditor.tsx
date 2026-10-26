@@ -4,7 +4,7 @@ import { bindCard, rowToCard } from '../../../shared/model/bind'
 import { systemOfSet } from '../../../shared/model/system'
 import { findLayer, findParent, resizeTemplate } from '../../../shared/model/edit'
 import type { LoadedSet } from '../../../shared/project'
-import type { ShapeKind, Side, Template } from '../../../shared/model/template'
+import { isStandee, type ShapeKind, type Side, type Template } from '../../../shared/model/template'
 import { rebase, resolveTemplate } from '../../../shared/model/inherit'
 import { walkLayers } from '../../../shared/model/normalize'
 import { useI18n } from '../i18n/context'
@@ -239,6 +239,7 @@ export default function TemplateEditor({
     label: t(`tool.${s}` as Parameters<typeof t>[0]),
     onClick: () => cmd.add('shape', s)
   }))
+  const mirroredBack = isStandee(state.template) && state.side === 'back'
   const toolButtons = (
     <>
       {tool('T', t('tool.short.text'), t('tool.text'), () => cmd.add('text'))}
@@ -342,7 +343,13 @@ export default function TemplateEditor({
             </button>
           </span>
         )}
-        <div className="tool-group">{toolButtons}</div>
+        <div
+          className="tool-group"
+          // il retro della pedina si ricava dal fronte: lì non si aggiungono livelli
+          style={mirroredBack ? { pointerEvents: 'none', opacity: 0.4 } : undefined}
+        >
+          {toolButtons}
+        </div>
         <Segmented<Side>
           value={state.side}
           options={[
@@ -402,6 +409,11 @@ export default function TemplateEditor({
           }}
         >
           <Canvas state={state} display={display.template} dispatch={dispatch} />
+          {mirroredBack && (
+            <div className="canvas-problems standee-note">
+              <div>{t('editor.standeeBack')}</div>
+            </div>
+          )}
           {(display.problems.length > 0 ||
             inheritProblems.length > 0 ||
             (state.template.extends && !base)) && (

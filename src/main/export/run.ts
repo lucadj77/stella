@@ -25,6 +25,7 @@ import {
   type TtsDeckCard,
   type TtsOptions,
   type TtsPiece,
+  isTokenLike,
   type TtsPieceKind,
   type TtsDie,
   type TtsSheet
@@ -298,7 +299,7 @@ async function exportTts(
     (n, p) =>
       n +
       p.chunks.length * 2 +
-      p.pieces.length * (p.object.type === 'token' ? 1 : 2) +
+      p.pieces.length * (p.object.type === 'token' || p.object.type === 'standee' ? 1 : 2) +
       p.dice.length +
       1,
     0
@@ -406,7 +407,7 @@ async function exportPieces(
     const face = await renderPiece(ctx, p, 'front', kind)
     step(ctx)
     let back: Buffer | null = null
-    if (kind !== 'token') {
+    if (!isTokenLike(kind)) {
       back = await renderPiece(ctx, p, 'back', kind)
       step(ctx)
     }
@@ -537,7 +538,7 @@ async function renderPiece(
     pages: [page],
     scale: w / page.width,
     // le tessere hanno il fondo bianco; i segnalini trasparente, perché TTS li ritaglia lì
-    background: kind === 'token' ? null : '#FFFFFF',
+    background: isTokenLike(kind) ? null : '#FFFFFF',
     lineColor: '#000',
     lineWidth: 0,
     linesOver: false

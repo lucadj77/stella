@@ -1436,37 +1436,45 @@ function App(): React.JSX.Element {
   })
 
   const createTemplate = ({ name, width, height, kind, shape }: NewTemplate): void => {
+    // la pedina è una figura su fondo trasparente, con il retro specchiato dal fronte: niente
+    // sfondi e niente abbondanza, il bordo è la figura stessa
+    const standee = kind === 'standee'
     const tpl = normalizeTemplate({
       name,
       kind,
       width,
       height,
       cornerRadius: KIND_CORNER[kind],
+      ...(standee ? { bleed: 0, safeMargin: 0 } : {}),
       ...(shape ? { shape } : {}),
-      front: [
-        {
-          type: 'shape',
-          name: 'background',
-          x: -3,
-          y: -3,
-          w: width + 6,
-          h: height + 6,
-          fill: '#FFFFFF',
-          locked: true
-        }
-      ],
-      back: [
-        {
-          type: 'shape',
-          name: 'back_background',
-          x: -3,
-          y: -3,
-          w: width + 6,
-          h: height + 6,
-          fill: '#5E4421',
-          locked: true
-        }
-      ]
+      front: standee
+        ? []
+        : [
+            {
+              type: 'shape',
+              name: 'background',
+              x: -3,
+              y: -3,
+              w: width + 6,
+              h: height + 6,
+              fill: '#FFFFFF',
+              locked: true
+            }
+          ],
+      back: standee
+        ? []
+        : [
+            {
+              type: 'shape',
+              name: 'back_background',
+              x: -3,
+              y: -3,
+              w: width + 6,
+              h: height + 6,
+              fill: '#5E4421',
+              locked: true
+            }
+          ]
     })
     setProject((p) => p && { ...p, templates: [...p.templates, tpl] })
     setDirty((d) => new Set(d).add(name))

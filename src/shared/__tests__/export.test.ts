@@ -252,6 +252,28 @@ describe('Tabletop Simulator: segnalini e tessere', () => {
     })
   })
 
+  it('le pedine sono segnalini in piedi, con la sola immagine del fronte', () => {
+    const saved = ttsSavedPieces(
+      'Eroi',
+      'standee',
+      { thickness: 3, edgeColor: '#000' },
+      0,
+      [piece(1)],
+      { w: 27, h: 52 }
+    )
+    expect(saved).toMatchObject({
+      ObjectStates: [
+        {
+          Name: 'Custom_Token',
+          CustomImage: {
+            ImageSecondaryURL: '',
+            CustomToken: { StandUp: true, Thickness: 0.107 }
+          }
+        }
+      ]
+    })
+  })
+
   it('più pezzi vanno in un sacchetto, copie comprese; le tessere hanno retro e bordo colorato', () => {
     const saved = ttsSavedPieces(
       'Terreni',

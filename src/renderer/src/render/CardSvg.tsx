@@ -36,6 +36,7 @@ import type {
   Template,
   TextLayer
 } from '../../../shared/model/template'
+import { isStandee } from '../../../shared/model/template'
 
 // Disegna una carta in SVG, in millimetri. È lo stesso disegno che userà l'esportazione PDF.
 
@@ -75,7 +76,12 @@ export default function CardSvg({
 }: Props): React.JSX.Element {
   const uid = useId().replace(/:/g, '')
   const b = mode === 'bleed' ? t.bleed : 0
-  const layers = side === 'front' ? t.front : t.back
+  // la pedina non ha fondo, e il suo retro è il fronte specchiato (contorno compreso)
+  const standee = isStandee(t)
+  const mirror = standee && side === 'back'
+  const layers = side === 'front' || standee ? t.front : t.back
+  const flip = mirror ? `translate(${t.width} 0) scale(-1 1)` : undefined
+  const outline = mirror ? { ...t, shapeFlipH: !t.shapeFlipH } : t
   const vw = t.width + 2 * b
   const vh = t.height + 2 * b
   const box = pasteboard ?? { x: -b, y: -b, w: vw, h: vh }
@@ -96,9 +102,17 @@ export default function CardSvg({
           ) : mode === 'cut' && plainRect ? (
             <rect width={t.width} height={t.height} />
           ) : (
-            <CardOutline template={t} />
+            <CardOutline template={outline} />
           )}
         </clipPath>
+        {pasteboard && standee && (
+          // la pedina è trasparente: nell'editor sotto si vede una scacchiera
+          <pattern id={`${uid}-checker`} width={4} height={4} patternUnits="userSpaceOnUse">
+            <rect width={4} height={4} fill="#FFFFFF" />
+            <rect width={2} height={2} fill="#E4E4E4" />
+            <rect x={2} y={2} width={2} height={2} fill="#E4E4E4" />
+          </pattern>
+        )}
         {pasteboard && (
           <filter id={`${uid}-lift`} x="-10%" y="-10%" width="120%" height="120%">
             <feDropShadow dx={0} dy={0.6} stdDeviation={1} floodOpacity={0.3} />
@@ -107,7 +121,7 @@ export default function CardSvg({
       </defs>
       {pasteboard && (
         <>
-          <g opacity={0.35}>
+          <g opacity={0.35} transform={flip}>
             <LayerList layers={layers} uid={`${uid}p`} />
           </g>
           {mode === 'bleed' ? (
@@ -116,21 +130,27 @@ export default function CardSvg({
               y={-b}
               width={vw}
               height={vh}
-              fill="#FFFFFF"
+              fill={standee ? `url(#${uid}-checker)` : '#FFFFFF'}
               filter={`url(#${uid}-lift)`}
             />
           ) : (
-            <CardOutline template={t} fill="#FFFFFF" filter={`url(#${uid}-lift)`} />
+            <CardOutline
+              template={outline}
+              fill={standee ? `url(#${uid}-checker)` : '#FFFFFF'}
+              filter={`url(#${uid}-lift)`}
+            />
           )}
         </>
       )}
       <g clipPath={`url(#${uid}-card)`}>
-        <rect x={-b} y={-b} width={vw} height={vh} fill="#FFFFFF" />
-        <LayerList layers={layers} uid={uid} />
+        {!standee && <rect x={-b} y={-b} width={vw} height={vh} fill="#FFFFFF" />}
+        <g transform={flip}>
+          <LayerList layers={layers} uid={uid} />
+        </g>
       </g>
       {mode === 'bleed' && guides && (
         <CardOutline
-          template={t}
+          template={outline}
           scale={scale}
           fill="none"
           stroke="#E5484D"
