@@ -544,10 +544,17 @@ a:focus-visible {
   font-weight: 700;
   overflow: hidden;
 }
+.video .thumb {
+  position: relative;
+}
+/* fuori dalla griglia: l'immagine riempie il riquadro 16:9 e non lo allunga con le sue proporzioni */
 .video .thumb img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
 }
 .video .meta {
   display: flex;
