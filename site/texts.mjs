@@ -589,6 +589,20 @@ export const videos = [
       it: 'https://www.youtube.com/watch?v=p1nM-sH1cvE',
       en: 'https://www.youtube.com/watch?v=sdlhIDNbUyg'
     }
+  },
+  {
+    n: 14,
+    it: 'Un gioco completo, dall’idea al tavolo',
+    en: 'A complete game, from idea to table',
+    about: {
+      it: 'Carte, monete, plancia, dado e regolamento, fino al PDF e a Tabletop Simulator.',
+      en: 'Cards, coins, board, die and rulebook, all the way to the PDF and Tabletop Simulator.'
+    },
+    minutes: 21,
+    url: {
+      it: 'https://www.youtube.com/watch?v=_y1I1nVNgy0',
+      en: 'https://www.youtube.com/watch?v=FmJTn5ypFMY'
+    }
   }
 ]
 
