@@ -5,6 +5,72 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.5.0
+
+### English
+
+#### New
+
+- **Easier first steps**: the first time, the start screen offers **Start from scratch** and **Explore the example**, with the three steps of the work and links to the videos and the guide. A new project shows a strip with the four first steps, an empty set shows **+ Add the first component**, and Help (F1) has a **First steps** tab. The **?** next to window titles opens the matching guide section.
+- **Component kind**: a new template starts from **What are you making?** (card, token, tile, board or die face). The kind suggests suitable formats, changes the words of the set (**+ Token**, "6 faces") and chooses the Tabletop Simulator object.
+- **Export by goal**: the export window starts from **Print at home**, **Print shop** (new preset with bleed and crop marks), **Tabletop Simulator** or **Images**.
+- **Images**: **Image** in the editor opens the image picker right away, and image files dragged from the computer become image layers or cell values.
+- **Table setup**: larger window with full screen and zoom, multiple selection, align and distribute, order, copy and paste.
+- **Image variables** can have a background (a shape, an image or another variable) wherever they are used.
+- **Card anatomy and table setup**: width as a share of the line and caption size (`width: 60%`, `font: 90%`).
+- **Formula assistant**: new **Repeat an icon** case; single fields and plain texts are chosen from the list first.
+- **Set table**: cells show the text as it looks on the card, with bold, colors, icons and variables.
+- **Web version**: the example project opens in the browser too.
+
+#### Changed
+
+- **Value on cards** is a single line with **Column**, **Fixed**, **Formula** and **fx**, at the top of the properties; it fits narrow panels.
+- Editor tools have names next to the icons; shapes are in a **Shapes** menu. In the set, **+ Column**/**Columns** are now **+ Field**/**Fields**, and **Generate…**, **Split image…** and the checks are in a **Tools** menu.
+- **?** help tips replace the always visible instructions.
+- Confirmations appear in a Stella window, with a red button for actions that delete something.
+- Shortcuts show ⌘ on the Mac and Ctrl on Windows and Linux.
+- **Edit template** under the preview opens the editor with that card loaded.
+- **Styles** and **Variables** in the sidebar show their count and start closed above six items.
+- Clearer texts (**Copies**, **Name in TTS (Nickname)**, singular forms), new layer names in the interface language, small texts at least 12 px.
+- The video tutorials linked from the start screen are the new versions recorded with 1.5.
+
+#### Fixed
+
+- Dark theme: captions in the table setup and card anatomy windows could not be read.
+- Web version: automatic backups no longer fail with an error in the browser console.
+
+### Italiano
+
+#### Novità
+
+- **Primi passi più facili**: la prima volta la schermata iniziale propone **Parti da zero** ed **Esplora l'esempio**, con i tre passi del lavoro e i link ai video e alla guida. Un progetto nuovo mostra una striscia con i quattro primi passi, un set vuoto mostra **+ Aggiungi il primo componente**, e l'Aiuto (F1) ha la scheda **Primi passi**. Il **?** accanto al titolo delle finestre apre la parte della guida che ne parla.
+- **Tipo di componente**: un template nuovo parte da **Cosa stai creando?** (carta, segnalino, tessera, plancia o faccia di dado). Il tipo propone i formati adatti, cambia le parole del set (**+ Segnalino**, «6 facce») e sceglie l'oggetto di Tabletop Simulator.
+- **Esportazione per obiettivo**: la finestra di esportazione parte da **Stampare a casa**, **Tipografia** (preset nuovo con abbondanza e segni di taglio), **Tabletop Simulator** o **Immagini**.
+- **Immagini**: **Immagine** nell'editor apre subito la scelta dell'immagine, e i file immagine trascinati dal computer diventano livelli immagine o valori delle celle.
+- **Schema del tavolo**: finestra più grande con schermo intero e zoom, scelta di più elementi, allinea e distribuisci, ordine, copia e incolla.
+- **Variabili immagine**: possono avere uno sfondo (una forma, un'immagine o un'altra variabile), ovunque si usino.
+- **Anatomia della carta e schema del tavolo**: larghezza come parte della riga e dimensione delle didascalie (`width: 60%`, `font: 90%`).
+- **Assistente formule**: nuovo caso **Ripeti un'icona**; un solo campo o un testo semplice si scelgono prima dall'elenco.
+- **Tabella del set**: le celle mostrano il testo come appare sulla carta, con grassetto, colori, icone e variabili.
+- **Versione web**: anche nel browser si apre il progetto di esempio.
+
+#### Modifiche
+
+- **Valore sulle carte** è una riga sola con **Colonna**, **Fisso**, **Formula** e **fx**, in cima alle proprietà, e sta anche nei pannelli stretti.
+- Gli strumenti dell'editor hanno il nome accanto all'icona; le forme stanno nel menu **Forme**. Nel set **+ Colonna**/**Colonne** diventano **+ Campo**/**Campi**, e **Genera…**, **Dividi immagine…** e i controlli stanno nel menu **Strumenti**.
+- I **?** sostituiscono le istruzioni sempre visibili.
+- Le conferme compaiono in una finestra di Stella, con il pulsante rosso per le azioni che cancellano qualcosa.
+- Le scorciatoie mostrano ⌘ sul Mac e Ctrl su Windows e Linux.
+- **Modifica template** sotto l'anteprima apre l'editor con quella carta già caricata.
+- **Stili** e **Variabili** nella barra laterale mostrano il numero delle voci e oltre sei voci partono chiusi.
+- Testi più chiari (**Copie**, **Nome in TTS (Nickname)**, singolari), nomi dei livelli nuovi nella lingua dell'interfaccia, testi piccoli di almeno 12 px.
+- I video tutorial collegati dalla schermata iniziale sono le versioni nuove registrate con la 1.5.
+
+#### Correzioni
+
+- Tema scuro: le didascalie nelle finestre dello schema del tavolo e dell'anatomia della carta non si leggevano.
+- Versione web: i backup automatici non danno più un errore nella console del browser.
+
 ## 1.5.0-beta.4
 
 ### English
