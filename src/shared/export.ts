@@ -215,7 +215,7 @@ export const DEFAULT_TTS: TtsOptions = {
   maxSize: 4096,
   copiesIn: 'deck',
   back: 'auto',
-  destination: 'project',
+  destination: 'both',
   ttsFolder: '',
   nickname: '',
   description: ''
