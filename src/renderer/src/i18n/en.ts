@@ -650,6 +650,9 @@ export const en = {
   'prop.outline': 'Silhouette',
   'editor.outlinePick': 'Choose image…',
   'editor.outlineEmpty': 'no image chosen yet',
+  'editor.searchProperties': 'Search properties…',
+  'editor.searchPropertiesHint': 'Type part of a property or section name (⌘F); Esc clears',
+  'editor.searchPropertiesNone': 'No property matches the search.',
   'editor.outlineUnreadable': 'Could not read this image: {error}',
   'editor.outlineFailed': 'No outline found in this image.',
   'editor.outlineHint':
@@ -1876,6 +1879,7 @@ export const en = {
   'help.keys.suggest': 'Text: suggestions of fields, variables and attributes',
   'help.keys.page': 'Previous or next card',
   'help.keys.tools': 'Editor: new text, rectangle, ellipse, image, grid, value',
+  'help.keys.search': 'Editor: search the properties panel',
   'help.keys.duplicate': 'Editor: duplicate the selected layers',
   'help.keys.copy': 'Editor: copy, cut and paste layers, also between templates',
   'help.keys.group': 'Editor: group and ungroup',

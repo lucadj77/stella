@@ -1,4 +1,4 @@
-import { useContext, useMemo, useState } from 'react'
+import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import AssetPicker from '../components/AssetPicker'
 import HelpTip from '../components/HelpTip'
 import Segmented from '../components/Segmented'
@@ -67,6 +67,7 @@ import CropDialog from '../components/CropDialog'
 import { DisplayContext } from './displayContext'
 import { cropText } from '../../../shared/model/crop'
 import { traceImage } from '../render/traceImage'
+import { filterProperties } from './propSearch'
 import { ColorFieldsContext } from './colorFields'
 import {
   CheckField,
@@ -125,6 +126,24 @@ export default function PropertiesPanel({
   // livello appena creato nelle caselle di una griglia: l'assistente si apre da solo
   // (lo stato sta qui perché il pannello del livello si rimonta a ogni selezione)
   const [fxFor, setFxFor] = useState<string | null>(null)
+  // ricerca tra le proprietà: filtra il pannello già disegnato (vedi propSearch.ts)
+  const [query, setQuery] = useState('')
+  const bodyRef = useRef<HTMLDivElement>(null)
+  const emptyRef = useRef<HTMLParagraphElement>(null)
+  const filter = (): void => {
+    if (!bodyRef.current) return
+    const found = filterProperties(bodyRef.current, query)
+    if (emptyRef.current) emptyRef.current.hidden = found
+  }
+  // dopo ogni disegno del pannello, e quando cambia una parte che si ridisegna da sola
+  useLayoutEffect(filter)
+  useEffect(() => {
+    const body = bodyRef.current
+    if (!body || !query.trim()) return
+    const observer = new MutationObserver(filter)
+    observer.observe(body, { childList: true, subtree: true })
+    return () => observer.disconnect()
+  })
 
   // nei colori si può richiamare un livello valore con {nome}
   const valueLayers = walkLayers([...tpl.front, ...tpl.back])
@@ -139,65 +158,86 @@ export default function PropertiesPanel({
         style={{ width }}
       >
         <PanelSideButton side={panelSide} onToggle={onToggleSide} className="corner" />
-        {selection.length > 0 && <AlignSection state={state} dispatch={dispatch} />}
-        {selection.length > 1 ? (
-          <>
-            <h2>{t('editor.multiSelectionTitle', { n: selection.length })}</h2>
-            <p className="muted small">{t('editor.multiSelection')}</p>
-            <div className="selection-actions">
-              <button disabled={!cmd.canGroup} onClick={cmd.group} title={t('tip.group')}>
-                {t('layers.group')}
-              </button>
-              <button onClick={cmd.duplicate} title={t('tip.duplicate')}>
-                {t('layers.duplicate')}
-              </button>
-              <button className="danger" onClick={cmd.remove} title={t('tip.delete')}>
-                {t('layers.delete')}
-              </button>
-            </div>
-            {first && (
-              <>
-                <p className="muted small">{t('editor.multiEdit', { name: first.name })}</p>
-                <LayerProperties
-                  key={selection.join(',')}
-                  layer={first}
-                  targets={selection}
-                  state={state}
-                  dispatch={dispatch}
-                  sheets={sheets}
-                />
-              </>
-            )}
-          </>
-        ) : layer ? (
-          <>
-            <LayerProperties
-              key={layer.id}
-              layer={layer}
-              state={state}
-              dispatch={dispatch}
-              sheets={sheets}
-              base={base}
-              fxFor={fxFor}
-              setFxFor={setFxFor}
-            />
-            {layer.type === 'group' && (
+        <div className="prop-search">
+          <input
+            type="search"
+            value={query}
+            placeholder={t('editor.searchProperties')}
+            title={t('editor.searchPropertiesHint')}
+            aria-label={t('editor.searchProperties')}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape' && query) {
+                e.stopPropagation()
+                setQuery('')
+              }
+            }}
+          />
+        </div>
+        <p ref={emptyRef} className="muted small prop-search-empty" hidden>
+          {t('editor.searchPropertiesNone')}
+        </p>
+        <div ref={bodyRef} className="props-body">
+          {selection.length > 0 && <AlignSection state={state} dispatch={dispatch} />}
+          {selection.length > 1 ? (
+            <>
+              <h2>{t('editor.multiSelectionTitle', { n: selection.length })}</h2>
+              <p className="muted small">{t('editor.multiSelection')}</p>
               <div className="selection-actions">
-                <button onClick={cmd.ungroup} title={t('tip.ungroup')}>
-                  {t('layers.ungroup')}
+                <button disabled={!cmd.canGroup} onClick={cmd.group} title={t('tip.group')}>
+                  {t('layers.group')}
+                </button>
+                <button onClick={cmd.duplicate} title={t('tip.duplicate')}>
+                  {t('layers.duplicate')}
+                </button>
+                <button className="danger" onClick={cmd.remove} title={t('tip.delete')}>
+                  {t('layers.delete')}
                 </button>
               </div>
-            )}
-          </>
-        ) : (
-          <TemplateProperties
-            template={tpl}
-            base={base}
-            dispatch={dispatch}
-            sheets={sheets}
-            onResize={onResize}
-          />
-        )}
+              {first && (
+                <>
+                  <p className="muted small">{t('editor.multiEdit', { name: first.name })}</p>
+                  <LayerProperties
+                    key={selection.join(',')}
+                    layer={first}
+                    targets={selection}
+                    state={state}
+                    dispatch={dispatch}
+                    sheets={sheets}
+                  />
+                </>
+              )}
+            </>
+          ) : layer ? (
+            <>
+              <LayerProperties
+                key={layer.id}
+                layer={layer}
+                state={state}
+                dispatch={dispatch}
+                sheets={sheets}
+                base={base}
+                fxFor={fxFor}
+                setFxFor={setFxFor}
+              />
+              {layer.type === 'group' && (
+                <div className="selection-actions">
+                  <button onClick={cmd.ungroup} title={t('tip.ungroup')}>
+                    {t('layers.ungroup')}
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <TemplateProperties
+              template={tpl}
+              base={base}
+              dispatch={dispatch}
+              sheets={sheets}
+              onResize={onResize}
+            />
+          )}
+        </div>
       </aside>
     </ColorFieldsContext.Provider>
   )

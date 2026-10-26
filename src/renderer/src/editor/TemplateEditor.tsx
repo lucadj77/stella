@@ -140,6 +140,8 @@ export default function TemplateEditor({
     if (mod && k === 'z') dispatch({ type: e.shiftKey ? 'redo' : 'undo' })
     else if (mod && k === 'y') dispatch({ type: 'redo' })
     else if (mod && k === 'd') cmd.duplicate()
+    else if (mod && k === 'f')
+      document.querySelector<HTMLInputElement>('.prop-search input')?.select()
     else if (mod && k === 'g') {
       if (e.shiftKey) cmd.ungroup()
       else cmd.group()

@@ -70,6 +70,7 @@ const KEYS: [string, MessageKey][] = [
   ['{  ↑ ↓  Enter', 'help.keys.suggest'],
   ['PgUp  PgDn', 'help.keys.page'],
   ['T  R  E  I  G  V', 'help.keys.tools'],
+  ['⌘F', 'help.keys.search'],
   ['⌘D', 'help.keys.duplicate'],
   ['⌘C  ⌘X  ⌘V', 'help.keys.copy'],
   ['⌘G  ⇧⌘G', 'help.keys.group'],

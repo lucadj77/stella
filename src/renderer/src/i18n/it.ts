@@ -657,6 +657,10 @@ export const it: Record<MessageKey, string> = {
   'prop.outline': 'Sagoma',
   'editor.outlinePick': 'Scegli immagine…',
   'editor.outlineEmpty': 'nessuna immagine scelta',
+  'editor.searchProperties': 'Cerca nelle proprietà…',
+  'editor.searchPropertiesHint':
+    'Scrivi parte del nome di una proprietà o di una sezione (⌘F); Esc cancella',
+  'editor.searchPropertiesNone': 'Nessuna proprietà corrisponde alla ricerca.',
   'editor.outlineUnreadable': 'Non riesco a leggere questa immagine: {error}',
   'editor.outlineFailed': 'In questa immagine non ho trovato un contorno.',
   'editor.outlineHint':
@@ -1901,6 +1905,7 @@ export const it: Record<MessageKey, string> = {
   'help.keys.suggest': 'Testo: suggerimenti di campi, variabili e attributi',
   'help.keys.page': 'Carta precedente o successiva',
   'help.keys.tools': 'Editor: nuovo testo, rettangolo, ellisse, immagine, griglia, valore',
+  'help.keys.search': 'Editor: cerca nel pannello delle proprietà',
   'help.keys.duplicate': 'Editor: duplica i livelli selezionati',
   'help.keys.copy': 'Editor: copia, taglia e incolla livelli, anche tra template',
   'help.keys.group': 'Editor: raggruppa e separa',
