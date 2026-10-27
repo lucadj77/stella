@@ -848,7 +848,7 @@ function inkOverflows(fo: SVGForeignObjectElement, box: HTMLElement, inner: HTML
 /**
  * Contorno arrotondato attorno a ciò che si disegna: la sagoma (alfa) allargata di r in ogni
  * direzione. feMorphology allarga solo a rettangolo; tre rettangoli (largo, alto, quadrato a 45°)
- * insieme fanno quasi un cerchio, così gli angoli del contorno restano tondi.
+ * insieme fanno quasi un cerchio, e una sfocatura riportata a bordo netto toglie i gradini.
  */
 function TextOutline({ r, color }: { r: number; color: string }): React.JSX.Element {
   const k = Math.SQRT2 - 1
@@ -863,8 +863,13 @@ function TextOutline({ r, color }: { r: number; color: string }): React.JSX.Elem
         <feMergeNode in="o2" />
         <feMergeNode in="o3" />
       </feMerge>
+      {/* i gradini dei rettangoli si ammorbidiscono: sfocatura, poi di nuovo un bordo netto a metà */}
+      <feGaussianBlur in="grown" stdDeviation={Math.max(0.5, r * 0.3)} />
+      <feComponentTransfer result="smooth">
+        <feFuncA type="linear" slope={8} intercept={-3.5} />
+      </feComponentTransfer>
       <feFlood floodColor={color} />
-      <feComposite in2="grown" operator="in" />
+      <feComposite in2="smooth" operator="in" />
       <feMerge>
         <feMergeNode />
         <feMergeNode in="SourceGraphic" />
