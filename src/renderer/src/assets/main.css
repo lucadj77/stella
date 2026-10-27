@@ -6711,11 +6711,15 @@ button.more-button {
 }
 
 /* Cerca e sostituisci nel progetto */
+.find-all-dialog .dialog {
+  max-width: none;
+  width: min(800px, 90vw);
+}
+
 .find-all {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  width: min(760px, 86vw);
 }
 
 .find-results {

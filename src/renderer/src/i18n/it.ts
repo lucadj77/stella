@@ -988,7 +988,8 @@ export const it: Record<MessageKey, string> = {
   'document.invalidName':
     'Nome di documento non valido: "{name}". Non può cominciare con un punto né contenere \\ / : * ? " < > |',
   'document.exists': 'Esiste già un documento "{name}"',
-  'doc.refsUpdated': 'Documenti aggiornati: {n} {n:riferimento|riferimenti} seguono il nome nuovo ({docs})',
+  'doc.refsUpdated':
+    'Documenti aggiornati: {n} {n:riferimento|riferimenti} seguono il nome nuovo ({docs})',
   'doc.card.badRef':
     '"{ref}" non è una carta: scrivi card:Set/numero o card:Set/colonna=valore, per esempio card:Personaggi/nome=Mago',
   'doc.card.badOption':
@@ -1433,7 +1434,8 @@ export const it: Record<MessageKey, string> = {
   'documents.deleteConfirm.ok': 'Elimina',
   'findAll.title': 'Cerca e sostituisci nel progetto',
   'findAll.menu': 'Cerca e sostituisci…',
-  'findAll.menuHint': 'Cerca un testo in documenti, note, dati, template e variabili e lo sostituisce dove scegli (⇧⌘F / Ctrl+Shift+F)',
+  'findAll.menuHint':
+    'Cerca un testo in documenti, note, dati, template e variabili e lo sostituisce dove scegli (⇧⌘F / Ctrl+Shift+F)',
   'findAll.hint':
     'Cerca nei documenti, nelle note, nelle celle dei fogli, nei testi e nelle formule dei template e nelle variabili. I nomi (set, template, livelli, colonne, variabili) non cambiano: per quelli usa Rinomina, che aggiorna anche i riferimenti. Prima di sostituire Stella fa un backup.',
   'findAll.documents': 'Documenti',
@@ -1453,7 +1455,7 @@ export const it: Record<MessageKey, string> = {
   'findAll.count': '{n} {n:occorrenza|occorrenze} in {places} {places:punto|punti}',
   'findAll.replace': 'Sostituisci in {n} {n:punto|punti}',
   'findAll.replaceHint': 'Sostituisce nei punti scelti. Prima fa un backup del progetto',
-  'findAll.backupLabel': 'Prima di sostituire "{query}"',
+  'findAll.backupLabel': 'Prima di sostituire {query}',
   'findAll.done':
     '{n} {n:occorrenza sostituita|occorrenze sostituite}. Il backup "{label}" ha il progetto com\'era sul disco prima: lo trovi in Progetto › Backup. Le modifiche a dati e template vanno salvate (⌘S / Ctrl+S); ⌘Z / Ctrl+Z le annulla',
   'find.placeholder': 'Cerca',
@@ -1467,7 +1469,7 @@ export const it: Record<MessageKey, string> = {
   'find.wholeWord': 'Parola intera',
   'find.wholeWordHint': 'Trova solo parole intere: "re" non trova "regola"',
   'find.close': 'Chiudi (Esc)',
-  'find.toggleReplace': 'Mostra o nasconde la sostituzione (⌥⌘F / Ctrl+H)',
+  'find.toggleReplace': 'Mostra o nasconde la sostituzione',
   'find.replace': 'Sostituisci',
   'find.replaceAll': 'Sostituisci tutto',
   'documents.placeholder':

@@ -975,7 +975,8 @@ export const en = {
   'document.invalidName':
     'Invalid document name: "{name}". It cannot start with a dot or contain \\ / : * ? " < > |',
   'document.exists': 'A document named "{name}" already exists',
-  'doc.refsUpdated': 'Documents updated: {n} {n:reference follows|references follow} the new name ({docs})',
+  'doc.refsUpdated':
+    'Documents updated: {n} {n:reference follows|references follow} the new name ({docs})',
   'doc.card.badRef':
     '"{ref}" is not a card: write card:Set/number or card:Set/column=value, for example card:Characters/name=Wizard',
   'doc.card.badOption':
@@ -1410,7 +1411,8 @@ export const en = {
   'documents.deleteConfirm.ok': 'Delete',
   'findAll.title': 'Find and replace in the project',
   'findAll.menu': 'Find and replace…',
-  'findAll.menuHint': 'Finds a text in documents, notes, data, templates and variables and replaces it where you choose (⇧⌘F / Ctrl+Shift+F)',
+  'findAll.menuHint':
+    'Finds a text in documents, notes, data, templates and variables and replaces it where you choose (⇧⌘F / Ctrl+Shift+F)',
   'findAll.hint':
     'Searches documents, notes, sheet cells, template texts and formulas, and variables. Names (sets, templates, layers, columns, variables) do not change: use Rename for those, which also updates the references. Stella makes a backup before replacing.',
   'findAll.documents': 'Documents',
@@ -1430,7 +1432,7 @@ export const en = {
   'findAll.count': '{n} {n:match|matches} in {places} {places:place|places}',
   'findAll.replace': 'Replace in {n} {n:place|places}',
   'findAll.replaceHint': 'Replaces in the chosen places. It makes a backup of the project first',
-  'findAll.backupLabel': 'Before replacing "{query}"',
+  'findAll.backupLabel': 'Before replacing {query}',
   'findAll.done':
     '{n} {n:match|matches} replaced. The backup "{label}" holds the project as it was on disk before: find it in Project › Backup. Changes to data and templates need saving (⌘S / Ctrl+S); ⌘Z / Ctrl+Z undoes them',
   'find.placeholder': 'Find',
@@ -1444,7 +1446,7 @@ export const en = {
   'find.wholeWord': 'Whole word',
   'find.wholeWordHint': 'Finds whole words only: "use" does not find "user"',
   'find.close': 'Close (Esc)',
-  'find.toggleReplace': 'Shows or hides replace (⌥⌘F / Ctrl+H)',
+  'find.toggleReplace': 'Shows or hides replace',
   'find.replace': 'Replace',
   'find.replaceAll': 'Replace all',
   'documents.placeholder':

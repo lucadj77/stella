@@ -88,7 +88,7 @@ export default function ProjectFindDialog({
   }
 
   return (
-    <Dialog title={t('findAll.title')} onClose={onClose}>
+    <Dialog title={t('findAll.title')} onClose={onClose} className="find-all-dialog">
       <div className="find-all">
         <div className="find-row">
           <input
