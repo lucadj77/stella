@@ -6765,3 +6765,8 @@ button.more-button {
   color: inherit;
   border-radius: 2px;
 }
+
+.generate-column-free {
+  display: inline-flex;
+  gap: 4px;
+}

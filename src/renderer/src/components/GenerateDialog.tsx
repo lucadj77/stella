@@ -129,11 +129,6 @@ export default function GenerateDialog({
     <Dialog title={t('generate.title')} onClose={onClose} guide="generate">
       <div className="generate-dialog">
         <p className="field-note">{t('generate.intro')}</p>
-        <datalist id="generate-columns">
-          {columns.map((c) => (
-            <option key={c} value={c} />
-          ))}
-        </datalist>
         {list.map((c, i) => {
           const n = countChoices(c.values.length, c.pick, c.repeat, c.ordered, c.values, c.limits)
           return (
@@ -141,10 +136,10 @@ export default function GenerateDialog({
               <div className="generate-row">
                 <label>
                   {t('generate.column')}
-                  <input
-                    list="generate-columns"
+                  <ColumnPicker
+                    columns={columns}
                     value={c.column}
-                    onChange={(e) => update(i, { column: e.target.value })}
+                    onChange={(column) => update(i, { column })}
                   />
                 </label>
                 <label>
@@ -470,5 +465,52 @@ function FilterAssistant({
       onApply={(expr) => onApply(expr.trim().replace(/^=/, ''))}
       onClose={onClose}
     />
+  )
+}
+
+const OTHER_COLUMN = '\u0000other'
+
+/**
+ * La colonna da riempire: un elenco con tutte le colonne del template e del foglio, più "Altra
+ * colonna…" per scriverne una nuova. Un campo con suggerimenti (datalist) mostrerebbe solo le
+ * colonne che contengono il testo già scritto: con text1 scritto, non text2 e text3.
+ */
+function ColumnPicker({
+  columns,
+  value,
+  onChange
+}: {
+  columns: string[]
+  value: string
+  onChange(column: string): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const known = columns.includes(value)
+  const [free, setFree] = useState(!known && value !== '')
+  if (free)
+    return (
+      <span className="generate-column-free">
+        <input autoFocus value={value} onChange={(e) => onChange(e.target.value)} />
+        <button title={t('generate.columnList')} onClick={() => setFree(false)}>
+          ▾
+        </button>
+      </span>
+    )
+  return (
+    <select
+      value={known ? value : ''}
+      onChange={(e) => {
+        if (e.target.value === OTHER_COLUMN) setFree(true)
+        else onChange(e.target.value)
+      }}
+    >
+      {!known && <option value="">—</option>}
+      {columns.map((c) => (
+        <option key={c} value={c}>
+          {c}
+        </option>
+      ))}
+      <option value={OTHER_COLUMN}>{t('generate.otherColumn')}</option>
+    </select>
   )
 }
