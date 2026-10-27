@@ -132,6 +132,11 @@ export default function ExportDialog({
   }
 
   /** Il tipo di componente del template del set, proposto come oggetto di Tabletop Simulator */
+  /** Tag TTS del template del set: quelli proposti finché il set non ne ha di suoi */
+  const templateTags = (name: string): string => {
+    const set = project.sets.find((s) => s.name === name)
+    return project.templates.find((x) => x.name === set?.template)?.ttsTags ?? ''
+  }
   const componentKind = (name: string): TtsObjectType => {
     const set = project.sets.find((s) => s.name === name)
     return kindOf(project.templates.find((x) => x.name === set?.template))
@@ -895,8 +900,8 @@ export default function ExportDialog({
                             className="tts-object-tags"
                             placeholder={t('export.ttsTags')}
                             title={t('export.ttsTagsHint')}
-                            value={obj.tags ?? ''}
-                            onChange={(e) => set({ tags: e.target.value || undefined })}
+                            value={obj.tags ?? templateTags(name)}
+                            onChange={(e) => set({ tags: e.target.value })}
                           />
                         )}
                       </div>

@@ -116,8 +116,9 @@ describe('snap point di Tabletop Simulator', () => {
       snaps: [{ tags: ['edificio', 'base'] }]
     })
     expect(denormalizeTemplate(t).ttsTags).toBe('{tipo}, carta')
-    // i tag del set (esportazione) si aggiungono a quelli del template
-    expect(ttsExtras(bound, 'nemici, carta').tags).toEqual(['edificio', 'carta', 'nemici'])
+    // i tag del set (esportazione) prendono il posto di quelli del template
+    expect(ttsExtras(bound, 'nemici, carta').tags).toEqual(['nemici', 'carta'])
+    expect(ttsExtras(bound, '').tags).toEqual([])
   })
 
   it('posizioni locali: destra = X negativa, basso = Z positiva, divise per scala e allungamento', () => {

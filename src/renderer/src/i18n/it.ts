@@ -1360,7 +1360,7 @@ export const it: Record<MessageKey, string> = {
   'export.ttsEdge': 'Bordo',
   'export.ttsTags': 'Tag TTS',
   'export.ttsTagsHint':
-    'Tag di Tabletop Simulator di tutti i componenti del set, separati da virgole; si aggiungono ai tag TTS del template',
+    'Tag di Tabletop Simulator dei componenti di questo set, separati da virgole, ammessi i {campi}. Partono dai tag TTS del template; cambiali per dare a questo set tag diversi',
   'export.ttsBack': 'Retro',
   'export.backAuto': "Automatico: un'immagine se i retri sono tutti uguali",
   'export.backSingle': "Un'immagine per tutte le carte",

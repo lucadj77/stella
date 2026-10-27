@@ -1338,7 +1338,7 @@ export const en = {
   'export.ttsEdge': 'Edge',
   'export.ttsTags': 'TTS tags',
   'export.ttsTagsHint':
-    'Tabletop Simulator tags of every component of the set, separated by commas; added to the TTS tags of the template',
+    'Tabletop Simulator tags of the components of this set, separated by commas, {fields} allowed. They start as the TTS tags of the template; change them to give this set different tags',
   'export.ttsBack': 'Back',
   'export.backAuto': 'Automatic: one image if all backs are equal',
   'export.backSingle': 'One image for all cards',

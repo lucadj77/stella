@@ -113,7 +113,10 @@ export interface TtsSetObject {
   thickness: number
   /** Colore del bordo (lo spessore) di tessere e plance */
   edgeColor: string
-  /** Tag di Tabletop Simulator di tutti i componenti del set, separati da virgole */
+  /**
+   * Tag di Tabletop Simulator dei componenti del set, separati da virgole, anche con {campi}: al
+   * posto di quelli del template. Assente: quelli del template
+   */
   tags?: string
 }
 
@@ -682,11 +685,12 @@ export interface TtsExtras {
 }
 
 /**
- * Tag del template e del set (scelti nell'esportazione) e snap point dei livelli del fronte, da
- * un template legato ai dati
+ * Tag e snap point dei livelli del fronte, da un template legato ai dati. I tag sono quelli del
+ * template, o quelli scelti per il set nell'esportazione (`setTags`, con i campi già sostituiti)
+ * che li prendono al posto loro
  */
 export function ttsExtras(t: Template, setTags?: string): TtsExtras {
-  return { tags: parseTags(`${t.ttsTags ?? ''},${setTags ?? ''}`), snaps: snapPoints(t.front) }
+  return { tags: parseTags(setTags ?? t.ttsTags), snaps: snapPoints(t.front) }
 }
 
 /**

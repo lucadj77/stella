@@ -45,6 +45,7 @@ import {
   type TtsSetPlan
 } from '../../shared/exportPlan'
 import { plainText } from '../../shared/model/markup'
+import { substituteFields } from '../../shared/model/bind'
 import { palette, resolveColor } from '../../shared/model/variables'
 import { msg } from '../../shared/messages'
 import type { Side, Template } from '../../shared/model/template'
@@ -359,7 +360,7 @@ async function exportTts(
             slot,
             nickname: fieldText(card, o.nickname),
             description: fieldText(card, o.description),
-            extras: ttsExtras(card.template, plan.object.tags)
+            extras: ttsExtras(card.template, setTags(plan.object.tags, card))
           })
       })
     )
@@ -446,7 +447,7 @@ async function exportPieces(
         nickname: fieldText(p.card, o.nickname),
         description: fieldText(p.card, o.description),
         count: p.count,
-        extras: ttsExtras(p.card.template, plan.object.tags),
+        extras: ttsExtras(p.card.template, setTags(plan.object.tags, p.card)),
         card: { w: p.card.template.width, h: p.card.template.height }
       })
     }
@@ -555,6 +556,11 @@ async function renderPiece(
 function imageUrl(env: RunEnv, file: string): string {
   const real = env.realPath?.(file) ?? { path: file, platform: env.platform }
   return ttsImageUrl(real.path, real.platform)
+}
+
+/** Tag TTS scelti per il set, con i {campi} della carta; assenti: quelli del template */
+function setTags(tags: string | undefined, card: ExportCard): string | undefined {
+  return tags === undefined ? undefined : substituteFields(tags, card.fields)
 }
 
 function fieldText(card: ExportCard, field: string): string {
