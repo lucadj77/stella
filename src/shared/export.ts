@@ -717,11 +717,12 @@ export function ttsSnapPoints(
  * gli snap point della carta si allungano. Con una plancia 126 × 88 esportata come carta uscivano
  * larghi circa il doppio, e ancora del 5% con w / 63 (ottobre 2026). Le tessere e i segnalini
  * non allungano gli snap point: la stessa plancia esportata come plancia li aveva stretti di
- * 1 / 1,43 con la correzione
+ * 1 / 1,43 con la correzione. In più, in larghezza, tutti gli snap point uscivano larghi del 5%
+ * circa: sulle carte e su una plancia verticale 200 × 300 (ottobre 2026)
  */
 export function ttsStretch(kind: 'card' | TtsPieceKind, w: number, h: number): number {
-  if (kind === 'card') return (w / h / (63 / POKER_HEIGHT)) * TTS_CARD_SNAP_STRETCH
-  return 1
+  const base = kind === 'card' ? w / h / (63 / POKER_HEIGHT) : 1
+  return base * TTS_SNAP_STRETCH
 }
 
 /** Campi Tags e AttachedSnapPoints di un oggetto, solo se servono */
@@ -762,8 +763,8 @@ const TTS_TILE_SIZE = 2.06
 /** Lato lungo della carta da poker, in mm */
 const POKER_HEIGHT = 88
 const TTS_TOKEN_SIZE = 3.2
-/** Allungamento in più degli snap point sulle carte, misurato in TTS */
-const TTS_CARD_SNAP_STRETCH = 1.05
+/** Allungamento in più degli snap point in larghezza, misurato in TTS */
+const TTS_SNAP_STRETCH = 1.05
 /** Altezza degli snap point sull'oggetto, in unità locali */
 const TTS_SNAP_Y = 0
 

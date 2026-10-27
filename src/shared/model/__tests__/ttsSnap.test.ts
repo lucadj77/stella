@@ -141,8 +141,8 @@ describe('snap point di Tabletop Simulator', () => {
   it('allungamento: solo le carte, dalla carta da poker', () => {
     expect(ttsStretch('card', 63, 88)).toBeCloseTo(1.05)
     expect(ttsStretch('card', 126, 88)).toBeCloseTo(2.1)
-    expect(ttsStretch('board', 120, 88)).toBe(1)
-    expect(ttsStretch('token', 30, 50)).toBe(1)
+    expect(ttsStretch('board', 120, 88)).toBeCloseTo(1.05)
+    expect(ttsStretch('token', 30, 50)).toBeCloseTo(1.05)
   })
 
   it('nel file: tag e snap sugli oggetti, il mazzo prende i tag di tutte le carte', () => {
