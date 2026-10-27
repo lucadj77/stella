@@ -21,6 +21,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Shortcuts**: I, G and V add an image, a grid and a value layer, like T, R and E. ⌘O / Ctrl+O and ⌘W / Ctrl+W open and close the project in the desktop app.
 - **Tabletop Simulator proportions**: tokens and standees are sized on their width, so a tall standee no longer comes out about twice as large. Landscape cards (a board as wide as two cards) are placed sideways at their true size instead of four times larger.
 - **Standee thickness**: 15 mm by default, so the figure stands up.
+- **Text outline**: drawn around the letters with rounded corners. A thick outline no longer gets cut at the edge of the box and no longer makes spikes on sharp curves.
 - **Tabletop Simulator export**: files go to both the project folder and Tabletop Simulator's saved objects by default.
 - **Outline from an image**: works with semi-transparent images too, and if the image cannot be read the message says why.
 
@@ -38,6 +39,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Scorciatoie**: I, G e V aggiungono un livello immagine, griglia e valore, come T, R ed E. ⌘O / Ctrl+O e ⌘W / Ctrl+W aprono e chiudono il progetto nell'app per computer.
 - **Proporzioni in Tabletop Simulator**: segnalini e pedine si misurano sulla larghezza, quindi una pedina alta non esce più grande circa il doppio. Le carte orizzontali (una plancia larga quanto due carte) sono messe di traverso, nella misura vera invece che quattro volte più grandi.
 - **Spessore delle pedine**: 15 mm di base, perché la figura stia in piedi.
+- **Contorno del testo**: si disegna attorno alle lettere con gli angoli arrotondati. Un contorno spesso non viene più tagliato dal bordo del riquadro e non fa punte nelle curve strette.
 - **Esportazione per Tabletop Simulator**: di base i file vanno sia nella cartella del progetto sia negli oggetti salvati di Tabletop Simulator.
 - **Contorno da un'immagine**: funziona anche con le immagini semitrasparenti, e se l'immagine non si legge il messaggio dice perché.
 

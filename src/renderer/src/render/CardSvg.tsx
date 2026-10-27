@@ -284,7 +284,7 @@ function LayerView({ layer: l, uid }: { layer: Layer; uid: string }): React.JSX.
         {l.type === 'shape' && <ShapeView layer={l} id={id} />}
         {l.type === 'grid' && <GridView layer={l} id={id} uid={uid} />}
         {l.type === 'image' && <ImageView layer={l} id={id} />}
-        {l.type === 'text' && <TextView layer={l} />}
+        {l.type === 'text' && <TextView layer={l} id={id} />}
         {l.type === 'group' && <GroupView layer={l} id={id} uid={uid} />}
       </g>
     </g>
@@ -845,7 +845,35 @@ function inkOverflows(fo: SVGForeignObjectElement, box: HTMLElement, inner: HTML
   return false
 }
 
-function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
+/**
+ * Contorno arrotondato attorno a ciò che si disegna: la sagoma (alfa) allargata di r in ogni
+ * direzione. feMorphology allarga solo a rettangolo; tre rettangoli (largo, alto, quadrato a 45°)
+ * insieme fanno quasi un cerchio, così gli angoli del contorno restano tondi.
+ */
+function TextOutline({ r, color }: { r: number; color: string }): React.JSX.Element {
+  const k = Math.SQRT2 - 1
+  const d = Math.SQRT1_2
+  return (
+    <>
+      <feMorphology in="SourceAlpha" operator="dilate" radius={`${r} ${r * k}`} result="o1" />
+      <feMorphology in="SourceAlpha" operator="dilate" radius={`${r * k} ${r}`} result="o2" />
+      <feMorphology in="SourceAlpha" operator="dilate" radius={`${r * d} ${r * d}`} result="o3" />
+      <feMerge result="grown">
+        <feMergeNode in="o1" />
+        <feMergeNode in="o2" />
+        <feMergeNode in="o3" />
+      </feMerge>
+      <feFlood floodColor={color} />
+      <feComposite in2="grown" operator="in" />
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </>
+  )
+}
+
+function TextView({ layer: l, id }: { layer: TextLayer; id: string }): React.JSX.Element {
   const showEmpty = useContext(ShowEmptyContext)
   const empty = showEmpty && !l.text.trim()
   const boxRef = useRef<HTMLDivElement>(null)
@@ -887,11 +915,33 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
 
   const sizeMm = size * PT_TO_MM
   const s = TEXT_SCALE
+  // Il contorno del livello è un filtro che allarga la sagoma delle lettere, non
+  // -webkit-text-stroke: quello ha gli spigoli a punta (una punta lunga nelle curve strette) e,
+  // spesso, viene tagliato dal bordo del riquadro. Il filtro disegna attorno al testo già
+  // disegnato, anche fuori dal riquadro, con gli angoli arrotondati.
+  const outline = l.stroke ? strokeWidth(l.stroke, sizeMm) * s : 0
+  const w = l.w * s
+  const h = l.h * s
   return (
     <g
       transform={`translate(${l.x} ${l.y}) scale(${1 / s})`}
       data-overflow={over ? l.name : undefined}
+      filter={outline > 0 ? `url(#${id}-outline)` : undefined}
     >
+      {outline > 0 && l.stroke && (
+        <defs>
+          <filter
+            id={`${id}-outline`}
+            filterUnits="userSpaceOnUse"
+            x={-outline - w / 2}
+            y={-outline - h / 2}
+            width={2 * w + 2 * outline}
+            height={2 * h + 2 * outline}
+          >
+            <TextOutline r={outline} color={l.stroke.color} />
+          </filter>
+        </defs>
+      )}
       <foreignObject
         width={l.w * s}
         height={l.h * s}
@@ -932,11 +982,7 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
               [l.underline && 'underline', l.strike && 'line-through'].filter(Boolean).join(' ') ||
               undefined,
             whiteSpace: l.wrap ? 'pre-wrap' : 'pre',
-            overflowWrap: l.wrap ? 'break-word' : 'normal',
-            WebkitTextStroke: l.stroke
-              ? `${strokeWidth(l.stroke, sizeMm) * 2 * s}px ${l.stroke.color}`
-              : undefined,
-            paintOrder: 'stroke fill'
+            overflowWrap: l.wrap ? 'break-word' : 'normal'
           }}
         >
           <div style={empty ? { opacity: 0.35, fontStyle: 'italic' } : undefined}>
