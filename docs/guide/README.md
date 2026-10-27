@@ -648,6 +648,15 @@ The preview shows how many cards will be created and the first rows. **Add at th
 
 ![The generator: three resources, two per card, with repetition](img/genera.png)
 
+**Random.** At the top of the window, **How** switches from **Every combination** to **Random**: instead of every combination you get as many cards as you want (**Cards**), with values drawn at random. A value set can fill several columns with **+ Column**, and each column gets one value drawn (or more, with **Values per column**): for example the numbers `1-4` on text1, text2, text3 and text4 give each card four random numbers from 1 to 4.
+
+- **With repetition** on is like rolling a die for each column; off is like dealing cards from a deck: the same value never comes back in any column of the set.
+- **Limits per value** counts across all the set's columns: with 4 from 1 to 3, every card has at least one 4 and at most three.
+- **Filter** works as before: the cards it rejects are drawn again. **All different** rejects cards already drawn. If the filter or **All different** leave fewer cards than requested, the preview says so.
+- **Seed** is the number the draw starts from: the same seed gives the same cards, **Shuffle** picks another one.
+
+![The random generator: the numbers 1-4 on four columns, 4 from one to three times](img/genera-caso.png)
+
 ### 10.1 Splitting an image across cards
 
 **Split image…** spreads one big image across the cards of the set: placed side by side in a grid, the cards make it up again (a map, an illustration over several cards). You choose the image layer of the template, the image, how many columns and rows, the card to start from and the order: by rows (left to right, then the row below) or by columns. Missing cards are added.

@@ -648,6 +648,15 @@ L'anteprima mostra quante carte nasceranno e le prime righe. **Aggiungi in fondo
 
 ![Il generatore: tre risorse, due per carta, con ripetizioni](img/genera.png)
 
+**A caso.** In cima alla finestra, **Come** passa da **Tutte le combinazioni** ad **A caso**: invece di tutte le combinazioni si generano quante carte si vuole (**Carte**), estraendo i valori a caso. Un insieme può riempire più colonne con **+ Colonna**, e in ognuna si estrae un valore (o più, con **Valori per colonna**): per esempio i numeri `1-4` su text1, text2, text3 e text4 danno a ogni carta quattro numeri a caso tra 1 e 4.
+
+- **Con ripetizioni** acceso è come tirare un dado per ogni colonna; spento è come distribuire carte da un mazzo: lo stesso valore non torna in nessuna colonna dell'insieme.
+- **Limiti per valore** conta le presenze in tutte le colonne dell'insieme: con il 4 da 1 a 3 ogni carta ha almeno un 4 e al massimo tre.
+- **Filtro** funziona come prima: le carte che scarta si estraggono di nuovo. **Tutte diverse** scarta le carte già uscite. Se il filtro o **Tutte diverse** lasciano meno carte di quelle chieste, l'anteprima lo dice.
+- **Seme** è il numero da cui parte l'estrazione: lo stesso seme dà le stesse carte, **Rimescola** ne sceglie un altro.
+
+![Il generatore a caso: i numeri 1-4 su quattro colonne, il 4 da una a tre volte](img/genera-caso.png)
+
 ### 10.1 Dividere un'immagine tra le carte
 
 **Dividi immagine…** distribuisce un'immagine grande tra le carte del set: messe in griglia una accanto all'altra, le carte la ricompongono (una mappa, un'illustrazione su più carte). Si scelgono il livello immagine del template, l'immagine, quante colonne e righe, da quale carta cominciare e l'ordine: per righe (da sinistra a destra, poi la riga sotto) o per colonne. Se mancano carte se ne aggiungono.

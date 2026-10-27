@@ -4,7 +4,8 @@ import { evaluateFormula } from './formula'
 // Generatore di carte: da alcuni insiemi di valori crea le righe di un set con tutte le
 // combinazioni. Ogni colonna sceglie `pick` valori dal suo insieme (con o senza ripetizioni,
 // con o senza ordine) e li scrive uniti nella stessa cella; le colonne si combinano tra loro
-// in tutti i modi possibili. Vedi docs/specifica.md, sezione 8.3.
+// in tutti i modi possibili. A caso, invece, si generano quante carte si vuole estraendo i valori:
+// un insieme può riempire più colonne, una estrazione per colonna. Vedi docs/specifica.md, 8.3.
 
 export interface GeneratorColumn {
   /** Intestazione della colonna del foglio */
@@ -20,8 +21,13 @@ export interface GeneratorColumn {
   icons: boolean
   /** Tra un valore e l'altro nella stessa cella */
   separator: string
-  /** Quante volte può comparire ogni valore nella cella; senza limite: da 0 a pick (o 1) */
+  /**
+   * Quante volte può comparire ogni valore nella cella; senza limite: da 0 a pick (o 1). A caso
+   * contano le presenze in tutte le colonne dell'insieme.
+   */
   limits?: Record<string, ValueLimit>
+  /** A caso: altre colonne riempite dallo stesso insieme, ognuna con la sua estrazione */
+  more?: string[]
 }
 
 export interface ValueLimit {
@@ -35,6 +41,17 @@ export interface GeneratorSpec {
   filter: string
   /** Copie di ogni carta (colonna amount) */
   copies: number
+  /** Carte a caso invece di tutte le combinazioni */
+  random?: RandomOptions
+}
+
+export interface RandomOptions {
+  /** Quante carte */
+  count: number
+  /** Lo stesso seme dà le stesse carte */
+  seed: number
+  /** Niente carte uguali */
+  unique: boolean
 }
 
 /** Oltre questo numero di carte il generatore si ferma */
@@ -144,6 +161,8 @@ export interface GeneratedCards {
   truncated: boolean
   /** Errore della formula del filtro, se c'è */
   filterError?: string
+  /** A caso: i limiti per valore non si possono rispettare */
+  impossible?: boolean
 }
 
 /**
@@ -151,6 +170,7 @@ export interface GeneratedCards {
  * {colonna_1}, {colonna_2}... sono i singoli valori scelti, senza graffe.
  */
 export function generateCards(spec: GeneratorSpec): GeneratedCards {
+  if (spec.random) return generateRandom(spec, spec.random)
   const cols = spec.columns.filter((c) => c.column.trim() && c.values.length)
   const total = cols.reduce(
     (n, c) => n * countChoices(c.values.length, c.pick, c.repeat, c.ordered, c.values, c.limits),
@@ -183,7 +203,7 @@ export function generateCards(spec: GeneratorSpec): GeneratedCards {
         }
         if (!truthy(r.value)) return true
       }
-      rows.push([...values, String(Math.max(1, Math.round(spec.copies) || 1))])
+      rows.push([...values, copiesOf(spec)])
       return true
     }
     for (const p of lists[i]) if (!walk(i + 1, [...picked, p])) return false
@@ -197,6 +217,152 @@ export function generateCards(spec: GeneratorSpec): GeneratedCards {
     truncated: rows.length >= MAX_GENERATED && total > MAX_GENERATED,
     ...(filterError ? { filterError } : {})
   }
+}
+
+const copiesOf = (spec: GeneratorSpec): string => String(Math.max(1, Math.round(spec.copies) || 1))
+
+/** Le colonne che un insieme riempie: a caso anche quelle in più */
+export function fieldsOf(c: GeneratorColumn, random = false): string[] {
+  const all = [c.column, ...(random ? (c.more ?? []) : [])].map((x) => x.trim()).filter(Boolean)
+  return [...new Set(all)]
+}
+
+/** Generatore pseudo-casuale con seme (mulberry32): da 0 incluso a 1 escluso */
+export function seededRandom(seed: number): () => number {
+  let a = seed >>> 0
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0
+    let t = a
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+/** Tentativi al massimo per ogni carta chiesta, prima di arrendersi al filtro */
+const TRIES_PER_CARD = 200
+const MAX_TRIES = 50000
+
+/**
+ * Estrae `n` valori di un insieme rispettando ripetizioni e limiti: a ogni estrazione si sceglie
+ * tra i valori ancora ammessi, e quando i posti rimasti bastano appena per i minimi si sceglie
+ * solo tra quelli sotto il minimo. Alla fine si mescolano, così i minimi non finiscono sempre
+ * nelle ultime colonne.
+ */
+function draw(
+  values: string[],
+  n: number,
+  repeat: boolean,
+  limits: Record<string, ValueLimit>,
+  rnd: () => number
+): string[] | null {
+  const max = values.map((v) => Math.max(0, Math.min(repeat ? n : 1, limits[v]?.max ?? n)))
+  const min = values.map((v) => Math.max(0, limits[v]?.min ?? 0))
+  const count = values.map(() => 0)
+  const out: string[] = []
+  for (let left = n; left > 0; left--) {
+    const needed = min.reduce((s, m, i) => s + Math.max(0, m - count[i]), 0)
+    const ok = values
+      .map((_, i) => i)
+      .filter((i) => count[i] < max[i] && (needed < left || count[i] < min[i]))
+    if (!ok.length) return null
+    const i = ok[Math.floor(rnd() * ok.length)]
+    count[i]++
+    out.push(values[i])
+  }
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1))
+    ;[out[i], out[j]] = [out[j], out[i]]
+  }
+  return out
+}
+
+/** I limiti dell'insieme si possono rispettare con `n` estrazioni? */
+function feasible(
+  values: string[],
+  n: number,
+  repeat: boolean,
+  limits: Record<string, ValueLimit>
+): boolean {
+  let lo = 0
+  let hi = 0
+  for (const v of values) {
+    const min = Math.max(0, limits[v]?.min ?? 0)
+    const max = Math.max(0, Math.min(repeat ? n : 1, limits[v]?.max ?? n))
+    if (min > max) return false
+    lo += min
+    hi += max
+  }
+  return lo <= n && n <= hi
+}
+
+/**
+ * Carte a caso: per ogni carta ogni insieme estrae `pick` valori per ognuna delle sue colonne.
+ * Con le ripetizioni è come tirare un dado per ogni valore; senza, come distribuire carte da un
+ * mazzo: lo stesso valore non torna in nessuna colonna dell'insieme. I limiti contano le
+ * presenze in tutte le colonne dell'insieme. Le carte che il filtro scarta (o già uscite, se
+ * devono essere tutte diverse) si estraggono di nuovo, fino a un massimo di tentativi.
+ */
+function generateRandom(spec: GeneratorSpec, o: RandomOptions): GeneratedCards {
+  const cols = spec.columns
+    .map((c) => ({ c, fields: fieldsOf(c, true) }))
+    .filter(({ c, fields }) => fields.length && c.values.length)
+  const names = [...new Set(cols.flatMap(({ fields }) => fields))]
+  const headers = [...names, 'amount']
+  const count = Math.max(0, Math.min(MAX_GENERATED, Math.round(o.count) || 0))
+  const empty = { headers, rows: [], total: count, truncated: false }
+  if (!cols.length || !count) return empty
+  const pick = (c: GeneratorColumn): number => Math.max(1, c.pick)
+  if (
+    cols.some(
+      ({ c, fields }) => !feasible(c.values, pick(c) * fields.length, c.repeat, c.limits ?? {})
+    )
+  )
+    return { ...empty, impossible: true }
+  const rnd = seededRandom(o.seed)
+  const filter = spec.filter.trim()
+  const rows: string[][] = []
+  const seen = new Set<string>()
+  let filterError: string | undefined
+  const tries = Math.min(MAX_TRIES, count * TRIES_PER_CARD)
+  for (let t = 0; t < tries && rows.length < count; t++) {
+    const cells = new Map<string, string[]>()
+    const fields: Record<string, string> = {}
+    let failed = false
+    for (const { c, fields: targets } of cols) {
+      const k = pick(c)
+      const got = draw(c.values, k * targets.length, c.repeat, c.limits ?? {}, rnd)
+      if (!got) {
+        failed = true
+        break
+      }
+      targets.forEach((name, f) => {
+        let mine = got.slice(f * k, f * k + k)
+        // senza ordine i valori della cella seguono l'ordine dell'elenco: A B e B A sono uguali
+        if (!c.ordered) mine = [...mine].sort((a, b) => c.values.indexOf(a) - c.values.indexOf(b))
+        cells.set(name, [...(cells.get(name) ?? []), cell(c, mine)])
+        mine.forEach((v, n) => (fields[`${name}_${n + 1}`] ??= v))
+      })
+    }
+    if (failed) continue
+    const values = names.map((name) => (cells.get(name) ?? []).join(' '))
+    if (o.unique) {
+      const key = values.join('\u0000')
+      if (seen.has(key)) continue
+      seen.add(key)
+    }
+    if (filter) {
+      names.forEach((name, j) => (fields[name] = values[j]))
+      const r = evaluateFormula(filter.startsWith('=') ? filter : `=${filter}`, fields)
+      if (r.error) {
+        filterError ??= r.error
+        break
+      }
+      if (!truthy(r.value)) continue
+    }
+    rows.push([...values, copiesOf(spec)])
+  }
+  return { headers, rows, total: count, truncated: false, ...(filterError ? { filterError } : {}) }
 }
 
 function truthy(v: string): boolean {

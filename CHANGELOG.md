@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.7.0-beta.4
+
+### English
+
+- **Generate cards at random**: **Generate…** has a new **Random** mode next to **Every combination**. You choose how many cards; each value set can fill several columns (**+ Column**) and each column gets a value drawn at random from the list, for example the numbers 1-4 on text1, text2, text3 and text4. **With repetition** off works like dealing from a deck: the same value never comes back in the set's columns. **Limits per value** counts across all the set's columns (for example 4 from 1 to 3 times per card), the filter still applies, **All different** avoids duplicate cards and the **Seed** makes the draw repeatable (**Shuffle** picks a new one).
+
+### Italiano
+
+- **Generare carte a caso**: **Genera…** ha una nuova modalità **A caso** accanto a **Tutte le combinazioni**. Si sceglie quante carte; ogni insieme può riempire più colonne (**+ Colonna**) e in ogni colonna si estrae un valore a caso dall'elenco, per esempio i numeri 1-4 su text1, text2, text3 e text4. Con **Con ripetizioni** spento è come distribuire da un mazzo: lo stesso valore non torna nelle colonne dell'insieme. **Limiti per valore** conta le presenze in tutte le colonne dell'insieme (per esempio il 4 da 1 a 3 volte per carta), il filtro resta valido, **Tutte diverse** evita carte uguali e il **Seme** rende l'estrazione ripetibile (**Rimescola** ne sceglie uno nuovo).
+
 ## 1.7.0-beta.3
 
 ### English
