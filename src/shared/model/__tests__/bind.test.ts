@@ -322,3 +322,30 @@ describe('contenuto della griglia', () => {
     })
   })
 })
+
+describe('formula con risultato vuoto', () => {
+  const tpl = normalizeTemplate({
+    name: 't',
+    front: [
+      {
+        type: 'text',
+        name: 'nemici',
+        text: '1',
+        source: { kind: 'formula', expr: '=IF({forza} <= 4; "{forza}"; "")' }
+      },
+      {
+        type: 'shape',
+        name: 'fondo',
+        fill: '#2F5DA8',
+        source: { kind: 'formula', expr: '=IF({forza} <= 4; "#A33A2A"; "")' }
+      }
+    ]
+  })
+  it('un testo resta vuoto, un colore torna quello del template', () => {
+    const [testo, fondo] = bindCard(tpl, rowToCard(['forza'], ['9'])).template.front
+    expect((testo as TextLayer).text).toBe('')
+    expect((fondo as ShapeLayer).fill).toBe('#2F5DA8')
+    const [pieno] = bindCard(tpl, rowToCard(['forza'], ['3'])).template.front
+    expect((pieno as TextLayer).text).toBe('3')
+  })
+})

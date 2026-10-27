@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.7.0-beta.1
+
+### English
+
+- **Formulas with an empty result**: a text or value layer whose formula returns nothing stays empty instead of showing the template's text (for example `=IF({cell.index} <= 16; "…"; "")` in a grid no longer shows 1 from cell 17 on). Colors, images and other properties still go back to the template's value.
+
+### Italiano
+
+- **Formule con risultato vuoto**: un livello di testo o valore la cui formula non restituisce nulla resta vuoto invece di mostrare il testo del template (per esempio `=IF({cell.index} <= 16; "…"; "")` in una griglia non mostra più 1 dalla casella 17 in poi). Colori, immagini e le altre proprietà tornano ancora al valore del template.
+
 ## 1.6.0
 
 ### English

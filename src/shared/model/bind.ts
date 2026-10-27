@@ -202,7 +202,10 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
             for (const f of r.missing)
               say(msg('bind.formulaField', { layer: layer.name, field: f }))
             if (r.error) say(msg('bind.formulaError', { layer: layer.name, error: r.error }))
-            if (r.value.trim() !== '') props.set('', r.value)
+            // un testo o un valore vuoto resta vuoto; per le altre proprietà (colore, immagine,
+            // numeri) un risultato vuoto lascia il valore del template
+            if (r.value.trim() !== '' || layer.type === 'text' || layer.type === 'value')
+              props.set('', r.value)
             else props.delete('')
           }
           if (props.size) {
