@@ -101,3 +101,11 @@ jobs:
           name: Stella ${{ github.ref_name }}
           body_path: release-notes.md
           files: dist/*
+      # solo le stabili: le novità nel canale #announcements del server Discord (segreto
+      # DISCORD_WEBHOOK, vedi docs/rilascio.md); se Discord non risponde la release resta valida
+      - name: Annuncio su Discord
+        if: ${{ !contains(github.ref_name, '-') }}
+        continue-on-error: true
+        run: node scripts/discord-announce.mjs ${{ github.ref_name }}
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}

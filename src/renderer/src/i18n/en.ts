@@ -1824,6 +1824,8 @@ export const en = {
     'Stella Game Center is a free app. If it is useful to you, you can buy me a coffee (PayPal)',
   'help.site': 'Website: stella.lucadj.eu',
   'start.site': 'Website',
+  'help.discord': 'Questions and help: Discord',
+  'start.discord': 'Discord',
   'start.support': 'Support Stella',
   'help.tab.start': 'First steps',
   'help.start.title': 'From an empty project to printed components',

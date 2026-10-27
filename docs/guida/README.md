@@ -45,6 +45,8 @@ Video tutorial su YouTube, senza voce ([tutta la playlist](https://www.youtube.c
 
 English version: [../guide/README.md](../guide/README.md).
 
+Domande, aiuto e idee, in italiano e in inglese: il [server Discord di Stella Game Center](https://discord.gg/bkP3a3CwkP).
+
 ## Indice
 
 - [Installare Stella](#installare-stella)

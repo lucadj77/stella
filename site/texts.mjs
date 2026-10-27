@@ -15,7 +15,8 @@ export const texts = {
       web: 'Prova nel browser',
       tutorial: 'Tutorial',
       guide: 'Guida',
-      news: 'Novità'
+      news: 'Novità',
+      discord: 'Discord'
     },
     hero: {
       claim: 'Carte, plance, segnalini e dadi del tuo gioco, da un foglio di calcolo',
@@ -150,7 +151,11 @@ export const texts = {
       cliTitle: 'Per chi lavora con un agente IA',
       cliText: 'Il comando stella e una skill lasciano a un agente la modifica di template e dati.',
       cliLink: 'Leggi docs/cli.md',
-      cliHref: 'https://github.com/lucadj77/stella/blob/main/docs/cli.md'
+      cliHref: 'https://github.com/lucadj77/stella/blob/main/docs/cli.md',
+      discordTitle: 'Domande e aiuto',
+      discordText:
+        'Sul server Discord, in italiano e in inglese, si chiede aiuto, si propongono idee e si mostrano i propri prototipi.',
+      discordLink: 'Entra nel server Discord'
     },
     contact: {
       title: 'Scrivimi',
@@ -176,6 +181,7 @@ export const texts = {
     footer: {
       license: 'Stella è software libero, licenza GNU GPL 3 o successive. Il gioco che crei è tuo.',
       source: 'Codice sorgente su GitHub',
+      discord: 'Discord',
       support: 'Offrimi un caffè',
       contact: 'Scrivimi',
       by: 'Un progetto di Luca Di Gialleonardo · Predigarama Games'
@@ -196,7 +202,8 @@ export const texts = {
       web: 'Try in the browser',
       tutorial: 'Tutorials',
       guide: 'Guide',
-      news: 'What’s new'
+      news: 'What’s new',
+      discord: 'Discord'
     },
     hero: {
       claim: 'Your game’s cards, boards, tokens and dice, from a spreadsheet',
@@ -331,7 +338,11 @@ export const texts = {
       cliTitle: 'Working with an AI agent',
       cliText: 'The stella command and a skill let an agent edit templates and data.',
       cliLink: 'Read docs/cli.en.md',
-      cliHref: 'https://github.com/lucadj77/stella/blob/main/docs/cli.en.md'
+      cliHref: 'https://github.com/lucadj77/stella/blob/main/docs/cli.en.md',
+      discordTitle: 'Questions and help',
+      discordText:
+        'On the Discord server, in English and Italian, you can ask for help, suggest ideas and show your prototypes.',
+      discordLink: 'Join the Discord server'
     },
     contact: {
       title: 'Contact me',
@@ -356,6 +367,7 @@ export const texts = {
     footer: {
       license: 'Stella is free software, GNU GPL 3 or later. The game you make is yours.',
       source: 'Source code on GitHub',
+      discord: 'Discord',
       support: 'Buy me a coffee',
       contact: 'Contact me',
       by: 'A project by Luca Di Gialleonardo · Predigarama Games'
