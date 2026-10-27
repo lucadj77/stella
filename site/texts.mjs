@@ -603,6 +603,20 @@ export const videos = [
       it: 'https://www.youtube.com/watch?v=_y1I1nVNgy0',
       en: 'https://www.youtube.com/watch?v=FmJTn5ypFMY'
     }
+  },
+  {
+    n: 15,
+    it: 'Installare Stella e la versione web',
+    en: 'Installing Stella and the web version',
+    about: {
+      it: 'Mac, Windows e Linux, gli avvisi della prima apertura, gli aggiornamenti e la versione nel browser.',
+      en: 'Mac, Windows and Linux, the first-launch warnings, updates and the browser version.'
+    },
+    minutes: 3,
+    url: {
+      it: 'https://www.youtube.com/watch?v=Jx6QC7Ucfrw',
+      en: 'https://www.youtube.com/watch?v=n_9rcC9e_14'
+    }
   }
 ]
 

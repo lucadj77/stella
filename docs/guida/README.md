@@ -8,6 +8,7 @@ Video tutorial su YouTube, senza voce ([tutta la playlist](https://www.youtube.c
 
 **Inizia qui**
 
+- 15 · [Installare Stella e la versione web](https://www.youtube.com/watch?v=Jx6QC7Ucfrw) (3 minuti)
 - 1 · [Panoramica delle funzioni di base](https://www.youtube.com/watch?v=0JnZ92Jy_JU) (4 minuti)
 - 2 · [Il tuo primo componente da zero](https://www.youtube.com/watch?v=kUgGQ_ab8Yg) (10 minuti)
 - 14 · [Un gioco completo, dall’idea al tavolo](https://www.youtube.com/watch?v=_y1I1nVNgy0) (21 minuti)
