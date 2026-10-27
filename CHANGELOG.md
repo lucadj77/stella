@@ -26,7 +26,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Text outline**: drawn around the letters with rounded corners. A thick outline no longer gets cut at the edge of the box and no longer makes spikes on sharp curves.
 - **Tabletop Simulator export**: files go to both the project folder and Tabletop Simulator's saved objects by default.
 - **Outline from an image**: works with semi-transparent images too, and if the image cannot be read the message says why.
-- **Tabletop Simulator tags and snap points**: templates can give their components TTS tags, also from fields (`{type}`), and decks take the tags of their cards. The new **Snap** tool (P) places a snap point, a crosshair in the editor that is never printed, and any layer can have one at its centre; a grid can have one in every cell. Snap points can have tags, so only matching objects snap there, and can rotate the snapped object, following the layer's rotation or a chosen angle.
+- **Tabletop Simulator tags and snap points**: templates can give their components TTS tags, also from fields (`{type}`), and decks take the tags of their cards; in the export, each set can add tags of its own. The new **Snap** tool (P) places a snap point, a crosshair in the editor that is never printed, and any layer can have one at its centre; a grid can have one in every cell. Snap points can have tags, so only matching objects snap there, and can rotate the snapped object, following the layer's rotation or a chosen angle.
 
 ### Italiano
 
@@ -47,7 +47,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Contorno del testo**: si disegna attorno alle lettere con gli angoli arrotondati. Un contorno spesso non viene più tagliato dal bordo del riquadro e non fa punte nelle curve strette.
 - **Esportazione per Tabletop Simulator**: di base i file vanno sia nella cartella del progetto sia negli oggetti salvati di Tabletop Simulator.
 - **Contorno da un'immagine**: funziona anche con le immagini semitrasparenti, e se l'immagine non si legge il messaggio dice perché.
-- **Tag e snap point di Tabletop Simulator**: i template possono dare ai componenti dei tag TTS, anche dai campi (`{tipo}`), e i mazzi prendono i tag delle loro carte. Il nuovo strumento **Snap** (P) mette uno snap point, un mirino nell'editor che non si stampa mai, e ogni livello può averne uno al suo centro; una griglia può averne uno in ogni casella. Gli snap point possono avere dei tag, così vi si agganciano solo gli oggetti corrispondenti, e possono ruotare l'oggetto agganciato, seguendo la rotazione del livello o un angolo scelto.
+- **Tag e snap point di Tabletop Simulator**: i template possono dare ai componenti dei tag TTS, anche dai campi (`{tipo}`), e i mazzi prendono i tag delle loro carte; nell'esportazione ogni set può aggiungere tag suoi. Il nuovo strumento **Snap** (P) mette uno snap point, un mirino nell'editor che non si stampa mai, e ogni livello può averne uno al suo centro; una griglia può averne uno in ogni casella. Gli snap point possono avere dei tag, così vi si agganciano solo gli oggetti corrispondenti, e possono ruotare l'oggetto agganciato, seguendo la rotazione del livello o un angolo scelto.
 
 ## 1.5.0
 

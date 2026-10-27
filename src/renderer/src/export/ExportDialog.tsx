@@ -890,6 +890,15 @@ export default function ExportDialog({
                             />
                           </>
                         )}
+                        {obj.type !== 'die' && (
+                          <input
+                            className="tts-object-tags"
+                            placeholder={t('export.ttsTags')}
+                            title={t('export.ttsTagsHint')}
+                            value={obj.tags ?? ''}
+                            onChange={(e) => set({ tags: e.target.value || undefined })}
+                          />
+                        )}
                       </div>
                     )
                   })}

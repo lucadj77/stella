@@ -4373,6 +4373,11 @@ select.from-template {
   width: 64px;
 }
 
+.tts-object input.tts-object-tags {
+  flex: 1 1 120px;
+  min-width: 100px;
+}
+
 .sidebar-filter {
   width: 100%;
   box-sizing: border-box;

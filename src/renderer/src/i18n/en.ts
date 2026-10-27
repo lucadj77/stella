@@ -1336,6 +1336,9 @@ export const en = {
     'Set “{set}”: the cards are not a multiple of six, the last die repeats its first faces.',
   'export.ttsThickness': 'Thickness',
   'export.ttsEdge': 'Edge',
+  'export.ttsTags': 'TTS tags',
+  'export.ttsTagsHint':
+    'Tabletop Simulator tags of every component of the set, separated by commas; added to the TTS tags of the template',
   'export.ttsBack': 'Back',
   'export.backAuto': 'Automatic: one image if all backs are equal',
   'export.backSingle': 'One image for all cards',

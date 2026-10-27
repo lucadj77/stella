@@ -113,6 +113,8 @@ export interface TtsSetObject {
   thickness: number
   /** Colore del bordo (lo spessore) di tessere e plance */
   edgeColor: string
+  /** Tag di Tabletop Simulator di tutti i componenti del set, separati da virgole */
+  tags?: string
 }
 
 /** Spessore predefinito delle pedine, in mm */
@@ -679,9 +681,12 @@ export interface TtsExtras {
   snaps: SnapPoint[]
 }
 
-/** Tag del template e snap point dei livelli del fronte, da un template legato ai dati */
-export function ttsExtras(t: Template): TtsExtras {
-  return { tags: parseTags(t.ttsTags), snaps: snapPoints(t.front) }
+/**
+ * Tag del template e del set (scelti nell'esportazione) e snap point dei livelli del fronte, da
+ * un template legato ai dati
+ */
+export function ttsExtras(t: Template, setTags?: string): TtsExtras {
+  return { tags: parseTags(`${t.ttsTags ?? ''},${setTags ?? ''}`), snaps: snapPoints(t.front) }
 }
 
 /**

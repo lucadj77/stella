@@ -1358,6 +1358,9 @@ export const it: Record<MessageKey, string> = {
     "Set «{set}»: le carte non sono un multiplo di sei, l'ultimo dado ripete le sue prime facce.",
   'export.ttsThickness': 'Spessore',
   'export.ttsEdge': 'Bordo',
+  'export.ttsTags': 'Tag TTS',
+  'export.ttsTagsHint':
+    'Tag di Tabletop Simulator di tutti i componenti del set, separati da virgole; si aggiungono ai tag TTS del template',
   'export.ttsBack': 'Retro',
   'export.backAuto': "Automatico: un'immagine se i retri sono tutti uguali",
   'export.backSingle': "Un'immagine per tutte le carte",

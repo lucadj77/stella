@@ -359,7 +359,7 @@ async function exportTts(
             slot,
             nickname: fieldText(card, o.nickname),
             description: fieldText(card, o.description),
-            extras: ttsExtras(card.template)
+            extras: ttsExtras(card.template, plan.object.tags)
           })
       })
     )
@@ -446,7 +446,7 @@ async function exportPieces(
         nickname: fieldText(p.card, o.nickname),
         description: fieldText(p.card, o.description),
         count: p.count,
-        extras: ttsExtras(p.card.template),
+        extras: ttsExtras(p.card.template, plan.object.tags),
         card: { w: p.card.template.width, h: p.card.template.height }
       })
     }

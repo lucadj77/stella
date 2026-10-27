@@ -306,6 +306,14 @@ function TemplateProperties({
           onChange={(kind) => set({ kind: kind === 'card' ? undefined : kind }, 'kind')}
         />
       </Inherit>
+      <Inherit keys={['ttsTags']}>
+        <TextField
+          label={t('prop.ttsTags')}
+          hint={t('editor.ttsTagsHint')}
+          value={tpl.ttsTags ?? ''}
+          onChange={(v) => set({ ttsTags: v.trim() ? v : undefined }, 'ttsTags')}
+        />
+      </Inherit>
       {base ? (
         // le misure della carta sono sempre quelle del base
         <div className="field" title={t('inherit.sizeFromBase')}>
@@ -439,15 +447,6 @@ function TemplateProperties({
             ...labelChoices(tpl, sheets).map((f): [string, string] => [f, f])
           ]}
           onChange={(f) => set({ labelField: f || null }, 'labelField')}
-        />
-      </Inherit>
-      <h3>{t('editor.ttsSnap')}</h3>
-      <Inherit keys={['ttsTags']}>
-        <TextField
-          label={t('prop.ttsTags')}
-          hint={t('editor.ttsTagsHint')}
-          value={tpl.ttsTags ?? ''}
-          onChange={(v) => set({ ttsTags: v.trim() ? v : undefined }, 'ttsTags')}
         />
       </Inherit>
       <p className="muted small">{t('editor.noSelectionHint')}</p>
