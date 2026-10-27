@@ -311,3 +311,29 @@ export function constrainAxis(dx: number, dy: number): 'x' | 'y' | 'diagonal' | 
   const a = (Math.atan2(Math.abs(dy), Math.abs(dx)) * 180) / Math.PI
   return a < 22.5 ? 'x' : a > 67.5 ? 'y' : 'diagonal'
 }
+
+/**
+ * Riquadro in cui si disegna la forma della carta prima di girarla, e la trasformazione SVG che
+ * la porta nel riquadro x, y, w, h: rotazione a passi di 90° intorno al centro, poi gli
+ * specchi. Con 90° e 270° il riquadro ha i lati scambiati, così la forma ruotata lo riempie.
+ * Senza rotazione né specchi la trasformazione è vuota.
+ */
+export function shapeFrame(
+  t: { shapeRotation?: number; shapeFlipH?: boolean; shapeFlipV?: boolean },
+  x: number,
+  y: number,
+  w: number,
+  h: number
+): { x: number; y: number; w: number; h: number; transform?: string } {
+  const rot = t.shapeRotation ?? 0
+  if (!rot && !t.shapeFlipH && !t.shapeFlipV) return { x, y, w, h }
+  const turned = rot % 180 !== 0
+  const bw = turned ? h : w
+  const bh = turned ? w : h
+  const parts = [`translate(${x + w / 2} ${y + h / 2})`]
+  if (t.shapeFlipH || t.shapeFlipV)
+    parts.push(`scale(${t.shapeFlipH ? -1 : 1} ${t.shapeFlipV ? -1 : 1})`)
+  if (rot) parts.push(`rotate(${rot})`)
+  parts.push(`translate(${-bw / 2} ${-bh / 2})`)
+  return { x: 0, y: 0, w: bw, h: bh, transform: parts.join(' ') }
+}

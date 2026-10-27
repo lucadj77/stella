@@ -189,7 +189,7 @@ export function templateColumns(t: Template): string[] {
   for (const l of walkLayers([...t.front, ...t.back])) {
     if (l.source.kind !== 'column') continue
     // forme e gruppi (riempimento, visibilità) di solito sono decorazione: si aggiungono a mano
-    if (l.type === 'group' || l.type === 'shape' || l.type === 'grid') continue
+    if (l.type === 'group' || l.type === 'shape' || l.type === 'grid' || l.type === 'snap') continue
     const col = l.source.column ?? l.name
     if (!cols.includes(col)) cols.push(col)
   }
@@ -220,7 +220,8 @@ export function propertyColumns(t: Template, layerName: string): string[] {
     'locked',
     'constraints',
     'fade',
-    'paddingSides'
+    'paddingSides',
+    'snap'
   ])
   return Object.keys(l)
     .filter((k) => !skip.has(k))

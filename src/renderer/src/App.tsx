@@ -112,7 +112,7 @@ import { KIND_CORNER } from '../../shared/model/kinds'
 import CardGrid from './components/CardGrid'
 import CardForm from './components/CardForm'
 import ColumnsMenu from './components/ColumnsMenu'
-import { confirmKey, showNotice } from './components/confirm'
+import { askConfirm, confirmKey, showNotice } from './components/confirm'
 import FirstSteps from './components/FirstSteps'
 import { kindWords } from './i18n/kinds'
 import HelpTip from './components/HelpTip'
@@ -160,6 +160,8 @@ import { useDocuments } from './components/useDocuments'
 import { BUILTIN_STYLES, parseAttrs, serializeAttrs } from '../../shared/model/markup'
 import { LANGUAGES, useI18n, type Language } from './i18n/context'
 import { THEMES, applyTheme, loadTheme } from './theme/theme'
+import { setLengthUnit, useLengthUnit } from './units'
+import { LENGTH_UNITS, toUnit, type LengthUnit } from '../../shared/model/units'
 import type { AgentLock, Theme } from '../../shared/api'
 
 const NO_STYLES: Record<string, string> = {}
@@ -231,6 +233,7 @@ function App(): React.JSX.Element {
     window.api.setUpdateChannel(c).then(checkForUpdateNow, () => {})
   }
   const [theme, setTheme] = useState(loadTheme)
+  const lengthUnit = useLengthUnit()
   const changeTheme = (th: Theme): void => {
     setTheme(th)
     applyTheme(th)
@@ -541,6 +544,36 @@ function App(): React.JSX.Element {
     if (folder) load(folder)
   }
 
+  /** Copia o sposta la cartella del progetto: prima si salva, così la copia è completa */
+  const relocate = async (mode: 'copy' | 'move'): Promise<void> => {
+    if (!project) return
+    if (anyDirty) {
+      await showNotice(t, t('relocate.saveFirst'))
+      return
+    }
+    try {
+      const to = await window.api.relocateProject(mode, {
+        title: t(mode === 'copy' ? 'relocate.copyTitle' : 'relocate.moveTitle'),
+        button: t(mode === 'copy' ? 'relocate.copyButton' : 'relocate.moveButton'),
+        copy: t('relocate.copySuffix')
+      })
+      if (!to) return
+      if (mode === 'move') {
+        await load(to)
+        return
+      }
+      const open = await askConfirm({
+        title: t('relocate.copied'),
+        message: to,
+        ok: t('relocate.openCopy'),
+        cancel: t('relocate.stay')
+      })
+      if (open) await load(to)
+    } catch (e) {
+      setError(messageFromError(e))
+    }
+  }
+
   /** Torna alla schermata di ingresso */
   const closeProject = async (): Promise<void> => {
     if (!(await discardOk())) return
@@ -636,13 +669,14 @@ function App(): React.JSX.Element {
   /** Colonne mostrate nel set: è una preferenza, salvata nel progetto ma fuori dall'annulla */
   const setColumnsView = (
     index: number,
-    view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed'>
+    view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed' | 'pinnedProperties'>
   ): void => {
     if (!project) return
     const patch = <T extends SetDefinition>(x: T): T => {
       const next = { ...x, ...view }
       if (!next.hiddenColumns?.length) delete next.hiddenColumns
       if (!next.showComputed) delete next.showComputed
+      if (!next.pinnedProperties?.length) delete next.pinnedProperties
       return next
     }
     setProject({
@@ -1433,37 +1467,45 @@ function App(): React.JSX.Element {
   })
 
   const createTemplate = ({ name, width, height, kind, shape }: NewTemplate): void => {
+    // la pedina è una figura su fondo trasparente, con il retro specchiato dal fronte: niente
+    // sfondi e niente abbondanza, il bordo è la figura stessa
+    const standee = kind === 'standee'
     const tpl = normalizeTemplate({
       name,
       kind,
       width,
       height,
       cornerRadius: KIND_CORNER[kind],
+      ...(standee ? { bleed: 0, safeMargin: 0 } : {}),
       ...(shape ? { shape } : {}),
-      front: [
-        {
-          type: 'shape',
-          name: 'background',
-          x: -3,
-          y: -3,
-          w: width + 6,
-          h: height + 6,
-          fill: '#FFFFFF',
-          locked: true
-        }
-      ],
-      back: [
-        {
-          type: 'shape',
-          name: 'back_background',
-          x: -3,
-          y: -3,
-          w: width + 6,
-          h: height + 6,
-          fill: '#5E4421',
-          locked: true
-        }
-      ]
+      front: standee
+        ? []
+        : [
+            {
+              type: 'shape',
+              name: 'background',
+              x: -3,
+              y: -3,
+              w: width + 6,
+              h: height + 6,
+              fill: '#FFFFFF',
+              locked: true
+            }
+          ],
+      back: standee
+        ? []
+        : [
+            {
+              type: 'shape',
+              name: 'back_background',
+              x: -3,
+              y: -3,
+              w: width + 6,
+              h: height + 6,
+              fill: '#5E4421',
+              locked: true
+            }
+          ]
     })
     setProject((p) => p && { ...p, templates: [...p.templates, tpl] })
     setDirty((d) => new Set(d).add(name))
@@ -1777,7 +1819,9 @@ function App(): React.JSX.Element {
                       className={tpl.extends ? 'muted derived-base' : 'muted'}
                       title={tpl.extends ? `${t('inherit.derivedFrom')} ${tpl.extends}` : undefined}
                     >
-                      {tpl.extends ? `↳ ${tpl.extends}` : `${tpl.width}×${tpl.height}`}
+                      {tpl.extends
+                        ? `↳ ${tpl.extends}`
+                        : `${toUnit(tpl.width, lengthUnit)}×${toUnit(tpl.height, lengthUnit)}`}
                     </span>
                   </button>
                   <button
@@ -2027,6 +2071,21 @@ function App(): React.JSX.Element {
     },
     { label: t('app.languages'), title: t('tip.languages'), onClick: () => setLanguagesOpen(true) },
     'sep',
+    // nel browser le cartelle si gestiscono dal sistema
+    ...(window.api.isWeb
+      ? []
+      : ([
+          {
+            label: t('relocate.copyMenu'),
+            title: t('relocate.copyHint'),
+            onClick: () => void relocate('copy')
+          },
+          {
+            label: t('relocate.moveMenu'),
+            title: t('relocate.moveHint'),
+            onClick: () => void relocate('move')
+          }
+        ] as MenuItem[])),
     {
       label: t('app.reloadFromDisk'),
       title: t('tip.reload'),
@@ -2046,6 +2105,8 @@ function App(): React.JSX.Element {
     languages: () => setLanguagesOpen(true),
     reload: async () => project && (await discardOk()) && load(project.folder),
     close: closeProject,
+    copyProject: () => void relocate('copy'),
+    moveProject: () => void relocate('move'),
     uiBigger: () =>
       changeUiZoom(UI_ZOOMS[Math.min(UI_ZOOMS.indexOf(uiZoom) + 1, UI_ZOOMS.length - 1)]),
     uiSmaller: () => changeUiZoom(UI_ZOOMS[Math.max(UI_ZOOMS.indexOf(uiZoom) - 1, 0)]),
@@ -2070,7 +2131,7 @@ function App(): React.JSX.Element {
       {
         label: t('menu.file'),
         items: [
-          { id: 'open', label: t('menu.openProject') },
+          { id: 'open', label: t('menu.openProject'), accelerator: 'CmdOrCtrl+O' },
           sep,
           {
             id: 'save',
@@ -2086,8 +2147,15 @@ function App(): React.JSX.Element {
           { id: 'sheets', label: t('app.googleSheets'), enabled: hasProject },
           { id: 'languages', label: t('app.languages'), enabled: hasProject },
           sep,
+          { id: 'copyProject', label: t('relocate.copyMenu'), enabled: hasProject },
+          { id: 'moveProject', label: t('relocate.moveMenu'), enabled: hasProject },
           { id: 'reload', label: t('app.reloadFromDisk'), enabled: hasProject },
-          { id: 'close', label: t('app.closeProjectLong'), enabled: hasProject },
+          {
+            id: 'close',
+            label: t('app.closeProjectLong'),
+            accelerator: 'CmdOrCtrl+W',
+            enabled: hasProject
+          },
           ...(isMac ? [] : [sep, { role: 'quit', label: t('menu.quit') }])
         ]
       },
@@ -2154,6 +2222,21 @@ function App(): React.JSX.Element {
                 </select>
               </>
             )}
+            <label className="muted" htmlFor="ui-unit" title={t('app.lengthUnitHint')}>
+              {t('app.lengthUnit')}
+            </label>
+            <select
+              id="ui-unit"
+              value={lengthUnit}
+              title={t('app.lengthUnitHint')}
+              onChange={(e) => setLengthUnit(e.target.value as LengthUnit)}
+            >
+              {LENGTH_UNITS.map((u) => (
+                <option key={u} value={u}>
+                  {t(`app.lengthUnit.${u}`)}
+                </option>
+              ))}
+            </select>
             <label className="muted" htmlFor="ui-theme">
               {t('app.theme')}
             </label>
@@ -2789,7 +2872,9 @@ function SetView({
   /** Assegna al set un altro template */
   onChangeTemplate(name: string): void
   /** Colonne nascoste e livelli calcolati mostrati */
-  onChangeColumns(view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed'>): void
+  onChangeColumns(
+    view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed' | 'pinnedProperties'>
+  ): void
   /** Apre nell'editor un template: quello del set o quello di una carta */
   /** row: la carta da mostrare nell'editor */
   onEditTemplate(name: string, row?: number): void
@@ -2880,6 +2965,7 @@ function SetView({
     [set.data, template, rowTemplates]
   )
   const hidden = new Set(set.hiddenColumns ?? [])
+  const pinned = new Set(set.pinnedProperties ?? [])
   const columns = allColumns.filter(
     (c) => !hidden.has(c.header) && (!c.computed || set.showComputed)
   )
@@ -3151,6 +3237,12 @@ function SetView({
       computed={computed}
       focus={focus}
       details={details}
+      pinned={pinned}
+      onTogglePin={(h) =>
+        onChangeColumns({
+          pinnedProperties: pinned.has(h) ? [...pinned].filter((x) => x !== h) : [...pinned, h]
+        })
+      }
       onToggleDetails={(h) =>
         setDetails((d) => {
           const next = new Set(d)

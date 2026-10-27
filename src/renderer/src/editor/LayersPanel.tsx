@@ -9,6 +9,7 @@ import {
   ColumnIcon,
   FixedIcon,
   GridIcon,
+  SnapIcon,
   ImageIcon,
   LinkIcon,
   RevertIcon
@@ -42,7 +43,8 @@ const ICONS: Record<string, React.ReactNode> = {
   line: '╱',
   path: '✎',
   grid: <GridIcon />,
-  value: '#'
+  value: '#',
+  snap: <SnapIcon />
 }
 
 const SOURCE_KINDS: ValueSource['kind'][] = ['column', 'fixed', 'formula']

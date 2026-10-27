@@ -23,6 +23,11 @@ export interface SetDefinition {
   hiddenColumns?: string[]
   /** Mostra anche i livelli fissi e con formula, in sola lettura */
   showComputed?: boolean
+  /**
+   * Proprietà dei livelli fissate nei campi della carta (colonne livello.proprietà): restano
+   * visibili sotto il loro campo anche con i dettagli chiusi
+   */
+  pinnedProperties?: string[]
   /** Nome del set nelle altre lingue del progetto, per codice della lingua */
   names?: Record<string, string>
 }

@@ -106,6 +106,27 @@ function toSheet(name: string, table: string[][]): Sheet {
   }
 }
 
+/**
+ * Una carta senza alcun dato (appena aggiunta, con il template che non legge niente) sarebbe
+ * una riga vuota, che in lettura si salta: la carta sparirebbe riaprendo il progetto. Si salva
+ * con amount 1, che è il valore che ha già.
+ */
+export function keepEmptyCards(sheet: Sheet): Sheet {
+  const col = sheet.headers.indexOf('amount')
+  if (col < 0 || !sheet.rows.some(isEmptyRow)) return sheet
+  return {
+    ...sheet,
+    rows: sheet.rows.map((r) => {
+      if (!isEmptyRow(r)) return r
+      const next = sheet.headers.map((_, i) => r[i] ?? '')
+      next[col] = '1'
+      return next
+    })
+  }
+}
+
+const isEmptyRow = (r: string[]): boolean => r.every((v) => (v ?? '').trim() === '')
+
 export interface WriteOptions {
   /**
    * Se l'xlsx si può salvare solo riscrivendolo tutto e così perderebbe grafici o altro (vedi
@@ -127,6 +148,7 @@ export async function writeSpreadsheet(
   options: WriteOptions = {}
 ): Promise<boolean> {
   const ext = extname(path).toLowerCase()
+  sheets = sheets.map(keepEmptyCards)
   if (ext === '.xlsx') return writeXlsx(path, sheets, removed, options)
   // un csv ha un solo foglio: eliminando il set il file resta
   if (ext === '.csv') {
@@ -356,6 +378,6 @@ async function writeCsv(path: string, sheets: Sheet[]): Promise<void> {
     throw new MessageError(msg('save.csvOneSheet'))
   const s = sheets[0]
   const tmp = path + '.tmp'
-  await writeFile(tmp, Papa.unparse([s.headers, ...s.rows]) + '\n', 'utf8')
+  await writeFile(tmp, Papa.unparse([s.headers, ...s.rows]) + '\r\n', 'utf8')
   await rename(tmp, path)
 }

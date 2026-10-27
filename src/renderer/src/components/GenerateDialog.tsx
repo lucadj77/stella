@@ -1,4 +1,5 @@
 import { Fragment, useContext, useMemo, useState } from 'react'
+import NumInput from './NumInput'
 import { confirmKey } from './confirm'
 import type { Sheet } from '../../../shared/project'
 import { assetRefName, isImageAsset } from '../../../shared/model/assets'
@@ -148,8 +149,7 @@ export default function GenerateDialog({
                 </label>
                 <label>
                   {t('generate.pick')}
-                  <input
-                    type="number"
+                  <NumInput
                     className="num narrow"
                     min={1}
                     max={10}
@@ -267,8 +267,8 @@ export default function GenerateDialog({
                               v
                             )}
                           </span>
-                          <input
-                            type="number"
+                          <NumInput
+                            allowEmpty
                             className="num narrow"
                             min={0}
                             max={c.pick}
@@ -276,8 +276,8 @@ export default function GenerateDialog({
                             value={lim.min ?? ''}
                             onChange={(e) => setLim('min', e.target.value)}
                           />
-                          <input
-                            type="number"
+                          <NumInput
+                            allowEmpty
                             className="num narrow"
                             min={0}
                             max={c.pick}
@@ -318,8 +318,7 @@ export default function GenerateDialog({
           </label>
           <label>
             {t('generate.copies')}
-            <input
-              type="number"
+            <NumInput
               className="num narrow"
               min={1}
               value={copies}

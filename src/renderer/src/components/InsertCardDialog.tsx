@@ -1,4 +1,5 @@
 import { Fragment, useMemo, useRef, useState } from 'react'
+import NumInput from './NumInput'
 import { useUndo } from './useUndo'
 import type { LoadedSet } from '../../../shared/project'
 import { isDrawn, type Layer, type Side, type Template } from '../../../shared/model/template'
@@ -278,9 +279,9 @@ export default function InsertCardDialog({
         </label>
         <label>
           {t('documents.width')}
-          <input
+          <NumInput
+            allowEmpty
             className="num"
-            type="number"
             min={5}
             value={width}
             placeholder={template ? String(template.width) : ''}
@@ -303,9 +304,9 @@ export default function InsertCardDialog({
         <div className="dialog-row" title={t('documents.blockSizeHint')}>
           <label>
             {t('documents.blockWidth')}
-            <input
+            <NumInput
+              allowEmpty
               className="num"
-              type="number"
               min={10}
               max={100}
               value={blockWidth}
@@ -314,9 +315,9 @@ export default function InsertCardDialog({
           </label>
           <label>
             {t('documents.blockFont')}
-            <input
+            <NumInput
+              allowEmpty
               className="num"
-              type="number"
               min={30}
               max={300}
               value={blockFont}

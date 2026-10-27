@@ -5,6 +5,7 @@ import type { Side, Template } from './model/template'
 import type { Message } from './messages'
 import type { ProjectFont } from './project'
 import type { Variables } from './model/variables'
+import { parseTags, snapPoints, type SnapPoint } from './model/ttsSnap'
 
 export type ExportKind = 'images' | 'pdf' | 'tts'
 export type SidesChoice = 'front' | 'back' | 'both'
@@ -104,7 +105,7 @@ export interface TtsOptions extends Omit<CommonOptions, 'folder'> {
  * Carte in un mazzo, segnalini ritagliati sulla sagoma, tessere con fronte, retro e bordo, plance
  * (tessere grandi, non impilabili) o dadi a sei facce (sei carte per dado)
  */
-export type TtsObjectType = 'card' | 'token' | 'tile' | 'board' | 'die'
+export type TtsObjectType = 'card' | 'token' | 'tile' | 'board' | 'die' | 'standee'
 
 export interface TtsSetObject {
   type: TtsObjectType
@@ -112,7 +113,15 @@ export interface TtsSetObject {
   thickness: number
   /** Colore del bordo (lo spessore) di tessere e plance */
   edgeColor: string
+  /**
+   * Tag di Tabletop Simulator dei componenti del set, separati da virgole, anche con {campi}: al
+   * posto di quelli del template. Assente: quelli del template
+   */
+  tags?: string
 }
+
+/** Spessore predefinito delle pedine, in mm */
+export const STANDEE_THICKNESS = 10
 
 export const DEFAULT_TTS_OBJECT: TtsSetObject = {
   type: 'card',
@@ -127,7 +136,19 @@ export function ttsSetObject(
   kind?: TtsObjectType
 ): TtsSetObject {
   // senza una scelta nell'esportazione vale il tipo di componente del template
-  return { ...DEFAULT_TTS_OBJECT, ...(kind ? { type: kind } : {}), ...o.objects?.[set] }
+  const chosen = o.objects?.[set]
+  const type = chosen?.type ?? kind ?? DEFAULT_TTS_OBJECT.type
+  return {
+    ...DEFAULT_TTS_OBJECT,
+    thickness: ttsDefaultThickness(type),
+    ...(kind ? { type: kind } : {}),
+    ...chosen
+  }
+}
+
+/** Spessore predefinito in mm: le pedine devono stare in piedi, quindi hanno una base larga */
+export function ttsDefaultThickness(type: TtsObjectType): number {
+  return type === 'standee' ? STANDEE_THICKNESS : DEFAULT_TTS_OBJECT.thickness
 }
 
 /** Opzioni salvate con un nome, per rilanciare un'esportazione o partire da un servizio di stampa */
@@ -200,7 +221,7 @@ export const DEFAULT_TTS: TtsOptions = {
   maxSize: 4096,
   copiesIn: 'deck',
   back: 'auto',
-  destination: 'project',
+  destination: 'both',
   ttsFolder: '',
   nickname: '',
   description: ''
@@ -653,35 +674,147 @@ export interface TtsDeckCard {
   slot: number
   nickname: string
   description: string
+  /** Tag e snap point della carta, da ttsExtras */
+  extras?: TtsExtras
+}
+
+/** Tag e snap point di un componente in Tabletop Simulator */
+export interface TtsExtras {
+  tags: string[]
+  snaps: SnapPoint[]
+}
+
+/**
+ * Tag e snap point dei livelli del fronte, da un template legato ai dati. I tag sono quelli del
+ * template, o quelli scelti per il set nell'esportazione (`setTags`, con i campi già sostituiti)
+ * che li prendono al posto loro
+ */
+export function ttsExtras(t: Template, setTags?: string): TtsExtras {
+  return { tags: parseTags(setTags ?? t.ttsTags), snaps: snapPoints(t.front) }
+}
+
+/**
+ * Snap point in coordinate dell'oggetto di Tabletop Simulator. Le coordinate sono locali: si
+ * moltiplicano per la scala dell'oggetto e, in larghezza, per l'allungamento con cui TTS adatta
+ * il pezzo base (la carta da poker, la tessera quadrata) alle proporzioni dell'immagine. A
+ * rotazione Y 180 (come gli oggetti esportati) l'immagine è dritta per chi guarda il tavolo,
+ * quindi la sua destra è la X locale negativa e il suo basso la Z locale positiva. La rotazione
+ * di TTS va nello stesso verso di quella di Stella, su carte e tessere (verificato in TTS con la
+ * stessa plancia esportata nei due modi, ottobre 2026)
+ */
+export function ttsSnapPoints(
+  snaps: SnapPoint[],
+  size: { w: number; h: number },
+  scale: number,
+  /** Allungamento in larghezza del pezzo base, da ttsStretch */
+  stretch = 1
+): Record<string, unknown>[] {
+  // gli snap point escono un po' più distanti dal centro della misura vera, in larghezza e in
+  // altezza: si avvicinano di TTS_SNAP_SPREAD
+  const k = TTS_UNITS_PER_MM / (scale || 1)
+  return snaps.map((p) => ({
+    Position: {
+      x: round3((-(p.x - size.w / 2) * k) / TTS_SNAP_SPREAD.x / (stretch || 1)),
+      y: TTS_SNAP_Y,
+      z: round3(((p.y - size.h / 2) * k) / TTS_SNAP_SPREAD.z)
+    },
+    ...(p.angle !== null ? { Rotation: { x: 0, y: round3(p.angle), z: 0 } } : {}),
+    ...(p.tags.length ? { Tags: p.tags } : {})
+  }))
+}
+
+/**
+ * Quanto TTS allunga in larghezza la carta da poker per darle le proporzioni dell'immagine: anche
+ * gli snap point della carta si allungano. Con una plancia 126 × 88 esportata come carta uscivano
+ * larghi circa il doppio, e ancora del 5% con w / 63 (ottobre 2026). Le tessere e i segnalini
+ * non allungano gli snap point: la stessa plancia esportata come plancia li aveva stretti di
+ * 1 / 1,43 con la correzione. Tessere e plance li hanno solo un po' stretti in larghezza: 1%
+ * in più rispetto alle carte (plancia 200 × 300, ottobre 2026)
+ */
+export function ttsStretch(kind: 'card' | TtsPieceKind, w: number, h: number): number {
+  if (kind === 'card') return w / h / (63 / POKER_HEIGHT)
+  return kind === 'tile' || kind === 'board' ? 0.99 : 1
+}
+
+/** Campi Tags e AttachedSnapPoints di un oggetto, solo se servono */
+function extrasFields(
+  extras: TtsExtras | undefined,
+  size: { w: number; h: number },
+  scale: number,
+  stretch: number
+): Record<string, unknown> {
+  if (!extras) return {}
+  // in TTS i tag sono un elenco di testi: { labels: [...] } impediva di caricare l'oggetto
+  return {
+    ...(extras.tags.length ? { Tags: extras.tags } : {}),
+    ...(extras.snaps.length
+      ? { AttachedSnapPoints: ttsSnapPoints(extras.snaps, size, scale, stretch) }
+      : {})
+  }
+}
+
+/** Unione dei tag di più oggetti: un mazzo li prende tutti, così si aggancia come le sue carte */
+function unionTags(all: (TtsExtras | undefined)[]): Record<string, unknown> {
+  const tags = parseTags(all.flatMap((e) => e?.tags ?? []).join(','))
+  return tags.length ? { Tags: tags } : {}
 }
 
 // Misure in Tabletop Simulator. TTS non ha una scala assoluta: un oggetto a scala 1 ha una misura
 // fissa per tipo, qualunque sia la sua immagine. Queste sono misurate in TTS (ottobre 2026) con il
-// righello, in unità (che TTS mostra come pollici): una carta larga 63 mm è larga 2,25, una
-// tessera 2 sul lato lungo, un segnalino circa 3,2 sul lato lungo dell'immagine. Le scale si
-// calcolano in modo che tutto stia nelle proporzioni vere rispetto a una carta da 63 mm.
+// righello, in unità (che TTS mostra come pollici): una carta da poker 63 × 88 è larga 2,25 (la
+// carta segue le proporzioni dell'immagine con l'altezza della carta da poker), una tessera 2,06
+// in altezza, un segnalino circa 3,2 in larghezza (l'altezza segue le proporzioni
+// dell'immagine: una pedina alta e stretta resta larga 3,2). Le scale si calcolano in modo che
+// tutto stia nelle proporzioni vere rispetto a una carta da 63 mm.
 
 /** Unità di TTS per mm: la carta da 63 mm a scala 1 è larga 2,25 */
 export const TTS_UNITS_PER_MM = 2.25 / 63
-const TTS_CARD_WIDTH = 2.25
-const TTS_TILE_SIZE = 2
+// 2 misurato su una tessera quadrata; con le plance accanto alle carte risultava grande del 3% circa
+const TTS_TILE_SIZE = 2.06
+/** Lato lungo della carta da poker, in mm */
+const POKER_HEIGHT = 88
 const TTS_TOKEN_SIZE = 3.2
+/**
+ * Gli snap point escono più distanti dal centro di circa il 5% in larghezza e del 2,5% in
+ * altezza, su carte e plance (misurato in TTS su una plancia 200 × 300, ottobre 2026: con il 5%
+ * anche in altezza risultavano troppo stretti)
+ */
+const TTS_SNAP_SPREAD = { x: 1.05, z: 1.025 }
+/** Altezza degli snap point sull'oggetto, in unità locali */
+const TTS_SNAP_Y = 0
 
 const round3 = (v: number): number => Math.round(v * 1000) / 1000
 
-/** Scala di una carta larga w mm: 1 per 63 mm, come prima */
-export function ttsCardScale(w: number): number {
-  return round3((w * TTS_UNITS_PER_MM) / TTS_CARD_WIDTH)
+/**
+ * Scala di una carta alta h mm. In TTS la carta prende le proporzioni dell'immagine e a scala 1
+ * è alta quanto una carta da poker (88 mm): verificato con carte 63 × 176 (scala 2) e, di
+ * traverso, 126 × 88 (scala 1), ottobre 2026
+ */
+export function ttsCardScale(h: number): number {
+  return round3(h / POKER_HEIGHT)
 }
 
 /** Scala di un segnalino o di una tessera la cui immagine misura w × h mm */
 export function ttsPieceScale(kind: TtsPieceKind, w: number, h: number): number {
-  const base = kind === 'token' ? TTS_TOKEN_SIZE : TTS_TILE_SIZE
-  return round3((Math.max(w, h) * TTS_UNITS_PER_MM) / base)
+  // il segnalino si misura sulla larghezza
+  if (isTokenLike(kind)) return round3((w * TTS_UNITS_PER_MM) / TTS_TOKEN_SIZE)
+  // la tessera si misura sull'altezza: giuste in TTS una plancia 120 × 88 a scala 1,5 circa e
+  // una 63 × 176 con la scala calcolata sull'altezza (ottobre 2026)
+  return round3((h * TTS_UNITS_PER_MM) / TTS_TILE_SIZE)
 }
 
-/** Posizione sul tavolo: le carte a faccia in giù, segnalini e tessere a faccia in su */
-function transform(y = 1, faceDown = true, scale = 1, x = 0): Record<string, number> {
+/**
+ * Posizione sul tavolo: le carte a faccia in giù, segnalini e tessere a faccia in su. La pedina
+ * (segnalino in piedi) ha la figura nel piano X-Y: lì va la scala, e Z, lo spessore, resta 1
+ * (verificato in TTS, ottobre 2026: con la scala su Z la pedina era alta e stretta)
+ */
+function transform(
+  y = 1,
+  faceDown = true,
+  scale = 1,
+  x = 0,
+  standUp = false
+): Record<string, number> {
   return {
     posX: x,
     posY: y,
@@ -691,8 +824,8 @@ function transform(y = 1, faceDown = true, scale = 1, x = 0): Record<string, num
     rotZ: faceDown ? 180 : 0,
     // lo spessore si dà a parte: in altezza la scala resta 1
     scaleX: scale,
-    scaleY: 1,
-    scaleZ: scale
+    scaleY: standUp ? scale : 1,
+    scaleZ: standUp ? 1 : scale
   }
 }
 
@@ -702,9 +835,13 @@ export function ttsSavedObject(
   sheets: TtsSheet[],
   cards: TtsDeckCard[],
   /** Larghezza della carta in mm, per la scala */
-  cardWidth = 63
+  cardWidth = 63,
+  /** Altezza della carta in mm: le carte orizzontali sono "di traverso" in TTS */
+  cardHeight = 88
 ): Record<string, unknown> {
-  const scale = ttsCardScale(cardWidth)
+  // una carta orizzontale va messa di traverso; la scala viene sempre dall'altezza
+  const sideways = cardWidth > cardHeight
+  const scale = ttsCardScale(cardHeight)
   const customDeck = (i: number): Record<string, unknown> => ({
     [String(i + 1)]: {
       FaceURL: sheets[i].faceUrl,
@@ -728,13 +865,21 @@ export function ttsSavedObject(
     Grid: true,
     Snap: true,
     Hands: true,
-    SidewaysCard: false
+    SidewaysCard: sideways,
+    ...extrasFields(
+      c.extras,
+      { w: cardWidth, h: cardHeight },
+      scale,
+      ttsStretch('card', cardWidth, cardHeight)
+    )
   })
+  // "CardCustom" e "DeckCustom" sono i nomi che TTS dà agli oggetti fatti con Objects > Custom:
+  // solo con questi il menu dell'oggetto ha la voce Custom. Un mazzo con più fogli resta "Deck"
   const object =
     cards.length === 1
-      ? { ...cardObject(cards[0]), Nickname: cards[0].nickname || name }
+      ? { ...cardObject(cards[0]), Name: 'CardCustom', Nickname: cards[0].nickname || name }
       : {
-          Name: 'Deck',
+          Name: sheets.length === 1 ? 'DeckCustom' : 'Deck',
           Transform: transform(1, true, scale),
           Nickname: name,
           Description: '',
@@ -745,7 +890,8 @@ export function ttsSavedObject(
           Grid: true,
           Snap: true,
           Hands: false,
-          SidewaysCard: false
+          SidewaysCard: sideways,
+          ...unionTags(cards.map((c) => c.extras))
         }
   return savedFile(object)
 }
@@ -781,6 +927,10 @@ export interface TtsPiece {
   description: string
   /** Quante copie mettere nel sacchetto */
   count: number
+  /** Tag e snap point, da ttsExtras */
+  extras?: TtsExtras
+  /** Misure della carta in mm, per la posizione degli snap point */
+  card?: { w: number; h: number }
 }
 
 /** Forme delle tessere di Tabletop Simulator: quadrata, esagonale, rotonda, con angoli arrotondati */
@@ -806,7 +956,10 @@ export function ttsColor(hex: string): { r: number; g: number; b: number } {
 }
 
 /** Oggetti fatti da un'immagine per carta: segnalini, tessere e plance */
-export type TtsPieceKind = 'token' | 'tile' | 'board'
+export type TtsPieceKind = 'token' | 'tile' | 'board' | 'standee'
+
+/** Segnalini e pedine: Custom_Token ritagliato sulla sagoma, con la sola immagine del fronte */
+export const isTokenLike = (kind: TtsPieceKind): boolean => kind === 'token' || kind === 'standee'
 
 /**
  * Oggetto salvato con segnalini, tessere o plance. Segnalini e tessere: uno solo se il set ne ha
@@ -826,40 +979,48 @@ export function ttsSavedPieces(
   const thickness = round3(Math.max(0.1, settings.thickness) * TTS_UNITS_PER_MM)
   const scale = ttsPieceScale(kind, size.w, size.h)
   const pieceObject = (p: TtsPiece, x = 0): Record<string, unknown> => ({
-    Name: kind === 'token' ? 'Custom_Token' : 'Custom_Tile',
-    Transform: transform(1, false, scale, x),
+    Name: isTokenLike(kind) ? 'Custom_Token' : 'Custom_Tile',
+    Transform: transform(1, false, scale, x, kind === 'standee'),
     Nickname: p.nickname,
     Description: p.description,
     // nelle tessere e nelle plance la tinta colora solo i lati, non le immagini
-    ColorDiffuse: kind === 'token' ? { r: 1, g: 1, b: 1 } : ttsColor(settings.edgeColor),
+    ColorDiffuse: isTokenLike(kind) ? { r: 1, g: 1, b: 1 } : ttsColor(settings.edgeColor),
     Locked: false,
     Grid: true,
     Snap: true,
     Hands: false,
     CustomImage: {
       ImageURL: p.faceUrl,
-      ImageSecondaryURL: kind === 'token' ? '' : p.backUrl,
+      ImageSecondaryURL: isTokenLike(kind) ? '' : p.backUrl,
       ImageScalar: 1,
       WidthScale: 0,
-      ...(kind === 'token'
+      ...(isTokenLike(kind)
         ? {
+            // la pedina sta in piedi sul tavolo
             CustomToken: {
               Thickness: thickness,
               MergeDistancePixels: 15,
-              StandUp: false,
+              StandUp: kind === 'standee',
               Stackable: true
             }
           }
         : {
-            // Stretch false: la tessera prende le proporzioni dell'immagine, cioè della carta
+            // Stretch (in TTS "Stretch to Aspect Ratio"): la tessera prende le proporzioni
+            // dell'immagine, cioè della carta; senza, arriva quadrata. Le plance sono "Rounded"
             CustomTile: {
-              Type: tileType,
+              Type: kind === 'board' ? 3 : tileType,
               Thickness: thickness,
               Stackable: kind === 'tile',
-              Stretch: false
+              Stretch: true
             }
           })
-    }
+    },
+    ...extrasFields(
+      p.extras,
+      p.card ?? size,
+      scale,
+      ttsStretch(kind, (p.card ?? size).w, (p.card ?? size).h)
+    )
   })
   const all = pieces.flatMap((p) => Array.from({ length: Math.max(1, p.count) }, () => p))
   if (kind === 'board') {

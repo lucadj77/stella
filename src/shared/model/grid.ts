@@ -20,7 +20,8 @@ export type GridSpec = Pick<
   | 'alignX'
   | 'alignY'
   | 'radius'
->
+> &
+  Partial<Pick<GridLayer, 'cellRotation' | 'cellPath'>>
 
 export interface GridGeometry {
   /** Tracciato SVG di ogni casella, riga per riga */
@@ -155,18 +156,70 @@ function roundedPolygon(points: [number, number][], r: number): string {
   return d + 'Z'
 }
 
-/** Tracciato di una casella centrata in cx, cy */
+/** Punto ruotato di `deg` gradi intorno a cx, cy */
+function turn(x: number, y: number, cx: number, cy: number, deg: number): [number, number] {
+  if (!deg) return [x, y]
+  const a = (deg * Math.PI) / 180
+  const c = Math.cos(a)
+  const s = Math.sin(a)
+  return [cx + (x - cx) * c - (y - cy) * s, cy + (x - cx) * s + (y - cy) * c]
+}
+
+/**
+ * Un tracciato in coordinate 0-1 portato nella casella di centro cx, cy e misure w × h, poi
+ * ruotato. Vale per i tracciati con comandi assoluti (M, L, C, Q, S, T, Z), come quelli ricavati
+ * dal contorno di un'immagine; null se ce ne sono altri
+ */
+export function placeCellPath(
+  d: string,
+  cx: number,
+  cy: number,
+  w: number,
+  h: number,
+  deg = 0
+): string | null {
+  const tokens = d.match(/[A-Za-z]|-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/g)
+  if (!tokens) return null
+  let out = ''
+  let pair: number[] = []
+  for (const tok of tokens) {
+    if (/[A-Za-z]/.test(tok)) {
+      if (!'MLCQSTZ'.includes(tok) || pair.length) return null
+      out += tok
+      continue
+    }
+    pair.push(Number(tok))
+    if (pair.length === 2) {
+      const [x, y] = turn(cx + (pair[0] - 0.5) * w, cy + (pair[1] - 0.5) * h, cx, cy, deg)
+      out += `${/[\d.]$/.test(out) ? ' ' : ''}${n(x)} ${n(y)}`
+      pair = []
+    }
+  }
+  return pair.length ? null : out
+}
+
+/** Tracciato di una casella centrata in cx, cy, con la sua rotazione */
 function cellPath(g: GridSpec, c: Placed, w: number, h: number): string {
   const { cx, cy } = c
   const r = Math.max(0, g.radius)
+  const deg = g.cellRotation ?? 0
+  const poly = (points: [number, number][], radius: number): string =>
+    roundedPolygon(
+      points.map(([x, y]) => turn(x, y, cx, cy, deg)),
+      radius
+    )
   switch (g.cell) {
     case 'circle': {
       const rx = w / 2
       const ry = h / 2
-      return `M${n(cx - rx)} ${n(cy)}A${n(rx)} ${n(ry)} 0 1 0 ${n(cx + rx)} ${n(cy)}A${n(rx)} ${n(ry)} 0 1 0 ${n(cx - rx)} ${n(cy)}Z`
+      const [ax, ay] = turn(cx - rx, cy, cx, cy, deg)
+      const [bx, by] = turn(cx + rx, cy, cx, cy, deg)
+      return `M${n(ax)} ${n(ay)}A${n(rx)} ${n(ry)} ${n(deg)} 1 0 ${n(bx)} ${n(by)}A${n(rx)} ${n(ry)} ${n(deg)} 1 0 ${n(ax)} ${n(ay)}Z`
     }
+    case 'path':
+      return (g.cellPath && placeCellPath(g.cellPath, cx, cy, w, h, deg)) || ''
     case 'hex':
-      return roundedPolygon(
+      return poly(
         g.orientation === 'flat'
           ? [
               [cx - w / 2, cy],
@@ -187,7 +240,7 @@ function cellPath(g: GridSpec, c: Placed, w: number, h: number): string {
         r
       )
     case 'triangle':
-      return roundedPolygon(
+      return poly(
         c.down
           ? [
               [cx - w / 2, cy - h / 2],
@@ -202,7 +255,7 @@ function cellPath(g: GridSpec, c: Placed, w: number, h: number): string {
         r
       )
     case 'diamond':
-      return roundedPolygon(
+      return poly(
         [
           [cx, cy - h / 2],
           [cx + w / 2, cy],
@@ -212,7 +265,7 @@ function cellPath(g: GridSpec, c: Placed, w: number, h: number): string {
         r
       )
     default:
-      return roundedPolygon(
+      return poly(
         [
           [cx - w / 2, cy - h / 2],
           [cx + w / 2, cy - h / 2],

@@ -39,6 +39,27 @@ export function GridIcon(): React.JSX.Element {
   )
 }
 
+/** Snap point di Tabletop Simulator: un mirino */
+export function SnapIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="1em"
+      height="1em"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      aria-hidden="true"
+      style={{ verticalAlign: '-0.125em' }}
+    >
+      <circle cx="8" cy="8" r="4.5" />
+      <path d="M8 1 V4.5 M8 11.5 V15 M1 8 H4.5 M11.5 8 H15" />
+      <circle cx="8" cy="8" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
 /** Fonte "colonna del foglio": una piccola tabella */
 export function ColumnIcon(): React.JSX.Element {
   return (
@@ -234,6 +255,25 @@ export function SlidersIcon(): React.JSX.Element {
       <circle cx="5" cy="4" r="1.5" fill="var(--panel)" />
       <circle cx="10.5" cy="8" r="1.5" fill="var(--panel)" />
       <circle cx="7" cy="12" r="1.5" fill="var(--panel)" />
+    </svg>
+  )
+}
+
+/** Puntina: proprietà fissata sotto il suo campo */
+export function PinIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="1em"
+      height="1em"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M6 2h4M7 2v4L4.5 9h7L9 6V2M8 9v5" />
     </svg>
   )
 }

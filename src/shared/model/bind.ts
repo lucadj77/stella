@@ -284,6 +284,9 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
               out = { ...out, cells }
             }
           }
+          // i tag dello snap point possono leggere i campi: {tipo}
+          if (out.snap?.tags.includes('{'))
+            out = { ...out, snap: { ...out.snap, tags: substituteFields(out.snap.tags, fields) } }
           return paintLayer(out, pal, fields)
         })
       return apply
@@ -294,6 +297,9 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
   return {
     template: {
       ...template,
+      ...(template.ttsTags?.includes('{')
+        ? { ttsTags: substituteFields(template.ttsTags, front.main) }
+        : {}),
       front: bindSide(template.front, front),
       back: bindSide(template.back, back)
     },
@@ -644,6 +650,8 @@ const PERCENT = new Set(['zoom', 'opacity', 'cellRatio'])
 
 export function parseValue(key: string, current: unknown, raw: string): unknown {
   const v = raw.trim()
+  // lo snap point si imposta nel template, non da una cella
+  if (key === 'snap') return undefined
   if (NULLABLE.has(key) && v.toLowerCase() === 'none') return null
   if (key === 'stroke' || key === 'border') return parseStroke(v)
   if (key === 'shadow') return parseShadow(v)

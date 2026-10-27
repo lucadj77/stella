@@ -5,6 +5,8 @@ import { COMPONENT_KINDS, type CardShape, type ComponentKind } from '../../../sh
 import type { MessageKey } from '../i18n/en'
 import { isValidTemplateName } from '../../../shared/model/normalize'
 import { useI18n } from '../i18n/context'
+import { useLengthUnit } from '../units'
+import { UNIT_LABEL, formatLength, fromUnit, toUnit } from '../../../shared/model/units'
 import { RatioLock } from './fields'
 import { useRatioLock } from './ratioLock'
 
@@ -74,14 +76,18 @@ export function NewTemplateDialog({
   onCreate(t: NewTemplate): void
   onClose(): void
 }): React.JSX.Element {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
+  const unit = useLengthUnit()
   const [name, setName] = useState('')
   const [kind, setKind] = useState<ComponentKind>('card')
-  const [width, setWidth] = useState('63')
-  const [height, setHeight] = useState('88')
+  // i campi sono nell'unità scelta, le misure del template in mm
+  const [width, setWidth] = useState(() => String(toUnit(63, unit)))
+  const [height, setHeight] = useState(() => String(toUnit(88, unit)))
   const [shape, setShape] = useState<CardShape | undefined>(undefined)
-  const w = Number(width.replace(',', '.'))
-  const h = Number(height.replace(',', '.'))
+  const wu = Number(width.replace(',', '.'))
+  const hu = Number(height.replace(',', '.'))
+  const w = Math.round(fromUnit(wu, unit) * 100) / 100
+  const h = Math.round(fromUnit(hu, unit) * 100) / 100
   const [locked, setLocked] = useRatioLock('template')
   /** Con il lucchetto chiuso l'altra misura segue in proporzione */
   const follow = (
@@ -92,7 +98,7 @@ export function NewTemplateDialog({
   ): void => {
     const v = Number(text.replace(',', '.'))
     if (locked && v > 0 && from > 0 && other > 0)
-      setOther(String(Math.round(((v * other) / from) * 100) / 100))
+      setOther(String(Math.round(((v * other) / from) * 1000) / 1000))
   }
   const error = !name
     ? null
@@ -103,11 +109,12 @@ export function NewTemplateDialog({
         : null
   const valid = name && !error && w >= 5 && h >= 5
   const presets = KIND_PRESETS[kind]
+  const near = (a: number, b: number): boolean => Math.abs(a - b) < 0.05
   const preset =
-    presets.find((p) => p.width === w && p.height === h && p.shape === shape)?.key ?? 'custom'
+    presets.find((p) => near(p.width, w) && near(p.height, h) && p.shape === shape)?.key ?? 'custom'
   const applyPreset = (p: KindPreset): void => {
-    setWidth(String(p.width))
-    setHeight(String(p.height))
+    setWidth(String(toUnit(p.width, unit)))
+    setHeight(String(toUnit(p.height, unit)))
     setShape(p.shape)
   }
 
@@ -158,7 +165,8 @@ export function NewTemplateDialog({
           >
             {presets.map((p) => (
               <option key={p.key} value={p.key}>
-                {t(`format.${p.key}` as MessageKey)} · {p.width}×{p.height} mm
+                {t(`format.${p.key}` as MessageKey)} · {toUnit(p.width, unit).toLocaleString(lang)}×
+                {formatLength(p.height, unit, lang)}
               </option>
             ))}
             <option value="custom">{t('format.custom')}</option>
@@ -172,10 +180,10 @@ export function NewTemplateDialog({
               value={width}
               onChange={(e) => {
                 setWidth(e.target.value)
-                follow(e.target.value, w, h, setHeight)
+                follow(e.target.value, wu, hu, setHeight)
               }}
             />{' '}
-            mm
+            {UNIT_LABEL[unit]}
           </label>
           <RatioLock locked={locked} onChange={setLocked} />
           <label>
@@ -185,10 +193,10 @@ export function NewTemplateDialog({
               value={height}
               onChange={(e) => {
                 setHeight(e.target.value)
-                follow(e.target.value, h, w, setWidth)
+                follow(e.target.value, hu, wu, setWidth)
               }}
             />{' '}
-            mm
+            {UNIT_LABEL[unit]}
           </label>
         </div>
         <div className="dialog-buttons">

@@ -4,6 +4,7 @@ import {
   type ExportJob,
   type Scene,
   type ScenePage,
+  isTokenLike,
   type TtsPieceKind
 } from '../../../shared/export'
 import {
@@ -105,9 +106,9 @@ function previewItems(job: ExportJob): { items: PreviewItem[]; files: number; no
         file: `${stem}_${n}.png`,
         detail,
         page: piecePage(p.card.template, 'front', kind),
-        scene: kind === 'token' ? { ...WHITE, background: null } : WHITE
+        scene: isTokenLike(kind) ? { ...WHITE, background: null } : WHITE
       })
-      if (kind !== 'token')
+      if (!isTokenLike(kind))
         items.push({
           file: `${stem}_${n}_back.png`,
           detail,

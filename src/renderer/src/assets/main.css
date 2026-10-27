@@ -2048,6 +2048,25 @@ label.check {
   pointer-events: none;
 }
 
+/* snap point di Tabletop Simulator: mirino ben visibile su ogni fondo */
+.tts-snap {
+  pointer-events: none;
+}
+.tts-snap circle,
+.tts-snap path {
+  fill: none;
+  stroke: #0a84ff;
+  stroke-width: 2;
+  paint-order: stroke;
+}
+.tts-snap circle {
+  fill: rgba(10, 132, 255, 0.15);
+}
+.tts-snap .tts-snap-dir {
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
 .zoom-controls input.grid-step {
   width: 38px;
   padding: 1px 4px;
@@ -3251,7 +3270,7 @@ button.big {
 
 /* backup */
 .backup-dialog {
-  width: min(560px, 90vw);
+  width: min(640px, 90vw);
 }
 .backup-actions,
 .backup-folder {
@@ -3271,6 +3290,19 @@ button.big {
 }
 .backup-list td:last-child {
   text-align: right;
+}
+.backup-label-input {
+  flex: 1 1 220px;
+}
+.backup-label button.link {
+  border: none;
+  background: none;
+  padding: 2px 0;
+  color: var(--text);
+  text-align: left;
+}
+.backup-label input {
+  width: 100%;
 }
 .backup-settings {
   display: grid;
@@ -4339,6 +4371,11 @@ select.from-template {
 
 .tts-object input.num {
   width: 64px;
+}
+
+.tts-object input.tts-object-tags {
+  flex: 1 1 120px;
+  min-width: 100px;
 }
 
 .sidebar-filter {
@@ -6592,4 +6629,40 @@ button.more-button {
   overflow: hidden;
   line-height: 1.35;
   vertical-align: top;
+}
+
+/* orientamento della forma della carta */
+.shape-orientation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+.shape-orientation button {
+  min-width: 34px;
+}
+.shape-orientation button.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+/* ricerca nel pannello delle proprietà */
+.prop-search {
+  position: sticky;
+  top: -10px;
+  z-index: 2;
+  margin: -10px -12px 8px;
+  padding: 10px 40px 8px 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.prop-search input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.search-hidden {
+  display: none !important;
 }

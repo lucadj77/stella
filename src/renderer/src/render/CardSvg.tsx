@@ -6,6 +6,7 @@ import {
   anchorPoint,
   hexagonPoints,
   polygonVertices,
+  shapeFrame,
   roundedPolygonPath
 } from '../../../shared/model/geometry'
 import { useI18n } from '../i18n/context'
@@ -35,6 +36,7 @@ import type {
   Template,
   TextLayer
 } from '../../../shared/model/template'
+import { isStandee } from '../../../shared/model/template'
 
 // Disegna una carta in SVG, in millimetri. È lo stesso disegno che userà l'esportazione PDF.
 
@@ -74,7 +76,12 @@ export default function CardSvg({
 }: Props): React.JSX.Element {
   const uid = useId().replace(/:/g, '')
   const b = mode === 'bleed' ? t.bleed : 0
-  const layers = side === 'front' ? t.front : t.back
+  // la pedina non ha fondo, e il suo retro è il fronte specchiato (contorno compreso)
+  const standee = isStandee(t)
+  const mirror = standee && side === 'back'
+  const layers = side === 'front' || standee ? t.front : t.back
+  const flip = mirror ? `translate(${t.width} 0) scale(-1 1)` : undefined
+  const outline = mirror ? { ...t, shapeFlipH: !t.shapeFlipH } : t
   const vw = t.width + 2 * b
   const vh = t.height + 2 * b
   const box = pasteboard ?? { x: -b, y: -b, w: vw, h: vh }
@@ -95,9 +102,17 @@ export default function CardSvg({
           ) : mode === 'cut' && plainRect ? (
             <rect width={t.width} height={t.height} />
           ) : (
-            <CardOutline template={t} />
+            <CardOutline template={outline} />
           )}
         </clipPath>
+        {pasteboard && standee && (
+          // la pedina è trasparente: nell'editor sotto si vede una scacchiera
+          <pattern id={`${uid}-checker`} width={4} height={4} patternUnits="userSpaceOnUse">
+            <rect width={4} height={4} fill="#FFFFFF" />
+            <rect width={2} height={2} fill="#E4E4E4" />
+            <rect x={2} y={2} width={2} height={2} fill="#E4E4E4" />
+          </pattern>
+        )}
         {pasteboard && (
           <filter id={`${uid}-lift`} x="-10%" y="-10%" width="120%" height="120%">
             <feDropShadow dx={0} dy={0.6} stdDeviation={1} floodOpacity={0.3} />
@@ -106,7 +121,7 @@ export default function CardSvg({
       </defs>
       {pasteboard && (
         <>
-          <g opacity={0.35}>
+          <g opacity={0.35} transform={flip}>
             <LayerList layers={layers} uid={`${uid}p`} />
           </g>
           {mode === 'bleed' ? (
@@ -115,21 +130,27 @@ export default function CardSvg({
               y={-b}
               width={vw}
               height={vh}
-              fill="#FFFFFF"
+              fill={standee ? `url(#${uid}-checker)` : '#FFFFFF'}
               filter={`url(#${uid}-lift)`}
             />
           ) : (
-            <CardOutline template={t} fill="#FFFFFF" filter={`url(#${uid}-lift)`} />
+            <CardOutline
+              template={outline}
+              fill={standee ? `url(#${uid}-checker)` : '#FFFFFF'}
+              filter={`url(#${uid}-lift)`}
+            />
           )}
         </>
       )}
       <g clipPath={`url(#${uid}-card)`}>
-        <rect x={-b} y={-b} width={vw} height={vh} fill="#FFFFFF" />
-        <LayerList layers={layers} uid={uid} />
+        {!standee && <rect x={-b} y={-b} width={vw} height={vh} fill="#FFFFFF" />}
+        <g transform={flip}>
+          <LayerList layers={layers} uid={uid} />
+        </g>
       </g>
       {mode === 'bleed' && guides && (
         <CardOutline
-          template={t}
+          template={outline}
           scale={scale}
           fill="none"
           stroke="#E5484D"
@@ -156,10 +177,15 @@ export function CardOutline({
   /** Pixel per mm: serve al contorno di un tracciato, che non scala con la carta */
   scale?: number
 } & React.SVGProps<SVGPathElement>): React.JSX.Element {
-  const x = inset
-  const y = inset
-  const w = Math.max(0, t.width - 2 * inset)
-  const h = Math.max(0, t.height - 2 * inset)
+  // la forma si disegna nel suo riquadro, poi la trasformazione la gira e la specchia
+  const frame = shapeFrame(
+    t,
+    inset,
+    inset,
+    Math.max(0, t.width - 2 * inset),
+    Math.max(0, t.height - 2 * inset)
+  )
+  const { x, y, w, h, transform } = frame
   switch (t.shape ?? 'rect') {
     case 'ellipse':
       return (
@@ -168,6 +194,7 @@ export function CardOutline({
           cy={y + h / 2}
           rx={w / 2}
           ry={h / 2}
+          transform={transform}
           {...(paint as React.SVGProps<SVGEllipseElement>)}
         />
       )
@@ -177,6 +204,7 @@ export function CardOutline({
           d={`M${hexagonPoints(x, y, w, h)
             .map((p) => `${p.x} ${p.y}`)
             .join('L')}Z`}
+          transform={transform}
           {...paint}
         />
       )
@@ -185,7 +213,7 @@ export function CardOutline({
         return (
           <path
             d={t.shapePath}
-            transform={`translate(${x} ${y}) scale(${w} ${h})`}
+            transform={`${transform ?? ''} translate(${x} ${y}) scale(${w} ${h})`.trim()}
             {...paint}
             // il tracciato è in coordinate 0-1: il tratto si misura in pixel dello schermo
             vectorEffect="non-scaling-stroke"
@@ -211,6 +239,7 @@ export function CardOutline({
       width={w}
       height={h}
       rx={Math.max(0, t.cornerRadius - inset)}
+      transform={transform}
       {...(paint as React.SVGProps<SVGRectElement>)}
     />
   )
@@ -228,7 +257,7 @@ function LayerList({ layers, uid }: { layers: Layer[]; uid: string }): React.JSX
 }
 
 function LayerView({ layer: l, uid }: { layer: Layer; uid: string }): React.JSX.Element | null {
-  if (!l.visible || l.type === 'value') return null
+  if (!l.visible || l.type === 'value' || l.type === 'snap') return null
   const id = `${uid}-${l.id}`
   const { x: ax, y: ay } = anchorPoint(l)
   return (
@@ -255,7 +284,7 @@ function LayerView({ layer: l, uid }: { layer: Layer; uid: string }): React.JSX.
         {l.type === 'shape' && <ShapeView layer={l} id={id} />}
         {l.type === 'grid' && <GridView layer={l} id={id} uid={uid} />}
         {l.type === 'image' && <ImageView layer={l} id={id} />}
-        {l.type === 'text' && <TextView layer={l} />}
+        {l.type === 'text' && <TextView layer={l} id={id} />}
         {l.type === 'group' && <GroupView layer={l} id={id} uid={uid} />}
       </g>
     </g>
@@ -706,7 +735,9 @@ function ImageBody({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
 
 /**
  * Regolazioni dell'immagine e tinta, in quest'ordine: saturazione (zero per la scala di
- * grigi), luminosità e contrasto, poi la tinta che ricolora mantenendo la trasparenza.
+ * grigi), luminosità e contrasto, poi la tinta che ricolora mantenendo la trasparenza. La tinta
+ * si stende sopra l'immagine: piena la ricolora del tutto, semitrasparente (#00000033) la
+ * scurisce o la colora solo in parte, e l'immagine resta opaca.
  */
 function ImageFilter({ id, layer: l }: { id: string; layer: ImageLayer }): React.JSX.Element {
   const sat = l.grayscale ? 0 : l.saturation
@@ -714,9 +745,9 @@ function ImageFilter({ id, layer: l }: { id: string; layer: ImageLayer }): React
   const intercept = 0.5 - 0.5 * l.contrast
   return (
     <filter id={id} colorInterpolationFilters="sRGB">
-      {sat !== 1 && <feColorMatrix type="saturate" values={String(sat)} />}
+      {sat !== 1 && <feColorMatrix type="saturate" values={String(sat)} result="adjusted" />}
       {(l.brightness !== 1 || l.contrast !== 1) && (
-        <feComponentTransfer>
+        <feComponentTransfer result="adjusted">
           <feFuncR type="linear" slope={slope} intercept={intercept} />
           <feFuncG type="linear" slope={slope} intercept={intercept} />
           <feFuncB type="linear" slope={slope} intercept={intercept} />
@@ -726,6 +757,10 @@ function ImageFilter({ id, layer: l }: { id: string; layer: ImageLayer }): React
         <>
           <feFlood floodColor={l.tint} />
           <feComposite in2="SourceAlpha" operator="in" />
+          <feComposite
+            in2={sat !== 1 || l.brightness !== 1 || l.contrast !== 1 ? 'adjusted' : 'SourceGraphic'}
+            operator="over"
+          />
         </>
       )}
     </filter>
@@ -810,7 +845,40 @@ function inkOverflows(fo: SVGForeignObjectElement, box: HTMLElement, inner: HTML
   return false
 }
 
-function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
+/**
+ * Contorno arrotondato attorno a ciò che si disegna: la sagoma (alfa) allargata di r in ogni
+ * direzione. feMorphology allarga solo a rettangolo; tre rettangoli (largo, alto, quadrato a 45°)
+ * insieme fanno quasi un cerchio, e una sfocatura riportata a bordo netto toglie i gradini.
+ */
+function TextOutline({ r, color }: { r: number; color: string }): React.JSX.Element {
+  const k = Math.SQRT2 - 1
+  const d = Math.SQRT1_2
+  return (
+    <>
+      <feMorphology in="SourceAlpha" operator="dilate" radius={`${r} ${r * k}`} result="o1" />
+      <feMorphology in="SourceAlpha" operator="dilate" radius={`${r * k} ${r}`} result="o2" />
+      <feMorphology in="SourceAlpha" operator="dilate" radius={`${r * d} ${r * d}`} result="o3" />
+      <feMerge result="grown">
+        <feMergeNode in="o1" />
+        <feMergeNode in="o2" />
+        <feMergeNode in="o3" />
+      </feMerge>
+      {/* i gradini dei rettangoli si ammorbidiscono: sfocatura, poi di nuovo un bordo netto a metà */}
+      <feGaussianBlur in="grown" stdDeviation={Math.max(0.5, r * 0.3)} />
+      <feComponentTransfer result="smooth">
+        <feFuncA type="linear" slope={8} intercept={-3.5} />
+      </feComponentTransfer>
+      <feFlood floodColor={color} />
+      <feComposite in2="smooth" operator="in" />
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </>
+  )
+}
+
+function TextView({ layer: l, id }: { layer: TextLayer; id: string }): React.JSX.Element {
   const showEmpty = useContext(ShowEmptyContext)
   const empty = showEmpty && !l.text.trim()
   const boxRef = useRef<HTMLDivElement>(null)
@@ -852,11 +920,33 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
 
   const sizeMm = size * PT_TO_MM
   const s = TEXT_SCALE
+  // Il contorno del livello è un filtro che allarga la sagoma delle lettere, non
+  // -webkit-text-stroke: quello ha gli spigoli a punta (una punta lunga nelle curve strette) e,
+  // spesso, viene tagliato dal bordo del riquadro. Il filtro disegna attorno al testo già
+  // disegnato, anche fuori dal riquadro, con gli angoli arrotondati.
+  const outline = l.stroke ? strokeWidth(l.stroke, sizeMm) * s : 0
+  const w = l.w * s
+  const h = l.h * s
   return (
     <g
       transform={`translate(${l.x} ${l.y}) scale(${1 / s})`}
       data-overflow={over ? l.name : undefined}
+      filter={outline > 0 ? `url(#${id}-outline)` : undefined}
     >
+      {outline > 0 && l.stroke && (
+        <defs>
+          <filter
+            id={`${id}-outline`}
+            filterUnits="userSpaceOnUse"
+            x={-outline - w / 2}
+            y={-outline - h / 2}
+            width={2 * w + 2 * outline}
+            height={2 * h + 2 * outline}
+          >
+            <TextOutline r={outline} color={l.stroke.color} />
+          </filter>
+        </defs>
+      )}
       <foreignObject
         width={l.w * s}
         height={l.h * s}
@@ -897,11 +987,7 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
               [l.underline && 'underline', l.strike && 'line-through'].filter(Boolean).join(' ') ||
               undefined,
             whiteSpace: l.wrap ? 'pre-wrap' : 'pre',
-            overflowWrap: l.wrap ? 'break-word' : 'normal',
-            WebkitTextStroke: l.stroke
-              ? `${strokeWidth(l.stroke, sizeMm) * 2 * s}px ${l.stroke.color}`
-              : undefined,
-            paintOrder: 'stroke fill'
+            overflowWrap: l.wrap ? 'break-word' : 'normal'
           }}
         >
           <div style={empty ? { opacity: 0.35, fontStyle: 'italic' } : undefined}>

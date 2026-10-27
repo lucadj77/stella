@@ -29,6 +29,7 @@ import {
   autoBackup,
   backupsSize,
   createBackup,
+  labelBackup,
   listBackups,
   readBackupSettings,
   restoreBackup,
@@ -111,6 +112,8 @@ export const webApi: Api = {
   isWeb: true,
   assetUrl,
   chooseProjectFolder: () => pickFolder('stella-project'),
+  // nel browser le cartelle del progetto si gestiscono dal sistema: il menu non ha la voce
+  relocateProject: async () => null,
   recentProjects: () => listRecent(),
   removeRecentProject: (f) => removeRecent(f),
   // l'esempio incluso nella build, copiato nello spazio del sito
@@ -232,11 +235,15 @@ export const webApi: Api = {
   },
   chooseFolder: () => pickFolder('stella-folder'),
   backups: () => backupState(),
-  createBackup: async () => {
+  createBackup: async (label) => {
     const f = projectFolder()
     const dir = await backupDir()
     const name = projectName
-    return queued(() => createBackup(f, name, dir))
+    return queued(() => createBackup(f, name, dir, false, new Date(), label))
+  },
+  labelBackup: async (file, label) => {
+    if (dirname(file) !== (await backupDir())) throw new Error('not a backup')
+    return queued(() => labelBackup(file, label))
   },
   saveBackupSettings: async (settings) => {
     await writeBackupSettings(backupSettingsFile(), settings)

@@ -27,10 +27,14 @@ import {
 } from '../../../shared/model/geometry'
 import { cardArea, unionBounds } from '../../../shared/model/align'
 import { linesOf, nearest, snapBox, type SnapLines } from '../../../shared/model/snap'
+import { snapPoints } from '../../../shared/model/ttsSnap'
+import { walkLayers } from '../../../shared/model/normalize'
 import { isDrawn, type GroupLayer, type Layer, type Template } from '../../../shared/model/template'
 import CardSvg, { CardOutline } from '../render/CardSvg'
 import { ShowEmptyContext } from '../render/assets'
 import { useI18n } from '../i18n/context'
+import { useLengthUnit } from '../units'
+import { UNIT_LABEL, fromUnit, toUnit } from '../../../shared/model/units'
 import type { EditorAction, EditorState } from './useEditor'
 import { isRatioLocked } from './ratioLock'
 
@@ -97,6 +101,7 @@ interface Props {
 
 export default function Canvas({ state, display, dispatch }: Props): React.JSX.Element {
   const { t } = useI18n()
+  const lengthUnit = useLengthUnit()
   const { template: tpl, side, selection, scope } = state
   const viewportRef = useRef<HTMLDivElement>(null)
   const overlayRef = useRef<SVGSVGElement>(null)
@@ -113,7 +118,13 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     x: null,
     y: null
   })
-  const [stepText, setStepText] = useState(String(guides.gridStep))
+  const [stepText, setStepText] = useState(String(toUnit(guides.gridStep, lengthUnit)))
+  // cambiata l'unità nelle impostazioni, il passo si riscrive nella nuova
+  const [stepUnit, setStepUnit] = useState(lengthUnit)
+  if (stepUnit !== lengthUnit) {
+    setStepUnit(lengthUnit)
+    setStepText(String(toUnit(guides.gridStep, lengthUnit)))
+  }
   const setGuide = <K extends keyof Guides>(key: K, value: Guides[K]): void => {
     const next = { ...guides, [key]: value }
     setGuides(next)
@@ -580,6 +591,26 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
                   <Outline b={l} className="outside-outline" />
                 </Framed>
               ))}
+            {/* snap point di Tabletop Simulator: non si stampano, si vedono solo qui */}
+            {(guides.ttsSnaps ? snapPoints(display[side]) : []).map((p, i) => (
+              <g key={`snap${i}`} className="tts-snap" transform={`translate(${p.x} ${p.y})`}>
+                <circle r={6 * px} vectorEffect="non-scaling-stroke" />
+                <path
+                  d={`M${-9 * px} 0H${9 * px}M0 ${-9 * px}V${9 * px}`}
+                  vectorEffect="non-scaling-stroke"
+                />
+                {/* come in TTS: la freccia punta dove andrà il lato alto dell'oggetto */}
+                {p.angle !== null && (
+                  <path
+                    className="tts-snap-dir"
+                    d={`M0 0V${-16 * px}M${-4 * px} ${-12 * px}L0 ${-16 * px}L${4 * px} ${-12 * px}`}
+                    transform={`rotate(${p.angle})`}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                )}
+                {p.tags.length > 0 && <title>{p.tags.join(', ')}</title>}
+              </g>
+            ))}
             {snapped.x !== null && (
               <line
                 x1={snapped.x}
@@ -705,6 +736,16 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
         >
           {t('editor.showSafe')}
         </button>
+        {walkLayers(layers).some((l) => l.snap) && (
+          <button
+            className={guides.ttsSnaps ? 'active' : ''}
+            aria-pressed={guides.ttsSnaps}
+            onClick={() => setGuide('ttsSnaps', !guides.ttsSnaps)}
+            title={t('tip.showSnaps')}
+          >
+            {t('editor.showSnaps')}
+          </button>
+        )}
         <span className="zoom-sep" />
         <button
           className={guides.grid ? 'active' : ''}
@@ -720,15 +761,15 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
           value={stepText}
           onChange={(e) => {
             setStepText(e.target.value)
-            const n = Number(e.target.value.replace(',', '.'))
+            const n = fromUnit(Number(e.target.value.replace(',', '.')), lengthUnit)
             if (Number.isFinite(n) && n >= 0.1 && n <= 50) setGuide('gridStep', n)
           }}
-          onBlur={() => setStepText(String(guides.gridStep))}
+          onBlur={() => setStepText(String(toUnit(guides.gridStep, lengthUnit)))}
           onKeyDown={(e) => {
             if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
           }}
         />
-        <span className="muted small">mm</span>
+        <span className="muted small">{UNIT_LABEL[lengthUnit]}</span>
         <span className="zoom-sep" />
         <span className="muted small" title={t('editor.snapHint')}>
           {t('editor.snap')}
@@ -781,6 +822,8 @@ interface Guides {
   snapGrid: boolean
   /** Lati e centri si agganciano a quelli degli altri oggetti e della carta */
   snapObjects: boolean
+  /** Mirini degli snap point di Tabletop Simulator: nasconderli non li toglie dall'esportazione */
+  ttsSnaps: boolean
 }
 
 const GUIDES_KEY = 'editorGuides'
@@ -791,7 +834,8 @@ const DEFAULT_GUIDES: Guides = {
   grid: false,
   gridStep: 5,
   snapGrid: false,
-  snapObjects: true
+  snapObjects: true,
+  ttsSnaps: true
 }
 
 function loadGuides(): Guides {

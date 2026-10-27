@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { gridGeometry, type GridSpec } from '../grid'
+import { gridGeometry, placeCellPath, type GridSpec } from '../grid'
 
 const base: GridSpec = {
   w: 50,
@@ -75,5 +75,41 @@ describe('griglia', () => {
     const round = gridGeometry({ ...base, radius: 2 })
     expect(round.cells[0]).toContain('Q')
     expect(gridGeometry({ ...base, cell: 'circle', radius: 2 }).cells[0]).toContain('A')
+  })
+})
+
+describe('forma e rotazione delle caselle', () => {
+  const base = {
+    w: 40,
+    h: 20,
+    cell: 'square' as const,
+    rows: 1,
+    columns: 2,
+    cellRatio: 1,
+    orientation: 'pointy' as const,
+    interlock: false,
+    gap: 0,
+    padding: 0,
+    zoom: 1,
+    alignX: 'center' as const,
+    alignY: 'center' as const,
+    radius: 0
+  }
+
+  it('gira solo il contorno: centri e misure restano', () => {
+    const plain = gridGeometry(base)
+    const turned = gridGeometry({ ...base, cellRotation: 45 })
+    expect(turned.centers).toEqual(plain.centers)
+    expect(turned.cell).toEqual(plain.cell)
+    // il quadrato girato di 45° ha un vertice sopra il centro
+    expect(turned.cells[0]).toMatch(/^M10 -4\.142/)
+  })
+
+  it('porta una forma da immagine nella casella', () => {
+    expect(placeCellPath('M0 0L1 0L0.5 1Z', 10, 10, 20, 20)).toBe('M0 0L20 0L10 20Z')
+    expect(placeCellPath('M0 0L1 0L0.5 1Z', 10, 10, 20, 20, 180)).toBe('M20 20L0 20L10 0Z')
+    expect(placeCellPath('M0 0h1z', 0, 0, 1, 1)).toBeNull()
+    const g = gridGeometry({ ...base, cell: 'path', cellPath: 'M0 0L1 0L0.5 1Z' })
+    expect(g.cells).toEqual(['M0 0L20 0L10 20Z', 'M20 0L40 0L30 20Z'])
   })
 })
