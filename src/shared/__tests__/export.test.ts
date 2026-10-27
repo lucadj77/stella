@@ -312,14 +312,16 @@ describe('Tabletop Simulator: segnalini e tessere', () => {
   })
 
   it('scale nelle proporzioni vere rispetto a una carta da 63 mm', () => {
-    expect(ttsCardScale(63)).toBe(1)
-    expect(ttsCardScale(44)).toBeCloseTo(0.698, 3)
-    // misurati in TTS: tessera da 45 mm larga 2 a scala 1, stella da 27 mm (29 con il margine) 3
-    expect(ttsPieceScale('tile', 45, 45)).toBeCloseTo(0.804, 3)
+    // la carta si misura sull'altezza: 63 × 88 a scala 1, 63 × 176 a scala 2, mini 44 × 63
+    expect(ttsCardScale(88)).toBe(1)
+    expect(ttsCardScale(176)).toBe(2)
+    expect(ttsCardScale(63)).toBeCloseTo(0.716, 3)
+    // misurati in TTS (la tessera poi corretta del 3% con le plance accanto alle carte): stella da 27 mm (29 con il margine) 3
+    expect(ttsPieceScale('tile', 45, 45)).toBeCloseTo(0.78, 3)
     expect(ttsPieceScale('token', 29, 29)).toBeCloseTo(0.324, 3)
     // la tessera si misura sull'altezza: plance 120 × 88 e 63 × 176 provate in TTS
-    expect(ttsPieceScale('board', 120, 88)).toBeCloseTo(1.571, 3)
-    expect(ttsPieceScale('board', 63, 176)).toBeCloseTo(3.143, 3)
+    expect(ttsPieceScale('board', 120, 88)).toBeCloseTo(1.526, 3)
+    expect(ttsPieceScale('board', 63, 176)).toBeCloseTo(3.051, 3)
     // il segnalino si misura sulla larghezza: una pedina 25 × 50 (27 × 52 con il margine) è larga
     // 27 mm, non 52
     expect(ttsPieceScale('standee', 27, 52)).toBeCloseTo(0.301, 3)

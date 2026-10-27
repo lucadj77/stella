@@ -672,29 +672,34 @@ export interface TtsDeckCard {
 
 // Misure in Tabletop Simulator. TTS non ha una scala assoluta: un oggetto a scala 1 ha una misura
 // fissa per tipo, qualunque sia la sua immagine. Queste sono misurate in TTS (ottobre 2026) con il
-// righello, in unità (che TTS mostra come pollici): una carta larga 63 mm è larga 2,25, una
-// tessera 2 in altezza, un segnalino circa 3,2 in larghezza (l'altezza segue le proporzioni
+// righello, in unità (che TTS mostra come pollici): una carta da poker 63 × 88 è larga 2,25 (la
+// carta segue le proporzioni dell'immagine con l'altezza della carta da poker), una tessera 2,06
+// in altezza, un segnalino circa 3,2 in larghezza (l'altezza segue le proporzioni
 // dell'immagine: una pedina alta e stretta resta larga 3,2). Le scale si calcolano in modo che
 // tutto stia nelle proporzioni vere rispetto a una carta da 63 mm.
 
 /** Unità di TTS per mm: la carta da 63 mm a scala 1 è larga 2,25 */
 export const TTS_UNITS_PER_MM = 2.25 / 63
-const TTS_CARD_WIDTH = 2.25
-const TTS_TILE_SIZE = 2
+// 2 misurato su una tessera quadrata; con le plance accanto alle carte risultava grande del 3% circa
+const TTS_TILE_SIZE = 2.06
 /** Lato lungo della carta da poker, in mm */
 const POKER_HEIGHT = 88
 const TTS_TOKEN_SIZE = 3.2
 
 const round3 = (v: number): number => Math.round(v * 1000) / 1000
 
-/** Scala di una carta larga w mm: 1 per 63 mm, come prima */
-export function ttsCardScale(w: number): number {
-  return round3((w * TTS_UNITS_PER_MM) / TTS_CARD_WIDTH)
+/**
+ * Scala di una carta alta h mm. In TTS la carta prende le proporzioni dell'immagine e a scala 1
+ * è alta quanto una carta da poker (88 mm): verificato con carte 63 × 176 (scala 2) e, di
+ * traverso, 126 × 88 (scala 1), ottobre 2026
+ */
+export function ttsCardScale(h: number): number {
+  return round3(h / POKER_HEIGHT)
 }
 
 /** Scala di un segnalino o di una tessera la cui immagine misura w × h mm */
 export function ttsPieceScale(kind: TtsPieceKind, w: number, h: number): number {
-  // il segnalino si misura sulla larghezza, la tessera sul lato lungo
+  // il segnalino si misura sulla larghezza
   if (isTokenLike(kind)) return round3((w * TTS_UNITS_PER_MM) / TTS_TOKEN_SIZE)
   // la tessera si misura sull'altezza: giuste in TTS una plancia 120 × 88 a scala 1,5 circa e
   // una 63 × 176 con la scala calcolata sull'altezza (ottobre 2026)
@@ -737,11 +742,9 @@ export function ttsSavedObject(
   /** Altezza della carta in mm: le carte orizzontali sono "di traverso" in TTS */
   cardHeight = 88
 ): Record<string, unknown> {
-  // una carta orizzontale va messa di traverso. Di traverso, a scala 1, il lato corto misura
-  // quanto il lato lungo di una carta da poker (88 mm): verificato in TTS (ottobre 2026) con una
-  // carta 120 × 88 e una plancia grande come due carte da poker, entrambe giuste a scala 1
+  // una carta orizzontale va messa di traverso; la scala viene sempre dall'altezza
   const sideways = cardWidth > cardHeight
-  const scale = sideways ? round3(cardHeight / POKER_HEIGHT) : ttsCardScale(cardWidth)
+  const scale = ttsCardScale(cardHeight)
   const customDeck = (i: number): Record<string, unknown> => ({
     [String(i + 1)]: {
       FaceURL: sheets[i].faceUrl,
