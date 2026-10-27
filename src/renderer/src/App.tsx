@@ -127,6 +127,13 @@ import { sharingSets, syncSharedSheets } from '../../shared/model/sharedSheets'
 import { changesData } from '../../shared/model/readOnlyData'
 import { renameTemplate } from '../../shared/model/renameTemplate'
 import { followInDocuments, type RefSnapshot } from '../../shared/model/docRefs'
+import {
+  replaceInProject,
+  type FindHit,
+  type FindPlace,
+  type FindScope
+} from '../../shared/model/projectFind'
+import ProjectFindDialog from './components/ProjectFindDialog'
 import CardSvg from './render/CardSvg'
 import {
   AssetsContext,
@@ -310,6 +317,8 @@ function App(): React.JSX.Element {
     { file: string; kind: 'template' | 'set'; name: string }[]
   >([])
   const [aiTools, setAiTools] = useState(false)
+  /** Cerca e sostituisci in tutto il progetto */
+  const [findingAll, setFindingAll] = useState(false)
   const [help, setHelp] = useState(false)
   const contextMenu = useContextMenu()
   // F1 apre l'aiuto da qualsiasi schermata
@@ -938,6 +947,73 @@ function App(): React.JSX.Element {
     project?.file.variables,
     project?.file.styles
   ])
+  /**
+   * Sostituisce nei punti scelti del cerca nel progetto, dopo un backup con un nome che lo dice.
+   * Documenti e note si scrivono subito; dati, template e variabili si salvano e si annullano
+   * come le altre modifiche.
+   */
+  const replaceAcrossProject = async (
+    hits: FindHit[],
+    query: string,
+    replacement: string
+  ): Promise<number> => {
+    if (!project) return 0
+    // il backup deve avere i documenti e le note come sono adesso
+    for (const d of project.documents ?? []) documents.flush(d.name)
+    for (const n of project.notes ?? []) flushNote(n.name)
+    await window.api.createBackup(t('findAll.backupLabel', { query }))
+    const r = replaceInProject(findScope(project), hits, replacement)
+    for (const d of r.documents) documents.change(d.name, d.text)
+    for (const n of r.notes) changeNote(n.name, n.text)
+    const variablesChanged = r.variables !== (project.file.variables ?? {})
+    if (r.sets === project.sets && r.templates === project.templates && !variablesChanged)
+      return r.count
+    const synced = syncDerived(project.templates, r.templates)
+    setHistory((h) => ({
+      past: [
+        ...h.past.slice(-99),
+        {
+          sets: project.sets,
+          file: project.file,
+          templates: r.templates !== project.templates ? project.templates : undefined
+        }
+      ],
+      future: [],
+      at: 0
+    }))
+    setProject(
+      (p) =>
+        p && {
+          ...p,
+          sets: r.sets,
+          templates: synced.templates,
+          file: variablesChanged ? { ...p.file, variables: r.variables } : p.file
+        }
+    )
+    const sheets = r.sets.flatMap((x, i) =>
+      x.data && x.data !== project.sets[i].data ? [x.data.name] : []
+    )
+    if (sheets.length) setDirtySheets((d) => new Set([...d, ...sheets]))
+    const templates = r.templates
+      .filter((x, i) => x !== project.templates[i])
+      .map((x) => x.name)
+      .concat(synced.changed)
+    if (templates.length) {
+      setDirty((d) => new Set([...d, ...templates]))
+      setEditorRev((v) => v + 1)
+    }
+    if (variablesChanged) setFileDirty(true)
+    return r.count
+  }
+  /** Apre il punto di un risultato del cerca nel progetto */
+  const openFound = (place: FindPlace): void => {
+    setFindingAll(false)
+    if (place.kind === 'document') setSelected({ kind: 'document', name: place.name })
+    else if (place.kind === 'note') setOpenNote(place.name)
+    else if (place.kind === 'cell') setSelected({ kind: 'set', index: place.set })
+    else if (place.kind === 'layer') setSelected({ kind: 'template', name: place.template })
+    else setEditingVariable(place.name)
+  }
   useEffect(() => {
     if (!refsNotice) return undefined
     const timer = window.setTimeout(() => setRefsNotice(null), 8000)
@@ -1488,6 +1564,11 @@ function App(): React.JSX.Element {
     if (k === 's') {
       e.preventDefault()
       saveAll()
+      return
+    }
+    if (e.code === 'KeyF' && e.shiftKey && !e.altKey && project) {
+      e.preventDefault()
+      setFindingAll(true)
       return
     }
     if (selected.kind !== 'set') return
@@ -2099,6 +2180,8 @@ function App(): React.JSX.Element {
 
   /** Comandi del progetto usati di rado: nel menu Progetto e nel menu dell'app */
   const projectMenu: MenuItem[] = [
+    { label: t('findAll.menu'), title: t('findAll.menuHint'), onClick: () => setFindingAll(true) },
+    'sep',
     { label: t('app.backup'), title: t('tip.backup'), onClick: () => setBackingUp(true) },
     { label: t('app.trash'), title: t('tip.trash'), onClick: () => setTrashOpen(true) },
     {
@@ -2137,6 +2220,7 @@ function App(): React.JSX.Element {
     save: () => void saveAll(),
     export: () => openExport(),
     backup: () => setBackingUp(true),
+    findAll: () => project && setFindingAll(true),
     trash: () => setTrashOpen(true),
     sheets: () => setSheetsOpen(true),
     languages: () => setLanguagesOpen(true),
@@ -2205,7 +2289,15 @@ function App(): React.JSX.Element {
           { role: 'cut', label: t('menu.cut') },
           { role: 'copy', label: t('menu.copy') },
           { role: 'paste', label: t('menu.paste') },
-          { role: 'selectAll', label: t('menu.selectAll') }
+          { role: 'selectAll', label: t('menu.selectAll') },
+          sep,
+          {
+            id: 'findAll',
+            label: t('findAll.menu'),
+            accelerator: 'CmdOrCtrl+Shift+F',
+            showOnly: true,
+            enabled: hasProject
+          }
         ]
       },
       {
@@ -2777,6 +2869,14 @@ function App(): React.JSX.Element {
                     />
                   )}
                   {aiTools && <AiToolsDialog onClose={() => setAiTools(false)} />}
+                  {findingAll && project && (
+                    <ProjectFindDialog
+                      scope={findScope(project)}
+                      onReplace={replaceAcrossProject}
+                      onOpen={openFound}
+                      onClose={() => setFindingAll(false)}
+                    />
+                  )}
                   {agentLock && agentLock.folder === folder && (
                     <AgentLockOverlay
                       lock={agentLock.lock}
@@ -3792,6 +3892,17 @@ function SetView({
 const PREVIEW_SCALE = 4.4
 
 /** Il progetto con i riferimenti a una variabile o a uno stile rinominati ovunque */
+/** Dove cerca il cerca e sostituisci nel progetto */
+function findScope(p: LoadedProject): FindScope {
+  return {
+    documents: p.documents ?? [],
+    notes: p.notes ?? [],
+    sets: p.sets,
+    templates: p.templates,
+    variables: p.file.variables ?? {}
+  }
+}
+
 function renameReferences(
   p: LoadedProject,
   kind: RefKind,

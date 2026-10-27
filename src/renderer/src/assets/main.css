@@ -6709,3 +6709,55 @@ button.more-button {
   white-space: nowrap;
   font-size: 12px;
 }
+
+/* Cerca e sostituisci nel progetto */
+.find-all {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(760px, 86vw);
+}
+
+.find-results {
+  max-height: 50vh;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+.find-results:empty {
+  display: none;
+}
+
+.find-results h4 {
+  margin: 8px 0 4px;
+}
+
+.find-hit {
+  display: grid;
+  grid-template-columns: auto minmax(120px, 30%) 1fr;
+  align-items: baseline;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.find-place {
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.find-snippet {
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.find-snippet mark {
+  background: var(--accent-soft);
+  color: inherit;
+  border-radius: 2px;
+}
