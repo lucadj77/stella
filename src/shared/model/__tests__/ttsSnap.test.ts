@@ -77,6 +77,43 @@ describe('snap point di Tabletop Simulator', () => {
     ])
   })
 
+  it('uno snap nel gruppo ripetuto dalla griglia vale in ogni casella', () => {
+    const t = plancia([
+      {
+        type: 'grid',
+        name: 'g',
+        x: 0,
+        y: 0,
+        w: 40,
+        h: 20,
+        rows: 1,
+        columns: 2,
+        gap: 0,
+        content: 'c'
+      },
+      {
+        type: 'group',
+        name: 'c',
+        children: [
+          {
+            type: 'shape',
+            name: 'punto',
+            x: 5,
+            y: 5,
+            w: 4,
+            h: 4,
+            snap: { tags: 'pedina', rotated: false, angle: null }
+          }
+        ]
+      }
+    ])
+    const bound = bindCard(t, { fields: {}, amount: 1 }).template
+    expect(snapPoints(bound.front)).toEqual([
+      { x: 7, y: 7, angle: null, tags: ['pedina'] },
+      { x: 27, y: 7, angle: null, tags: ['pedina'] }
+    ])
+  })
+
   it('i gruppi ruotati spostano il punto', () => {
     const t = plancia([
       {

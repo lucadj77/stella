@@ -45,6 +45,7 @@ import DocumentProperties from './DocumentProperties'
 import { headingAt } from '../../../shared/model/docEdit'
 import Menu from './Menu'
 import { runEdit } from './editRun'
+import FindBar from './FindBar'
 
 // Un documento del progetto (docs/<nome>.md: regolamento, sell sheet, appendice): a sinistra il
 // testo in Markdown con il markup di Stella, a destra l'anteprima sempre visibile, con le carte
@@ -104,6 +105,8 @@ export default function DocumentView({
     to?: number
   } | null>(null)
   const [pageOpen, setPageOpen] = useState(false)
+  /** Barra di ricerca aperta, con o senza sostituzione; `key` la rimette al fuoco */
+  const [find, setFind] = useState<{ replace: boolean; key: number } | null>(null)
   /** Livello del titolo dove sta il cursore, per la barra */
   const [level, setLevel] = useState(0)
   const [exporting, setExporting] = useState(false)
@@ -334,7 +337,20 @@ export default function DocumentView({
   return (
     // anche le finestre (carta, anatomia, schema) mostrano le carte nella lingua del documento
     <LocalizationContext.Provider value={localization}>
-      <section className="content document-view">
+      <section
+        className="content document-view"
+        onKeyDown={(e) => {
+          const mod = e.metaKey || e.ctrlKey
+          // ⌘F cerca; ⌥⌘F sul Mac e Ctrl+H altrove anche sostituiscono
+          const replace =
+            (e.code === 'KeyF' && e.metaKey && e.altKey && !e.shiftKey) ||
+            (e.code === 'KeyH' && e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey)
+          const search = e.code === 'KeyF' && mod && !e.altKey && !e.shiftKey
+          if (!replace && !search) return
+          e.preventDefault()
+          setFind((f) => ({ replace: replace || (!!f?.replace && search), key: (f?.key ?? 0) + 1 }))
+        }}
+      >
         <div className="document-head">
           <input
             ref={nameInput}
@@ -394,6 +410,16 @@ export default function DocumentView({
               onChange={onChange}
               onShow={(show) => onChange(withDocumentSettings(text, { showProperties: show }))}
             />
+            {find && (
+              <FindBar
+                editor={editor}
+                text={text}
+                replace={find.replace}
+                focusKey={find.key}
+                onReplaceChange={(replace) => setFind((f) => f && { ...f, replace })}
+                onClose={() => setFind(null)}
+              />
+            )}
             <MarkupTextarea
               ref={editor}
               fields={[]}

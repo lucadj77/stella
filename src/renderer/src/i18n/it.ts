@@ -988,6 +988,8 @@ export const it: Record<MessageKey, string> = {
   'document.invalidName':
     'Nome di documento non valido: "{name}". Non può cominciare con un punto né contenere \\ / : * ? " < > |',
   'document.exists': 'Esiste già un documento "{name}"',
+  'doc.refsUpdated':
+    'Documenti aggiornati: {n} {n:riferimento|riferimenti} seguono il nome nuovo ({docs})',
   'doc.card.badRef':
     '"{ref}" non è una carta: scrivi card:Set/numero o card:Set/colonna=valore, per esempio card:Personaggi/nome=Mago',
   'doc.card.badOption':
@@ -1082,6 +1084,10 @@ export const it: Record<MessageKey, string> = {
   'bind.unknownProperty': 'Colonna {column}: proprietà inesistente',
   'bind.formulaField': 'Livello {layer}: la formula usa il campo "{field}", che questa riga non ha',
   'bind.invalidValue': 'Colonna {column}: valore non valido "{value}"',
+  'bind.variableIsLayer':
+    'La variabile "{name}" ha lo stesso nome di un livello: {{name}} mostra il livello, non la variabile. Rinomina la variabile o il livello',
+  'bind.variableIsColumn':
+    'La variabile "{name}" ha lo stesso nome di una colonna: {{name}} mostra la cella, non la variabile. Rinomina la variabile o la colonna',
   'bind.gridContent': 'Griglia {layer}: non c\'è un gruppo "{group}" da ripetere nelle caselle',
   'bind.formulaError': 'Livello {layer}: errore nella formula: {error}',
   'bind.markup': 'Livello {layer}: {problem}',
@@ -1426,6 +1432,46 @@ export const it: Record<MessageKey, string> = {
   'documents.deleteConfirm': 'Va nel cestino del progetto, da cui si può recuperare.',
   'documents.deleteConfirm.title': 'Eliminare il documento "{name}"?',
   'documents.deleteConfirm.ok': 'Elimina',
+  'findAll.title': 'Cerca e sostituisci nel progetto',
+  'findAll.menu': 'Cerca e sostituisci…',
+  'findAll.menuHint':
+    'Cerca un testo in documenti, note, dati, template e variabili e lo sostituisce dove scegli (⇧⌘F / Ctrl+Shift+F)',
+  'findAll.hint':
+    'Cerca nei documenti, nelle note, nelle celle dei fogli, nei testi e nelle formule dei template e nelle variabili. I nomi (set, template, livelli, colonne, variabili) non cambiano: per quelli usa Rinomina, che aggiorna anche i riferimenti. Prima di sostituire Stella fa un backup.',
+  'findAll.documents': 'Documenti',
+  'findAll.notes': 'Note',
+  'findAll.cells': 'Dati',
+  'findAll.layers': 'Template',
+  'findAll.variables': 'Variabili',
+  'findAll.line': '{name}, riga {n}',
+  'findAll.cell': '{set}, carta {n}, {column}',
+  'findAll.layer': '{template} › {layer} ({prop})',
+  'findAll.prop.text': 'testo',
+  'findAll.prop.value': 'valore',
+  'findAll.prop.formula': 'formula',
+  'findAll.choose': 'Sostituisci qui',
+  'findAll.all': 'Tutti',
+  'findAll.nothing': 'Nessuno',
+  'findAll.count': '{n} {n:occorrenza|occorrenze} in {places} {places:punto|punti}',
+  'findAll.replace': 'Sostituisci in {n} {n:punto|punti}',
+  'findAll.replaceHint': 'Sostituisce nei punti scelti. Prima fa un backup del progetto',
+  'findAll.backupLabel': 'Prima di sostituire {query}',
+  'findAll.done':
+    '{n} {n:occorrenza sostituita|occorrenze sostituite}. Il backup "{label}" ha il progetto com\'era sul disco prima: lo trovi in Progetto › Backup. Le modifiche a dati e template vanno salvate (⌘S / Ctrl+S); ⌘Z / Ctrl+Z le annulla',
+  'find.placeholder': 'Cerca',
+  'find.replacePlaceholder': 'Sostituisci con',
+  'find.count': '{i} di {n}',
+  'find.none': 'Nessun risultato',
+  'find.previous': 'Precedente (⇧Invio)',
+  'find.next': 'Successivo (Invio)',
+  'find.matchCase': 'Maiuscole',
+  'find.matchCaseHint': 'Distingue maiuscole e minuscole',
+  'find.wholeWord': 'Parola intera',
+  'find.wholeWordHint': 'Trova solo parole intere: "re" non trova "regola"',
+  'find.close': 'Chiudi (Esc)',
+  'find.toggleReplace': 'Mostra o nasconde la sostituzione',
+  'find.replace': 'Sostituisci',
+  'find.replaceAll': 'Sostituisci tutto',
   'documents.placeholder':
     "Scrivi in Markdown: # titolo, - elenco, **grassetto**, | tabella |. {icona} disegna un'icona, [testo]{.stile} uno stile. Inserisci carta aggiunge una carta del gioco.",
   'documents.empty': 'Il documento è vuoto.',
@@ -1608,6 +1654,8 @@ export const it: Record<MessageKey, string> = {
   'variable.name': 'Nome',
   'variable.nameHint': 'Scrivi {nome} in qualsiasi testo per usarla',
   'variable.invalidName': 'Usa lettere, cifre, - e _, senza spazi',
+  'variable.fieldName':
+    'Un livello o una colonna si chiama già "{name}": nelle carte che lo hanno, {{name}} mostrerà il campo e non la variabile. Scegli un altro nome',
   'variable.exists': 'Esiste già una variabile con questo nome',
   'variable.type': 'Tipo',
   'variable.type.image': 'Icona',

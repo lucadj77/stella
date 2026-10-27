@@ -322,3 +322,53 @@ describe('contenuto della griglia', () => {
     })
   })
 })
+
+describe('formula con risultato vuoto', () => {
+  const tpl = normalizeTemplate({
+    name: 't',
+    front: [
+      {
+        type: 'text',
+        name: 'nemici',
+        text: '1',
+        source: { kind: 'formula', expr: '=IF({forza} <= 4; "{forza}"; "")' }
+      },
+      {
+        type: 'shape',
+        name: 'fondo',
+        fill: '#2F5DA8',
+        source: { kind: 'formula', expr: '=IF({forza} <= 4; "#A33A2A"; "")' }
+      }
+    ]
+  })
+  it('un testo resta vuoto, un colore torna quello del template', () => {
+    const [testo, fondo] = bindCard(tpl, rowToCard(['forza'], ['9'])).template.front
+    expect((testo as TextLayer).text).toBe('')
+    expect((fondo as ShapeLayer).fill).toBe('#2F5DA8')
+    const [pieno] = bindCard(tpl, rowToCard(['forza'], ['3'])).template.front
+    expect((pieno as TextLayer).text).toBe('3')
+  })
+})
+
+describe('variabili con il nome di un campo', () => {
+  const tpl = normalizeTemplate({
+    name: 't',
+    front: [
+      { type: 'text', name: 'punti', text: '1' },
+      { type: 'text', name: 'testo', text: '{punti} {forza}' }
+    ]
+  })
+  it('avvisa se una variabile ha il nome di un livello o di una colonna', () => {
+    const b = bindCard(tpl, rowToCard(['forza'], ['3']), {
+      variables: {
+        punti: { type: 'image', src: 'punti.png' },
+        forza: { type: 'text', text: 'F' },
+        oro: { type: 'text', text: 'O' }
+      }
+    })
+    expect(b.problems.map((p) => `${p.key}:${p.params?.name}`)).toEqual([
+      'bind.variableIsLayer:punti',
+      'bind.variableIsColumn:forza'
+    ])
+  })
+})

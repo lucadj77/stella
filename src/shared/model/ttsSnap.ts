@@ -1,7 +1,7 @@
 import { arrangeGroup } from './arrange'
 import { anchorPoint, rotateAround, type Point } from './geometry'
 import { gridGeometry } from './grid'
-import type { GroupLayer, Layer } from './template'
+import type { Layer } from './template'
 
 // Snap point e tag di Tabletop Simulator. Un livello con `snap` dà un punto al suo centro (una
 // griglia uno per casella); i livelli di tipo snap sono solo questo. Le posizioni sono in mm
@@ -31,22 +31,31 @@ const round = (v: number): number => Math.round(v * 1000) / 1000
 /** Angolo tra 0 e 360 */
 const norm = (deg: number): number => round(((deg % 360) + 360) % 360)
 
-/** Gli snap point dei livelli di una faccia, già legati ai dati della carta */
+/**
+ * Gli snap point dei livelli di una faccia, già legati ai dati della carta. Anche quelli del
+ * gruppo che una griglia ripete: uno per casella, spostato come la casella.
+ */
 export function snapPoints(layers: Layer[]): SnapPoint[] {
   const out: SnapPoint[] = []
-  const visit = (list: Layer[], chain: GroupLayer[]): void => {
+  /** `toCard` porta un punto del livello sulla carta con le rotazioni dei contenitori */
+  const visit = (list: Layer[], toCard: (p: Point) => Point, turn: number): void => {
     for (const l of list) {
       if (!l.visible) continue
-      if (l.type === 'group') visit(arrangeGroup(l).children, [...chain, l])
-      if (!l.snap || l.type === 'value') continue
       // il punto sulla carta: rotazione del livello, poi dei gruppi dal più interno
-      const place = (p: Point): Point =>
-        [l, ...[...chain].reverse()].reduce(
-          (q, c) => rotateAround(q, anchorPoint(c), c.rotation),
-          p
-        )
-      const turn = [l, ...chain].reduce((a, c) => a + c.rotation, 0)
-      const angle = l.snap.rotated ? norm(l.snap.angle ?? turn) : null
+      const place = (p: Point): Point => toCard(rotateAround(p, anchorPoint(l), l.rotation))
+      if (l.type === 'group') visit(arrangeGroup(l).children, place, turn + l.rotation)
+      if (l.type === 'grid' && l.cells?.length) {
+        const { centers } = gridGeometry(l)
+        l.cells.forEach((cell, i) => {
+          const c = centers[i]
+          if (!c) return
+          const dx = c.x - centers[0].x
+          const dy = c.y - centers[0].y
+          visit([cell], (p) => place({ x: p.x + dx, y: p.y + dy }), turn + l.rotation)
+        })
+      }
+      if (!l.snap || l.type === 'value') continue
+      const angle = l.snap.rotated ? norm(l.snap.angle ?? turn + l.rotation) : null
       const tags = parseTags(l.snap.tags)
       const centers =
         l.type === 'grid'
@@ -58,6 +67,6 @@ export function snapPoints(layers: Layer[]): SnapPoint[] {
       }
     }
   }
-  visit(layers, [])
+  visit(layers, (p) => p, 0)
   return out
 }
