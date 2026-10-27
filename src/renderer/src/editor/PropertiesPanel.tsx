@@ -441,6 +441,7 @@ function TemplateProperties({
           onChange={(f) => set({ labelField: f || null }, 'labelField')}
         />
       </Inherit>
+      <h3>{t('editor.ttsSnap')}</h3>
       <Inherit keys={['ttsTags']}>
         <TextField
           label={t('prop.ttsTags')}
