@@ -988,6 +988,7 @@ export const it: Record<MessageKey, string> = {
   'document.invalidName':
     'Nome di documento non valido: "{name}". Non può cominciare con un punto né contenere \\ / : * ? " < > |',
   'document.exists': 'Esiste già un documento "{name}"',
+  'doc.refsUpdated': 'Riferimenti aggiornati nei documenti: {n} ({docs})',
   'doc.card.badRef':
     '"{ref}" non è una carta: scrivi card:Set/numero o card:Set/colonna=valore, per esempio card:Personaggi/nome=Mago',
   'doc.card.badOption':

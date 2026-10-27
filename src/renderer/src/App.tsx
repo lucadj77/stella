@@ -125,6 +125,7 @@ import { renameSet } from '../../shared/model/renameSet'
 import { sharingSets, syncSharedSheets } from '../../shared/model/sharedSheets'
 import { changesData } from '../../shared/model/readOnlyData'
 import { renameTemplate } from '../../shared/model/renameTemplate'
+import { followInDocuments, type RefSnapshot } from '../../shared/model/docRefs'
 import CardSvg from './render/CardSvg'
 import {
   AssetsContext,
@@ -906,6 +907,41 @@ function App(): React.JSX.Element {
 
   const documents = useDocuments(project, setProject, setError)
   const openDocument = selected.kind === 'document' ? selected.name : null
+  // i documenti seguono le rinomine (set, colonne, valori delle carte, livelli, variabili,
+  // stili), da qualunque parte arrivino: modifica, annulla, file ricaricato
+  const [refsNotice, setRefsNotice] = useState<string | null>(null)
+  const refsBefore = useRef<{ folder: string; snap: RefSnapshot } | null>(null)
+  useEffect(() => {
+    if (!project) {
+      refsBefore.current = null
+      return
+    }
+    const snap: RefSnapshot = {
+      sets: project.sets,
+      templates: project.templates,
+      variables: project.file.variables,
+      styles: project.file.styles
+    }
+    const prev = refsBefore.current
+    refsBefore.current = { folder: project.folder, snap }
+    if (!prev || prev.folder !== project.folder) return
+    const { changed, count } = followInDocuments(project.documents ?? [], prev.snap, snap)
+    if (!changed.length) return
+    for (const d of changed) documents.change(d.name, d.text)
+    setRefsNotice(t('doc.refsUpdated', { n: count, docs: changed.map((d) => d.name).join(', ') }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    project?.folder,
+    project?.sets,
+    project?.templates,
+    project?.file.variables,
+    project?.file.styles
+  ])
+  useEffect(() => {
+    if (!refsNotice) return undefined
+    const timer = window.setTimeout(() => setRefsNotice(null), 8000)
+    return () => window.clearTimeout(timer)
+  }, [refsNotice])
   // lasciando un documento le modifiche in attesa si scrivono subito
   useEffect(() => {
     if (!openDocument) return undefined
@@ -2397,6 +2433,12 @@ function App(): React.JSX.Element {
                     )}
 
                     {project && error && <div className="banner error">{t(error)}</div>}
+                    {project && refsNotice && (
+                      <div className="banner info refs-notice">
+                        {refsNotice}
+                        <button onClick={() => setRefsNotice(null)}>{t('dialog.close')}</button>
+                      </div>
+                    )}
                     {project && dataChanged && !canReloadData && (
                       <div className="banner warning data-changed">
                         {t('data.changedOutside')}

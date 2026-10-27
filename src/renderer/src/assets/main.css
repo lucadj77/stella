@@ -4749,7 +4749,8 @@ details.usages button.link {
   color: var(--text);
 }
 
-.banner.data-changed {
+.banner.data-changed,
+.banner.refs-notice {
   display: flex;
   align-items: center;
   gap: 8px;
