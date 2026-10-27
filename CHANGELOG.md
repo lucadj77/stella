@@ -19,7 +19,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Table setup**: stacked components follow the template shape and each has a thin outline.
 - **Search in the properties panel**: a field at the top of the panel (⌘F / Ctrl+F) keeps only the properties whose name contains the text, or the whole section when the text is in its title.
 - **Shortcuts**: I, G and V add an image, a grid and a value layer, like T, R and E. ⌘O / Ctrl+O and ⌘W / Ctrl+W open and close the project in the desktop app.
-- **Tabletop Simulator proportions**: tokens and standees are sized on their width, so a tall standee no longer comes out about twice as large. Landscape cards (a board as wide as two cards) are placed sideways at their true size instead of four times larger.
+- **Tabletop Simulator proportions**: tokens and standees are sized on their width, so a tall standee no longer comes out about twice as large, and standees keep the thickness on their own axis instead of being stretched in height. Landscape cards (a board as wide as two cards) are placed sideways at their true size instead of four times larger.
 - **Standee thickness**: 15 mm by default, so the figure stands up.
 - **Pinned properties**: in the card fields of a set, the pin next to a layer property keeps it under its field even with the properties closed and when you change card.
 - **Text outline**: drawn around the letters with rounded corners. A thick outline no longer gets cut at the edge of the box and no longer makes spikes on sharp curves.
@@ -38,7 +38,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Schema del tavolo**: i componenti impilati seguono la forma del template e hanno un sottile contorno.
 - **Ricerca nel pannello delle proprietà**: un campo in cima al pannello (⌘F / Ctrl+F) lascia solo le proprietà il cui nome contiene il testo, o l'intera sezione se il testo è nel suo titolo.
 - **Scorciatoie**: I, G e V aggiungono un livello immagine, griglia e valore, come T, R ed E. ⌘O / Ctrl+O e ⌘W / Ctrl+W aprono e chiudono il progetto nell'app per computer.
-- **Proporzioni in Tabletop Simulator**: segnalini e pedine si misurano sulla larghezza, quindi una pedina alta non esce più grande circa il doppio. Le carte orizzontali (una plancia larga quanto due carte) sono messe di traverso, nella misura vera invece che quattro volte più grandi.
+- **Proporzioni in Tabletop Simulator**: segnalini e pedine si misurano sulla larghezza, quindi una pedina alta non esce più grande circa il doppio, e lo spessore delle pedine resta sul suo asse invece di allungarle in altezza. Le carte orizzontali (una plancia larga quanto due carte) sono messe di traverso, nella misura vera invece che quattro volte più grandi.
 - **Spessore delle pedine**: 15 mm di base, perché la figura stia in piedi.
 - **Proprietà fissate**: nei campi della carta di un set, la puntina accanto a una proprietà del livello la tiene sotto il suo campo anche con le proprietà chiuse e cambiando carta.
 - **Contorno del testo**: si disegna attorno alle lettere con gli angoli arrotondati. Un contorno spesso non viene più tagliato dal bordo del riquadro e non fa punte nelle curve strette.

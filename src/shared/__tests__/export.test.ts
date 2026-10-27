@@ -281,7 +281,9 @@ describe('Tabletop Simulator: segnalini e tessere', () => {
           CustomImage: {
             ImageSecondaryURL: '',
             CustomToken: { StandUp: true, Thickness: 0.107 }
-          }
+          },
+          // la figura sta nel piano X-Y: la scala non va su Z, lo spessore
+          Transform: { scaleX: 0.301, scaleY: 0.301, scaleZ: 1 }
         }
       ]
     })

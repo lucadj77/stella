@@ -697,8 +697,18 @@ export function ttsPieceScale(kind: TtsPieceKind, w: number, h: number): number 
   return round3((Math.max(w, h) * TTS_UNITS_PER_MM) / TTS_TILE_SIZE)
 }
 
-/** Posizione sul tavolo: le carte a faccia in giù, segnalini e tessere a faccia in su */
-function transform(y = 1, faceDown = true, scale = 1, x = 0): Record<string, number> {
+/**
+ * Posizione sul tavolo: le carte a faccia in giù, segnalini e tessere a faccia in su. La pedina
+ * (segnalino in piedi) ha la figura nel piano X-Y: lì va la scala, e Z, lo spessore, resta 1
+ * (verificato in TTS, ottobre 2026: con la scala su Z la pedina era alta e stretta)
+ */
+function transform(
+  y = 1,
+  faceDown = true,
+  scale = 1,
+  x = 0,
+  standUp = false
+): Record<string, number> {
   return {
     posX: x,
     posY: y,
@@ -708,8 +718,8 @@ function transform(y = 1, faceDown = true, scale = 1, x = 0): Record<string, num
     rotZ: faceDown ? 180 : 0,
     // lo spessore si dà a parte: in altezza la scala resta 1
     scaleX: scale,
-    scaleY: 1,
-    scaleZ: scale
+    scaleY: standUp ? scale : 1,
+    scaleZ: standUp ? 1 : scale
   }
 }
 
@@ -852,7 +862,7 @@ export function ttsSavedPieces(
   const scale = ttsPieceScale(kind, size.w, size.h)
   const pieceObject = (p: TtsPiece, x = 0): Record<string, unknown> => ({
     Name: isTokenLike(kind) ? 'Custom_Token' : 'Custom_Tile',
-    Transform: transform(1, false, scale, x),
+    Transform: transform(1, false, scale, x, kind === 'standee'),
     Nickname: p.nickname,
     Description: p.description,
     // nelle tessere e nelle plance la tinta colora solo i lati, non le immagini
