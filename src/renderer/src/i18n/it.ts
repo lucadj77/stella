@@ -2205,6 +2205,8 @@ export const it: Record<MessageKey, string> = {
   'generate.title': 'Genera carte',
   'generate.intro':
     'Ogni insieme riempie una colonna; due insiemi sulla stessa colonna finiscono nello stesso campo. Le carte nascono da tutte le combinazioni dei valori: per esempio 6 semi e i numeri 1-5 danno 30 carte.',
+  'generate.otherColumn': 'Altra colonna…',
+  'generate.columnList': 'Scegli dall\'elenco delle colonne',
   'generate.column': 'Colonna',
   'generate.pick': 'Valori per carta',
   'generate.removeSet': "Togli l'insieme",

@@ -637,7 +637,7 @@ On a **grid** layer the formula applies to the whole grid (for example the cell 
 
 ## 10. Generating cards
 
-**Generate…**, in the set's **Tools** menu, creates rows by combining sets of values. Each value set has a target column, a list of values (one per line or comma separated; `1-5` becomes 1, 2, 3, 4, 5) and how many values to put on each card.
+**Generate…**, in the set's **Tools** menu, creates rows by combining sets of values. Each value set has a target column, a list of values (one per line or comma separated; `1-5` becomes 1, 2, 3, 4, 5) and how many values to put on each card. The column is chosen from a list with the template's and the sheet's columns; **Other column…** lets you type a new one.
 
 - Several value sets are combined in every possible way: 6 suits and the numbers 1-5 give 30 cards.
 - With more than one value per card you choose whether repetitions are allowed and whether order matters. Under **Limits per value** you set a minimum and maximum for each value.

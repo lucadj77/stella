@@ -2175,6 +2175,8 @@ export const en = {
   'generate.title': 'Generate cards',
   'generate.intro':
     'Each set fills a column; two sets on the same column share the same field. Cards are every combination of the values: for example 6 suits and the numbers 1-5 give 30 cards.',
+  'generate.otherColumn': 'Other column…',
+  'generate.columnList': 'Choose from the list of columns',
   'generate.column': 'Column',
   'generate.pick': 'Values per card',
   'generate.removeSet': 'Remove the set',

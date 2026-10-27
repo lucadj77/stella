@@ -637,7 +637,7 @@ Su un livello **griglia** la formula vale per tutta la griglia (per esempio il c
 
 ## 10. Generare le carte
 
-**Genera…**, nel menu **Strumenti** del set, crea le righe combinando insiemi di valori. Ogni insieme ha una colonna di destinazione, un elenco di valori (uno per riga o separati da virgole; `1-5` diventa 1, 2, 3, 4, 5) e quanti valori mettere su ogni carta.
+**Genera…**, nel menu **Strumenti** del set, crea le righe combinando insiemi di valori. Ogni insieme ha una colonna di destinazione, un elenco di valori (uno per riga o separati da virgole; `1-5` diventa 1, 2, 3, 4, 5) e quanti valori mettere su ogni carta. La colonna si sceglie da un elenco con le colonne del template e del foglio; **Altra colonna…** permette di scriverne una nuova.
 
 - Più insiemi si combinano in tutti i modi possibili: 6 semi e i numeri 1-5 danno 30 carte.
 - Con più valori per carta si sceglie se ammettere le ripetizioni e se conta l'ordine. In **Limiti per valore** si fissano minimo e massimo per ciascun valore.

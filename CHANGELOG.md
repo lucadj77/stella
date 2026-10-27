@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.7.0-beta.3
+
+### English
+
+- **Generate cards, column menu**: the column of each set is now chosen from a list with every column of the template and the sheet, plus **Other column…** to type a new one. Before, the suggestions showed only the columns containing what was already written, so with `text1` in the field `text2` and `text3` were missing.
+
+### Italiano
+
+- **Genera carte, menu delle colonne**: la colonna di ogni insieme ora si sceglie da un elenco con tutte le colonne del template e del foglio, più **Altra colonna…** per scriverne una nuova. Prima i suggerimenti mostravano solo le colonne che contenevano quanto già scritto, così con `text1` nel campo mancavano `text2` e `text3`.
+
 ## 1.7.0-beta.2
 
 ### English
