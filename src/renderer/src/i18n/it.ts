@@ -1803,6 +1803,8 @@ export const it: Record<MessageKey, string> = {
     "Stella Game Center è un'app gratuita. Se ti è utile, puoi offrirmi un caffè (PayPal)",
   'help.site': 'Sito: stella.lucadj.eu/it',
   'start.site': 'Sito web',
+  'help.discord': 'Domande e aiuto: Discord',
+  'start.discord': 'Discord',
   'start.support': 'Sostieni Stella',
   'help.tab.start': 'Primi passi',
   'help.start.title': 'Da un progetto vuoto ai componenti stampati',

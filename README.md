@@ -44,6 +44,8 @@ Stella is free software, licensed under the [GNU GPL version 3 or later](LICENSE
 
 ## Support
 
+Questions, help and ideas, in English and Italian: the [Stella Game Center Discord server](https://discord.gg/bkP3a3CwkP). Bugs go to [GitHub Issues](https://github.com/lucadj77/stella/issues).
+
 Stella is free. If you find it useful, you can buy me a coffee: <https://paypal.me/DiGialleonardo>.
 
 ## Stack

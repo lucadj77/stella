@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.6.1
+
+### English
+
+- **Discord**: Stella Game Center has a support server, in English and Italian. The link is in the Help window, at the bottom of the start screen, on the website, in the README and in the guide.
+
+### Italiano
+
+- **Discord**: Stella Game Center ha un server di supporto, in italiano e in inglese. Il link è nella finestra Aiuto, in fondo alla schermata di ingresso, sul sito, nel README e nella guida.
+
 ## 1.6.0
 
 ### English

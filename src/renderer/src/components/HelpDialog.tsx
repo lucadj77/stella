@@ -3,6 +3,7 @@ import { ATTRIBUTES, BUILTIN_SHAPES, BUILTIN_STYLES } from '../../../shared/mode
 import { IMAGE_ATTRIBUTES } from '../../../shared/model/variables'
 import { SYSTEM_VARIABLES } from '../../../shared/model/system'
 import {
+  DISCORD_URL,
   DONATE_URL,
   guideSectionUrl,
   guideUrl,
@@ -173,6 +174,10 @@ export default function HelpDialog({
           {' · '}
           <a href={siteUrl(lang)} target="_blank" rel="noreferrer">
             {t('help.site')}
+          </a>
+          {' · '}
+          <a href={DISCORD_URL} target="_blank" rel="noreferrer">
+            {t('help.discord')}
           </a>
         </p>
         <p className="help-support">
