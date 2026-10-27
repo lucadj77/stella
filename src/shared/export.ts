@@ -115,7 +115,7 @@ export interface TtsSetObject {
 }
 
 /** Spessore predefinito delle pedine, in mm */
-export const STANDEE_THICKNESS = 15
+export const STANDEE_THICKNESS = 10
 
 export const DEFAULT_TTS_OBJECT: TtsSetObject = {
   type: 'card',

@@ -325,8 +325,8 @@ describe('Tabletop Simulator: segnalini e tessere', () => {
     expect(ttsPieceScale('standee', 27, 52)).toBeCloseTo(0.301, 3)
   })
 
-  it('le pedine hanno uno spessore predefinito di 15 mm, gli altri pezzi di 2 mm', () => {
-    expect(ttsSetObject({}, 'Eroi', 'standee').thickness).toBe(15)
+  it('le pedine hanno uno spessore predefinito di 10 mm, gli altri pezzi di 2 mm', () => {
+    expect(ttsSetObject({}, 'Eroi', 'standee').thickness).toBe(10)
     expect(ttsSetObject({}, 'Segnalini', 'token').thickness).toBe(2)
     expect(
       ttsSetObject(

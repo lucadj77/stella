@@ -194,7 +194,7 @@ Il + accanto a **Template** apre la finestra del nuovo template. In cima, **Cosa
 
 Il tipo si cambia anche dopo, con **Componente** nelle proprietà del template. Nell'esportazione per Tabletop Simulator ogni set parte dall'oggetto del suo tipo: segnalini, pedine, tessere, plance o dadi.
 
-Una **pedina** è una figura che sta in piedi, per esempio un personaggio disegnato su fondo trasparente. Il template nasce senza sfondo e senza abbondanza, e nell'editor sotto la figura si vede una scacchiera. Il retro non si disegna: è il fronte specchiato, e Stella lo ricava da solo. Così nel PDF ci sono le due facce da ritagliare e incollare, e combaciano sempre. Si stampano con i normali segni di taglio rettangolari attorno al riquadro, e la sagoma si ritaglia a mano. In Tabletop Simulator la pedina diventa un segnalino in piedi, con lo spessore scelto (15 mm se non lo si cambia, perché la base deve tenerla dritta), ritagliato sulla parte non trasparente del fronte.
+Una **pedina** è una figura che sta in piedi, per esempio un personaggio disegnato su fondo trasparente. Il template nasce senza sfondo e senza abbondanza, e nell'editor sotto la figura si vede una scacchiera. Il retro non si disegna: è il fronte specchiato, e Stella lo ricava da solo. Così nel PDF ci sono le due facce da ritagliare e incollare, e combaciano sempre. Si stampano con i normali segni di taglio rettangolari attorno al riquadro, e la sagoma si ritaglia a mano. In Tabletop Simulator la pedina diventa un segnalino in piedi, con lo spessore scelto (10 mm se non lo si cambia, perché la base deve tenerla dritta), ritagliato sulla parte non trasparente del fronte.
 
 ![La finestra del nuovo template](img/nuovo-template.png)
 

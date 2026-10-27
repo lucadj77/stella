@@ -194,7 +194,7 @@ The + next to **Templates** opens the new template window. At the top, **What ar
 
 The kind can be changed later with **Component** in the template properties. In the Tabletop Simulator export each set starts from the object of its kind: tokens, standees, tiles, boards or dice.
 
-A **standee** is a figure that stands upright, for example a character drawn on a transparent background. The template starts with no background and no bleed, and in the editor a checkerboard shows under the figure. You do not draw the back: it is the front mirrored, and Stella makes it on its own. So the PDF has both faces to cut out and glue together, and they always match. They print with the usual rectangular crop marks around the frame, and you cut the silhouette by hand. In Tabletop Simulator the standee becomes an upright token, with the chosen thickness (15 mm unless you change it, so that the base keeps it upright), cut out along the non-transparent part of the front.
+A **standee** is a figure that stands upright, for example a character drawn on a transparent background. The template starts with no background and no bleed, and in the editor a checkerboard shows under the figure. You do not draw the back: it is the front mirrored, and Stella makes it on its own. So the PDF has both faces to cut out and glue together, and they always match. They print with the usual rectangular crop marks around the frame, and you cut the silhouette by hand. In Tabletop Simulator the standee becomes an upright token, with the chosen thickness (10 mm unless you change it, so that the base keeps it upright), cut out along the non-transparent part of the front.
 
 ![The new template window](img/nuovo-template.png)
 
