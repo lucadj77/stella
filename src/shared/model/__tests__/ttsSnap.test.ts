@@ -141,10 +141,11 @@ describe('snap point di Tabletop Simulator', () => {
     expect(q).toEqual({ Position: { x: -0, y: 0, z: 0 } })
   })
 
-  it('allungamento: solo le carte, dalla carta da poker', () => {
+  it('allungamento: le carte dalla carta da poker, tessere e plance appena più larghe', () => {
     expect(ttsStretch('card', 63, 88)).toBeCloseTo(1)
     expect(ttsStretch('card', 126, 88)).toBeCloseTo(2)
-    expect(ttsStretch('board', 120, 88)).toBe(1)
+    expect(ttsStretch('board', 120, 88)).toBe(0.99)
+    expect(ttsStretch('tile', 45, 45)).toBe(0.99)
     expect(ttsStretch('token', 30, 50)).toBe(1)
   })
 
