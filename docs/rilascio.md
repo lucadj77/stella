@@ -53,6 +53,7 @@ Un difetto della versione stabile si corregge su un ramo nato da `release/1.2`, 
    con il ramo e il numero della versione al posto di `main` e `1.2.0-beta.1`. Il comando su `package-lock.json` scarta la copia modificata da `npm install`, che altrimenti blocca `git pull`: in quel caso il tag finirebbe su una versione vecchia e GitHub lo rifiuterebbe.
 
 4. L'azione **Build** di GitHub costruisce i pacchetti per Mac, Windows e Linux e pubblica la release con le novità; un tag con il trattino (`v1.3.0-beta.1`) diventa una pre-release. Se il tag non corrisponde alla versione di `package.json`, o manca la sezione in `CHANGELOG.md`, la release non viene creata e l'azione lo dice nel log. L'azione **Web** pubblica di nuovo il sito, con la stabile e la beta.
+5. Per una versione stabile, Build manda anche le novità al canale #announcements del server Discord: un messaggio in inglese e uno in italiano presi da `CHANGELOG.md` (`scripts/discord-announce.mjs`; per vederli prima: `node scripts/discord-announce.mjs vx.y.z --dry-run`). Serve il segreto `DISCORD_WEBHOOK` del repository (Settings → Secrets and variables → Actions) con l'URL del webhook del canale; senza il segreto il passaggio non fa niente, e se Discord non risponde la release resta valida. Le beta non vengono annunciate.
 
 Da quel momento le copie di Stella già installate segnalano la nuova versione al primo avvio, secondo il loro canale.
 

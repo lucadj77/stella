@@ -9,11 +9,11 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 
 ### English
 
-- **Discord**: Stella Game Center has a support server, in English and Italian. The link is in the Help window, at the bottom of the start screen, on the website, in the README and in the guide.
+- **Discord**: Stella Game Center has a support server, in English and Italian. The link is in the Help window, at the bottom of the start screen, on the website, in the README and in the guide. New stable versions are announced in the server's #announcements channel.
 
 ### Italiano
 
-- **Discord**: Stella Game Center ha un server di supporto, in italiano e in inglese. Il link è nella finestra Aiuto, in fondo alla schermata di ingresso, sul sito, nel README e nella guida.
+- **Discord**: Stella Game Center ha un server di supporto, in italiano e in inglese. Il link è nella finestra Aiuto, in fondo alla schermata di ingresso, sul sito, nel README e nella guida. Le nuove versioni stabili vengono annunciate nel canale #announcements del server.
 
 ## 1.6.0
 
