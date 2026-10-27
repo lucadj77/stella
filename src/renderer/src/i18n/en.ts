@@ -288,7 +288,8 @@ export const en = {
   'editor.nameEmpty': 'The name cannot be empty or start/end with spaces',
   'editor.nameChars': 'The name cannot contain . { } [ ]',
   'editor.nameTaken': 'Another layer already has this name',
-  'editor.anchorHint': 'Point the layer rotates around',
+  'editor.anchorHint':
+    'Point the layer rotates around, and that stays still when you change its size here',
   'editor.lockedHint': 'A locked layer cannot be selected or moved on the card',
   'editor.clipHint':
     'Put a shape (e.g. a circle) at the bottom of the group: the layers above it show only inside that shape, and the shape itself is not drawn.',

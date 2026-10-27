@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  anchoredResize,
   duplicateLayer,
   findLayer,
   groupLayers,
@@ -267,5 +268,20 @@ describe('copia e incolla tra template', () => {
       'sfondo'
     ])
     expect([r.template.front[2].x, r.template.front[2].y]).toEqual([12, 12])
+  })
+})
+
+describe('misura dal pannello', () => {
+  const box = (anchor: string): TextLayer =>
+    normalizeTemplate({
+      name: 'a',
+      front: [{ type: 'text', name: 'x', x: 10, y: 20, w: 30, h: 10, anchor }]
+    } as never).front[0] as TextLayer
+  it('resta fermo il punto di ancoraggio', () => {
+    expect(anchoredResize(box('center'), 40, 20)).toEqual({ x: 5, y: 15, w: 40, h: 20 })
+    expect(anchoredResize(box('top-left'), 40, 20)).toEqual({ x: 10, y: 20, w: 40, h: 20 })
+    expect(anchoredResize(box('bottom-right'), 40, 20)).toEqual({ x: 0, y: 10, w: 40, h: 20 })
+    expect(anchoredResize(box('top'), 40, 20)).toEqual({ x: 5, y: 20, w: 40, h: 20 })
+    expect(anchoredResize(box('left'), 40, 20)).toEqual({ x: 10, y: 15, w: 40, h: 20 })
   })
 })

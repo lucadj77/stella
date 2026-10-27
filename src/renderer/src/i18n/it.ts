@@ -290,7 +290,8 @@ export const it: Record<MessageKey, string> = {
   'editor.nameEmpty': 'Il nome non può essere vuoto né iniziare o finire con spazi',
   'editor.nameChars': 'Il nome non può contenere . { } [ ]',
   'editor.nameTaken': 'Un altro livello ha già questo nome',
-  'editor.anchorHint': 'Punto intorno a cui ruota il livello',
+  'editor.anchorHint':
+    'Punto intorno a cui ruota il livello, e che resta fermo quando ne cambi la misura qui',
   'editor.lockedHint': 'Un livello bloccato non si seleziona né si sposta sulla carta',
   'editor.clipHint':
     'Metti in fondo al gruppo una forma (es. un cerchio): i livelli sopra si vedono solo dentro quella forma, che non viene disegnata.',

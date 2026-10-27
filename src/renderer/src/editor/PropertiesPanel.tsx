@@ -9,6 +9,7 @@ import {
   groupLayers,
   insertLayer,
   isNameTaken,
+  anchoredResize,
   patchLayers,
   uniqueName
 } from '../../../shared/model/edit'
@@ -1009,7 +1010,7 @@ function DrawnProperties({
                 unit="mm"
                 locked={locked}
                 onLock={setLocked}
-                onChange={(w, h) => set({ w, h })}
+                onChange={(w, h) => set(anchoredResize(l, w, h))}
               />
             </div>
           </Inherit>

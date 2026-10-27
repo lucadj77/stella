@@ -77,6 +77,26 @@ const isRecord = (v: unknown): v is Record<string, unknown> =>
  * le modifiche a partire da lì: nelle proprietà composte (contorno, ombra, vincoli...) agli altri
  * livelli arrivano solo le voci cambiate rispetto a `from`, il resto resta il loro.
  */
+/**
+ * Nuova misura di un livello che lascia fermo il suo punto di ancoraggio: con l'ancoraggio al
+ * centro il livello cresce da tutti i lati, con quello a destra verso sinistra, e così via.
+ */
+export function anchoredResize(
+  l: Layer,
+  w: number,
+  h: number
+): { x: number; y: number; w: number; h: number } {
+  const [v, hz] = l.anchor.includes('-')
+    ? l.anchor.split('-')
+    : l.anchor === 'top' || l.anchor === 'bottom'
+      ? [l.anchor, 'center']
+      : ['middle', l.anchor]
+  const fx = hz === 'left' ? 0 : hz === 'right' ? 1 : 0.5
+  const fy = v === 'top' ? 0 : v === 'bottom' ? 1 : 0.5
+  const round = (n: number): number => Math.round(n * 1000) / 1000
+  return { x: round(l.x + (l.w - w) * fx), y: round(l.y + (l.h - h) * fy), w, h }
+}
+
 export function patchLayers(
   t: Template,
   side: Side,

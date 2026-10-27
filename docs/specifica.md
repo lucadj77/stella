@@ -14,7 +14,7 @@ Ogni proprietà segnata con ◆ può essere esposta in tabella, cioè diventare 
 | x, y ◆               | mm                                                           | posizione dell'angolo in alto a sinistra rispetto al bordo di taglio |
 | larghezza, altezza ◆ | mm                                                           |                                                                      |
 | rotazione ◆          | gradi                                                        | attorno al punto di ancoraggio                                       |
-| punto di ancoraggio  | 9 posizioni                                                  | centro di rotazione e riferimento per x e y                          |
+| punto di ancoraggio  | 9 posizioni                                                  | centro di rotazione; resta fermo cambiando le misure dal pannello  |
 | opacità ◆            | 0–100%                                                       |                                                                      |
 | fusione              | normale, moltiplica, scolora, sovrapponi                     |                                                                      |
 | ombra                | colore, sfocatura, distanza x e y                            |                                                                      |
