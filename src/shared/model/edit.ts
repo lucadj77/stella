@@ -1,5 +1,5 @@
 import { arrangeModel } from './arrange'
-import { isArranged, normalizeLayer, walkLayers, type RawLayer } from './normalize'
+import { isArranged, normalizeLayer, SNAP_SIZE, walkLayers, type RawLayer } from './normalize'
 import {
   isDrawn,
   type Constraints,
@@ -384,6 +384,7 @@ export interface LayerNames {
   value?: string
   grid?: string
   shape?: string
+  snap?: string
   /** Il testo di prova di un livello di testo nuovo */
   sample?: string
   /** Nomi delle forme: rect, ellipse, polygon, star, line, path */
@@ -423,6 +424,19 @@ export function newLayer(
       return normalizeLayer({ type, name: uniqueName(t, names.value ?? 'value') }, 0)
     case 'grid':
       return normalizeLayer({ type, name: uniqueName(t, names.grid ?? 'grid'), ...base }, 0)
+    case 'snap':
+      // piccolo: il punto è il centro; parte dal centro della carta
+      return normalizeLayer(
+        {
+          type,
+          name: uniqueName(t, names.snap ?? 'snap'),
+          // si accende e si spegne con una colonna solo se serve: di base è fisso
+          source: { kind: 'fixed' },
+          x: t.width / 2 - SNAP_SIZE / 2,
+          y: t.height / 2 - SNAP_SIZE / 2
+        },
+        0
+      )
     default: {
       const base0 = shape ? (names.shapes?.[shape] ?? shape) : (names.shape ?? 'shape')
       return normalizeLayer(

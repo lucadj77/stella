@@ -170,7 +170,7 @@ Units: millimetres for positions and sizes, points for text size, degrees for ro
 }
 ```
 
-Template keys: `name`, optional `kind` (`card` default, `token`, `tile`, `board`, `die` = one die face per row, `standee` = an upright figure on a transparent background, no bleed, whose back is drawn as the front mirrored (leave `back` empty; TTS makes a standing token from the front); the TTS export uses it as the object type when `objects` does not list the set, so set it instead of `objects` for new templates), `width`, `height`, `bleed` (default 3), `safeMargin`, `cornerRadius`, optional `shape` (`rect`, `ellipse`, `hexagon`, `path` with `shapePath`, an SVG path in 0-1 card coordinates), `shapeRotation` (0/90/180/270, turns only the outline; for 90/270 also swap `width` and `height`), `shapeFlipH`, `shapeFlipV` (mirror the outline), `labelField` (field that names the cards in the app), `guides` (`{ "x": [...], "y": [...] }`).
+Template keys: `name`, optional `kind` (`card` default, `token`, `tile`, `board`, `die` = one die face per row, `standee` = an upright figure on a transparent background, no bleed, whose back is drawn as the front mirrored (leave `back` empty; TTS makes a standing token from the front); the TTS export uses it as the object type when `objects` does not list the set, so set it instead of `objects` for new templates), `width`, `height`, `bleed` (default 3), `safeMargin`, `cornerRadius`, optional `shape` (`rect`, `ellipse`, `hexagon`, `path` with `shapePath`, an SVG path in 0-1 card coordinates), `shapeRotation` (0/90/180/270, turns only the outline; for 90/270 also swap `width` and `height`), `shapeFlipH`, `shapeFlipV` (mirror the outline), `labelField` (field that names the cards in the app), `ttsTags` (Tabletop Simulator tags, see snap), `guides` (`{ "x": [...], "y": [...] }`).
 
 Layer names are unique in a template and are also column names: use short names without dots, braces or brackets.
 
@@ -195,7 +195,7 @@ A template can be based on another one and store only its differences. The app a
 }
 ```
 
-- `changes.template` may change `kind`, `bleed`, `safeMargin`, `cornerRadius`, `shape`, `shapePath`, `guides`, `labelField`; the card size always comes from the base.
+- `changes.template` may change `kind`, `bleed`, `safeMargin`, `cornerRadius`, `shape`, `shapePath`, `guides`, `labelField`, `ttsTags`; the card size always comes from the base.
 - `changes.layers` maps a base layer name to the properties that differ; compound values (stroke, shadow, source) are written whole.
 - `changes.added` lists layers that exist only in the derived template: `side`, optional `parent` (an inherited group) and `after` (the layer just above it in the list; missing means on top).
 - Inherited layers cannot be deleted or reordered: hide them with `"visible": false`. Do not write `front`/`back` in a derived template.
@@ -241,6 +241,10 @@ Equal cells drawn inside the box: `cell` (`square`, `circle`, `hex`, `triangle`,
 ### value
 
 `value`: a hidden per-card value, usable as `{name}` in texts and formulas of other layers. A column with the same name changes it per card; it can have a formula. Value layers are computed in order.
+
+### snap and Tabletop Simulator tags
+
+Any layer (not `value`) can have `snap`: a Tabletop Simulator snap point exported at the centre of the layer, or at the centre of every cell of a `grid`: `{ "tags": "", "rotated": false, "angle": null }`. `tags` (comma-separated, `{field}` allowed) make the point attract only objects with one of those tags; `rotated: true` also gives the snapped object a rotation, `angle` in degrees clockwise or `null` for the layer's own rotation. A `snap` layer (default 6 × 6 mm, `snap` always present) is just a snap point at the centre of its box: never printed, a crosshair in the editor; its column switches it on and off per card. Only the front gives snap points. Tags of the component itself go in the template key `ttsTags` (comma-separated, `{field}` allowed, e.g. `"{type}, card"`); a deck takes the tags of all its cards.
 
 ## Text markup
 

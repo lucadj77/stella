@@ -257,7 +257,7 @@ function LayerList({ layers, uid }: { layers: Layer[]; uid: string }): React.JSX
 }
 
 function LayerView({ layer: l, uid }: { layer: Layer; uid: string }): React.JSX.Element | null {
-  if (!l.visible || l.type === 'value') return null
+  if (!l.visible || l.type === 'value' || l.type === 'snap') return null
   const id = `${uid}-${l.id}`
   const { x: ax, y: ay } = anchorPoint(l)
   return (

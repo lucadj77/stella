@@ -84,6 +84,21 @@ export interface LayerBase {
   /** Proprietà esposte in tabella oltre al valore principale */
   exposed: string[]
   source: ValueSource
+  /**
+   * Snap point di Tabletop Simulator al centro del livello (in ogni casella per le griglie);
+   * assente o null: nessuno
+   */
+  snap?: LayerSnap | null
+}
+
+/** Snap point di un livello, esportato in Tabletop Simulator */
+export interface LayerSnap {
+  /** Tag separati da virgole, anche con {campi}: il punto attira solo gli oggetti con un tag uguale */
+  tags: string
+  /** Il punto dà anche la rotazione all'oggetto che vi si aggancia */
+  rotated: boolean
+  /** Angolo in gradi in senso orario; null segue la rotazione del livello */
+  angle: number | null
 }
 
 export interface TextLayer extends LayerBase {
@@ -269,7 +284,16 @@ export interface ValueLayer extends LayerBase {
   values?: Record<string, string>
 }
 
-export type Layer = TextLayer | ImageLayer | ShapeLayer | GridLayer | GroupLayer | ValueLayer
+/**
+ * Snap point di Tabletop Simulator in un punto qualsiasi: nell'editor è un mirino, nelle stampe
+ * e nelle immagini non si vede. Il punto è il centro del riquadro; `snap` c'è sempre.
+ */
+export interface SnapLayer extends LayerBase {
+  type: 'snap'
+}
+
+export type Layer =
+  TextLayer | ImageLayer | ShapeLayer | GridLayer | GroupLayer | ValueLayer | SnapLayer
 export type LayerType = Layer['type']
 
 export type CardShape = 'rect' | 'ellipse' | 'hexagon' | 'path'
@@ -331,6 +355,8 @@ export interface Template {
   guides?: ManualGuides
   /** Campo che dà il nome alle carte nelle anteprime dei set; null usa la prima colonna */
   labelField?: string | null
+  /** Tag di Tabletop Simulator, separati da virgole, anche con {campi} */
+  ttsTags?: string
   front: Layer[]
   back: Layer[]
   /**
@@ -353,7 +379,8 @@ export const INHERITABLE_TEMPLATE_KEYS = [
   'shapeFlipH',
   'shapeFlipV',
   'guides',
-  'labelField'
+  'labelField',
+  'ttsTags'
 ] as const
 export type InheritableTemplateKey = (typeof INHERITABLE_TEMPLATE_KEYS)[number]
 
@@ -382,7 +409,8 @@ export const PRIMARY_PROPERTY: Record<LayerType, string> = {
   shape: 'fill',
   grid: 'fill',
   group: 'visible',
-  value: 'value'
+  value: 'value',
+  snap: 'visible'
 }
 
 /** I livelli valore non hanno riquadro: non si disegnano, non si selezionano sulla carta */

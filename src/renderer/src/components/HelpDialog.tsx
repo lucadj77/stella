@@ -69,7 +69,7 @@ const KEYS: [string, MessageKey][] = [
   ['Alt+Enter', 'help.keys.cellBreak'],
   ['{  ↑ ↓  Enter', 'help.keys.suggest'],
   ['PgUp  PgDn', 'help.keys.page'],
-  ['T  R  E  I  G  V', 'help.keys.tools'],
+  ['T  R  E  I  G  V  P', 'help.keys.tools'],
   ['⌘F', 'help.keys.search'],
   ['⌘D', 'help.keys.duplicate'],
   ['⌘C  ⌘X  ⌘V', 'help.keys.copy'],

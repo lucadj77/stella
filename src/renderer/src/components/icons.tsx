@@ -39,6 +39,27 @@ export function GridIcon(): React.JSX.Element {
   )
 }
 
+/** Snap point di Tabletop Simulator: un mirino */
+export function SnapIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="1em"
+      height="1em"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      aria-hidden="true"
+      style={{ verticalAlign: '-0.125em' }}
+    >
+      <circle cx="8" cy="8" r="4.5" />
+      <path d="M8 1 V4.5 M8 11.5 V15 M1 8 H4.5 M11.5 8 H15" />
+      <circle cx="8" cy="8" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
 /** Fonte "colonna del foglio": una piccola tabella */
 export function ColumnIcon(): React.JSX.Element {
   return (

@@ -202,7 +202,7 @@ Una **pedina** è una figura che sta in piedi, per esempio un personaggio disegn
 
 ![L'editor dei template, con le parti numerate](img/editor.png)
 
-1. **Strumenti** per aggiungere un livello, ognuno con il suo nome: **Testo** (T), **Immagine**, **Forme** (un menu con rettangolo (R), ellisse (E), poligono, stella e linea), **Griglia** e **Valore**. **Immagine** apre subito la scelta dell'immagine; **Per ora nessuna immagine** crea il livello vuoto, per esempio quando l'immagine viene da una colonna. Un'immagine trascinata dal computer sulla tela diventa un livello immagine e si copia in `assets/images`. **Fronte** e **Retro** passano da un lato all'altro della carta; le frecce annullano e ripetono.
+1. **Strumenti** per aggiungere un livello, ognuno con il suo nome: **Testo** (T), **Immagine**, **Forme** (un menu con rettangolo (R), ellisse (E), poligono, stella e linea), **Griglia**, **Valore** e **Snap** (lo snap point di Tabletop Simulator, P). **Immagine** apre subito la scelta dell'immagine; **Per ora nessuna immagine** crea il livello vuoto, per esempio quando l'immagine viene da una colonna. Un'immagine trascinata dal computer sulla tela diventa un livello immagine e si copia in `assets/images`. **Fronte** e **Retro** passano da un lato all'altro della carta; le frecce annullano e ripetono.
 2. **Livelli**, dall'alto in basso come si sovrappongono sulla carta. Accanto a ogni livello c'è la fonte del valore (colonna del foglio o _fx_ per una formula), il lucchetto e l'occhio per nasconderlo.
 3. **Tela** con la carta. Il tratteggio rosso è il bordo di taglio, l'area esterna è l'abbondanza, il tratteggio azzurro l'area sicura.
 4. **Proprietà** del livello selezionato, o del template se non è selezionato nulla.
@@ -700,6 +700,13 @@ Con **Copie** attivo, **Copie nel foglio** decide dove finiscono le copie di una
 - **Dadi (6 facce)**: ogni sei carte del set fanno un dado, nell'ordine del foglio: la prima carta va sulla faccia 1, la seconda sulla 2 e così via; le facce opposte fanno 7 (1-6, 2-5, 3-4). Se le carte non sono un multiplo di sei, l'ultimo dado ripete le sue prime facce e l'esportazione lo segnala. Le copie del dado sono quelle (`amount`) della sua prima carta. Il valore che Tabletop Simulator mostra quando lo tiri è il campo scelto in **Nome** della carta, oppure il numero della faccia. Usa un template quadrato: la faccia del dado è quadrata, larga quanto la carta, e una carta rettangolare viene schiacciata. Stella scrive anche il modello del cubo (`models/<set>_d6.obj`) accanto alle immagini.
 
 Per segnalini, pedine e tessere c'è lo **Spessore**. I pezzi di un set vanno in un sacchetto, copie comprese; un set con un pezzo solo diventa quel pezzo. Carte, segnalini, pedine e tessere arrivano in Tabletop Simulator nelle proporzioni vere: una carta da 63 mm ha la misura predefinita di Tabletop Simulator, e tutto il resto è più grande o più piccolo in proporzione. Le carte orizzontali, come una plancia larga quanto due carte, sono messe di traverso.
+
+**Tag e snap point.** Nelle proprietà del template, **Tag TTS** dà a ogni componente i suoi tag di Tabletop Simulator, separati da virgole. Ammette i `{campi}`, per esempio `{tipo}, carta`, e un mazzo prende i tag di tutte le sue carte. Uno **snap point** è un punto della plancia (o di una tessera, di un segnalino, di una carta) a cui gli oggetti si agganciano quando li si lascia vicino. Ce ne sono due modi:
+
+- lo strumento **Snap** (P) aggiunge un livello che è solo uno snap point: nell'editor è un mirino blu, nelle stampe e nelle immagini non si vede, e il punto è il centro del suo riquadro;
+- ogni altro livello ha in fondo alle proprietà la sezione **Tabletop Simulator** con **Snap point**: il punto va al centro del livello. Per una griglia l'opzione è **Snap point in ogni casella**, comoda per le caselle di una plancia.
+
+In entrambi i casi **Tag dello snap** fa attirare al punto solo gli oggetti con uno di quei tag (vuoto: tutti), e **Ruotato** fa prendere all'oggetto anche una rotazione: di base quella del livello, oppure un **Angolo dello snap** a scelta. Sulla tela il mirino ha una freccetta che indica dove va il lato alto dell'oggetto. Gli snap point vengono dal fronte.
 
 I fogli si richiamano con indirizzi locali, quindi il mazzo funziona sul computer che l'ha esportato. Per giocare online bisogna caricare le immagini su un servizio web e cambiare gli indirizzi in Tabletop Simulator.
 

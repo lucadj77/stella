@@ -585,6 +585,7 @@ export const it: Record<MessageKey, string> = {
   'layerName.text': 'testo',
   'layerName.image': 'immagine',
   'layerName.value': 'valore',
+  'layerName.snap': 'snap',
   'layerName.grid': 'griglia',
   'layerName.shape': 'forma',
   'layerName.rect': 'rettangolo',
@@ -604,10 +605,25 @@ export const it: Record<MessageKey, string> = {
   'source.computedHint': 'Calcolato dalla formula sopra',
   'source.valueColumn': 'Nessun foglio ha una colonna “{column}”: vale il valore qui sotto.',
   'layerType.value': 'Valore',
+  'layerType.snap': 'Snap point',
   'tool.value': 'Valore: non si disegna, si usa nelle formule (V)',
   'prop.value': 'Valore',
   'prop.labelField': 'Nome delle carte',
   'editor.labelFieldHint': 'Campo mostrato sotto ogni carta nella vista del set',
+  'prop.ttsTags': 'Tag TTS',
+  'editor.ttsTagsHint':
+    'Tag di Tabletop Simulator di ogni componente, separati da virgole; ammessi i {campi}. Gli snap point con tag attirano solo gli oggetti con un tag uguale',
+  'editor.ttsSnap': 'Tabletop Simulator',
+  'prop.snap': 'Snap point',
+  'prop.snapCells': 'Snap point in ogni casella',
+  'editor.snapPointHint': 'Esportato in Tabletop Simulator al centro del livello; non si stampa',
+  'prop.snapTags': 'Tag dello snap',
+  'editor.snapTagsHint':
+    'Separati da virgole, ammessi i {campi}: il punto attira solo gli oggetti con uno di questi tag. Vuoto: tutti gli oggetti',
+  'prop.snapRotated': 'Ruotato',
+  'editor.snapRotatedHint': "Anche l'oggetto che si aggancia prende questa rotazione",
+  'prop.snapFollow': 'Stessa rotazione del livello',
+  'prop.snapAngle': 'Angolo dello snap',
   'editor.labelFieldAuto': 'Prima colonna',
   'editor.valueHint':
     'Non si disegna sulla carta. Usalo come {{name}} nelle formule e nei testi degli altri livelli; una colonna del foglio con lo stesso nome lo cambia carta per carta.',
@@ -624,6 +640,9 @@ export const it: Record<MessageKey, string> = {
   'tool.short.shapes': 'Forme',
   'tool.short.grid': 'Griglia',
   'tool.short.value': 'Valore',
+  'tool.snap':
+    'Snap point TTS: dove gli oggetti si agganciano in Tabletop Simulator, non si stampa (P)',
+  'tool.short.snap': 'Snap',
   'tool.shapes': 'Rettangolo, ellisse, poligono, stella o linea',
   'assetPicker.skip': 'Per ora nessuna immagine',
   'assetPicker.skipHint':
@@ -1923,7 +1942,8 @@ export const it: Record<MessageKey, string> = {
   'help.keys.cellBreak': 'Tabella: a capo dentro una cella',
   'help.keys.suggest': 'Testo: suggerimenti di campi, variabili e attributi',
   'help.keys.page': 'Carta precedente o successiva',
-  'help.keys.tools': 'Editor: nuovo testo, rettangolo, ellisse, immagine, griglia, valore',
+  'help.keys.tools':
+    'Editor: nuovo testo, rettangolo, ellisse, immagine, griglia, valore, snap point TTS',
   'help.keys.search': 'Editor: cerca nel pannello delle proprietà',
   'help.keys.duplicate': 'Editor: duplica i livelli selezionati',
   'help.keys.copy': 'Editor: copia, taglia e incolla livelli, anche tra template',

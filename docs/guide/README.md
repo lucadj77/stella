@@ -202,7 +202,7 @@ A **standee** is a figure that stands upright, for example a character drawn on 
 
 ![The template editor, with numbered parts](img/editor.png)
 
-1. **Tools** to add a layer, each with its name: **Text** (T), **Image**, **Shapes** (a menu with rectangle (R), ellipse (E), polygon, star and line), **Grid** and **Value**. **Image** opens the image picker right away; **No image for now** creates the layer empty, for example when the image comes from a column. An image dragged from the computer onto the canvas becomes an image layer and is copied into `assets/images`. **Front** and **Back** switch between the sides of the card; the arrows undo and redo.
+1. **Tools** to add a layer, each with its name: **Text** (T), **Image**, **Shapes** (a menu with rectangle (R), ellipse (E), polygon, star and line), **Grid**, **Value** and **Snap** (a Tabletop Simulator snap point, P). **Image** opens the image picker right away; **No image for now** creates the layer empty, for example when the image comes from a column. An image dragged from the computer onto the canvas becomes an image layer and is copied into `assets/images`. **Front** and **Back** switch between the sides of the card; the arrows undo and redo.
 2. **Layers**, top to bottom as they overlap on the card. Next to each layer are the source of its value (sheet column, or _fx_ for a formula), the lock and the eye to hide it.
 3. **Canvas** with the card. The red dashed line is the trim edge, the area outside it is the bleed, the light blue dashed line is the safe area.
 4. **Properties** of the selected layer, or of the template when nothing is selected.
@@ -700,6 +700,13 @@ With **Copies** on, **Copies on the sheet** decides where a card's copies go: on
 - **Dice (6 faces)**: every six cards of the set make one die, in sheet order: the first card goes on face 1, the second on face 2 and so on; opposite faces add up to 7 (1-6, 2-5, 3-4). If the cards are not a multiple of six, the last die repeats its first faces and the export warns about it. The die's copies are those (`amount`) of its first card. The value Tabletop Simulator shows when you roll it is the field chosen in **Name** for the card, or the face number. Use a square template: the die face is square, as wide as the card, and a rectangular card gets squashed. Stella also writes the cube model (`models/<set>_d6.obj`) next to the images.
 
 Tokens, standees and tiles have a **Thickness**. The pieces of a set go into a bag, copies included; a set with a single piece becomes that piece. Cards, tokens, standees and tiles reach Tabletop Simulator in their true proportions: a 63 mm card has Tabletop Simulator's default size, and everything else is larger or smaller in proportion. Landscape cards, such as a board as wide as two cards, are placed sideways.
+
+**Tags and snap points.** In the template properties, **TTS tags** gives every component its Tabletop Simulator tags, separated by commas. `{fields}` are allowed, for example `{type}, card`, and a deck takes the tags of all its cards. A **snap point** is a spot on a board (or on a tile, token or card) where objects snap when dropped close to it. There are two ways to add one:
+
+- the **Snap** tool (P) adds a layer that is only a snap point: a blue crosshair in the editor, invisible in prints and images, with the point at the centre of its box;
+- every other layer has, at the bottom of its properties, the **Tabletop Simulator** section with **Snap point**: the point goes at the centre of the layer. For a grid the option is **Snap point in each cell**, handy for the spaces of a board.
+
+In both cases **Snap tags** makes the point attract only objects with one of those tags (empty: all of them), and **Rotated** also gives the object a rotation: the layer's own by default, or a chosen **Snap angle**. On the canvas the crosshair has a small arrow showing where the top side of the object goes. Snap points come from the front.
 
 Sheets are referenced by local addresses, so the deck works on the computer that exported it. To play online, upload the images to a web service and change the addresses in Tabletop Simulator.
 

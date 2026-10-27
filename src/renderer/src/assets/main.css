@@ -2048,6 +2048,25 @@ label.check {
   pointer-events: none;
 }
 
+/* snap point di Tabletop Simulator: mirino ben visibile su ogni fondo */
+.tts-snap {
+  pointer-events: none;
+}
+.tts-snap circle,
+.tts-snap path {
+  fill: none;
+  stroke: #0a84ff;
+  stroke-width: 2;
+  paint-order: stroke;
+}
+.tts-snap circle {
+  fill: rgba(10, 132, 255, 0.15);
+}
+.tts-snap .tts-snap-dir {
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
 .zoom-controls input.grid-step {
   width: 38px;
   padding: 1px 4px;

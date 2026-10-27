@@ -162,12 +162,15 @@ function layerSummary(l: Layer): string {
             : l.type === 'value'
               ? ` value=${JSON.stringify(l.value)}`
               : ''
+  const snap = l.snap
+    ? ` · TTS snap point${l.snap.rotated ? ` rotated ${l.snap.angle ?? 'as layer'}` : ''}${l.snap.tags.trim() ? ` tags ${JSON.stringify(l.snap.tags)}` : ''}`
+    : ''
   const box = l.type === 'value' ? '' : ` at ${l.x},${l.y} size ${l.w}×${l.h} mm`
   const tr = l.type === 'text' ? l.texts : l.type === 'value' ? l.values : undefined
   const langs = Object.entries(tr ?? {})
     .map(([k, v]) => ` ${k}=${JSON.stringify(v)}`)
     .join('')
-  return `${l.name} (${l.type})${box}${main}${langs} · value from ${from}${l.visible ? '' : ' · hidden'}`
+  return `${l.name} (${l.type})${box}${main}${langs} · value from ${from}${snap}${l.visible ? '' : ' · hidden'}`
 }
 
 function templateOutline(t: Template): string[] {

@@ -26,6 +26,7 @@ import type {
   GroupLayer,
   ImageLayer,
   Layer,
+  LayerSnap,
   ShapeKind,
   ShapeLayer,
   ShapeRotation,
@@ -33,7 +34,12 @@ import type {
   TextLayer,
   ValueLayer
 } from '../../../shared/model/template'
-import { isArranged, normalizeLayer, walkLayers } from '../../../shared/model/normalize'
+import {
+  isArranged,
+  normalizeLayer,
+  SNAP_DEFAULTS,
+  walkLayers
+} from '../../../shared/model/normalize'
 import { gridGeometry } from '../../../shared/model/grid'
 import { baseLayer, baseTemplateValue, changedTemplateKeys } from '../../../shared/model/inherit'
 import {
@@ -42,7 +48,13 @@ import {
 } from '../../../shared/model/template'
 import { Inherit } from './inheritance'
 import { InheritContext, type InheritCtx } from './inheritContext'
-import { hexagonFit, lineEnds, lineFromEnds, type Point } from '../../../shared/model/geometry'
+import {
+  hexagonFit,
+  lineEnds,
+  lineFromEnds,
+  normalizeAngle,
+  type Point
+} from '../../../shared/model/geometry'
 import { useI18n, type Translate } from '../i18n/context'
 import { useLengthUnit } from '../units'
 import { formatLength, toUnit } from '../../../shared/model/units'
@@ -429,6 +441,14 @@ function TemplateProperties({
           onChange={(f) => set({ labelField: f || null }, 'labelField')}
         />
       </Inherit>
+      <Inherit keys={['ttsTags']}>
+        <TextField
+          label={t('prop.ttsTags')}
+          hint={t('editor.ttsTagsHint')}
+          value={tpl.ttsTags ?? ''}
+          onChange={(v) => set({ ttsTags: v.trim() ? v : undefined }, 'ttsTags')}
+        />
+      </Inherit>
       <p className="muted small">{t('editor.noSelectionHint')}</p>
     </InheritContext.Provider>
   )
@@ -637,7 +657,67 @@ function LayerProperties({
       {layers.every((x) => x.type !== 'value') && (
         <DrawnProperties l={l} set={set} col={col} multi={multi} />
       )}
+      {!multi && l.type !== 'value' && <SnapProperties l={l} set={set} />}
     </InheritContext.Provider>
+  )
+}
+
+/**
+ * Snap point di Tabletop Simulator: al centro del livello, o di ogni casella di una griglia. Il
+ * livello snap point ce l'ha sempre; gli altri lo attivano qui
+ */
+function SnapProperties({ l, set }: { l: Layer; set: SetFn<Layer> }): React.JSX.Element {
+  const { t } = useI18n()
+  const snap = l.snap ?? null
+  const own = l.type === 'snap'
+  const change = (patch: Partial<LayerSnap>): void =>
+    set({ snap: { ...(snap ?? SNAP_DEFAULTS), ...patch } })
+  return (
+    <Inherit keys={['snap']}>
+      <h3>{t('editor.ttsSnap')}</h3>
+      {!own && (
+        <CheckField
+          label={l.type === 'grid' ? t('prop.snapCells') : t('prop.snap')}
+          hint={t('editor.snapPointHint')}
+          value={!!snap}
+          onChange={(on) => set({ snap: on ? { ...SNAP_DEFAULTS } : null })}
+        />
+      )}
+      {snap && (
+        <>
+          <TextField
+            label={t('prop.snapTags')}
+            hint={t('editor.snapTagsHint')}
+            value={snap.tags}
+            onChange={(tags) => change({ tags })}
+          />
+          <CheckField
+            label={t('prop.snapRotated')}
+            hint={t('editor.snapRotatedHint')}
+            value={snap.rotated}
+            onChange={(rotated) => change({ rotated })}
+          />
+          {snap.rotated && (
+            <>
+              <CheckField
+                label={t('prop.snapFollow')}
+                value={snap.angle === null}
+                onChange={(follow) => change({ angle: follow ? null : normalizeAngle(l.rotation) })}
+              />
+              {snap.angle !== null && (
+                <NumberField
+                  label={t('prop.snapAngle')}
+                  value={snap.angle}
+                  step={15}
+                  unit="°"
+                  onChange={(angle) => change({ angle: normalizeAngle(angle) })}
+                />
+              )}
+            </>
+          )}
+        </>
+      )}
+    </Inherit>
   )
 }
 
@@ -2203,7 +2283,8 @@ const FORMULA_EXPECT: Record<Layer['type'], FormulaExpect> = {
   shape: 'color',
   grid: 'color',
   group: 'bool',
-  value: 'value'
+  value: 'value',
+  snap: 'bool'
 }
 
 /**

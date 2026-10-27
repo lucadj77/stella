@@ -27,6 +27,7 @@ import {
 } from '../../../shared/model/geometry'
 import { cardArea, unionBounds } from '../../../shared/model/align'
 import { linesOf, nearest, snapBox, type SnapLines } from '../../../shared/model/snap'
+import { snapPoints } from '../../../shared/model/ttsSnap'
 import { isDrawn, type GroupLayer, type Layer, type Template } from '../../../shared/model/template'
 import CardSvg, { CardOutline } from '../render/CardSvg'
 import { ShowEmptyContext } from '../render/assets'
@@ -589,6 +590,26 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
                   <Outline b={l} className="outside-outline" />
                 </Framed>
               ))}
+            {/* snap point di Tabletop Simulator: non si stampano, si vedono solo qui */}
+            {snapPoints(display[side]).map((p, i) => (
+              <g key={`snap${i}`} className="tts-snap" transform={`translate(${p.x} ${p.y})`}>
+                <circle r={6 * px} vectorEffect="non-scaling-stroke" />
+                <path
+                  d={`M${-9 * px} 0H${9 * px}M0 ${-9 * px}V${9 * px}`}
+                  vectorEffect="non-scaling-stroke"
+                />
+                {/* il verso dell'oggetto che si aggancia: il suo lato alto */}
+                {p.angle !== null && (
+                  <path
+                    className="tts-snap-dir"
+                    d={`M${-3 * px} ${-10 * px}L0 ${-14 * px}L${3 * px} ${-10 * px}`}
+                    transform={`rotate(${p.angle})`}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                )}
+                {p.tags.length > 0 && <title>{p.tags.join(', ')}</title>}
+              </g>
+            ))}
             {snapped.x !== null && (
               <line
                 x1={snapped.x}

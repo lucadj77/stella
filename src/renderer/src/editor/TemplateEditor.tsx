@@ -11,7 +11,7 @@ import { useI18n } from '../i18n/context'
 import Segmented from '../components/Segmented'
 import Resizer from '../components/Resizer'
 import { usePanelSide, usePanelWidth } from '../components/usePanelWidth'
-import { GridIcon, ImageIcon } from '../components/icons'
+import { GridIcon, ImageIcon, SnapIcon } from '../components/icons'
 import Menu, { type MenuItem } from '../components/Menu'
 import AssetPicker from '../components/AssetPicker'
 import { dragHasFiles, importDropped } from '../components/dropImages'
@@ -81,6 +81,7 @@ export default function TemplateEditor({
       image: t('layerName.image'),
       value: t('layerName.value'),
       grid: t('layerName.grid'),
+      snap: t('layerName.snap'),
       shape: t('layerName.shape'),
       sample: t('layerName.sample'),
       shapes: {
@@ -128,7 +129,7 @@ export default function TemplateEditor({
 
   // la tastiera: le scorciatoie usano Cmd su macOS e Ctrl altrove. Le lettere senza modificatori
   // aggiungono un livello: testo, rettangolo, ellisse, immagine, griglia, valore
-  const TOOL_KEYS = ['t', 'r', 'e', 'i', 'g', 'v']
+  const TOOL_KEYS = ['t', 'r', 'e', 'i', 'g', 'v', 'p']
   const onKey = (e: KeyboardEvent): void => {
     const mod = e.metaKey || e.ctrlKey
     const k = e.key.toLowerCase()
@@ -172,6 +173,7 @@ export default function TemplateEditor({
       else if (k === 'e') cmd.add('shape', 'ellipse')
       else if (k === 'i') setPickingImage(true)
       else if (k === 'g') cmd.add('grid')
+      else if (k === 'p') cmd.add('snap')
       else cmd.add('value')
     } else return
     e.preventDefault()
@@ -267,6 +269,7 @@ export default function TemplateEditor({
       />
       {tool(<GridIcon />, t('tool.short.grid'), t('tool.grid'), () => cmd.add('grid'))}
       {tool('#', t('tool.short.value'), t('tool.value'), () => cmd.add('value'))}
+      {tool(<SnapIcon />, t('tool.short.snap'), t('tool.snap'), () => cmd.add('snap'))}
     </>
   )
 

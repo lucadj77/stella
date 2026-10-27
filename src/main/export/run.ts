@@ -6,6 +6,7 @@ import {
   pageSize,
   safeName,
   uniqueNames,
+  ttsExtras,
   ttsSavedObject,
   ttsSavedPieces,
   ttsSavedDice,
@@ -357,7 +358,8 @@ async function exportTts(
             sheet,
             slot,
             nickname: fieldText(card, o.nickname),
-            description: fieldText(card, o.description)
+            description: fieldText(card, o.description),
+            extras: ttsExtras(card.template)
           })
       })
     )
@@ -443,7 +445,9 @@ async function exportPieces(
         backUrl,
         nickname: fieldText(p.card, o.nickname),
         description: fieldText(p.card, o.description),
-        count: p.count
+        count: p.count,
+        extras: ttsExtras(p.card.template),
+        card: { w: p.card.template.width, h: p.card.template.height }
       })
     }
     // il colore del bordo può essere un colore del progetto, scritto per nome

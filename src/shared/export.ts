@@ -5,6 +5,7 @@ import type { Side, Template } from './model/template'
 import type { Message } from './messages'
 import type { ProjectFont } from './project'
 import type { Variables } from './model/variables'
+import { parseTags, snapPoints, type SnapPoint } from './model/ttsSnap'
 
 export type ExportKind = 'images' | 'pdf' | 'tts'
 export type SidesChoice = 'front' | 'back' | 'both'
@@ -668,6 +669,62 @@ export interface TtsDeckCard {
   slot: number
   nickname: string
   description: string
+  /** Tag e snap point della carta, da ttsExtras */
+  extras?: TtsExtras
+}
+
+/** Tag e snap point di un componente in Tabletop Simulator */
+export interface TtsExtras {
+  tags: string[]
+  snaps: SnapPoint[]
+}
+
+/** Tag del template e snap point dei livelli del fronte, da un template legato ai dati */
+export function ttsExtras(t: Template): TtsExtras {
+  return { tags: parseTags(t.ttsTags), snaps: snapPoints(t.front) }
+}
+
+/**
+ * Snap point in coordinate dell'oggetto di Tabletop Simulator. Le coordinate sono locali: si
+ * moltiplicano per la scala dell'oggetto. A rotazione Y 180 (come gli oggetti esportati)
+ * l'immagine è dritta per chi guarda il tavolo, quindi la sua destra è la X locale negativa e il
+ * suo basso la Z locale positiva. La rotazione in TTS è in senso orario guardando dall'alto,
+ * come in Stella
+ */
+export function ttsSnapPoints(
+  snaps: SnapPoint[],
+  size: { w: number; h: number },
+  scale: number
+): Record<string, unknown>[] {
+  const k = TTS_UNITS_PER_MM / (scale || 1)
+  return snaps.map((p) => ({
+    Position: {
+      x: round3(-(p.x - size.w / 2) * k),
+      y: TTS_SNAP_Y,
+      z: round3((p.y - size.h / 2) * k)
+    },
+    ...(p.angle !== null ? { Rotation: { x: 0, y: p.angle, z: 0 } } : {}),
+    ...(p.tags.length ? { Tags: { labels: p.tags } } : {})
+  }))
+}
+
+/** Campi Tags e AttachedSnapPoints di un oggetto, solo se servono */
+function extrasFields(
+  extras: TtsExtras | undefined,
+  size: { w: number; h: number },
+  scale: number
+): Record<string, unknown> {
+  if (!extras) return {}
+  return {
+    ...(extras.tags.length ? { Tags: { labels: extras.tags } } : {}),
+    ...(extras.snaps.length ? { AttachedSnapPoints: ttsSnapPoints(extras.snaps, size, scale) } : {})
+  }
+}
+
+/** Unione dei tag di più oggetti: un mazzo li prende tutti, così si aggancia come le sue carte */
+function unionTags(all: (TtsExtras | undefined)[]): Record<string, unknown> {
+  const tags = parseTags(all.flatMap((e) => e?.tags ?? []).join(','))
+  return tags.length ? { Tags: { labels: tags } } : {}
 }
 
 // Misure in Tabletop Simulator. TTS non ha una scala assoluta: un oggetto a scala 1 ha una misura
@@ -685,6 +742,8 @@ const TTS_TILE_SIZE = 2.06
 /** Lato lungo della carta da poker, in mm */
 const POKER_HEIGHT = 88
 const TTS_TOKEN_SIZE = 3.2
+/** Altezza degli snap point sull'oggetto, in unità locali */
+const TTS_SNAP_Y = 0
 
 const round3 = (v: number): number => Math.round(v * 1000) / 1000
 
@@ -768,7 +827,8 @@ export function ttsSavedObject(
     Grid: true,
     Snap: true,
     Hands: true,
-    SidewaysCard: sideways
+    SidewaysCard: sideways,
+    ...extrasFields(c.extras, { w: cardWidth, h: cardHeight }, scale)
   })
   // "CardCustom" e "DeckCustom" sono i nomi che TTS dà agli oggetti fatti con Objects > Custom:
   // solo con questi il menu dell'oggetto ha la voce Custom. Un mazzo con più fogli resta "Deck"
@@ -787,7 +847,8 @@ export function ttsSavedObject(
           Grid: true,
           Snap: true,
           Hands: false,
-          SidewaysCard: sideways
+          SidewaysCard: sideways,
+          ...unionTags(cards.map((c) => c.extras))
         }
   return savedFile(object)
 }
@@ -823,6 +884,10 @@ export interface TtsPiece {
   description: string
   /** Quante copie mettere nel sacchetto */
   count: number
+  /** Tag e snap point, da ttsExtras */
+  extras?: TtsExtras
+  /** Misure della carta in mm, per la posizione degli snap point */
+  card?: { w: number; h: number }
 }
 
 /** Forme delle tessere di Tabletop Simulator: quadrata, esagonale, rotonda, con angoli arrotondati */
@@ -906,7 +971,8 @@ export function ttsSavedPieces(
               Stretch: true
             }
           })
-    }
+    },
+    ...extrasFields(p.extras, p.card ?? size, scale)
   })
   const all = pieces.flatMap((p) => Array.from({ length: Math.max(1, p.count) }, () => p))
   if (kind === 'board') {

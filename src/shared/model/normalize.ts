@@ -6,7 +6,9 @@ import type {
   ImageLayer,
   Layer,
   LayerBase,
+  LayerSnap,
   ShapeLayer,
+  SnapLayer,
   GridLayer,
   Template,
   TemplateChanges,
@@ -32,7 +34,8 @@ const BASE_DEFAULTS: Omit<LayerBase, 'id' | 'name'> = {
   shadow: null,
   constraints: { h: 'left', v: 'top' },
   exposed: [],
-  source: { kind: 'column', column: null }
+  source: { kind: 'column', column: null },
+  snap: null
 }
 
 const TEXT_DEFAULTS: Omit<TextLayer, keyof LayerBase | 'type'> = {
@@ -189,6 +192,16 @@ export function normalizeLayer(raw: RawLayer, index: number): Layer {
         id: base.id,
         type: 'value'
       }
+    case 'snap':
+      return {
+        ...base,
+        w: SNAP_SIZE,
+        h: SNAP_SIZE,
+        ...(raw as Partial<SnapLayer>),
+        snap: { ...SNAP_DEFAULTS, ...((raw.snap as Partial<LayerSnap> | null) ?? {}) },
+        id: base.id,
+        type: 'snap'
+      }
     case 'group': {
       const children = (raw.children ?? []).map(normalizeLayer)
       const g: GroupLayer = {
@@ -210,6 +223,10 @@ export function normalizeLayer(raw: RawLayer, index: number): Layer {
       )
   }
 }
+
+/** Lato del mirino di un livello snap point, in mm */
+export const SNAP_SIZE = 6
+export const SNAP_DEFAULTS: LayerSnap = { tags: '', rotated: false, angle: null }
 
 const GROUP_DEFAULTS = {
   clip: false,
@@ -304,7 +321,8 @@ const TYPE_DEFAULTS: Record<Layer['type'], Record<string, unknown>> = {
   shape: SHAPE_DEFAULTS,
   grid: GRID_DEFAULTS,
   group: GROUP_DEFAULTS,
-  value: { value: '' }
+  value: { value: '' },
+  snap: { w: SNAP_SIZE, h: SNAP_SIZE, snap: SNAP_DEFAULTS }
 }
 
 /** Arrotonda ai millesimi: dopo spostamenti e scalature restano code come 12.000000001 */
@@ -373,6 +391,7 @@ export function denormalizeTemplate(t: Template): RawTemplate {
       ? { guides: tidy(t.guides) as ManualGuides }
       : {}),
     ...(t.labelField ? { labelField: t.labelField } : {}),
+    ...(t.ttsTags?.trim() ? { ttsTags: t.ttsTags } : {}),
     front: t.front.map(denormalizeLayer),
     back: t.back.map(denormalizeLayer)
   }
