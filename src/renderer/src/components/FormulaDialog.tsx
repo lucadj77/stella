@@ -1250,6 +1250,8 @@ function SlotPicker(p: PickerProps): React.JSX.Element {
           ...p,
           onPick: (n, sel) => {
             if (n.k === 'field') insert(n.name)
+            // un'icona ({nome} di una variabile immagine) va nel testo come un campo
+            else if (n.k === 'str' && /^\{[^{}]+\}$/.test(n.v)) insert(n.v.slice(1, -1))
             else p.onPick(n, sel)
           }
         }
@@ -1461,9 +1463,14 @@ function VariableTab(p: PickerProps): React.JSX.Element {
       }))}
       onPick={(name) => {
         const v = p.variables?.[name]
-        // i colori e le immagini valgono per nome; testi e valori come campi
+        // i colori e le immagini valgono per nome; testi e valori come campi. In un testo
+        // un'immagine si scrive {nome}, che il testo disegna come icona
         p.onPick(
-          v?.type === 'color' || v?.type === 'image' ? { k: 'str', v: name } : { k: 'field', name }
+          v?.type === 'image' && p.expect !== 'image'
+            ? { k: 'str', v: `{${name}}` }
+            : v?.type === 'color' || v?.type === 'image'
+              ? { k: 'str', v: name }
+              : { k: 'field', name }
         )
       }}
     />
