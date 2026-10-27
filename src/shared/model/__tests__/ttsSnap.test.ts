@@ -123,8 +123,7 @@ describe('snap point di Tabletop Simulator', () => {
       [{ x: 120, y: 88, angle: 45, tags: ['a'] }],
       { w: 120, h: 88 },
       2,
-      1.5,
-      true
+      1.5
     )
     const k = 2.25 / 63 / 2
     expect(p.Position).toEqual({
@@ -132,10 +131,8 @@ describe('snap point di Tabletop Simulator', () => {
       y: 0,
       z: Math.round(44 * k * 1000) / 1000
     })
-    // sulle carte la rotazione va al contrario, sulle tessere no
-    expect(p.Rotation).toEqual({ x: 0, y: 315, z: 0 })
-    const [tile] = ttsSnapPoints([{ x: 0, y: 0, angle: 45, tags: [] }], { w: 120, h: 88 }, 1)
-    expect(tile.Rotation).toEqual({ x: 0, y: 45, z: 0 })
+    // stesso verso di Stella
+    expect(p.Rotation).toEqual({ x: 0, y: 45, z: 0 })
     expect(p.Tags).toEqual(['a'])
     const [q] = ttsSnapPoints([{ x: 60, y: 44, angle: null, tags: [] }], { w: 120, h: 88 }, 1)
     expect(q).toEqual({ Position: { x: -0, y: 0, z: 0 } })

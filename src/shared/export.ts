@@ -689,19 +689,16 @@ export function ttsExtras(t: Template): TtsExtras {
  * moltiplicano per la scala dell'oggetto e, in larghezza, per l'allungamento con cui TTS adatta
  * il pezzo base (la carta da poker, la tessera quadrata) alle proporzioni dell'immagine. A
  * rotazione Y 180 (come gli oggetti esportati) l'immagine è dritta per chi guarda il tavolo,
- * quindi la sua destra è la X locale negativa e il suo basso la Z locale positiva. Sulle
- * tessere la rotazione di TTS va nello stesso verso di quella di Stella, sulle carte al contrario
- * (verificato in TTS, ottobre 2026: con 90 su una plancia esportata come carta l'oggetto girava
- * in senso antiorario, su una plancia tessera gli angoli tornavano solo senza invertirli)
+ * quindi la sua destra è la X locale negativa e il suo basso la Z locale positiva. La rotazione
+ * di TTS va nello stesso verso di quella di Stella, su carte e tessere (verificato in TTS con la
+ * stessa plancia esportata nei due modi, ottobre 2026)
  */
 export function ttsSnapPoints(
   snaps: SnapPoint[],
   size: { w: number; h: number },
   scale: number,
   /** Allungamento in larghezza del pezzo base, da ttsStretch */
-  stretch = 1,
-  /** Rotazione al contrario: sulle carte */
-  reversed = false
+  stretch = 1
 ): Record<string, unknown>[] {
   const k = TTS_UNITS_PER_MM / (scale || 1)
   return snaps.map((p) => ({
@@ -710,9 +707,7 @@ export function ttsSnapPoints(
       y: TTS_SNAP_Y,
       z: round3((p.y - size.h / 2) * k)
     },
-    ...(p.angle !== null
-      ? { Rotation: { x: 0, y: round3(reversed ? (360 - p.angle) % 360 : p.angle), z: 0 } }
-      : {}),
+    ...(p.angle !== null ? { Rotation: { x: 0, y: round3(p.angle), z: 0 } } : {}),
     ...(p.tags.length ? { Tags: p.tags } : {})
   }))
 }
@@ -734,15 +729,14 @@ function extrasFields(
   extras: TtsExtras | undefined,
   size: { w: number; h: number },
   scale: number,
-  stretch: number,
-  reversed = false
+  stretch: number
 ): Record<string, unknown> {
   if (!extras) return {}
   // in TTS i tag sono un elenco di testi: { labels: [...] } impediva di caricare l'oggetto
   return {
     ...(extras.tags.length ? { Tags: extras.tags } : {}),
     ...(extras.snaps.length
-      ? { AttachedSnapPoints: ttsSnapPoints(extras.snaps, size, scale, stretch, reversed) }
+      ? { AttachedSnapPoints: ttsSnapPoints(extras.snaps, size, scale, stretch) }
       : {})
   }
 }
@@ -860,8 +854,7 @@ export function ttsSavedObject(
       c.extras,
       { w: cardWidth, h: cardHeight },
       scale,
-      ttsStretch('card', cardWidth, cardHeight),
-      true
+      ttsStretch('card', cardWidth, cardHeight)
     )
   })
   // "CardCustom" e "DeckCustom" sono i nomi che TTS dà agli oggetti fatti con Objects > Custom:
