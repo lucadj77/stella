@@ -18,6 +18,7 @@ const SUBTITLES = {
   backup: ['Backup e recupero', 'Backups and recovery'],
   veloce: ['Lavorare più veloce', 'Working faster'],
   raccolto: ['Un gioco completo, dall’idea al tavolo', 'A complete game, from idea to table'],
+  installa: ['Installare Stella e la versione web', 'Installing Stella and the web version'],
   snap: ['Snap point e tag per Tabletop Simulator', 'Snap points and tags for Tabletop Simulator'],
   dati: ['I dati dal foglio di calcolo', 'Data from the spreadsheet'],
   icone: ['Immagini, icone e font', 'Images, icons and fonts'],

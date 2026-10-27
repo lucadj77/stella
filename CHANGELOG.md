@@ -5,7 +5,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
-## 1.6.1
+## 1.7.0-beta.2
 
 ### English
 
@@ -14,6 +14,28 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 ### Italiano
 
 - **Discord**: Stella Game Center ha un server di supporto, in italiano e in inglese. Il link è nella finestra Aiuto, in fondo alla schermata di ingresso, sul sito, nel README e nella guida. Le nuove versioni stabili vengono annunciate nel canale #announcements del server.
+
+## 1.7.0-beta.1
+
+### English
+
+- **Documents follow renames**: when you rename a set or a column, or change the value that identifies a card (the name `BARRACKS` becomes `BARRACKS2`), the cards called in the documents follow: in images, tables, table setups and anatomies. A card's value is followed only when no other card in the set still has the old one. A layer renamed in the template changes in the anatomy labels, and renamed variables and styles change in the documents' text. A bar says how many references were updated. `stella rename-set` updates the documents too.
+- **Find and replace in a document**: ⌘F / Ctrl+F opens a find bar above the text, with match case and whole word; ⌥⌘F / Ctrl+H also shows replace. Enter and ⇧Enter move between matches, and ⌘Z / Ctrl+Z undoes a replacement in one step.
+- **Find and replace in the project**: **Project › Find and replace…** (⇧⌘F / Ctrl+Shift+F) searches documents, notes, sheet cells, template texts, values and formulas, and variables. You choose where to replace, and Stella makes a named backup first. Names are left alone: Rename takes care of those.
+- **Variables with the name of a field**: a variable called like a layer or a column is hidden by it, because `{name}` shows the field. The variable window and the card's problems now point it out.
+- **Formula assistant**: an image variable picked for a text is written as `"{name}"`, so it shows as an icon instead of its name.
+- **Snap points in grid cells**: a snap point on a layer of the group that a grid repeats in its cells now reaches Tabletop Simulator in every cell.
+- **Formulas with an empty result**: a text or value layer whose formula returns nothing stays empty instead of showing the template's text (for example `=IF({cell.index} <= 16; "…"; "")` in a grid no longer shows 1 from cell 17 on). Colors, images and other properties still go back to the template's value.
+
+### Italiano
+
+- **I documenti seguono le rinomine**: se rinomini un set o una colonna, o cambi il valore che identifica una carta (il nome `CASERMA` diventa `CASERMA2`), le carte richiamate nei documenti seguono: nelle immagini, nelle tabelle, negli schemi del tavolo e nelle anatomie. Il valore di una carta si segue solo se nessun'altra carta del set ha ancora quello vecchio. Un livello rinominato nel template cambia nelle etichette delle anatomie, e variabili e stili rinominati cambiano nel testo dei documenti. Una barra dice quanti riferimenti sono stati aggiornati. Anche `stella rename-set` aggiorna i documenti.
+- **Cerca e sostituisci nel documento**: ⌘F / Ctrl+F apre sopra il testo una barra di ricerca, con maiuscole e parola intera; ⌥⌘F / Ctrl+H mostra anche la sostituzione. Invio e ⇧Invio passano da un'occorrenza all'altra, e ⌘Z / Ctrl+Z annulla una sostituzione in un passo.
+- **Cerca e sostituisci nel progetto**: **Progetto › Cerca e sostituisci…** (⇧⌘F / Ctrl+Maiusc+F) cerca in documenti, note, celle dei fogli, testi, valori e formule dei template e variabili. Scegli dove sostituire, e prima Stella fa un backup con un nome. I nomi non si toccano: per quelli c'è Rinomina.
+- **Variabili con il nome di un campo**: una variabile che si chiama come un livello o una colonna resta nascosta, perché `{nome}` mostra il campo. Ora lo segnalano la finestra della variabile e i problemi della carta.
+- **Assistente formule**: una variabile immagine scelta per un testo si scrive `"{nome}"`, così compare come icona invece del suo nome.
+- **Snap point nelle caselle della griglia**: uno snap point su un livello del gruppo che una griglia ripete nelle caselle ora arriva in Tabletop Simulator in ogni casella.
+- **Formule con risultato vuoto**: un livello di testo o valore la cui formula non restituisce nulla resta vuoto invece di mostrare il testo del template (per esempio `=IF({cell.index} <= 16; "…"; "")` in una griglia non mostra più 1 dalla casella 17 in poi). Colori, immagini e le altre proprietà tornano ancora al valore del template.
 
 ## 1.6.0
 

@@ -975,6 +975,8 @@ export const en = {
   'document.invalidName':
     'Invalid document name: "{name}". It cannot start with a dot or contain \\ / : * ? " < > |',
   'document.exists': 'A document named "{name}" already exists',
+  'doc.refsUpdated':
+    'Documents updated: {n} {n:reference follows|references follow} the new name ({docs})',
   'doc.card.badRef':
     '"{ref}" is not a card: write card:Set/number or card:Set/column=value, for example card:Characters/name=Wizard',
   'doc.card.badOption':
@@ -1066,6 +1068,10 @@ export const en = {
   'bind.formulaField':
     'Layer {layer}: the formula uses field "{field}", which this row does not have',
   'bind.invalidValue': 'Column {column}: invalid value "{value}"',
+  'bind.variableIsLayer':
+    'The variable "{name}" has the same name as a layer: {{name}} shows the layer, not the variable. Rename the variable or the layer',
+  'bind.variableIsColumn':
+    'The variable "{name}" has the same name as a column: {{name}} shows the cell, not the variable. Rename the variable or the column',
   'bind.gridContent': 'Grid {layer}: there is no group "{group}" to repeat in the cells',
   'bind.formulaError': 'Layer {layer}: formula error: {error}',
   'bind.markup': 'Layer {layer}: {problem}',
@@ -1403,6 +1409,46 @@ export const en = {
   'documents.deleteConfirm': "It goes to the project's trash, from where it can be recovered.",
   'documents.deleteConfirm.title': 'Delete the document "{name}"?',
   'documents.deleteConfirm.ok': 'Delete',
+  'findAll.title': 'Find and replace in the project',
+  'findAll.menu': 'Find and replace…',
+  'findAll.menuHint':
+    'Finds a text in documents, notes, data, templates and variables and replaces it where you choose (⇧⌘F / Ctrl+Shift+F)',
+  'findAll.hint':
+    'Searches documents, notes, sheet cells, template texts and formulas, and variables. Names (sets, templates, layers, columns, variables) do not change: use Rename for those, which also updates the references. Stella makes a backup before replacing.',
+  'findAll.documents': 'Documents',
+  'findAll.notes': 'Notes',
+  'findAll.cells': 'Data',
+  'findAll.layers': 'Templates',
+  'findAll.variables': 'Variables',
+  'findAll.line': '{name}, line {n}',
+  'findAll.cell': '{set}, card {n}, {column}',
+  'findAll.layer': '{template} › {layer} ({prop})',
+  'findAll.prop.text': 'text',
+  'findAll.prop.value': 'value',
+  'findAll.prop.formula': 'formula',
+  'findAll.choose': 'Replace here',
+  'findAll.all': 'All',
+  'findAll.nothing': 'None',
+  'findAll.count': '{n} {n:match|matches} in {places} {places:place|places}',
+  'findAll.replace': 'Replace in {n} {n:place|places}',
+  'findAll.replaceHint': 'Replaces in the chosen places. It makes a backup of the project first',
+  'findAll.backupLabel': 'Before replacing {query}',
+  'findAll.done':
+    '{n} {n:match|matches} replaced. The backup "{label}" holds the project as it was on disk before: find it in Project › Backup. Changes to data and templates need saving (⌘S / Ctrl+S); ⌘Z / Ctrl+Z undoes them',
+  'find.placeholder': 'Find',
+  'find.replacePlaceholder': 'Replace with',
+  'find.count': '{i} of {n}',
+  'find.none': 'No results',
+  'find.previous': 'Previous (⇧Enter)',
+  'find.next': 'Next (Enter)',
+  'find.matchCase': 'Match case',
+  'find.matchCaseHint': 'Tells upper and lower case apart',
+  'find.wholeWord': 'Whole word',
+  'find.wholeWordHint': 'Finds whole words only: "use" does not find "user"',
+  'find.close': 'Close (Esc)',
+  'find.toggleReplace': 'Shows or hides replace',
+  'find.replace': 'Replace',
+  'find.replaceAll': 'Replace all',
   'documents.placeholder':
     'Write in Markdown: # heading, - list, **bold**, | table |. {icon} draws an icon, [text]{.style} a style. Insert card adds a card of the game.',
   'documents.empty': 'The document is empty.',
@@ -1584,6 +1630,8 @@ export const en = {
   'variable.name': 'Name',
   'variable.nameHint': 'Write {name} in any text to use it',
   'variable.invalidName': 'Use letters, digits, - and _, without spaces',
+  'variable.fieldName':
+    'A layer or a column is already called "{name}": on the cards that have it, {{name}} will show the field, not the variable. Choose another name',
   'variable.exists': 'A variable with this name already exists',
   'variable.type': 'Type',
   'variable.type.image': 'Icon',

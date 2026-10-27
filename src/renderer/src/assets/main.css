@@ -4749,7 +4749,8 @@ details.usages button.link {
   color: var(--text);
 }
 
-.banner.data-changed {
+.banner.data-changed,
+.banner.refs-notice {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -6665,4 +6666,102 @@ button.more-button {
 
 .search-hidden {
   display: none !important;
+}
+
+/* Cerca e sostituisci nel documento */
+.find-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  margin-bottom: 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+}
+
+.find-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.find-row > input {
+  flex: 1;
+  min-width: 80px;
+}
+
+.find-expand {
+  width: 24px;
+  flex: none;
+  padding: 0;
+}
+
+.find-count {
+  min-width: 70px;
+  white-space: nowrap;
+}
+
+.find-option {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+/* Cerca e sostituisci nel progetto */
+.find-all-dialog .dialog {
+  max-width: none;
+  width: min(800px, 90vw);
+}
+
+.find-all {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.find-results {
+  max-height: 50vh;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+.find-results:empty {
+  display: none;
+}
+
+.find-results h4 {
+  margin: 8px 0 4px;
+}
+
+.find-hit {
+  display: grid;
+  grid-template-columns: auto minmax(120px, 30%) 1fr;
+  align-items: baseline;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.find-place {
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.find-snippet {
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.find-snippet mark {
+  background: var(--accent-soft);
+  color: inherit;
+  border-radius: 2px;
 }

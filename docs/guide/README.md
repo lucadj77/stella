@@ -8,6 +8,7 @@ Video tutorials on YouTube, no voice ([whole playlist](https://www.youtube.com/p
 
 **Start here**
 
+- 15 · [Installing Stella and the web version](https://www.youtube.com/watch?v=n_9rcC9e_14) (3 minutes)
 - 1 · [An overview of the basic functions](https://www.youtube.com/watch?v=51ZJAKmUprc) (4 minutes)
 - 2 · [Your first component from scratch](https://www.youtube.com/watch?v=YISuOjfzjJU) (10 minutes)
 - 14 · [A complete game, from idea to table](https://www.youtube.com/watch?v=FmJTn5ypFMY) (21 minutes)
@@ -507,7 +508,7 @@ Variables are created with the + next to **Variables** and edited with a click. 
 </tr>
 </table>
 
-A sample sentence at the top of the window shows the result. Renaming a variable updates the references in templates, cells, other variables and styles.
+A sample sentence at the top of the window shows the result. Renaming a variable updates the references in templates, cells, other variables, styles and documents. A variable should not have the name of a layer or a column: `{name}` would show the field, not the variable. The window points it out while you type the name, and the card lists it among its problems.
 
 ### 7.2 Text styles
 
@@ -707,7 +708,7 @@ Tokens, standees and tiles have a **Thickness**. The pieces of a set go into a b
 **Tags and snap points.** In the template properties, under **Component**, **TTS tags** gives every component its Tabletop Simulator tags, separated by commas. `{fields}` are allowed, for example `{type}, card`, and a deck takes the tags of all its cards. Two sets with the same template can have different tags: in **Objects**, next to each set, the **TTS tags** field starts with the template's tags and, if you change it, gives the set the tags written there instead of the template's. A **snap point** is a spot on a board (or on a tile, token or card) where objects snap when dropped close to it. There are two ways to add one:
 
 - the **Snap** tool (P) adds a layer that is only a snap point: a blue crosshair in the editor, invisible in prints and images, with the point at the centre of its box;
-- every other layer has, at the bottom of its properties, the **Tabletop Simulator** section with **Snap point**: the point goes at the centre of the layer. For a grid the option is **Snap point in each cell**, handy for the spaces of a board.
+- every other layer has, at the bottom of its properties, the **Tabletop Simulator** section with **Snap point**: the point goes at the centre of the layer. For a grid the option is **Snap point in each cell**, handy for the spaces of a board. A snap point on a layer of the **cell content** repeats in every cell, moved like the content.
 
 In both cases **Snap tags** makes the point attract only objects with one of those tags (empty: all of them), and **Rotated** also gives the object a rotation: the layer's own by default, or a chosen **Snap angle**. On the canvas the crosshair has a small arrow showing where the top side of the object goes. Snap points come from the front. The **Snap** button at the bottom of the canvas hides the crosshairs without removing the snap points from the export; the eye in the layers panel instead turns the layer off, and its snap point with it.
 
@@ -754,6 +755,8 @@ The text is Markdown, with Stella's markup from [chapter 6](#6-text-and-markup) 
 ### 12.2 Cards and images
 
 Cards are not copied into the document: Stella draws them from the project, so a change to the data or the template shows in the document at once. **Insert card** opens a window where you choose the set and the card (search by name), the side, the width in millimetres (empty for the real size) and the caption, and writes the reference at the cursor. By hand you write `card:Set/3` for the card on row 3, or `card:Set/column=value` for the card with that value in a column; after a `?` add `side=back` for the back and `width=40` for the width, joined by `&`, as in `card:Characters/name=Wizard?side=back&width=40`. A column value, like the name, is safer than the number, which changes when the rows are reordered. Several images on the same line of text sit side by side.
+
+References follow renames. If you change the name of a set, of a column, or the value that identifies a card (for example the name `BARRACKS` becomes `BARRACKS2`), Stella updates the cards called in the documents by itself: in images, tables, table setups and anatomies. A bar at the top says how many references changed. A card's value is followed only if no other card in the set still has the old one. In the same way a layer renamed in the template changes in the anatomy labels, and a renamed variable or style changes in the text of the documents. Notes are left as they are.
 
 ![The Insert card window](img/inserisci-carta.png)
 
@@ -819,6 +822,12 @@ Each line is an element, with sizes in millimetres from the top left corner: `zo
 **Export document…** saves the document in the project's `export/docs/` in four forms: **PDF**, to print or send, with the page size and margins of the document (desktop app only); **HTML**, one web page in a single file, with cards, images and fonts inside; **Word**, a `.docx` file to edit in Word or LibreOffice, with headings, lists, tables and quotes as Word styles, the page size, margins and fonts of the document, and cards, diagrams and images as PNG; **Markdown**, plain text for other programs, with the cards as 300 dpi PNG files and the images in a folder beside it (`<name> images`). Markdown keeps bold, italic and strikethrough; other styles are lost. Cards and images that are not found are left out, and the window reminds you when the document has problems. When the export is done, **Open file** opens the file with its default program and **Open folder** the folder that holds it. In the web version **Open file** shows PDF, HTML and Markdown in a new browser tab; for Word it is not shown, since the file is already in the project folder.
 
 Below the text the problems are listed: cards that are not found, images not in assets, unknown names in braces; a click goes to that point of the text. `stella check` reports them with those of the cards, `stella docs` shows the documents to an AI agent and `stella export-doc` exports them without opening the app (see [cli.md](../cli.md)).
+
+### 12.8 Find and replace
+
+⌘F / Ctrl+F, with the cursor in the document text, opens the find bar above the text. Enter goes to the next match, ⇧Enter / Shift+Enter to the previous one, and next to it you can read which one you are looking at (for example "3 of 12"). **Match case** tells upper and lower case apart; **Whole word** finds whole words only, so "use" does not find "user". ⌥⌘F / Ctrl+H, or the arrow on the left of the bar, also shows the replace field: **Replace** changes the selected match and moves to the next, **Replace all** changes them all. ⌘Z / Ctrl+Z undoes the replacement in one step; Esc closes the bar.
+
+**Find and replace…**, in the **Project** menu (⇧⌘F / Ctrl+Shift+F), searches the whole project: documents, notes, sheet cells, template texts, values and formulas, and text and value variables. Results are grouped by kind, with the place where they are (for example "Buildings, card 3, name" or "building › title (text)") and the text around them; a click on the place opens it. Each result has a checkbox: **Replace in N places** changes only the checked ones, and **All** and **None** check or uncheck them all. Before replacing Stella makes a backup named "Before replacing …", which you find in **Project › Backup**. Documents and notes are saved at once; changes to data, templates and variables are saved with ⌘S / Ctrl+S and ⌘Z / Ctrl+Z undoes them. The names of sets, templates, layers, columns and variables do not change: use **Rename** for those, which also updates the references.
 
 ## 13. Backup
 

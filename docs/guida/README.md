@@ -8,6 +8,7 @@ Video tutorial su YouTube, senza voce ([tutta la playlist](https://www.youtube.c
 
 **Inizia qui**
 
+- 15 · [Installare Stella e la versione web](https://www.youtube.com/watch?v=Jx6QC7Ucfrw) (3 minuti)
 - 1 · [Panoramica delle funzioni di base](https://www.youtube.com/watch?v=0JnZ92Jy_JU) (4 minuti)
 - 2 · [Il tuo primo componente da zero](https://www.youtube.com/watch?v=kUgGQ_ab8Yg) (10 minuti)
 - 14 · [Un gioco completo, dall’idea al tavolo](https://www.youtube.com/watch?v=_y1I1nVNgy0) (21 minuti)
@@ -507,7 +508,7 @@ Le variabili si creano con il + accanto a **Variabili** e si modificano con un c
 </tr>
 </table>
 
-In cima alla finestra una frase di prova mostra il risultato. Rinominare una variabile aggiorna i richiami nei template, nelle celle, nelle altre variabili e negli stili.
+In cima alla finestra una frase di prova mostra il risultato. Rinominare una variabile aggiorna i richiami nei template, nelle celle, nelle altre variabili, negli stili e nei documenti. Una variabile non deve avere il nome di un livello o di una colonna: `{nome}` mostrerebbe il campo e non la variabile. La finestra lo segnala mentre si scrive il nome, e la carta lo segnala tra i suoi problemi.
 
 ### 7.2 Stili di testo
 
@@ -707,7 +708,7 @@ Per segnalini, pedine e tessere c'è lo **Spessore**. I pezzi di un set vanno in
 **Tag e snap point.** Nelle proprietà del template, sotto **Componente**, **Tag TTS** dà a ogni componente i suoi tag di Tabletop Simulator, separati da virgole. Ammette i `{campi}`, per esempio `{tipo}, carta`, e un mazzo prende i tag di tutte le sue carte. Due set con lo stesso template possono avere tag diversi: in **Oggetti**, accanto a ogni set, il campo **Tag TTS** parte dai tag del template e, se lo cambi, dà al set i tag scritti lì al posto di quelli del template. Uno **snap point** è un punto della plancia (o di una tessera, di un segnalino, di una carta) a cui gli oggetti si agganciano quando li si lascia vicino. Ce ne sono due modi:
 
 - lo strumento **Snap** (P) aggiunge un livello che è solo uno snap point: nell'editor è un mirino blu, nelle stampe e nelle immagini non si vede, e il punto è il centro del suo riquadro;
-- ogni altro livello ha in fondo alle proprietà la sezione **Tabletop Simulator** con **Snap point**: il punto va al centro del livello. Per una griglia l'opzione è **Snap point in ogni casella**, comoda per le caselle di una plancia.
+- ogni altro livello ha in fondo alle proprietà la sezione **Tabletop Simulator** con **Snap point**: il punto va al centro del livello. Per una griglia l'opzione è **Snap point in ogni casella**, comoda per le caselle di una plancia. Uno snap point su un livello del **contenuto delle caselle** si ripete in ogni casella, spostato come il contenuto.
 
 In entrambi i casi **Tag dello snap** fa attirare al punto solo gli oggetti con uno di quei tag (vuoto: tutti), e **Ruotato** fa prendere all'oggetto anche una rotazione: di base quella del livello, oppure un **Angolo dello snap** a scelta. Sulla tela il mirino ha una freccetta che indica dove va il lato alto dell'oggetto. Gli snap point vengono dal fronte. Il pulsante **Snap** in basso nella tela nasconde i mirini senza togliere gli snap point dall'esportazione; l'occhio nel pannello livelli invece spegne il livello e quindi anche il suo snap point.
 
@@ -754,6 +755,8 @@ Il testo è Markdown, con il markup di Stella del [capitolo 6](#6-testo-e-markup
 ### 12.2 Carte e immagini
 
 Le carte non si copiano nel documento: Stella le disegna dal progetto, quindi una modifica ai dati o al template si vede subito anche nel documento. **Inserisci carta** apre una finestra in cui si sceglie il set e la carta (si cerca per nome), il lato, la larghezza in millimetri (vuota per la misura vera) e la didascalia, e scrive il riferimento al posto del cursore. A mano si scrive `card:Set/3` per la carta della riga 3 oppure `card:Set/colonna=valore` per la carta che ha quel valore in una colonna; dopo un `?` si aggiungono `side=back` per il retro e `width=40` per la larghezza, unite da `&`, come in `card:Personaggi/nome=Mago?side=back&width=40`. Il valore di una colonna, come il nome, è più sicuro del numero, che cambia se le righe si riordinano. Più immagini sulla stessa riga del testo stanno affiancate.
+
+I riferimenti seguono le rinomine. Se cambi il nome di un set, di una colonna o il valore che identifica una carta (per esempio il nome `CASERMA` diventa `CASERMA2`), Stella aggiorna da sola le carte richiamate nei documenti: nelle immagini, nelle tabelle, negli schemi del tavolo e nelle anatomie. Una barra in alto dice quanti riferimenti sono cambiati. Il valore di una carta si segue solo se nessun'altra carta del set ha ancora quello vecchio. Allo stesso modo un livello rinominato nel template cambia nelle etichette delle anatomie, e una variabile o uno stile rinominati cambiano nel testo dei documenti. Le note non si toccano.
 
 ![La finestra Inserisci carta](img/inserisci-carta.png)
 
@@ -819,6 +822,12 @@ Ogni riga è un elemento, con le misure in millimetri dall'angolo in alto a sini
 **Esporta documento…** salva il documento in `export/docs/` del progetto in quattro forme: **PDF**, da stampare o inviare, con il formato e i margini del documento (solo nell'app per computer); **HTML**, una pagina web in un solo file, con carte, immagini e font dentro; **Word**, un file `.docx` da modificare in Word o LibreOffice, con titoli, elenchi, tabelle e citazioni come stili di Word, formato pagina, margini e caratteri del documento, e carte, schemi e immagini come PNG; **Markdown**, testo semplice per altri programmi, con le carte in PNG a 300 dpi e le immagini in una cartella accanto (`<nome> images`). Nel Markdown restano grassetto, corsivo e barrato; gli altri stili si perdono. Le carte e le immagini che non si trovano restano fuori, e la finestra lo ricorda se il documento ha dei problemi. Finita l'esportazione, **Apri il file** apre il file con il programma predefinito e **Apri la cartella** la cartella che lo contiene. Nella versione web **Apri il file** mostra PDF, HTML e Markdown in una nuova scheda del browser; per il Word non compare, perché il file è già nella cartella del progetto.
 
 Sotto il testo compaiono i problemi: carte che non si trovano, immagini che non sono negli asset, nomi tra graffe sconosciuti; un clic porta al punto del testo. `stella check` li segnala insieme a quelli delle carte, `stella docs` mostra i documenti a un agente IA e `stella export-doc` li esporta senza aprire l'app (vedi [cli.md](../cli.md)).
+
+### 12.8 Cerca e sostituisci
+
+⌘F / Ctrl+F, con il cursore nel testo del documento, apre sopra il testo la barra di ricerca. Invio va all'occorrenza successiva, ⇧Invio / Maiusc+Invio alla precedente, e accanto si legge quale si sta guardando (per esempio «3 di 12»). **Maiuscole** distingue maiuscole e minuscole; **Parola intera** trova solo parole intere, così «re» non trova «regola». ⌥⌘F / Ctrl+H, o la freccia a sinistra della barra, mostra anche il campo per sostituire: **Sostituisci** cambia l'occorrenza selezionata e passa alla successiva, **Sostituisci tutto** le cambia tutte. ⌘Z / Ctrl+Z annulla la sostituzione in un passo; Esc chiude la barra.
+
+**Cerca e sostituisci…**, nel menu **Progetto** (⇧⌘F / Ctrl+Maiusc+F), cerca in tutto il progetto: documenti, note, celle dei fogli, testi, valori e formule dei template e variabili di testo e valore. I risultati sono divisi per tipo, con il punto in cui si trovano (per esempio «Edifici, carta 3, nome» o «edificio › titolo (testo)») e il testo attorno; un clic sul punto lo apre. Ogni risultato ha una casella: **Sostituisci in N punti** cambia solo quelli spuntati, e **Tutti** e **Nessuno** li spuntano o li tolgono tutti. Prima di sostituire Stella fa un backup con il nome «Prima di sostituire …», che si trova in **Progetto › Backup**. Documenti e note si salvano subito; le modifiche a dati, template e variabili si salvano con ⌘S / Ctrl+S e ⌘Z / Ctrl+Z le annulla. I nomi di set, template, livelli, colonne e variabili non cambiano: per quelli c'è **Rinomina**, che aggiorna anche i riferimenti.
 
 ## 13. Backup
 

@@ -37,6 +37,7 @@ export default function VariableDialog({
   group: initialGroup = '',
   groups = [],
   usages,
+  fieldNames,
   onSave,
   onDelete,
   onClose
@@ -48,6 +49,8 @@ export default function VariableDialog({
   groups?: string[]
   /** Dove è usata la variabile, per una variabile che esiste già */
   usages?: UsagesNav
+  /** Nomi dei livelli e delle colonne del progetto: una variabile con lo stesso nome resta nascosta */
+  fieldNames?: Set<string>
   onSave(name: string, v: Variable, group: string): void
   onDelete(): void
   onClose(): void
@@ -80,6 +83,8 @@ export default function VariableDialog({
       : name !== initialName && name in variables
         ? t('variable.exists')
         : null
+  const nameWarning =
+    !nameError && name && fieldNames?.has(name) ? t('variable.fieldName', { name }) : null
 
   // l'anteprima usa la versione in modifica al posto di quella salvata
   const draft = useMemo<Variables>(() => {
@@ -338,6 +343,7 @@ export default function VariableDialog({
           </button>
         </div>
         {nameError && <span className="field-error">{nameError}</span>}
+        {nameWarning && <span className="field-error">{nameWarning}</span>}
       </div>
       {picking && (
         <AssetPicker

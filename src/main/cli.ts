@@ -44,6 +44,8 @@ import { saveTemplate } from './project/templates'
 import { sharingSets } from '../shared/model/sharedSheets'
 import { renameSet } from '../shared/model/renameSet'
 import { renameTemplate } from '../shared/model/renameTemplate'
+import { followInDocuments } from '../shared/model/docRefs'
+import { saveDocument } from './project/notes'
 import { isValidSheetName, setColumns } from '../shared/model/sheet'
 import { columnStats, columnValues, rowAmounts } from '../shared/model/stats'
 import { isValidTemplateName, walkLayers } from '../shared/model/normalize'
@@ -533,9 +535,19 @@ async function renameSetCommand(p: Parsed): Promise<number> {
   const done = await backup(project)
   const sheet = r.sets[index].data
   await saveData(project.folder, { file: r.file, sheets: sheet?.origin ? [sheet] : [] })
+  // le carte richiamate nei documenti seguono il nome nuovo
+  const docs = followInDocuments(
+    project.documents ?? [],
+    { sets: project.sets, templates: project.templates },
+    { sets: r.sets, templates: project.templates }
+  )
+  for (const d of docs.changed) await saveDocument(project.folder, d.name, d.text)
   print(
     `Renamed set "${set.name}" to "${to}"` +
-      (sheet?.origin ? ', with its sheet' : `; its sheet is still "${r.file.sets[index].sheet}"`)
+      (sheet?.origin ? ', with its sheet' : `; its sheet is still "${r.file.sets[index].sheet}"`) +
+      (docs.count
+        ? `; ${docs.count} reference(s) updated in ${docs.changed.map((d) => d.name).join(', ')}`
+        : '')
   )
   done()
   return 0
