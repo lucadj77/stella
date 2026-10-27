@@ -639,13 +639,14 @@ function App(): React.JSX.Element {
   /** Colonne mostrate nel set: è una preferenza, salvata nel progetto ma fuori dall'annulla */
   const setColumnsView = (
     index: number,
-    view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed'>
+    view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed' | 'pinnedProperties'>
   ): void => {
     if (!project) return
     const patch = <T extends SetDefinition>(x: T): T => {
       const next = { ...x, ...view }
       if (!next.hiddenColumns?.length) delete next.hiddenColumns
       if (!next.showComputed) delete next.showComputed
+      if (!next.pinnedProperties?.length) delete next.pinnedProperties
       return next
     }
     setProject({
@@ -2822,7 +2823,9 @@ function SetView({
   /** Assegna al set un altro template */
   onChangeTemplate(name: string): void
   /** Colonne nascoste e livelli calcolati mostrati */
-  onChangeColumns(view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed'>): void
+  onChangeColumns(
+    view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed' | 'pinnedProperties'>
+  ): void
   /** Apre nell'editor un template: quello del set o quello di una carta */
   /** row: la carta da mostrare nell'editor */
   onEditTemplate(name: string, row?: number): void
@@ -2913,6 +2916,7 @@ function SetView({
     [set.data, template, rowTemplates]
   )
   const hidden = new Set(set.hiddenColumns ?? [])
+  const pinned = new Set(set.pinnedProperties ?? [])
   const columns = allColumns.filter(
     (c) => !hidden.has(c.header) && (!c.computed || set.showComputed)
   )
@@ -3184,6 +3188,12 @@ function SetView({
       computed={computed}
       focus={focus}
       details={details}
+      pinned={pinned}
+      onTogglePin={(h) =>
+        onChangeColumns({
+          pinnedProperties: pinned.has(h) ? [...pinned].filter((x) => x !== h) : [...pinned, h]
+        })
+      }
       onToggleDetails={(h) =>
         setDetails((d) => {
           const next = new Set(d)

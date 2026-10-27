@@ -74,6 +74,8 @@ export const it: Record<MessageKey, string> = {
   'cardForm.multiHint':
     'Ciò che scrivi in un campo va in tutte le carte selezionate. I campi vuoti hanno valori diversi tra le carte e restano come sono finché non li modifichi.',
   'cardForm.mixed': 'valori diversi',
+  'cardForm.pin': 'Fissa: tiene questa proprietà sotto il suo campo, in tutte le carte',
+  'cardForm.unpin': 'Togli dalle fissate',
   'cardForm.details': 'Proprietà del livello per questa carta',
   'prop.x': 'X',
   'prop.y': 'Y',

@@ -238,6 +238,25 @@ export function SlidersIcon(): React.JSX.Element {
   )
 }
 
+/** Puntina: proprietà fissata sotto il suo campo */
+export function PinIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="1em"
+      height="1em"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M6 2h4M7 2v4L4.5 9h7L9 6V2M8 9v5" />
+    </svg>
+  )
+}
+
 /** Occhio barrato: livello nascosto su questa carta */
 export function EyeOffIcon(): React.JSX.Element {
   return (

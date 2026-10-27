@@ -51,7 +51,7 @@ Projects created when the app was called Naibi have `naibi.json`, older ones (Ga
 }
 ```
 
-`sheet` is optional: when missing, the sheet with the same name as the set is used. `hiddenColumns` (optional) lists the columns hidden in the table and in the card fields; `showComputed: true` also shows the fixed and formula layers, read-only. They are view preferences only: they do not change the cards.
+`sheet` is optional: when missing, the sheet with the same name as the set is used. `hiddenColumns` (optional) lists the columns hidden in the table and in the card fields; `showComputed: true` also shows the fixed and formula layers, read-only. `pinnedProperties` (optional) lists the properties pinned in the card fields, as `layer.property` columns. They are view preferences only: they do not change the cards.
 
 `styles` (optional) holds the project's text styles, written with the same attributes as the markup (docs/specifica.md, 2.1). The styles `heading1`, `heading2` and `note` always exist and can be redefined here. Until there is a style editor they are edited by hand.
 

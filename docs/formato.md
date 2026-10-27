@@ -51,7 +51,7 @@ I progetti creati quando l'app si chiamava Naibi hanno `naibi.json`, quelli anco
 }
 ```
 
-`sheet` è facoltativo: se manca si usa il foglio con lo stesso nome del set. `hiddenColumns` (facoltativo) elenca le colonne nascoste nella tabella e nei campi della carta; `showComputed: true` mostra anche i livelli fissi e con formula, in sola lettura. Sono solo preferenze di vista: non cambiano le carte.
+`sheet` è facoltativo: se manca si usa il foglio con lo stesso nome del set. `hiddenColumns` (facoltativo) elenca le colonne nascoste nella tabella e nei campi della carta; `showComputed: true` mostra anche i livelli fissi e con formula, in sola lettura. `pinnedProperties` (facoltativo) elenca le proprietà fissate nei campi della carta, come colonne `livello.proprietà`. Sono solo preferenze di vista: non cambiano le carte.
 
 `styles` (facoltativo) contiene gli stili di testo del progetto, scritti con gli stessi attributi del markup (docs/specifica.md, 2.1). Gli stili `heading1`, `heading2` e `note` esistono sempre e si possono ridefinire qui. Finché non c'è l'editor degli stili si modificano a mano.
 
