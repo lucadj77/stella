@@ -673,7 +673,7 @@ export interface TtsDeckCard {
 // Misure in Tabletop Simulator. TTS non ha una scala assoluta: un oggetto a scala 1 ha una misura
 // fissa per tipo, qualunque sia la sua immagine. Queste sono misurate in TTS (ottobre 2026) con il
 // righello, in unità (che TTS mostra come pollici): una carta larga 63 mm è larga 2,25, una
-// tessera 2 sul lato lungo, un segnalino circa 3,2 in larghezza (l'altezza segue le proporzioni
+// tessera 2 sul lato corto, un segnalino circa 3,2 in larghezza (l'altezza segue le proporzioni
 // dell'immagine: una pedina alta e stretta resta larga 3,2). Le scale si calcolano in modo che
 // tutto stia nelle proporzioni vere rispetto a una carta da 63 mm.
 
@@ -681,6 +681,8 @@ export interface TtsDeckCard {
 export const TTS_UNITS_PER_MM = 2.25 / 63
 const TTS_CARD_WIDTH = 2.25
 const TTS_TILE_SIZE = 2
+/** Lato lungo della carta da poker, in mm */
+const POKER_HEIGHT = 88
 const TTS_TOKEN_SIZE = 3.2
 
 const round3 = (v: number): number => Math.round(v * 1000) / 1000
@@ -694,7 +696,8 @@ export function ttsCardScale(w: number): number {
 export function ttsPieceScale(kind: TtsPieceKind, w: number, h: number): number {
   // il segnalino si misura sulla larghezza, la tessera sul lato lungo
   if (isTokenLike(kind)) return round3((w * TTS_UNITS_PER_MM) / TTS_TOKEN_SIZE)
-  return round3((Math.max(w, h) * TTS_UNITS_PER_MM) / TTS_TILE_SIZE)
+  // la tessera si misura sul lato corto: una plancia 120 × 88 è giusta a scala 1,5 circa
+  return round3((Math.min(w, h) * TTS_UNITS_PER_MM) / TTS_TILE_SIZE)
 }
 
 /**
@@ -733,10 +736,11 @@ export function ttsSavedObject(
   /** Altezza della carta in mm: le carte orizzontali sono "di traverso" in TTS */
   cardHeight = 88
 ): Record<string, unknown> {
-  // TTS disegna sempre la carta nelle proporzioni di una carta da poker, in verticale; una carta
-  // orizzontale va messa di traverso, e la scala si calcola sul lato corto
+  // una carta orizzontale va messa di traverso. Di traverso, a scala 1, il lato corto misura
+  // quanto il lato lungo di una carta da poker (88 mm): verificato in TTS (ottobre 2026) con una
+  // carta 120 × 88 e una plancia grande come due carte da poker, entrambe giuste a scala 1
   const sideways = cardWidth > cardHeight
-  const scale = ttsCardScale(Math.min(cardWidth, cardHeight))
+  const scale = sideways ? round3(cardHeight / POKER_HEIGHT) : ttsCardScale(cardWidth)
   const customDeck = (i: number): Record<string, unknown> => ({
     [String(i + 1)]: {
       FaceURL: sheets[i].faceUrl,
@@ -887,12 +891,13 @@ export function ttsSavedPieces(
             }
           }
         : {
-            // Stretch false: la tessera prende le proporzioni dell'immagine, cioè della carta
+            // Stretch (in TTS "Stretch to Aspect Ratio"): la tessera prende le proporzioni
+            // dell'immagine, cioè della carta; senza, arriva quadrata. Le plance sono "Rounded"
             CustomTile: {
-              Type: tileType,
+              Type: kind === 'board' ? 3 : tileType,
               Thickness: thickness,
               Stackable: kind === 'tile',
-              Stretch: false
+              Stretch: true
             }
           })
     }

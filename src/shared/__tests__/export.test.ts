@@ -195,15 +195,15 @@ describe('Tabletop Simulator', () => {
     ) as { ObjectStates: Record<string, unknown>[] }
     expect(one.ObjectStates[0]).toMatchObject({ Name: 'Card', CardID: 100, Nickname: 'Eroi' })
   })
-  it('le carte orizzontali vanno di traverso, con la scala del lato corto', () => {
+  it('le carte orizzontali vanno di traverso: il lato corto misura come il lato lungo del poker', () => {
     const sheet = { faceUrl: 'f', backUrl: 'b', cols: 1, rows: 1, uniqueBack: false }
     const card = [{ sheet: 0, slot: 0, nickname: '', description: '' }]
-    // plancia grande come due carte da poker affiancate: 126 × 88
+    // plancia grande come due carte da poker affiancate: 126 × 88, giusta a scala 1
     const wide = ttsSavedObject('Plancia', [sheet], card, 126, 88) as {
       ObjectStates: { SidewaysCard: boolean; Transform: { scaleX: number } }[]
     }
     expect(wide.ObjectStates[0].SidewaysCard).toBe(true)
-    expect(wide.ObjectStates[0].Transform.scaleX).toBeCloseTo(1.397, 3)
+    expect(wide.ObjectStates[0].Transform.scaleX).toBe(1)
     const tall = ttsSavedObject('Eroi', [sheet], card, 63, 88) as typeof wide
     expect(tall.ObjectStates[0]).toMatchObject({ SidewaysCard: false, Transform: { scaleX: 1 } })
   })
@@ -306,7 +306,7 @@ describe('Tabletop Simulator: segnalini e tessere', () => {
       ColorDiffuse: { r: 0, g: 0, b: 1 },
       CustomImage: {
         ImageSecondaryURL: 'file:///b2.png',
-        CustomTile: { Type: 1, Thickness: 0.1, Stretch: false }
+        CustomTile: { Type: 1, Thickness: 0.1, Stretch: true }
       }
     })
   })
@@ -317,6 +317,8 @@ describe('Tabletop Simulator: segnalini e tessere', () => {
     // misurati in TTS: tessera da 45 mm larga 2 a scala 1, stella da 27 mm (29 con il margine) 3
     expect(ttsPieceScale('tile', 45, 45)).toBeCloseTo(0.804, 3)
     expect(ttsPieceScale('token', 29, 29)).toBeCloseTo(0.324, 3)
+    // la tessera si misura sul lato corto: plancia 120 × 88 a scala 1,5 circa (prova in TTS)
+    expect(ttsPieceScale('board', 120, 88)).toBeCloseTo(1.571, 3)
     // il segnalino si misura sulla larghezza: una pedina 25 × 50 (27 × 52 con il margine) è larga
     // 27 mm, non 52
     expect(ttsPieceScale('standee', 27, 52)).toBeCloseTo(0.301, 3)
@@ -357,7 +359,11 @@ describe('Tabletop Simulator: plance e dadi', () => {
     expect(xs[1] - xs[0]).toBeGreaterThan((300 * 2.25) / 63)
     expect(saved.ObjectStates[2]).toMatchObject({
       Name: 'Custom_Tile',
-      CustomImage: { ImageSecondaryURL: 'file:///b2.png', CustomTile: { Stackable: false } }
+      // le plance sono sempre "Rounded" (3), qualunque forma abbia la carta
+      CustomImage: {
+        ImageSecondaryURL: 'file:///b2.png',
+        CustomTile: { Type: 3, Stackable: false, Stretch: true }
+      }
     })
   })
 
