@@ -6667,3 +6667,45 @@ button.more-button {
 .search-hidden {
   display: none !important;
 }
+
+/* Cerca e sostituisci nel documento */
+.find-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  margin-bottom: 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+}
+
+.find-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.find-row > input {
+  flex: 1;
+  min-width: 80px;
+}
+
+.find-expand {
+  width: 24px;
+  flex: none;
+  padding: 0;
+}
+
+.find-count {
+  min-width: 70px;
+  white-space: nowrap;
+}
+
+.find-option {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  font-size: 12px;
+}
