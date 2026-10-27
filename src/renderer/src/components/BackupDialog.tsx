@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import NumInput from './NumInput'
 import { confirmKey } from './confirm'
 import type { BackupSettings, BackupState } from '../../../shared/api'
 import { messageFromError, type Message } from '../../../shared/messages'
@@ -30,6 +31,10 @@ export default function BackupDialog({
   const [state, setState] = useState<BackupState | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<Message | null>(null)
+  /** Nome del prossimo backup fatto a mano */
+  const [label, setLabel] = useState('')
+  /** Backup di cui si sta cambiando il nome, e il nome scritto */
+  const [editing, setEditing] = useState<{ file: string; label: string } | null>(null)
 
   useEffect(() => {
     window.api.backups().then(setState, (e) => setError(messageFromError(e)))
@@ -50,9 +55,20 @@ export default function BackupDialog({
   const create = (): Promise<void> =>
     run(async () => {
       if (dirty) await onSave()
-      await window.api.createBackup()
+      await window.api.createBackup(label.trim() || undefined)
+      setLabel('')
       setState(await window.api.backups())
     })
+
+  const rename = (): void => {
+    if (!editing) return
+    const { file, label: next } = editing
+    setEditing(null)
+    run(async () => {
+      await window.api.labelBackup(file, next)
+      setState(await window.api.backups())
+    })
+  }
 
   const saveSettings = (patch: Partial<BackupSettings>): void => {
     if (!state) return
@@ -78,6 +94,18 @@ export default function BackupDialog({
         <p className="backup-intro">{t('backup.intro')}</p>
         {error && <div className="banner error">{t(error)}</div>}
         <div className="backup-actions">
+          <input
+            className="backup-label-input"
+            value={label}
+            placeholder={t('backup.labelPlaceholder')}
+            aria-label={t('backup.label')}
+            maxLength={80}
+            disabled={busy || !state}
+            onChange={(e) => setLabel(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !busy && state) create()
+            }}
+          />
           <button className="primary" disabled={busy || !state} onClick={create}>
             {dirty ? t('backup.saveAndCreate') : t('backup.create')}
           </button>
@@ -100,6 +128,34 @@ export default function BackupDialog({
                     <tr key={b.file}>
                       <td>{new Date(b.date).toLocaleString(lang)}</td>
                       <td className="muted">{b.auto ? t('backup.auto') : t('backup.manual')}</td>
+                      <td className="backup-label">
+                        {editing?.file === b.file ? (
+                          <input
+                            autoFocus
+                            value={editing.label}
+                            maxLength={80}
+                            aria-label={t('backup.label')}
+                            onChange={(e) => setEditing({ file: b.file, label: e.target.value })}
+                            onBlur={rename}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') rename()
+                              if (e.key === 'Escape') {
+                                e.stopPropagation()
+                                setEditing(null)
+                              }
+                            }}
+                          />
+                        ) : (
+                          <button
+                            className="link"
+                            disabled={busy}
+                            title={t('backup.rename')}
+                            onClick={() => setEditing({ file: b.file, label: b.label ?? '' })}
+                          >
+                            {b.label || <span className="muted">{t('backup.addLabel')}</span>}
+                          </button>
+                        )}
+                      </td>
                       <td>
                         <button disabled={busy} onClick={() => restore(b.file)}>
                           {t('backup.restore')}
@@ -128,8 +184,7 @@ export default function BackupDialog({
               </label>
               <label>
                 {t('backup.keep')}
-                <input
-                  type="number"
+                <NumInput
                   min={1}
                   max={100}
                   value={state.settings.keep}

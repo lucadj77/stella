@@ -1,6 +1,6 @@
 # Guida all'uso di Stella
 
-Stella è un'app per creare carte e altri elementi di gioco stampati a partire da un foglio di calcolo. Si disegna una volta il modello della carta, il **template**, e ogni riga del foglio diventa una carta. Le carte si esportano come immagini, come PDF da stampare o come oggetti per Tabletop Simulator: mazzi, segnalini, tessere, plance e dadi, pronti da caricare nel gioco.
+Stella è un'app per creare carte e altri elementi di gioco stampati a partire da un foglio di calcolo. Si disegna una volta il modello della carta, il **template**, e ogni riga del foglio diventa una carta. Le carte si esportano come immagini, come PDF da stampare o come oggetti per Tabletop Simulator: mazzi, segnalini, pedine, tessere, plance e dadi, pronti da caricare nel gioco.
 
 Questa guida segue l'ordine in cui di solito si lavora: creare un progetto, disegnare un template, inserire le carte, rifinire testi e immagini, esportare. Gli esempi vengono da un piccolo progetto con tre set: personaggi, oggetti e carte mercato.
 
@@ -34,6 +34,7 @@ Video tutorial su YouTube, senza voce ([tutta la playlist](https://www.youtube.c
 
 - 9 · [Stampare i componenti](https://www.youtube.com/watch?v=TG-WWQqBDUk) (9 minuti)
 - 3 · [Da Stella a Tabletop Simulator](https://www.youtube.com/watch?v=XxKgcgba9wE) (5 minuti)
+- 19 · [Snap point e tag per Tabletop Simulator](https://www.youtube.com/watch?v=C-xwymZd5mU) (6 minuti)
 - 5 · [Il regolamento e gli altri documenti](https://www.youtube.com/watch?v=psMiWRUQ4k4) (5 minuti)
 
 **Strumenti**
@@ -148,7 +149,7 @@ La prima volta, quando non ci sono ancora progetti recenti, la schermata dà il 
 - **Apri il progetto di esempio** apre il progetto usato in questa guida e nei video: tre set (Personaggi, Oggetti, Mercato), icone, variabili e stili. La prima volta lo copia in Documenti/Stella/Esempio, dove si può modificare liberamente; poi apre quella copia. Nella versione web la copia sta nello spazio che il browser riserva al sito: si modifica e si salva senza scegliere una cartella, ma resta solo in quel browser.
 - **Progetti recenti** mostra fino a 24 progetti, con la prima carta come miniatura. La × toglie un progetto dall'elenco senza cancellare la cartella.
 
-Il pulsante ⚙ in alto a destra, in ogni schermata, apre le impostazioni: la dimensione dell'interfaccia, il tema (chiaro, scuro o quello del sistema), la lingua (inglese o italiano) e **Strumenti IA…**, che prepara un agente IA a lavorare sui progetti ([capitolo 15](#15-lavorare-con-un-agente-ia)).
+Il pulsante ⚙ in alto a destra, in ogni schermata, apre le impostazioni: la dimensione dell'interfaccia, l'**unità di misura** (millimetri, centimetri o pollici) per posizioni, misure e margini in tutta l'app (il testo resta in punti, gli spessori delle linee in mm), il tema (chiaro, scuro o quello del sistema), la lingua (inglese o italiano) e **Strumenti IA…**, che prepara un agente IA a lavorare sui progetti ([capitolo 15](#15-lavorare-con-un-agente-ia)).
 
 Quando esce una versione nuova, all'avvio compare una striscia in cima alla finestra: **Novità** mostra cosa cambia, **Aggiorna e riavvia** scarica la versione nuova, la installa e riapre Stella. Questo vale per Stella installata con il setup su Windows, per l'AppImage su Linux e sul Mac per l'app in Applicazioni (o in un'altra cartella in cui puoi scrivere); se ci sono modifiche non salvate Stella lo chiede prima. La versione portatile di Windows, il pacchetto .deb e un'app aperta dal disco scaricato hanno invece **Scarica**, che apre la pagina da cui scaricarla; lo stesso succede se l'aggiornamento automatico non riesce. **Salta questa versione** non la segnala più, **Ricordamelo più tardi** la nasconde fino al prossimo avvio.
 
@@ -172,7 +173,7 @@ Le richieste di conferma, per esempio prima di eliminare un set o di chiudere un
 
 ![La finestra del progetto, con le parti numerate](img/progetto.png)
 
-1. **Barra in alto.** Nome del progetto (passando col mouse si vede la cartella), annulla e ripristina (valgono per ciò che è aperto: le carte, stili e variabili, o il template nell'editor), il menu della lingua delle carte (solo nei progetti con più lingue), **Salva** (⌘S / Ctrl+S), **Esporta…**, il menu **Progetto**, **Aiuto** (F1, [capitolo 6](#6-testo-e-markup)) e ⚙ per le impostazioni. Il menu **Progetto** raccoglie i comandi usati di rado: **Backup…**, **Cestino…**, **Google Sheets…**, **Lingue…** ([5.7](#57-carte-in-più-lingue)), **Ricarica dal disco** (rilegge il progetto, perdendo le modifiche non salvate) e **Chiudi progetto**.
+1. **Barra in alto.** Nome del progetto (passando col mouse si vede la cartella), annulla e ripristina (valgono per ciò che è aperto: le carte, stili e variabili, o il template nell'editor), il menu della lingua delle carte (solo nei progetti con più lingue), **Salva** (⌘S / Ctrl+S), **Esporta…**, il menu **Progetto**, **Aiuto** (F1, [capitolo 6](#6-testo-e-markup)) e ⚙ per le impostazioni. Il menu **Progetto** raccoglie i comandi usati di rado: **Backup…**, **Cestino…**, **Google Sheets…**, **Lingue…** ([5.7](#57-carte-in-più-lingue)), **Salva una copia…** (copia la cartella del progetto in una cartella nuova o vuota; il progetto aperto resta quello di prima, e alla fine si può aprire la copia), **Sposta…** (sposta la cartella e riapre il progetto dal posto nuovo, con i suoi backup), **Ricarica dal disco** (rilegge il progetto, perdendo le modifiche non salvate) e **Chiudi progetto**. Copia e spostamento chiedono prima di salvare le modifiche, e ci sono solo nell'app per computer.
 2. **Set.** Un clic apre le carte del set; il numero è il totale delle carte, copie comprese.
 3. **Template.** Un clic apre il template nell'editor; accanto c'è il formato in millimetri.
 4. **Stili** di testo del progetto ([capitolo 7](#7-variabili-e-stili)).
@@ -191,9 +192,11 @@ Nell'app per computer gli stessi comandi stanno anche nel menu dell'app (sul Mac
 
 ### 4.1 Creare un template
 
-Il + accanto a **Template** apre la finestra del nuovo template. In cima, **Cosa stai creando?** sceglie il tipo di componente: **Carta**, **Segnalino**, **Tessera**, **Plancia** o **Faccia di dado**. Il tipo propone i formati adatti (per un segnalino i tondi da 20, 25 e 38 mm, per una tessera quadrati ed esagoni, per una plancia 30 cm, A3 e A4) e cambia le parole dell'app: nel set il pulsante diventa **+ Segnalino** o **+ Faccia**, e i conteggi dicono «6 facce». Per un dado ogni riga del set è una faccia, e sei facce di seguito fanno un dado. Poi si scrivono il nome, il formato e le misure; il lucchetto tra larghezza e altezza mantiene le proporzioni.
+Il + accanto a **Template** apre la finestra del nuovo template. In cima, **Cosa stai creando?** sceglie il tipo di componente: **Carta**, **Segnalino**, **Tessera**, **Plancia**, **Faccia di dado** o **Pedina**. Il tipo propone i formati adatti (per un segnalino i tondi da 20, 25 e 38 mm, per una tessera quadrati ed esagoni, per una plancia 30 cm, A3 e A4) e cambia le parole dell'app: nel set il pulsante diventa **+ Segnalino** o **+ Faccia**, e i conteggi dicono «6 facce». Per un dado ogni riga del set è una faccia, e sei facce di seguito fanno un dado. Poi si scrivono il nome, il formato e le misure; il lucchetto tra larghezza e altezza mantiene le proporzioni.
 
-Il tipo si cambia anche dopo, con **Componente** nelle proprietà del template. Nell'esportazione per Tabletop Simulator ogni set parte dall'oggetto del suo tipo: segnalini, tessere, plance o dadi.
+Il tipo si cambia anche dopo, con **Componente** nelle proprietà del template. Nell'esportazione per Tabletop Simulator ogni set parte dall'oggetto del suo tipo: segnalini, pedine, tessere, plance o dadi.
+
+Una **pedina** è una figura che sta in piedi, per esempio un personaggio disegnato su fondo trasparente. Il template nasce senza sfondo e senza abbondanza, e nell'editor sotto la figura si vede una scacchiera. Il retro non si disegna: è il fronte specchiato, e Stella lo ricava da solo. Così nel PDF ci sono le due facce da ritagliare e incollare, e combaciano sempre. Si stampano con i normali segni di taglio rettangolari attorno al riquadro, e la sagoma si ritaglia a mano. In Tabletop Simulator la pedina diventa un segnalino in piedi, con lo spessore scelto (10 mm se non lo si cambia, perché la base deve tenerla dritta), ritagliato sulla parte non trasparente del fronte.
 
 ![La finestra del nuovo template](img/nuovo-template.png)
 
@@ -201,7 +204,7 @@ Il tipo si cambia anche dopo, con **Componente** nelle proprietà del template. 
 
 ![L'editor dei template, con le parti numerate](img/editor.png)
 
-1. **Strumenti** per aggiungere un livello, ognuno con il suo nome: **Testo** (T), **Immagine**, **Forme** (un menu con rettangolo (R), ellisse (E), poligono, stella e linea), **Griglia** e **Valore**. **Immagine** apre subito la scelta dell'immagine; **Per ora nessuna immagine** crea il livello vuoto, per esempio quando l'immagine viene da una colonna. Un'immagine trascinata dal computer sulla tela diventa un livello immagine e si copia in `assets/images`. **Fronte** e **Retro** passano da un lato all'altro della carta; le frecce annullano e ripetono.
+1. **Strumenti** per aggiungere un livello, ognuno con il suo nome: **Testo** (T), **Immagine**, **Forme** (un menu con rettangolo (R), ellisse (E), poligono, stella e linea), **Griglia**, **Valore** e **Snap** (lo snap point di Tabletop Simulator, P). **Immagine** apre subito la scelta dell'immagine; **Per ora nessuna immagine** crea il livello vuoto, per esempio quando l'immagine viene da una colonna. Un'immagine trascinata dal computer sulla tela diventa un livello immagine e si copia in `assets/images`. **Fronte** e **Retro** passano da un lato all'altro della carta; le frecce annullano e ripetono.
 2. **Livelli**, dall'alto in basso come si sovrappongono sulla carta. Accanto a ogni livello c'è la fonte del valore (colonna del foglio o _fx_ per una formula), il lucchetto e l'occhio per nasconderlo.
 3. **Tela** con la carta. Il tratteggio rosso è il bordo di taglio, l'area esterna è l'abbondanza, il tratteggio azzurro l'area sicura.
 4. **Proprietà** del livello selezionato, o del template se non è selezionato nulla.
@@ -216,7 +219,7 @@ I livelli selezionati si copiano con ⌘C / Ctrl+C (⌘X / Ctrl+X per tagliarli)
 
 ### 4.3 Le proprietà del template
 
-Senza livelli selezionati, il pannello mostra le proprietà del template: il tipo di componente, misure, abbondanza (di base 3 mm), margine dell'area sicura, forma della carta (rettangolo con angoli arrotondati, cerchio o ellisse, esagono, sagoma presa da un'immagine), guide manuali e **Nome delle carte**, il campo che compare sotto ogni carta nella griglia. L'esagono è sempre regolare, il più grande che sta nella carta: per riempirla il lato corto deve essere il lato lungo × 0,866, e il pulsante **Adatta la carta all'esagono** cambia così il lato corto. Nelle forme poligono e stella, **Rendi regolare** porta il riquadro a un quadrato attorno allo stesso centro, così lati e angoli sono tutti uguali.
+Senza livelli selezionati, il pannello mostra le proprietà del template: il tipo di componente, misure, abbondanza (di base 3 mm), margine dell'area sicura, forma della carta (rettangolo con angoli arrotondati, cerchio o ellisse, esagono, sagoma presa da un'immagine), orientamento della forma, guide manuali e **Nome delle carte**, il campo che compare sotto ogni carta nella griglia. **Orientamento della forma** gira o specchia solo il contorno, non il contenuto: ⟲ e ⟳ fanno un quarto di giro e scambiano larghezza e altezza (un esagono con un lato in alto diventa con la punta in alto), **180°** capovolge la forma (uno scudo preso da un'immagine diventa a punta in su), ⇆ e ⇅ la specchiano. Con il quarto di giro i livelli si sistemano come quando si cambiano le misure. L'esagono è sempre regolare, il più grande che sta nella carta: per riempirla il lato corto deve essere il lato lungo × 0,866, e il pulsante **Adatta la carta all'esagono** cambia così il lato corto. Nelle forme poligono e stella, **Rendi regolare** porta il riquadro a un quadrato attorno allo stesso centro, così lati e angoli sono tutti uguali.
 
 Quando si cambiano le misure di un template che ha già dei livelli, l'app chiede se scalare i livelli in proporzione o lasciarli dove sono. Nel secondo caso ogni livello segue i suoi **vincoli**: due menu nella sezione della posizione, uno per l'orizzontale e uno per il verticale, che dicono a che cosa il livello resta attaccato quando la carta cambia misura.
 
@@ -233,6 +236,8 @@ I vincoli servono quando lo stesso disegno deve stare su due formati, per esempi
 ### 4.4 Le proprietà dei livelli
 
 Il pannello delle proprietà è diviso in sezioni. Ogni sezione mostra le voci più usate e raccoglie le altre in **Avanzate**. Passando con il mouse su una voce compare una freccia che la sposta in Avanzate o la riporta fuori; la disposizione vale per tutti i progetti.
+
+In cima al pannello c'è un campo di ricerca (⌘F / Ctrl+F nell'editor). Scrivendo parte del nome di una voce restano solo le voci che la contengono, con il titolo della loro sezione: per esempio «cont» mostra **Contorno** in **Tipografia**. Se il testo è nel titolo di una sezione, la sezione si mostra intera: «pos» mostra tutta **Posizione e dimensioni**. Le voci trovate in **Avanzate** compaiono aperte; Esc cancella la ricerca.
 
 Nei campi numerici si può trascinare l'etichetta a destra o a sinistra per cambiare il valore come con un cursore (Maiuscolo per passi più grandi, Alt per passi più fini); rotazione e opacità hanno anche un cursore accanto alla casella.
 
@@ -277,7 +282,7 @@ Con due o più livelli selezionati, i pulsanti in cima al pannello li allineano 
 
 ### 4.6 Il retro
 
-**Retro** nella barra dell'editor mostra i livelli del retro, che funzionano come quelli del fronte: possono essere uguali per tutte le carte o prendere valori dal foglio. Nella griglia del set, **Retro** mostra il retro di tutte le carte.
+**Retro** nella barra dell'editor mostra i livelli del retro, che funzionano come quelli del fronte: possono essere uguali per tutte le carte o prendere valori dal foglio. Nelle pedine il retro è il fronte specchiato: si vede ma non si modifica. Nella griglia del set, **Retro** mostra il retro di tutte le carte.
 
 ![Il retro delle carte nella griglia](img/griglia-retro.png)
 
@@ -298,7 +303,7 @@ Si lavora come su un template normale, con alcune differenze:
 
 ### 4.8 La griglia
 
-Il livello **griglia** (strumento con le caselle) disegna caselle uguali dentro il suo riquadro: serve per plance, tracciati del punteggio, mappe, tabelle da compilare a mano. Le caselle sono quadrate, tonde, esagonali, triangolari o a rombo, in righe e colonne con uno spazio tra l'una e l'altra. **A incastro** le dispone ad alveare per gli esagoni (con la punta o con il lato in alto), alternate in su e in giù per i triangoli, nei vuoti tra le altre per rombi e cerchi, a mattoncino per i quadrati. Le caselle hanno riempimento, contorno e raggio degli angoli (non i cerchi); lo **sfondo della griglia** riempie lo spazio dietro e tra le caselle fino al **bordo della griglia**, che ha un suo contorno. In Avanzate il margine tra caselle e bordo, il raggio dello sfondo, la larghezza delle caselle rispetto all'altezza, lo zoom (100% è la griglia più grande che sta nel riquadro senza deformare le caselle), la posizione nel riquadro e il taglio di ciò che esce. Il riempimento delle caselle è il valore del livello, quindi può cambiare da carta a carta; per le altre proprietà si usano colonne come `griglia.rows`.
+Il livello **griglia** (strumento con le caselle) disegna caselle uguali dentro il suo riquadro: serve per plance, tracciati del punteggio, mappe, tabelle da compilare a mano. Le caselle sono quadrate, tonde, esagonali, triangolari, a rombo o con la forma presa da un'immagine (il contorno della parte non trasparente, con le sue proporzioni), in righe e colonne con uno spazio tra l'una e l'altra. **Rotazione della casella** gira la forma di ogni casella intorno al suo centro, per qualsiasi forma: le caselle restano al loro posto e il contenuto non gira. **A incastro** le dispone ad alveare per gli esagoni (con la punta o con il lato in alto), alternate in su e in giù per i triangoli, nei vuoti tra le altre per rombi e cerchi, a mattoncino per i quadrati. Le caselle hanno riempimento, contorno e raggio degli angoli (non i cerchi); lo **sfondo della griglia** riempie lo spazio dietro e tra le caselle fino al **bordo della griglia**, che ha un suo contorno. In Avanzate il margine tra caselle e bordo, il raggio dello sfondo, la larghezza delle caselle rispetto all'altezza, lo zoom (100% è la griglia più grande che sta nel riquadro senza deformare le caselle), la posizione nel riquadro e il taglio di ciò che esce. Il riempimento delle caselle è il valore del livello, quindi può cambiare da carta a carta; per le altre proprietà si usano colonne come `griglia.rows`.
 
 ![Un livello griglia con caselle esagonali a incastro](img/griglia-livello.png)
 
@@ -330,7 +335,7 @@ Le spiegazioni brevi del set, dell'editor e delle proprietà del template stanno
 
 Un set senza componenti mostra al posto della tabella il pulsante **+ Aggiungi il primo componente**.
 
-Tabella e modulo mostrano tutte le colonne che si possono modificare: quelle del foglio e quelle che il template legge ma il foglio non ha ancora (con l'intestazione in corsivo), che si creano scrivendoci un valore. Il pulsante **Campi** sceglie quali colonne nascondere; **Ripristina** torna alla vista di base, con le sole colonne lette dai livelli collegati a una colonna (le colonne rimaste nel foglio senza un livello, per esempio da un progetto TTC importato, si nascondono) e i dettagli dei campi chiusi. Nel modulo della carta l'occhio accanto al campo di un livello lo mostra o lo nasconde su quella carta. L'icona con i cursori apre le proprietà del livello per la carta (colore, corsivo, forma, posizione...), con menu per i valori prestabiliti, campi numerici e selettore del colore: un valore scritto lì vale solo per quella carta e crea la colonna `livello.proprietà`, mentre un campo vuoto mostra in grigio il valore del template. Il numero sull'icona dice quante proprietà la carta cambia. Le colonne dei livelli fissi o con formula non arrivano alla carta e restano nascoste; **Mostra i livelli fissi e con formula** le aggiunge in sola lettura, con il simbolo ƒ e il valore che hanno su ogni carta.
+Tabella e modulo mostrano tutte le colonne che si possono modificare: quelle del foglio e quelle che il template legge ma il foglio non ha ancora (con l'intestazione in corsivo), che si creano scrivendoci un valore. Il pulsante **Campi** sceglie quali colonne nascondere; **Ripristina** torna alla vista di base, con le sole colonne lette dai livelli collegati a una colonna (le colonne rimaste nel foglio senza un livello, per esempio da un progetto TTC importato, si nascondono) e i dettagli dei campi chiusi. Nel modulo della carta l'occhio accanto al campo di un livello lo mostra o lo nasconde su quella carta. L'icona con i cursori apre le proprietà del livello per la carta (colore, corsivo, forma, posizione...), con menu per i valori prestabiliti, campi numerici e selettore del colore: un valore scritto lì vale solo per quella carta e crea la colonna `livello.proprietà`, mentre un campo vuoto mostra in grigio il valore del template. Il numero sull'icona dice quante proprietà la carta cambia. La puntina accanto a una proprietà la fissa: resta sotto il suo campo anche con le proprietà chiuse e cambiando carta, finché non si toglie con la stessa puntina. Le proprietà fissate valgono per il set e si salvano nel progetto. Le colonne dei livelli fissi o con formula non arrivano alla carta e restano nascoste; **Mostra i livelli fissi e con formula** le aggiunge in sola lettura, con il simbolo ƒ e il valore che hanno su ogni carta.
 
 Le colonne vero/falso (le proprietà come `stemma.visible` o `nome.italic`, e le colonne in cui ogni cella vale `true` o `false`) hanno una casella: un clic, o la barra spaziatrice sulla cella, la spunta o la toglie. Una casella chiara vuol dire cella vuota: vale il valore del template.
 
@@ -527,7 +532,7 @@ Il pulsante con l'immagine accanto ai campi apre le miniature degli asset, con r
 
 ![La scelta di un'immagine](img/scegli-immagine.png)
 
-Le icone a un colore (SVG nere su fondo trasparente) si ricolorano con la proprietà **Colorazione** del livello o con la tinta della variabile.
+Le icone a un colore (SVG nere su fondo trasparente) si ricolorano con la proprietà **Colorazione** del livello o con la tinta della variabile. La colorazione si stende sopra l'immagine: un colore pieno la ricolora del tutto, un colore semitrasparente la tinge solo in parte. Per esempio nero al 20% (`#00000033`) scurisce un bosco, e l'immagine resta opaca.
 
 ### 8.2 Importare icone
 
@@ -683,7 +688,7 @@ Il PDF è vettoriale, con i font incorporati. Si scelgono pagina e orientamento,
 
 ### 11.4 Tabletop Simulator
 
-Crea per ogni set i fogli di carte (fino a 10 × 7, con la griglia scelta in automatico per ridurre gli spazi vuoti) e il file del mazzo da caricare in Tabletop Simulator. I file vanno nella cartella del progetto, in quella degli oggetti salvati di Tabletop Simulator o in entrambe. Nickname e descrizione delle carte possono venire da un campo.
+Crea per ogni set i fogli di carte (fino a 10 × 7, con la griglia scelta in automatico per ridurre gli spazi vuoti) e il file del mazzo da caricare in Tabletop Simulator. I file vanno nella cartella del progetto, in quella degli oggetti salvati di Tabletop Simulator o in entrambe (la scelta predefinita). Nickname e descrizione delle carte possono venire da un campo.
 
 Con **Copie** attivo, **Copie nel foglio** decide dove finiscono le copie di una carta: una volta sola nel foglio, e il file del mazzo la moltiplica (è la scelta predefinita e tiene i fogli piccoli), oppure ripetute nel foglio quante volte dice `amount`. La seconda serve quando si caricano i fogli a mano in Tabletop Simulator, senza il file del mazzo: ogni posizione del foglio è una carta.
 
@@ -691,11 +696,19 @@ Con **Copie** attivo, **Copie nel foglio** decide dove finiscono le copie di una
 
 - **Carte**: il mazzo dai fogli, come sopra.
 - **Segnalini**: un'immagine per carta, ritagliata sulla forma della carta (rettangolo, angoli arrotondati, cerchio, esagono o sagoma). Tabletop Simulator ne fa un pezzo spesso con il bordo del colore dell'immagine; sotto mostra il fronte specchiato, quindi il retro della carta non si usa.
+- **Pedine**: come i segnalini, ma in piedi sul tavolo. Si carica solo il fronte; la parte trasparente resta fuori dalla sagoma.
 - **Tessere**: fronte e retro della carta. La forma (quadrata, arrotondata, esagonale o rotonda) viene dalla forma della carta; una sagoma diventa un quadrato. **Bordo** è il colore dello spessore.
-- **Plance**: come le tessere (fronte, retro, bordo e spessore), ma non si impilano e non vanno in un sacchetto: ogni plancia, copie comprese, arriva sul tavolo accanto alle altre.
+- **Plance**: come le tessere (fronte, retro, bordo e spessore), ma non si impilano e non vanno in un sacchetto: ogni plancia, copie comprese, arriva sul tavolo accanto alle altre. Hanno sempre gli angoli arrotondati.
 - **Dadi (6 facce)**: ogni sei carte del set fanno un dado, nell'ordine del foglio: la prima carta va sulla faccia 1, la seconda sulla 2 e così via; le facce opposte fanno 7 (1-6, 2-5, 3-4). Se le carte non sono un multiplo di sei, l'ultimo dado ripete le sue prime facce e l'esportazione lo segnala. Le copie del dado sono quelle (`amount`) della sua prima carta. Il valore che Tabletop Simulator mostra quando lo tiri è il campo scelto in **Nome** della carta, oppure il numero della faccia. Usa un template quadrato: la faccia del dado è quadrata, larga quanto la carta, e una carta rettangolare viene schiacciata. Stella scrive anche il modello del cubo (`models/<set>_d6.obj`) accanto alle immagini.
 
-Per segnalini e tessere **Spessore** è in mm. I pezzi di un set vanno in un sacchetto, copie comprese; un set con un pezzo solo diventa quel pezzo. Carte, segnalini e tessere arrivano in Tabletop Simulator nelle proporzioni vere: una carta da 63 mm ha la misura predefinita di Tabletop Simulator, e tutto il resto è più grande o più piccolo in proporzione.
+Per segnalini, pedine e tessere c'è lo **Spessore**. I pezzi di un set vanno in un sacchetto, copie comprese; un set con un pezzo solo diventa quel pezzo. Carte, segnalini, pedine e tessere arrivano in Tabletop Simulator nelle proporzioni vere: una carta da 63 mm ha la misura predefinita di Tabletop Simulator, e tutto il resto è più grande o più piccolo in proporzione. Le carte orizzontali, come una plancia larga quanto due carte, sono messe di traverso.
+
+**Tag e snap point.** Nelle proprietà del template, sotto **Componente**, **Tag TTS** dà a ogni componente i suoi tag di Tabletop Simulator, separati da virgole. Ammette i `{campi}`, per esempio `{tipo}, carta`, e un mazzo prende i tag di tutte le sue carte. Due set con lo stesso template possono avere tag diversi: in **Oggetti**, accanto a ogni set, il campo **Tag TTS** parte dai tag del template e, se lo cambi, dà al set i tag scritti lì al posto di quelli del template. Uno **snap point** è un punto della plancia (o di una tessera, di un segnalino, di una carta) a cui gli oggetti si agganciano quando li si lascia vicino. Ce ne sono due modi:
+
+- lo strumento **Snap** (P) aggiunge un livello che è solo uno snap point: nell'editor è un mirino blu, nelle stampe e nelle immagini non si vede, e il punto è il centro del suo riquadro;
+- ogni altro livello ha in fondo alle proprietà la sezione **Tabletop Simulator** con **Snap point**: il punto va al centro del livello. Per una griglia l'opzione è **Snap point in ogni casella**, comoda per le caselle di una plancia.
+
+In entrambi i casi **Tag dello snap** fa attirare al punto solo gli oggetti con uno di quei tag (vuoto: tutti), e **Ruotato** fa prendere all'oggetto anche una rotazione: di base quella del livello, oppure un **Angolo dello snap** a scelta. Sulla tela il mirino ha una freccetta che indica dove va il lato alto dell'oggetto. Gli snap point vengono dal fronte. Il pulsante **Snap** in basso nella tela nasconde i mirini senza togliere gli snap point dall'esportazione; l'occhio nel pannello livelli invece spegne il livello e quindi anche il suo snap point.
 
 I fogli si richiamano con indirizzi locali, quindi il mazzo funziona sul computer che l'ha esportato. Per giocare online bisogna caricare le immagini su un servizio web e cambiare gli indirizzi in Tabletop Simulator.
 
@@ -808,7 +821,7 @@ Sotto il testo compaiono i problemi: carte che non si trovano, immagini che non 
 
 ## 13. Backup
 
-**Backup…**, nel menu **Progetto**, apre i backup del progetto. Di base l'app crea un backup automatico all'apertura del progetto (al massimo uno all'ora) e ne tiene gli ultimi 10; quelli fatti con **Crea un backup ora** non si cancellano da soli.
+**Backup…**, nel menu **Progetto**, apre i backup del progetto. Di base l'app crea un backup automatico all'apertura del progetto (al massimo uno all'ora) e ne tiene gli ultimi 10; quelli fatti con **Crea un backup ora** non si cancellano da soli. Nel campo accanto al pulsante si può dare un nome al backup, per ricordare cosa contiene (per esempio «prima delle nuove regole»); un clic sul nome nell'elenco lo cambia, anche per i backup automatici, che con un nome non si cancellano più.
 
 I backup stanno fuori dal progetto, di base in `Documenti/Stella/Backup`. Le immagini si salvano una sola volta per tutti i backup del progetto, quindi un backup in più occupa poco spazio. **Ripristina…** estrae il backup in una cartella nuova accanto al progetto e la apre: il progetto attuale non viene toccato.
 
@@ -896,13 +909,15 @@ Ogni scorciatoia è scritta prima con il tasto ⌘ del Mac e poi, dopo la barra,
 | Dove          | Tasti                                            | Azione                                                                                                       |
 | ------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
 | ovunque       | ⌘S / Ctrl+S                                      | salva template, dati e impostazioni                                                                          |
+| ovunque       | ⌘O / Ctrl+O, ⌘W / Ctrl+W                         | apre e chiude il progetto (app per computer)                                                                 |
 | set           | ⌘Z / Ctrl+Z, ⇧⌘Z / Ctrl+Maiusc+Z                 | annulla e ripete le modifiche ai dati                                                                        |
 | ovunque       | ⌘+, ⌘−, ⌘0 / Ctrl+, Ctrl−, Ctrl+0                | ingrandisce, riduce e riporta normale l'interfaccia (app per computer)                                       |
 | set           | ⌘A / Ctrl+A, Esc                                 | seleziona tutte le carte, torna a una sola                                                                   |
 | tabella       | Alt+Invio                                        | a capo dentro una cella                                                                                      |
 | testo         | `{`, poi ↑ ↓, Invio                              | suggerimenti di campi e variabili                                                                            |
 | editor        | ⌘Z / Ctrl+Z, ⇧⌘Z / Ctrl+Maiusc+Z (o ⌘Y / Ctrl+Y) | annulla e ripete                                                                                             |
-| editor        | T, R, E                                          | nuovo testo, rettangolo, ellisse                                                                             |
+| editor        | T, R, E, I, G, V                                 | nuovo testo, rettangolo, ellisse, immagine, griglia, valore                                                  |
+| editor        | ⌘F / Ctrl+F                                      | cerca nel pannello delle proprietà                                                                           |
 | editor        | ⌘D / Ctrl+D                                      | duplica i livelli selezionati                                                                                |
 | editor        | ⌘C / Ctrl+C, ⌘X / Ctrl+X, ⌘V / Ctrl+V            | copia, taglia e incolla livelli tra template                                                                 |
 | editor        | ⌘G / Ctrl+G, ⇧⌘G / Ctrl+Maiusc+G                 | raggruppa e separa                                                                                           |

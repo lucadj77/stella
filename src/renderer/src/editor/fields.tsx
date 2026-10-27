@@ -1,4 +1,5 @@
 import type { MessageKey } from '../i18n/en'
+import NumInput from '../components/NumInput'
 import HelpTip from '../components/HelpTip'
 import { useContext, useId, useMemo, useState } from 'react'
 import { smoothCss } from '../render/smoothGradient'
@@ -13,6 +14,8 @@ import {
   type Gradient
 } from '../../../shared/model/gradient'
 import { useI18n } from '../i18n/context'
+import { useLengthUnit } from '../units'
+import { MM_PER_UNIT, UNIT_LABEL, unitStep } from '../../../shared/model/units'
 import MarkupTextarea from '../components/MarkupTextarea'
 import { APP_FONTS, useProjectFonts } from '../render/fonts'
 import FontPicker from '../components/FontPicker'
@@ -116,11 +119,11 @@ export function NumberField({
   disabled,
   value,
   onChange,
-  step = 0.5,
+  step: stepProp = 0.5,
   min,
   max,
-  unit,
-  factor = 1,
+  unit: unitProp,
+  factor: factorProp = 1,
   deferred
 }: Base & {
   value: number
@@ -129,10 +132,16 @@ export function NumberField({
   step?: number
   min?: number
   max?: number
+  /** "mm" mostra la misura nell'unità scelta nelle impostazioni */
   unit?: string
   /** Moltiplicatore per la visualizzazione, per esempio 100 per le percentuali */
   factor?: number
 }): React.JSX.Element {
+  const lengthUnit = useLengthUnit()
+  const isLength = unitProp === 'mm'
+  const unit = isLength ? UNIT_LABEL[lengthUnit] : unitProp
+  const factor = isLength ? factorProp / MM_PER_UNIT[lengthUnit] : factorProp
+  const step = isLength ? unitStep(stepProp, lengthUnit) : stepProp
   const clamp = (n: number): number => {
     let v = n / factor
     if (min !== undefined) v = Math.max(min, v)
@@ -728,9 +737,8 @@ export function FillField({
             </select>
             {g.kind === 'linear' && (
               <>
-                <input
+                <NumInput
                   className="num narrow"
-                  type="number"
                   step={15}
                   title={t('fill.angle')}
                   value={g.angle}
@@ -751,9 +759,8 @@ export function FillField({
                   setG({ ...g, stops: g.stops.map((x, k) => (k === i ? { ...x, color } : x)) })
                 }
               />
-              <input
+              <NumInput
                 className="num narrow"
-                type="number"
                 min={0}
                 max={100}
                 title={t('fill.position')}
@@ -862,9 +869,8 @@ export function FadeFields({
           value={pct(v)}
           onChange={(e) => set(Number(e.target.value) / 100)}
         />
-        <input
+        <NumInput
           className="num narrow"
-          type="number"
           min={0}
           max={100}
           value={pct(v)}
@@ -910,9 +916,8 @@ export function FadeFields({
         <div className="field-group">
           {dir === 'angle' && (
             <Row label={t('fill.angle')}>
-              <input
+              <NumInput
                 className="num narrow"
-                type="number"
                 step={15}
                 value={value.angle}
                 onChange={(e) => {

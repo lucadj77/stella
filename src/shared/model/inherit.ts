@@ -41,6 +41,11 @@ function templateValue(t: Template, k: InheritableTemplateKey): unknown {
       return t.shape ?? 'rect'
     case 'shapePath':
       return t.shapePath ?? ''
+    case 'shapeRotation':
+      return t.shapeRotation ?? 0
+    case 'shapeFlipH':
+    case 'shapeFlipV':
+      return t[k] ?? false
     case 'guides':
       return t.guides ?? { x: [], y: [] }
     case 'labelField':

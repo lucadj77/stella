@@ -9,6 +9,7 @@ import {
 import { useI18n } from '../i18n/context'
 import { Inherit, InheritMark } from './inheritance'
 import { propKeys } from './inheritContext'
+import { searchToggle } from './propSearch'
 
 // Proprietà avanzate del pannello: ogni sezione mostra sempre le voci principali e raccoglie le
 // altre in "Avanzate", chiusa. Ogni voce si sposta da una parte all'altra con il pulsante che
@@ -129,6 +130,8 @@ export function Section({
           className="advanced"
           open={!!p[openKey]}
           onToggle={(e) => {
+            // aperte o richiuse dalla ricerca: la scelta dell'utente resta quella salvata
+            if (searchToggle(e.currentTarget as HTMLDetailsElement)) return
             const open = (e.currentTarget as HTMLDetailsElement).open
             if (open !== !!p[openKey]) save({ ...prefs, [openKey]: open })
           }}

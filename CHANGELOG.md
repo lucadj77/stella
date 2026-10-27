@@ -5,6 +5,54 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.6.0
+
+### English
+
+- **Units**: in ⚙ you can choose millimeters, centimeters or inches for positions, sizes and margins everywhere in the app. Files stay in millimeters.
+- **Shape orientation**: in the template properties the card shape can be turned a quarter (width and height swap, so a flat-top hexagon becomes pointy-top), turned upside down or mirrored. Only the outline turns, not the content.
+- **Grid cells**: a new **Cell rotation** turns the shape of every cell, whatever its kind, and cells can take their shape from an image. The cells and their content stay in place.
+- **Tint**: a semi-transparent tint is laid over the image instead of making it transparent. Black at 20% darkens a picture that stays opaque; a solid tint still recolors icons.
+- **Backup names**: a manual backup can get a name, and the name of any backup can be changed from the list. Named automatic backups are no longer deleted.
+- **Standees**: new component for upright figures on a transparent background. The back is the front mirrored, drawn by Stella, to print, cut and glue; in Tabletop Simulator they become standing tokens with the chosen thickness.
+- **Number fields**: in the windows (export, generator, crop, table setup, backup) numbers can be typed freely. The value is checked when you leave the field or press Enter, and Esc cancels the edit.
+- **Table setup**: stacked components follow the template shape and each has a thin outline.
+- **Search in the properties panel**: a field at the top of the panel (⌘F / Ctrl+F) keeps only the properties whose name contains the text, or the whole section when the text is in its title.
+- **Shortcuts**: I, G and V add an image, a grid and a value layer, like T, R and E. ⌘O / Ctrl+O and ⌘W / Ctrl+W open and close the project in the desktop app.
+- **Tabletop Simulator proportions**: tokens and standees are sized on their width, so a tall standee no longer comes out about twice as large, and standees keep the thickness on their own axis instead of being stretched in height. Cards are sized on their height, so tall cards (two poker cards on top of each other) are no longer half size, and landscape cards (a board as wide as two cards) are placed sideways at their true size instead of four times larger. Tiles and boards keep the proportions of the card instead of arriving square, are sized on their height, and boards are rounded tiles. A single card and a deck from one sheet are exported as custom card/deck, so their menu in TTS has the Custom entry to change images and settings.
+- **Standee thickness**: 10 mm by default, so the figure stands up.
+- **Copy and move the project**: the Project menu has **Save a copy…** and **Move…** (desktop app). Moving keeps the project's backups.
+- **Pinned properties**: in the card fields of a set, the pin next to a layer property keeps it under its field even with the properties closed and when you change card.
+- **Text outline**: drawn around the letters with rounded corners. A thick outline no longer gets cut at the edge of the box and no longer makes spikes on sharp curves.
+- **Tabletop Simulator export**: files go to both the project folder and Tabletop Simulator's saved objects by default.
+- **Outline from an image**: works with semi-transparent images too, and if the image cannot be read the message says why.
+- **Tabletop Simulator tags and snap points**: templates can give their components TTS tags, also from fields (`{type}`), and decks take the tags of their cards; in the export, each set can have tags of its own instead of the template's. The new **Snap** tool (P) places a snap point, a crosshair in the editor that is never printed, and any layer can have one at its centre; a grid can have one in every cell. Snap points can have tags, so only matching objects snap there, and can rotate the snapped object, following the layer's rotation or a chosen angle.
+- **Cards without data**: a card added to a set without filling any field is saved with 1 copy, so it is still there when the project is reopened (before, the empty row was skipped and the set came back with 0 components). A CSV file no longer adds a line break to its last cell when saved.
+- **Size from the properties panel**: changing width or height keeps the layer's anchor point still. With the anchor in the centre (the default) the layer grows on every side; with the anchor top left it grows right and down as before.
+
+### Italiano
+
+- **Unità di misura**: in ⚙ si sceglie tra millimetri, centimetri e pollici per posizioni, misure e margini in tutta l'app. I file restano in millimetri.
+- **Orientamento della forma**: nelle proprietà del template la forma della carta si gira di un quarto (larghezza e altezza si scambiano, così un esagono con un lato in alto diventa con la punta in alto), si capovolge o si specchia. Gira solo il contorno, non il contenuto.
+- **Caselle della griglia**: la nuova **Rotazione della casella** gira la forma di ogni casella, di qualsiasi tipo, e le caselle possono prendere la forma da un'immagine. Le caselle e il loro contenuto restano al loro posto.
+- **Colorazione**: una colorazione semitrasparente si stende sopra l'immagine invece di renderla trasparente. Il nero al 20% scurisce un'immagine che resta opaca; una colorazione piena ricolora le icone come prima.
+- **Nome dei backup**: a un backup fatto a mano si può dare un nome, e il nome di ogni backup si cambia dall'elenco. I backup automatici con un nome non si cancellano più.
+- **Pedine**: nuovo componente per le figure in piedi su fondo trasparente. Il retro è il fronte specchiato, disegnato da Stella, da stampare, ritagliare e incollare; in Tabletop Simulator diventano segnalini in piedi con lo spessore scelto.
+- **Campi numerici**: nelle finestre (esportazione, generatore, ritaglio, schema del tavolo, backup) i numeri si scrivono liberamente. Il valore si controlla uscendo dal campo o con Invio, ed Esc annulla la modifica.
+- **Schema del tavolo**: i componenti impilati seguono la forma del template e hanno un sottile contorno.
+- **Ricerca nel pannello delle proprietà**: un campo in cima al pannello (⌘F / Ctrl+F) lascia solo le proprietà il cui nome contiene il testo, o l'intera sezione se il testo è nel suo titolo.
+- **Scorciatoie**: I, G e V aggiungono un livello immagine, griglia e valore, come T, R ed E. ⌘O / Ctrl+O e ⌘W / Ctrl+W aprono e chiudono il progetto nell'app per computer.
+- **Proporzioni in Tabletop Simulator**: segnalini e pedine si misurano sulla larghezza, quindi una pedina alta non esce più grande circa il doppio, e lo spessore delle pedine resta sul suo asse invece di allungarle in altezza. Le carte si misurano sull'altezza, quindi quelle alte (due carte da poker una sopra l'altra) non escono più a metà misura, e le carte orizzontali (una plancia larga quanto due carte) sono messe di traverso, nella misura vera invece che quattro volte più grandi. Tessere e plance mantengono le proporzioni della carta invece di arrivare quadrate, si misurano sull'altezza, e le plance sono tessere arrotondate (rounded). Una carta singola e un mazzo da un solo foglio si esportano come carta/mazzo personalizzati, quindi il loro menu in TTS ha la voce Custom per cambiare immagini e impostazioni.
+- **Spessore delle pedine**: 10 mm di base, perché la figura stia in piedi.
+- **Copia e sposta il progetto**: il menu Progetto ha **Salva una copia…** e **Sposta…** (app per computer). Lo spostamento mantiene i backup del progetto.
+- **Proprietà fissate**: nei campi della carta di un set, la puntina accanto a una proprietà del livello la tiene sotto il suo campo anche con le proprietà chiuse e cambiando carta.
+- **Contorno del testo**: si disegna attorno alle lettere con gli angoli arrotondati. Un contorno spesso non viene più tagliato dal bordo del riquadro e non fa punte nelle curve strette.
+- **Esportazione per Tabletop Simulator**: di base i file vanno sia nella cartella del progetto sia negli oggetti salvati di Tabletop Simulator.
+- **Contorno da un'immagine**: funziona anche con le immagini semitrasparenti, e se l'immagine non si legge il messaggio dice perché.
+- **Tag e snap point di Tabletop Simulator**: i template possono dare ai componenti dei tag TTS, anche dai campi (`{tipo}`), e i mazzi prendono i tag delle loro carte; nell'esportazione ogni set può avere tag suoi al posto di quelli del template. Il nuovo strumento **Snap** (P) mette uno snap point, un mirino nell'editor che non si stampa mai, e ogni livello può averne uno al suo centro; una griglia può averne uno in ogni casella. Gli snap point possono avere dei tag, così vi si agganciano solo gli oggetti corrispondenti, e possono ruotare l'oggetto agganciato, seguendo la rotazione del livello o un angolo scelto.
+- **Carte senza dati**: una carta aggiunta a un set senza riempire alcun campo si salva con 1 copia, così c'è ancora riaprendo il progetto (prima la riga vuota veniva saltata e il set tornava con 0 componenti). Un file CSV salvato non aggiunge più un a capo all'ultima cella.
+- **Misure dal pannello delle proprietà**: cambiando larghezza o altezza resta fermo il punto di ancoraggio del livello. Con l'ancoraggio al centro (quello di base) il livello cresce da tutti i lati; con l'ancoraggio in alto a sinistra cresce verso destra e verso il basso come prima.
+
 ## 1.5.0
 
 ### English

@@ -6,6 +6,7 @@ import {
   autoBackup,
   backupsSize,
   createBackup,
+  labelBackup,
   listBackups,
   projectBackupDir,
   pruneBackups,
@@ -39,6 +40,36 @@ describe('backup', () => {
     expect(await readFile(join(restored, 'assets', 'icons', 'spada.svg'), 'utf8')).toBe('<svg/>')
     // un secondo ripristino non sovrascrive il primo
     expect(await restoreBackup(item.file, join(folder, '..'))).toBe(restored + ' 2')
+  })
+
+  it('dà un nome ai backup, lo cambia e lo toglie', async () => {
+    const folder = await project()
+    const dir = join(folder, '..', 'backup')
+    const at = new Date(2026, 9, 19, 15, 30, 5)
+    const item = await createBackup(
+      folder,
+      'Assedio',
+      dir,
+      false,
+      at,
+      ' prima: delle/nuove regole '
+    )
+    expect(item.name).toBe('Assedio 2026-10-19 15.30.05 - prima delle nuove regole.zip')
+    expect(item.label).toBe('prima delle nuove regole')
+    const [listed] = await listBackups(dir)
+    expect([listed.label, listed.auto, listed.date]).toEqual([item.label, false, at.getTime()])
+
+    const renamed = await labelBackup(item.file, 'versione 2')
+    expect(renamed.name).toBe('Assedio 2026-10-19 15.30.05 - versione 2.zip')
+    const restored = await restoreBackup(renamed.file, join(folder, '..'))
+    expect(restored.endsWith('Assedio 2026-10-19 15.30.05 - versione 2')).toBe(true)
+    const plain = await labelBackup(renamed.file, '  ')
+    expect(plain.name).toBe('Assedio 2026-10-19 15.30.05.zip')
+    expect(plain.label).toBeUndefined()
+
+    const auto = await createBackup(folder, 'Assedio', dir, true, new Date(2026, 9, 19, 16, 0))
+    const named = await labelBackup(auto.file, 'buono')
+    expect([named.name, named.auto]).toEqual(['Assedio 2026-10-19 16.00.00 auto - buono.zip', true])
   })
 
   it('salva ogni immagine una volta sola e ripristina quella del momento del backup', async () => {

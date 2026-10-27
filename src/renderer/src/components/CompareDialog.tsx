@@ -102,6 +102,7 @@ export default function CompareDialog({
                   onChange={() => setChoice(b.file)}
                 />
                 {t(b.auto ? 'compare.autoBackup' : 'compare.backup', { date: when(b.date) })}
+                {b.label ? ` · ${b.label}` : ''}
               </label>
             ))}
           </div>

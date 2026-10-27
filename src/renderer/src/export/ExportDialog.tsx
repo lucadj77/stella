@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import NumInput from '../components/NumInput'
 import type { LoadedProject } from '../../../shared/project'
 import { kindOf, type Side } from '../../../shared/model/template'
 import { walkLayers } from '../../../shared/model/normalize'
@@ -21,6 +22,7 @@ import {
   type ImageOptions,
   type PdfOptions,
   ttsSetObject,
+  ttsDefaultThickness,
   type TtsObjectType,
   type TtsOptions,
   type TtsSetObject
@@ -39,6 +41,8 @@ import { languageName } from '../i18n/languageName'
 import { cardFingerprints } from '../../../shared/model/compare'
 import { ColorSwatch } from '../components/ColorPicker'
 import { useI18n } from '../i18n/context'
+import { useLengthUnit } from '../units'
+import { UNIT_LABEL, fromUnit, toUnit, unitStep } from '../../../shared/model/units'
 import type { MessageKey } from '../i18n/en'
 import { browserViewable } from '../../../shared/viewable'
 
@@ -62,6 +66,7 @@ export default function ExportDialog({
   onClose(): void
 }): React.JSX.Element {
   const { t, lang: ui } = useI18n()
+  const lengthUnit = useLengthUnit()
   const saved = project.file.export ?? {}
   const languages = projectLanguages(project.file)
   /** Lingua da esportare: un codice, o * per tutte (le altre lingue nelle loro sottocartelle) */
@@ -127,6 +132,11 @@ export default function ExportDialog({
   }
 
   /** Il tipo di componente del template del set, proposto come oggetto di Tabletop Simulator */
+  /** Tag TTS del template del set: quelli proposti finché il set non ne ha di suoi */
+  const templateTags = (name: string): string => {
+    const set = project.sets.find((s) => s.name === name)
+    return project.templates.find((x) => x.name === set?.template)?.ttsTags ?? ''
+  }
   const componentKind = (name: string): TtsObjectType => {
     const set = project.sets.find((s) => s.name === name)
     return kindOf(project.templates.find((x) => x.name === set?.template))
@@ -349,22 +359,25 @@ export default function ExportDialog({
       ))}
     </select>
   )
+  /** Misura in mm, mostrata e scritta nell'unità scelta nelle impostazioni */
   const mm = (
     value: number,
     onChange: (v: number) => void,
     disabled = false
   ): React.JSX.Element => (
     <>
-      <input
+      <NumInput
         className="num"
-        type="number"
-        step={0.5}
+        step={unitStep(0.5, lengthUnit)}
         min={0}
-        value={value}
+        value={toUnit(value, lengthUnit)}
         disabled={disabled}
-        onChange={(e) => onChange(num(e.target.value, value))}
+        onChange={(e) => {
+          const v = parseFloat(e.target.value.replace(',', '.'))
+          onChange(Number.isFinite(v) ? fromUnit(v, lengthUnit) : value)
+        }}
       />
-      <span className="unit">mm</span>
+      <span className="unit">{UNIT_LABEL[lengthUnit]}</span>
     </>
   )
   const folderField = (
@@ -500,9 +513,8 @@ export default function ExportDialog({
                   {(img.format === 'jpg' || img.format === 'webp') && (
                     <>
                       <span className="unit">{t('export.quality')}</span>
-                      <input
+                      <NumInput
                         className="num narrow"
-                        type="number"
                         min={1}
                         max={100}
                         value={img.quality}
@@ -529,9 +541,8 @@ export default function ExportDialog({
                     )}
                     {(customDpi || !DPIS.includes(img.dpi)) && (
                       <>
-                        <input
+                        <NumInput
                           className="num"
-                          type="number"
                           min={30}
                           max={1200}
                           value={img.dpi}
@@ -651,9 +662,8 @@ export default function ExportDialog({
                   )}
                   {pdf.layout === 'fixed' && (
                     <>
-                      <input
+                      <NumInput
                         className="num narrow"
-                        type="number"
                         min={1}
                         value={pdf.cols}
                         onChange={(e) =>
@@ -661,9 +671,8 @@ export default function ExportDialog({
                         }
                       />
                       <span className="unit">×</span>
-                      <input
+                      <NumInput
                         className="num narrow"
-                        type="number"
                         min={1}
                         value={pdf.rows}
                         onChange={(e) =>
@@ -695,16 +704,20 @@ export default function ExportDialog({
                     {pdf.poster && (
                       <>
                         <span className="unit">{t('export.posterOverlap')}</span>
-                        <input
+                        <NumInput
                           className="num narrow"
-                          type="number"
                           min={0}
-                          value={pdf.posterOverlap}
+                          value={toUnit(pdf.posterOverlap, lengthUnit)}
                           onChange={(e) =>
-                            patch({ posterOverlap: Math.max(0, num(e.target.value, 10)) })
+                            patch({
+                              posterOverlap: Math.max(
+                                0,
+                                fromUnit(num(e.target.value, toUnit(10, lengthUnit)), lengthUnit)
+                              )
+                            })
                           }
                         />
-                        <span className="unit">mm</span>
+                        <span className="unit">{UNIT_LABEL[lengthUnit]}</span>
                       </>
                     )}
                   </>,
@@ -834,33 +847,42 @@ export default function ExportDialog({
                           [
                             ['card', t('export.ttsCard')],
                             ['token', t('export.ttsToken')],
+                            ['standee', t('export.ttsStandee')],
                             ['tile', t('export.ttsTile')],
                             ['board', t('export.ttsBoard')],
                             ['die', t('export.ttsDie')]
                           ],
-                          (type) => set({ type })
+                          (type) =>
+                            // lo spessore lasciato al valore predefinito segue il nuovo tipo
+                            set(
+                              obj.thickness === ttsDefaultThickness(obj.type)
+                                ? { type, thickness: ttsDefaultThickness(type) }
+                                : { type }
+                            )
                         )}
                         {obj.type !== 'card' && obj.type !== 'die' && (
                           <>
                             <span className="unit">{t('export.ttsThickness')}</span>
-                            <input
+                            <NumInput
                               className="num narrow"
-                              type="number"
-                              step={0.5}
-                              min={0.1}
-                              max={50}
-                              value={obj.thickness}
-                              title={t('export.ttsThicknessHint')}
+                              step={unitStep(0.5, lengthUnit)}
+                              value={toUnit(obj.thickness, lengthUnit)}
                               onChange={(e) =>
                                 set({
                                   thickness: Math.max(
                                     0.1,
-                                    Math.min(50, num(e.target.value, obj.thickness))
+                                    Math.min(
+                                      50,
+                                      fromUnit(
+                                        num(e.target.value, toUnit(obj.thickness, lengthUnit)),
+                                        lengthUnit
+                                      )
+                                    )
                                   )
                                 })
                               }
                             />
-                            <span className="unit">mm</span>
+                            <span className="unit">{UNIT_LABEL[lengthUnit]}</span>
                           </>
                         )}
                         {(obj.type === 'tile' || obj.type === 'board') && (
@@ -872,6 +894,15 @@ export default function ExportDialog({
                               onChange={(edgeColor) => set({ edgeColor })}
                             />
                           </>
+                        )}
+                        {obj.type !== 'die' && (
+                          <input
+                            className="tts-object-tags"
+                            placeholder={t('export.ttsTags')}
+                            title={t('export.ttsTagsHint')}
+                            value={obj.tags ?? templateTags(name)}
+                            onChange={(e) => set({ tags: e.target.value })}
+                          />
                         )}
                       </div>
                     )
@@ -906,9 +937,8 @@ export default function ExportDialog({
                     )}
                     {tts.grid === 'fixed' && (
                       <>
-                        <input
+                        <NumInput
                           className="num narrow"
-                          type="number"
                           min={2}
                           max={10}
                           value={tts.cols}
@@ -922,9 +952,8 @@ export default function ExportDialog({
                           }
                         />
                         <span className="unit">×</span>
-                        <input
+                        <NumInput
                           className="num narrow"
-                          type="number"
                           min={2}
                           max={7}
                           value={tts.rows}

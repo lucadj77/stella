@@ -8,7 +8,7 @@ interface Props {
   columns: ColumnInfo[]
   hidden: Set<string>
   showComputed: boolean
-  onChange(view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed'>): void
+  onChange(view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed' | 'pinnedProperties'>): void
   /** Torna alla vista di base: solo le colonne dei livelli collegati, dettagli chiusi */
   onReset(): void
 }

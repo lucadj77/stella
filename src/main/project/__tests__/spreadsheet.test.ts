@@ -20,6 +20,28 @@ async function workbook(path: string): Promise<void> {
 }
 
 describe('writeSpreadsheet', () => {
+  it('una carta senza dati resta riaprendo il progetto (nuovo foglio, xlsx e csv)', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'gc-'))
+    const sheet = {
+      name: 'Prova',
+      headers: ['amount', 'titolo'],
+      rows: [
+        ['', ''],
+        ['', 'a']
+      ]
+    }
+    for (const file of ['dati.xlsx', 'Prova.csv']) {
+      const path = join(dir, file)
+      if (file.endsWith('.xlsx')) await workbook(path)
+      await writeSpreadsheet(path, [sheet])
+      const back = (await readSpreadsheet(path)).find((s) => s.headers.includes('titolo'))
+      expect(back?.rows).toEqual([
+        ['1', ''],
+        ['', 'a']
+      ])
+    }
+  })
+
   it('in sola lettura saveData rifiuta i fogli e salva solo stella.json', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'gc-'))
     await workbook(join(dir, 'dati.xlsx'))
@@ -123,7 +145,7 @@ describe('writeSpreadsheet', () => {
     await writeSpreadsheet(path, [
       { name: 'carte', headers: ['nome', 'testo'], rows: [['A', 'x, y']] }
     ])
-    expect(await readFile(path, 'utf8')).toBe('nome,testo\r\nA,"x, y"\n')
+    expect(await readFile(path, 'utf8')).toBe('nome,testo\r\nA,"x, y"\r\n')
   })
 })
 

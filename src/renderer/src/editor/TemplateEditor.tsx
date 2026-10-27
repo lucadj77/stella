@@ -4,14 +4,14 @@ import { bindCard, rowToCard } from '../../../shared/model/bind'
 import { systemOfSet } from '../../../shared/model/system'
 import { findLayer, findParent, resizeTemplate } from '../../../shared/model/edit'
 import type { LoadedSet } from '../../../shared/project'
-import type { ShapeKind, Side, Template } from '../../../shared/model/template'
+import { isStandee, type ShapeKind, type Side, type Template } from '../../../shared/model/template'
 import { rebase, resolveTemplate } from '../../../shared/model/inherit'
 import { walkLayers } from '../../../shared/model/normalize'
 import { useI18n } from '../i18n/context'
 import Segmented from '../components/Segmented'
 import Resizer from '../components/Resizer'
 import { usePanelSide, usePanelWidth } from '../components/usePanelWidth'
-import { GridIcon, ImageIcon } from '../components/icons'
+import { GridIcon, ImageIcon, SnapIcon } from '../components/icons'
 import Menu, { type MenuItem } from '../components/Menu'
 import AssetPicker from '../components/AssetPicker'
 import { dragHasFiles, importDropped } from '../components/dropImages'
@@ -65,7 +65,8 @@ export default function TemplateEditor({
   // in un derivato ogni modifica passa per le sue regole: si salvano solo le differenze
   const normalize = useMemo(() => (base ? (x: Template) => rebase(base, x) : undefined), [base])
   const [state, dispatch] = useEditor(template, normalize)
-  const [resizing, setResizing] = useState<[number, number] | null>(null)
+  /** Misure nuove della carta, con le altre proprietà che cambiano insieme (forma ruotata) */
+  const [resizing, setResizing] = useState<[number, number, Partial<Template>?] | null>(null)
   // un livello immagine nuovo nasce dalla scelta dell'immagine
   const [pickingImage, setPickingImage] = useState(false)
   const [dropping, setDropping] = useState(false)
@@ -80,6 +81,7 @@ export default function TemplateEditor({
       image: t('layerName.image'),
       value: t('layerName.value'),
       grid: t('layerName.grid'),
+      snap: t('layerName.snap'),
       shape: t('layerName.shape'),
       sample: t('layerName.sample'),
       shapes: {
@@ -125,7 +127,9 @@ export default function TemplateEditor({
     return () => window.removeEventListener(EDITOR_UNDO, run)
   }, [dispatch])
 
-  // la tastiera: le scorciatoie usano Cmd su macOS e Ctrl altrove
+  // la tastiera: le scorciatoie usano Cmd su macOS e Ctrl altrove. Le lettere senza modificatori
+  // aggiungono un livello: testo, rettangolo, ellisse, immagine, griglia, valore
+  const TOOL_KEYS = ['t', 'r', 'e', 'i', 'g', 'v', 'p']
   const onKey = (e: KeyboardEvent): void => {
     const mod = e.metaKey || e.ctrlKey
     const k = e.key.toLowerCase()
@@ -137,6 +141,8 @@ export default function TemplateEditor({
     if (mod && k === 'z') dispatch({ type: e.shiftKey ? 'redo' : 'undo' })
     else if (mod && k === 'y') dispatch({ type: 'redo' })
     else if (mod && k === 'd') cmd.duplicate()
+    else if (mod && k === 'f')
+      document.querySelector<HTMLInputElement>('.prop-search input')?.select()
     else if (mod && k === 'g') {
       if (e.shiftKey) cmd.ungroup()
       else cmd.group()
@@ -159,10 +165,17 @@ export default function TemplateEditor({
         arrowdown: [0, d]
       }[k] ?? [0, 0]
       cmd.nudge(dx, dy)
-    } else if (!mod && k === 't') cmd.add('text')
-    else if (!mod && k === 'r') cmd.add('shape', 'rect')
-    else if (!mod && k === 'e') cmd.add('shape', 'ellipse')
-    else return
+    } else if (!mod && !e.altKey && TOOL_KEYS.includes(k)) {
+      // il retro della pedina è il fronte specchiato: non ha livelli suoi
+      if (isStandee(state.template) && state.side === 'back') return
+      if (k === 't') cmd.add('text')
+      else if (k === 'r') cmd.add('shape', 'rect')
+      else if (k === 'e') cmd.add('shape', 'ellipse')
+      else if (k === 'i') setPickingImage(true)
+      else if (k === 'g') cmd.add('grid')
+      else if (k === 'p') cmd.add('snap')
+      else cmd.add('value')
+    } else return
     e.preventDefault()
   }
   // copia, taglia e incolla passano dagli appunti del sistema: i livelli si incollano anche in un
@@ -238,6 +251,7 @@ export default function TemplateEditor({
     label: t(`tool.${s}` as Parameters<typeof t>[0]),
     onClick: () => cmd.add('shape', s)
   }))
+  const mirroredBack = isStandee(state.template) && state.side === 'back'
   const toolButtons = (
     <>
       {tool('T', t('tool.short.text'), t('tool.text'), () => cmd.add('text'))}
@@ -255,6 +269,7 @@ export default function TemplateEditor({
       />
       {tool(<GridIcon />, t('tool.short.grid'), t('tool.grid'), () => cmd.add('grid'))}
       {tool('#', t('tool.short.value'), t('tool.value'), () => cmd.add('value'))}
+      {tool(<SnapIcon />, t('tool.short.snap'), t('tool.snap'), () => cmd.add('snap'))}
     </>
   )
 
@@ -280,7 +295,7 @@ export default function TemplateEditor({
         sheets={sets.flatMap((s) =>
           s.data ? [{ set: s.name, headers: s.data.headers, rows: s.data.rows }] : []
         )}
-        onResize={(w, h) => setResizing([w, h])}
+        onResize={(w, h, patch) => setResizing([w, h, patch])}
         side={propsSide}
         onToggleSide={togglePropsSide}
         base={base}
@@ -341,7 +356,13 @@ export default function TemplateEditor({
             </button>
           </span>
         )}
-        <div className="tool-group">{toolButtons}</div>
+        <div
+          className="tool-group"
+          // il retro della pedina si ricava dal fronte: lì non si aggiungono livelli
+          style={mirroredBack ? { pointerEvents: 'none', opacity: 0.4 } : undefined}
+        >
+          {toolButtons}
+        </div>
         <Segmented<Side>
           value={state.side}
           options={[
@@ -401,6 +422,11 @@ export default function TemplateEditor({
           }}
         >
           <Canvas state={state} display={display.template} dispatch={dispatch} />
+          {mirroredBack && (
+            <div className="canvas-problems standee-note">
+              <div>{t('editor.standeeBack')}</div>
+            </div>
+          )}
           {(display.problems.length > 0 ||
             inheritProblems.length > 0 ||
             (state.template.extends && !base)) && (
@@ -430,12 +456,15 @@ export default function TemplateEditor({
       {resizing && (
         <ResizeDialog
           from={[state.template.width, state.template.height]}
-          to={resizing}
+          to={[resizing[0], resizing[1]]}
           onClose={() => setResizing(null)}
           onChoose={(mode) => {
             dispatch({
               type: 'change',
-              template: resizeTemplate(state.template, resizing[0], resizing[1], mode)
+              template: {
+                ...resizeTemplate(state.template, resizing[0], resizing[1], mode),
+                ...resizing[2]
+              }
             })
             setResizing(null)
           }}

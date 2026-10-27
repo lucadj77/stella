@@ -1,4 +1,4 @@
-import { useContext, useMemo, useState } from 'react'
+import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import AssetPicker from '../components/AssetPicker'
 import HelpTip from '../components/HelpTip'
 import Segmented from '../components/Segmented'
@@ -9,6 +9,7 @@ import {
   groupLayers,
   insertLayer,
   isNameTaken,
+  anchoredResize,
   patchLayers,
   uniqueName
 } from '../../../shared/model/edit'
@@ -26,13 +27,20 @@ import type {
   GroupLayer,
   ImageLayer,
   Layer,
+  LayerSnap,
   ShapeKind,
   ShapeLayer,
+  ShapeRotation,
   Template,
   TextLayer,
   ValueLayer
 } from '../../../shared/model/template'
-import { isArranged, normalizeLayer, walkLayers } from '../../../shared/model/normalize'
+import {
+  isArranged,
+  normalizeLayer,
+  SNAP_DEFAULTS,
+  walkLayers
+} from '../../../shared/model/normalize'
 import { gridGeometry } from '../../../shared/model/grid'
 import { baseLayer, baseTemplateValue, changedTemplateKeys } from '../../../shared/model/inherit'
 import {
@@ -41,8 +49,16 @@ import {
 } from '../../../shared/model/template'
 import { Inherit } from './inheritance'
 import { InheritContext, type InheritCtx } from './inheritContext'
-import { hexagonFit, lineEnds, lineFromEnds, type Point } from '../../../shared/model/geometry'
+import {
+  hexagonFit,
+  lineEnds,
+  lineFromEnds,
+  normalizeAngle,
+  type Point
+} from '../../../shared/model/geometry'
 import { useI18n, type Translate } from '../i18n/context'
+import { useLengthUnit } from '../units'
+import { formatLength, toUnit } from '../../../shared/model/units'
 import { evaluateFormula } from '../../../shared/model/formula'
 import {
   cardFields,
@@ -64,6 +80,7 @@ import CropDialog from '../components/CropDialog'
 import { DisplayContext } from './displayContext'
 import { cropText } from '../../../shared/model/crop'
 import { traceImage } from '../render/traceImage'
+import { filterProperties } from './propSearch'
 import { ColorFieldsContext } from './colorFields'
 import {
   CheckField,
@@ -95,7 +112,7 @@ interface Props {
   sheets: { set: string; headers: string[]; rows: string[][] }[]
   width: number
   /** Cambio di formato: chiede se scalare i livelli */
-  onResize(width: number, height: number): void
+  onResize(width: number, height: number, patch?: Partial<Template>): void
   side: PanelSide
   onToggleSide(): void
   /** Template base già risolto, se il template è derivato */
@@ -122,6 +139,24 @@ export default function PropertiesPanel({
   // livello appena creato nelle caselle di una griglia: l'assistente si apre da solo
   // (lo stato sta qui perché il pannello del livello si rimonta a ogni selezione)
   const [fxFor, setFxFor] = useState<string | null>(null)
+  // ricerca tra le proprietà: filtra il pannello già disegnato (vedi propSearch.ts)
+  const [query, setQuery] = useState('')
+  const bodyRef = useRef<HTMLDivElement>(null)
+  const emptyRef = useRef<HTMLParagraphElement>(null)
+  const filter = (): void => {
+    if (!bodyRef.current) return
+    const found = filterProperties(bodyRef.current, query)
+    if (emptyRef.current) emptyRef.current.hidden = found
+  }
+  // dopo ogni disegno del pannello, e quando cambia una parte che si ridisegna da sola
+  useLayoutEffect(filter)
+  useEffect(() => {
+    const body = bodyRef.current
+    if (!body || !query.trim()) return
+    const observer = new MutationObserver(filter)
+    observer.observe(body, { childList: true, subtree: true })
+    return () => observer.disconnect()
+  })
 
   // nei colori si può richiamare un livello valore con {nome}
   const valueLayers = walkLayers([...tpl.front, ...tpl.back])
@@ -136,65 +171,86 @@ export default function PropertiesPanel({
         style={{ width }}
       >
         <PanelSideButton side={panelSide} onToggle={onToggleSide} className="corner" />
-        {selection.length > 0 && <AlignSection state={state} dispatch={dispatch} />}
-        {selection.length > 1 ? (
-          <>
-            <h2>{t('editor.multiSelectionTitle', { n: selection.length })}</h2>
-            <p className="muted small">{t('editor.multiSelection')}</p>
-            <div className="selection-actions">
-              <button disabled={!cmd.canGroup} onClick={cmd.group} title={t('tip.group')}>
-                {t('layers.group')}
-              </button>
-              <button onClick={cmd.duplicate} title={t('tip.duplicate')}>
-                {t('layers.duplicate')}
-              </button>
-              <button className="danger" onClick={cmd.remove} title={t('tip.delete')}>
-                {t('layers.delete')}
-              </button>
-            </div>
-            {first && (
-              <>
-                <p className="muted small">{t('editor.multiEdit', { name: first.name })}</p>
-                <LayerProperties
-                  key={selection.join(',')}
-                  layer={first}
-                  targets={selection}
-                  state={state}
-                  dispatch={dispatch}
-                  sheets={sheets}
-                />
-              </>
-            )}
-          </>
-        ) : layer ? (
-          <>
-            <LayerProperties
-              key={layer.id}
-              layer={layer}
-              state={state}
-              dispatch={dispatch}
-              sheets={sheets}
-              base={base}
-              fxFor={fxFor}
-              setFxFor={setFxFor}
-            />
-            {layer.type === 'group' && (
+        <div className="prop-search">
+          <input
+            type="search"
+            value={query}
+            placeholder={t('editor.searchProperties')}
+            title={t('editor.searchPropertiesHint')}
+            aria-label={t('editor.searchProperties')}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape' && query) {
+                e.stopPropagation()
+                setQuery('')
+              }
+            }}
+          />
+        </div>
+        <p ref={emptyRef} className="muted small prop-search-empty" hidden>
+          {t('editor.searchPropertiesNone')}
+        </p>
+        <div ref={bodyRef} className="props-body">
+          {selection.length > 0 && <AlignSection state={state} dispatch={dispatch} />}
+          {selection.length > 1 ? (
+            <>
+              <h2>{t('editor.multiSelectionTitle', { n: selection.length })}</h2>
+              <p className="muted small">{t('editor.multiSelection')}</p>
               <div className="selection-actions">
-                <button onClick={cmd.ungroup} title={t('tip.ungroup')}>
-                  {t('layers.ungroup')}
+                <button disabled={!cmd.canGroup} onClick={cmd.group} title={t('tip.group')}>
+                  {t('layers.group')}
+                </button>
+                <button onClick={cmd.duplicate} title={t('tip.duplicate')}>
+                  {t('layers.duplicate')}
+                </button>
+                <button className="danger" onClick={cmd.remove} title={t('tip.delete')}>
+                  {t('layers.delete')}
                 </button>
               </div>
-            )}
-          </>
-        ) : (
-          <TemplateProperties
-            template={tpl}
-            base={base}
-            dispatch={dispatch}
-            sheets={sheets}
-            onResize={onResize}
-          />
-        )}
+              {first && (
+                <>
+                  <p className="muted small">{t('editor.multiEdit', { name: first.name })}</p>
+                  <LayerProperties
+                    key={selection.join(',')}
+                    layer={first}
+                    targets={selection}
+                    state={state}
+                    dispatch={dispatch}
+                    sheets={sheets}
+                  />
+                </>
+              )}
+            </>
+          ) : layer ? (
+            <>
+              <LayerProperties
+                key={layer.id}
+                layer={layer}
+                state={state}
+                dispatch={dispatch}
+                sheets={sheets}
+                base={base}
+                fxFor={fxFor}
+                setFxFor={setFxFor}
+              />
+              {layer.type === 'group' && (
+                <div className="selection-actions">
+                  <button onClick={cmd.ungroup} title={t('tip.ungroup')}>
+                    {t('layers.ungroup')}
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <TemplateProperties
+              template={tpl}
+              base={base}
+              dispatch={dispatch}
+              sheets={sheets}
+              onResize={onResize}
+            />
+          )}
+        </div>
       </aside>
     </ColorFieldsContext.Provider>
   )
@@ -211,9 +267,10 @@ function TemplateProperties({
   base: Template | null
   dispatch: React.Dispatch<EditorAction>
   sheets: Props['sheets']
-  onResize(width: number, height: number): void
+  onResize(width: number, height: number, patch?: Partial<Template>): void
 }): React.JSX.Element {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
+  const lengthUnit = useLengthUnit()
   const [locked, setLocked] = useRatioLock('template')
   const set = (p: Partial<Template>, key: string): void =>
     dispatch({ type: 'change', template: { ...tpl, ...p }, key: `template.${key}` })
@@ -250,12 +307,21 @@ function TemplateProperties({
           onChange={(kind) => set({ kind: kind === 'card' ? undefined : kind }, 'kind')}
         />
       </Inherit>
+      <Inherit keys={['ttsTags']}>
+        <TextField
+          label={t('prop.ttsTags')}
+          hint={t('editor.ttsTagsHint')}
+          value={tpl.ttsTags ?? ''}
+          onChange={(v) => set({ ttsTags: v.trim() ? v : undefined }, 'ttsTags')}
+        />
+      </Inherit>
       {base ? (
         // le misure della carta sono sempre quelle del base
         <div className="field" title={t('inherit.sizeFromBase')}>
           <span className="field-label">{t('prop.size')}</span>
           <span className="field-control muted">
-            {tpl.width} × {tpl.height} mm
+            {toUnit(tpl.width, lengthUnit).toLocaleString(lang)} ×{' '}
+            {formatLength(tpl.height, lengthUnit, lang)}
           </span>
         </div>
       ) : (
@@ -325,7 +391,10 @@ function TemplateProperties({
               <span className="field-label" />
               <div className="field-control">
                 <button type="button" onClick={() => onResize(fit.w, fit.h)}>
-                  {t('editor.hexagonFit', { w: fit.w, h: fit.h })}
+                  {t('editor.hexagonFit', {
+                    w: toUnit(fit.w, lengthUnit).toLocaleString(lang),
+                    h: formatLength(fit.h, lengthUnit, lang)
+                  })}
                 </button>
               </div>
               <p className="field-note">{t('editor.hexagonFitHint')}</p>
@@ -341,6 +410,31 @@ function TemplateProperties({
           />
         </Inherit>
       )}
+      <Inherit keys={['shapeRotation', 'shapeFlipH', 'shapeFlipV']}>
+        <ShapeOrientation
+          template={tpl}
+          // in un derivato le misure sono quelle del base: niente quarti di giro
+          canTurn={!base}
+          onTurn={(by) => {
+            const shapeRotation = (((tpl.shapeRotation ?? 0) + by + 360) % 360) as ShapeRotation
+            // un quarto di giro scambia larghezza e altezza: il contenuto resta com'è, come quando
+            // si cambiano le misure
+            if (tpl.width === tpl.height)
+              set({ shapeRotation: shapeRotation || undefined }, 'shapeRotation')
+            else onResize(tpl.height, tpl.width, { shapeRotation: shapeRotation || undefined })
+          }}
+          onHalfTurn={() =>
+            set(
+              {
+                shapeRotation:
+                  ((((tpl.shapeRotation ?? 0) + 180) % 360) as ShapeRotation) || undefined
+              },
+              'shapeRotation'
+            )
+          }
+          onFlip={(key) => set({ [key]: tpl[key] ? undefined : true }, key)}
+        />
+      </Inherit>
       <Inherit keys={['guides']}>
         <GuideFields template={tpl} set={set} />
       </Inherit>
@@ -564,7 +658,67 @@ function LayerProperties({
       {layers.every((x) => x.type !== 'value') && (
         <DrawnProperties l={l} set={set} col={col} multi={multi} />
       )}
+      {!multi && l.type !== 'value' && <SnapProperties l={l} set={set} />}
     </InheritContext.Provider>
+  )
+}
+
+/**
+ * Snap point di Tabletop Simulator: al centro del livello, o di ogni casella di una griglia. Il
+ * livello snap point ce l'ha sempre; gli altri lo attivano qui
+ */
+function SnapProperties({ l, set }: { l: Layer; set: SetFn<Layer> }): React.JSX.Element {
+  const { t } = useI18n()
+  const snap = l.snap ?? null
+  const own = l.type === 'snap'
+  const change = (patch: Partial<LayerSnap>): void =>
+    set({ snap: { ...(snap ?? SNAP_DEFAULTS), ...patch } })
+  return (
+    <Inherit keys={['snap']}>
+      <h3>{t('editor.ttsSnap')}</h3>
+      {!own && (
+        <CheckField
+          label={l.type === 'grid' ? t('prop.snapCells') : t('prop.snap')}
+          hint={t('editor.snapPointHint')}
+          value={!!snap}
+          onChange={(on) => set({ snap: on ? { ...SNAP_DEFAULTS } : null })}
+        />
+      )}
+      {snap && (
+        <>
+          <TextField
+            label={t('prop.snapTags')}
+            hint={t('editor.snapTagsHint')}
+            value={snap.tags}
+            onChange={(tags) => change({ tags })}
+          />
+          <CheckField
+            label={t('prop.snapRotated')}
+            hint={t('editor.snapRotatedHint')}
+            value={snap.rotated}
+            onChange={(rotated) => change({ rotated })}
+          />
+          {snap.rotated && (
+            <>
+              <CheckField
+                label={t('prop.snapFollow')}
+                value={snap.angle === null}
+                onChange={(follow) => change({ angle: follow ? null : normalizeAngle(l.rotation) })}
+              />
+              {snap.angle !== null && (
+                <NumberField
+                  label={t('prop.snapAngle')}
+                  value={snap.angle}
+                  step={15}
+                  unit="°"
+                  onChange={(angle) => change({ angle: normalizeAngle(angle) })}
+                />
+              )}
+            </>
+          )}
+        </>
+      )}
+    </Inherit>
   )
 }
 
@@ -581,19 +735,28 @@ function OutlineField({
   const { t } = useI18n()
   const assets = useContext(AssetsContext)
   const [picking, setPicking] = useState(false)
-  const [error, setError] = useState(false)
+  // messaggio d'errore: immagine senza contorno, o immagine che non si legge (con il motivo)
+  const [error, setError] = useState('')
   const pick = async (name: string): Promise<void> => {
     setPicking(false)
     const r = resolveAsset(name, assets)
-    try {
-      if (!r.ok) throw new Error(name)
-      const traced = await traceImage(assetUrl(r.path))
-      if (!traced.path) throw new Error(name)
-      setError(false)
-      onTraced(traced)
-    } catch {
-      setError(true)
+    if (!r.ok) {
+      setError(t('editor.outlineUnreadable', { error: name }))
+      return
     }
+    let traced: { path: string; ratio: number }
+    try {
+      traced = await traceImage(assetUrl(r.path))
+    } catch (e) {
+      setError(t('editor.outlineUnreadable', { error: (e as Error)?.message || String(e) }))
+      return
+    }
+    if (!traced.path) {
+      setError(t('editor.outlineFailed'))
+      return
+    }
+    setError('')
+    onTraced(traced)
   }
   return (
     <>
@@ -606,7 +769,7 @@ function OutlineField({
           {empty && <span className="muted small">{t('editor.outlineEmpty')}</span>}
         </div>
       </div>
-      {error && <p className="field-error">{t('editor.outlineFailed')}</p>}
+      {error && <p className="field-error">{error}</p>}
       <p className="muted small">{hint}</p>
       {picking && <AssetPicker value="" onPick={pick} onClose={() => setPicking(false)} />}
     </>
@@ -847,7 +1010,7 @@ function DrawnProperties({
                 unit="mm"
                 locked={locked}
                 onLock={setLocked}
-                onChange={(w, h) => set({ w, h })}
+                onChange={(w, h) => set(anchoredResize(l, w, h))}
               />
             </div>
           </Inherit>
@@ -1681,7 +1844,7 @@ function ShapeProperties({
   )
 }
 
-const GRID_CELLS: GridCell[] = ['square', 'circle', 'hex', 'triangle', 'diamond']
+const GRID_CELLS: GridCell[] = ['square', 'circle', 'hex', 'triangle', 'diamond', 'path']
 
 /** Griglia: caselle, disposizione, misura nel riquadro, colori; vedi model/grid.ts */
 function GridProperties({
@@ -1705,7 +1868,8 @@ function GridProperties({
   const count = (v: number): number => Math.max(1, Math.round(v))
   const content = groups.find((g) => g.name === l.content)
   // esagoni e triangoli hanno le proporzioni fisse
-  const ratio = l.cell === 'square' || l.cell === 'circle' || l.cell === 'diamond'
+  const ratio =
+    l.cell === 'square' || l.cell === 'circle' || l.cell === 'diamond' || l.cell === 'path'
   return (
     <>
       <Section scope="grid">
@@ -1744,6 +1908,24 @@ function GridProperties({
             hint={`${t(`editor.interlockHint.${l.cell}` as MessageKey)} ${col('interlock')}`}
             value={l.interlock}
             onChange={(interlock) => set({ interlock })}
+          />
+        </P>
+        {l.cell === 'path' && (
+          <OutlineField
+            hint={t('editor.cellOutlineHint')}
+            empty={!l.cellPath.trim()}
+            // le caselle prendono le proporzioni dell'immagine
+            onTraced={({ path, ratio }) => set({ cellPath: path, cellRatio: ratio })}
+          />
+        )}
+        <P id="cellRotation">
+          <NumberField
+            label={t('prop.cellRotation')}
+            hint={`${t('editor.cellRotationHint')} ${col('cellRotation')}`}
+            value={l.cellRotation}
+            step={15}
+            unit="°"
+            onChange={(cellRotation) => set({ cellRotation: ((cellRotation % 360) + 360) % 360 })}
           />
         </P>
         {l.cell === 'hex' && (
@@ -1788,7 +1970,7 @@ function GridProperties({
             onChange={(stroke) => set({ stroke })}
           />
         </P>
-        {l.cell !== 'circle' && (
+        {l.cell !== 'circle' && l.cell !== 'path' && (
           <P id="radius">
             <NumberField
               label={t('prop.radius')}
@@ -2102,5 +2284,90 @@ const FORMULA_EXPECT: Record<Layer['type'], FormulaExpect> = {
   shape: 'color',
   grid: 'color',
   group: 'bool',
-  value: 'value'
+  value: 'value',
+  snap: 'bool'
+}
+
+/**
+ * Orientamento della forma della carta: quarti di giro (scambiano le misure), mezzo giro e
+ * specchi. Gira solo il contorno, non i livelli
+ */
+function ShapeOrientation({
+  template: tpl,
+  canTurn,
+  onTurn,
+  onHalfTurn,
+  onFlip
+}: {
+  template: Template
+  canTurn: boolean
+  onTurn(by: 90 | -90): void
+  onHalfTurn(): void
+  onFlip(key: 'shapeFlipH' | 'shapeFlipV'): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const state = [
+    tpl.shapeRotation ? `${tpl.shapeRotation}°` : '',
+    tpl.shapeFlipH ? t('editor.shapeFlippedH') : '',
+    tpl.shapeFlipV ? t('editor.shapeFlippedV') : ''
+  ]
+    .filter(Boolean)
+    .join(', ')
+  return (
+    <div className="field">
+      <span className="field-label">
+        {t('prop.shapeOrientation')}
+        <HelpTip text={t('editor.shapeOrientationHint')} />
+      </span>
+      <div className="field-control shape-orientation">
+        <button
+          type="button"
+          disabled={!canTurn}
+          title={t('editor.shapeTurnLeft')}
+          aria-label={t('editor.shapeTurnLeft')}
+          onClick={() => onTurn(-90)}
+        >
+          ⟲
+        </button>
+        <button
+          type="button"
+          disabled={!canTurn}
+          title={t('editor.shapeTurnRight')}
+          aria-label={t('editor.shapeTurnRight')}
+          onClick={() => onTurn(90)}
+        >
+          ⟳
+        </button>
+        <button
+          type="button"
+          title={t('editor.shapeHalfTurn')}
+          aria-label={t('editor.shapeHalfTurn')}
+          onClick={onHalfTurn}
+        >
+          180°
+        </button>
+        <button
+          type="button"
+          className={tpl.shapeFlipH ? 'active' : ''}
+          aria-pressed={!!tpl.shapeFlipH}
+          title={t('editor.shapeFlipH')}
+          aria-label={t('editor.shapeFlipH')}
+          onClick={() => onFlip('shapeFlipH')}
+        >
+          ⇆
+        </button>
+        <button
+          type="button"
+          className={tpl.shapeFlipV ? 'active' : ''}
+          aria-pressed={!!tpl.shapeFlipV}
+          title={t('editor.shapeFlipV')}
+          aria-label={t('editor.shapeFlipV')}
+          onClick={() => onFlip('shapeFlipV')}
+        >
+          ⇅
+        </button>
+        {state && <span className="muted small">{state}</span>}
+      </div>
+    </div>
+  )
 }

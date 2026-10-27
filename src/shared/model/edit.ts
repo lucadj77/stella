@@ -1,5 +1,5 @@
 import { arrangeModel } from './arrange'
-import { isArranged, normalizeLayer, walkLayers, type RawLayer } from './normalize'
+import { isArranged, normalizeLayer, SNAP_SIZE, walkLayers, type RawLayer } from './normalize'
 import {
   isDrawn,
   type Constraints,
@@ -77,6 +77,26 @@ const isRecord = (v: unknown): v is Record<string, unknown> =>
  * le modifiche a partire da lì: nelle proprietà composte (contorno, ombra, vincoli...) agli altri
  * livelli arrivano solo le voci cambiate rispetto a `from`, il resto resta il loro.
  */
+/**
+ * Nuova misura di un livello che lascia fermo il suo punto di ancoraggio: con l'ancoraggio al
+ * centro il livello cresce da tutti i lati, con quello a destra verso sinistra, e così via.
+ */
+export function anchoredResize(
+  l: Layer,
+  w: number,
+  h: number
+): { x: number; y: number; w: number; h: number } {
+  const [v, hz] = l.anchor.includes('-')
+    ? l.anchor.split('-')
+    : l.anchor === 'top' || l.anchor === 'bottom'
+      ? [l.anchor, 'center']
+      : ['middle', l.anchor]
+  const fx = hz === 'left' ? 0 : hz === 'right' ? 1 : 0.5
+  const fy = v === 'top' ? 0 : v === 'bottom' ? 1 : 0.5
+  const round = (n: number): number => Math.round(n * 1000) / 1000
+  return { x: round(l.x + (l.w - w) * fx), y: round(l.y + (l.h - h) * fy), w, h }
+}
+
 export function patchLayers(
   t: Template,
   side: Side,
@@ -384,6 +404,7 @@ export interface LayerNames {
   value?: string
   grid?: string
   shape?: string
+  snap?: string
   /** Il testo di prova di un livello di testo nuovo */
   sample?: string
   /** Nomi delle forme: rect, ellipse, polygon, star, line, path */
@@ -423,6 +444,19 @@ export function newLayer(
       return normalizeLayer({ type, name: uniqueName(t, names.value ?? 'value') }, 0)
     case 'grid':
       return normalizeLayer({ type, name: uniqueName(t, names.grid ?? 'grid'), ...base }, 0)
+    case 'snap':
+      // piccolo: il punto è il centro; parte dal centro della carta
+      return normalizeLayer(
+        {
+          type,
+          name: uniqueName(t, names.snap ?? 'snap'),
+          // si accende e si spegne con una colonna solo se serve: di base è fisso
+          source: { kind: 'fixed' },
+          x: t.width / 2 - SNAP_SIZE / 2,
+          y: t.height / 2 - SNAP_SIZE / 2
+        },
+        0
+      )
     default: {
       const base0 = shape ? (names.shapes?.[shape] ?? shape) : (names.shape ?? 'shape')
       return normalizeLayer(

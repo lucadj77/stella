@@ -84,6 +84,21 @@ export interface LayerBase {
   /** Proprietà esposte in tabella oltre al valore principale */
   exposed: string[]
   source: ValueSource
+  /**
+   * Snap point di Tabletop Simulator al centro del livello (in ogni casella per le griglie);
+   * assente o null: nessuno
+   */
+  snap?: LayerSnap | null
+}
+
+/** Snap point di un livello, esportato in Tabletop Simulator */
+export interface LayerSnap {
+  /** Tag separati da virgole, anche con {campi}: il punto attira solo gli oggetti con un tag uguale */
+  tags: string
+  /** Il punto dà anche la rotazione all'oggetto che vi si aggancia */
+  rotated: boolean
+  /** Angolo in gradi in senso orario; null segue la rotazione del livello */
+  angle: number | null
 }
 
 export interface TextLayer extends LayerBase {
@@ -178,7 +193,7 @@ export interface ShapeLayer extends LayerBase {
 }
 
 /** Forma delle caselle di una griglia */
-export type GridCell = 'square' | 'circle' | 'hex' | 'triangle' | 'diamond'
+export type GridCell = 'square' | 'circle' | 'hex' | 'triangle' | 'diamond' | 'path'
 
 /**
  * Griglia di caselle uguali (una plancia, un tracciato a punti, una mappa a esagoni), disegnata
@@ -194,6 +209,13 @@ export interface GridLayer extends LayerBase {
   cellRatio: number
   /** Esagoni con la punta in alto (pointy) o con un lato in alto (flat) */
   orientation: 'pointy' | 'flat'
+  /**
+   * Rotazione della forma di ogni casella intorno al suo centro, in gradi: gira solo il contorno,
+   * non il posto delle caselle né il loro contenuto
+   */
+  cellRotation: number
+  /** Forma delle caselle per cell = 'path': tracciato SVG in coordinate 0-1 della casella */
+  cellPath: string
   /**
    * Caselle a incastro: esagoni ad alveare, cerchi e quadrati sfalsati di mezza casella, triangoli
    * alternati, rombi che si toccano sui lati
@@ -262,22 +284,40 @@ export interface ValueLayer extends LayerBase {
   values?: Record<string, string>
 }
 
-export type Layer = TextLayer | ImageLayer | ShapeLayer | GridLayer | GroupLayer | ValueLayer
+/**
+ * Snap point di Tabletop Simulator in un punto qualsiasi: nell'editor è un mirino, nelle stampe
+ * e nelle immagini non si vede. Il punto è il centro del riquadro; `snap` c'è sempre.
+ */
+export interface SnapLayer extends LayerBase {
+  type: 'snap'
+}
+
+export type Layer =
+  TextLayer | ImageLayer | ShapeLayer | GridLayer | GroupLayer | ValueLayer | SnapLayer
 export type LayerType = Layer['type']
 
 export type CardShape = 'rect' | 'ellipse' | 'hexagon' | 'path'
+export type ShapeRotation = 0 | 90 | 180 | 270
+export const isShapeRotation = (v: unknown): v is ShapeRotation =>
+  v === 0 || v === 90 || v === 180 || v === 270
 
 /**
  * Tipo di componente disegnato dal template: cambia le parole dell'interfaccia (una faccia di dado,
  * un segnalino) e l'oggetto proposto in Tabletop Simulator. Assente vale carta.
  */
-export type ComponentKind = 'card' | 'token' | 'tile' | 'board' | 'die'
-export const COMPONENT_KINDS: ComponentKind[] = ['card', 'token', 'tile', 'board', 'die']
+export type ComponentKind = 'card' | 'token' | 'tile' | 'board' | 'die' | 'standee'
+export const COMPONENT_KINDS: ComponentKind[] = ['card', 'token', 'tile', 'board', 'die', 'standee']
 export const isComponentKind = (v: unknown): v is ComponentKind =>
   typeof v === 'string' && (COMPONENT_KINDS as string[]).includes(v)
 /** Il tipo di un template, carta se non è indicato */
 export const kindOf = (t: Pick<Template, 'kind'> | null | undefined): ComponentKind =>
   t?.kind ?? 'card'
+/**
+ * Pedina: una sagoma da tenere in piedi, su fondo trasparente. Il retro non si disegna: è il
+ * fronte specchiato, così stampando le due facce, ritagliandole e incollandole combaciano
+ */
+export const isStandee = (t: Pick<Template, 'kind'> | null | undefined): boolean =>
+  kindOf(t) === 'standee'
 
 export interface ManualGuides {
   x: number[]
@@ -301,10 +341,22 @@ export interface Template {
   shape?: CardShape
   /** Contorno per shape = 'path': tracciato SVG in coordinate 0-1 rispetto alla carta */
   shapePath?: string
+  /**
+   * Rotazione della forma in gradi (0, 90, 180, 270): ruota solo il contorno, non il contenuto.
+   * Con 90 e 270 la forma è disegnata nel riquadro con i lati scambiati e poi girata: l'editor
+   * scambia anche larghezza e altezza della carta, così un esagono con un lato in alto diventa
+   * con la punta in alto. Assente vale 0
+   */
+  shapeRotation?: ShapeRotation
+  /** Forma specchiata in orizzontale o in verticale, dopo la rotazione; solo il contorno */
+  shapeFlipH?: boolean
+  shapeFlipV?: boolean
   /** Guide manuali dell'editor in mm: linee verticali (x) e orizzontali (y) */
   guides?: ManualGuides
   /** Campo che dà il nome alle carte nelle anteprime dei set; null usa la prima colonna */
   labelField?: string | null
+  /** Tag di Tabletop Simulator, separati da virgole, anche con {campi} */
+  ttsTags?: string
   front: Layer[]
   back: Layer[]
   /**
@@ -323,8 +375,12 @@ export const INHERITABLE_TEMPLATE_KEYS = [
   'cornerRadius',
   'shape',
   'shapePath',
+  'shapeRotation',
+  'shapeFlipH',
+  'shapeFlipV',
   'guides',
-  'labelField'
+  'labelField',
+  'ttsTags'
 ] as const
 export type InheritableTemplateKey = (typeof INHERITABLE_TEMPLATE_KEYS)[number]
 
@@ -353,7 +409,8 @@ export const PRIMARY_PROPERTY: Record<LayerType, string> = {
   shape: 'fill',
   grid: 'fill',
   group: 'visible',
-  value: 'value'
+  value: 'value',
+  snap: 'visible'
 }
 
 /** I livelli valore non hanno riquadro: non si disegnano, non si selezionano sulla carta */

@@ -5,6 +5,7 @@ import type { Api } from '../shared/api'
 const api: Api = {
   isWeb: false,
   chooseProjectFolder: () => ipcRenderer.invoke('project:choose-folder'),
+  relocateProject: (mode, text) => ipcRenderer.invoke('project:relocate', mode, text),
   loadProject: (folder) => ipcRenderer.invoke('project:load', folder),
   recentProjects: () => ipcRenderer.invoke('recent:list'),
   removeRecentProject: (folder) => ipcRenderer.invoke('recent:remove', folder),
@@ -66,7 +67,8 @@ const api: Api = {
   saveCredits: (text) => ipcRenderer.invoke('library:save-credits', text),
   chooseFolder: (current) => ipcRenderer.invoke('folder:choose', current),
   backups: () => ipcRenderer.invoke('backup:list'),
-  createBackup: () => ipcRenderer.invoke('backup:create'),
+  createBackup: (label) => ipcRenderer.invoke('backup:create', label),
+  labelBackup: (file, label) => ipcRenderer.invoke('backup:label', file, label),
   saveBackupSettings: (settings) => ipcRenderer.invoke('backup:settings', settings),
   restoreBackup: (file) => ipcRenderer.invoke('backup:restore', file),
   backupVersion: (file) => ipcRenderer.invoke('backup:version', file),

@@ -38,6 +38,11 @@ export const KIND_PRESETS: Record<ComponentKind, KindPreset[]> = {
     { key: 'a4', width: 297, height: 210 },
     { key: 'board500', width: 500, height: 500 }
   ],
+  standee: [
+    { key: 'standee25', width: 25, height: 50 },
+    { key: 'standee30', width: 30, height: 60 },
+    { key: 'standee40', width: 40, height: 80 }
+  ],
   die: [
     { key: 'face16', width: 16, height: 16 },
     { key: 'face19', width: 19, height: 19 },
@@ -51,5 +56,6 @@ export const KIND_CORNER: Record<ComponentKind, number> = {
   token: 0,
   tile: 0,
   board: 0,
-  die: 1
+  die: 1,
+  standee: 0
 }

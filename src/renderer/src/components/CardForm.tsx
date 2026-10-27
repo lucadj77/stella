@@ -24,7 +24,7 @@ import { useI18n } from '../i18n/context'
 import MarkupTextarea from './MarkupTextarea'
 import AssetPicker from './AssetPicker'
 import { ColorSwatch } from './ColorPicker'
-import { EyeIcon, EyeOffIcon, ImageIcon, SlidersIcon } from './icons'
+import { EyeIcon, EyeOffIcon, ImageIcon, PinIcon, SlidersIcon } from './icons'
 import { colorPartOf, propControl, propLabel } from './cardProps'
 import CropDialog from './CropDialog'
 import { cropText, parseCrop } from '../../../shared/model/crop'
@@ -52,6 +52,9 @@ interface Props {
   /** Campi con i dettagli del livello aperti */
   details: Set<string>
   onToggleDetails(column: string): void
+  /** Proprietà fissate (livello.proprietà): si vedono anche con i dettagli chiusi */
+  pinned: Set<string>
+  onTogglePin(column: string): void
   onChange(sheet: Sheet, key?: string): void
 }
 
@@ -72,6 +75,8 @@ function CardForm({
   focus,
   details,
   onToggleDetails,
+  pinned,
+  onTogglePin,
   onChange
 }: Props): React.JSX.Element {
   const { t } = useI18n()
@@ -225,7 +230,24 @@ function CardForm({
     const visibleColumn = `${h}.visible`
     const ownVisible = layerOf.has(h) ? parseBool(valueOf(visibleColumn) ?? '') : null
     const isVisible = ownVisible ?? layerOf.get(h)?.visible ?? true
-    const tools = !opts.prop && (
+    const pinTool = opts.prop && (
+      <span className="field-tools">
+        <button
+          className={'icon-btn' + (pinned.has(h) ? ' on' : '')}
+          aria-pressed={pinned.has(h)}
+          title={t(pinned.has(h) ? 'cardForm.unpin' : 'cardForm.pin')}
+          onClick={(e) => {
+            e.preventDefault()
+            onTogglePin(h)
+          }}
+        >
+          <PinIcon />
+        </button>
+      </span>
+    )
+    const tools = opts.prop ? (
+      pinTool
+    ) : (
       <span className="field-tools">
         {layerOf.has(h) && !calc && (
           <button
@@ -364,6 +386,7 @@ function CardForm({
               </button>
             )}
           </span>
+          {tools}
         </label>
       )
     }
@@ -487,13 +510,20 @@ function CardForm({
         .map(({ header: h, index, computed: calc }) => (
           <Fragment key={h}>
             {field(h, { index, calc })}
-            {details.has(h) && layerOf.has(h) && (
-              <div className="field-details">
-                {propertiesOf(h).map((p) =>
-                  field(p, { index: sheet.headers.indexOf(p), calc: false, prop: true })
-                )}
-              </div>
-            )}
+            {layerOf.has(h) &&
+              (() => {
+                // con i dettagli aperti tutte le proprietà; chiusi, solo quelle fissate
+                const all = propertiesOf(h)
+                const list = details.has(h) ? all : all.filter((p) => pinned.has(p))
+                if (!list.length) return null
+                return (
+                  <div className={details.has(h) ? 'field-details' : 'field-details pinned'}>
+                    {list.map((p) =>
+                      field(p, { index: sheet.headers.indexOf(p), calc: false, prop: true })
+                    )}
+                  </div>
+                )
+              })()}
           </Fragment>
         ))}
       {cropping !== null &&

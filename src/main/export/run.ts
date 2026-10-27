@@ -6,6 +6,7 @@ import {
   pageSize,
   safeName,
   uniqueNames,
+  ttsExtras,
   ttsSavedObject,
   ttsSavedPieces,
   ttsSavedDice,
@@ -25,6 +26,7 @@ import {
   type TtsDeckCard,
   type TtsOptions,
   type TtsPiece,
+  isTokenLike,
   type TtsPieceKind,
   type TtsDie,
   type TtsSheet
@@ -43,6 +45,7 @@ import {
   type TtsSetPlan
 } from '../../shared/exportPlan'
 import { plainText } from '../../shared/model/markup'
+import { substituteFields } from '../../shared/model/bind'
 import { palette, resolveColor } from '../../shared/model/variables'
 import { msg } from '../../shared/messages'
 import type { Side, Template } from '../../shared/model/template'
@@ -298,7 +301,7 @@ async function exportTts(
     (n, p) =>
       n +
       p.chunks.length * 2 +
-      p.pieces.length * (p.object.type === 'token' ? 1 : 2) +
+      p.pieces.length * (p.object.type === 'token' || p.object.type === 'standee' ? 1 : 2) +
       p.dice.length +
       1,
     0
@@ -356,7 +359,8 @@ async function exportTts(
             sheet,
             slot,
             nickname: fieldText(card, o.nickname),
-            description: fieldText(card, o.description)
+            description: fieldText(card, o.description),
+            extras: ttsExtras(card.template, setTags(plan.object.tags, card))
           })
       })
     )
@@ -384,7 +388,7 @@ async function exportTts(
           uniqueBack: s.uniqueBack
         })
       }
-      const object = ttsSavedObject(set.name, ttsSheets, deck, t0.width)
+      const object = ttsSavedObject(set.name, ttsSheets, deck, t0.width, t0.height)
       await write(ctx, join(target, `${stem}.json`), JSON.stringify(object, null, 2) + '\n')
       // miniatura mostrata da Tabletop Simulator tra gli oggetti salvati
       await write(ctx, join(target, `${stem}.png`), thumb)
@@ -406,7 +410,7 @@ async function exportPieces(
     const face = await renderPiece(ctx, p, 'front', kind)
     step(ctx)
     let back: Buffer | null = null
-    if (kind !== 'token') {
+    if (!isTokenLike(kind)) {
       back = await renderPiece(ctx, p, 'back', kind)
       step(ctx)
     }
@@ -442,7 +446,9 @@ async function exportPieces(
         backUrl,
         nickname: fieldText(p.card, o.nickname),
         description: fieldText(p.card, o.description),
-        count: p.count
+        count: p.count,
+        extras: ttsExtras(p.card.template, setTags(plan.object.tags, p.card)),
+        card: { w: p.card.template.width, h: p.card.template.height }
       })
     }
     // il colore del bordo può essere un colore del progetto, scritto per nome
@@ -537,7 +543,7 @@ async function renderPiece(
     pages: [page],
     scale: w / page.width,
     // le tessere hanno il fondo bianco; i segnalini trasparente, perché TTS li ritaglia lì
-    background: kind === 'token' ? null : '#FFFFFF',
+    background: isTokenLike(kind) ? null : '#FFFFFF',
     lineColor: '#000',
     lineWidth: 0,
     linesOver: false
@@ -550,6 +556,11 @@ async function renderPiece(
 function imageUrl(env: RunEnv, file: string): string {
   const real = env.realPath?.(file) ?? { path: file, platform: env.platform }
   return ttsImageUrl(real.path, real.platform)
+}
+
+/** Tag TTS scelti per il set, con i {campi} della carta; assenti: quelli del template */
+function setTags(tags: string | undefined, card: ExportCard): string | undefined {
+  return tags === undefined ? undefined : substituteFields(tags, card.fields)
 }
 
 function fieldText(card: ExportCard, field: string): string {

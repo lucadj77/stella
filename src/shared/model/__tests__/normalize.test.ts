@@ -50,4 +50,17 @@ describe('forma della carta e guide', () => {
     })
     expect(denormalizeTemplate({ ...t, shape: 'ellipse' })).not.toHaveProperty('shapePath')
   })
+
+  it('salva rotazione e specchi della forma, e scarta una rotazione non valida', () => {
+    const t = normalizeTemplate({
+      name: 't',
+      shape: 'hexagon',
+      shapeRotation: 90,
+      shapeFlipV: true
+    })
+    expect(denormalizeTemplate(t)).toMatchObject({ shapeRotation: 90, shapeFlipV: true })
+    expect(denormalizeTemplate(t)).not.toHaveProperty('shapeFlipH')
+    const odd = normalizeTemplate({ name: 't', shapeRotation: 45 as never })
+    expect(odd).not.toHaveProperty('shapeRotation')
+  })
 })

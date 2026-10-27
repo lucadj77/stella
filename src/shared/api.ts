@@ -72,6 +72,8 @@ export interface BackupItem {
   /** Dimensione dello zip, senza le immagini che condivide con gli altri backup */
   size: number
   auto: boolean
+  /** Nome dato al backup, per ricordare che cosa contiene */
+  label?: string
 }
 
 export interface BackupState {
@@ -146,6 +148,15 @@ export interface Api {
   /** Solo nel web: URL di un file sotto assets/; nell'app desktop c'è il protocollo gc-asset:// */
   assetUrl?(path: string): string
   chooseProjectFolder(): Promise<string | null>
+  /**
+   * Copia o sposta la cartella del progetto aperto in una cartella scelta dall'utente (nuova o
+   * vuota). Restituisce la cartella nuova, o null se l'utente annulla. Solo nell'app desktop.
+   */
+  relocateProject(
+    mode: 'copy' | 'move',
+    /** Testi della finestra di scelta, nella lingua dell'interfaccia */
+    text: { title: string; button: string; copy: string }
+  ): Promise<string | null>
   /** Progetti aperti di recente, dal più recente */
   recentProjects(): Promise<RecentProject[]>
   /** Toglie un progetto dall'elenco dei recenti; la cartella non si tocca */
@@ -266,8 +277,10 @@ export interface Api {
   chooseFolder(current?: string): Promise<string | null>
   /** Backup del progetto aperto e impostazioni */
   backups(): Promise<BackupState>
-  /** Crea subito un backup del progetto aperto (dei file salvati) */
-  createBackup(): Promise<BackupItem>
+  /** Crea subito un backup del progetto aperto (dei file salvati), con un nome se c'è */
+  createBackup(label?: string): Promise<BackupItem>
+  /** Cambia il nome di un backup del progetto aperto (vuoto lo toglie) */
+  labelBackup(file: string, label: string): Promise<BackupItem>
   saveBackupSettings(settings: BackupSettings): Promise<BackupState>
   /**
    * Estrae un backup in una cartella nuova accanto al progetto e ne restituisce il percorso. Nel

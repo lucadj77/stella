@@ -1,4 +1,5 @@
 import { useContext, useState } from 'react'
+import NumInput from './NumInput'
 import type { Sheet } from '../../../shared/project'
 import { resolveAsset } from '../../../shared/model/assets'
 import { splitAspect, splitImage, splittableLayers } from '../../../shared/model/split'
@@ -98,8 +99,7 @@ export default function SplitImageDialog({
         <div className="dialog-row">
           <label>
             {t('split.cols')}
-            <input
-              type="number"
+            <NumInput
               min={1}
               max={40}
               value={cols}
@@ -108,8 +108,7 @@ export default function SplitImageDialog({
           </label>
           <label>
             {t('split.rows')}
-            <input
-              type="number"
+            <NumInput
               min={1}
               max={40}
               value={rows}
@@ -118,12 +117,7 @@ export default function SplitImageDialog({
           </label>
           <label>
             {t('split.start')}
-            <input
-              type="number"
-              min={1}
-              value={start}
-              onChange={(e) => num(e.target.value, setStart)}
-            />
+            <NumInput min={1} value={start} onChange={(e) => num(e.target.value, setStart)} />
           </label>
         </div>
         <label>
