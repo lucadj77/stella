@@ -706,7 +706,7 @@ Per segnalini, pedine e tessere c'è lo **Spessore**. I pezzi di un set vanno in
 - lo strumento **Snap** (P) aggiunge un livello che è solo uno snap point: nell'editor è un mirino blu, nelle stampe e nelle immagini non si vede, e il punto è il centro del suo riquadro;
 - ogni altro livello ha in fondo alle proprietà la sezione **Tabletop Simulator** con **Snap point**: il punto va al centro del livello. Per una griglia l'opzione è **Snap point in ogni casella**, comoda per le caselle di una plancia.
 
-In entrambi i casi **Tag dello snap** fa attirare al punto solo gli oggetti con uno di quei tag (vuoto: tutti), e **Ruotato** fa prendere all'oggetto anche una rotazione: di base quella del livello, oppure un **Angolo dello snap** a scelta. Sulla tela il mirino ha una freccetta che indica dove va il lato alto dell'oggetto. Gli snap point vengono dal fronte.
+In entrambi i casi **Tag dello snap** fa attirare al punto solo gli oggetti con uno di quei tag (vuoto: tutti), e **Ruotato** fa prendere all'oggetto anche una rotazione: di base quella del livello, oppure un **Angolo dello snap** a scelta. Sulla tela il mirino ha una freccetta che indica dove va il lato alto dell'oggetto. Gli snap point vengono dal fronte. Il pulsante **Snap** in basso nella tela nasconde i mirini senza togliere gli snap point dall'esportazione; l'occhio nel pannello livelli invece spegne il livello e quindi anche il suo snap point.
 
 I fogli si richiamano con indirizzi locali, quindi il mazzo funziona sul computer che l'ha esportato. Per giocare online bisogna caricare le immagini su un servizio web e cambiare gli indirizzi in Tabletop Simulator.
 

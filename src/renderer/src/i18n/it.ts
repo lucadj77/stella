@@ -487,6 +487,9 @@ export const it: Record<MessageKey, string> = {
   'tip.front': 'Mostra il fronte delle carte',
   'tip.back': 'Mostra il retro delle carte',
   'tip.showBleed': "Mostra l'abbondanza intorno alla carta, la parte tagliata in stampa",
+  'tip.showSnaps':
+    "Mostra gli snap point di Tabletop Simulator; nascosti qui si esportano comunque. L'occhio nel pannello livelli invece spegne lo snap point",
+  'editor.showSnaps': 'Snap',
   'tip.showSafe': "Mostra l'area sicura: tieni dentro testi ed elementi importanti",
   'tip.showGrid': 'Mostra la griglia; il passo si imposta nel campo accanto',
   'tip.zoomFit': 'Adatta la carta alla finestra',

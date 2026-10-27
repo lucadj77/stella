@@ -28,6 +28,7 @@ import {
 import { cardArea, unionBounds } from '../../../shared/model/align'
 import { linesOf, nearest, snapBox, type SnapLines } from '../../../shared/model/snap'
 import { snapPoints } from '../../../shared/model/ttsSnap'
+import { walkLayers } from '../../../shared/model/normalize'
 import { isDrawn, type GroupLayer, type Layer, type Template } from '../../../shared/model/template'
 import CardSvg, { CardOutline } from '../render/CardSvg'
 import { ShowEmptyContext } from '../render/assets'
@@ -591,7 +592,7 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
                 </Framed>
               ))}
             {/* snap point di Tabletop Simulator: non si stampano, si vedono solo qui */}
-            {snapPoints(display[side]).map((p, i) => (
+            {(guides.ttsSnaps ? snapPoints(display[side]) : []).map((p, i) => (
               <g key={`snap${i}`} className="tts-snap" transform={`translate(${p.x} ${p.y})`}>
                 <circle r={6 * px} vectorEffect="non-scaling-stroke" />
                 <path
@@ -735,6 +736,16 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
         >
           {t('editor.showSafe')}
         </button>
+        {walkLayers(layers).some((l) => l.snap) && (
+          <button
+            className={guides.ttsSnaps ? 'active' : ''}
+            aria-pressed={guides.ttsSnaps}
+            onClick={() => setGuide('ttsSnaps', !guides.ttsSnaps)}
+            title={t('tip.showSnaps')}
+          >
+            {t('editor.showSnaps')}
+          </button>
+        )}
         <span className="zoom-sep" />
         <button
           className={guides.grid ? 'active' : ''}
@@ -811,6 +822,8 @@ interface Guides {
   snapGrid: boolean
   /** Lati e centri si agganciano a quelli degli altri oggetti e della carta */
   snapObjects: boolean
+  /** Mirini degli snap point di Tabletop Simulator: nasconderli non li toglie dall'esportazione */
+  ttsSnaps: boolean
 }
 
 const GUIDES_KEY = 'editorGuides'
@@ -821,7 +834,8 @@ const DEFAULT_GUIDES: Guides = {
   grid: false,
   gridStep: 5,
   snapGrid: false,
-  snapObjects: true
+  snapObjects: true,
+  ttsSnaps: true
 }
 
 function loadGuides(): Guides {

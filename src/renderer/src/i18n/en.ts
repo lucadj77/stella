@@ -481,6 +481,9 @@ export const en = {
   'tip.front': 'Show the front of the cards',
   'tip.back': 'Show the back of the cards',
   'tip.showBleed': 'Show the bleed around the card, the part cut off when printing',
+  'tip.showSnaps':
+    'Show the Tabletop Simulator snap points; hidden here they are still exported. The eye in the layers panel turns a snap point off',
+  'editor.showSnaps': 'Snap',
   'tip.showSafe': 'Show the safe area: keep text and important elements inside it',
   'tip.showGrid': 'Show the grid; its spacing is set in the field next to it',
   'tip.zoomFit': 'Fit the card to the window',

@@ -706,7 +706,7 @@ Tokens, standees and tiles have a **Thickness**. The pieces of a set go into a b
 - the **Snap** tool (P) adds a layer that is only a snap point: a blue crosshair in the editor, invisible in prints and images, with the point at the centre of its box;
 - every other layer has, at the bottom of its properties, the **Tabletop Simulator** section with **Snap point**: the point goes at the centre of the layer. For a grid the option is **Snap point in each cell**, handy for the spaces of a board.
 
-In both cases **Snap tags** makes the point attract only objects with one of those tags (empty: all of them), and **Rotated** also gives the object a rotation: the layer's own by default, or a chosen **Snap angle**. On the canvas the crosshair has a small arrow showing where the top side of the object goes. Snap points come from the front.
+In both cases **Snap tags** makes the point attract only objects with one of those tags (empty: all of them), and **Rotated** also gives the object a rotation: the layer's own by default, or a chosen **Snap angle**. On the canvas the crosshair has a small arrow showing where the top side of the object goes. Snap points come from the front. The **Snap** button at the bottom of the canvas hides the crosshairs without removing the snap points from the export; the eye in the layers panel instead turns the layer off, and its snap point with it.
 
 Sheets are referenced by local addresses, so the deck works on the computer that exported it. To play online, upload the images to a web service and change the addresses in Tabletop Simulator.
 
