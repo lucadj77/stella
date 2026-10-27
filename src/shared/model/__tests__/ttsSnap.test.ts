@@ -3,7 +3,7 @@ import type { Template } from '../template'
 import { denormalizeTemplate, normalizeTemplate } from '../normalize'
 import { bindCard } from '../bind'
 import { parseTags, snapPoints } from '../ttsSnap'
-import { ttsExtras, ttsSavedObject, ttsSavedPieces, ttsSnapPoints } from '../../export'
+import { ttsExtras, ttsSavedObject, ttsSavedPieces, ttsSnapPoints, ttsStretch } from '../../export'
 
 const plancia = (front: Record<string, unknown>[], extra: Record<string, unknown> = {}): Template =>
   normalizeTemplate({ name: 'plancia', width: 120, height: 88, front, ...extra } as never)
@@ -118,18 +118,31 @@ describe('snap point di Tabletop Simulator', () => {
     expect(denormalizeTemplate(t).ttsTags).toBe('{tipo}, carta')
   })
 
-  it('posizioni locali: destra = X negativa, basso = Z positiva, divise per la scala', () => {
-    const [p] = ttsSnapPoints([{ x: 120, y: 88, angle: 45, tags: ['a'] }], { w: 120, h: 88 }, 2)
+  it('posizioni locali: destra = X negativa, basso = Z positiva, divise per scala e allungamento', () => {
+    const [p] = ttsSnapPoints(
+      [{ x: 120, y: 88, angle: 45, tags: ['a'] }],
+      { w: 120, h: 88 },
+      2,
+      1.5
+    )
     const k = 2.25 / 63 / 2
     expect(p.Position).toEqual({
-      x: Math.round(-60 * k * 1000) / 1000,
+      x: Math.round((-60 * k * 1000) / 1.5) / 1000,
       y: 0,
       z: Math.round(44 * k * 1000) / 1000
     })
-    expect(p.Rotation).toEqual({ x: 0, y: 45, z: 0 })
-    expect(p.Tags).toEqual({ labels: ['a'] })
+    // in TTS la rotazione va al contrario
+    expect(p.Rotation).toEqual({ x: 0, y: 315, z: 0 })
+    expect(p.Tags).toEqual(['a'])
     const [q] = ttsSnapPoints([{ x: 60, y: 44, angle: null, tags: [] }], { w: 120, h: 88 }, 1)
     expect(q).toEqual({ Position: { x: -0, y: 0, z: 0 } })
+  })
+
+  it('allungamento: carte dalla carta da poker, tessere dal quadrato, segnalini mai', () => {
+    expect(ttsStretch('card', 63, 88)).toBeCloseTo(1)
+    expect(ttsStretch('card', 126, 88)).toBeCloseTo(2)
+    expect(ttsStretch('board', 120, 88)).toBeCloseTo(1.364, 2)
+    expect(ttsStretch('token', 30, 50)).toBe(1)
   })
 
   it('nel file: tag e snap sugli oggetti, il mazzo prende i tag di tutte le carte', () => {
@@ -152,8 +165,8 @@ describe('snap point di Tabletop Simulator', () => {
     const obj = deck.ObjectStates[0] as Record<string, unknown> & {
       ContainedObjects: Record<string, unknown>[]
     }
-    expect(obj.Tags).toEqual({ labels: ['a', 'b'] })
-    expect(obj.ContainedObjects[0].Tags).toEqual({ labels: ['a'] })
+    expect(obj.Tags).toEqual(['a', 'b'])
+    expect(obj.ContainedObjects[0].Tags).toEqual(['a'])
     expect(obj.ContainedObjects[0].AttachedSnapPoints).toHaveLength(1)
     expect(obj.ContainedObjects[1]).not.toHaveProperty('AttachedSnapPoints')
 
@@ -175,7 +188,7 @@ describe('snap point di Tabletop Simulator', () => {
       ],
       { w: 120, h: 88 }
     ) as { ObjectStates: Record<string, unknown>[] }
-    expect(board.ObjectStates[0].Tags).toEqual({ labels: ['t'] })
+    expect(board.ObjectStates[0].Tags).toEqual(['t'])
     expect(board.ObjectStates[0].AttachedSnapPoints).toHaveLength(1)
     // senza tag né snap il file resta come prima
     const plain = ttsSavedPieces(

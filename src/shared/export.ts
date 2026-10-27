@@ -686,45 +686,65 @@ export function ttsExtras(t: Template): TtsExtras {
 
 /**
  * Snap point in coordinate dell'oggetto di Tabletop Simulator. Le coordinate sono locali: si
- * moltiplicano per la scala dell'oggetto. A rotazione Y 180 (come gli oggetti esportati)
- * l'immagine è dritta per chi guarda il tavolo, quindi la sua destra è la X locale negativa e il
- * suo basso la Z locale positiva. La rotazione in TTS è in senso orario guardando dall'alto,
- * come in Stella
+ * moltiplicano per la scala dell'oggetto e, in larghezza, per l'allungamento con cui TTS adatta
+ * il pezzo base (la carta da poker, la tessera quadrata) alle proporzioni dell'immagine. A
+ * rotazione Y 180 (come gli oggetti esportati) l'immagine è dritta per chi guarda il tavolo,
+ * quindi la sua destra è la X locale negativa e il suo basso la Z locale positiva. La rotazione
+ * di TTS va al contrario di quella di Stella (verificato in TTS, ottobre 2026: con 90 la carta
+ * girava in senso antiorario)
  */
 export function ttsSnapPoints(
   snaps: SnapPoint[],
   size: { w: number; h: number },
-  scale: number
+  scale: number,
+  /** Allungamento in larghezza del pezzo base, da ttsStretch */
+  stretch = 1
 ): Record<string, unknown>[] {
   const k = TTS_UNITS_PER_MM / (scale || 1)
   return snaps.map((p) => ({
     Position: {
-      x: round3(-(p.x - size.w / 2) * k),
+      x: round3((-(p.x - size.w / 2) * k) / (stretch || 1)),
       y: TTS_SNAP_Y,
       z: round3((p.y - size.h / 2) * k)
     },
-    ...(p.angle !== null ? { Rotation: { x: 0, y: p.angle, z: 0 } } : {}),
-    ...(p.tags.length ? { Tags: { labels: p.tags } } : {})
+    ...(p.angle !== null ? { Rotation: { x: 0, y: round3((360 - p.angle) % 360), z: 0 } } : {}),
+    ...(p.tags.length ? { Tags: p.tags } : {})
   }))
+}
+
+/**
+ * Quanto TTS allunga in larghezza il pezzo base per dargli le proporzioni dell'immagine: la carta
+ * parte dalla carta da poker, la tessera dal quadrato; il segnalino si fa sulla sagoma
+ * dell'immagine e non si allunga. Con una plancia 126 × 88 esportata come carta gli snap point
+ * uscivano larghi circa il doppio (ottobre 2026)
+ */
+export function ttsStretch(kind: 'card' | TtsPieceKind, w: number, h: number): number {
+  if (kind === 'card') return w / h / (63 / POKER_HEIGHT)
+  if (isTokenLike(kind)) return 1
+  return w / h
 }
 
 /** Campi Tags e AttachedSnapPoints di un oggetto, solo se servono */
 function extrasFields(
   extras: TtsExtras | undefined,
   size: { w: number; h: number },
-  scale: number
+  scale: number,
+  stretch: number
 ): Record<string, unknown> {
   if (!extras) return {}
+  // in TTS i tag sono un elenco di testi: { labels: [...] } impediva di caricare l'oggetto
   return {
-    ...(extras.tags.length ? { Tags: { labels: extras.tags } } : {}),
-    ...(extras.snaps.length ? { AttachedSnapPoints: ttsSnapPoints(extras.snaps, size, scale) } : {})
+    ...(extras.tags.length ? { Tags: extras.tags } : {}),
+    ...(extras.snaps.length
+      ? { AttachedSnapPoints: ttsSnapPoints(extras.snaps, size, scale, stretch) }
+      : {})
   }
 }
 
 /** Unione dei tag di più oggetti: un mazzo li prende tutti, così si aggancia come le sue carte */
 function unionTags(all: (TtsExtras | undefined)[]): Record<string, unknown> {
   const tags = parseTags(all.flatMap((e) => e?.tags ?? []).join(','))
-  return tags.length ? { Tags: { labels: tags } } : {}
+  return tags.length ? { Tags: tags } : {}
 }
 
 // Misure in Tabletop Simulator. TTS non ha una scala assoluta: un oggetto a scala 1 ha una misura
@@ -828,7 +848,12 @@ export function ttsSavedObject(
     Snap: true,
     Hands: true,
     SidewaysCard: sideways,
-    ...extrasFields(c.extras, { w: cardWidth, h: cardHeight }, scale)
+    ...extrasFields(
+      c.extras,
+      { w: cardWidth, h: cardHeight },
+      scale,
+      ttsStretch('card', cardWidth, cardHeight)
+    )
   })
   // "CardCustom" e "DeckCustom" sono i nomi che TTS dà agli oggetti fatti con Objects > Custom:
   // solo con questi il menu dell'oggetto ha la voce Custom. Un mazzo con più fogli resta "Deck"
@@ -972,7 +997,12 @@ export function ttsSavedPieces(
             }
           })
     },
-    ...extrasFields(p.extras, p.card ?? size, scale)
+    ...extrasFields(
+      p.extras,
+      p.card ?? size,
+      scale,
+      ttsStretch(kind, (p.card ?? size).w, (p.card ?? size).h)
+    )
   })
   const all = pieces.flatMap((p) => Array.from({ length: Math.max(1, p.count) }, () => p))
   if (kind === 'board') {
