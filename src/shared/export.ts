@@ -673,7 +673,7 @@ export interface TtsDeckCard {
 // Misure in Tabletop Simulator. TTS non ha una scala assoluta: un oggetto a scala 1 ha una misura
 // fissa per tipo, qualunque sia la sua immagine. Queste sono misurate in TTS (ottobre 2026) con il
 // righello, in unità (che TTS mostra come pollici): una carta larga 63 mm è larga 2,25, una
-// tessera 2 sul lato corto, un segnalino circa 3,2 in larghezza (l'altezza segue le proporzioni
+// tessera 2 in altezza, un segnalino circa 3,2 in larghezza (l'altezza segue le proporzioni
 // dell'immagine: una pedina alta e stretta resta larga 3,2). Le scale si calcolano in modo che
 // tutto stia nelle proporzioni vere rispetto a una carta da 63 mm.
 
@@ -696,8 +696,9 @@ export function ttsCardScale(w: number): number {
 export function ttsPieceScale(kind: TtsPieceKind, w: number, h: number): number {
   // il segnalino si misura sulla larghezza, la tessera sul lato lungo
   if (isTokenLike(kind)) return round3((w * TTS_UNITS_PER_MM) / TTS_TOKEN_SIZE)
-  // la tessera si misura sul lato corto: una plancia 120 × 88 è giusta a scala 1,5 circa
-  return round3((Math.min(w, h) * TTS_UNITS_PER_MM) / TTS_TILE_SIZE)
+  // la tessera si misura sull'altezza: giuste in TTS una plancia 120 × 88 a scala 1,5 circa e
+  // una 63 × 176 con la scala calcolata sull'altezza (ottobre 2026)
+  return round3((h * TTS_UNITS_PER_MM) / TTS_TILE_SIZE)
 }
 
 /**

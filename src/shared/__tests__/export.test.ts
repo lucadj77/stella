@@ -317,8 +317,9 @@ describe('Tabletop Simulator: segnalini e tessere', () => {
     // misurati in TTS: tessera da 45 mm larga 2 a scala 1, stella da 27 mm (29 con il margine) 3
     expect(ttsPieceScale('tile', 45, 45)).toBeCloseTo(0.804, 3)
     expect(ttsPieceScale('token', 29, 29)).toBeCloseTo(0.324, 3)
-    // la tessera si misura sul lato corto: plancia 120 × 88 a scala 1,5 circa (prova in TTS)
+    // la tessera si misura sull'altezza: plance 120 × 88 e 63 × 176 provate in TTS
     expect(ttsPieceScale('board', 120, 88)).toBeCloseTo(1.571, 3)
+    expect(ttsPieceScale('board', 63, 176)).toBeCloseTo(3.143, 3)
     // il segnalino si misura sulla larghezza: una pedina 25 × 50 (27 × 52 con il margine) è larga
     // 27 mm, non 52
     expect(ttsPieceScale('standee', 27, 52)).toBeCloseTo(0.301, 3)
