@@ -127,7 +127,7 @@ describe('snap point di Tabletop Simulator', () => {
       2,
       1.5
     )
-    const k = 2.25 / 63 / 2
+    const k = 2.25 / 63 / 2 / 1.05
     expect(p.Position).toEqual({
       x: Math.round((-60 * k * 1000) / 1.5) / 1000,
       y: 0,
@@ -141,10 +141,10 @@ describe('snap point di Tabletop Simulator', () => {
   })
 
   it('allungamento: solo le carte, dalla carta da poker', () => {
-    expect(ttsStretch('card', 63, 88)).toBeCloseTo(1.05)
-    expect(ttsStretch('card', 126, 88)).toBeCloseTo(2.1)
-    expect(ttsStretch('board', 120, 88)).toBeCloseTo(1.05)
-    expect(ttsStretch('token', 30, 50)).toBeCloseTo(1.05)
+    expect(ttsStretch('card', 63, 88)).toBeCloseTo(1)
+    expect(ttsStretch('card', 126, 88)).toBeCloseTo(2)
+    expect(ttsStretch('board', 120, 88)).toBe(1)
+    expect(ttsStretch('token', 30, 50)).toBe(1)
   })
 
   it('nel file: tag e snap sugli oggetti, il mazzo prende i tag di tutte le carte', () => {

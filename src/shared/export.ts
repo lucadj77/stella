@@ -705,7 +705,9 @@ export function ttsSnapPoints(
   /** Allungamento in larghezza del pezzo base, da ttsStretch */
   stretch = 1
 ): Record<string, unknown>[] {
-  const k = TTS_UNITS_PER_MM / (scale || 1)
+  // gli snap point escono un po' più distanti dal centro della misura vera, in larghezza e in
+  // altezza: si avvicinano di TTS_SNAP_SPREAD
+  const k = TTS_UNITS_PER_MM / (scale || 1) / TTS_SNAP_SPREAD
   return snaps.map((p) => ({
     Position: {
       x: round3((-(p.x - size.w / 2) * k) / (stretch || 1)),
@@ -722,12 +724,10 @@ export function ttsSnapPoints(
  * gli snap point della carta si allungano. Con una plancia 126 × 88 esportata come carta uscivano
  * larghi circa il doppio, e ancora del 5% con w / 63 (ottobre 2026). Le tessere e i segnalini
  * non allungano gli snap point: la stessa plancia esportata come plancia li aveva stretti di
- * 1 / 1,43 con la correzione. In più, in larghezza, tutti gli snap point uscivano larghi del 5%
- * circa: sulle carte e su una plancia verticale 200 × 300 (ottobre 2026)
+ * 1 / 1,43 con la correzione
  */
 export function ttsStretch(kind: 'card' | TtsPieceKind, w: number, h: number): number {
-  const base = kind === 'card' ? w / h / (63 / POKER_HEIGHT) : 1
-  return base * TTS_SNAP_STRETCH
+  return kind === 'card' ? w / h / (63 / POKER_HEIGHT) : 1
 }
 
 /** Campi Tags e AttachedSnapPoints di un oggetto, solo se servono */
@@ -768,8 +768,11 @@ const TTS_TILE_SIZE = 2.06
 /** Lato lungo della carta da poker, in mm */
 const POKER_HEIGHT = 88
 const TTS_TOKEN_SIZE = 3.2
-/** Allungamento in più degli snap point in larghezza, misurato in TTS */
-const TTS_SNAP_STRETCH = 1.05
+/**
+ * Gli snap point escono più distanti dal centro di circa il 5%, in larghezza e in altezza, su
+ * carte e plance (misurato in TTS su una plancia 200 × 300, ottobre 2026)
+ */
+const TTS_SNAP_SPREAD = 1.05
 /** Altezza degli snap point sull'oggetto, in unità locali */
 const TTS_SNAP_Y = 0
 
