@@ -5,6 +5,7 @@ import type { Api } from '../shared/api'
 const api: Api = {
   isWeb: false,
   chooseProjectFolder: () => ipcRenderer.invoke('project:choose-folder'),
+  relocateProject: (mode, text) => ipcRenderer.invoke('project:relocate', mode, text),
   loadProject: (folder) => ipcRenderer.invoke('project:load', folder),
   recentProjects: () => ipcRenderer.invoke('recent:list'),
   removeRecentProject: (folder) => ipcRenderer.invoke('recent:remove', folder),

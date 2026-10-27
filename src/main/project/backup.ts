@@ -63,6 +63,12 @@ export async function projectBackupDir(
   }
 }
 
+/** Dopo lo spostamento del progetto la sua cartella dei backup passa alla cartella nuova */
+export async function setBackupOwner(dir: string, folder: string): Promise<void> {
+  if (await exists(dir))
+    await writeFile(join(dir, OWNER), JSON.stringify({ folder: resolve(folder) }) + '\n')
+}
+
 function stamp(d: Date): string {
   const p = (n: number): string => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}.${p(d.getMinutes())}.${p(d.getSeconds())}`

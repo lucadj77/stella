@@ -112,6 +112,8 @@ export const webApi: Api = {
   isWeb: true,
   assetUrl,
   chooseProjectFolder: () => pickFolder('stella-project'),
+  // nel browser le cartelle del progetto si gestiscono dal sistema: il menu non ha la voce
+  relocateProject: async () => null,
   recentProjects: () => listRecent(),
   removeRecentProject: (f) => removeRecent(f),
   // l'esempio incluso nella build, copiato nello spazio del sito

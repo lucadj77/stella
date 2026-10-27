@@ -112,7 +112,7 @@ import { KIND_CORNER } from '../../shared/model/kinds'
 import CardGrid from './components/CardGrid'
 import CardForm from './components/CardForm'
 import ColumnsMenu from './components/ColumnsMenu'
-import { confirmKey, showNotice } from './components/confirm'
+import { askConfirm, confirmKey, showNotice } from './components/confirm'
 import FirstSteps from './components/FirstSteps'
 import { kindWords } from './i18n/kinds'
 import HelpTip from './components/HelpTip'
@@ -542,6 +542,36 @@ function App(): React.JSX.Element {
   const open = async (): Promise<void> => {
     const folder = await window.api.chooseProjectFolder()
     if (folder) load(folder)
+  }
+
+  /** Copia o sposta la cartella del progetto: prima si salva, così la copia è completa */
+  const relocate = async (mode: 'copy' | 'move'): Promise<void> => {
+    if (!project) return
+    if (anyDirty) {
+      await showNotice(t, t('relocate.saveFirst'))
+      return
+    }
+    try {
+      const to = await window.api.relocateProject(mode, {
+        title: t(mode === 'copy' ? 'relocate.copyTitle' : 'relocate.moveTitle'),
+        button: t(mode === 'copy' ? 'relocate.copyButton' : 'relocate.moveButton'),
+        copy: t('relocate.copySuffix')
+      })
+      if (!to) return
+      if (mode === 'move') {
+        await load(to)
+        return
+      }
+      const open = await askConfirm({
+        title: t('relocate.copied'),
+        message: to,
+        ok: t('relocate.openCopy'),
+        cancel: t('relocate.stay')
+      })
+      if (open) await load(to)
+    } catch (e) {
+      setError(messageFromError(e))
+    }
   }
 
   /** Torna alla schermata di ingresso */
@@ -2041,6 +2071,21 @@ function App(): React.JSX.Element {
     },
     { label: t('app.languages'), title: t('tip.languages'), onClick: () => setLanguagesOpen(true) },
     'sep',
+    // nel browser le cartelle si gestiscono dal sistema
+    ...(window.api.isWeb
+      ? []
+      : ([
+          {
+            label: t('relocate.copyMenu'),
+            title: t('relocate.copyHint'),
+            onClick: () => void relocate('copy')
+          },
+          {
+            label: t('relocate.moveMenu'),
+            title: t('relocate.moveHint'),
+            onClick: () => void relocate('move')
+          }
+        ] as MenuItem[])),
     {
       label: t('app.reloadFromDisk'),
       title: t('tip.reload'),
@@ -2060,6 +2105,8 @@ function App(): React.JSX.Element {
     languages: () => setLanguagesOpen(true),
     reload: async () => project && (await discardOk()) && load(project.folder),
     close: closeProject,
+    copyProject: () => void relocate('copy'),
+    moveProject: () => void relocate('move'),
     uiBigger: () =>
       changeUiZoom(UI_ZOOMS[Math.min(UI_ZOOMS.indexOf(uiZoom) + 1, UI_ZOOMS.length - 1)]),
     uiSmaller: () => changeUiZoom(UI_ZOOMS[Math.max(UI_ZOOMS.indexOf(uiZoom) - 1, 0)]),
@@ -2100,6 +2147,8 @@ function App(): React.JSX.Element {
           { id: 'sheets', label: t('app.googleSheets'), enabled: hasProject },
           { id: 'languages', label: t('app.languages'), enabled: hasProject },
           sep,
+          { id: 'copyProject', label: t('relocate.copyMenu'), enabled: hasProject },
+          { id: 'moveProject', label: t('relocate.moveMenu'), enabled: hasProject },
           { id: 'reload', label: t('app.reloadFromDisk'), enabled: hasProject },
           {
             id: 'close',

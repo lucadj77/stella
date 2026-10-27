@@ -21,6 +21,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Shortcuts**: I, G and V add an image, a grid and a value layer, like T, R and E. ⌘O / Ctrl+O and ⌘W / Ctrl+W open and close the project in the desktop app.
 - **Tabletop Simulator proportions**: tokens and standees are sized on their width, so a tall standee no longer comes out about twice as large, and standees keep the thickness on their own axis instead of being stretched in height. Landscape cards (a board as wide as two cards) are placed sideways at their true size instead of four times larger. Tiles and boards keep the proportions of the card instead of arriving square, are sized on their short side, and boards are rounded tiles.
 - **Standee thickness**: 15 mm by default, so the figure stands up.
+- **Copy and move the project**: the Project menu has **Save a copy…** and **Move…** (desktop app). Moving keeps the project's backups.
 - **Pinned properties**: in the card fields of a set, the pin next to a layer property keeps it under its field even with the properties closed and when you change card.
 - **Text outline**: drawn around the letters with rounded corners. A thick outline no longer gets cut at the edge of the box and no longer makes spikes on sharp curves.
 - **Tabletop Simulator export**: files go to both the project folder and Tabletop Simulator's saved objects by default.
@@ -40,6 +41,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Scorciatoie**: I, G e V aggiungono un livello immagine, griglia e valore, come T, R ed E. ⌘O / Ctrl+O e ⌘W / Ctrl+W aprono e chiudono il progetto nell'app per computer.
 - **Proporzioni in Tabletop Simulator**: segnalini e pedine si misurano sulla larghezza, quindi una pedina alta non esce più grande circa il doppio, e lo spessore delle pedine resta sul suo asse invece di allungarle in altezza. Le carte orizzontali (una plancia larga quanto due carte) sono messe di traverso, nella misura vera invece che quattro volte più grandi. Tessere e plance mantengono le proporzioni della carta invece di arrivare quadrate, si misurano sul lato corto, e le plance sono tessere arrotondate (rounded).
 - **Spessore delle pedine**: 15 mm di base, perché la figura stia in piedi.
+- **Copia e sposta il progetto**: il menu Progetto ha **Salva una copia…** e **Sposta…** (app per computer). Lo spostamento mantiene i backup del progetto.
 - **Proprietà fissate**: nei campi della carta di un set, la puntina accanto a una proprietà del livello la tiene sotto il suo campo anche con le proprietà chiuse e cambiando carta.
 - **Contorno del testo**: si disegna attorno alle lettere con gli angoli arrotondati. Un contorno spesso non viene più tagliato dal bordo del riquadro e non fa punte nelle curve strette.
 - **Esportazione per Tabletop Simulator**: di base i file vanno sia nella cartella del progetto sia negli oggetti salvati di Tabletop Simulator.

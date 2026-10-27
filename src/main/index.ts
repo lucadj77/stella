@@ -24,7 +24,8 @@ import { createProject } from './project/create'
 import { addRecent, hasThumbnail, listRecent, removeRecent, saveThumbnail } from './project/recent'
 import { prepareExample } from './project/example'
 import { saveData, type DataChanges } from './project/save'
-import { markDataWritten, watchDataFile } from './project/watchData'
+import { markDataWritten, stopWatchingData, watchDataFile } from './project/watchData'
+import { copyProject, moveProject } from './project/relocate'
 import { inspectDataFile } from './project/inspect'
 import { readSpreadsheet } from './project/spreadsheet'
 import { projectFilePath } from './project/projectFile'
@@ -77,6 +78,7 @@ import {
   listBackups,
   readBackupSettings,
   restoreBackup,
+  setBackupOwner,
   writeBackupSettings
 } from './project/backup'
 import { copySystemFont, systemFonts } from './library/systemFonts'
@@ -233,6 +235,45 @@ function registerIpc(): void {
     await addRecent(folder, project.file.name).catch((e) => console.error(e))
     return project
   })
+
+  // copia o sposta la cartella del progetto aperto; il renderer ha già salvato
+  ipcMain.handle(
+    'project:relocate',
+    async (event, mode: 'copy' | 'move', text: { title: string; button: string; copy: string }) => {
+      const from = getProjectFolder()
+      if (!from) return null
+      const win = BrowserWindow.fromWebContents(event.sender)
+      const options = {
+        title: text.title,
+        defaultPath: mode === 'copy' ? `${from} ${text.copy}` : from,
+        buttonLabel: text.button,
+        properties: ['createDirectory' as const, 'showOverwriteConfirmation' as const]
+      }
+      const result = win
+        ? await dialog.showSaveDialog(win, options)
+        : await dialog.showSaveDialog(options)
+      if (result.canceled || !result.filePath) return null
+      const to = result.filePath
+      if (mode === 'copy') {
+        await copyProject(from, to)
+        return to
+      }
+      // la cartella si libera: niente sorveglianza del file dati e niente file di stato
+      stopWatchingData()
+      if (stateFolder === from) clearAppState(from)
+      await moveProject(from, to)
+      setProjectFolder(to)
+      await removeRecent(from).catch((e) => console.error(e))
+      // i backup restano quelli del progetto
+      try {
+        const { dir } = await backupDirFor(from, projectName)
+        await setBackupOwner(dir, to)
+      } catch (e) {
+        console.error(e)
+      }
+      return to
+    }
+  )
 
   ipcMain.handle('recent:list', () => listRecent())
   ipcMain.handle('recent:remove', (_, folder: string) => removeRecent(folder))
