@@ -1083,6 +1083,10 @@ export const it: Record<MessageKey, string> = {
   'bind.unknownProperty': 'Colonna {column}: proprietà inesistente',
   'bind.formulaField': 'Livello {layer}: la formula usa il campo "{field}", che questa riga non ha',
   'bind.invalidValue': 'Colonna {column}: valore non valido "{value}"',
+  'bind.variableIsLayer':
+    'La variabile "{name}" ha lo stesso nome di un livello: {{name}} mostra il livello, non la variabile. Rinomina la variabile o il livello',
+  'bind.variableIsColumn':
+    'La variabile "{name}" ha lo stesso nome di una colonna: {{name}} mostra la cella, non la variabile. Rinomina la variabile o la colonna',
   'bind.gridContent': 'Griglia {layer}: non c\'è un gruppo "{group}" da ripetere nelle caselle',
   'bind.formulaError': 'Livello {layer}: errore nella formula: {error}',
   'bind.markup': 'Livello {layer}: {problem}',
@@ -1623,6 +1627,8 @@ export const it: Record<MessageKey, string> = {
   'variable.name': 'Nome',
   'variable.nameHint': 'Scrivi {nome} in qualsiasi testo per usarla',
   'variable.invalidName': 'Usa lettere, cifre, - e _, senza spazi',
+  'variable.fieldName':
+    'Un livello o una colonna si chiama già "{name}": nelle carte che lo hanno, {{name}} mostrerà il campo e non la variabile. Scegli un altro nome',
   'variable.exists': 'Esiste già una variabile con questo nome',
   'variable.type': 'Tipo',
   'variable.type.image': 'Icona',

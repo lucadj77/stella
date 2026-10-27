@@ -145,6 +145,14 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
     overrides.get(layer)!.set(prop ?? '', value.trim() === '' ? '' : value)
   }
 
+  // una variabile con il nome di un livello o di una colonna resta nascosta: {nome} è il campo
+  if (ctx.variables) {
+    const layerNames = new Set(walkLayers([...template.front, ...template.back]).map((l) => l.name))
+    for (const name of Object.keys(ctx.variables)) {
+      if (layerNames.has(name)) problems.push(msg('bind.variableIsLayer', { name }))
+      else if (name in card.fields) problems.push(msg('bind.variableIsColumn', { name }))
+    }
+  }
   const front = fieldSets(template, card, ctx.variables, system, 'front', language)
   // {card.side} vale back sul retro: solo allora servono campi a parte
   const back = usesSide(template)

@@ -67,7 +67,8 @@ import { arrangeGroup } from '../../shared/model/arrange'
 import {
   denormalizeTemplate,
   isValidTemplateName,
-  normalizeTemplate
+  normalizeTemplate,
+  walkLayers
 } from '../../shared/model/normalize'
 import DataTable from './components/DataTable'
 import Segmented from './components/Segmented'
@@ -2864,6 +2865,14 @@ function App(): React.JSX.Element {
                       name={editingVariable}
                       group={groupOf(order, 'variables', editingVariable)}
                       usages={editingVariable ? usagesNav('variable', editingVariable) : undefined}
+                      fieldNames={
+                        new Set([
+                          ...project.templates.flatMap((x) =>
+                            walkLayers([...x.front, ...x.back]).map((l) => l.name)
+                          ),
+                          ...project.sets.flatMap((x) => x.data?.headers ?? [])
+                        ])
+                      }
                       groups={groupNames(
                         order,
                         'variables',

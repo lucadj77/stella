@@ -1067,6 +1067,10 @@ export const en = {
   'bind.formulaField':
     'Layer {layer}: the formula uses field "{field}", which this row does not have',
   'bind.invalidValue': 'Column {column}: invalid value "{value}"',
+  'bind.variableIsLayer':
+    'The variable "{name}" has the same name as a layer: {{name}} shows the layer, not the variable. Rename the variable or the layer',
+  'bind.variableIsColumn':
+    'The variable "{name}" has the same name as a column: {{name}} shows the cell, not the variable. Rename the variable or the column',
   'bind.gridContent': 'Grid {layer}: there is no group "{group}" to repeat in the cells',
   'bind.formulaError': 'Layer {layer}: formula error: {error}',
   'bind.markup': 'Layer {layer}: {problem}',
@@ -1599,6 +1603,8 @@ export const en = {
   'variable.name': 'Name',
   'variable.nameHint': 'Write {name} in any text to use it',
   'variable.invalidName': 'Use letters, digits, - and _, without spaces',
+  'variable.fieldName':
+    'A layer or a column is already called "{name}": on the cards that have it, {{name}} will show the field, not the variable. Choose another name',
   'variable.exists': 'A variable with this name already exists',
   'variable.type': 'Type',
   'variable.type.image': 'Icon',

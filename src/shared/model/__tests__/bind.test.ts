@@ -349,3 +349,26 @@ describe('formula con risultato vuoto', () => {
     expect((pieno as TextLayer).text).toBe('3')
   })
 })
+
+describe('variabili con il nome di un campo', () => {
+  const tpl = normalizeTemplate({
+    name: 't',
+    front: [
+      { type: 'text', name: 'punti', text: '1' },
+      { type: 'text', name: 'testo', text: '{punti} {forza}' }
+    ]
+  })
+  it('avvisa se una variabile ha il nome di un livello o di una colonna', () => {
+    const b = bindCard(tpl, rowToCard(['forza'], ['3']), {
+      variables: {
+        punti: { type: 'image', src: 'punti.png' },
+        forza: { type: 'text', text: 'F' },
+        oro: { type: 'text', text: 'O' }
+      }
+    })
+    expect(b.problems.map((p) => `${p.key}:${p.params?.name}`)).toEqual([
+      'bind.variableIsLayer:punti',
+      'bind.variableIsColumn:forza'
+    ])
+  })
+})
