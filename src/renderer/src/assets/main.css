@@ -6770,3 +6770,12 @@ button.more-button {
   display: inline-flex;
   gap: 4px;
 }
+
+.generate-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.generate-column-free input {
+  width: 9em;
+}

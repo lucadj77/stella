@@ -7,11 +7,13 @@ import {
   addGenerated,
   countChoices,
   emptyColumn,
+  fieldsOf,
   generateCards,
   MAX_GENERATED,
   parseValues,
   type GenerateMode,
-  type GeneratorColumn
+  type GeneratorColumn,
+  type RandomOptions
 } from '../../../shared/model/generate'
 import { walkLayers } from '../../../shared/model/normalize'
 import { templateColumns } from '../../../shared/model/sheet'
@@ -23,10 +25,13 @@ import MarkupText from '../render/MarkupText'
 import Segmented from './Segmented'
 import FormulaDialog from './FormulaDialog'
 
-// Generatore di carte: insiemi di valori → tutte le combinazioni come righe del set.
+// Generatore di carte: insiemi di valori → tutte le combinazioni, o carte estratte a caso, come
+// righe del set.
 // Vedi docs/specifica.md, sezione 8.3.
 
 const PREVIEW_ROWS = 8
+
+const newSeed = (): number => Math.floor(Math.random() * 1000000)
 
 /** Nella finestra i valori si scrivono come testo; nel modello sono un elenco */
 interface Draft extends GeneratorColumn {
@@ -90,6 +95,11 @@ export default function GenerateDialog({
   const [copies, setCopies] = useState(1)
   const [assistant, setAssistant] = useState(false)
   const [mode, setMode] = useState<GenerateMode>(sheet.rows.length ? 'append' : 'replace')
+  const [isRandom, setIsRandom] = useState(false)
+  const [count, setCount] = useState(Math.max(1, sheet.rows.length || 20))
+  const [unique, setUnique] = useState(false)
+  const [seed, setSeed] = useState(newSeed)
+  const random: RandomOptions | undefined = isRandom ? { count, seed, unique } : undefined
 
   const update = (i: number, patch: Partial<Draft>): void =>
     setList((l) =>
@@ -113,12 +123,14 @@ export default function GenerateDialog({
   }
 
   const result = useMemo(
-    () => generateCards({ columns: list, filter, copies }),
-    [list, filter, copies]
+    () => generateCards({ columns: list, filter, copies, random }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [list, filter, copies, isRandom, count, seed, unique]
   )
   const active = list.filter((c) => c.column.trim() && c.values.length)
   /** Una colonna dell'anteprima mostra le icone se uno degli insiemi che la riempiono le usa */
-  const iconColumn = (h: string): boolean => active.some((c) => c.column.trim() === h && c.icons)
+  const iconColumn = (h: string): boolean =>
+    active.some((c) => fieldsOf(c, isRandom).includes(h) && c.icons)
   const shown = result.rows.slice(0, PREVIEW_ROWS)
   // aggiornando, le carte generate vanno nelle righe presenti; quelle in più si accodano
   const updated = mode === 'update' ? Math.min(sheet.rows.length, result.rows.length) : 0
@@ -128,9 +140,24 @@ export default function GenerateDialog({
   return (
     <Dialog title={t('generate.title')} onClose={onClose} guide="generate">
       <div className="generate-dialog">
-        <p className="field-note">{t('generate.intro')}</p>
+        <div className="generate-row">
+          <span>{t('generate.kind')}</span>
+          <Segmented<'all' | 'random'>
+            value={isRandom ? 'random' : 'all'}
+            options={[
+              ['all', t('generate.all'), t('generate.allHint')],
+              ['random', t('generate.random'), t('generate.randomHint')]
+            ]}
+            onChange={(v) => setIsRandom(v === 'random')}
+          />
+        </div>
+        <p className="field-note">{t(isRandom ? 'generate.randomIntro' : 'generate.intro')}</p>
         {list.map((c, i) => {
           const n = countChoices(c.values.length, c.pick, c.repeat, c.ordered, c.values, c.limits)
+          const more = c.more ?? []
+          /** A caso: quanti valori si estraggono per carta, in tutte le colonne dell'insieme */
+          const draws = isRandom ? c.pick * Math.max(1, fieldsOf(c, true).length) : c.pick
+          const setMore = (next: string[]): void => update(i, { more: next })
           return (
             <fieldset key={i} className="generate-set">
               <div className="generate-row">
@@ -142,8 +169,36 @@ export default function GenerateDialog({
                     onChange={(column) => update(i, { column })}
                   />
                 </label>
+                {isRandom &&
+                  more.map((m, k) => (
+                    <span key={k} className="generate-more">
+                      <ColumnPicker
+                        columns={columns}
+                        value={m}
+                        onChange={(column) => setMore(more.map((x, j) => (j === k ? column : x)))}
+                      />
+                      <button
+                        className="icon-btn"
+                        title={t('generate.removeField')}
+                        onClick={() => setMore(more.filter((_, j) => j !== k))}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                {isRandom && (
+                  <button
+                    title={t('generate.addFieldHint')}
+                    onClick={() => {
+                      const used = new Set(fieldsOf(c, true))
+                      setMore([...more, columns.find((x) => !used.has(x)) ?? ''])
+                    }}
+                  >
+                    {t('generate.addField')}
+                  </button>
+                )}
                 <label>
-                  {t('generate.pick')}
+                  {t(isRandom ? 'generate.pickRandom' : 'generate.pick')}
                   <NumInput
                     className="num narrow"
                     min={1}
@@ -198,16 +253,21 @@ export default function GenerateDialog({
                   />
                   {t('generate.icons')}
                 </label>
+                {draws > 1 && (
+                  <label
+                    className="check"
+                    title={isRandom ? t('generate.repeatRandomHint') : undefined}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={c.repeat}
+                      onChange={(e) => update(i, { repeat: e.target.checked })}
+                    />
+                    {t('generate.repeat')}
+                  </label>
+                )}
                 {c.pick > 1 && (
                   <>
-                    <label className="check">
-                      <input
-                        type="checkbox"
-                        checked={c.repeat}
-                        onChange={(e) => update(i, { repeat: e.target.checked })}
-                      />
-                      {t('generate.repeat')}
-                    </label>
                     <label className="check">
                       <input
                         type="checkbox"
@@ -227,15 +287,19 @@ export default function GenerateDialog({
                   </>
                 )}
                 <span className="muted small spacer-left">
-                  {c.values.length
-                    ? t('generate.setCount', { values: c.values.length, n })
-                    : t('generate.noValues')}
+                  {!c.values.length
+                    ? t('generate.noValues')
+                    : isRandom
+                      ? t('generate.setDraws', { values: c.values.length, n: draws })
+                      : t('generate.setCount', { values: c.values.length, n })}
                 </span>
               </div>
-              {c.pick > 1 && c.values.length > 0 && (
+              {draws > 1 && c.values.length > 0 && (
                 <details className="generate-limits">
                   <summary>{t('generate.limits')}</summary>
-                  <p className="muted small">{t('generate.limitsHint')}</p>
+                  <p className="muted small">
+                    {t(isRandom ? 'generate.limitsRandomHint' : 'generate.limitsHint')}
+                  </p>
                   <div className="generate-limit-grid">
                     <span />
                     <span className="muted small">{t('generate.min')}</span>
@@ -251,7 +315,7 @@ export default function GenerateDialog({
                       return (
                         <Fragment key={v}>
                           <span className="generate-limit-value">
-                            {c.icons ? (
+                            {c.icons && !/^-?\d+([.,]\d+)?$/.test(v) ? (
                               <MarkupText
                                 text={`{${v}} ${v}`}
                                 unit={3}
@@ -266,7 +330,7 @@ export default function GenerateDialog({
                             allowEmpty
                             className="num narrow"
                             min={0}
-                            max={c.pick}
+                            max={draws}
                             placeholder="0"
                             value={lim.min ?? ''}
                             onChange={(e) => setLim('min', e.target.value)}
@@ -275,8 +339,8 @@ export default function GenerateDialog({
                             allowEmpty
                             className="num narrow"
                             min={0}
-                            max={c.pick}
-                            placeholder={String(c.repeat ? c.pick : 1)}
+                            max={draws}
+                            placeholder={String(c.repeat ? draws : 1)}
                             value={lim.max ?? ''}
                             onChange={(e) => setLim('max', e.target.value)}
                           />
@@ -321,6 +385,43 @@ export default function GenerateDialog({
             />
           </label>
         </div>
+        {isRandom && (
+          <div className="generate-row">
+            <label>
+              {t('generate.count')}
+              <NumInput
+                className="num narrow"
+                min={1}
+                max={MAX_GENERATED}
+                value={count}
+                onChange={(e) =>
+                  setCount(Math.max(1, Math.min(MAX_GENERATED, Number(e.target.value) || 1)))
+                }
+              />
+            </label>
+            <label className="check" title={t('generate.uniqueHint')}>
+              <input
+                type="checkbox"
+                checked={unique}
+                onChange={(e) => setUnique(e.target.checked)}
+              />
+              {t('generate.unique')}
+            </label>
+            <label title={t('generate.seedHint')}>
+              {t('generate.seed')}
+              <NumInput
+                className="num"
+                min={0}
+                value={seed}
+                onChange={(e) => setSeed(Math.max(0, Math.round(Number(e.target.value)) || 0))}
+              />
+            </label>
+            <button title={t('generate.shuffleHint')} onClick={() => setSeed(newSeed())}>
+              🎲 {t('generate.shuffle')}
+            </button>
+          </div>
+        )}
+        {result.impossible && <p className="field-error">{t('generate.impossible')}</p>}
         {result.filterError && (
           <p className="field-error">{t('generate.filterError', { error: result.filterError })}</p>
         )}
@@ -332,7 +433,8 @@ export default function GenerateDialog({
                 : t('generate.cards', { n: result.rows.length })}
             </b>
             {result.total !== result.rows.length &&
-              ' ' + t('generate.ofTotal', { n: result.total })}
+              !result.impossible &&
+              ' ' + t(isRandom ? 'generate.ofRequested' : 'generate.ofTotal', { n: result.total })}
           </p>
           {result.truncated && (
             <p className="field-warning">{t('generate.truncated', { n: MAX_GENERATED })}</p>
@@ -427,6 +529,7 @@ export default function GenerateDialog({
         <FilterAssistant
           filter={filter}
           list={list}
+          random={random && { ...random, count: 1 }}
           onApply={setFilter}
           onClose={() => setAssistant(false)}
         />
@@ -439,16 +542,22 @@ export default function GenerateDialog({
 function FilterAssistant({
   filter,
   list,
+  random,
   onApply,
   onClose
 }: {
   filter: string
   list: GeneratorColumn[]
+  random?: RandomOptions
   onApply(filter: string): void
   onClose(): void
 }): React.JSX.Element {
   const { t } = useI18n()
-  const first = useMemo(() => generateCards({ columns: list, filter: '', copies: 1 }), [list])
+  const first = useMemo(
+    () => generateCards({ columns: list, filter: '', copies: 1, random }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [list]
+  )
   const sample: Record<string, string> = {}
   first.headers.forEach((h, i) => h !== 'amount' && (sample[h] = first.rows[0]?.[i] ?? ''))
   const f = filter.trim()

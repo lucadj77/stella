@@ -19,16 +19,37 @@ await win.getByRole('button', { name: `${T['set.tools']} ▾` }).click()
 await win.getByRole('menuitem', { name: T['set.generate'] }).click()
 await win.waitForTimeout(800)
 const set = dialog().locator('.generate-set').first()
-await set
-  .locator('input')
-  .first()
-  .fill(it ? 'risorse' : 'resources')
-await set.locator('input[type=number]').first().fill('2')
+// la colonna nuova si scrive con «Altra colonna…»
+await set.locator('select').first().selectOption({ label: T['generate.otherColumn'] })
+await set.locator('.generate-column-free input').fill(it ? 'risorse' : 'resources')
+await set.locator('input.num').first().fill('2')
 await set.locator('textarea').fill(it ? 'legno, pietra, grano' : 'wood, stone, wheat')
 await win.waitForTimeout(300)
 await set.getByText(T['generate.repeat']).click()
 await win.waitForTimeout(800)
 await shotEl(win, `${lang}/genera`, dialog(), 24)
+// a caso: i numeri 1-4 su quattro colonne, il 4 da 1 a 3 volte
+await dialog().getByText(T['generate.random'], { exact: true }).click()
+await set.locator('.generate-column-free input').fill('text1')
+for (const n of [2, 3, 4]) {
+  await set.getByRole('button', { name: T['generate.addField'] }).click()
+  await set
+    .locator('.generate-more select')
+    .last()
+    .selectOption({ label: T['generate.otherColumn'] })
+  await set
+    .locator('.generate-more input')
+    .last()
+    .fill('text' + n)
+}
+await set.locator('input.num').first().fill('1')
+await set.locator('textarea').fill('1-4')
+await set.locator('.generate-limits summary').click()
+await set.locator('.generate-limit-grid input').nth(6).fill('1')
+await set.locator('.generate-limit-grid input').nth(7).fill('3')
+await dialog().locator('input.num').nth(-2).fill('12')
+await win.waitForTimeout(800)
+await shotEl(win, `${lang}/genera-caso`, dialog(), 24)
 await close()
 // esportazione
 await win.getByRole('button', { name: T['app.export'] }).click()
