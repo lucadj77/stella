@@ -603,6 +603,20 @@ export const videos = [
       it: 'https://www.youtube.com/watch?v=_y1I1nVNgy0',
       en: 'https://www.youtube.com/watch?v=FmJTn5ypFMY'
     }
+  },
+  {
+    n: 19,
+    it: 'Snap point e tag per Tabletop Simulator',
+    en: 'Snap points and tags for Tabletop Simulator',
+    about: {
+      it: 'Dove si agganciano gli oggetti sulla plancia, e quali: tag dei template, snap su livelli e griglie.',
+      en: 'Where objects snap on the board, and which ones: template tags, snaps on layers and grids.'
+    },
+    minutes: 6,
+    url: {
+      it: 'https://www.youtube.com/watch?v=C-xwymZd5mU',
+      en: 'https://www.youtube.com/watch?v=itEqdPFBeAQ'
+    }
   }
 ]
 
@@ -613,7 +627,7 @@ export const videoGroups = {
   components: [7, 8, 11, 16],
   text: [4, 13],
   data: [10, 12],
-  table: [9, 3, 5],
+  table: [9, 3, 19, 5],
   tools: [6, 17, 18]
 }
 

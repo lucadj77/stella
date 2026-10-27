@@ -33,6 +33,7 @@ Video tutorial su YouTube, senza voce ([tutta la playlist](https://www.youtube.c
 
 - 9 · [Stampare i componenti](https://www.youtube.com/watch?v=TG-WWQqBDUk) (9 minuti)
 - 3 · [Da Stella a Tabletop Simulator](https://www.youtube.com/watch?v=XxKgcgba9wE) (5 minuti)
+- 19 · [Snap point e tag per Tabletop Simulator](https://www.youtube.com/watch?v=C-xwymZd5mU) (6 minuti)
 - 5 · [Il regolamento e gli altri documenti](https://www.youtube.com/watch?v=psMiWRUQ4k4) (5 minuti)
 
 **Strumenti**
