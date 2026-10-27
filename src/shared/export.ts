@@ -711,12 +711,12 @@ export function ttsSnapPoints(
 ): Record<string, unknown>[] {
   // gli snap point escono un po' più distanti dal centro della misura vera, in larghezza e in
   // altezza: si avvicinano di TTS_SNAP_SPREAD
-  const k = TTS_UNITS_PER_MM / (scale || 1) / TTS_SNAP_SPREAD
+  const k = TTS_UNITS_PER_MM / (scale || 1)
   return snaps.map((p) => ({
     Position: {
-      x: round3((-(p.x - size.w / 2) * k) / (stretch || 1)),
+      x: round3((-(p.x - size.w / 2) * k) / TTS_SNAP_SPREAD.x / (stretch || 1)),
       y: TTS_SNAP_Y,
-      z: round3((p.y - size.h / 2) * k)
+      z: round3(((p.y - size.h / 2) * k) / TTS_SNAP_SPREAD.z)
     },
     ...(p.angle !== null ? { Rotation: { x: 0, y: round3(p.angle), z: 0 } } : {}),
     ...(p.tags.length ? { Tags: p.tags } : {})
@@ -773,10 +773,11 @@ const TTS_TILE_SIZE = 2.06
 const POKER_HEIGHT = 88
 const TTS_TOKEN_SIZE = 3.2
 /**
- * Gli snap point escono più distanti dal centro di circa il 5%, in larghezza e in altezza, su
- * carte e plance (misurato in TTS su una plancia 200 × 300, ottobre 2026)
+ * Gli snap point escono più distanti dal centro di circa il 5% in larghezza e del 2,5% in
+ * altezza, su carte e plance (misurato in TTS su una plancia 200 × 300, ottobre 2026: con il 5%
+ * anche in altezza risultavano troppo stretti)
  */
-const TTS_SNAP_SPREAD = 1.05
+const TTS_SNAP_SPREAD = { x: 1.05, z: 1.025 }
 /** Altezza degli snap point sull'oggetto, in unità locali */
 const TTS_SNAP_Y = 0
 

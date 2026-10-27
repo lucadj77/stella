@@ -128,11 +128,11 @@ describe('snap point di Tabletop Simulator', () => {
       2,
       1.5
     )
-    const k = 2.25 / 63 / 2 / 1.05
+    const k = 2.25 / 63 / 2
     expect(p.Position).toEqual({
-      x: Math.round((-60 * k * 1000) / 1.5) / 1000,
+      x: Math.round((-60 * k * 1000) / 1.05 / 1.5) / 1000,
       y: 0,
-      z: Math.round(44 * k * 1000) / 1000
+      z: Math.round((44 * k * 1000) / 1.025) / 1000
     })
     // stesso verso di Stella
     expect(p.Rotation).toEqual({ x: 0, y: 45, z: 0 })
