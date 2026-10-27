@@ -33,6 +33,7 @@ Video tutorials on YouTube, no voice ([whole playlist](https://www.youtube.com/p
 
 - 9 · [Printing your components](https://www.youtube.com/watch?v=RbO56oqJSFo) (9 minutes)
 - 3 · [From Stella to Tabletop Simulator](https://www.youtube.com/watch?v=N6VXi-RPIpg) (5 minutes)
+- 19 · [Snap points and tags for Tabletop Simulator](https://www.youtube.com/watch?v=itEqdPFBeAQ) (6 minutes)
 - 5 · [The rulebook and other documents](https://www.youtube.com/watch?v=skHh2Uz2VxE) (5 minutes)
 
 **Tools**
