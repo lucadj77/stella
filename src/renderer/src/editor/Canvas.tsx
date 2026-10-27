@@ -599,11 +599,11 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
                   d={`M${-9 * px} 0H${9 * px}M0 ${-9 * px}V${9 * px}`}
                   vectorEffect="non-scaling-stroke"
                 />
-                {/* il verso dell'oggetto che si aggancia: il suo lato alto */}
+                {/* come in TTS: la freccia punta dove andrà il lato alto dell'oggetto */}
                 {p.angle !== null && (
                   <path
                     className="tts-snap-dir"
-                    d={`M${-3 * px} ${-10 * px}L0 ${-14 * px}L${3 * px} ${-10 * px}`}
+                    d={`M0 0V${-16 * px}M${-4 * px} ${-12 * px}L0 ${-16 * px}L${4 * px} ${-12 * px}`}
                     transform={`rotate(${p.angle})`}
                     vectorEffect="non-scaling-stroke"
                   />

@@ -139,8 +139,8 @@ describe('snap point di Tabletop Simulator', () => {
   })
 
   it('allungamento: carte dalla carta da poker, tessere dal quadrato, segnalini mai', () => {
-    expect(ttsStretch('card', 63, 88)).toBeCloseTo(1)
-    expect(ttsStretch('card', 126, 88)).toBeCloseTo(2)
+    expect(ttsStretch('card', 63, 88)).toBeCloseTo(1.05)
+    expect(ttsStretch('card', 126, 88)).toBeCloseTo(2.1)
     expect(ttsStretch('board', 120, 88)).toBeCloseTo(1.364, 2)
     expect(ttsStretch('token', 30, 50)).toBe(1)
   })
