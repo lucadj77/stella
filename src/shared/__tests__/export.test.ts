@@ -186,14 +186,14 @@ describe('Tabletop Simulator', () => {
       ]
     ) as { ObjectStates: Record<string, unknown>[] }
     const obj = deck.ObjectStates[0]
-    expect(obj.Name).toBe('Deck')
+    expect(obj.Name).toBe('DeckCustom')
     expect(obj.DeckIDs).toEqual([100, 100, 101])
     const one = ttsSavedObject(
       'Eroi',
       [sheet],
       [{ sheet: 0, slot: 0, nickname: '', description: '' }]
     ) as { ObjectStates: Record<string, unknown>[] }
-    expect(one.ObjectStates[0]).toMatchObject({ Name: 'Card', CardID: 100, Nickname: 'Eroi' })
+    expect(one.ObjectStates[0]).toMatchObject({ Name: 'CardCustom', CardID: 100, Nickname: 'Eroi' })
   })
   it('le carte orizzontali vanno di traverso: il lato corto misura come il lato lungo del poker', () => {
     const sheet = { faceUrl: 'f', backUrl: 'b', cols: 1, rows: 1, uniqueBack: false }

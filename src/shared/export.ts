@@ -770,11 +770,13 @@ export function ttsSavedObject(
     Hands: true,
     SidewaysCard: sideways
   })
+  // "CardCustom" e "DeckCustom" sono i nomi che TTS dà agli oggetti fatti con Objects > Custom:
+  // solo con questi il menu dell'oggetto ha la voce Custom. Un mazzo con più fogli resta "Deck"
   const object =
     cards.length === 1
-      ? { ...cardObject(cards[0]), Nickname: cards[0].nickname || name }
+      ? { ...cardObject(cards[0]), Name: 'CardCustom', Nickname: cards[0].nickname || name }
       : {
-          Name: 'Deck',
+          Name: sheets.length === 1 ? 'DeckCustom' : 'Deck',
           Transform: transform(1, true, scale),
           Nickname: name,
           Description: '',
