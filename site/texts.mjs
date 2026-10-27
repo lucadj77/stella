@@ -605,6 +605,20 @@ export const videos = [
     }
   },
   {
+    n: 15,
+    it: 'Installare Stella e la versione web',
+    en: 'Installing Stella and the web version',
+    about: {
+      it: 'Mac, Windows e Linux, gli avvisi della prima apertura, gli aggiornamenti e la versione nel browser.',
+      en: 'Mac, Windows and Linux, the first-launch warnings, updates and the browser version.'
+    },
+    minutes: 3,
+    url: {
+      it: 'https://www.youtube.com/watch?v=Jx6QC7Ucfrw',
+      en: 'https://www.youtube.com/watch?v=n_9rcC9e_14'
+    }
+  },
+  {
     n: 19,
     it: 'Snap point e tag per Tabletop Simulator',
     en: 'Snap points and tags for Tabletop Simulator',
