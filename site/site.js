@@ -137,3 +137,16 @@ document.querySelectorAll('details.video-group').forEach((d) => {
     if (d.open && d.getBoundingClientRect().top < 0) d.scrollIntoView({ block: 'start' })
   })
 })
+
+// Download contati con GoatCounter (senza cookie): un evento per file, con sistema e versione,
+// per distinguere i download dal sito dagli aggiornamenti automatici dell'app
+document.addEventListener('click', function (e) {
+  var a = e.target.closest && e.target.closest('a[href*="/releases/download/"]')
+  if (!a || !window.goatcounter || !window.goatcounter.count) return
+  var file = decodeURIComponent(a.href.split('/').pop())
+  // Stella-1.7.0-mac-arm64.dmg → sistema mac-arm64, versione 1.7.0
+  var m = /^[^-]+-(.+?)-((?:mac|windows|linux)-[^.]+)\.[a-z]+$/i.exec(file)
+  var system = m ? m[2] : 'other'
+  var version = m ? m[1] : a.href.split('/').slice(-2)[0].replace(/^v/, '')
+  window.goatcounter.count({ path: 'download-' + system + '-' + version, title: file, event: true })
+})
