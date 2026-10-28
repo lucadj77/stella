@@ -62,14 +62,17 @@ export function MenuPanel({
       onClose()
     }
     const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') onClose()
+      if (e.key !== 'Escape') return
+      // chiude solo il menu, non la finestra sotto
+      e.stopPropagation()
+      onClose()
     }
     window.addEventListener('pointerdown', onDown)
-    window.addEventListener('keydown', onKey)
+    window.addEventListener('keydown', onKey, true)
     window.addEventListener('resize', onClose)
     return () => {
       window.removeEventListener('pointerdown', onDown)
-      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('keydown', onKey, true)
       window.removeEventListener('resize', onClose)
     }
   }, [onClose, keep])

@@ -8,6 +8,7 @@ import { useI18n } from '../i18n/context'
 import { useLengthUnit } from '../units'
 import { UNIT_LABEL, formatLength, fromUnit, toUnit } from '../../../shared/model/units'
 import { RatioLock } from './fields'
+import { KindIcon } from '../export/exportIcons'
 import { useRatioLock } from './ratioLock'
 
 export function Dialog({
@@ -143,6 +144,7 @@ export function NewTemplateDialog({
                   applyPreset(KIND_PRESETS[k][0])
                 }}
               >
+                <KindIcon kind={k} size={22} />
                 {t(`kind.${k}`)}
               </button>
             ))}

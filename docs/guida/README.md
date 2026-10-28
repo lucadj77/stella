@@ -665,7 +665,21 @@ Ogni carta mostra la parte dell'immagine che sta sotto il suo livello, come se l
 
 ## 11. Esportare
 
-**Esporta…** apre una finestra che comincia da cosa vuoi fare: **Stampare a casa** (un PDF con i componenti affiancati, fronte e retro), **Tipografia** (un PDF con l'abbondanza e i segni di taglio), **Tabletop Simulator** o **Immagini**. Le prime due partono da un preset che si può poi cambiare. Per ognuna si scelgono i set e se ripetere le carte secondo la colonna `amount`. Le carte si disegnano con lo stesso motore dell'anteprima, comprese le modifiche non ancora salvate.
+**Esporta…** (⌘E / Ctrl+E) apre una finestra che comincia da cosa vuoi fare: **Stampare a casa** (un PDF con i componenti affiancati, fronte e retro), **Tipografia** (un PDF con l'abbondanza e i segni di taglio), **Tabletop Simulator** o **Immagini**. Sotto si scelgono i set (il numero accanto al nome dice quante righe hanno) e se ripetere le carte secondo la colonna `amount`. Le carte si disegnano con lo stesso motore dell'anteprima, comprese le modifiche non ancora salvate.
+
+La finestra ha le opzioni a sinistra e l'anteprima a destra. Le opzioni sono in tre livelli:
+
+- **Le scelte che contano**: le poche che cambiano davvero il risultato, a pulsanti con un disegno (per esempio fronte-retro, segni di taglio, dove salvare per Tabletop Simulator).
+- **Sezioni chiuse**: il resto delle opzioni. Il titolo di ogni sezione riassume i valori che contiene, così si controllano senza aprirla; una sezione aperta resta aperta la volta dopo.
+- **La frase sopra Esporta**: dice cosa succederà, per esempio «22 componenti in 3 set → 6 pagine A4, un PDF in export», con sotto i dettagli (fogli da stampare, segni di taglio, file .json).
+
+Un'opzione che con le altre scelte non si applica resta visibile ma spenta, con il motivo scritto accanto (per esempio la spaziatura con l'abbondanza, o lo spostamento dei retri senza fronte-retro).
+
+L'anteprima a destra è quella vera: mostra la prima pagina, immagine o foglio che l'esportazione scriverà, e si scorre con ‹ ›. Si disegna solo la pagina mostrata, quindi anche un progetto grande resta veloce; mentre la pagina si prepara c'è **Attendere…** e intanto si possono cambiare le opzioni. **Ingrandisci** apre l'anteprima grande (vedi [11.3](#113-anteprima)).
+
+A esportazione finita, sotto la frase compaiono il numero dei file scritti, gli avvisi e i collegamenti per aprire il file (se sono pochi) o la cartella.
+
+**Ripetere l'ultima esportazione.** Il pulsante **Esporta…** in alto ha accanto un ▾ con **Ripeti l'ultima esportazione** (⇧⌘E / Ctrl+Maiusc+E): esporta di nuovo con le ultime opzioni usate, senza aprire la finestra. L'avanzamento, con **Interrompi**, e poi il risultato compaiono in un avviso in basso a destra, con il collegamento alla cartella. Nello stesso menu ci sono i profili del progetto, che aprono la finestra già impostata.
 
 ### 11.1 Immagini
 
@@ -677,7 +691,7 @@ L'SVG è vettoriale e non ha una risoluzione: si ingrandisce senza perdere quali
 
 ### 11.2 PDF di stampa
 
-Il PDF è vettoriale, con i font incorporati. Si scelgono pagina e orientamento, margini, spaziatura e disposizione (quante carte ci stanno, o righe × colonne). Le altre opzioni:
+Il PDF è vettoriale, con i font incorporati. Tra le scelte che contano ci sono la carta (pagina e orientamento), l'abbondanza (solo per la tipografia), il fronte-retro e i segni di taglio; con **Retri in pagine a parte** si sceglie anche quali lati stampare. Le sezioni **Disposizione**, **Taglio e angoli** e **Pagine e file** hanno il resto: margini, spaziatura e disposizione (quante carte ci stanno, o righe × colonne), e le opzioni qui sotto.
 
 - **Abbondanza**: con l'abbondanza le carte si toccano e i segni di taglio sono all'esterno.
 - **Rotazione**: ruota le carte se altrimenti non entrano o ne entrano di più.
@@ -693,17 +707,17 @@ Il PDF è vettoriale, con i font incorporati. Si scelgono pagina e orientamento,
 
 ### 11.3 Anteprima
 
-**Anteprima…** mostra i file che l'esportazione scriverà, senza scrivere nulla: le immagini con il nome del file, le pagine del PDF, i fogli di Tabletop Simulator. Si scorrono con ‹ › o con le frecce.
+L'anteprima accanto alle opzioni mostra in piccolo i file che l'esportazione scriverà, senza scrivere nulla: le immagini con il nome del file, le pagine del PDF, i fogli di Tabletop Simulator. **Ingrandisci** la apre grande, dalla stessa pagina; si scorre con ‹ › o con le frecce.
 
 ![Anteprima delle pagine del PDF](img/esporta-anteprima.png)
 
 ### 11.4 Tabletop Simulator
 
-Crea per ogni set i fogli di carte (fino a 10 × 7, con la griglia scelta in automatico per ridurre gli spazi vuoti) e il file del mazzo da caricare in Tabletop Simulator. I file vanno nella cartella del progetto, in quella degli oggetti salvati di Tabletop Simulator o in entrambe (la scelta predefinita). Nickname e descrizione delle carte possono venire da un campo.
+Crea per ogni set i fogli di carte (fino a 10 × 7, con la griglia scelta in automatico per ridurre gli spazi vuoti) e il file del mazzo da caricare in Tabletop Simulator. **Salva in** sceglie se i file vanno nella cartella del progetto, in quella degli oggetti salvati di Tabletop Simulator o in entrambe (la scelta predefinita). Nella sezione **Nome e descrizione** il nickname e la descrizione delle carte possono venire da un campo; di base sono vuoti.
 
 Con **Copie** attivo, **Copie nel foglio** decide dove finiscono le copie di una carta: una volta sola nel foglio, e il file del mazzo la moltiplica (è la scelta predefinita e tiene i fogli piccoli), oppure ripetute nel foglio quante volte dice `amount`. La seconda serve quando si caricano i fogli a mano in Tabletop Simulator, senza il file del mazzo: ogni posizione del foglio è una carta.
 
-**Oggetti** sceglie per ogni set cosa creare in Tabletop Simulator:
+La tabella dei set sceglie per ogni set cosa creare in Tabletop Simulator, nella colonna **Oggetto in TTS** (il menu mostra l'icona di ogni tipo):
 
 - **Carte**: il mazzo dai fogli, come sopra.
 - **Segnalini**: un'immagine per carta, ritagliata sulla forma della carta (rettangolo, angoli arrotondati, cerchio, esagono o sagoma). Tabletop Simulator ne fa un pezzo spesso con il bordo del colore dell'immagine; sotto mostra il fronte specchiato, quindi il retro della carta non si usa.
@@ -714,7 +728,7 @@ Con **Copie** attivo, **Copie nel foglio** decide dove finiscono le copie di una
 
 Per segnalini, pedine e tessere c'è lo **Spessore**. I pezzi di un set vanno in un sacchetto, copie comprese; un set con un pezzo solo diventa quel pezzo. Carte, segnalini, pedine e tessere arrivano in Tabletop Simulator nelle proporzioni vere: una carta da 63 mm ha la misura predefinita di Tabletop Simulator, e tutto il resto è più grande o più piccolo in proporzione. Le carte orizzontali, come una plancia larga quanto due carte, sono messe di traverso.
 
-**Tag e snap point.** Nelle proprietà del template, sotto **Componente**, **Tag TTS** dà a ogni componente i suoi tag di Tabletop Simulator, separati da virgole. Ammette i `{campi}`, per esempio `{tipo}, carta`, e un mazzo prende i tag di tutte le sue carte. Due set con lo stesso template possono avere tag diversi: in **Oggetti**, accanto a ogni set, il campo **Tag TTS** parte dai tag del template e, se lo cambi, dà al set i tag scritti lì al posto di quelli del template. Uno **snap point** è un punto della plancia (o di una tessera, di un segnalino, di una carta) a cui gli oggetti si agganciano quando li si lascia vicino. Ce ne sono due modi:
+**Tag e snap point.** Nelle proprietà del template, sotto **Componente**, **Tag TTS** dà a ogni componente i suoi tag di Tabletop Simulator, separati da virgole. Ammette i `{campi}`, per esempio `{tipo}, carta`, e un mazzo prende i tag di tutte le sue carte. Due set con lo stesso template possono avere tag diversi: nella tabella dei set, accanto a ogni set, il campo **Tag TTS** parte dai tag del template e, se lo cambi, dà al set i tag scritti lì al posto di quelli del template. Uno **snap point** è un punto della plancia (o di una tessera, di un segnalino, di una carta) a cui gli oggetti si agganciano quando li si lascia vicino. Ce ne sono due modi:
 
 - lo strumento **Snap** (P) aggiunge un livello che è solo uno snap point: nell'editor è un mirino blu, nelle stampe e nelle immagini non si vede, e il punto è il centro del suo riquadro;
 - ogni altro livello ha in fondo alle proprietà la sezione **Tabletop Simulator** con **Snap point**: il punto va al centro del livello. Per una griglia l'opzione è **Snap point in ogni casella**, comoda per le caselle di una plancia. Uno snap point su un livello del **contenuto delle caselle** si ripete in ogni casella, spostato come il contenuto.
@@ -727,7 +741,9 @@ I fogli si richiamano con indirizzi locali, quindi il mazzo funziona sul compute
 
 ### 11.5 Profili e preset
 
-**Profilo**, in cima alla finestra, sceglie un profilo salvato nel progetto o un preset: MakePlayingCards, The Game Crafter, stampa in casa su A4 o Letter. **Salva come…** salva le opzioni attuali come profilo con un nome, da rilanciare in seguito. Prima di ordinare conviene controllare le specifiche sul sito della tipografia, che possono cambiare.
+Le tipografie e la stampa in casa sono già nelle scelte: **Tipografia** e **Stampare a casa** partono dalle loro opzioni (A4, o Letter con l'app in inglese), e per le immagini **Per chi** sceglie tra uso generico, MakePlayingCards e The Game Crafter. Prima di ordinare conviene controllare le specifiche sul sito della tipografia, che possono cambiare.
+
+Il menu **Profilo ▾** in basso salva le opzioni attuali come profilo del progetto, con un nome, da riprendere in seguito: **Salva come nuovo profilo…**, **Salva in** per aggiornare il profilo scelto, **Elimina**. Scegliere un profilo dal menu rimette il suo tipo di esportazione e le sue opzioni.
 
 ### 11.6 Crediti
 

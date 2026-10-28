@@ -65,6 +65,7 @@ const FUNCTIONS = [
 const KEYS: [string, MessageKey][] = [
   ['⌘S', 'help.keys.save'],
   ['⌘O  ⌘W', 'help.keys.project'],
+  ['⌘E  ⇧⌘E', 'help.keys.export'],
   ['⌘Z  ⇧⌘Z', 'help.keys.undo'],
   ['⌘A  Esc', 'help.keys.selectCards'],
   ['Alt+Enter', 'help.keys.cellBreak'],

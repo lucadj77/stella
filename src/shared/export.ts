@@ -163,6 +163,8 @@ export interface ExportProfiles {
   tts?: Partial<TtsOptions>
   /** Profili con nome, nell'ordine in cui sono stati creati */
   named?: NamedProfile[]
+  /** L'ultima esportazione: il tipo e la lingua, per «Ripeti l'ultima esportazione» */
+  last?: { kind: ExportKind; language?: string }
 }
 
 export const DEFAULT_IMAGE: ImageOptions = {

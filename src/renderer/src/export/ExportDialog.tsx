@@ -1,58 +1,69 @@
 import { useEffect, useMemo, useState } from 'react'
 import NumInput from '../components/NumInput'
 import type { LoadedProject } from '../../../shared/project'
-import { kindOf, type Side } from '../../../shared/model/template'
+import { kindOf } from '../../../shared/model/template'
 import { walkLayers } from '../../../shared/model/normalize'
-import { resolveAsset } from '../../../shared/model/assets'
-import { isGenericFont, markupFonts } from '../../../shared/model/fonts'
 import {
   DEFAULT_IMAGE,
-  MAX_OPEN_FILES,
   DEFAULT_PDF,
   DEFAULT_TTS,
   pdfGrid,
-  sidesOf,
+  ttsSetObject,
+  ttsDefaultThickness,
   type ExportJob,
   type ExportKind,
   type ExportProfiles,
   type ExportProgress,
   type NamedProfile,
   type ExportResult,
-  type ExportSet,
   type ImageOptions,
   type PdfOptions,
-  ttsSetObject,
-  ttsDefaultThickness,
   type TtsObjectType,
   type TtsOptions,
   type TtsSetObject
 } from '../../../shared/export'
 import { messageFromError, type Message } from '../../../shared/messages'
 import { readRealPath, writeRealPath } from '../../../shared/realPath'
+import { exportSummary, previewItems } from '../../../shared/exportPreview'
 import { Dialog } from '../editor/dialogs'
 import CreditsDialog from './CreditsDialog'
 import ExportPreview from './ExportPreview'
-import ProfileBar from './ProfileBar'
+import LivePreview from './LivePreview'
+import { ResultLinks } from './ExportToast'
+import { Choice, KindPicker, ProfileMenu, Row, Section } from './exportParts'
+import { buildJob, runExport, selectedSets, type KindOptions } from './exportRun'
 import { EXPORT_GOALS, EXPORT_PRESETS, type ExportGoal } from '../../../shared/exportPresets'
-import { useProjectFonts, type FontCheck } from '../render/fonts'
-import { buildSets } from '../../../shared/exportJob'
+import { useProjectFonts } from '../render/fonts'
 import { projectLanguages } from '../../../shared/model/language'
 import { languageName } from '../i18n/languageName'
-import { cardFingerprints } from '../../../shared/model/compare'
 import { ColorSwatch } from '../components/ColorPicker'
 import { useI18n } from '../i18n/context'
 import { useLengthUnit } from '../units'
 import { UNIT_LABEL, fromUnit, toUnit, unitStep } from '../../../shared/model/units'
 import type { MessageKey } from '../i18n/en'
-import { browserViewable } from '../../../shared/viewable'
+
+// La finestra Esporta, in quattro strati: cosa vuoi fare (gli obiettivi), le scelte che contano
+// (con i disegni), le sezioni chiuse con il riassunto dei valori e la frase che dice cosa
+// succederà. A destra l'anteprima vera, in piccolo. Vedi docs/specifica.md, sezione 9.
 
 const KIND_KEY = 'exportKind'
 const DPIS = [150, 300, 600]
+/** Dopo l'ultimo cambio di opzioni, l'anteprima e la frase si ricalcolano dopo questo tempo */
+const SETTLE_MS = 350
+
+/** Lo schema dei nomi dei preset delle immagini: dice per chi sono */
+const presetPattern = (label: string): string => {
+  const p = EXPORT_PRESETS.find((x) => x.label === label)?.profile
+  return p?.kind === 'images' ? ((p.options as Partial<ImageOptions>).pattern ?? '') : ''
+}
+const AUDIENCE_PATTERN = { mpc: presetPattern('preset.mpc'), tgc: presetPattern('preset.tgc') }
+type Audience = 'generic' | 'mpc' | 'tgc'
 
 export default function ExportDialog({
   project,
   changed,
   language = null,
+  profile,
   onProfiles,
   onClose
 }: {
@@ -61,6 +72,8 @@ export default function ExportDialog({
   language?: string | null
   /** Con un confronto attivo, le righe nuove o cambiate di ogni set: si possono esportare solo quelle */
   changed?: Record<string, number[]> | null
+  /** Profilo da caricare all'apertura (scelto nel menu del pulsante Esporta) */
+  profile?: string
   /** Opzioni salvate nel file di progetto dopo un'esportazione */
   onProfiles(p: ExportProfiles): void
   onClose(): void
@@ -71,9 +84,9 @@ export default function ExportDialog({
   const languages = projectLanguages(project.file)
   /** Lingua da esportare: un codice, o * per tutte (le altre lingue nelle loro sottocartelle) */
   const [exportLanguage, setExportLanguage] = useState(language ?? languages[0] ?? '')
-  const jobLanguages =
-    exportLanguage === '*' ? languages : [exportLanguage || languages[0] || ''].filter(Boolean)
+  const startProfile = saved.named?.find((p) => p.name === profile)
   const [kind, setKindState] = useState<ExportKind>(() => {
+    if (startProfile) return startProfile.kind
     const k = localStorage.getItem(KIND_KEY)
     return k === 'pdf' || k === 'tts' ? k : 'images'
   })
@@ -81,16 +94,28 @@ export default function ExportDialog({
     localStorage.setItem(KIND_KEY, k)
     setKindState(k)
   }
-  const [img, setImg] = useState<ImageOptions>({ ...DEFAULT_IMAGE, ...saved.images })
-  const [pdf, setPdf] = useState<PdfOptions>({ ...DEFAULT_PDF, ...saved.pdf })
+  const [img, setImg] = useState<ImageOptions>(() => ({
+    ...DEFAULT_IMAGE,
+    ...saved.images,
+    ...(startProfile?.kind === 'images' ? startProfile.options : {})
+  }))
+  const [pdf, setPdf] = useState<PdfOptions>(() => ({
+    ...DEFAULT_PDF,
+    ...saved.pdf,
+    ...(startProfile?.kind === 'pdf' ? startProfile.options : {})
+  }))
   const [tts, setTts] = useState<TtsOptions>(() => ({
     ...DEFAULT_TTS,
-    nickname: defaultNickname(project),
     ...saved.tts,
+    ...(startProfile?.kind === 'tts' ? startProfile.options : {}),
     // nel web i file vanno solo nella cartella di Tabletop Simulator: il mazzo ha bisogno del
     // percorso vero delle immagini, che si conosce solo per quella (vedi shared/realPath.ts)
     ...(window.api.isWeb ? { destination: 'tts' as const } : {})
   }))
+  /** L'obiettivo scelto: il PDF per la stampa in casa o per la tipografia */
+  const [goal, setGoal] = useState<ExportGoal>(() =>
+    kind === 'pdf' ? (pdf.bleed ? 'shop' : 'home') : kind
+  )
   const [realPath, setRealPath] = useState(() =>
     window.api.isWeb && tts.ttsFolder ? readRealPath(tts.ttsFolder) : ''
   )
@@ -100,9 +125,12 @@ export default function ExportDialog({
   const [error, setError] = useState<Message | null>(null)
   const { has: hasFont } = useProjectFonts()
   const [credits, setCredits] = useState(false)
-  const [preview, setPreview] = useState<ExportJob | null>(null)
+  const [enlarged, setEnlarged] = useState<ExportJob | null>(null)
   const [named, setNamed] = useState<NamedProfile[]>(saved.named ?? [])
-  const [activeProfile, setActiveProfile] = useState('')
+  const [activeProfile, setActiveProfile] = useState(startProfile?.name ?? '')
+  const [naming, setNaming] = useState<string | null>(null)
+  /** Il set la cui riga di Tabletop Simulator è stata cambiata per ultima: la sua spiegazione */
+  const [ttsFocus, setTtsFocus] = useState<string | null>(null)
   const presets = useMemo(
     () => EXPORT_PRESETS.map((p) => ({ ...p.profile, name: t(p.label) }) as NamedProfile),
     [t]
@@ -115,10 +143,14 @@ export default function ExportDialog({
   }, [])
 
   const options = kind === 'images' ? img : kind === 'pdf' ? pdf : tts
+  const what: KindOptions =
+    kind === 'images'
+      ? { kind, options: img }
+      : kind === 'pdf'
+        ? { kind, options: pdf }
+        : { kind, options: tts }
   const setNames = project.sets.map((s) => s.name)
-  // nessun set scelto vuol dire tutti; un set rinominato o eliminato si ignora
-  const chosen = options.sets.filter((s) => setNames.includes(s))
-  const selected = chosen.length ? chosen : setNames
+  const selected = selectedSets(project, options.sets)
   const patch = (p: Partial<ImageOptions & PdfOptions & TtsOptions>): void => {
     if (kind === 'images') setImg((o) => ({ ...o, ...p }))
     else if (kind === 'pdf') setPdf((o) => ({ ...o, ...p }))
@@ -128,15 +160,17 @@ export default function ExportDialog({
   const changedCount = changed ? selected.reduce((n, s) => n + (changed[s]?.length ?? 0), 0) : 0
   const toggleSet = (name: string): void => {
     const next = selected.includes(name) ? selected.filter((s) => s !== name) : [...selected, name]
-    patch({ sets: next.length === setNames.length ? [] : next })
+    if (next.length) patch({ sets: next.length === setNames.length ? [] : next })
   }
+  const rowsOf = (name: string): number =>
+    project.sets.find((s) => s.name === name)?.data?.rows.length ?? 0
 
-  /** Il tipo di componente del template del set, proposto come oggetto di Tabletop Simulator */
   /** Tag TTS del template del set: quelli proposti finché il set non ne ha di suoi */
   const templateTags = (name: string): string => {
     const set = project.sets.find((s) => s.name === name)
     return project.templates.find((x) => x.name === set?.template)?.ttsTags ?? ''
   }
+  /** Il tipo di componente del template del set, proposto come oggetto di Tabletop Simulator */
   const componentKind = (name: string): TtsObjectType => {
     const set = project.sets.find((s) => s.name === name)
     return kindOf(project.templates.find((x) => x.name === set?.template))
@@ -164,60 +198,57 @@ export default function ExportDialog({
     return [...names]
   }, [project, selected])
 
-  /** Il lavoro con le opzioni attuali: lo stesso per l'anteprima e per l'esportazione */
-  const buildJob = (lang: string | null = jobLanguages[0] ?? null): ExportJob => {
-    // la lingua principale resta nella cartella di sempre
-    const other = lang && lang !== languages[0] ? lang : undefined
-    const all = buildSets(project, selected, other)
-    // solo le carte cambiate dal confronto: i set senza carte cambiate non escono
-    const sets =
-      changed && onlyChanged
-        ? all
-            .map((s) => {
-              const rows = new Set(changed[s.name] ?? [])
-              return { ...s, cards: s.cards.filter((c) => rows.has(c.n - 1)) }
-            })
-            .filter((s) => s.cards.length)
-        : all
-    const base = { project: project.file.name, sets, ...(other ? { language: other } : {}) }
-    return kind === 'images'
-      ? { ...base, kind, options: img }
-      : kind === 'pdf'
-        ? { ...base, kind, options: pdf }
-        : { ...base, kind, options: tts }
-  }
+  // l'anteprima e la frase seguono le opzioni poco dopo l'ultimo cambio: costruire il lavoro
+  // lega tutte le carte, e non serve rifarlo a ogni tasto
+  const live = useMemo(
+    () => ({ what, language: exportLanguage, onlyChanged }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [kind, img, pdf, tts, exportLanguage, onlyChanged]
+  )
+  const [stable, setStable] = useState(live)
+  useEffect(() => {
+    if (stable === live) return
+    const timer = setTimeout(() => setStable(live), SETTLE_MS)
+    return () => clearTimeout(timer)
+  }, [live, stable])
+  const pending = stable !== live
+  const firstLanguage =
+    stable.language === '*' ? (languages[0] ?? null) : stable.language || languages[0] || null
+  const job = useMemo(
+    () =>
+      buildJob(project, stable.what, firstLanguage, changed && stable.onlyChanged ? changed : null),
+    [project, stable, firstLanguage, changed]
+  )
+  const plan = useMemo(() => previewItems(job), [job])
+  const summary = useMemo(() => exportSummary(job, plan), [job, plan])
+  const [previewIndex, setPreviewIndex] = useState(0)
 
   /** Profilo scelto: tipo e opzioni nella finestra. Un preset non cambia set e cartella */
   const pickProfile = (p: NamedProfile | null): void => {
-    setActiveProfile(p?.name ?? '')
+    setActiveProfile(p && !presets.some((x) => x.name === p.name) ? p.name : '')
     if (!p) return
     const preset = presets.some((x) => x.name === p.name)
     const keep = <T extends { sets: string[] }>(o: T): Partial<T> =>
       preset ? ({ sets: o.sets, ...('folder' in o ? { folder: o.folder } : {}) } as Partial<T>) : {}
     if (p.kind === 'images') setImg((o) => ({ ...DEFAULT_IMAGE, ...p.options, ...keep(o) }))
     else if (p.kind === 'pdf') setPdf((o) => ({ ...DEFAULT_PDF, ...p.options, ...keep(o) }))
-    else
-      setTts((o) => ({
-        ...DEFAULT_TTS,
-        nickname: defaultNickname(project),
-        ...p.options,
-        ...keep(o)
-      }))
+    else setTts((o) => ({ ...DEFAULT_TTS, ...p.options, ...keep(o) }))
     setKind(p.kind)
+    setGoal(p.kind === 'pdf' ? ((p.options.bleed ?? DEFAULT_PDF.bleed) ? 'shop' : 'home') : p.kind)
   }
-  /** L'obiettivo mostrato: il PDF con l'abbondanza è quello per la tipografia */
-  const goal: ExportGoal =
-    kind === 'tts' ? 'tts' : kind === 'images' ? 'images' : pdf.bleed ? 'shop' : 'home'
+  const presetNamed = (label: MessageKey): NamedProfile | undefined =>
+    presets.find((x) => x.name === t(label))
   const chooseGoal = (g: ExportGoal): void => {
     if (g === goal) return
+    setGoal(g)
+    setActiveProfile('')
     if (g === 'tts' || g === 'images') {
       setKind(g)
-      setActiveProfile('')
       return
     }
-    const label =
+    const p = presetNamed(
       g === 'shop' ? 'preset.printShop' : ui === 'en' ? 'preset.homeLetter' : 'preset.homeA4'
-    const p = presets.find((x) => x.name === t(label))
+    )
     if (p) pickProfile(p)
   }
   const currentProfile = (): NamedProfile =>
@@ -235,24 +266,6 @@ export default function ExportDialog({
     onProfiles(profiles)
   }
 
-  /**
-   * Impronte delle carte esportate, per confrontare più avanti con "l'ultima esportazione": un set
-   * esportato per intero si sostituisce, le carte di un'esportazione parziale si aggiungono
-   */
-  const recordPrinted = async (sets: ExportJob['sets']): Promise<void> => {
-    const prints = cardFingerprints(project, project.assets)
-    const old = await window.api.readPrinted()
-    const out = { ...old?.sets }
-    for (const s of sets) {
-      const now = prints[s.name] ?? []
-      out[s.name] =
-        s.cards.length === now.length
-          ? now
-          : [...(out[s.name] ?? []), ...s.cards.map((c) => now[c.n - 1]).filter(Boolean)]
-    }
-    await window.api.savePrinted({ date: Date.now(), sets: out })
-  }
-
   const run = async (): Promise<void> => {
     setError(null)
     setResult(null)
@@ -262,45 +275,21 @@ export default function ExportDialog({
       images: img,
       pdf,
       tts,
-      named: named.length ? named : undefined
+      named: named.length ? named : undefined,
+      last: { kind, ...(exportLanguage ? { language: exportLanguage } : {}) }
     }
     try {
       window.api.saveExportProfiles(profiles).catch(() => undefined)
       onProfiles(profiles)
-      const jobs = jobLanguages.length ? jobLanguages.map((l) => buildJob(l)) : [buildJob(null)]
-      const sets = jobs[0].sets
-      const r: ExportResult = { files: 0, folders: [], warnings: [], cancelled: false }
-      // una lingua dopo l'altra, ognuna nella sua cartella
-      for (const job of jobs) {
-        const one = await window.api.runExport(job, {
-          assets: project.assets,
-          fonts: project.fonts,
-          styles: project.file.styles ?? {},
-          variables: project.file.variables ?? {}
-        })
-        r.files += one.files
-        r.folders.push(...one.folders.filter((f) => !r.folders.includes(f)))
-        r.paths = [...(r.paths ?? []), ...(one.paths ?? [])]
-        r.warnings.push(...one.warnings)
-        if (one.cancelled) {
-          r.cancelled = true
-          break
-        }
-      }
-      const sides: Side[] =
-        kind === 'images'
-          ? sidesOf(img.sides)
-          : kind === 'pdf' && pdf.duplex === 'none'
-            ? sidesOf(pdf.sides)
-            : ['front', 'back']
-      const missing = missingImages(project, sets, sides)
-      if (missing.length)
-        r.warnings.push({ key: 'export.missingImages', params: { cards: missing.join('; ') } })
-      const fonts = missingFonts(project, sets, hasFont)
-      if (fonts.length)
-        r.warnings.push({ key: 'export.missingFonts', params: { fonts: fonts.join(', ') } })
-      setResult(r)
-      if (!r.cancelled) await recordPrinted(sets).catch(() => undefined)
+      setResult(
+        await runExport(
+          project,
+          what,
+          exportLanguage,
+          hasFont,
+          changed && onlyChanged ? changed : null
+        )
+      )
     } catch (e) {
       setError(messageFromError(e))
     } finally {
@@ -315,21 +304,13 @@ export default function ExportDialog({
     if (key === 'ttsFolder' && window.api.isWeb) setRealPath(readRealPath(f))
   }
 
-  /** "Personalizzato" scelto nel menu: il campo resta anche se il valore è uno di quelli fissi */
+  /** "Altro…" scelto tra le risoluzioni: il campo resta anche se il valore è uno di quelli fissi */
   const [customDpi, setCustomDpi] = useState(false)
 
   const num = (v: string, fallback: number): number => {
     const n = parseFloat(v.replace(',', '.'))
     return Number.isFinite(n) ? n : fallback
   }
-
-  const field = (label: MessageKey, control: React.ReactNode, hint?: string): React.JSX.Element => (
-    <div className="field">
-      <span className="field-label">{t(label)}</span>
-      <div className="field-control">{control}</div>
-      {hint && <p className="field-note export-note">{hint}</p>}
-    </div>
-  )
   const check = (
     value: boolean,
     onChange: (v: boolean) => void,
@@ -360,18 +341,13 @@ export default function ExportDialog({
     </select>
   )
   /** Misura in mm, mostrata e scritta nell'unità scelta nelle impostazioni */
-  const mm = (
-    value: number,
-    onChange: (v: number) => void,
-    disabled = false
-  ): React.JSX.Element => (
+  const mm = (value: number, onChange: (v: number) => void): React.JSX.Element => (
     <>
       <NumInput
         className="num"
         step={unitStep(0.5, lengthUnit)}
         min={0}
         value={toUnit(value, lengthUnit)}
-        disabled={disabled}
         onChange={(e) => {
           const v = parseFloat(e.target.value.replace(',', '.'))
           onChange(Number.isFinite(v) ? fromUnit(v, lengthUnit) : value)
@@ -380,12 +356,15 @@ export default function ExportDialog({
       <span className="unit">{UNIT_LABEL[lengthUnit]}</span>
     </>
   )
+  /** Una misura per il riassunto: «4 mm» nell'unità scelta */
+  const len = (v: number): string =>
+    `${toUnit(v, lengthUnit).toLocaleString(ui)} ${UNIT_LABEL[lengthUnit]}`
   const folderField = (
     value: string,
     placeholder: string,
     key: 'folder' | 'ttsFolder'
   ): React.JSX.Element => (
-    <>
+    <span className="export-folder">
       <input
         value={value}
         placeholder={placeholder}
@@ -401,15 +380,76 @@ export default function ExportDialog({
       >
         {t('export.choose')}
       </button>
-    </>
+    </span>
   )
-  const sides: [ImageOptions['sides'], string][] = [
-    ['front', t('export.front')],
-    ['back', t('export.back')],
-    ['both', t('export.bothSides')]
+  /** La cartella in breve, per i riassunti: le ultime due parti del percorso */
+  const shortFolder = (folder: string): string => {
+    if (!folder.trim()) return 'export'
+    const parts = folder.split(/[\\/]/).filter(Boolean)
+    return parts.length > 2 ? '…/' + parts.slice(-2).join('/') : parts.join('/')
+  }
+  const sideChoices = [
+    { value: 'front' as const, label: t('export.front') },
+    { value: 'back' as const, label: t('export.back') },
+    { value: 'both' as const, label: t('export.bothSides') }
   ]
+  const sideLabel = (s: ImageOptions['sides']): string =>
+    sideChoices.find((c) => c.value === s)?.label ?? s
 
-  let perPage: string | null = null
+  // ——— le parti comuni: set, copie, lingua ———
+  const common = (
+    <div className="export-common">
+      <div className="export-set-chips" role="group" aria-label={t('export.sets')}>
+        {setNames.map((name) => (
+          <label
+            key={name}
+            className={'export-set-chip' + (selected.includes(name) ? ' active' : '')}
+          >
+            <input
+              type="checkbox"
+              checked={selected.includes(name)}
+              onChange={() => toggleSet(name)}
+            />
+            {name}
+            <span className="muted">{rowsOf(name)}</span>
+          </label>
+        ))}
+      </div>
+      <div className="export-common-row">
+        {check(options.copies, (copies) => patch({ copies }), 'export.copiesHint')}
+        {languages.length > 0 && (
+          <label className="export-inline">
+            {t('export.language')}
+            <select
+              value={exportLanguage}
+              title={t('export.languageHint')}
+              onChange={(e) => setExportLanguage(e.target.value)}
+            >
+              {languages.map((l) => (
+                <option key={l} value={l}>
+                  {languageName(l, ui)}
+                </option>
+              ))}
+              <option value="*">{t('export.allLanguages')}</option>
+            </select>
+          </label>
+        )}
+        {changed && (
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={onlyChanged}
+              onChange={(e) => setOnlyChanged(e.target.checked)}
+            />
+            {t('export.onlyChangedHint', { n: changedCount })}
+          </label>
+        )}
+      </div>
+    </div>
+  )
+
+  // ——— PDF ———
+  let perPage = ''
   if (kind === 'pdf' && firstTemplate) {
     const g = pdfGrid(pdf, firstTemplate)
     perPage =
@@ -421,7 +461,763 @@ export default function ExportDialog({
             n: g.cols * g.rows
           })
   }
+  const foldReason = t('export.notWithFold')
+  const bleedChoice = (
+    <Choice
+      label={t('export.bleed')}
+      value={pdf.bleed ? 'on' : 'off'}
+      onChange={(v) => patch({ bleed: v === 'on' })}
+      options={[
+        {
+          value: 'off',
+          label: t('export.bleedOff'),
+          note: t('export.bleedOffNote'),
+          icon: 'bleed-off'
+        },
+        {
+          value: 'on',
+          label: t('export.bleedOn'),
+          note: t('export.bleedOnNote'),
+          icon: 'bleed-on'
+        }
+      ]}
+    />
+  )
+  const pdfOptions = kind === 'pdf' && (
+    <>
+      <h3 className="export-heading">{t('export.matters')}</h3>
+      <Row label={t('export.paper')}>
+        {select(
+          pdf.page,
+          [
+            ['A4', 'A4'],
+            ['A3', 'A3'],
+            ['Letter', 'Letter'],
+            ['custom', t('export.custom')]
+          ],
+          (page) => patch({ page })
+        )}
+        {select(
+          pdf.landscape ? 'l' : 'p',
+          [
+            ['p', t('export.portrait')],
+            ['l', t('export.landscape')]
+          ],
+          (v) => patch({ landscape: v === 'l' })
+        )}
+        {pdf.page === 'custom' && (
+          <>
+            {mm(pdf.pageWidth, (pageWidth) => patch({ pageWidth }))}
+            <span className="unit">×</span>
+            {mm(pdf.pageHeight, (pageHeight) => patch({ pageHeight }))}
+          </>
+        )}
+        <span className="muted small">{t('export.marginsShort', { v: len(pdf.margin) })}</span>
+      </Row>
+      {goal === 'shop' && bleedChoice}
+      <Choice
+        label={t('export.duplex')}
+        value={pdf.duplex}
+        onChange={(duplex) => patch({ duplex })}
+        disabled={pdf.fold}
+        reason={foldReason}
+        options={[
+          { value: 'none', label: t('export.duplexNoneShort'), icon: 'duplex-none' },
+          { value: 'long', label: t('export.duplexLongShort'), icon: 'duplex-long' },
+          { value: 'short', label: t('export.duplexShortShort'), icon: 'duplex-short' }
+        ]}
+      />
+      {!pdf.fold && pdf.duplex === 'none' && (
+        <Choice
+          label={t('export.sides')}
+          value={pdf.sides}
+          options={sideChoices}
+          onChange={(sides) => patch({ sides })}
+        />
+      )}
+      {goal === 'shop' && <p className="export-hint">{t('export.shopDuplexHint')}</p>}
+      <Choice
+        label={t('export.marks')}
+        value={pdf.marks}
+        onChange={(marks) => patch({ marks })}
+        options={[
+          { value: 'none', label: t('export.marksNone'), icon: 'marks-none' },
+          { value: 'corners', label: t('export.marksCorners'), icon: 'marks-corners' },
+          { value: 'lines', label: t('export.marksLines'), icon: 'marks-lines' }
+        ]}
+      />
+      <Section
+        id="pdf-layout"
+        title={t('export.layoutSection')}
+        summary={[
+          pdf.fold ? t('export.foldShort') : perPage,
+          pdf.layout === 'auto' && !pdf.fold && pdf.autoRotate ? t('export.rotateShort') : '',
+          pdf.layout === 'auto' && !pdf.fold && pdf.poster ? t('export.posterShort') : '',
+          t('export.marginsShort', { v: len(pdf.margin) })
+        ]
+          .filter(Boolean)
+          .join(' · ')}
+      >
+        <Row label={t('export.margin')}>{mm(pdf.margin, (margin) => patch({ margin }))}</Row>
+        <Row label={t('export.layout')} hint={perPage}>
+          {select(
+            pdf.layout,
+            [
+              ['auto', t('export.layoutAuto')],
+              ['fixed', t('export.layoutFixed')]
+            ],
+            (layout) => patch({ layout })
+          )}
+          {pdf.layout === 'fixed' && (
+            <>
+              <NumInput
+                className="num narrow"
+                min={1}
+                value={pdf.cols}
+                onChange={(e) =>
+                  patch({ cols: Math.max(1, Math.round(num(e.target.value, pdf.cols))) })
+                }
+              />
+              <span className="unit">×</span>
+              <NumInput
+                className="num narrow"
+                min={1}
+                value={pdf.rows}
+                onChange={(e) =>
+                  patch({ rows: Math.max(1, Math.round(num(e.target.value, pdf.rows))) })
+                }
+              />
+            </>
+          )}
+        </Row>
+        <Row label={t('export.fold')} hint={pdf.fold ? t('export.foldHint') : undefined}>
+          {check(pdf.fold, (fold) => patch({ fold }), 'export.foldPairs')}
+        </Row>
+        <Row
+          label={t('export.rotate')}
+          disabled={pdf.fold || pdf.layout === 'fixed'}
+          reason={pdf.fold ? foldReason : t('export.onlyAutoLayout')}
+        >
+          {check(pdf.autoRotate, (autoRotate) => patch({ autoRotate }), 'export.autoRotate')}
+        </Row>
+        <Row
+          label={t('export.poster')}
+          hint={t('export.posterHint')}
+          disabled={pdf.fold || pdf.layout === 'fixed'}
+          reason={pdf.fold ? foldReason : t('export.onlyAutoLayout')}
+        >
+          {check(pdf.poster, (poster) => patch({ poster }), 'export.posterSplit')}
+          {pdf.poster && (
+            <>
+              <span className="unit">{t('export.posterOverlap')}</span>
+              <NumInput
+                className="num narrow"
+                min={0}
+                value={toUnit(pdf.posterOverlap, lengthUnit)}
+                onChange={(e) =>
+                  patch({
+                    posterOverlap: Math.max(
+                      0,
+                      fromUnit(num(e.target.value, toUnit(10, lengthUnit)), lengthUnit)
+                    )
+                  })
+                }
+              />
+              <span className="unit">{UNIT_LABEL[lengthUnit]}</span>
+            </>
+          )}
+        </Row>
+      </Section>
+      <Section
+        id="pdf-cut"
+        title={t('export.cutSection')}
+        summary={[
+          pdf.bleed ? t('export.bleedOnShort') : t('export.bleedOffShort'),
+          pdf.bleed
+            ? t('export.cornersCovered')
+            : pdf.rounded
+              ? t('export.cornersRounded')
+              : t('export.cornersSquare'),
+          pdf.marks === 'none'
+            ? t('export.marksNoneShort')
+            : pdf.marks === 'corners'
+              ? t('export.marksShort', { v: len(pdf.markLength) })
+              : t('export.marksLinesShort'),
+          !pdf.bleed && pdf.spacing > 0 ? t('export.spacingShort', { v: len(pdf.spacing) }) : ''
+        ]
+          .filter(Boolean)
+          .join(' · ')}
+      >
+        {goal !== 'shop' && (
+          <Row label={t('export.bleed')}>
+            {check(pdf.bleed, (bleed) => patch({ bleed }), 'export.bleedTouch')}
+          </Row>
+        )}
+        <Row label={t('export.corners')} disabled={pdf.bleed} reason={t('export.bleedCovers')}>
+          {check(pdf.rounded, (rounded) => patch({ rounded }), 'export.rounded')}
+        </Row>
+        <Row label={t('export.spacing')} disabled={pdf.bleed} reason={t('export.bleedTouching')}>
+          {mm(pdf.spacing, (spacing) => patch({ spacing }))}
+        </Row>
+        <Row
+          label={t('export.markColor')}
+          disabled={pdf.marks === 'none'}
+          reason={t('export.noMarks')}
+        >
+          <ColorSwatch
+            value={pdf.markColor}
+            title={t('export.markColor')}
+            onChange={(markColor) => patch({ markColor })}
+          />
+        </Row>
+        <Row
+          label={t('export.markLength')}
+          disabled={pdf.marks !== 'corners'}
+          reason={t('export.onlyCornerMarks')}
+        >
+          {mm(pdf.markLength, (markLength) => patch({ markLength }))}
+        </Row>
+        <Row
+          label={t('export.markWidth')}
+          disabled={pdf.marks === 'none'}
+          reason={t('export.noMarks')}
+        >
+          {mm(pdf.markWidth, (markWidth) => patch({ markWidth }))}
+          {check(pdf.marksOver, (marksOver) => patch({ marksOver }), 'export.marksOver')}
+        </Row>
+      </Section>
+      <Section
+        id="pdf-files"
+        title={t('export.filesSection')}
+        summary={[
+          t(
+            pdf.split === 'single'
+              ? 'export.splitSingleShort'
+              : pdf.split === 'set'
+                ? 'export.splitSetShort'
+                : 'export.splitSideShort'
+          ),
+          pdf.proof ? t('export.proofShort') : '',
+          pdf.cmyk && !window.api.isWeb ? 'CMYK' : '',
+          shortFolder(pdf.folder)
+        ]
+          .filter(Boolean)
+          .join(' · ')}
+      >
+        <Row label={t('export.files')}>
+          {select(
+            pdf.split,
+            [
+              ['single', t('export.splitSingle')],
+              ['set', t('export.splitSet')],
+              ['side', t('export.splitSide')]
+            ],
+            (split) => patch({ split })
+          )}
+        </Row>
+        <Row
+          label={t('export.continuous')}
+          hint={t('export.continuousHint')}
+          disabled={pdf.split === 'set'}
+          reason={t('export.notOnePerSet')}
+        >
+          {check(pdf.continuous, (continuous) => patch({ continuous }), 'export.continuousCheck')}
+        </Row>
+        <Row
+          label={t('export.offset')}
+          hint={t('export.offsetHint')}
+          disabled={pdf.fold || pdf.duplex === 'none'}
+          reason={pdf.fold ? foldReason : t('export.onlyDuplex')}
+        >
+          <span className="unit">x</span>
+          {mm(pdf.offsetX, (offsetX) => patch({ offsetX }))}
+          <span className="unit">y</span>
+          {mm(pdf.offsetY, (offsetY) => patch({ offsetY }))}
+        </Row>
+        <Row
+          label={t('export.extras')}
+          hint={window.api.isWeb ? t('web.pdfHint') : pdf.cmyk ? t('export.cmykHint') : undefined}
+        >
+          {check(pdf.proof, (proof) => patch({ proof }), 'export.proof')}
+          {!window.api.isWeb && check(pdf.cmyk, (cmyk) => patch({ cmyk }), 'export.cmyk')}
+        </Row>
+        <Row label={t('export.folder')}>{folderField(pdf.folder, defaults.export, 'folder')}</Row>
+      </Section>
+    </>
+  )
 
+  // ——— Immagini ———
+  const audience: Audience =
+    img.bleed && img.sides === 'both' && img.pattern === AUDIENCE_PATTERN.mpc
+      ? 'mpc'
+      : img.bleed && img.sides === 'both' && img.pattern === AUDIENCE_PATTERN.tgc
+        ? 'tgc'
+        : 'generic'
+  const chooseAudience = (a: Audience): void => {
+    if (a === audience) return
+    if (a === 'generic') {
+      setImg((o) => ({ ...DEFAULT_IMAGE, sets: o.sets, folder: o.folder, format: o.format }))
+      return
+    }
+    const p = presetNamed(a === 'mpc' ? 'preset.mpc' : 'preset.tgc')
+    if (p) pickProfile(p)
+  }
+  const dpiCustom = customDpi || !DPIS.includes(img.dpi)
+  const pixels = firstTemplate
+    ? t('export.pixelsBleed', {
+        w: Math.round(
+          ((firstTemplate.width + (img.bleed ? 2 * firstTemplate.bleed : 0)) * img.dpi) / 25.4
+        ),
+        h: Math.round(
+          ((firstTemplate.height + (img.bleed ? 2 * firstTemplate.bleed : 0)) * img.dpi) / 25.4
+        ),
+        bleed: img.bleed ? t('export.withBleed') : ''
+      }).trim()
+    : ''
+  const imageOptions = kind === 'images' && (
+    <>
+      <h3 className="export-heading">{t('export.matters')}</h3>
+      <Choice<Audience>
+        label={t('export.audience')}
+        value={audience}
+        onChange={chooseAudience}
+        options={[
+          { value: 'generic', label: t('export.audienceGeneric') },
+          { value: 'mpc', label: 'MakePlayingCards' },
+          { value: 'tgc', label: 'The Game Crafter' }
+        ]}
+      />
+      <p className="export-hint">{t(`export.audience.${audience}`)}</p>
+      <Row label={t('export.format')}>
+        <Choice
+          value={img.format}
+          onChange={(format) => patch({ format })}
+          options={[
+            { value: 'png', label: 'PNG' },
+            { value: 'jpg', label: 'JPG' },
+            { value: 'webp', label: 'WebP' },
+            { value: 'svg', label: 'SVG', title: t('export.svgHint') }
+          ]}
+        />
+        {(img.format === 'jpg' || img.format === 'webp') && (
+          <>
+            <span className="unit">{t('export.quality')}</span>
+            <NumInput
+              className="num narrow"
+              min={1}
+              max={100}
+              value={img.quality}
+              onChange={(e) => patch({ quality: num(e.target.value, img.quality) })}
+            />
+          </>
+        )}
+      </Row>
+      <Row
+        label={t('export.resolution')}
+        hint={pixels}
+        disabled={img.format === 'svg'}
+        reason={t('export.svgNoDpi')}
+      >
+        <Choice<number>
+          value={dpiCustom ? 0 : img.dpi}
+          onChange={(dpi) => {
+            setCustomDpi(!dpi)
+            if (dpi) patch({ dpi })
+          }}
+          options={[
+            ...DPIS.map((d) => ({ value: d, label: String(d) })),
+            { value: 0, label: t('export.otherDpi') }
+          ]}
+        />
+        {dpiCustom && (
+          <NumInput
+            className="num"
+            min={30}
+            max={1200}
+            value={img.dpi}
+            onChange={(e) =>
+              patch({ dpi: Math.max(30, Math.min(1200, num(e.target.value, img.dpi))) })
+            }
+          />
+        )}
+        <span className="unit">DPI</span>
+      </Row>
+      <Choice
+        label={t('export.sides')}
+        value={img.sides}
+        options={sideChoices}
+        onChange={(sides) => patch({ sides })}
+      />
+      <Section
+        id="images-details"
+        title={t('export.detailsSection')}
+        summary={[
+          img.bleed ? t('export.bleedOnShort') : t('export.bleedOffShort'),
+          img.transparent && img.format !== 'jpg' && !img.bleed ? t('export.transparentShort') : '',
+          img.pattern,
+          shortFolder(img.folder)
+        ]
+          .filter(Boolean)
+          .join(' · ')}
+      >
+        <Row label={t('export.bleed')}>
+          {check(img.bleed, (bleed) => patch({ bleed }), 'export.bleedInclude')}
+        </Row>
+        <Row
+          label={t('export.background')}
+          disabled={img.format === 'jpg' || img.bleed}
+          reason={img.format === 'jpg' ? t('export.notJpg') : t('export.bleedCovers')}
+        >
+          {check(img.transparent, (transparent) => patch({ transparent }), 'export.transparent')}
+        </Row>
+        <Row label={t('export.pattern')} hint={t('export.patternHint')}>
+          <input value={img.pattern} onChange={(e) => patch({ pattern: e.target.value })} />
+        </Row>
+        <Row label={t('export.folder')}>{folderField(img.folder, defaults.export, 'folder')}</Row>
+      </Section>
+    </>
+  )
+
+  // ——— Tabletop Simulator ———
+  const kindOptions: [TtsObjectType, string][] = [
+    ['card', t('export.ttsCard')],
+    ['token', t('export.ttsToken')],
+    ['standee', t('export.ttsStandee')],
+    ['tile', t('export.ttsTile')],
+    ['board', t('export.ttsBoard')],
+    ['die', t('export.ttsDie')]
+  ]
+  const focusSet = ttsFocus && selected.includes(ttsFocus) ? ttsFocus : selected[0]
+  const focusType = focusSet ? ttsSetObject(tts, focusSet, componentKind(focusSet)).type : 'card'
+  const deckReason = t('export.onlyDecks')
+  const fieldLabel = (f: string): string => f || t('export.noField')
+  const ttsOptions = kind === 'tts' && (
+    <>
+      <div className="tts-table">
+        <div className="tts-table-head">
+          <span>{t('export.sets')}</span>
+          <span>{t('export.ttsObject')}</span>
+          <span>{t('export.ttsDetails')}</span>
+        </div>
+        {selected.map((name) => {
+          const obj = ttsSetObject(tts, name, componentKind(name))
+          const set = (p: Partial<TtsSetObject>): void => {
+            setTtsFocus(name)
+            patch({ objects: { ...tts.objects, [name]: { ...obj, ...p } } })
+          }
+          return (
+            <div key={name} className="tts-object" onFocus={() => setTtsFocus(name)}>
+              <span className="tts-object-name" title={name}>
+                {name} <span className="muted">{rowsOf(name)}</span>
+              </span>
+              <KindPicker
+                value={obj.type}
+                options={kindOptions}
+                onChange={(type) =>
+                  // lo spessore lasciato al valore predefinito segue il nuovo tipo
+                  set(
+                    obj.thickness === ttsDefaultThickness(obj.type)
+                      ? { type, thickness: ttsDefaultThickness(type) }
+                      : { type }
+                  )
+                }
+              />
+              <span className="tts-object-details">
+                {obj.type !== 'card' && obj.type !== 'die' && (
+                  <>
+                    <NumInput
+                      className="num narrow"
+                      title={t('export.ttsThickness')}
+                      step={unitStep(0.5, lengthUnit)}
+                      value={toUnit(obj.thickness, lengthUnit)}
+                      onChange={(e) =>
+                        set({
+                          thickness: Math.max(
+                            0.1,
+                            Math.min(
+                              50,
+                              fromUnit(
+                                num(e.target.value, toUnit(obj.thickness, lengthUnit)),
+                                lengthUnit
+                              )
+                            )
+                          )
+                        })
+                      }
+                    />
+                    <span className="unit">{UNIT_LABEL[lengthUnit]}</span>
+                  </>
+                )}
+                {(obj.type === 'tile' || obj.type === 'board') && (
+                  <ColorSwatch
+                    value={obj.edgeColor}
+                    title={t('export.ttsEdge')}
+                    onChange={(edgeColor) => set({ edgeColor })}
+                  />
+                )}
+                {obj.type !== 'die' && (
+                  <input
+                    className="tts-object-tags"
+                    placeholder={t('export.ttsTags')}
+                    title={t('export.ttsTagsHint')}
+                    value={obj.tags ?? templateTags(name)}
+                    onChange={(e) => set({ tags: e.target.value })}
+                  />
+                )}
+              </span>
+            </div>
+          )
+        })}
+        <p className="export-hint">
+          <b>{kindOptions.find(([k]) => k === focusType)?.[1]}</b>:{' '}
+          {t(`export.ttsKindHint.${focusType}`)}
+        </p>
+      </div>
+      {window.api.isWeb ? (
+        <>
+          <Row label={t('web.ttsFolder')} hint={t('web.ttsFolderHint')}>
+            {folderField(tts.ttsFolder, defaults.tts, 'ttsFolder')}
+          </Row>
+          {tts.ttsFolder && (
+            <Row label={t('web.ttsRealPath')} hint={t('web.ttsRealPathHint')}>
+              <input
+                value={realPath}
+                placeholder={t('web.ttsRealPathPlaceholder')}
+                onChange={(e) => {
+                  setRealPath(e.target.value)
+                  writeRealPath(tts.ttsFolder, e.target.value)
+                }}
+              />
+            </Row>
+          )}
+        </>
+      ) : (
+        <>
+          <Choice
+            label={t('export.destination')}
+            value={tts.destination}
+            onChange={(destination) => patch({ destination })}
+            options={[
+              {
+                value: 'project',
+                label: t('export.destProjectShort'),
+                note: t('export.destProjectNote'),
+                icon: 'dest-project'
+              },
+              {
+                value: 'tts',
+                label: t('export.destTtsShort'),
+                note: t('export.destTtsNote'),
+                icon: 'dest-tts'
+              },
+              {
+                value: 'both',
+                label: t('export.destBoth'),
+                note: t('export.destBothNote'),
+                icon: 'dest-both'
+              }
+            ]}
+          />
+          {tts.destination !== 'project' && (
+            <Row label={t('export.ttsFolder')}>
+              {folderField(tts.ttsFolder, defaults.tts, 'ttsFolder')}
+            </Row>
+          )}
+        </>
+      )}
+      <Section
+        id="tts-decks"
+        title={t('export.decksSection')}
+        summary={[
+          hasCards
+            ? tts.copies
+              ? t(
+                  tts.copiesIn === 'deck' ? 'export.copiesInDeckShort' : 'export.copiesInSheetShort'
+                )
+              : ''
+            : t('export.noDecks'),
+          hasCards
+            ? tts.grid === 'auto'
+              ? t('export.gridAutoShort')
+              : `${tts.cols} × ${tts.rows}`
+            : '',
+          hasCards
+            ? t(
+                tts.back === 'auto'
+                  ? 'export.backAutoShort'
+                  : tts.back === 'single'
+                    ? 'export.backSingleShort'
+                    : 'export.backSheetShort'
+              )
+            : '',
+          `${tts.maxSize} px`
+        ]
+          .filter(Boolean)
+          .join(' · ')}
+      >
+        <Row
+          label={t('export.copiesIn')}
+          disabled={!hasCards || !tts.copies}
+          reason={hasCards ? t('export.onlyWithCopies') : deckReason}
+        >
+          {select(
+            tts.copiesIn,
+            [
+              ['deck', t('export.copiesInDeck')],
+              ['sheet', t('export.copiesInSheet')]
+            ],
+            (copiesIn) => patch({ copiesIn })
+          )}
+        </Row>
+        <Row
+          label={t('export.grid')}
+          hint={t('export.gridHint')}
+          disabled={!hasCards}
+          reason={deckReason}
+        >
+          {select(
+            tts.grid,
+            [
+              ['auto', t('export.gridAuto')],
+              ['fixed', t('export.layoutFixed')]
+            ],
+            (grid) => patch({ grid })
+          )}
+          {tts.grid === 'fixed' && (
+            <>
+              <NumInput
+                className="num narrow"
+                min={2}
+                max={10}
+                value={tts.cols}
+                onChange={(e) =>
+                  patch({
+                    cols: Math.max(2, Math.min(10, Math.round(num(e.target.value, tts.cols))))
+                  })
+                }
+              />
+              <span className="unit">×</span>
+              <NumInput
+                className="num narrow"
+                min={2}
+                max={7}
+                value={tts.rows}
+                onChange={(e) =>
+                  patch({
+                    rows: Math.max(2, Math.min(7, Math.round(num(e.target.value, tts.rows))))
+                  })
+                }
+              />
+            </>
+          )}
+        </Row>
+        <Row label={t('export.ttsBack')} disabled={!hasCards} reason={deckReason}>
+          {select(
+            tts.back,
+            [
+              ['auto', t('export.backAuto')],
+              ['single', t('export.backSingle')],
+              ['sheet', t('export.backSheet')]
+            ],
+            (back) => patch({ back })
+          )}
+        </Row>
+        <Row label={t('export.maxSize')}>
+          {select<number>(
+            tts.maxSize,
+            [
+              [4096, '4096 px'],
+              [8192, '8192 px']
+            ],
+            (v) => patch({ maxSize: v === 8192 ? 8192 : 4096 })
+          )}
+        </Row>
+      </Section>
+      <Section
+        id="tts-names"
+        title={t('export.namesSection')}
+        summary={`Nickname: ${fieldLabel(tts.nickname)} · Description: ${fieldLabel(tts.description)}`}
+      >
+        <Row label={t('export.nickname')}>
+          {select(
+            tts.nickname,
+            [['', t('export.noField')], ...fieldNames.map((f): [string, string] => [f, f])],
+            (nickname) => patch({ nickname })
+          )}
+        </Row>
+        <Row label={t('export.description')}>
+          {select(
+            tts.description,
+            [['', t('export.noField')], ...fieldNames.map((f): [string, string] => [f, f])],
+            (description) => patch({ description })
+          )}
+        </Row>
+      </Section>
+    </>
+  )
+
+  // ——— la frase di riepilogo ———
+  const components = t('export.sum.components', { n: summary.components, sets: summary.sets })
+  let sentence: string
+  let details: string
+  if (kind === 'pdf') {
+    const pageName = pdf.page === 'custom' ? '' : pdf.page
+    sentence = t('export.sum.pdf', {
+      what: components,
+      pages: summary.pages,
+      page: pageName,
+      files:
+        summary.files === 1 ? t('export.sum.onePdf') : t('export.sum.pdfs', { n: summary.files }),
+      folder: shortFolder(pdf.folder)
+    }).replace('  ', ' ')
+    details = [
+      pdf.fold
+        ? t('export.foldShort')
+        : pdf.duplex === 'none'
+          ? t('export.duplexNoneShort').toLowerCase()
+          : t(
+              pdf.duplex === 'long' ? 'export.duplexLongShort' : 'export.duplexShortShort'
+            ).toLowerCase(),
+      pdf.marks === 'none'
+        ? t('export.marksNoneShort')
+        : t('export.marksSum', {
+            marks: t(
+              pdf.marks === 'corners' ? 'export.marksCorners' : 'export.marksLines'
+            ).toLowerCase()
+          }),
+      t('export.sum.sheets', { n: summary.sheets })
+    ].join(' · ')
+  } else if (kind === 'images') {
+    sentence = t('export.sum.images', {
+      what: components,
+      n: summary.files,
+      format: img.format.toUpperCase(),
+      dpi: img.format === 'svg' ? '' : t('export.sum.dpi', { dpi: img.dpi }),
+      folder: shortFolder(img.folder)
+    }).replace('  ', ' ')
+    details = [
+      sideLabel(img.sides).toLowerCase(),
+      img.bleed ? t('export.bleedOnShort') : t('export.bleedOffShort'),
+      audience !== 'generic'
+        ? t('export.sum.readyFor', {
+            site: audience === 'mpc' ? 'MakePlayingCards' : 'The Game Crafter'
+          })
+        : ''
+    ]
+      .filter(Boolean)
+      .join(' · ')
+  } else {
+    const dest =
+      tts.destination === 'project'
+        ? 'export/tts'
+        : tts.destination === 'tts'
+          ? 'Saved Objects'
+          : t('export.sum.both')
+    sentence = t('export.sum.tts', { what: components, n: summary.objects, dest })
+    details = t('export.sum.ttsFiles', { images: summary.images, json: summary.objects })
+  }
+
+  const blocked = running || !selected.length || (!!changed && onlyChanged && !changedCount)
   return (
     <Dialog title={t('export.title')} onClose={running ? () => undefined : onClose} guide="export">
       <div className="export-dialog">
@@ -441,611 +1237,29 @@ export default function ExportDialog({
             </button>
           ))}
         </div>
-        <ProfileBar
-          profiles={named}
-          presets={presets}
-          active={activeProfile}
-          current={currentProfile}
-          onPick={pickProfile}
-          onChange={saveNamed}
-        />
-        <div className="export-fields">
-          {field(
-            'export.sets',
-            <div className="export-sets">
-              {setNames.map((name) => (
-                <label key={name} className="check">
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(name)}
-                    onChange={() => toggleSet(name)}
-                  />
-                  {name}
-                </label>
-              ))}
-            </div>
-          )}
-          {languages.length > 0 &&
-            field(
-              'export.language',
-              <select value={exportLanguage} onChange={(e) => setExportLanguage(e.target.value)}>
-                {languages.map((l) => (
-                  <option key={l} value={l}>
-                    {languageName(l, ui)}
-                  </option>
-                ))}
-                <option value="*">{t('export.allLanguages')}</option>
-              </select>,
-              t('export.languageHint')
-            )}
-          {changed &&
-            field(
-              'export.onlyChanged',
-              <label className="check">
-                <input
-                  type="checkbox"
-                  checked={onlyChanged}
-                  onChange={(e) => setOnlyChanged(e.target.checked)}
-                />
-                {t('export.onlyChangedHint', { n: changedCount })}
-              </label>
-            )}
-          {field(
-            'export.copies',
-            check(options.copies, (copies) => patch({ copies }), 'export.copiesHint')
-          )}
-
-          {kind === 'images' && (
-            <>
-              {field(
-                'export.format',
-                <>
-                  {select(
-                    img.format,
-                    [
-                      ['png', 'PNG'],
-                      ['jpg', 'JPG'],
-                      ['webp', 'WebP'],
-                      ['svg', 'SVG']
-                    ],
-                    (format) => patch({ format })
-                  )}
-                  {(img.format === 'jpg' || img.format === 'webp') && (
-                    <>
-                      <span className="unit">{t('export.quality')}</span>
-                      <NumInput
-                        className="num narrow"
-                        min={1}
-                        max={100}
-                        value={img.quality}
-                        onChange={(e) => patch({ quality: num(e.target.value, img.quality) })}
-                      />
-                    </>
-                  )}
-                </>
-              )}
-              {img.format !== 'svg' &&
-                field(
-                  'export.resolution',
-                  <>
-                    {select<number>(
-                      customDpi || !DPIS.includes(img.dpi) ? 0 : img.dpi,
-                      [
-                        ...DPIS.map((d): [number, string] => [d, `${d} DPI`]),
-                        [0, t('export.custom')]
-                      ],
-                      (dpi) => {
-                        setCustomDpi(!dpi)
-                        if (dpi) patch({ dpi })
-                      }
-                    )}
-                    {(customDpi || !DPIS.includes(img.dpi)) && (
-                      <>
-                        <NumInput
-                          className="num"
-                          min={30}
-                          max={1200}
-                          value={img.dpi}
-                          onChange={(e) =>
-                            patch({
-                              dpi: Math.max(30, Math.min(1200, num(e.target.value, img.dpi)))
-                            })
-                          }
-                        />
-                        <span className="unit">DPI</span>
-                      </>
-                    )}
-                  </>,
-                  firstTemplate
-                    ? t('export.pixels', {
-                        w: Math.round(
-                          ((firstTemplate.width + (img.bleed ? 2 * firstTemplate.bleed : 0)) *
-                            img.dpi) /
-                            25.4
-                        ),
-                        h: Math.round(
-                          ((firstTemplate.height + (img.bleed ? 2 * firstTemplate.bleed : 0)) *
-                            img.dpi) /
-                            25.4
-                        )
-                      })
-                    : undefined
-                )}
-              {field(
-                'export.bleed',
-                check(img.bleed, (bleed) => patch({ bleed }), 'export.bleedInclude')
-              )}
-              {field(
-                'export.sides',
-                select(img.sides, sides, (s) => patch({ sides: s }))
-              )}
-              {img.format !== 'jpg' &&
-                !img.bleed &&
-                field(
-                  'export.background',
-                  check(
-                    img.transparent,
-                    (transparent) => patch({ transparent }),
-                    'export.transparent'
-                  )
-                )}
-              {field(
-                'export.pattern',
-                <input value={img.pattern} onChange={(e) => patch({ pattern: e.target.value })} />,
-                t('export.patternHint')
-              )}
-              {field('export.folder', folderField(img.folder, defaults.export, 'folder'))}
-            </>
-          )}
-
-          {kind === 'pdf' && (
-            <>
-              {field(
-                'export.page',
-                <>
-                  {select(
-                    pdf.page,
-                    [
-                      ['A4', 'A4'],
-                      ['A3', 'A3'],
-                      ['Letter', 'Letter'],
-                      ['custom', t('export.custom')]
-                    ],
-                    (page) => patch({ page })
-                  )}
-                  {select(
-                    pdf.landscape ? 'l' : 'p',
-                    [
-                      ['p', t('export.portrait')],
-                      ['l', t('export.landscape')]
-                    ],
-                    (v) => patch({ landscape: v === 'l' })
-                  )}
-                </>
-              )}
-              {pdf.page === 'custom' &&
-                field(
-                  'export.pageSize',
-                  <>
-                    {mm(pdf.pageWidth, (pageWidth) => patch({ pageWidth }))}
-                    <span className="unit">×</span>
-                    {mm(pdf.pageHeight, (pageHeight) => patch({ pageHeight }))}
-                  </>
-                )}
-              {field(
-                'export.margin',
-                mm(pdf.margin, (margin) => patch({ margin }))
-              )}
-              {field(
-                'export.bleed',
-                check(pdf.bleed, (bleed) => patch({ bleed }), 'export.bleedTouch')
-              )}
-              {!pdf.bleed &&
-                field(
-                  'export.corners',
-                  check(pdf.rounded, (rounded) => patch({ rounded }), 'export.rounded')
-                )}
-              {field(
-                'export.spacing',
-                mm(pdf.spacing, (spacing) => patch({ spacing }), pdf.bleed)
-              )}
-              {field(
-                'export.layout',
-                <>
-                  {select(
-                    pdf.layout,
-                    [
-                      ['auto', t('export.layoutAuto')],
-                      ['fixed', t('export.layoutFixed')]
-                    ],
-                    (layout) => patch({ layout })
-                  )}
-                  {pdf.layout === 'fixed' && (
-                    <>
-                      <NumInput
-                        className="num narrow"
-                        min={1}
-                        value={pdf.cols}
-                        onChange={(e) =>
-                          patch({ cols: Math.max(1, Math.round(num(e.target.value, pdf.cols))) })
-                        }
-                      />
-                      <span className="unit">×</span>
-                      <NumInput
-                        className="num narrow"
-                        min={1}
-                        value={pdf.rows}
-                        onChange={(e) =>
-                          patch({ rows: Math.max(1, Math.round(num(e.target.value, pdf.rows))) })
-                        }
-                      />
-                    </>
-                  )}
-                </>,
-                perPage ?? undefined
-              )}
-              {field(
-                'export.fold',
-                check(pdf.fold, (fold) => patch({ fold }), 'export.foldPairs'),
-                pdf.fold ? t('export.foldHint') : undefined
-              )}
-              {pdf.layout === 'auto' &&
-                !pdf.fold &&
-                field(
-                  'export.rotate',
-                  check(pdf.autoRotate, (autoRotate) => patch({ autoRotate }), 'export.autoRotate')
-                )}
-              {pdf.layout === 'auto' &&
-                !pdf.fold &&
-                field(
-                  'export.poster',
-                  <>
-                    {check(pdf.poster, (poster) => patch({ poster }), 'export.posterSplit')}
-                    {pdf.poster && (
-                      <>
-                        <span className="unit">{t('export.posterOverlap')}</span>
-                        <NumInput
-                          className="num narrow"
-                          min={0}
-                          value={toUnit(pdf.posterOverlap, lengthUnit)}
-                          onChange={(e) =>
-                            patch({
-                              posterOverlap: Math.max(
-                                0,
-                                fromUnit(num(e.target.value, toUnit(10, lengthUnit)), lengthUnit)
-                              )
-                            })
-                          }
-                        />
-                        <span className="unit">{UNIT_LABEL[lengthUnit]}</span>
-                      </>
-                    )}
-                  </>,
-                  t('export.posterHint')
-                )}
-              {field(
-                'export.marks',
-                <>
-                  {select(
-                    pdf.marks,
-                    [
-                      ['none', t('export.marksNone')],
-                      ['corners', t('export.marksCorners')],
-                      ['lines', t('export.marksLines')]
-                    ],
-                    (marks) => patch({ marks })
-                  )}
-                  {pdf.marks !== 'none' && (
-                    <ColorSwatch
-                      value={pdf.markColor}
-                      title={t('export.markColor')}
-                      onChange={(markColor) => patch({ markColor })}
-                    />
-                  )}
-                </>
-              )}
-              {pdf.marks !== 'none' && (
-                <>
-                  {pdf.marks === 'corners' &&
-                    field(
-                      'export.markLength',
-                      mm(pdf.markLength, (markLength) => patch({ markLength }))
-                    )}
-                  {field(
-                    'export.markWidth',
-                    <>
-                      {mm(pdf.markWidth, (markWidth) => patch({ markWidth }))}
-                      {check(
-                        pdf.marksOver,
-                        (marksOver) => patch({ marksOver }),
-                        'export.marksOver'
-                      )}
-                    </>
-                  )}
-                </>
-              )}
-              {!pdf.fold &&
-                field(
-                  'export.duplex',
-                  select(
-                    pdf.duplex,
-                    [
-                      ['none', t('export.duplexNone')],
-                      ['long', t('export.duplexLong')],
-                      ['short', t('export.duplexShort')]
-                    ],
-                    (duplex) => patch({ duplex })
-                  )
-                )}
-              {pdf.fold
-                ? null
-                : pdf.duplex === 'none'
-                  ? field(
-                      'export.sides',
-                      select(pdf.sides, sides, (s) => patch({ sides: s }))
-                    )
-                  : field(
-                      'export.offset',
-                      <>
-                        <span className="unit">x</span>
-                        {mm(pdf.offsetX, (offsetX) => patch({ offsetX }))}
-                        <span className="unit">y</span>
-                        {mm(pdf.offsetY, (offsetY) => patch({ offsetY }))}
-                      </>,
-                      t('export.offsetHint')
-                    )}
-              {field(
-                'export.files',
-                select(
-                  pdf.split,
-                  [
-                    ['single', t('export.splitSingle')],
-                    ['set', t('export.splitSet')],
-                    ['side', t('export.splitSide')]
-                  ],
-                  (split) => patch({ split })
-                )
-              )}
-              {pdf.split !== 'set' &&
-                field(
-                  'export.continuous',
-                  check(
-                    pdf.continuous,
-                    (continuous) => patch({ continuous }),
-                    'export.continuousCheck'
-                  ),
-                  t('export.continuousHint')
-                )}
-              {field(
-                'export.extras',
-                <>
-                  {check(pdf.proof, (proof) => patch({ proof }), 'export.proof')}
-                  {!window.api.isWeb && check(pdf.cmyk, (cmyk) => patch({ cmyk }), 'export.cmyk')}
-                </>,
-                window.api.isWeb ? t('web.pdfHint') : pdf.cmyk ? t('export.cmykHint') : undefined
-              )}
-              {field('export.folder', folderField(pdf.folder, defaults.export, 'folder'))}
-            </>
-          )}
-
-          {kind === 'tts' && (
-            <>
-              {field(
-                'export.ttsObjects',
-                <div className="tts-objects">
-                  {selected.map((name) => {
-                    const obj = ttsSetObject(tts, name, componentKind(name))
-                    const set = (p: Partial<TtsSetObject>): void =>
-                      patch({ objects: { ...tts.objects, [name]: { ...obj, ...p } } })
-                    return (
-                      <div key={name} className="tts-object">
-                        <span className="tts-object-name" title={name}>
-                          {name}
-                        </span>
-                        {select<TtsObjectType>(
-                          obj.type,
-                          [
-                            ['card', t('export.ttsCard')],
-                            ['token', t('export.ttsToken')],
-                            ['standee', t('export.ttsStandee')],
-                            ['tile', t('export.ttsTile')],
-                            ['board', t('export.ttsBoard')],
-                            ['die', t('export.ttsDie')]
-                          ],
-                          (type) =>
-                            // lo spessore lasciato al valore predefinito segue il nuovo tipo
-                            set(
-                              obj.thickness === ttsDefaultThickness(obj.type)
-                                ? { type, thickness: ttsDefaultThickness(type) }
-                                : { type }
-                            )
-                        )}
-                        {obj.type !== 'card' && obj.type !== 'die' && (
-                          <>
-                            <span className="unit">{t('export.ttsThickness')}</span>
-                            <NumInput
-                              className="num narrow"
-                              step={unitStep(0.5, lengthUnit)}
-                              value={toUnit(obj.thickness, lengthUnit)}
-                              onChange={(e) =>
-                                set({
-                                  thickness: Math.max(
-                                    0.1,
-                                    Math.min(
-                                      50,
-                                      fromUnit(
-                                        num(e.target.value, toUnit(obj.thickness, lengthUnit)),
-                                        lengthUnit
-                                      )
-                                    )
-                                  )
-                                })
-                              }
-                            />
-                            <span className="unit">{UNIT_LABEL[lengthUnit]}</span>
-                          </>
-                        )}
-                        {(obj.type === 'tile' || obj.type === 'board') && (
-                          <>
-                            <span className="unit">{t('export.ttsEdge')}</span>
-                            <ColorSwatch
-                              value={obj.edgeColor}
-                              title={t('export.ttsEdge')}
-                              onChange={(edgeColor) => set({ edgeColor })}
-                            />
-                          </>
-                        )}
-                        {obj.type !== 'die' && (
-                          <input
-                            className="tts-object-tags"
-                            placeholder={t('export.ttsTags')}
-                            title={t('export.ttsTagsHint')}
-                            value={obj.tags ?? templateTags(name)}
-                            onChange={(e) => set({ tags: e.target.value })}
-                          />
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>,
-                t('export.ttsObjectsHint')
-              )}
-              {hasCards &&
-                tts.copies &&
-                field(
-                  'export.copiesIn',
-                  select(
-                    tts.copiesIn,
-                    [
-                      ['deck', t('export.copiesInDeck')],
-                      ['sheet', t('export.copiesInSheet')]
-                    ],
-                    (copiesIn) => patch({ copiesIn })
-                  )
-                )}
-              {hasCards &&
-                field(
-                  'export.grid',
-                  <>
-                    {select(
-                      tts.grid,
-                      [
-                        ['auto', t('export.gridAuto')],
-                        ['fixed', t('export.layoutFixed')]
-                      ],
-                      (grid) => patch({ grid })
-                    )}
-                    {tts.grid === 'fixed' && (
-                      <>
-                        <NumInput
-                          className="num narrow"
-                          min={2}
-                          max={10}
-                          value={tts.cols}
-                          onChange={(e) =>
-                            patch({
-                              cols: Math.max(
-                                2,
-                                Math.min(10, Math.round(num(e.target.value, tts.cols)))
-                              )
-                            })
-                          }
-                        />
-                        <span className="unit">×</span>
-                        <NumInput
-                          className="num narrow"
-                          min={2}
-                          max={7}
-                          value={tts.rows}
-                          onChange={(e) =>
-                            patch({
-                              rows: Math.max(
-                                2,
-                                Math.min(7, Math.round(num(e.target.value, tts.rows)))
-                              )
-                            })
-                          }
-                        />
-                      </>
-                    )}
-                  </>,
-                  t('export.gridHint')
-                )}
-              {field(
-                'export.maxSize',
-                select<number>(
-                  tts.maxSize,
-                  [
-                    [4096, '4096 px'],
-                    [8192, '8192 px']
-                  ],
-                  (v) => patch({ maxSize: v === 8192 ? 8192 : 4096 })
-                )
-              )}
-              {hasCards &&
-                field(
-                  'export.ttsBack',
-                  select(
-                    tts.back,
-                    [
-                      ['auto', t('export.backAuto')],
-                      ['single', t('export.backSingle')],
-                      ['sheet', t('export.backSheet')]
-                    ],
-                    (back) => patch({ back })
-                  )
-                )}
-              {!window.api.isWeb &&
-                field(
-                  'export.destination',
-                  select(
-                    tts.destination,
-                    [
-                      ['project', t('export.destProject')],
-                      ['tts', t('export.destTts')],
-                      ['both', t('export.destBoth')]
-                    ],
-                    (destination) => patch({ destination })
-                  )
-                )}
-              {tts.destination !== 'project' &&
-                field(
-                  window.api.isWeb ? 'web.ttsFolder' : 'export.ttsFolder',
-                  folderField(tts.ttsFolder, defaults.tts, 'ttsFolder'),
-                  window.api.isWeb ? t('web.ttsFolderHint') : undefined
-                )}
-              {window.api.isWeb &&
-                tts.ttsFolder &&
-                field(
-                  'web.ttsRealPath',
-                  <input
-                    value={realPath}
-                    placeholder={t('web.ttsRealPathPlaceholder')}
-                    onChange={(e) => {
-                      setRealPath(e.target.value)
-                      writeRealPath(tts.ttsFolder, e.target.value)
-                    }}
-                  />,
-                  t('web.ttsRealPathHint')
-                )}
-              {field(
-                'export.nickname',
-                select(
-                  tts.nickname,
-                  [['', t('export.noField')], ...fieldNames.map((f): [string, string] => [f, f])],
-                  (nickname) => patch({ nickname })
-                )
-              )}
-              {field(
-                'export.description',
-                select(
-                  tts.description,
-                  [['', t('export.noField')], ...fieldNames.map((f): [string, string] => [f, f])],
-                  (description) => patch({ description })
-                )
-              )}
-            </>
-          )}
+        <div className="export-body">
+          <div className="export-options">
+            {common}
+            {pdfOptions}
+            {imageOptions}
+            {ttsOptions}
+          </div>
+          <LivePreview
+            plan={plan}
+            pending={pending}
+            index={previewIndex}
+            onIndex={setPreviewIndex}
+            onEnlarge={() => setEnlarged(job)}
+          />
+        </div>
+        <div className="export-summary" aria-live="polite">
+          <p className="export-sentence">{selected.length ? sentence : t('export.noSets')}</p>
+          {selected.length > 0 && <p className="muted small">{details}</p>}
+          {plan.notes.map((n, i) => (
+            <p key={i} className="field-error">
+              {t(n)}
+            </p>
+          ))}
         </div>
 
         {error && <p className="field-error">{t(error)}</p>}
@@ -1061,49 +1275,23 @@ export default function ExportDialog({
                 {t(w)}
               </p>
             ))}
-            {/* pochi file (un PDF, un mazzo): si aprono direttamente */}
-            {/* nel browser si aprono solo i file che sa mostrare: gli altri sono già nella cartella */}
-            {(result.paths?.length ?? 0) <= MAX_OPEN_FILES &&
-              result.paths
-                ?.filter((f) => !window.api.isWeb || browserViewable(f))
-                .map((f) => (
-                  <button
-                    key={f}
-                    type="button"
-                    className="link"
-                    onClick={() => window.api.showFolder(f)}
-                  >
-                    {t('export.openFile', { file: f.split(/[\\/]/).pop() ?? f })}
-                  </button>
-                ))}
-            {result.folders.map((f) =>
-              // il browser non apre le cartelle: si dice solo dove sono i file
-              window.api.isWeb ? (
-                <p key={f} className="muted small">
-                  {f}
-                </p>
-              ) : (
-                <button
-                  key={f}
-                  type="button"
-                  className="link"
-                  onClick={() => window.api.showFolder(f)}
-                >
-                  {t('export.openFolder', { folder: f })}
-                </button>
-              )
-            )}
+            <ResultLinks result={result} />
           </div>
         )}
         <div className="dialog-buttons">
-          <button
-            type="button"
-            className="spacer-right"
-            title={t('credits.hint')}
-            onClick={() => setCredits(true)}
-          >
+          <button type="button" title={t('credits.hint')} onClick={() => setCredits(true)}>
             {t('credits.open')}
           </button>
+          <ProfileMenu
+            profiles={named}
+            active={activeProfile}
+            current={currentProfile}
+            naming={naming}
+            onNaming={setNaming}
+            onPick={pickProfile}
+            onChange={saveNamed}
+          />
+          <span className="spacer" />
           {running && (
             <span className="muted export-progress">
               {progress.total
@@ -1120,77 +1308,20 @@ export default function ExportDialog({
               {t('export.close')}
             </button>
           )}
-          <button
-            type="button"
-            title={t('export.previewHint')}
-            disabled={running || !selected.length || (!!changed && onlyChanged && !changedCount)}
-            onClick={() => setPreview(buildJob())}
-          >
-            {t('export.preview')}
-          </button>
-          <button
-            type="button"
-            className="primary"
-            disabled={running || !selected.length || (!!changed && onlyChanged && !changedCount)}
-            onClick={run}
-          >
+          <button type="button" className="primary" disabled={blocked} onClick={run}>
             {t('export.run')}
           </button>
         </div>
       </div>
       {credits && <CreditsDialog project={project} onClose={() => setCredits(false)} />}
-      {preview && <ExportPreview job={preview} onExport={run} onClose={() => setPreview(null)} />}
+      {enlarged && (
+        <ExportPreview
+          job={enlarged}
+          start={previewIndex}
+          onExport={run}
+          onClose={() => setEnlarged(null)}
+        />
+      )}
     </Dialog>
   )
-}
-
-/**
- * Immagini che mancano in assets/ nei lati esportati, ognuna con le carte che la usano:
- * nell'esportazione restano i segnaposto
- */
-function missingImages(project: LoadedProject, sets: ExportSet[], sides: Side[]): string[] {
-  const byImage = new Map<string, string[]>()
-  for (const set of sets)
-    for (const c of set.cards) {
-      const layers = walkLayers(sides.flatMap((side) => c.template[side]))
-      const names = new Set(
-        layers
-          .filter(
-            (l) =>
-              l.type === 'image' &&
-              l.visible &&
-              l.missing !== 'hide' &&
-              l.src.trim() !== '' &&
-              !resolveAsset(l.src, project.assets).ok
-          )
-          .map((l) => (l.type === 'image' ? l.src.trim() : ''))
-      )
-      const card = `${set.name} ${c.n}${c.label ? ` (${c.label})` : ''}`
-      for (const name of names) byImage.set(name, [...(byImage.get(name) ?? []), card])
-    }
-  return [...byImage].map(([name, cards]) => `"${name}": ${cards.join(', ')}`)
-}
-
-/** Font usati dalle carte esportate che non sono né nel progetto né installati */
-function missingFonts(project: LoadedProject, sets: ExportSet[], hasFont: FontCheck): string[] {
-  const out = new Set<string>()
-  for (const set of sets)
-    for (const c of set.cards)
-      for (const l of walkLayers([...c.template.front, ...c.template.back])) {
-        if (l.type !== 'text' || !l.visible) continue
-        for (const f of [
-          l.font,
-          ...markupFonts(l.text, project.file.styles, project.file.variables)
-        ])
-          if (f.trim() && !isGenericFont(f) && !hasFont(f)) out.add(f)
-      }
-  return [...out].sort()
-}
-
-/** Nickname di base: il campo che dà il nome alle carte, o il primo testo del template */
-function defaultNickname(project: LoadedProject): string {
-  const tpl = project.templates.find((x) => x.name === project.sets[0]?.template)
-  if (!tpl) return ''
-  if (tpl.labelField) return tpl.labelField
-  return walkLayers(tpl.front).find((l) => l.type === 'text')?.name ?? ''
 }
