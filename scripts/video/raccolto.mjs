@@ -258,10 +258,11 @@ async function choose(loc, value) {
   await r.wait(500)
 }
 async function place(x, y, w, h) {
-  await fill(field('X'), String(x))
-  await fill(field('Y'), String(y))
+  // prima le misure: cambiarle tiene fermo il punto di ancoraggio (il centro) e sposterebbe X e Y
   await fill(field(T['prop.w']), String(w))
   await fill(field(T['prop.h']), String(h))
+  await fill(field('X'), String(x))
+  await fill(field('Y'), String(y))
 }
 async function fillColor(value) {
   await fill(props.locator('input.color-text').first(), value)
@@ -1044,54 +1045,64 @@ const goal = (g) =>
 await r.click(goal('home'))
 await r.wait(600)
 await r.focus(
-  dialog().locator('.export-sets').first(),
+  dialog().locator('.export-set-chips').first(),
   t(
     'Stampare a casa: tutti i set in un PDF, con i segni di taglio',
     'Print at home: every set in one PDF, with crop marks'
   ),
-  'left',
+  'below',
   { pad: 4 }
 )
-// l'anteprima: le pagine come verranno stampate
-await r.click(dialog().getByRole('button', { name: T['export.preview'], exact: true }).first())
-await r.clear(1500)
+// l'anteprima a lato: le pagine come verranno stampate
+const live = () => dialog().locator('.live-preview').first()
+async function ready() {
+  await r.wait(400)
+  for (let i = 0; i < 80 && (await live().locator('.live-preview-wait').count()); i++)
+    await win.waitForTimeout(200)
+}
+await ready()
 await r.focus(
-  dialog().locator('.export-preview-stage').first(),
+  live(),
   t(
-    'L’anteprima mostra le pagine prima di stampare: carte, monete, plancia e dado',
-    'The preview shows the pages before printing: cards, coins, board and die'
+    'L’anteprima a lato mostra le pagine prima di stampare: carte, monete, plancia e dado',
+    'The preview on the side shows the pages before printing: cards, coins, board and die'
   ),
   'left',
   { pad: 4 }
 )
-const nextPage = dialog().locator('.export-preview-nav button').last()
-for (let i = 0; i < 3 && (await nextPage.isEnabled().catch(() => false)); i++)
-  await r.click(nextPage, { after: 1400 })
-await r.click(dialog().getByRole('button', { name: T['export.close'], exact: true }).first())
-await r.wait(600)
+const nextPage = live().locator('.live-preview-nav button').last()
+for (let i = 0; i < 3 && (await nextPage.isEnabled().catch(() => false)); i++) {
+  await r.click(nextPage, { after: 400 })
+  await ready()
+  await r.wait(900)
+}
+await r.clear(400)
 const run = dialog().getByRole('button', { name: T['export.run'], exact: true })
 await r.click(run)
 await win.waitForTimeout(1000)
 for (let i = 0; i < 240 && !(await run.isEnabled()); i++) await win.waitForTimeout(500)
 await r.wait(800)
 await r.focus(
-  dialog(),
+  dialog().locator('.export-result').first(),
   t('Il PDF è nella cartella export del progetto', 'The PDF is in the project’s export folder'),
-  'none',
-  { pad: 0, dim: false }
+  'above'
 )
 
 // ============ 9. Tabletop Simulator
 await r.title(t('Tabletop Simulator', 'Tabletop Simulator'))
 await r.click(goal('tts'))
 await r.wait(800)
+// l'anteprima resta sulla pagina vista prima: si torna alla prima
+const firstPage = live().locator('.live-preview-nav button').first()
+while ((await firstPage.count()) && (await firstPage.isEnabled())) await firstPage.click()
+await ready()
 await r.focus(
-  dialog().locator('.tts-object').first().locator('xpath=..'),
+  dialog().locator('.tts-table').first(),
   t(
-    'Ogni set diventa un oggetto: mazzo, pila di monete, plancia, dado',
-    'Each set becomes an object: deck, coin stack, board, die'
+    'Ogni set diventa un oggetto, dal tipo del suo template: mazzo, segnalini, plancia, dado',
+    'Each set becomes an object, from its template’s kind: deck, tokens, board, die'
   ),
-  'left',
+  'right',
   { pad: 4 }
 )
 await r.click(run)
@@ -1099,19 +1110,18 @@ await win.waitForTimeout(1000)
 for (let i = 0; i < 240 && !(await run.isEnabled()); i++) await win.waitForTimeout(500)
 await r.wait(800)
 await r.focus(
-  dialog(),
+  dialog().locator('.export-result').first(),
   t(
     'Pronto per Tabletop Simulator: si apre dagli Oggetti salvati',
     'Ready for Tabletop Simulator: open it from Saved Objects'
   ),
-  'none',
-  { pad: 0, dim: false }
+  'above'
 )
 await r.click(dialog().getByRole('button', { name: T['export.close'], exact: true }))
 await r.wait(600)
 await r.clear()
 // qui, al montaggio, il filmato di Luca in Tabletop Simulator
-console.log('TTS_CUT')
+console.log('TTS_CUT', Date.now())
 await r.title(
   t(
     'Tutto il resto è nella guida: stella.lucadj.eu',
@@ -1121,4 +1131,5 @@ await r.title(
 )
 await r.clear(600)
 const p = await r.finish()
+console.log('END', Date.now())
 console.log('VIDEO', p)

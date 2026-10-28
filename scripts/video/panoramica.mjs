@@ -4,7 +4,7 @@ import { launch, makeProject } from './lib.mjs'
 import { mkdirSync, writeFileSync } from 'node:fs'
 const lang = process.argv[2] || 'it'
 const it = lang === 'it'
-const r = await launch({ lang })
+const r = await launch({ lang, ...(process.env.UD ? { ud: process.env.UD } : {}) })
 const { win, T } = r
 const project = makeProject(lang)
 const S = it
@@ -271,6 +271,15 @@ await r.focus(
     ? 'Per la tipografia: abbondanza e segni di taglio già impostati'
     : 'For the print shop: bleed and crop marks already set',
   'below'
+)
+await r.wait(1200)
+await r.focus(
+  dialog().locator('.live-preview').first(),
+  it
+    ? 'A lato, l’anteprima vera di quello che uscirà'
+    : 'On the side, the real preview of what will come out',
+  'left',
+  { pad: 4 }
 )
 await r.clear()
 await r.click(dialog().getByRole('button', { name: T['export.close'], exact: true }))

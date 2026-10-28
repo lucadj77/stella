@@ -1,6 +1,6 @@
 // Video 16: generare le carte e dividere un'immagine (circa 5 minuti, senza voce), sul progetto di esempio
 // con in più le gilde, 30 ritratti e una mappa (progetto-genera.mjs). Genera… nel menu Strumenti del set:
-// insiemi combinati, più valori per carta, limiti e filtro, Aggiorna le carte da una cartella; poi
+// insiemi combinati, più valori per carta, limiti e filtro, Aggiorna le carte da una cartella, A caso; poi
 // Dividi immagine… per una mappa su 3 × 2 carte.
 // Uso: xvfb-run -a -s "-screen 0 2000x1300x24" node --experimental-strip-types --no-warnings scripts/video/genera.mjs it|en
 // FAST=1 accorcia attese e scrittura; GUIDE_HOME=/tmp/prova per provarlo mentre un altro video si registra.
@@ -19,7 +19,7 @@ if (process.env.FAST) {
   r.type = (text) => win.keyboard.type(text, { delay: 2 })
 }
 if (process.env.SHOT) {
-  for (const k of ['focus', 'click']) {
+  for (const k of ['focus', 'click', 'zoom']) {
     const f = r[k].bind(r)
     r[k] = async (...a) => {
       try {
@@ -34,6 +34,11 @@ if (process.env.SHOT) {
 const click0 = r.click.bind(r)
 r.click = async (loc, opts) => {
   await r.clear(150)
+  // la finestra Genera è più alta dello schermo: si scorre fino al tasto
+  await loc
+    .first()
+    .scrollIntoViewIfNeeded({ timeout: 3000 })
+    .catch(() => undefined)
   return click0(loc, opts)
 }
 const S = it
@@ -132,14 +137,30 @@ async function gridView() {
   if (await b.isVisible().catch(() => false)) await r.click(b, { after: 700 })
 }
 async function tools(key) {
-  await r.click(win.locator('button').filter({ hasText: T['set.tools'] }).first())
+  const b = win.locator('button').filter({ hasText: T['set.tools'] }).first()
+  await b.scrollIntoViewIfNeeded()
+  await r.click(b)
   await r.wait(400)
   await r.click(win.getByRole('menuitem', { name: T[key] }).first())
   await r.clear(900)
 }
 const gen = () => dialog()
 const genSet = (i) => gen().locator('.generate-set').nth(i)
-const column = (i) => genSet(i).locator('input[list="generate-columns"]').first()
+const column = (i) => genSet(i).locator('.generate-row select').first()
+/** la colonna da riempire: dall'elenco, o «Altra colonna…» e il nome scritto */
+async function setColumn(i, name) {
+  const sel = column(i)
+  const has = await sel.locator('option').evaluateAll((os, n) => os.some((o) => o.value === n), name)
+  if (has) return choose(sel, name)
+  await choose(sel, '\u0000other')
+  await fill(genSet(i).locator('.generate-column-free input').first(), name)
+}
+const numIn = (key) =>
+  gen()
+    .locator('label')
+    .filter({ hasText: new RegExp('^' + T[key]) })
+    .locator('input')
+    .first()
 const values = (i) => genSet(i).locator('.generate-values textarea').first()
 const genCheck = (i, key) =>
   genSet(i).locator('label.check').filter({ hasText: T[key] }).locator('input').first()
@@ -209,7 +230,7 @@ await r.focus(
   'left',
   { pad: 0, dim: false, wide: true }
 )
-await fill(column(0), X.N.suit)
+await setColumn(0, X.N.suit)
 await fill(values(0), S.suits, { tab: false })
 await r.focus(
   genSet(0),
@@ -221,7 +242,7 @@ await r.focus(
   { pad: 4 }
 )
 await r.click(button('generate.addSet', gen()), { after: 600 })
-await fill(column(1), X.N.number)
+await setColumn(1, X.N.number)
 await fill(values(1), '1-5', { tab: false })
 await check(genCheck(1, 'generate.icons'))
 await r.wait(700)
@@ -265,8 +286,8 @@ await r.focus(
 // ---- 4. Aggiorna le carte: i ritratti da una cartella
 await r.title(t('Aggiorna le carte: i ritratti', 'Update the cards: the portraits'))
 await tools('set.generate')
-await fill(column(0), X.N.portrait)
-await choose(genSet(0).locator('select').first(), '/' + S.folder)
+await setColumn(0, X.N.portrait)
+await choose(genSet(0).locator('select').filter({ has: win.locator('option', { hasText: T['generate.fromFolder'] }) }).first(), '/' + S.folder)
 await r.focus(
   genSet(0),
   t(
@@ -310,7 +331,7 @@ await r.focus(
   { pad: 6, wide: true }
 )
 await tools('set.generate')
-await fill(column(0), S.resources)
+await setColumn(0, S.resources)
 await fill(values(0), S.res, { tab: false })
 await fill(genSet(0).locator('input.num').first(), '3')
 await r.wait(500)
@@ -338,11 +359,11 @@ await r.focus(
 await r.title(t('Limiti e filtro', 'Limits and filter'))
 const limits = genSet(0).locator('details.generate-limits').first()
 await r.click(limits.locator('summary').first(), { after: 600 })
-const stoneMax = limits
-  .locator('.generate-limit-value')
-  .filter({ hasText: S.stone })
-  .locator('xpath=following-sibling::input[2]')
-  .first()
+// nella griglia dei limiti ogni valore ha due campi, minimo e massimo
+const stoneAt = (
+  await limits.locator('.generate-limit-value').evaluateAll((els) => els.map((e) => e.textContent.trim()))
+).findIndex((v) => v.includes(S.stone))
+const stoneMax = limits.locator('.generate-limit-grid input').nth(stoneAt * 2 + 1)
 await fill(stoneMax, '1')
 await r.focus(
   limits,
@@ -392,6 +413,58 @@ await r.focus(
   { pad: 6, wide: true }
 )
 
+// ---- 4. a caso
+await r.title(t('A caso: carte estratte', 'Random: drawn cards'))
+await tools('set.generate')
+const how = gen().locator('.generate-row').first()
+await r.click(how.locator('.segmented button').filter({ hasText: T['generate.random'] }).first(), {
+  after: 600
+})
+await r.focus(
+  how,
+  t(
+    'A caso: quante carte vuoi, con i valori estratti dagli insiemi',
+    'Random: as many cards as you want, with values drawn from the sets'
+  ),
+  'below',
+  { pad: 4 }
+)
+await setColumn(0, S.resources)
+await fill(values(0), S.res, { tab: false })
+await fill(genSet(0).locator('input.num').first(), '2')
+await check(genCheck(0, 'generate.repeat'))
+await r.focus(
+  genSet(0),
+  t(
+    'Due risorse estratte per carta, anche uguali. + Colonna riempie anche un’altra colonna con lo stesso insieme',
+    'Two resources drawn per card, even the same one. + Column also fills another column from the same set'
+  ),
+  'below',
+  { pad: 4 }
+)
+await fill(numIn('generate.count'), '8')
+await fill(numIn('generate.seed'), '7')
+await r.focus(
+  numIn('generate.count').locator('xpath=ancestor::div[contains(@class,"generate-row")]'),
+  t(
+    'Otto carte. Tutte diverse toglie i doppioni; lo stesso seme dà sempre le stesse carte',
+    'Eight cards. All different removes duplicates; the same seed always gives the same cards'
+  ),
+  'above',
+  { pad: 4 }
+)
+await r.click(gen().getByRole('button', { name: new RegExp(T['generate.shuffle']) }).first(), {
+  after: 700
+})
+await r.focus(
+  preview(),
+  t('Rimescola: un seme nuovo, altre carte', 'Shuffle: a new seed, other cards'),
+  'above',
+  { pad: 4 }
+)
+await r.click(gen().getByRole('button', { name: T['dialog.cancel'], exact: true }).first())
+await r.clear(900)
+
 // ---- 5. dividere un'immagine
 await r.title(t('Dividere un’immagine tra le carte', 'Splitting an image across cards'))
 await openSet(X.map)
@@ -399,7 +472,7 @@ await tools('set.split')
 const split = dialog()
 await fill(split.locator('.split-image input').first(), S.map)
 const num = (key) =>
-  split.locator('label').filter({ hasText: T[key] }).locator('input[type=number]').first()
+  split.locator('label').filter({ hasText: T[key] }).locator('input').first()
 await fill(num('split.cols'), '3')
 await fill(num('split.rows'), '2')
 await r.focus(

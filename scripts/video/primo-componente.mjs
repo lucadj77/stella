@@ -133,10 +133,11 @@ async function scrollProps() {
 }
 /** posizione e dimensioni in millimetri */
 async function place(x, y, w, h) {
-  await fill(field('X'), String(x))
-  await fill(field('Y'), String(y))
+  // prima le misure: cambiarle tiene fermo il punto di ancoraggio (il centro) e sposterebbe X e Y
   await fill(field(T['prop.w']), String(w))
   await fill(field(T['prop.h']), String(h))
+  await fill(field('X'), String(x))
+  await fill(field('Y'), String(y))
 }
 
 await r.overlay()
@@ -621,13 +622,14 @@ await r.focus(
 )
 await r.click(goal('home'))
 await r.wait(600)
+await r.wait(1500)
 await r.focus(
-  dialog(),
+  dialog().locator('.live-preview').first(),
   it
-    ? 'Le carte disposte sul foglio, con i segni di taglio'
-    : 'The cards laid out on the page, with crop marks',
-  'none',
-  { pad: 0, dim: false }
+    ? 'L’anteprima a lato: le carte disposte sul foglio, con i segni di taglio'
+    : 'The preview on the side: the cards laid out on the page, with crop marks',
+  'left',
+  { pad: 4 }
 )
 await r.focus(
   goal('shop'),
@@ -636,13 +638,15 @@ await r.focus(
     : 'For a print shop: bleed and crop marks already set',
   'below'
 )
-await r.click(dialog().getByRole('button', { name: T['export.run'], exact: true }))
-await r.wait(3000)
+const run = dialog().getByRole('button', { name: T['export.run'], exact: true })
+await r.click(run)
+await win.waitForTimeout(1000)
+for (let i = 0; i < 240 && !(await run.isEnabled()); i++) await win.waitForTimeout(500)
+await r.wait(800)
 await r.focus(
-  dialog(),
+  dialog().locator('.export-result').first(),
   it ? 'Il PDF è nella cartella export del progetto' : 'The PDF is in the project’s export folder',
-  'left',
-  { pad: 0, dim: false }
+  'above'
 )
 await r.clear(300)
 await r.click(dialog().getByRole('button', { name: T['export.close'], exact: true }))

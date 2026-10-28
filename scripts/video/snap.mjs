@@ -467,7 +467,7 @@ await r.wait(600)
 const ttsRow = (name) =>
   dialog()
     .locator('.tts-object')
-    .filter({ has: win.locator('.tts-object-name', { hasText: new RegExp(`^${name}$`) }) })
+    .filter({ has: win.locator('.tts-object-name', { hasText: new RegExp(`^${name}\\s*\\d*$`) }) })
     .first()
 const tags = (name) => ttsRow(name).locator('input.tts-object-tags').first()
 await ttsRow(market).scrollIntoViewIfNeeded()

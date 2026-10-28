@@ -17,7 +17,7 @@ if (process.env.FAST) {
   r.type = (text) => win.keyboard.type(text, { delay: 2 })
 }
 if (process.env.SHOT) {
-  for (const k of ['focus', 'click']) {
+  for (const k of ['focus', 'click', 'zoom']) {
     const f = r[k].bind(r)
     r[k] = async (...a) => {
       try {
@@ -41,15 +41,8 @@ const grid = () => win.locator('.card-grid').first()
 const ttsRow = (name) =>
   dialog()
     .locator('.tts-object')
-    .filter({ has: win.locator('.tts-object-name', { hasText: new RegExp(`^${name}$`) }) })
+    .filter({ has: win.locator('.tts-object-name', { hasText: new RegExp(`^${name}\\s*\\d*$`) }) })
     .first()
-async function choose(loc, value) {
-  await loc.scrollIntoViewIfNeeded()
-  await r.click(loc, { after: 200, before: 200, ms: 450 })
-  await win.keyboard.press('Escape')
-  await loc.selectOption(value)
-  await r.wait(600)
-}
 async function openSet(name, text) {
   await r.click(side(name))
   await r.clear(900)
@@ -91,33 +84,53 @@ await r.clear(800)
 await r.click(dialog().locator('.export-goal').filter({ hasText: T['export.goal.tts'] }).first())
 await r.wait(600)
 await r.focus(
-  dialog().locator('.tts-objects').first(),
+  dialog().locator('.tts-table').first(),
   it
-    ? 'Per ogni set si sceglie cosa diventa in Tabletop Simulator'
-    : 'For each set, choose what it becomes in Tabletop Simulator',
-  'left',
+    ? 'Ogni set diventa un oggetto di Tabletop Simulator: Stella lo propone dal tipo del template'
+    : 'Each set becomes a Tabletop Simulator object: Stella suggests it from the template’s kind',
+  'right',
   { pad: 6 }
 )
-for (const [name, type] of [
-  [coins, 'token'],
-  [lands, 'tile'],
-  [board, 'board'],
-  [die, 'die']
-])
-  await choose(ttsRow(name).locator('select').first(), type)
+await r.zoom(ttsRow(coins), { max: 1.7 })
+await r.click(ttsRow(coins).locator('.kind-picker'), { after: 500 })
+await r.unzoom(500)
+const kinds = () => win.locator('[role="menu"]').last()
 await r.focus(
-  dialog().locator('.tts-objects').first(),
+  kinds(),
   it
-    ? 'Segnalini, tessere e plance hanno anche lo spessore'
-    : 'Tokens, tiles and boards also have a thickness',
+    ? 'Si può cambiare: carte, segnalini, pedine in piedi, tessere, plance o dadi'
+    : 'You can change it: cards, tokens, standees, tiles, boards or dice',
+  'right'
+)
+await r.click(
+  kinds().locator('.kind-menu-item').filter({ hasText: T['export.ttsToken'] }).first(),
+  { after: 600 }
+)
+await r.zoom(ttsRow(coins), { max: 1.7 })
+await r.focus(
+  ttsRow(coins).locator('.tts-object-details'),
+  it
+    ? 'Segnalini, tessere e plance hanno anche lo spessore. I tag servono agli snap point'
+    : 'Tokens, tiles and boards also have a thickness. Tags are for snap points',
+  'below'
+)
+await r.unzoom(500)
+await r.focus(
+  dialog().locator('.live-preview').first(),
+  it
+    ? 'L’anteprima mostra le immagini che vanno in Tabletop Simulator'
+    : 'The preview shows the images that go into Tabletop Simulator',
   'left',
-  { pad: 6 }
+  { pad: 4 }
 )
 const dest = dialog()
-  .locator('select')
-  .filter({ has: win.locator(`option[value="both"]`) })
+  .locator('.export-choice-row')
+  .filter({ has: win.locator('.export-choice-label', { hasText: T['export.destination'] }) })
   .first()
-await choose(dest, 'both')
+await dest.scrollIntoViewIfNeeded()
+await r.click(dest.locator('.export-choice').filter({ hasText: T['export.destBoth'] }).first(), {
+  after: 500
+})
 await r.focus(
   dest,
   it
@@ -132,12 +145,11 @@ await win.waitForTimeout(1000)
 for (let i = 0; i < 240 && !(await run.isEnabled()); i++) await win.waitForTimeout(500)
 await r.wait(1200)
 await r.focus(
-  dialog(),
+  dialog().locator('.export-result').first(),
   it
     ? 'Fatto: un oggetto per ogni set, con le immagini accanto'
     : 'Done: one object per set, with the images next to it',
-  'none',
-  { pad: 0, dim: false }
+  'above'
 )
 await r.click(dialog().getByRole('button', { name: T['export.close'], exact: true }))
 await r.clear()

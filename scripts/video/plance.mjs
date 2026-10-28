@@ -115,10 +115,11 @@ async function choose(loc, value) {
   await r.wait(600)
 }
 async function place(x, y, w, h) {
-  await fill(field('X'), String(x))
-  await fill(field('Y'), String(y))
+  // prima le misure: cambiarle tiene fermo il punto di ancoraggio (il centro) e sposterebbe X e Y
   await fill(field(T['prop.w']), String(w))
   await fill(field(T['prop.h']), String(h))
+  await fill(field('X'), String(x))
+  await fill(field('Y'), String(y))
 }
 /** ingrandisce la tela attorno al livello selezionato (⌘/Ctrl + rotella, come si fa con il mouse) */
 async function zoomOnSelection(steps = 4) {
@@ -523,17 +524,27 @@ await r.clear(800)
 await r.click(dialog().locator('.export-goal').filter({ hasText: T['export.goal.tts'] }).first())
 await r.wait(600)
 // solo il set del dado
-const sets = dialog().locator('.export-sets label')
+const sets = dialog().locator('.export-set-chip')
 for (let i = 0; i < (await sets.count()); i++) {
-  const label = sets.nth(i)
-  if ((await label.innerText()).trim() !== N.dice)
-    await r.click(label, { ms: 250, before: 100, after: 150 })
+  const chip = sets.nth(i)
+  const name = (await chip.evaluate((e) => e.firstChild?.nextSibling?.textContent ?? '')).trim()
+  if (name !== N.dice && (await chip.locator('input').isChecked()))
+    await r.click(chip, { ms: 250, before: 100, after: 150 })
 }
 const ttsRow = dialog()
   .locator('.tts-object')
-  .filter({ has: win.locator('.tts-object-name', { hasText: new RegExp(`^${N.dice}$`) }) })
+  .filter({ has: win.locator('.tts-object-name', { hasText: new RegExp(`^${N.dice}\\s*\\d*$`) }) })
   .first()
-await choose(ttsRow.locator('select').first(), 'die')
+await r.click(ttsRow.locator('.kind-picker').first(), { after: 500 })
+await r.click(
+  win
+    .locator('[role="menu"]')
+    .last()
+    .locator('.kind-menu-item')
+    .filter({ hasText: T['export.ttsDie'] })
+    .first(),
+  { after: 600 }
+)
 await r.focus(
   ttsRow,
   t(
