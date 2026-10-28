@@ -5,6 +5,28 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.7.0-beta.5
+
+### English
+
+- **A simpler Export window**: it still starts from the goal (print at home, print shop, Tabletop Simulator, images), then shows the choices that matter as buttons with a picture (duplex, crop marks, bleed, where to save for Tabletop Simulator, who the images are for), puts the other options in closed sections whose title sums up their values, and ends with a sentence that says what will be written, for example "22 components in 3 sets → 6 A4 pages, one PDF in export". Options that do not apply stay visible but disabled, with the reason.
+- **Live preview in the window**: next to the options there is the real preview of the first page, image or sheet, browsed with ‹ ›. Only the page shown is drawn, with **Please wait…** while it gets ready, and the window stays usable meanwhile. **Enlarge** opens the large preview.
+- **Repeat the last export**: the ▾ next to **Export…** exports again with the last options without opening the window (⇧⌘E / Ctrl+Shift+E), with a notice showing progress and a link to the folder. The same menu lists the project profiles. **Export…** now also opens with ⌘E / Ctrl+E.
+- **Icons for component types**: cards, tokens, tiles, boards, dice and standees (a meeple) have an icon in the Tabletop Simulator object menu and in the new template window.
+- **Profiles** move to a **Profile ▾** menu at the bottom of the window; print shop and home printing presets are now part of the goals and of the **For** choice for images.
+- **Tabletop Simulator**: card nickname and description are empty by default.
+- Pressing Esc in a menu inside a window now closes only the menu.
+
+### Italiano
+
+- **Finestra Esporta più semplice**: comincia sempre dall'obiettivo (stampare a casa, tipografia, Tabletop Simulator, immagini), poi mostra le scelte che contano come pulsanti con un disegno (fronte-retro, segni di taglio, abbondanza, dove salvare per Tabletop Simulator, per chi sono le immagini), mette le altre opzioni in sezioni chiuse con il riassunto dei valori nel titolo e finisce con una frase che dice cosa verrà scritto, per esempio «22 componenti in 3 set → 6 pagine A4, un PDF in export». Le opzioni che non si applicano restano visibili ma spente, con il motivo.
+- **Anteprima nella finestra**: accanto alle opzioni c'è l'anteprima vera della prima pagina, immagine o foglio, da scorrere con ‹ ›. Si disegna solo la pagina mostrata, con **Attendere…** mentre si prepara, e intanto la finestra resta usabile. **Ingrandisci** apre l'anteprima grande.
+- **Ripeti l'ultima esportazione**: il ▾ accanto a **Esporta…** esporta di nuovo con le ultime opzioni senza aprire la finestra (⇧⌘E / Ctrl+Maiusc+E), con un avviso che mostra l'avanzamento e il collegamento alla cartella. Lo stesso menu elenca i profili del progetto. **Esporta…** ora si apre anche con ⌘E / Ctrl+E.
+- **Icone dei tipi di componente**: carte, segnalini, tessere, plance, dadi e pedine (un meeple) hanno un'icona nel menu degli oggetti di Tabletop Simulator e nella finestra del nuovo template.
+- I **profili** passano a un menu **Profilo ▾** in basso nella finestra; i preset per tipografie e stampa in casa ora fanno parte degli obiettivi e della scelta **Per chi** delle immagini.
+- **Tabletop Simulator**: nickname e descrizione delle carte sono vuoti di base.
+- Esc in un menu dentro una finestra ora chiude solo il menu.
+
 ## 1.7.0-beta.4
 
 ### English
@@ -298,7 +320,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 
 #### Fixed
 
-- **Automatic update on Windows and Linux**: installing an update stopped with *Cannot set properties of undefined (setting 'logger')*, because the updater module was loaded the wrong way. Installed versions up to 1.3.1 and 1.4.0-beta.4 cannot install this fix by themselves: download 1.4.0 once from the release page, then updates work again.
+- **Automatic update on Windows and Linux**: installing an update stopped with _Cannot set properties of undefined (setting 'logger')_, because the updater module was loaded the wrong way. Installed versions up to 1.3.1 and 1.4.0-beta.4 cannot install this fix by themselves: download 1.4.0 once from the release page, then updates work again.
 
 ### Italiano
 
@@ -315,7 +337,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 
 #### Correzioni
 
-- **Aggiornamento automatico su Windows e Linux**: l'installazione di un aggiornamento si fermava con *Cannot set properties of undefined (setting 'logger')*, perché il modulo degli aggiornamenti era caricato nel modo sbagliato. Le versioni installate fino alla 1.3.1 e alla 1.4.0-beta.4 non possono installare da sole questa correzione: va scaricata una volta la 1.4.0 dalla pagina della release, poi gli aggiornamenti tornano a funzionare.
+- **Aggiornamento automatico su Windows e Linux**: l'installazione di un aggiornamento si fermava con _Cannot set properties of undefined (setting 'logger')_, perché il modulo degli aggiornamenti era caricato nel modo sbagliato. Le versioni installate fino alla 1.3.1 e alla 1.4.0-beta.4 non possono installare da sole questa correzione: va scaricata una volta la 1.4.0 dalla pagina della release, poi gli aggiornamenti tornano a funzionare.
 
 ## 1.4.0-beta.4
 

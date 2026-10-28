@@ -665,7 +665,21 @@ Each card shows the part of the image under its layer, as if the image covered t
 
 ## 11. Exporting
 
-**Export…** opens a window that starts from what you want to do: **Print at home** (a PDF with the components side by side, front and back), **Print shop** (a PDF with bleed and crop marks), **Tabletop Simulator** or **Images**. The first two start from a preset you can then change. For each one you choose the sets and whether to repeat cards as the `amount` column says. Cards are drawn by the same engine as the preview, including unsaved changes.
+**Export…** (⌘E / Ctrl+E) opens a window that starts from what you want to do: **Print at home** (a PDF with the components side by side, front and back), **Print shop** (a PDF with bleed and crop marks), **Tabletop Simulator** or **Images**. Below you choose the sets (the number next to the name says how many rows they have) and whether to repeat cards as the `amount` column says. Cards are drawn by the same engine as the preview, including unsaved changes.
+
+The window has the options on the left and the preview on the right. The options come in three levels:
+
+- **The choices that matter**: the few that really change the result, as buttons with a picture (for example duplex, crop marks, where to save for Tabletop Simulator).
+- **Closed sections**: the rest of the options. The title of each section sums up the values inside, so you can check them without opening it; a section you open stays open next time.
+- **The sentence above Export**: says what will happen, for example "22 components in 3 sets → 6 A4 pages, one PDF in export", with the details below (sheets to print, crop marks, .json files).
+
+An option that does not apply with the other choices stays visible but disabled, with the reason written next to it (for example spacing with bleed, or the back offset without duplex).
+
+The preview on the right is the real one: it shows the first page, image or sheet the export will write, and you browse with ‹ ›. Only the page shown is drawn, so even a large project stays fast; while the page is getting ready it says **Please wait…** and you can keep changing the options. **Enlarge** opens the large preview (see [11.3](#113-preview)).
+
+When the export is done, the number of files written, any warnings and the links to open the file (if there are few) or the folder appear below the sentence.
+
+**Repeating the last export.** The **Export…** button at the top has a ▾ next to it with **Repeat the last export** (⇧⌘E / Ctrl+Shift+E): it exports again with the last options used, without opening the window. Progress, with **Stop**, and then the result appear in a notice at the bottom right, with the link to the folder. The same menu lists the project profiles, which open the window already set up.
 
 ### 11.1 Images
 
@@ -677,7 +691,7 @@ SVG is vector and has no resolution: it scales without losing quality and opens 
 
 ### 11.2 Print PDF
 
-The PDF is vector, with embedded fonts. You choose page size and orientation, margins, spacing and layout (as many cards as fit, or columns × rows). Other options:
+The PDF is vector, with embedded fonts. The choices that matter are the paper (page size and orientation), bleed (print shop only), duplex and crop marks; with **Backs on separate pages** you also choose which sides to print. The **Layout**, **Cutting and corners** and **Pages and files** sections hold the rest: margins, spacing and layout (as many cards as fit, or columns × rows), and the options below.
 
 - **Bleed**: with bleed the cards touch and crop marks are outside.
 - **Rotation**: rotates cards when they would not fit otherwise or more of them fit.
@@ -693,17 +707,17 @@ The PDF is vector, with embedded fonts. You choose page size and orientation, ma
 
 ### 11.3 Preview
 
-**Preview…** shows the files the export will write, without writing anything: images with their file names, PDF pages, Tabletop Simulator sheets. Browse them with ‹ › or the arrow keys.
+The preview next to the options shows, small, the files the export will write, without writing anything: images with their file names, PDF pages, Tabletop Simulator sheets. **Enlarge** opens it large, on the same page; browse with ‹ › or the arrow keys.
 
 ![Preview of the PDF pages](img/esporta-anteprima.png)
 
 ### 11.4 Tabletop Simulator
 
-For each set it creates the card sheets (up to 10 × 7, with the grid chosen automatically to reduce empty slots) and the deck file to load in Tabletop Simulator. Files go to the project folder, to Tabletop Simulator's saved objects folder, or both (the default). Card nickname and description can come from a field.
+For each set it creates the card sheets (up to 10 × 7, with the grid chosen automatically to reduce empty slots) and the deck file to load in Tabletop Simulator. **Save to** chooses whether files go to the project folder, to Tabletop Simulator's saved objects folder, or both (the default). In the **Name and description** section, card nickname and description can come from a field; by default they are empty.
 
 With **Copies** on, **Copies on the sheet** decides where a card's copies go: once on the sheet, with the deck file multiplying it (the default, which keeps sheets small), or repeated on the sheet as many times as `amount` says. The second is for loading the sheets into Tabletop Simulator by hand, without the deck file: each slot of the sheet is one card.
 
-**Objects** chooses, for each set, what to create in Tabletop Simulator:
+The table of sets chooses, for each set, what to create in Tabletop Simulator, in the **Object in TTS** column (the menu shows each type's icon):
 
 - **Cards**: the deck from the sheets, as above.
 - **Tokens**: one image per card, cut out along the card shape (rectangle, rounded corners, circle, hexagon or silhouette). Tabletop Simulator turns it into a thick piece whose edge takes the image color; underneath it shows the front mirrored, so the card back is not used.
@@ -714,7 +728,7 @@ With **Copies** on, **Copies on the sheet** decides where a card's copies go: on
 
 Tokens, standees and tiles have a **Thickness**. The pieces of a set go into a bag, copies included; a set with a single piece becomes that piece. Cards, tokens, standees and tiles reach Tabletop Simulator in their true proportions: a 63 mm card has Tabletop Simulator's default size, and everything else is larger or smaller in proportion. Landscape cards, such as a board as wide as two cards, are placed sideways.
 
-**Tags and snap points.** In the template properties, under **Component**, **TTS tags** gives every component its Tabletop Simulator tags, separated by commas. `{fields}` are allowed, for example `{type}, card`, and a deck takes the tags of all its cards. Two sets with the same template can have different tags: in **Objects**, next to each set, the **TTS tags** field starts with the template's tags and, if you change it, gives the set the tags written there instead of the template's. A **snap point** is a spot on a board (or on a tile, token or card) where objects snap when dropped close to it. There are two ways to add one:
+**Tags and snap points.** In the template properties, under **Component**, **TTS tags** gives every component its Tabletop Simulator tags, separated by commas. `{fields}` are allowed, for example `{type}, card`, and a deck takes the tags of all its cards. Two sets with the same template can have different tags: in the table of sets, next to each set, the **TTS tags** field starts with the template's tags and, if you change it, gives the set the tags written there instead of the template's. A **snap point** is a spot on a board (or on a tile, token or card) where objects snap when dropped close to it. There are two ways to add one:
 
 - the **Snap** tool (P) adds a layer that is only a snap point: a blue crosshair in the editor, invisible in prints and images, with the point at the centre of its box;
 - every other layer has, at the bottom of its properties, the **Tabletop Simulator** section with **Snap point**: the point goes at the centre of the layer. For a grid the option is **Snap point in each cell**, handy for the spaces of a board. A snap point on a layer of the **cell content** repeats in every cell, moved like the content.
@@ -727,7 +741,9 @@ Sheets are referenced by local addresses, so the deck works on the computer that
 
 ### 11.5 Profiles and presets
 
-**Profile**, at the top of the window, picks a profile saved in the project or a preset: MakePlayingCards, The Game Crafter, home printing on A4 or Letter. **Save as…** stores the current options as a named profile, to run again later. Before ordering, check the specifications on the printer's website, which may change.
+Print shops and home printing are already in the choices: **Print shop** and **Print at home** start from their options (A4, or Letter with the app in English), and for images **For** chooses between general use, MakePlayingCards and The Game Crafter. Before ordering, check the specifications on the printer's website, which may change.
+
+The **Profile ▾** menu at the bottom stores the current options as a named project profile, to use again later: **Save as new profile…**, **Save in** to update the chosen profile, **Delete**. Picking a profile from the menu brings back its export type and options.
 
 ### 11.6 Credits
 

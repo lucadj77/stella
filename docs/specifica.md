@@ -14,7 +14,7 @@ Ogni proprietà segnata con ◆ può essere esposta in tabella, cioè diventare 
 | x, y ◆               | mm                                                           | posizione dell'angolo in alto a sinistra rispetto al bordo di taglio |
 | larghezza, altezza ◆ | mm                                                           |                                                                      |
 | rotazione ◆          | gradi                                                        | attorno al punto di ancoraggio                                       |
-| punto di ancoraggio  | 9 posizioni                                                  | centro di rotazione; resta fermo cambiando le misure dal pannello  |
+| punto di ancoraggio  | 9 posizioni                                                  | centro di rotazione; resta fermo cambiando le misure dal pannello    |
 | opacità ◆            | 0–100%                                                       |                                                                      |
 | fusione              | normale, moltiplica, scolora, sovrapponi                     |                                                                      |
 | ombra                | colore, sfocatura, distanza x e y                            |                                                                      |
@@ -398,9 +398,11 @@ Nei campi numerici del pannello delle proprietà, trascinare l'etichetta a destr
 
 Le esportazioni si salvano come profili nel progetto, così si possono rilanciare. Ogni profilo indica i set da includere e se rispettare le copie.
 
-Stato (ottobre 2026): il comando **Esporta…** nella barra in alto apre una finestra con tre schede (immagini, PDF, Tabletop Simulator). Le opzioni usate per ultime si salvano in `stella.json` sotto la chiave `export`, una per tipo. In cima alla finestra, **Profilo** sceglie un profilo con nome, il cui tipo e le cui opzioni (set e cartella compresi) passano nella finestra; **Salva** aggiorna il profilo scelto con le opzioni attuali, **Salva come…** ne crea uno nuovo e × lo elimina. I profili si scrivono subito nel progetto, sotto `export.named`. Le carte si disegnano in una finestra nascosta con lo stesso codice dell'anteprima, quindi l'esportazione coincide con ciò che si vede, comprese le modifiche non ancora salvate. Le immagini mancanti in `assets/` escono come segnaposto e la finestra elenca le carte coinvolte.
+Stato (ottobre 2026): il comando **Esporta…** (⌘E / Ctrl+E) nella barra in alto apre una finestra che comincia dall'obiettivo (stampare a casa, tipografia, Tabletop Simulator, immagini). Le opzioni stanno a sinistra in tre livelli: le scelte che contano, a pulsanti con un disegno; sezioni chiuse con il riassunto dei valori nel titolo; una frase sopra **Esporta** che dice cosa verrà scritto (`exportSummary` in `src/shared/exportPreview.ts`). Le opzioni che con le altre scelte non si applicano restano spente, con il motivo. Le opzioni usate per ultime si salvano in `stella.json` sotto la chiave `export`, una per tipo, e `export.last` ricorda il tipo e la lingua dell'ultima esportazione. In basso, il menu **Profilo ▾** sceglie un profilo con nome, il cui tipo e le cui opzioni (set e cartella compresi) passano nella finestra; **Salva in** aggiorna il profilo scelto con le opzioni attuali, **Salva come nuovo profilo…** ne crea uno nuovo ed **Elimina** lo toglie. I profili si scrivono subito nel progetto, sotto `export.named`. Le carte si disegnano in una finestra nascosta con lo stesso codice dell'anteprima, quindi l'esportazione coincide con ciò che si vede, comprese le modifiche non ancora salvate. Le immagini mancanti in `assets/` escono come segnaposto e la finestra elenca le carte coinvolte.
 
-**Anteprima…**, accanto a **Esporta**, mostra uno alla volta i file che l'esportazione scriverà con le opzioni attuali, senza scrivere nulla: le immagini delle carte con il nome del file, le pagine del PDF con i segni di taglio, i fogli di Tabletop Simulator con la carta nascosta. Si scorrono con ‹ › o con le frecce, e da lì si può esportare. L'anteprima e l'esportazione usano lo stesso piano (`src/shared/exportPlan.ts`), quindi impaginazione e nomi coincidono.
+Accanto alle opzioni c'è l'anteprima vera, in piccolo: si disegna solo il file mostrato, gli altri quando li si sceglie con ‹ ›, e finché immagini e font non sono pronti c'è «Attendere…». **Ingrandisci** apre l'anteprima grande, che mostra uno alla volta i file che l'esportazione scriverà, senza scrivere nulla: le immagini delle carte con il nome del file, le pagine del PDF con i segni di taglio, i fogli di Tabletop Simulator con la carta nascosta. L'anteprima e l'esportazione usano lo stesso piano (`src/shared/exportPlan.ts`), quindi impaginazione e nomi coincidono.
+
+Il ▾ accanto a **Esporta…** ha **Ripeti l'ultima esportazione** (⇧⌘E / Ctrl+Maiusc+E), che esporta con `export.last` senza aprire la finestra e mostra avanzamento e risultato in un avviso, e i profili del progetto, che aprono la finestra con il profilo scelto.
 
 ### 9.1 Immagini
 
@@ -451,7 +453,7 @@ Il PDF è vettoriale, con i font incorporati e in RGB. **Converti in CMYK** pass
 | retro              | unico o foglio dei retri                                                                                                                                                          |
 | destinazione       | cartella del progetto, cartella di Tabletop Simulator, entrambe                                                                                                                   |
 | oggetto salvato    | file JSON del mazzo pronto da caricare                                                                                                                                            |
-| Nickname           | vuoto oppure da un campo a scelta (di base il primo campo di testo, per esempio `nome`)                                                                                           |
+| Nickname           | vuoto (di base) oppure da un campo a scelta                                                                                                                                       |
 | Description        | vuota oppure da un campo a scelta                                                                                                                                                 |
 | oggetti            | per set: carte (mazzo), segnalini (`Custom_Token`) o tessere (`Custom_Tile`), con spessore e, per le tessere, colore del bordo                                                    |
 
@@ -463,7 +465,7 @@ Tabletop Simulator non ha una scala assoluta: a scala 1 ogni tipo di oggetto ha 
 
 ### 9.4 Preset per tipografie
 
-Nello stesso menu dei profili, un gruppo di preset per i servizi di stampa e per la stampa in casa. Un preset cambia tipo e opzioni ma lascia i set e la cartella scelti; non si modifica, ma si può salvare come profilo del progetto e cambiare da lì.
+I preset per i servizi di stampa e per la stampa in casa non sono più nel menu dei profili: **Tipografia** e **Stampare a casa** (A4, Letter con l'app in inglese) partono dal loro preset, e per le immagini la scelta **Per chi** applica quello di MakePlayingCards o di The Game Crafter. Un preset cambia le opzioni ma lascia i set e la cartella scelti.
 
 | Preset                                  | Opzioni                                                                                                          |
 | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |

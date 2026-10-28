@@ -146,11 +146,14 @@ import {
   onAssetsUpdate,
   useBindContext
 } from './render/assets'
-import { useRegisterFonts } from './render/fonts'
+import { useProjectFonts, useRegisterFonts } from './render/fonts'
 import VariableDialog, { VariableSwatch } from './components/VariableDialog'
 import { usedColors, type Variable, type Variables } from '../../shared/model/variables'
 import FormatDialog from './components/FormatDialog'
+import { isMacPlatform, platformKeys } from '../../shared/keys'
 import ExportDialog from './export/ExportDialog'
+import ExportToast, { type ExportRun } from './export/ExportToast'
+import { runExport, savedOptions } from './export/exportRun'
 import LanguagesDialog, { type LanguagesChange } from './components/LanguagesDialog'
 import { languageName } from './i18n/languageName'
 import { localizationOf, projectLanguages } from '../../shared/model/language'
@@ -298,7 +301,13 @@ function App(): React.JSX.Element {
   /** Variabile aperta nell'editor: '' per una nuova */
   const [editingVariable, setEditingVariable] = useState<string | null>(null)
   const [creatingSet, setCreatingSet] = useState(false)
-  const [exporting, setExporting] = useState(false)
+  /** La finestra Esporta aperta, con il profilo da caricare ('' per le ultime opzioni) */
+  const [exporting, setExportingState] = useState<string | null>(null)
+  const setExporting = (open: boolean, profile = ''): void =>
+    setExportingState(open ? profile : null)
+  /** «Ripeti l'ultima esportazione» in corso o appena finita, senza la finestra */
+  const [exportRun, setExportRun] = useState<ExportRun | null>(null)
+  const { has: hasFont } = useProjectFonts()
   /** Progetto in cui si è aperta l'esportazione: l'ultimo dei primi passi */
   const [exportedIn, setExportedIn] = useState<string | null>(null)
   const [backingUp, setBackingUp] = useState(false)
@@ -541,9 +550,31 @@ function App(): React.JSX.Element {
     })
   }, [folder, load])
 
-  const openExport = (): void => {
-    setExporting(true)
+  const openExport = (profile = ''): void => {
+    if (exportRun?.progress) return
+    setExporting(true, profile)
     if (project) setExportedIn(project.folder)
+  }
+
+  /** Esporta di nuovo con le opzioni dell'ultima esportazione, senza aprire la finestra */
+  const repeatExport = async (): Promise<void> => {
+    const last = project?.file.export?.last
+    if (!project || exporting !== null || exportRun?.progress) return
+    if (!last) return openExport()
+    const what = savedOptions(last.kind, project.file.export)
+    const languages = projectLanguages(project.file)
+    setExportRun({ what, progress: { done: 0, total: 0 } })
+    const off = window.api.onExportProgress((progress) =>
+      setExportRun((r) => (r?.progress ? { ...r, progress } : r))
+    )
+    try {
+      const result = await runExport(project, what, last.language ?? languages[0] ?? '', hasFont)
+      setExportRun({ what, result })
+    } catch (e) {
+      setExportRun({ what, error: messageFromError(e) })
+    } finally {
+      off()
+    }
   }
 
   /** Chiede conferma prima di perdere modifiche non salvate */
@@ -1566,6 +1597,12 @@ function App(): React.JSX.Element {
       saveAll()
       return
     }
+    if (e.code === 'KeyE' && !e.altKey && project) {
+      e.preventDefault()
+      if (e.shiftKey) void repeatExport()
+      else openExport()
+      return
+    }
     if (e.code === 'KeyF' && e.shiftKey && !e.altKey && project) {
       e.preventDefault()
       setFindingAll(true)
@@ -2179,6 +2216,37 @@ function App(): React.JSX.Element {
   ]
 
   /** Comandi del progetto usati di rado: nel menu Progetto e nel menu dell'app */
+  /** Il menu ▾ del pulsante Esporta: ripetere l'ultima esportazione o partire da un profilo */
+  const lastExport = project?.file.export?.last
+  const keyLabel = (k: string): string => platformKeys(k, isMacPlatform(), lang)
+  const exportMenu: MenuItem[] = [
+    { label: t('app.export'), shortcut: keyLabel('⌘E'), onClick: () => openExport() },
+    {
+      label: t('export.menu.repeat'),
+      shortcut: keyLabel('⇧⌘E'),
+      title: lastExport
+        ? `${t(
+            lastExport.kind === 'pdf'
+              ? project?.file.export?.pdf?.bleed
+                ? 'export.goal.shop'
+                : 'export.goal.home'
+              : `export.goal.${lastExport.kind}`
+          )} · ${t('export.menu.repeatHint')}`
+        : t('export.menu.repeatHint'),
+      disabled: !lastExport || !!exportRun?.progress,
+      onClick: () => void repeatExport()
+    },
+    ...((project?.file.export?.named ?? []).length
+      ? [
+          'sep' as const,
+          { label: t('export.menu.profiles'), disabled: true, onClick: () => undefined },
+          ...(project?.file.export?.named ?? []).map((p) => ({
+            label: `${p.name} · ${t(`export.${p.kind}`)}`,
+            onClick: () => openExport(p.name)
+          }))
+        ]
+      : [])
+  ]
   const projectMenu: MenuItem[] = [
     { label: t('findAll.menu'), title: t('findAll.menuHint'), onClick: () => setFindingAll(true) },
     'sep',
@@ -2219,6 +2287,7 @@ function App(): React.JSX.Element {
     open: () => void open(),
     save: () => void saveAll(),
     export: () => openExport(),
+    repeatExport: () => void repeatExport(),
     backup: () => setBackingUp(true),
     findAll: () => project && setFindingAll(true),
     trash: () => setTrashOpen(true),
@@ -2261,7 +2330,20 @@ function App(): React.JSX.Element {
             showOnly: true,
             enabled: canSave
           },
-          { id: 'export', label: t('app.export'), enabled: hasProject },
+          {
+            id: 'export',
+            label: t('app.export'),
+            accelerator: 'CmdOrCtrl+E',
+            showOnly: true,
+            enabled: hasProject
+          },
+          {
+            id: 'repeatExport',
+            label: t('export.menu.repeat'),
+            accelerator: 'CmdOrCtrl+Shift+E',
+            showOnly: true,
+            enabled: hasProject
+          },
           sep,
           { id: 'backup', label: t('app.backup'), enabled: hasProject },
           { id: 'trash', label: t('app.trash'), enabled: hasProject },
@@ -2509,9 +2591,17 @@ function App(): React.JSX.Element {
                         >
                           {anyDirty ? t('app.save') : t('app.saved')}
                         </button>
-                        <button onClick={() => openExport()} title={t('tip.export')}>
-                          {t('app.export')}
-                        </button>
+                        <span className="split-button">
+                          <button onClick={() => openExport()} title={t('tip.export')}>
+                            {t('app.export')}
+                          </button>
+                          <Menu
+                            label="▾"
+                            title={t('app.exportMenu')}
+                            alignRight
+                            items={exportMenu}
+                          />
+                        </span>
                         <Menu
                           label={`${t('app.projectMenu')} ▾`}
                           title={t('tip.projectMenu')}
@@ -2927,9 +3017,11 @@ function App(): React.JSX.Element {
                       onClose={() => setBackingUp(false)}
                     />
                   )}
-                  {exporting && project && (
+                  {exportRun && <ExportToast run={exportRun} onClose={() => setExportRun(null)} />}
+                  {exporting !== null && project && (
                     <ExportDialog
                       project={project}
+                      profile={exporting}
                       changed={changed}
                       language={localization?.language ?? null}
                       // le opzioni sono già scritte su disco: il progetto non risulta modificato
