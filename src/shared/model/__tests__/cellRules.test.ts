@@ -131,7 +131,9 @@ describe('regole delle caselle', () => {
               when: '=INLIST({cell.index}; "2, 4, 10")',
               values: { scritta: 'Casella {cell.index} di {nome}', icona: 'scudo' }
             },
-            { when: '={cell.index} = 1', values: { manca: 'x' } }
+            { when: '={cell.index} = 1', values: { manca: 'x' } },
+            { when: '={cell.index} = 14', values: { scritta: '+2' } },
+            { when: '={cell.index} = 15', values: { scritta: '1-3 "{nome}"' } }
           ]
         }
       ]
@@ -147,6 +149,9 @@ describe('regole delle caselle', () => {
     expect(cell(5)).toEqual({ text: 'xyz', src: '' })
     expect(cell(10)).toEqual({ text: 'Casella 10 di Plancia', src: 'scudo' })
     expect(cell(7)).toEqual({ text: '', src: '' })
+    // un valore senza = resta un testo, anche con + o -
+    expect(cell(14).text).toBe('+2')
+    expect(cell(15).text).toBe('1-3 "Plancia"')
   })
 
   it('le caselle scelte con il clic diventano una condizione e tornano indietro', () => {

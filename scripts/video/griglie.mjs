@@ -1,7 +1,7 @@
-// Video 8: le griglie e le formule nelle caselle (circa 11 minuti, senza voce). Su una plancia vuota si
+// Video 8: le griglie e le formule nelle caselle (circa 13 minuti, senza voce). Su una plancia vuota si
 // costruisce una griglia da zero: le forme delle caselle, il contenuto delle caselle con le variabili
-// {cell.…}, le formule spiegate un pezzo alla volta (IF, MOD, il markup), i colori per casella e le
-// caselle nascoste. Nell'ultima parte un agente IA aggiunge una griglia alla plancia del video 7 partendo
+// {cell.…}, le formule spiegate un pezzo alla volta (IF, MOD, il markup), i colori a caso e le regole
+// delle caselle (riempimento, contorno, caselle scelte con il clic e INLIST, caselle nascoste). Nell'ultima parte un agente IA aggiunge una griglia alla plancia del video 7 partendo
 // da una richiesta a parole: le due registrazioni (app e terminale) si montano con componi.sh.
 // Uso: xvfb-run -a -s "-screen 0 2000x1300x24" node --experimental-strip-types --no-warnings scripts/video/griglie.mjs it|en
 // FAST=1 accorcia attese e scrittura, per provare il percorso senza badare al ritmo.
@@ -100,8 +100,23 @@ const saveButton = () =>
     .locator('header.toolbar button')
     .filter({ hasText: new RegExp(`^(${T['app.save']}|${T['app.saved']})$`) })
     .first()
+const groupButton = () => win.locator('.layers-actions button').filter({ hasText: '⊞' }).first()
 const formula = () => field(T['source.formula'])
-const source = () => field(T['source.label'])
+const source = () => props.locator('.source-line .field-label').first()
+const sourceButton = (kind) =>
+  props
+    .locator('.source-line .segmented button')
+    .filter({
+      hasText: new RegExp(
+        `^${kind === 'column' ? T['source.short.column'] : T['source.kind.' + kind]}$`
+      )
+    })
+    .first()
+async function setSource(kind) {
+  const b = sourceButton(kind)
+  await zoomTo(b)
+  if ((await b.getAttribute('aria-pressed')) !== 'true') await r.click(b, { after: 400 })
+}
 
 async function fill(loc, text, { tab = true } = {}) {
   await loc.scrollIntoViewIfNeeded()
@@ -120,11 +135,12 @@ async function choose(loc, value) {
   await loc.selectOption(value)
   await r.wait(600)
 }
+// dalla 1.6 cambiare L e A tiene fermo il centro: prima la misura, poi la posizione
 async function place(x, y, w, h) {
-  await fill(field('X'), String(Math.round(x * 100) / 100))
-  await fill(field('Y'), String(Math.round(y * 100) / 100))
   await fill(field(T['prop.w']), String(Math.round(w * 100) / 100))
   await fill(field(T['prop.h']), String(Math.round(h * 100) / 100))
+  await fill(field('X'), String(Math.round(x * 100) / 100))
+  await fill(field('Y'), String(Math.round(y * 100) / 100))
 }
 /** zoom sulla carta e testo sopra: per guardare da vicino il risultato */
 async function look(text, opts = {}) {
@@ -300,7 +316,8 @@ await r.title(
   4200
 )
 await r.clear()
-await r.click(tool('tool.rect'))
+await r.click(tool('tool.shapes'))
+await r.click(win.getByRole('menuitem', { name: T['tool.rect'] }).first())
 await r.clear(500)
 await fill(field(T['prop.name']), N.square)
 await fill(colorField(T['prop.fill']), '#FFFFFF')
@@ -308,7 +325,7 @@ await place(120, 70, s, s)
 await r.click(tool('tool.text'))
 await r.clear(500)
 await fill(field(T['prop.name']), N.label)
-await choose(source(), 'fixed')
+await setSource('fixed')
 await fill(field(T['prop.text']), '{cell.index}')
 await explain(field(T['prop.text']), [
   t(
@@ -334,12 +351,8 @@ await r.focus(
   'right',
   { pad: 4 }
 )
-await r.focus(
-  tip(win.locator('aside.layers'), 'layers.group'),
-  t('Raggruppa (⌘G / Ctrl+G)', 'Group (⌘G / Ctrl+G)'),
-  'right'
-)
-await r.click(tip(win.locator('aside.layers'), 'layers.group'))
+await r.focus(groupButton(), t('Raggruppa (⌘G / Ctrl+G)', 'Group (⌘G / Ctrl+G)'), 'right')
+await r.click(groupButton())
 await r.wait(600)
 await fill(field(T['prop.name']), N.group)
 await r.focus(
@@ -441,7 +454,7 @@ await r.clear()
 await explain(source(), [
   t('Valore sulle carte: da «Fisso» a «Formula»', 'Value on cards: from “Fixed” to “Formula”')
 ])
-await choose(source(), 'formula')
+await setSource('formula')
 await fill(formula(), `=IF({cell.index} = 1; "${t('Via', 'Go')}"; {cell.index})`)
 await look(
   t(
@@ -550,51 +563,17 @@ await look(
 )
 await fill(formula(), red(10))
 
-// ---- 5. un colore diverso per casella
-await r.title(t('Un colore diverso per casella', 'A different color for each cell'))
+// ---- 5. colori a caso, dal contenuto
+await r.title(t('Colori a caso', 'Random colors'))
 await r.clear()
 await r.click(layer(N.square), { after: 500 })
 await explain(source(), [
   t(
-    'Il quadrato: anche il suo colore può venire da una formula',
-    'The square: its color can come from a formula too'
+    'Il quadrato del contenuto: anche il suo colore può venire da una formula',
+    'The square in the content: its color can come from a formula too'
   )
 ])
-await choose(source(), 'formula')
-await fill(formula(), '=IF(MOD({cell.index}; 10) = 0; "#F2C9BC"; "#FFFFFF")')
-await look(
-  t(
-    'Stessa condizione: le caselle 10, 20, 30 e 40 hanno il fondo rosato',
-    'Same condition: cells 10, 20, 30 and 40 get a pink background'
-  )
-)
-await explain(formula(), [
-  t(
-    'Per una forma la formula dà il colore: un codice come "#F2C9BC", tra virgolette',
-    'For a shape the formula gives the color: a code like "#F2C9BC", in quotes'
-  )
-])
-
-await r.title(t('Una scacchiera', 'A chessboard'))
-await r.clear()
-await r.click(tip(layerRow(N.label), 'layers.hide'), { after: 500 })
-await r.click(layer(N.square), { after: 400 })
-await fill(formula(), '=IF(MOD({cell.row} + {cell.column}; 2) = 0; "#2A241C"; "#F4EFE4")')
-await look(t('Una scacchiera, con una formula sola', 'A chessboard, with a single formula'))
-await explain(formula(), [
-  t('{cell.row} + {cell.column}: riga più colonna', '{cell.row} + {cell.column}: row plus column'),
-  t(
-    'MOD(…; 2) = 0 vuol dire «pari»: casella scura. Dispari: casella chiara',
-    'MOD(…; 2) = 0 means “even”: dark cell. Odd: light cell'
-  ),
-  t(
-    'Spostandosi di una casella la somma cambia di 1: chiaro e scuro si alternano',
-    'Moving by one cell changes the sum by 1: light and dark alternate'
-  )
-])
-
-await r.title(t('Colori a caso', 'Random colors'))
-await r.clear()
+await setSource('formula')
 await fill(
   formula(),
   '=PICK(MOD({cell.random}; 4) + 1; "#5E7D3A"; "#7A756D"; "#C49A1E"; "#5B8DB8")'
@@ -621,52 +600,242 @@ await explain(formula(), [
 ])
 await r.title(
   t(
-    'Il limite di oggi: la formula cambia il colore, non il contorno o la forma della casella',
-    'Today’s limit: the formula changes the color, not the outline or the shape of the cell'
+    'Per tutto il resto non serve una forma nel contenuto: ci sono le regole delle caselle',
+    'For everything else you don’t need a shape in the content: there are cell rules'
   ),
-  5200
+  4800
+)
+await r.clear()
+await r.click(tip(layerRow(N.square), 'layers.hide'), { after: 500 })
+await look(
+  t(
+    'Nascondiamo il quadrato: si vedono di nuovo le caselle della griglia',
+    'We hide the square: the grid cells show again'
+  )
+)
+
+// ---- 6. le regole delle caselle
+const rule = (i) => props.locator('.cell-rule').nth(i)
+const ruleColor = (label, i) =>
+  rule(i)
+    .locator('.field')
+    .filter({ has: win.locator('.field-label', { hasText: new RegExp(`^${label}$`) }) })
+    .locator('input.color-text')
+    .first()
+const ruleWidth = (i) =>
+  rule(i)
+    .locator('.field')
+    .filter({
+      has: win.locator('.field-label', { hasText: new RegExp(`^${T['prop.cellStroke']}$`) })
+    })
+    .locator('input.num')
+    .first()
+const when = (i) => field(T['editor.cellRuleWhen'], rule(i))
+const matches = (i) => rule(i).locator('p').first()
+const dialog = () => win.locator('[role="dialog"]').last()
+async function addRule() {
+  const add = props.getByRole('button', { name: T['editor.cellRuleAdd'], exact: true })
+  await add.scrollIntoViewIfNeeded()
+  await r.click(add, { after: 600 })
+}
+async function check(label, i) {
+  const box = field(label, rule(i))
+  await box.scrollIntoViewIfNeeded()
+  await zoomTo(box)
+  await r.click(box, { after: 500, before: 200, ms: 450 })
+}
+
+await r.title(t('Le regole delle caselle', 'Cell rules'))
+await r.title(
+  t(
+    'Ogni regola ha una condizione: dove è vera, la casella cambia aspetto',
+    'Each rule has a condition: where it is true, the cell changes its look'
+  ),
+  4400
+)
+await r.clear()
+await r.click(layer(N.grid), { after: 500 })
+const heading = props.locator('h3', { hasText: T['editor.cellRules'] }).first()
+await heading.scrollIntoViewIfNeeded()
+await r.focus(
+  heading,
+  t(
+    'Regole delle caselle: in fondo alle proprietà della griglia',
+    'Cell rules: at the bottom of the grid properties'
+  ),
+  'left'
+)
+await addRule()
+await fill(when(0), '=MOD({cell.index}; 10) = 0')
+await explain(when(0), [
+  t(
+    'Quando: la stessa condizione di prima, «la casella è un multiplo di 10»',
+    'When: the same condition as before, “the cell is a multiple of 10”'
+  )
+])
+await r.focus(
+  matches(0),
+  t(
+    'Stella conta per quante caselle vale: 4 su 40',
+    'Stella counts how many cells it applies to: 4 out of 40'
+  ),
+  'left'
+)
+await check(T['editor.cellRuleFill'], 0)
+await fill(ruleColor(T['prop.cellFill'], 0), '#F2C9BC')
+await look(
+  t(
+    'Cambia il riempimento: le caselle 10, 20, 30 e 40 hanno il fondo rosato',
+    'Change the fill: cells 10, 20, 30 and 40 get a pink background'
+  )
+)
+
+// il contorno, con l'assistente formule
+await addRule()
+await fill(when(1), '={cell.column} = 1')
+const fxButton = rule(1).locator('button.fx-button').first()
+await r.focus(
+  fxButton,
+  t(
+    'fx apre l’assistente formule, anche per le condizioni delle regole',
+    'fx opens the formula assistant, for rule conditions too'
+  ),
+  'left'
+)
+await r.click(fxButton, { after: 900 })
+await r.focus(
+  dialog().locator('.fx-sentence').first(),
+  t(
+    'La condizione letta come una frase: colonna della casella uguale a 1',
+    'The condition read as a sentence: cell column equals 1'
+  ),
+  'below'
+)
+await r.focus(
+  dialog().locator('.fx-strip').first(),
+  t(
+    'Sotto, il risultato sulle prime caselle: vero nella 1 e nella 9, l’inizio di ogni riga',
+    'Below, the result on the first cells: true in 1 and 9, the start of each row'
+  ),
+  'above'
+)
+await r.click(dialog().getByRole('button', { name: T['fx.apply'], exact: true }), { after: 600 })
+await check(T['editor.cellRuleStroke'], 1)
+await fill(ruleColor(T['prop.cellStroke'], 1), '#A33A2A')
+await fill(ruleWidth(1), '0.8')
+await look(
+  t(
+    'Cambia il contorno: la prima colonna ha un bordo rosso più spesso',
+    'Change the outline: the first column has a thicker red border'
+  )
+)
+
+// caselle scelte con il clic, con un valore nel contenuto
+await r.title(
+  t(
+    'Caselle scelte una per una: senza scrivere formule',
+    'Cells picked one by one: without writing formulas'
+  ),
+  3800
+)
+await r.clear()
+await addRule()
+const pick = rule(2).getByRole('button', { name: T['cellPicker.open'], exact: true })
+await r.focus(
+  pick,
+  t('Scegli le caselle… apre la griglia in grande', 'Choose the cells… opens the grid drawn large'),
+  'left'
+)
+await r.click(pick, { after: 900 })
+const pickCell = (n) =>
+  dialog()
+    .locator('.cell-picker-cell')
+    .nth(n - 1)
+for (const n of [7, 18, 26, 31]) await r.click(pickCell(n), { after: 450, ms: 400 })
+await r.focus(
+  dialog().locator('.cell-picker').first(),
+  t(
+    'Un clic accende o spegne una casella; trascinando se ne scelgono di più',
+    'A click turns a cell on or off; drag to pick several'
+  ),
+  'right',
+  { pad: 0 }
+)
+await r.click(dialog().getByRole('button', { name: T['cellPicker.apply'], exact: true }), {
+  after: 600
+})
+await explain(when(2), [
+  t(
+    'La condizione si è scritta da sola: INLIST, «il numero della casella è nell’elenco»',
+    'The condition wrote itself: INLIST, “the cell number is in the list”'
+  ),
+  t(
+    'A mano si può scrivere anche un intervallo: "1-5" vale per le caselle da 1 a 5',
+    'By hand you can also write a range: "1-5" covers cells 1 to 5'
+  )
+])
+await check(T['editor.cellRuleFill'], 2)
+await fill(ruleColor(T['prop.cellFill'], 2), '#F2D27A')
+const labelRule = T['editor.cellRuleLayer'].replace('{name}', N.label)
+await explain(field(labelRule, rule(2)), [
+  t(
+    `Cambia «${N.label}»: la regola dà un valore a un livello del contenuto`,
+    `Change “${N.label}”: the rule gives a value to a layer of the content`
+  )
+])
+await check(labelRule, 2)
+await fill(field(T['layerType.text'], rule(2)), '+2')
+await look(
+  t(
+    'Nelle caselle 7, 18, 26 e 31: il fondo giallo e il testo +2 al posto del numero',
+    'In cells 7, 18, 26 and 31: a yellow background and the text +2 instead of the number'
+  )
+)
+await r.title(
+  t(
+    'Un’icona in certe caselle e un testo in altre: una regola per ciascuna',
+    'An icon in some cells and a text in others: one rule for each'
+  ),
+  4200
 )
 await r.clear()
 
-// ---- 6. caselle nascoste
+// ---- caselle nascoste
 await r.title(t('Caselle nascoste', 'Hidden cells'))
 await r.clear()
-await r.click(layer(N.group), { after: 500 })
-await explain(source(), [
-  t(
-    'Il gruppo: con una formula decide se si vede. Vero: si vede. Falso: sparisce',
-    'The group: a formula decides whether it shows. True: it shows. False: it disappears'
-  )
-])
-await choose(source(), 'formula')
-await fill(formula(), '=NOT(AND({cell.row} = 1; {cell.column} = 1))')
-await look(t('La casella in alto a sinistra non c’è più', 'The top-left cell is gone'))
-await explain(formula(), [
-  t(
-    'AND(…; …) è vera se tutte le condizioni sono vere: riga 1 e colonna 1',
-    'AND(…; …) is true when all conditions are true: row 1 and column 1'
-  ),
-  t(
-    'NOT la rovescia: il gruppo si vede ovunque, tranne lì',
-    'NOT turns it around: the group shows everywhere, except there'
-  )
-])
+await addRule()
 await fill(
-  formula(),
-  `=NOT(OR(AND({cell.row} = 1; {cell.column} = 1); AND({cell.row} = 1; {cell.column} = ${TEST.columns}); AND({cell.row} = ${TEST.rows}; {cell.column} = 1); AND({cell.row} = ${TEST.rows}; {cell.column} = ${TEST.columns})))`
+  when(3),
+  `=INLIST({cell.index}; "1, ${TEST.columns}, ${TEST.columns * (TEST.rows - 1) + 1}, ${TEST.columns * TEST.rows}")`
 )
+await explain(when(3), [
+  t(
+    'INLIST si scrive anche a mano: le caselle dei quattro angoli',
+    'INLIST can be typed by hand too: the cells in the four corners'
+  )
+])
+await check(T['editor.cellRuleHidden'], 3)
 await look(
   t(
-    'Con OR, tutti e quattro gli angoli: la plancia non è più un rettangolo',
-    'With OR, all four corners: the board is no longer a rectangle'
+    'Nascondi la casella: i quattro angoli spariscono, con il loro contenuto',
+    'Hide the cell: the four corners disappear, with their content'
   )
 )
-await explain(formula(), [
+await r.title(
   t(
-    'OR(…) è vera se almeno una condizione è vera: uno qualsiasi dei quattro angoli',
-    'OR(…) is true when at least one condition is true: any of the four corners'
-  )
-])
+    'Le regole valgono in ordine: se due cambiano la stessa cosa, vince l’ultima',
+    'Rules apply in order: if two change the same thing, the last one wins'
+  ),
+  4400
+)
+await r.title(
+  t(
+    'Le regole ricordano i numeri delle caselle: se cambi righe o colonne, ricontrollale',
+    'Rules remember cell numbers: if you change rows or columns, check them again'
+  ),
+  4600
+)
+await r.clear()
 await save()
 
 // ---- 7. con un agente IA
@@ -724,8 +893,8 @@ await k.term.out(
 )
 await k.pause(1800)
 const plan = t(
-  `Aggiungo un livello griglia «${N.track}» sotto il tracciato (esagoni, 4 × 5, a incastro) e un gruppo «${N.trackCell}» come contenuto delle caselle: un testo con {cell.index} e un esagono con il colore da una formula sulla riga.`,
-  `I’m adding a “${N.track}” grid layer under the track (hexagons, 4 × 5, interlocking) and a “${N.trackCell}” group as the cell content: a text with {cell.index} and a hexagon whose color comes from a formula on the row.`
+  `Aggiungo un livello griglia «${N.track}» sotto il tracciato (esagoni, 4 × 5, a incastro) e un gruppo «${N.trackCell}» come contenuto delle caselle: un testo con {cell.index}, e una regola delle caselle che colora la prima riga.`,
+  `I’m adding a “${N.track}” grid layer under the track (hexagons, 4 × 5, interlocking) and a “${N.trackCell}” group as the cell content: a text with {cell.index} and a cell rule that colors the first row.`
 )
 await k.term.agent(plan)
 await k.read(plan)
@@ -738,12 +907,12 @@ await k.edit(file, JSON.stringify(board, null, 2) + '\n', {
       `+ grid “${N.track}”: hexagons, 4 × 5, interlocking, content “${N.trackCell}”`
     ),
     t(
-      `+ gruppo «${N.trackCell}»: testo {cell.index}, esagono con contorno 0,4 mm`,
-      `+ group “${N.trackCell}”: text {cell.index}, hexagon with a 0.4 mm outline`
+      `+ gruppo «${N.trackCell}»: testo {cell.index}`,
+      `+ group “${N.trackCell}”: text {cell.index}`
     ),
     t(
-      '  colore: =IF({cell.row} = 1; "#9CC9E8"; "#FFFFFF")',
-      '  color: =IF({cell.row} = 1; "#9CC9E8"; "#FFFFFF")'
+      '  regola: quando {cell.row} = 1, riempimento #9CC9E8',
+      '  rule: when {cell.row} = 1, fill #9CC9E8'
     )
   ]
 })
@@ -761,8 +930,8 @@ await k.term.images(
 await k.pause(4200)
 await k.term.hideImages()
 const done = t(
-  `Fatto: il segnapunti «${N.track}» è sotto il tracciato, con i numeri da 1 a 20 e la prima riga azzurra. Per cambiare i colori basta modificare la formula dell’esagono.`,
-  `Done: the “${N.track}” scoreboard is under the track, numbered 1 to 20 with a light blue first row. To change the colors, just edit the hexagon’s formula.`
+  `Fatto: il segnapunti «${N.track}» è sotto il tracciato, con i numeri da 1 a 20 e la prima riga azzurra. Per cambiare i colori basta modificare la regola delle caselle.`,
+  `Done: the “${N.track}” scoreboard is under the track, numbered 1 to 20 with a light blue first row. To change the colors, just edit the cell rule.`
 )
 await k.term.agent(done)
 await k.read(done)
@@ -771,11 +940,11 @@ await layer(N.track).waitFor()
 await r.wait(800)
 await r.overlay()
 await look(t('In Stella la plancia si è già aggiornata', 'In Stella the board has already updated'))
-await r.click(layer(N.trackHex), { after: 500 })
-await explain(formula(), [
+await r.click(layer(N.track), { after: 500 })
+await explain(field(T['editor.cellRuleWhen'], props.locator('.cell-rule').first()), [
   t(
-    'La formula scritta dall’agente: {cell.row} = 1, la prima riga, azzurra; le altre bianche',
-    'The formula the agent wrote: {cell.row} = 1, the first row, light blue; the others white'
+    'La regola scritta dall’agente: quando {cell.row} = 1, la prima riga, il fondo è azzurro',
+    'The rule the agent wrote: when {cell.row} = 1, the first row, the background is light blue'
   )
 ])
 await r.title(
@@ -789,8 +958,8 @@ await r.title(
 // ---- chiusura
 await r.title(
   t(
-    'Un gruppo, una griglia, una formula: ogni casella diversa',
-    'One group, one grid, one formula: every cell different'
+    'Un gruppo, una griglia, qualche regola: ogni casella diversa',
+    'One group, one grid, a few rules: every cell different'
   ),
   4600
 )

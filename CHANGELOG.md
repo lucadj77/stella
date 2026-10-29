@@ -5,6 +5,18 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.8.0-beta.2
+
+### English
+
+- **More ready sentences for conditions**: in the formula assistant, cell rules and filters also offer **Every N cells** (or **Every N components**) and **Checkerboard**, so the most common rules need no formula.
+- **Rule values stay text**: a value such as `+2` or `1-3` given by a cell rule was calculated as a formula and showed `2`; it now shows as written.
+
+### Italiano
+
+- **Più frasi pronte per le condizioni**: nell'assistente formule le regole delle caselle e i filtri propongono anche **Ogni N caselle** (o **Ogni N componenti**) e **Scacchiera**, così le regole più comuni non chiedono formule.
+- **I valori delle regole restano testo**: un valore come `+2` o `1-3` dato da una regola delle caselle veniva calcolato come una formula e mostrava `2`; ora si vede come è scritto.
+
 ## 1.8.0-beta.1
 
 ### English

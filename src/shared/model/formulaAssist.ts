@@ -566,6 +566,42 @@ const checker: SentenceTemplate = {
   }
 }
 
+/** MOD(contatore; N) = 0: vero ogni N caselle o componenti, per le regole e i filtri */
+const everyNthCond: SentenceTemplate = {
+  id: 'everyNCond',
+  counter: true,
+  condition: true,
+  make: (c) => bin('=', call('MOD', counter(c), num(10)), num(0)),
+  parts: (n, c) => {
+    if (!isBin(n, ['=']) || !isNum(n.r, 0)) return null
+    const mod = n.l
+    if (!isCall(mod, 'MOD', 2) || !isCounter(mod.args[0], c)) return null
+    return [
+      txt('fx.s.trueEvery'),
+      blank([0, 1], 'number', 'fx.b.n'),
+      txt(c.inCell ? 'fx.s.cells' : 'fx.s.components')
+    ]
+  }
+}
+
+/** MOD({cell.row} + {cell.column}; 2) = 0: vero sulle caselle scure di una scacchiera */
+const checkerCond: SentenceTemplate = {
+  id: 'checkerboardCond',
+  cell: true,
+  condition: true,
+  make: () =>
+    bin('=', call('MOD', bin('+', field('cell.row'), field('cell.column')), num(2)), num(0)),
+  parts: (n) => {
+    if (!isBin(n, ['=']) || !isNum(n.r)) return null
+    const mod = n.l
+    if (!isCall(mod, 'MOD', 2) || !isNum(mod.args[1], 2)) return null
+    const sum = mod.args[0]
+    if (!isBin(sum, ['+']) || sum.l.k !== 'field' || sum.r.k !== 'field') return null
+    if (![sum.l.name, sum.r.name].every((x) => x === 'cell.row' || x === 'cell.column')) return null
+    return [txt('fx.s.trueCheckerboard')]
+  }
+}
+
 const pickParts = (n: FormulaNode, intro: string): SentencePart[] => [
   txt(intro),
   ...(n.k === 'call' ? n.args.slice(1).map((_, i) => blank([i + 1], 'result', 'fx.b.item')) : []),
@@ -857,6 +893,8 @@ export const SENTENCES: SentenceTemplate[] = [
   inCellsCond,
   inListShow,
   inListCond,
+  everyNthCond,
+  checkerCond,
   ifThen,
   notEmpty,
   notEmptyCond,
@@ -882,6 +920,8 @@ export const START_ORDER = [
   'join',
   'repeatIcon',
   'inCellsCond',
+  'everyNCond',
+  'checkerboardCond',
   'compare',
   'inListCond',
   'notEmptyCond'

@@ -132,16 +132,28 @@ describe('frasi guidate', () => {
     expect(ids({ inCell: false, condition: false, onGrid: false })).toContain('everyN')
     expect(ids({ inCell: false, condition: false, onGrid: true })).not.toContain('everyN')
     expect(ids({ inCell: false, condition: true, onGrid: false })).toEqual([
+      'everyNCond',
       'compare',
       'inListCond',
       'notEmptyCond'
     ])
     expect(ids({ inCell: true, condition: true, onGrid: false })).toEqual([
       'inCellsCond',
+      'everyNCond',
+      'checkerboardCond',
       'compare',
       'inListCond',
       'notEmptyCond'
     ])
+  })
+
+  it('riconosce ogni N caselle e la scacchiera come condizioni', async () => {
+    const { findSentence } = await import('../formulaAssist')
+    const id = (src: string): string | undefined =>
+      findSentence(parseExpression(src).node!, { inCell: true })?.template.id
+    expect(id('MOD({cell.index}; 10) = 0')).toBe('everyNCond')
+    expect(id('MOD({cell.row} + {cell.column}; 2) = 0')).toBe('checkerboardCond')
+    expect(id('{cell.row} = 1')).toBe('compare')
   })
 
   it('riconosce INLIST come frase, per le caselle e per i campi', async () => {
