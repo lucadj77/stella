@@ -127,8 +127,7 @@ export const texts = {
       text: 'Video brevi, per imparare subito a usare Stella Game Center.',
       soon: 'I primi video arrivano a breve.',
       playlist: 'Tutti i video nella playlist di YouTube',
-      news:
-        'Escono di continuo nuovi tutorial: iscriviti al canale YouTube per sapere ogni volta che ne pubblico uno.',
+      news: 'Escono di continuo nuovi tutorial: iscriviti al canale YouTube per sapere ogni volta che ne pubblico uno.',
       subscribe: 'Iscriviti al canale',
       // i gruppi della sezione, nell'ordine in cui compaiono
       groups: {
