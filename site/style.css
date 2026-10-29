@@ -588,6 +588,11 @@ a:focus-visible {
 .video-group .videos {
   padding: 0 24px 24px;
 }
+.video-group .video-project {
+  margin: -8px 0 0;
+  padding: 0 24px 24px;
+  font-weight: 600;
+}
 @media (max-width: 600px) {
   .video-group summary {
     padding: 16px;

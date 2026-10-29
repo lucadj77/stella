@@ -23,7 +23,10 @@ const SUBTITLES = {
   dati: ['I dati dal foglio di calcolo', 'Data from the spreadsheet'],
   icone: ['Immagini, icone e font', 'Images, icons and fonts'],
   lingue: ['Un gioco in più lingue', 'A game in several languages'],
-  assistente: ['L’assistente formule', 'The formula assistant']
+  assistente: ['L’assistente formule', 'The formula assistant'],
+  testo: ['Approfondimento: il testo', 'Deep dive: text'],
+  variabili: ['Approfondimento: icone e variabili', 'Deep dive: icons and variables'],
+  valori: ['Approfondimento: due campi, tutta la carta', 'Deep dive: two fields, the whole card']
 }
 if (!SUBTITLES[video]) throw new Error('video sconosciuto: ' + video)
 const subtitle = SUBTITLES[video][it ? 0 : 1]

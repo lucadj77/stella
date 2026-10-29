@@ -43,6 +43,12 @@ Video tutorial su YouTube, senza voce ([tutta la playlist](https://www.youtube.c
 - 17 · [Backup e recupero](https://www.youtube.com/watch?v=2fPQwU0LlFg) (5 minuti)
 - 18 · [Lavorare più veloce](https://www.youtube.com/watch?v=p1nM-sH1cvE) (5 minuti)
 
+**Approfondimenti**
+
+- 20 · [Approfondimento: il testo](https://www.youtube.com/watch?v=zLVh4VNaADg) (13 minuti), con il [progetto «Mercanti» da scaricare](https://stella.lucadj.eu/progetti/mercanti.zip)
+- 21 · [Approfondimento: icone e variabili](https://www.youtube.com/watch?v=gYUayFjoemo) (11 minuti), con il [progetto «Contratti» da scaricare](https://stella.lucadj.eu/progetti/contratti.zip)
+- 22 · [Approfondimento: due campi, tutta la carta](https://www.youtube.com/watch?v=sOHOWDYIoPk) (10 minuti), con il [progetto «Incontri» da scaricare](https://stella.lucadj.eu/progetti/incontri.zip)
+
 English version: [../guide/README.md](../guide/README.md).
 
 Domande, aiuto e idee, in italiano e in inglese: il [server Discord di Stella Game Center](https://discord.gg/bkP3a3CwkP).
@@ -129,7 +135,7 @@ Sul Mac si trascina Stella dalla cartella Applicazioni nel Cestino; su Windows s
 | **livello**   | un elemento del template. Il nome del livello è anche il nome della colonna del foglio da cui prende il valore                        |
 | **asset**     | immagini, icone e font del progetto, nella cartella `assets/`                                                                         |
 | **variabile** | un nome che si richiama nei testi con `{nome}`: un'icona, un testo formattato, un colore o un valore                                  |
-| **stile**     | un insieme di attributi del testo con un nome, da applicare a un livello, a un paragrafo o a una parola                               |
+| **stile**     | un insieme di attributi del testo con un nome, da applicare a un paragrafo o a una parola                                             |
 
 Il collegamento tra dati e disegno è sempre lo stesso: nel template il livello di testo `nome` mostra, su ogni carta, il contenuto della colonna `nome` della riga corrispondente.
 
@@ -512,7 +518,7 @@ In cima alla finestra una frase di prova mostra il risultato. Rinominare una var
 
 ### 7.2 Stili di testo
 
-Uno stile raccoglie attributi del testo con un nome: si applica a un livello intero (proprietà **Stile**), a un paragrafo (`{.nome}` a inizio riga) o a una porzione (`[testo]{.nome}`). Modificando lo stile cambiano tutte le carte che lo usano. Uno stile può basarsi su un altro ed ereditarne gli attributi.
+Uno stile raccoglie attributi del testo con un nome: si applica a un paragrafo (`{.nome}` a inizio riga) o a una porzione (`[testo]{.nome}`). Modificando lo stile cambiano tutte le carte che lo usano. Uno stile può basarsi su un altro ed ereditarne gli attributi.
 
 `heading1`, `heading2` e `note` esistono in ogni progetto e corrispondono a `#`, `##` e `>`; si possono ridefinire.
 
