@@ -388,8 +388,8 @@ export const videos = [
     },
     minutes: 4,
     url: {
-      it: 'https://www.youtube.com/watch?v=0JnZ92Jy_JU',
-      en: 'https://www.youtube.com/watch?v=51ZJAKmUprc'
+      it: 'https://www.youtube.com/watch?v=GYwoJcKFGSg',
+      en: 'https://www.youtube.com/watch?v=qe6E6msuJDw'
     }
   },
   {
@@ -416,8 +416,8 @@ export const videos = [
     },
     minutes: 5,
     url: {
-      it: 'https://www.youtube.com/watch?v=XxKgcgba9wE',
-      en: 'https://www.youtube.com/watch?v=N6VXi-RPIpg'
+      it: 'https://www.youtube.com/watch?v=73utF9RZoKU',
+      en: 'https://www.youtube.com/watch?v=k01RVCPnH1s'
     }
   },
   {
@@ -472,8 +472,8 @@ export const videos = [
     },
     minutes: 9,
     url: {
-      it: 'https://www.youtube.com/watch?v=02s-e9wMHU8',
-      en: 'https://www.youtube.com/watch?v=WUIWgrg5zLk'
+      it: 'https://www.youtube.com/watch?v=8wrjo3743w8',
+      en: 'https://www.youtube.com/watch?v=uFpBpGkuAYc'
     }
   },
   {
@@ -500,8 +500,8 @@ export const videos = [
     },
     minutes: 9,
     url: {
-      it: 'https://www.youtube.com/watch?v=TG-WWQqBDUk',
-      en: 'https://www.youtube.com/watch?v=RbO56oqJSFo'
+      it: 'https://www.youtube.com/watch?v=y1hWXNolGC8',
+      en: 'https://www.youtube.com/watch?v=lV4Sccgbm0I'
     }
   },
   {
@@ -568,10 +568,10 @@ export const videos = [
       it: 'Tante carte in un colpo solo, e una mappa divisa tra le carte.',
       en: 'Many cards in one go, and a map split across cards.'
     },
-    minutes: 6,
+    minutes: 7,
     url: {
-      it: 'https://www.youtube.com/watch?v=TR5Eiuatdec',
-      en: 'https://www.youtube.com/watch?v=heP9Y82zsjA'
+      it: 'https://www.youtube.com/watch?v=tiB1KT81WlE',
+      en: 'https://www.youtube.com/watch?v=p46_avMl4dU'
     }
   },
   {
@@ -610,10 +610,10 @@ export const videos = [
       it: 'Carte, monete, plancia, dado e regolamento, fino al PDF e a Tabletop Simulator.',
       en: 'Cards, coins, board, die and rulebook, all the way to the PDF and Tabletop Simulator.'
     },
-    minutes: 21,
+    minutes: 20,
     url: {
-      it: 'https://www.youtube.com/watch?v=_y1I1nVNgy0',
-      en: 'https://www.youtube.com/watch?v=FmJTn5ypFMY'
+      it: 'https://www.youtube.com/watch?v=hQx902sBZIQ',
+      en: 'https://www.youtube.com/watch?v=zRINs94xW4o'
     }
   },
   {
@@ -640,8 +640,8 @@ export const videos = [
     },
     minutes: 6,
     url: {
-      it: 'https://www.youtube.com/watch?v=C-xwymZd5mU',
-      en: 'https://www.youtube.com/watch?v=itEqdPFBeAQ'
+      it: 'https://www.youtube.com/watch?v=nJ9AjWRp_0E',
+      en: 'https://www.youtube.com/watch?v=XSceyDoLmw8'
     }
   }
 ]

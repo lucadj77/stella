@@ -9,16 +9,16 @@ Video tutorials on YouTube, no voice ([whole playlist](https://www.youtube.com/p
 **Start here**
 
 - 15 · [Installing Stella and the web version](https://www.youtube.com/watch?v=n_9rcC9e_14) (3 minutes)
-- 1 · [An overview of the basic functions](https://www.youtube.com/watch?v=51ZJAKmUprc) (4 minutes)
+- 1 · [An overview of the basic functions](https://www.youtube.com/watch?v=qe6E6msuJDw) (4 minutes)
 - 2 · [Your first component from scratch](https://www.youtube.com/watch?v=YISuOjfzjJU) (10 minutes)
-- 14 · [A complete game, from idea to table](https://www.youtube.com/watch?v=FmJTn5ypFMY) (21 minutes)
+- 14 · [A complete game, from idea to table](https://www.youtube.com/watch?v=zRINs94xW4o) (20 minutes)
 
 **Components**
 
-- 7 · [Boards, tiles, tokens and dice](https://www.youtube.com/watch?v=WUIWgrg5zLk) (9 minutes)
+- 7 · [Boards, tiles, tokens and dice](https://www.youtube.com/watch?v=uFpBpGkuAYc) (9 minutes)
 - 8 · [Grids and cell formulas](https://www.youtube.com/watch?v=DgaXcUt2N-M) (14 minutes)
 - 11 · [Images, icons and fonts](https://www.youtube.com/watch?v=Rw60_QDED9Q) (6 minutes)
-- 16 · [Generating cards and splitting an image](https://www.youtube.com/watch?v=heP9Y82zsjA) (6 minutes)
+- 16 · [Generating cards and splitting an image](https://www.youtube.com/watch?v=p46_avMl4dU) (7 minutes)
 
 **Text and formulas**
 
@@ -32,9 +32,9 @@ Video tutorials on YouTube, no voice ([whole playlist](https://www.youtube.com/p
 
 **From file to table**
 
-- 9 · [Printing your components](https://www.youtube.com/watch?v=RbO56oqJSFo) (9 minutes)
-- 3 · [From Stella to Tabletop Simulator](https://www.youtube.com/watch?v=N6VXi-RPIpg) (5 minutes)
-- 19 · [Snap points and tags for Tabletop Simulator](https://www.youtube.com/watch?v=itEqdPFBeAQ) (6 minutes)
+- 9 · [Printing your components](https://www.youtube.com/watch?v=lV4Sccgbm0I) (9 minutes)
+- 3 · [From Stella to Tabletop Simulator](https://www.youtube.com/watch?v=k01RVCPnH1s) (5 minutes)
+- 19 · [Snap points and tags for Tabletop Simulator](https://www.youtube.com/watch?v=XSceyDoLmw8) (6 minutes)
 - 5 · [The rulebook and other documents](https://www.youtube.com/watch?v=skHh2Uz2VxE) (5 minutes)
 
 **Tools**

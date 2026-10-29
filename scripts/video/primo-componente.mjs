@@ -461,6 +461,27 @@ await r.focus(
 )
 await r.click(layerBtn('layers.ungroup'), { after: 800 })
 
+// il tipo: un livello Valore, non si disegna ma crea la colonna che la formula legge
+await r.click(tool('tool.value'))
+await r.clear(500)
+await fill(field(T['prop.name']), S.type)
+await r.focus(
+  layer(S.type),
+  it
+    ? 'Il tipo non si vede sulla carta, decide solo il colore: un livello Valore'
+    : 'The type is not drawn on the card, it only decides the color: a Value layer',
+  'right',
+  { pad: 4 }
+)
+await r.focus(
+  source('column'),
+  it
+    ? 'Colonna «' + S.type + '»: ogni carta avrà il suo tipo, e la formula dello sfondo lo trova'
+    : 'Column “' + S.type + '”: every card gets its own type, and the background formula can find it',
+  'left'
+)
+await r.clear(300)
+
 // la formula
 await r.title(it ? 'Il colore, con una formula' : 'The color, with a formula')
 await r.clear()
@@ -508,26 +529,14 @@ await r.wait(400)
 await r.focus(
   dialog(),
   it
-    ? 'Il foglio nuovo ha già le colonne del template: ' + S.name + ' e ' + S.text
-    : 'The new sheet already has the template columns: ' + S.name + ' and ' + S.text,
+    ? 'Il foglio nuovo ha già le colonne del template: ' + S.name + ', ' + S.text + ' e ' + S.type
+    : 'The new sheet already has the template columns: ' + S.name + ', ' + S.text + ' and ' + S.type,
   'right',
   { pad: 0 }
 )
 await r.click(dialog().locator('button[type=submit]'))
 await r.clear(1800)
 await r.overlay()
-await r.focus(
-  win.getByRole('button', { name: T['set.addColumn'] }),
-  it
-    ? '+ Campo: manca la colonna «' + S.type + '», quella della formula'
-    : '+ Field: the “' + S.type + '” column, used by the formula, is missing',
-  'below'
-)
-await r.click(win.getByRole('button', { name: T['set.addColumn'] }))
-await r.clear(500)
-await fill(dialog().locator('input').last(), S.type, { tab: false })
-await win.keyboard.press('Enter')
-await r.wait(1000)
 
 const form = win.locator('.card-form')
 const cardField = (col) =>
