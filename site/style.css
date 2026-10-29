@@ -522,6 +522,20 @@ a:focus-visible {
   text-align: center;
   font-weight: 600;
 }
+/* l'invito a iscriversi al canale, sopra i gruppi di video */
+.subscribe {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px 20px;
+  margin: -16px 0 32px;
+  text-align: center;
+}
+.subscribe p {
+  margin: 0;
+  max-width: 52ch;
+}
 .video-group {
   background: var(--bg-2);
   border: 1px solid var(--line);

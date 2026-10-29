@@ -133,10 +133,11 @@ async function scrollProps() {
 }
 /** posizione e dimensioni in millimetri */
 async function place(x, y, w, h) {
-  await fill(field('X'), String(x))
-  await fill(field('Y'), String(y))
+  // prima le misure: cambiarle tiene fermo il punto di ancoraggio (il centro) e sposterebbe X e Y
   await fill(field(T['prop.w']), String(w))
   await fill(field(T['prop.h']), String(h))
+  await fill(field('X'), String(x))
+  await fill(field('Y'), String(y))
 }
 
 await r.overlay()
@@ -460,6 +461,27 @@ await r.focus(
 )
 await r.click(layerBtn('layers.ungroup'), { after: 800 })
 
+// il tipo: un livello Valore, non si disegna ma crea la colonna che la formula legge
+await r.click(tool('tool.value'))
+await r.clear(500)
+await fill(field(T['prop.name']), S.type)
+await r.focus(
+  layer(S.type),
+  it
+    ? 'Il tipo non si vede sulla carta, decide solo il colore: un livello Valore'
+    : 'The type is not drawn on the card, it only decides the color: a Value layer',
+  'right',
+  { pad: 4 }
+)
+await r.focus(
+  source('column'),
+  it
+    ? 'Colonna «' + S.type + '»: ogni carta avrà il suo tipo, e la formula dello sfondo lo trova'
+    : 'Column “' + S.type + '”: every card gets its own type, and the background formula can find it',
+  'left'
+)
+await r.clear(300)
+
 // la formula
 await r.title(it ? 'Il colore, con una formula' : 'The color, with a formula')
 await r.clear()
@@ -507,26 +529,14 @@ await r.wait(400)
 await r.focus(
   dialog(),
   it
-    ? 'Il foglio nuovo ha già le colonne del template: ' + S.name + ' e ' + S.text
-    : 'The new sheet already has the template columns: ' + S.name + ' and ' + S.text,
+    ? 'Il foglio nuovo ha già le colonne del template: ' + S.name + ', ' + S.text + ' e ' + S.type
+    : 'The new sheet already has the template columns: ' + S.name + ', ' + S.text + ' and ' + S.type,
   'right',
   { pad: 0 }
 )
 await r.click(dialog().locator('button[type=submit]'))
 await r.clear(1800)
 await r.overlay()
-await r.focus(
-  win.getByRole('button', { name: T['set.addColumn'] }),
-  it
-    ? '+ Campo: manca la colonna «' + S.type + '», quella della formula'
-    : '+ Field: the “' + S.type + '” column, used by the formula, is missing',
-  'below'
-)
-await r.click(win.getByRole('button', { name: T['set.addColumn'] }))
-await r.clear(500)
-await fill(dialog().locator('input').last(), S.type, { tab: false })
-await win.keyboard.press('Enter')
-await r.wait(1000)
 
 const form = win.locator('.card-form')
 const cardField = (col) =>
@@ -621,13 +631,14 @@ await r.focus(
 )
 await r.click(goal('home'))
 await r.wait(600)
+await r.wait(1500)
 await r.focus(
-  dialog(),
+  dialog().locator('.live-preview').first(),
   it
-    ? 'Le carte disposte sul foglio, con i segni di taglio'
-    : 'The cards laid out on the page, with crop marks',
-  'none',
-  { pad: 0, dim: false }
+    ? 'L’anteprima a lato: le carte disposte sul foglio, con i segni di taglio'
+    : 'The preview on the side: the cards laid out on the page, with crop marks',
+  'left',
+  { pad: 4 }
 )
 await r.focus(
   goal('shop'),
@@ -636,13 +647,15 @@ await r.focus(
     : 'For a print shop: bleed and crop marks already set',
   'below'
 )
-await r.click(dialog().getByRole('button', { name: T['export.run'], exact: true }))
-await r.wait(3000)
+const run = dialog().getByRole('button', { name: T['export.run'], exact: true })
+await r.click(run)
+await win.waitForTimeout(1000)
+for (let i = 0; i < 240 && !(await run.isEnabled()); i++) await win.waitForTimeout(500)
+await r.wait(800)
 await r.focus(
-  dialog(),
+  dialog().locator('.export-result').first(),
   it ? 'Il PDF è nella cartella export del progetto' : 'The PDF is in the project’s export folder',
-  'left',
-  { pad: 0, dim: false }
+  'above'
 )
 await r.clear(300)
 await r.click(dialog().getByRole('button', { name: T['export.close'], exact: true }))

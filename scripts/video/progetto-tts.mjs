@@ -44,6 +44,7 @@ export async function extend(dest, lang) {
   const templates = [
     {
       name: L('segnalino', 'token'),
+      kind: 'token',
       width: 25,
       height: 25,
       bleed: 2,
@@ -67,6 +68,7 @@ export async function extend(dest, lang) {
     },
     {
       name: L('tessera', 'tile'),
+      kind: 'tile',
       width: 46,
       height: 40,
       bleed: 2,
@@ -76,6 +78,7 @@ export async function extend(dest, lang) {
     },
     {
       name: L('plancia', 'board'),
+      kind: 'board',
       width: 240,
       height: 160,
       bleed: 3,
@@ -107,6 +110,7 @@ export async function extend(dest, lang) {
     },
     {
       name: L('dado', 'die'),
+      kind: 'die',
       width: 18,
       height: 18,
       bleed: 1,

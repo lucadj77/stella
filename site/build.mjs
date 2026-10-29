@@ -113,6 +113,8 @@ for (const lang of ['it', 'en']) {
     guideDir: lang === 'it' ? 'guida' : 'guide',
     guideDirOther: lang === 'it' ? 'guide' : 'guida',
     playlistHref: playlists[lang],
+    // il canale con la richiesta di iscrizione già aperta
+    channelHref: 'https://www.youtube.com/@lucadjit?sub_confirmation=1',
     installHref:
       lang === 'it'
         ? 'https://github.com/lucadj77/stella/blob/main/docs/guida/README.md#installare-stella'

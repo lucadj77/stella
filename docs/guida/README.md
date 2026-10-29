@@ -9,16 +9,16 @@ Video tutorial su YouTube, senza voce ([tutta la playlist](https://www.youtube.c
 **Inizia qui**
 
 - 15 · [Installare Stella e la versione web](https://www.youtube.com/watch?v=Jx6QC7Ucfrw) (3 minuti)
-- 1 · [Panoramica delle funzioni di base](https://www.youtube.com/watch?v=0JnZ92Jy_JU) (4 minuti)
-- 2 · [Il tuo primo componente da zero](https://www.youtube.com/watch?v=kUgGQ_ab8Yg) (10 minuti)
-- 14 · [Un gioco completo, dall’idea al tavolo](https://www.youtube.com/watch?v=_y1I1nVNgy0) (21 minuti)
+- 1 · [Panoramica delle funzioni di base](https://www.youtube.com/watch?v=GYwoJcKFGSg) (4 minuti)
+- 2 · [Il tuo primo componente da zero](https://www.youtube.com/watch?v=l7tMw_gYE7k) (10 minuti)
+- 14 · [Un gioco completo, dall’idea al tavolo](https://www.youtube.com/watch?v=hQx902sBZIQ) (20 minuti)
 
 **Componenti**
 
-- 7 · [Plance, tessere, segnalini e dadi](https://www.youtube.com/watch?v=02s-e9wMHU8) (9 minuti)
+- 7 · [Plance, tessere, segnalini e dadi](https://www.youtube.com/watch?v=8wrjo3743w8) (9 minuti)
 - 8 · [Le griglie e le formule nelle caselle](https://www.youtube.com/watch?v=wY4PRv9vN1o) (14 minuti)
 - 11 · [Immagini, icone e font](https://www.youtube.com/watch?v=LhgecwJeUWU) (6 minuti)
-- 16 · [Generare le carte e dividere un’immagine](https://www.youtube.com/watch?v=TR5Eiuatdec) (6 minuti)
+- 16 · [Generare le carte e dividere un’immagine](https://www.youtube.com/watch?v=tiB1KT81WlE) (7 minuti)
 
 **Testo e formule**
 
@@ -32,9 +32,9 @@ Video tutorial su YouTube, senza voce ([tutta la playlist](https://www.youtube.c
 
 **Dal file al tavolo**
 
-- 9 · [Stampare i componenti](https://www.youtube.com/watch?v=TG-WWQqBDUk) (9 minuti)
-- 3 · [Da Stella a Tabletop Simulator](https://www.youtube.com/watch?v=XxKgcgba9wE) (5 minuti)
-- 19 · [Snap point e tag per Tabletop Simulator](https://www.youtube.com/watch?v=C-xwymZd5mU) (6 minuti)
+- 9 · [Stampare i componenti](https://www.youtube.com/watch?v=y1hWXNolGC8) (9 minuti)
+- 3 · [Da Stella a Tabletop Simulator](https://www.youtube.com/watch?v=73utF9RZoKU) (5 minuti)
+- 19 · [Snap point e tag per Tabletop Simulator](https://www.youtube.com/watch?v=nJ9AjWRp_0E) (6 minuti)
 - 5 · [Il regolamento e gli altri documenti](https://www.youtube.com/watch?v=psMiWRUQ4k4) (5 minuti)
 
 **Strumenti**
