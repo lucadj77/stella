@@ -23,7 +23,7 @@ Video tutorial su YouTube, senza voce ([tutta la playlist](https://www.youtube.c
 **Testo e formule**
 
 - 4 · [Testo, icone, stili e formule](https://www.youtube.com/watch?v=2I0ABob4DoQ) (5 minuti)
-- 13 · [L’assistente formule](https://www.youtube.com/watch?v=azgDlcktVfk) (12 minuti)
+- 13 · [L’assistente formule](https://www.youtube.com/watch?v=z-LHAFi0z3Y) (11 minuti)
 
 **Dati e lingue**
 
