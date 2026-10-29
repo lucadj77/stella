@@ -127,6 +127,9 @@ export const texts = {
       text: 'Video brevi, per imparare subito a usare Stella Game Center.',
       soon: 'I primi video arrivano a breve.',
       playlist: 'Tutti i video nella playlist di YouTube',
+      news:
+        'Escono di continuo nuovi tutorial: iscriviti al canale YouTube per sapere ogni volta che ne pubblico uno.',
+      subscribe: 'Iscriviti al canale',
       // i gruppi della sezione, nell'ordine in cui compaiono
       groups: {
         start: ['Inizia qui', 'Il percorso consigliato per cominciare.'],
@@ -313,6 +316,8 @@ export const texts = {
       text: 'Short videos to start using Stella Game Center right away.',
       soon: 'The first videos are coming soon.',
       playlist: 'All the videos in the YouTube playlist',
+      news: 'New tutorials come out all the time: subscribe to the YouTube channel to hear about each new one.',
+      subscribe: 'Subscribe to the channel',
       groups: {
         start: ['Start here', 'The suggested path to get started.'],
         components: ['Components', 'Cards, boards, tokens, tiles and dice.'],
