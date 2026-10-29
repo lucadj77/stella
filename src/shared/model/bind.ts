@@ -171,6 +171,23 @@ function cellRuleResults(
 }
 
 /**
+ * Il valore di una regola senza = è un testo con i {campi}: «+2» o «1-3» restano scritti così,
+ * non diventano un calcolo come in una formula senza =.
+ */
+function ruleValueExpr(v: string): string {
+  if (v.trimStart().startsWith('=') || !/[-+*/]/.test(v.replace(/\{[^{}]*\}/g, ''))) return v
+  const parts: string[] = []
+  let last = 0
+  for (const m of v.matchAll(/(?<!\\)\{([^{}*]+)\}/g)) {
+    if (m.index > last) parts.push(`"${v.slice(last, m.index).replace(/"/g, '""')}"`)
+    parts.push(`{${m[1].trim()}}`)
+    last = m.index + m[0].length
+  }
+  if (last < v.length) parts.push(`"${v.slice(last).replace(/"/g, '""')}"`)
+  return '=' + parts.join(' & ')
+}
+
+/**
  * Il gruppo del contenuto con i valori delle regole: ogni livello nominato prende il valore come
  * una formula, quindi con i campi della carta e della casella
  */
@@ -179,7 +196,8 @@ function withCellValues(group: GroupLayer, values: Record<string, string>): Grou
   const apply = (layers: Layer[]): Layer[] =>
     layers.map((l) => {
       const v = Object.prototype.hasOwnProperty.call(values, l.name) ? values[l.name] : undefined
-      const out: Layer = v === undefined ? l : { ...l, source: { kind: 'formula', expr: v } }
+      const out: Layer =
+        v === undefined ? l : { ...l, source: { kind: 'formula', expr: ruleValueExpr(v) } }
       return out.type === 'group' ? { ...out, children: apply(out.children) } : out
     })
   return apply([group])[0] as GroupLayer

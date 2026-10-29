@@ -41,8 +41,7 @@ export async function extend(dest, lang) {
     track: it ? 'segnapunti' : 'scoreboard',
     trackCell: it ? 'casella_segnapunti' : 'scoreboard_cell',
     // nomi diversi da quelli della mappa e del tracciato: in un template i nomi non si ripetono
-    trackLabel: it ? 'punti' : 'points',
-    trackHex: it ? 'esagono_punti' : 'points_hex'
+    trackLabel: it ? 'punti' : 'points'
   })
   const template = {
     name: N.test,
@@ -71,7 +70,7 @@ export async function extend(dest, lang) {
   return N
 }
 
-/** la griglia che l'agente aggiunge sotto il tracciato: esagoni a incastro, prima riga azzurra */
+/** la griglia che l'agente aggiunge sotto il tracciato: esagoni a incastro, prima riga azzurra con una regola */
 export function agentGrid(N) {
   const grid = {
     type: 'grid',
@@ -92,21 +91,14 @@ export function agentGrid(N) {
     alignX: 'center',
     alignY: 'center',
     radius: 0,
-    fill: null,
-    stroke: null,
-    content: N.trackCell
+    fill: '#FFFFFF',
+    stroke: { color: '#333333', width: 0.4 },
+    content: N.trackCell,
+    cellRules: [{ when: '={cell.row} = 1', fill: '#9CC9E8' }]
   }
   const g = gridGeometry(grid)
   const first = g.centers[0]
-  // esagono con la punta in alto: largo quanto la distanza tra due centri, alto 2/√3 tanto
   const w = g.centers[1].x - first.x - grid.gap
-  const h = (w * 2) / Math.sqrt(3)
-  const at = (bw, bh) => ({
-    x: grid.x + first.x - bw / 2,
-    y: grid.y + first.y - bh / 2,
-    w: bw,
-    h: bh
-  })
   const group = {
     type: 'group',
     name: N.trackCell,
@@ -120,23 +112,16 @@ export function agentGrid(N) {
       {
         type: 'text',
         name: N.trackLabel,
-        ...at(w * 0.8, w * 0.5),
+        x: grid.x + first.x - (w * 0.8) / 2,
+        y: grid.y + first.y - (w * 0.5) / 2,
+        w: w * 0.8,
+        h: w * 0.5,
         text: '{cell.index}',
         weight: 700,
         size: 10,
         color: '#2A241C',
         align: 'center',
         valign: 'middle'
-      },
-      {
-        type: 'shape',
-        name: N.trackHex,
-        shape: 'polygon',
-        sides: 6,
-        ...at(h, h),
-        fill: '#FFFFFF',
-        stroke: { color: '#333333', width: 0.4 },
-        source: { kind: 'formula', expr: '=IF({cell.row} = 1; "#9CC9E8"; "#FFFFFF")' }
       }
     ]
   }
