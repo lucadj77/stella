@@ -46,6 +46,8 @@ Video tutorials on YouTube, no voice ([whole playlist](https://www.youtube.com/p
 **Deep dives**
 
 - 20 · [Deep dive: text](https://www.youtube.com/watch?v=-zQmXMRJBog) (13 minutes), with the ["Merchants" project to download](https://stella.lucadj.eu/progetti/merchants.zip)
+- 21 · [Deep dive: icons and variables](https://www.youtube.com/watch?v=Sg-ktAAh1Ww) (12 minutes), with the ["Contracts" project to download](https://stella.lucadj.eu/progetti/contracts.zip)
+- 22 · [Deep dive: two fields, the whole card](https://www.youtube.com/watch?v=43E0tSVZQHM) (9 minutes), with the ["Encounters" project to download](https://stella.lucadj.eu/progetti/encounters.zip)
 
 Versione italiana: [../guida/README.md](../guida/README.md).
 

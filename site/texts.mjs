@@ -676,6 +676,42 @@ export const videos = [
       it: 'progetti/mercanti.zip',
       en: 'progetti/merchants.zip'
     }
+  },
+  {
+    n: 21,
+    it: 'Approfondimento: icone e variabili',
+    en: 'Deep dive: icons and variables',
+    about: {
+      it: 'Icone nel testo, variabili di ogni tipo, icone ripetute, nei dati e dalle formule.',
+      en: 'Icons in text, every kind of variable, repeated icons, icons in the data and from formulas.'
+    },
+    minutes: 11,
+    url: {
+      it: 'https://www.youtube.com/watch?v=gYUayFjoemo',
+      en: 'https://www.youtube.com/watch?v=Sg-ktAAh1Ww'
+    },
+    project: {
+      it: 'progetti/contratti.zip',
+      en: 'progetti/contracts.zip'
+    }
+  },
+  {
+    n: 22,
+    it: 'Approfondimento: due campi, tutta la carta',
+    en: 'Deep dive: two fields, the whole card',
+    about: {
+      it: 'Due livelli Valore e tutto il resto della carta calcolato da formule e variabili.',
+      en: 'Two Value layers, and the rest of the card computed by formulas and variables.'
+    },
+    minutes: 10,
+    url: {
+      it: 'https://www.youtube.com/watch?v=sOHOWDYIoPk',
+      en: 'https://www.youtube.com/watch?v=43E0tSVZQHM'
+    },
+    project: {
+      it: 'progetti/incontri.zip',
+      en: 'progetti/encounters.zip'
+    }
   }
 ]
 
@@ -688,7 +724,7 @@ export const videoGroups = {
   data: [10, 12],
   table: [9, 3, 19, 5],
   tools: [6, 17, 18],
-  deep: [20]
+  deep: [20, 21, 22]
 }
 
 export const playlists = {
