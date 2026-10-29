@@ -8,6 +8,15 @@ describe('formule', () => {
     expect(evaluateFormula('{a}/3', { a: '1' }).value).toBe('0.333333')
   })
 
+  it('non scambia la virgola dei decimali per un separatore di argomenti', () => {
+    expect(evaluateFormula('=MIN(2,5; 3)', {}).error).toMatch(/2\.5/)
+    expect(evaluateFormula('=MIN(2; 5)', {}).value).toBe('2')
+    expect(evaluateFormula('=MIN(2, 5)', {}).value).toBe('2')
+    // un campo con la virgola resta com'è scritto, ma si calcola
+    expect(evaluateFormula('=IF({a} > 1; {a}; 0)', { a: '1,5' }).value).toBe('1,5')
+    expect(evaluateFormula('={a} * 2', { a: '1,5' }).value).toBe('3')
+  })
+
   it('compone testo quando non è un calcolo', () => {
     expect(evaluateFormula('{nome}.png', { nome: 'Drago' }).value).toBe('Drago.png')
     expect(evaluateFormula('Forza {forza}', { forza: '3' }).value).toBe('Forza 3')

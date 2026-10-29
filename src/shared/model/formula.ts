@@ -122,6 +122,11 @@ function tokenize(src: string): Token[] {
       out.push({ t: 'str', v })
     } else if (/\d/.test(c) || (c === '.' && /\d/.test(src[i + 1] ?? ''))) {
       const m = /^\d*\.?\d+|^\d+/.exec(src.slice(i))!
+      // 2,5 sarebbe letto come due argomenti, 2 e 5: meglio un errore che un risultato sbagliato
+      if (/^,\d/.test(src.slice(i + m[0].length)))
+        throw new FormulaError(
+          `write ${m[0]}.${/^,(\d+)/.exec(src.slice(i + m[0].length))![1]} with a dot; separate arguments with ;`
+        )
       out.push({ t: 'num', v: Number(m[0]) })
       i += m[0].length
     } else if (/[A-Za-z_]/.test(c)) {
@@ -170,7 +175,9 @@ function toBool(v: Value): boolean {
  * così un IF li restituisce come li mostra il foglio; i calcoli e i confronti li leggono come numeri.
  */
 function fieldValue(raw: string): Value {
-  const n = Number(raw.trim().replace(',', '.'))
+  // anche 1,5 resta com'è scritto: un IF non deve cambiarlo in 1.5
+  if (raw.includes(',')) return raw
+  const n = Number(raw.trim())
   return raw.trim() !== '' && Number.isFinite(n) ? n : raw
 }
 
