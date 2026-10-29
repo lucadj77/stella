@@ -5,6 +5,18 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.7.1-beta.3
+
+### English
+
+- **Cell rules for grids**: a grid has a new **Cell rules** section. Each rule has a condition and changes, where it is true, the fill, the outline or the corner radius of the cell, or hides it (with its content and its snap point). Conditions are formulas with `{cell.index}`, `{cell.row}`, `{cell.column}` and the component fields, built with the formula assistant if you like: `=MOD({cell.index}; 5) = 0` colours one cell in five, `={cell.row} = {row}` highlights a row chosen in the sheet, hidden cells make irregular boards. A rule can also give a value to the layers of the cell content, so “the sword icon in cells 3, 8 and 11, the text xyz in 5, 6 and 13” is two rules with no formulas. **Choose the cells…** opens the grid drawn large: click the cells and the rule's condition is written for you. Rules work with every cell shape, hexagons and outlines from images included. Projects without rules do not change.
+- **INLIST**: a new formula function, true when a value is in a list: `=INLIST({cell.index}; "3, 8, 11")`, `=INLIST({type}; "dragon, orc")`; `1-5` covers the numbers from 1 to 5. The formula assistant offers it as ready sentences (“If type is one of dragon, orc show…”, “In cells 3, 8, 11 show…”), instead of a chain of OR.
+
+### Italiano
+
+- **Regole delle caselle nelle griglie**: una griglia ha la nuova sezione **Regole delle caselle**. Ogni regola ha una condizione e, dove è vera, cambia il riempimento, il contorno o il raggio degli angoli della casella, oppure la nasconde (con il suo contenuto e il suo snap point). Le condizioni sono formule con `{cell.index}`, `{cell.row}`, `{cell.column}` e i campi del componente, da costruire anche con l'assistente formule: `=MOD({cell.index}; 5) = 0` colora una casella ogni cinque, `={cell.row} = {riga}` mette in evidenza una riga scelta nel foglio, le caselle nascoste fanno plance irregolari. Una regola può anche dare un valore ai livelli del contenuto delle caselle, così «l'icona della spada nelle caselle 3, 8 e 11, il testo xyz nelle 5, 6 e 13» sono due regole senza formule. **Scegli le caselle…** apre la griglia disegnata in grande: fai clic sulle caselle e la condizione della regola si scrive da sola. Le regole valgono con tutte le forme di casella, compresi esagoni e contorni presi da un'immagine. I progetti senza regole non cambiano.
+- **INLIST**: una nuova funzione delle formule, vera quando un valore è in un elenco: `=INLIST({cell.index}; "3, 8, 11")`, `=INLIST({tipo}; "drago, orco")`; `1-5` vale per i numeri da 1 a 5. L'assistente formule la propone come frasi pronte («Se tipo è uno di drago, orco mostra…», «Nelle caselle 3, 8, 11 mostra…»), al posto di una catena di OR.
+
 ## 1.7.1-beta.2
 
 ### English

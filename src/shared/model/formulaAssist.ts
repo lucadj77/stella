@@ -58,7 +58,8 @@ export const FUNCTION_SPECS: Record<string, FunctionSpec> = {
   LOWER: { args: [a('text', 'text')] },
   LEN: { args: [a('text', 'text')] },
   CONCAT: { args: [a('text', 'text')], variadic: true, min: 1 },
-  COUNTIN: { args: [a('text', 'text'), a('wanted', 'text')] }
+  COUNTIN: { args: [a('text', 'text'), a('wanted', 'text')] },
+  INLIST: { args: [a('value', 'value'), a('list', 'text')], variadic: true, min: 2 }
 }
 
 /** Specifica dell'argomento i di una funzione, anche oltre gli argomenti scritti per le variadiche */
@@ -141,7 +142,8 @@ export const CATALOG: Record<FormulaCategory, CatalogEntry[]> = {
     { id: 'and', fn: 'AND', make: () => call('AND', E, E) },
     { id: 'or', fn: 'OR', make: () => call('OR', E, E) },
     { id: 'not', fn: 'NOT', make: () => call('NOT', E) },
-    { id: 'isblank', fn: 'ISBLANK', make: () => call('ISBLANK', E) }
+    { id: 'isblank', fn: 'ISBLANK', make: () => call('ISBLANK', E) },
+    { id: 'inlist', fn: 'INLIST', make: () => call('INLIST', E, E) }
   ],
   selection: [
     { id: 'pick', fn: 'PICK', make: () => call('PICK', E, E, E) },
@@ -775,6 +777,74 @@ const notEmptyCond: SentenceTemplate = {
       : null
 }
 
+const isCellIndex = (n: FormulaNode): boolean => n.k === 'field' && n.name === 'cell.index'
+const cellList = (): FormulaNode => ({ k: 'str', v: '1, 2, 3' })
+
+/** IF(INLIST({cell.index}; "3, 8, 11"); A; B): qualcosa nelle caselle elencate */
+const inCellsShow: SentenceTemplate = {
+  id: 'inCells',
+  cell: true,
+  make: (_, d) => call('IF', call('INLIST', field('cell.index'), cellList()), d.yes, d.no),
+  parts: (n) =>
+    isCall(n, 'IF', 3) && isCall(n.args[0], 'INLIST', 2) && isCellIndex(n.args[0].args[0])
+      ? [
+          txt('fx.s.inCells'),
+          blank([0, 1], 'text', 'fx.b.cells'),
+          txt('fx.s.show'),
+          blank([1], 'result', 'fx.b.show'),
+          txt('fx.s.otherwise'),
+          blank([2], 'result', 'fx.b.otherwise')
+        ]
+      : null
+}
+
+/** INLIST({cell.index}; "3, 8, 11"): vero nelle caselle elencate, per le regole delle caselle */
+const inCellsCond: SentenceTemplate = {
+  id: 'inCellsCond',
+  cell: true,
+  condition: true,
+  make: () => call('INLIST', field('cell.index'), cellList()),
+  parts: (n) =>
+    isCall(n, 'INLIST', 2) && isCellIndex(n.args[0])
+      ? [txt('fx.s.trueInCells'), blank([1], 'text', 'fx.b.cells')]
+      : null
+}
+
+/** IF(INLIST(campo; "drago, orco"); A; B): un valore se il campo è uno di quelli elencati */
+const inListShow: SentenceTemplate = {
+  id: 'inList',
+  make: (_, d) => call('IF', call('INLIST', field(d.field), { k: 'str', v: '' }), d.yes, d.no),
+  parts: (n) =>
+    isCall(n, 'IF', 3) && isCall(n.args[0], 'INLIST', 2)
+      ? [
+          txt('fx.s.if'),
+          blank([0, 0], 'value', 'fx.b.field'),
+          txt('fx.s.isOneOf'),
+          blank([0, 1], 'text', 'fx.b.list'),
+          txt('fx.s.show'),
+          blank([1], 'result', 'fx.b.show'),
+          txt('fx.s.otherwise'),
+          blank([2], 'result', 'fx.b.otherwise')
+        ]
+      : null
+}
+
+/** INLIST(campo; "drago, orco"): vero se il campo è uno di quelli elencati */
+const inListCond: SentenceTemplate = {
+  id: 'inListCond',
+  condition: true,
+  make: (_, d) => call('INLIST', field(d.field), { k: 'str', v: '' }),
+  parts: (n) =>
+    isCall(n, 'INLIST', 2)
+      ? [
+          txt('fx.s.trueWhen'),
+          blank([0], 'value', 'fx.b.field'),
+          txt('fx.s.isOneOf'),
+          blank([1], 'text', 'fx.b.list')
+        ]
+      : null
+}
+
 /** In ordine di riconoscimento: le forme più specifiche prima */
 export const SENTENCES: SentenceTemplate[] = [
   everyNth,
@@ -783,6 +853,10 @@ export const SENTENCES: SentenceTemplate[] = [
   randomPick,
   cycling,
   ranges,
+  inCellsShow,
+  inCellsCond,
+  inListShow,
+  inListCond,
   ifThen,
   notEmpty,
   notEmptyCond,
@@ -798,6 +872,8 @@ export const START_ORDER = [
   'everyN',
   'alternate',
   'checkerboard',
+  'inCells',
+  'inList',
   'cycle',
   'random',
   'notEmpty',
@@ -805,7 +881,9 @@ export const START_ORDER = [
   'calc',
   'join',
   'repeatIcon',
+  'inCellsCond',
   'compare',
+  'inListCond',
   'notEmptyCond'
 ]
 

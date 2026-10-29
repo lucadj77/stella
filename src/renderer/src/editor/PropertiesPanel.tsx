@@ -102,6 +102,7 @@ import type { EditorAction, EditorState } from './useEditor'
 import type { Commands } from './commands'
 import PanelSideButton from '../components/PanelSideButton'
 import AlignSection from './AlignSection'
+import CellRules from './CellRules'
 import type { PanelSide } from '../components/usePanelWidth'
 import { useRatioLock, type LockKind } from './ratioLock'
 import TranslationFields from '../components/TranslationFields'
@@ -650,6 +651,14 @@ function LayerProperties({
             dispatch({ type: 'change', template: patchLayers(tpl, side, [g.id], g, patch) })
           }}
           onCreate={createContent}
+        />
+      )}
+      {same && !multi && l.type === 'grid' && (
+        <CellRules
+          l={l}
+          template={tpl}
+          sheets={sheets}
+          onChange={(cellRules) => set({ cellRules } as Partial<Layer>)}
         />
       )}
       {same && !multi && l.type === 'value' && (

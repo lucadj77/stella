@@ -6932,6 +6932,75 @@ button.more-button {
   margin: 4px 0;
 }
 
+/* regole delle caselle della griglia: un riquadro per regola */
+.cell-rule {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin: 6px 0;
+}
+
+.cell-rule-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.cell-rule-tools {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.cell-rule-pick {
+  margin: 2px 0 4px;
+}
+
+.dialog:has(> .cell-picker) {
+  max-width: min(800px, 92vw);
+}
+
+.cell-picker {
+  display: block;
+  width: min(760px, 86vw);
+  max-height: 60vh;
+  margin: 8px auto;
+  user-select: none;
+  touch-action: none;
+}
+
+.cell-picker-cell {
+  cursor: pointer;
+}
+
+.cell-picker-cell path {
+  fill: var(--panel);
+  stroke: var(--muted);
+  stroke-width: 0.3;
+}
+
+.cell-picker-cell text {
+  fill: var(--text);
+  pointer-events: none;
+}
+
+.cell-picker-cell:hover path {
+  fill: var(--accent-soft);
+}
+
+.cell-picker-cell.on path {
+  fill: var(--accent);
+}
+
+.cell-picker-cell.on text {
+  fill: #fff;
+}
+
+.cell-rule-tools button {
+  min-width: 30px;
+  padding: 2px 8px;
+}
+
 /* modo avanzato: funzioni annidate chiuse in una riga, apertura da sola e percorso */
 .fx-node-top {
   display: inline-flex;

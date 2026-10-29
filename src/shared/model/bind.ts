@@ -5,7 +5,7 @@ import { isGradient, mapGradientColors } from './gradient'
 import { resolveAsset } from './assets'
 import { parseCrop } from './crop'
 import { isGenericFont, markupFonts } from './fonts'
-import { evaluateFormula, type FormulaNumbers } from './formula'
+import { evaluateFormula, truthy, type FormulaNumbers } from './formula'
 import { localizeNumber } from './number'
 import type { NumberFormatting } from './numberFormat'
 import { markupProblems, markupRefs } from './markup'
@@ -25,6 +25,8 @@ import {
 } from './variables'
 import {
   PRIMARY_PROPERTY,
+  type CellLook,
+  type GridLayer,
   type GroupLayer,
   type Layer,
   type Side,
@@ -110,6 +112,77 @@ function localizeSystem(system?: SystemInfo, loc?: Localization): SystemInfo | u
 /** Una formula con = (logica e calcoli) usa i valori della lingua principale */
 function isExpression(expr: string): boolean {
   return expr.trimStart().startsWith('=')
+}
+
+/**
+ * Aspetto di ogni casella secondo le regole della griglia, in ordine: una regola dopo prevale.
+ * Le condizioni leggono i campi della carta e quelli della casella. Per ogni casella anche i
+ * valori che le regole danno ai livelli del contenuto, per nome. I problemi si segnalano dalla
+ * prima casella.
+ */
+function cellRuleResults(
+  grid: GridLayer,
+  fields: Record<string, string>,
+  say: (m: Message) => void,
+  numbers?: NumberFormatting,
+  card = 0
+): { looks: CellLook[]; values: Record<string, string>[] } {
+  const { rows, columns } = gridSize(grid)
+  const count = rows * columns
+  const base: CellLook = {
+    fill: grid.fill,
+    stroke: grid.stroke,
+    radius: grid.radius,
+    hidden: false
+  }
+  const looks: CellLook[] = []
+  const values: Record<string, string>[] = []
+  for (let i = 0; i < count; i++) {
+    const f = { ...fields, ...cellFields(grid.name, i, columns, count, card) }
+    let look = base
+    let set: Record<string, string> = {}
+    grid.cellRules.forEach((rule, k) => {
+      const when = rule.when.trim()
+      if (!when) return
+      const r = evaluateFormula(
+        when.startsWith('=') ? when : `=${when}`,
+        f,
+        formulaNumbers(numbers)
+      )
+      if (i === 0) {
+        const layer = `${grid.name} (${k + 1})`
+        for (const field of r.missing) say(msg('bind.formulaField', { layer, field }))
+        if (r.error)
+          say(msg('bind.cellRuleError', { layer: grid.name, rule: k + 1, error: r.error }))
+      }
+      if (r.error || !truthy(r.value)) return
+      look = {
+        fill: rule.fill !== undefined ? rule.fill : look.fill,
+        stroke: rule.stroke !== undefined ? rule.stroke : look.stroke,
+        radius: rule.radius ?? look.radius,
+        hidden: rule.hidden ?? look.hidden
+      }
+      if (rule.values) set = { ...set, ...rule.values }
+    })
+    looks.push(look)
+    values.push(set)
+  }
+  return { looks, values }
+}
+
+/**
+ * Il gruppo del contenuto con i valori delle regole: ogni livello nominato prende il valore come
+ * una formula, quindi con i campi della carta e della casella
+ */
+function withCellValues(group: GroupLayer, values: Record<string, string>): GroupLayer {
+  if (!Object.keys(values).length) return group
+  const apply = (layers: Layer[]): Layer[] =>
+    layers.map((l) => {
+      const v = Object.prototype.hasOwnProperty.call(values, l.name) ? values[l.name] : undefined
+      const out: Layer = v === undefined ? l : { ...l, source: { kind: 'formula', expr: v } }
+      return out.type === 'group' ? { ...out, children: apply(out.children) } : out
+    })
+  return apply([group])[0] as GroupLayer
 }
 
 /**
@@ -302,21 +375,34 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
               say(msg('bind.invalidValue', { column: `${layer.name}.repeat`, value: repeat }))
             out = { ...out, repeat, children: apply(out.children) }
           }
-          if (out.type === 'grid' && out.content.trim()) {
-            const name = out.content.trim()
-            const group = raw.find((l): l is GroupLayer => l.type === 'group' && l.name === name)
-            if (!group) say(msg('bind.gridContent', { layer: out.name, group: name }))
-            else {
-              const { rows, columns } = gridSize(out)
-              const grid = out
-              const cells = Array.from({ length: rows * columns }, (_, i) => {
+          if (out.type === 'grid') {
+            const grid = out
+            const { rows, columns } = gridSize(grid)
+            const ruled = grid.cellRules?.length
+              ? cellRuleResults(grid, fields, say, nums, system?.number)
+              : null
+            const name = grid.content.trim()
+            const group = name
+              ? raw.find((l): l is GroupLayer => l.type === 'group' && l.name === name)
+              : undefined
+            if (name && !group) say(msg('bind.gridContent', { layer: grid.name, group: name }))
+            if (ruled && report)
+              for (const [k, rule] of grid.cellRules.entries())
+                for (const layer of Object.keys(rule.values ?? {}))
+                  if (!group || !walkLayers([group]).some((l) => l.name === layer))
+                    say(msg('bind.cellRuleLayer', { layer: grid.name, rule: k + 1, name: layer }))
+            const cells =
+              group &&
+              Array.from({ length: rows * columns }, (_, i) => {
                 const cell = cellFields(grid.name, i, columns, rows * columns, system?.number)
                 const f = { ...fields, ...cell }
                 const sh = shown === fields ? f : { ...shown, ...cell }
-                return bindWith(f, sh, true, report && i === 0)([group])[0] as GroupLayer
+                const g = ruled ? withCellValues(group, ruled.values[i]) : group
+                const bound = bindWith(f, sh, true, report && i === 0)([g])[0] as GroupLayer
+                // una casella nascosta da una regola nasconde anche il suo contenuto
+                return ruled?.looks[i].hidden ? { ...bound, visible: false } : bound
               })
-              out = { ...out, cells }
-            }
+            out = { ...grid, ...(cells && { cells }), ...(ruled && { looks: ruled.looks }) }
           }
           // i tag dello snap point possono leggere i campi: {tipo}
           if (out.snap?.tags.includes('{'))
@@ -668,6 +754,13 @@ function paintLayer(
         shadow,
         fill: l.fill && (isGradient(l.fill) ? mapGradientColors(l.fill, paint) : paint(l.fill)),
         stroke: stroke(l.stroke),
+        ...(l.looks && {
+          looks: l.looks.map((k) => ({
+            ...k,
+            fill: k.fill && (isGradient(k.fill) ? mapGradientColors(k.fill, paint) : paint(k.fill)),
+            stroke: stroke(k.stroke)
+          }))
+        }),
         background:
           l.background &&
           (isGradient(l.background) ? mapGradientColors(l.background, paint) : paint(l.background)),

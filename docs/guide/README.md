@@ -317,6 +317,8 @@ The **grid** layer (the tool with the cells) draws equal cells inside its frame:
 
 **Cell content** picks a group of the same side that is repeated in every cell: draw it in the first cell (**Move to the first cell** puts it there) and the other cells get a copy moved to their place. Inside the group the fields `{cell.index}` (1, 2, 3… by rows), `{cell.row}`, `{cell.column}`, `{cell.count}` (number of cells) and `{cell.random}` (a number from 1 to 999999, fixed for each card and cell) change from cell to cell: a text with the formula `=IF(MOD({cell.index}; 10) = 0; "[" & {cell.index} & "]{color=red}"; {cell.index})` numbers a score track with multiples of 10 in red, an icon with `=PICK({cell.index}; {icons})` shows the icons of an `icons` column in sequence. In the editor the group stays selectable where it is; on the cards it only shows in the cells.
 
+**Cell rules**, below the content, changes the look of some cells without adding layers. Each rule has a condition (**When**) and what changes where the condition is true: **Change the fill**, **Change the outline**, **Change the corner radius**, **Hide the cell** (which also removes the content and the snap point of that cell) and, when the grid has a content, **Change “…”** for each layer of the content: the text of a text, the image of an image, the color of a shape. So “put the sword icon in cells 3, 8 and 11, the text xyz in 5, 6 and 13” is two rules, with no formulas in the content; the value can use `{fields}` and `{cell.index}`, or be a formula starting with `=`. **Choose the cells…** opens the grid drawn large: click the cells (or drag over several) and the condition becomes `=INLIST({cell.index}; "3, 8, 11")`. The rule remembers the cell numbers: if you change the rows or columns of the grid, check it again. You can also write the condition: it is a formula with the fields `{cell.index}`, `{cell.row}`, `{cell.column}`, `{cell.count}` and the component fields. `=MOD({cell.index}; 5) = 0` colors one cell in five, `={cell.row} = {row}` highlights the row written in the sheet, `=INLIST({cell.index}; "1, 2, 9-11")` applies to cells 1, 2, 9, 10 and 11. The **fx** button opens the formula assistant, with the **Component & cell** tab, the **The cells I list** sentence and the result of the first cells; under the condition you read how many cells it applies to in the first component. Rules apply in order and a later rule wins; the arrows change the order. Before rules, the same result took **Shape in each cell** and a formula on the fill of the shape: it still works, and it is the way to go when the cell must hold a drawing other than a colour or an outline.
+
 ![A score track: the group of the first cell repeated in all of them, with multiples of 10 in red](img/griglia-caselle.png)
 
 ## 5. Entering and editing cards
@@ -584,24 +586,25 @@ A layer with **Value on components: Formula** calculates its value from the othe
 
 - **Text composition**: `{name}.png`, `Strength {strength}`.
 - **Calculation**: if the formula contains `+ - * /` and the result is a number, it is calculated: `{strength}+2`.
-- **Expression**: with a leading `=` it works like Excel. Text in quotes, comparisons `= <> < > <= >=`, `&` to join text, arguments separated by `;` (or by `,` followed by a space). Functions: `IF`, `AND`, `OR`, `NOT`, `MIN`, `MAX`, `ABS`, `ROUND`, `FLOOR`, `CEILING`, `UPPER`, `LOWER`, `LEN`, `CONCAT`, `ISBLANK`, `COUNTIN`, `MOD`, `PICK`.
+- **Expression**: with a leading `=` it works like Excel. Text in quotes, comparisons `= <> < > <= >=`, `&` to join text, arguments separated by `;` (or by `,` followed by a space). Functions: `IF`, `AND`, `OR`, `NOT`, `MIN`, `MAX`, `ABS`, `ROUND`, `FLOOR`, `CEILING`, `UPPER`, `LOWER`, `LEN`, `CONCAT`, `ISBLANK`, `COUNTIN`, `INLIST`, `MOD`, `PICK`.
 
 The functions, with an example on the cards of this guide (Dragon, strength 4, cost `{gold}{gold}{wood}`):
 
-| function                                      | what it does                                  | example                                                 |
-| --------------------------------------------- | --------------------------------------------- | ------------------------------------------------------- |
-| `IF(condition; if true; if false)`            | chooses between two values                    | `=IF({strength}>3; "Strong"; "Weak")` → Strong          |
-| `AND`, `OR`, `NOT`                            | combine conditions                            | `=IF(AND({strength}>3; {cost}<>""); "yes"; "no")` → yes |
-| `MIN`, `MAX`                                  | the smallest or largest number                | `=MAX({strength}; 3)` → 4                               |
-| `ABS`                                         | the number without its sign                   | `=ABS({strength}-6)` → 2                                |
-| `ROUND(number; decimals)`, `FLOOR`, `CEILING` | round                                         | `=ROUND({strength}/3; 1)` → 1.3                         |
-| `UPPER`, `LOWER`                              | capitals and lower case                       | `=UPPER({name})` → DRAGON                               |
-| `LEN`                                         | how many characters the text has              | `=LEN({name})` → 6                                      |
-| `CONCAT`                                      | joins texts (like `&`)                        | `=CONCAT({name}; " "; {strength})` → Dragon 4           |
-| `ISBLANK`                                     | true if the value is empty                    | `=IF(ISBLANK({note}); "-"; {note})` → -                 |
-| `COUNTIN(text; wanted)`                       | how many times a text contains another        | `=COUNTIN({cost}; "gold")` → 2                          |
-| `MOD(number; divisor)`                        | the remainder of a division                   | `=MOD({cell.index}; 10)` → 0 on every tenth cell        |
-| `PICK(n; value1; value2; …)`                  | the n-th value, starting again after the last | `=PICK({strength}; "sword"; "shield"; "hand")` → sword  |
+| function                                      | what it does                                                          | example                                                 |
+| --------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------- |
+| `IF(condition; if true; if false)`            | chooses between two values                                            | `=IF({strength}>3; "Strong"; "Weak")` → Strong          |
+| `AND`, `OR`, `NOT`                            | combine conditions                                                    | `=IF(AND({strength}>3; {cost}<>""); "yes"; "no")` → yes |
+| `MIN`, `MAX`                                  | the smallest or largest number                                        | `=MAX({strength}; 3)` → 4                               |
+| `ABS`                                         | the number without its sign                                           | `=ABS({strength}-6)` → 2                                |
+| `ROUND(number; decimals)`, `FLOOR`, `CEILING` | round                                                                 | `=ROUND({strength}/3; 1)` → 1.3                         |
+| `UPPER`, `LOWER`                              | capitals and lower case                                               | `=UPPER({name})` → DRAGON                               |
+| `LEN`                                         | how many characters the text has                                      | `=LEN({name})` → 6                                      |
+| `CONCAT`                                      | joins texts (like `&`)                                                | `=CONCAT({name}; " "; {strength})` → Dragon 4           |
+| `ISBLANK`                                     | true if the value is empty                                            | `=IF(ISBLANK({note}); "-"; {note})` → -                 |
+| `COUNTIN(text; wanted)`                       | how many times a text contains another                                | `=COUNTIN({cost}; "gold")` → 2                          |
+| `INLIST(value; list)`                         | true if the value is in the list; `1-5` stands for the numbers 1 to 5 | `=INLIST({type}; "dragon, orc")` → true for an orc      |
+| `MOD(number; divisor)`                        | the remainder of a division                                           | `=MOD({cell.index}; 10)` → 0 on every tenth cell        |
+| `PICK(n; value1; value2; …)`                  | the n-th value, starting again after the last                         | `=PICK({strength}; "sword"; "shield"; "hand")` → sword  |
 
 The **Help** window (F1), **Formulas** tab, has the same table with the result computed on the cards of the open project.
 
@@ -641,7 +644,7 @@ Once you pick a card, the formula appears as a sentence to complete, already fil
 
 ![Advanced: the nested function opened on its own, with the path at the top](img/assistente-formule-avanzato.png)
 
-On a **grid** layer the formula applies to the whole grid (for example the cell colour of a card): to change the cells one by one, the formula goes on a layer of the **cell content** (section 4.8). That is why, on a grid without content, the **Cell content** section has **Text in each cell** and **Shape in each cell**: they create a layer in the first cell, wrap it in a group and set it as the content; for the text the assistant opens right away. The same choice is on the start screen of the assistant as **Vary cell by cell**.
+On a **grid** layer the formula applies to the whole grid (for example the cell colour of a card): to change the colour, outline or visibility of some cells use the **cell rules**, to change texts and drawings cell by cell the formula goes on a layer of the **cell content** (section 4.8). That is why, on a grid without content, the **Cell content** section has **Text in each cell** and **Shape in each cell**: they create a layer in the first cell, wrap it in a group and set it as the content; for the text the assistant opens right away. The same choice is on the start screen of the assistant as **Vary cell by cell**.
 
 ![The buttons that create the cell content](img/griglia-contenuto-crea.png)
 
