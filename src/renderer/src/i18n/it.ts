@@ -604,7 +604,7 @@ export const it: Record<MessageKey, string> = {
   'layerType.image': 'Immagine',
   'layerType.shape': 'Forma',
   'source.formulaHelp':
-    'Inizia con = per un\'espressione come in Excel: =IF({forza}>3; "Forte"; "Debole"). Funzioni: IF, AND, OR, NOT, MIN, MAX, ABS, ROUND, FLOOR, CEILING, UPPER, LOWER, LEN, CONCAT, ISBLANK, COUNTIN (quante volte un testo ne contiene un altro: COUNTIN({costo}; "oro")), MOD, PICK. & unisce i testi. Il tasto fx costruisce la formula passo per passo.',
+    'Inizia con = per un\'espressione come in Excel: =IF({forza}>3; "Forte"; "Debole"). Funzioni: IF, AND, OR, NOT, MIN, MAX, ABS, ROUND, FLOOR, CEILING, UPPER, LOWER, LEN, CONCAT, ISBLANK, COUNTIN (quante volte un testo ne contiene un altro: COUNTIN({costo}; "oro")), INLIST, MOD, PICK. & unisce i testi. Il tasto fx costruisce la formula passo per passo.',
   'source.formulaError': 'Errore nella formula: {error}',
   'source.formulaPreviewDefaults': 'Con i valori del template: {value}',
   'source.computedHint': 'Calcolato dalla formula sopra',
@@ -1091,6 +1091,8 @@ export const it: Record<MessageKey, string> = {
     'La variabile "{name}" ha lo stesso nome di una colonna: {{name}} mostra la cella, non la variabile. Rinomina la variabile o la colonna',
   'bind.gridContent': 'Griglia {layer}: non c\'è un gruppo "{group}" da ripetere nelle caselle',
   'bind.formulaError': 'Livello {layer}: errore nella formula: {error}',
+  'bind.cellRuleLayer':
+    'Griglia {layer}, regola delle caselle {rule}: nel contenuto delle caselle non c\'è un livello "{name}"',
   'bind.cellRuleError':
     'Griglia {layer}, regola delle caselle {rule}: errore nella formula: {error}',
   'bind.markup': 'Livello {layer}: {problem}',
@@ -2088,6 +2090,8 @@ export const it: Record<MessageKey, string> = {
   'help.fn.PICK':
     "L'n-esima voce di un elenco, ricominciando dopo l'ultima; un solo testo con le virgole è un elenco",
   'help.fn.COUNTIN': 'Quante volte un testo ne contiene un altro: COUNTIN({costo}; "oro")',
+  'help.fn.INLIST':
+    'Vero se il valore è nell\'elenco; 1-5 vale per tutti i numeri da 1 a 5: INLIST({cell.index}; "3, 8, 11")',
   'help.examplesIntro':
     'Gli esempi usano una carta con forza 4, difesa 2, nome Drago, costo "oro oro legno" e nota vuota.',
   'help.ex.IF': '=IF({forza}>3; "Forte"; "Debole") → Forte',
@@ -2108,6 +2112,7 @@ export const it: Record<MessageKey, string> = {
   'help.ex.MOD': '=MOD({forza}; 3) → 1',
   'help.ex.PICK': '=PICK({forza}; "spada"; "scudo"; "mano") → spada',
   'help.ex.COUNTIN': '=COUNTIN({costo}; "oro") → 2',
+  'help.ex.INLIST': '=INLIST({cell.index}; "2, 4, 10-12") → vero nelle caselle 2, 4, 10, 11 e 12',
   'help.keys.save': 'Salva template, dati e impostazioni',
   'help.keys.project': 'Apri e chiudi il progetto (app desktop)',
   'help.keys.export': "Esporta; con ⇧ ripete l'ultima esportazione",
@@ -2581,6 +2586,20 @@ export const it: Record<MessageKey, string> = {
   'editor.cellRuleRadius': 'Cambia il raggio degli angoli',
   'editor.cellRuleHidden': 'Nascondi la casella',
   'editor.cellRuleHiddenHint': 'La casella, il suo contenuto e il suo snap point non si disegnano',
+  'editor.cellRuleLayer': 'Cambia «{name}»',
+  'editor.cellRuleLayerHint':
+    "Il valore di questo livello del contenuto delle caselle: un testo, il nome di un'immagine, un colore. Può usare i {campi} e {cell.index}, o essere una formula che inizia con =",
+  'editor.cellRuleNoContent':
+    'Per mettere testi o icone nelle caselle con una regola, scegli prima un gruppo come contenuto delle caselle (qui sopra): i suoi livelli compaiono qui.',
+  'cellPicker.open': 'Scegli le caselle…',
+  'cellPicker.title': 'Scegli le caselle',
+  'cellPicker.hint':
+    'Fai clic sulle caselle a cui si applica la regola; trascinando ne scegli o togli più di una alla volta. La regola ricorda i numeri delle caselle: se cambi righe o colonne della griglia, ricontrollala.',
+  'cellPicker.count': '{n} caselle: {list}',
+  'cellPicker.none': 'Nessuna casella scelta.',
+  'cellPicker.clear': 'Nessuna',
+  'cellPicker.all': 'Tutte',
+  'cellPicker.apply': 'Usa queste caselle',
   'editor.cellRuleAdd': '+ Aggiungi una regola',
   'editor.cellRuleFx': 'Assistente formule: regola delle caselle {n}',
   'editor.gridContentFields':
@@ -2680,6 +2699,7 @@ export const it: Record<MessageKey, string> = {
   'fx.arg.divisor': 'Diviso per',
   'fx.arg.text': 'Testo',
   'fx.arg.wanted': 'Testo da contare',
+  'fx.arg.list': 'Elenco',
   'fx.arg.left': 'Sinistra',
   'fx.arg.right': 'Destra',
   'fx.arg.operator': 'Operatore',
@@ -2714,6 +2734,7 @@ export const it: Record<MessageKey, string> = {
   'fx.fn.LEN': 'Lunghezza',
   'fx.fn.CONCAT': 'Unisci testi',
   'fx.fn.COUNTIN': 'Conta le ripetizioni',
+  'fx.fn.INLIST': "È nell'elenco",
   'fx.entry.if': 'Risultato condizionato',
   'fx.entry.if.hint': 'Un valore se la condizione è vera, un altro se è falsa',
   'fx.entry.cases': 'Più casi',
@@ -2729,6 +2750,9 @@ export const it: Record<MessageKey, string> = {
   'fx.entry.not.hint': 'Il contrario di una condizione',
   'fx.entry.isblank': 'È vuoto',
   'fx.entry.isblank.hint': 'Vero se il valore è vuoto',
+  'fx.entry.inlist': "È nell'elenco",
+  'fx.entry.inlist.hint':
+    "Vero se il valore è uno di quelli dell'elenco, per esempio le caselle 3, 8 e 11",
   'fx.entry.pick': 'Scegli da un elenco',
   'fx.entry.pick.hint': "La voce nella posizione indicata, ricominciando dopo l'ultima",
   'fx.entry.cycle': 'Scorri un elenco',
@@ -2807,6 +2831,10 @@ export const it: Record<MessageKey, string> = {
   'fx.s.text': 'Testo:',
   'fx.s.trueWhen': 'Vero quando',
   'fx.s.isNotEmpty': 'non è vuoto',
+  'fx.s.isOneOf': 'è uno di',
+  'fx.b.list': 'Elenco (drago, orco)',
+  'fx.s.inCells': 'Nelle caselle',
+  'fx.s.trueInCells': 'Vero nelle caselle',
   'fx.b.n': 'Ogni quante',
   'fx.b.show': 'Cosa mostrare',
   'fx.b.otherwise': 'Cosa mostrare altrimenti',
@@ -2818,6 +2846,7 @@ export const it: Record<MessageKey, string> = {
   'fx.b.value': 'Valore da controllare',
   'fx.b.comparedWith': 'Confrontato con',
   'fx.b.text': 'Testo',
+  'fx.b.cells': 'Caselle (3, 8, 11 o 1-5)',
   'fx.addItem': '+ Voce',
   'fx.addBand': '+ Fascia',
   'fx.start.title': 'Cosa vuoi fare?',
@@ -2865,6 +2894,16 @@ export const it: Record<MessageKey, string> = {
   'fx.card.compare.hint': 'Vero quando il confronto regge',
   'fx.card.notEmptyCond': 'Un campo non è vuoto',
   'fx.card.notEmptyCond.hint': 'Vero quando la cella della riga ha qualcosa dentro',
+  'fx.card.inList': 'Un valore quando un campo è uno di un elenco',
+  'fx.card.inList.hint':
+    'Per esempio una cornice rossa quando il tipo è drago o orco, senza una catena di OR',
+  'fx.card.inListCond': 'Un campo è uno di un elenco',
+  'fx.card.inListCond.hint':
+    'Vero quando il campo è uno dei valori che scrivi, per esempio drago, orco',
+  'fx.card.inCells': 'Qualcosa nelle caselle che elenco',
+  'fx.card.inCells.hint': "Per esempio un'icona nelle caselle 3, 8 e 11, niente nelle altre",
+  'fx.card.inCellsCond': 'Le caselle che elenco',
+  'fx.card.inCellsCond.hint': 'Vero nelle caselle che scrivi, per esempio 3, 8, 11 oppure 1-5',
   'fx.filling': 'Stai riempiendo «{what}»',
   'fx.more': 'Altro…',
   'fx.less': 'Meno',

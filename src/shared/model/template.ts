@@ -271,6 +271,11 @@ export interface CellRule {
   radius?: number
   /** La casella non si disegna, né il suo contenuto né il suo snap point */
   hidden?: boolean
+  /**
+   * Valori dei livelli del contenuto delle caselle, per nome: il valore principale (il testo, la
+   * sorgente dell'immagine, il colore della forma), scritto come una formula
+   */
+  values?: Record<string, string>
 }
 
 /** Come si disegna una casella sulla carta */

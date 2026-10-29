@@ -1,15 +1,18 @@
-import { useContext, useState } from 'react'
+import { Fragment, useContext, useState } from 'react'
 import FormulaDialog from '../components/FormulaDialog'
 import HelpTip from '../components/HelpTip'
-import { cardFields, cellFields, rowToCard } from '../../../shared/model/bind'
+import { cardFields, cellFields, defaultValue, rowToCard } from '../../../shared/model/bind'
 import { evaluateFormula, truthy } from '../../../shared/model/formula'
 import { gridSize } from '../../../shared/model/grid'
 import { walkLayers } from '../../../shared/model/normalize'
 import { numberFormatting } from '../../../shared/model/numberFormat'
 import type { CellRule, GridLayer, Template } from '../../../shared/model/template'
 import { useI18n } from '../i18n/context'
+import type { MessageKey } from '../i18n/en'
 import { NumberSettingsContext, VariablesContext } from '../render/assets'
 import { CheckField, FillField, NumberField, StrokeField, TextField } from './fields'
+import CellPicker from './CellPicker'
+import { cellsCondition, pickedCells } from '../../../shared/model/cellRules'
 import { Inherit } from './inheritance'
 
 // Regole delle caselle di una griglia: dove la condizione è vera la casella cambia riempimento,
@@ -32,6 +35,7 @@ export default function CellRules({
   const variables = useContext(VariablesContext)
   const numbers = numberFormatting(useContext(NumberSettingsContext))
   const [fx, setFx] = useState<number | null>(null)
+  const [picking, setPicking] = useState<number | null>(null)
   const rules = l.cellRules
   const { rows, columns } = gridSize(l)
   const count = rows * columns
@@ -89,6 +93,19 @@ export default function CellRules({
     onChange(next)
   }
   const shaped = l.cell !== 'circle' && l.cell !== 'path'
+  // i livelli del contenuto delle caselle a cui una regola può dare un valore
+  const group = walkLayers([...template.front, ...template.back]).find(
+    (x) => x.type === 'group' && x.name === l.content.trim()
+  )
+  const targets = group ? walkLayers([group]).filter((x) => x.type !== 'group') : []
+  const setValue = (i: number, name: string, value: string | null): void => {
+    const values = { ...rules[i].values }
+    if (value === null) delete values[name]
+    else values[name] = value
+    const rule: CellRule = { ...rules[i], values }
+    if (!Object.keys(values).length) delete rule.values
+    onChange(rules.map((r, k) => (k === i ? rule : r)))
+  }
 
   return (
     <Inherit keys={['cellRules']}>
@@ -145,6 +162,9 @@ export default function CellRules({
                 </button>
               }
             />
+            <button type="button" className="cell-rule-pick" onClick={() => setPicking(i)}>
+              {t('cellPicker.open')}
+            </button>
             <p className="small muted">
               {m.error
                 ? t('source.formulaError', { error: m.error })
@@ -205,15 +225,54 @@ export default function CellRules({
               value={!!rule.hidden}
               onChange={(on) => toggle(i, 'hidden', on, true)}
             />
+            {targets.map((x) => {
+              const v = rule.values?.[x.name]
+              return (
+                <Fragment key={x.id}>
+                  <CheckField
+                    label={t('editor.cellRuleLayer', { name: x.name })}
+                    hint={t('editor.cellRuleLayerHint')}
+                    value={v !== undefined}
+                    onChange={(on) =>
+                      setValue(
+                        i,
+                        x.name,
+                        on ? (x.type === 'image' ? x.src : (defaultValue(x) ?? '')) : null
+                      )
+                    }
+                  />
+                  {v !== undefined && (
+                    <TextField
+                      label={t(`layerType.${x.type}` as MessageKey)}
+                      value={v}
+                      placeholder={x.type === 'image' ? 'spada' : ''}
+                      hint={t('editor.cellRuleLayerHint')}
+                      onChange={(value) => setValue(i, x.name, value)}
+                    />
+                  )}
+                </Fragment>
+              )
+            })}
+            {!targets.length && <p className="small muted">{t('editor.cellRuleNoContent')}</p>}
           </div>
         )
       })}
       <button
         type="button"
-        onClick={() => onChange([...rules, { when: '={cell.row} = 1', fill: '#C62828' }])}
+        onClick={() =>
+          onChange([...rules, { when: '=INLIST({cell.index}; "1, 2, 3")', fill: '#C62828' }])
+        }
       >
         {t('editor.cellRuleAdd')}
       </button>
+      {picking !== null && rules[picking] && (
+        <CellPicker
+          grid={l}
+          selected={pickedCells(rules[picking].when) ?? []}
+          onApply={(cells) => change(picking, { when: cellsCondition(cells) })}
+          onClose={() => setPicking(null)}
+        />
+      )}
       {fx !== null && rules[fx] && (
         <FormulaDialog
           title={t('editor.cellRuleFx', { n: fx + 1 })}

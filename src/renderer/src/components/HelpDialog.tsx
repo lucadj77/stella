@@ -58,6 +58,7 @@ const FUNCTIONS = [
   'CONCAT',
   'ISBLANK',
   'COUNTIN',
+  'INLIST',
   'MOD',
   'PICK'
 ] as const

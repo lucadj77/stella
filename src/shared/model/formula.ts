@@ -285,6 +285,29 @@ const FUNCTIONS: Record<string, Fn> = {
     const k = items.length
     return items[(((n - 1) % k) + k) % k]
   },
+  /**
+   * Vero se il valore è nell'elenco: INLIST({cell.index}; "3, 8, 11"). Un elenco scritto con le
+   * virgole vale come più voci, e una voce come 1-5 vale per tutti i numeri da 1 a 5. I testi si
+   * confrontano senza badare alle maiuscole: INLIST({tipo}; "drago, orco")
+   */
+  INLIST: (a) => {
+    if (a.length < 2) throw new FormulaError('INLIST needs a value and at least one item')
+    const v = a[0]()
+    const text = toText(v).trim().toLowerCase()
+    const n = typeof v === 'number' ? v : readNumber(text)
+    return a
+      .slice(1)
+      .flatMap((x) => toText(x()).split(','))
+      .map((x) => x.trim().toLowerCase())
+      .some((item) => {
+        if (item === text) return true
+        if (n === null) return false
+        const range = /^(-?\d+(?:\.\d+)?)\s*-\s*(-?\d+(?:\.\d+)?)$/.exec(item)
+        if (range) return n >= Number(range[1]) && n <= Number(range[2])
+        const m = readNumber(item)
+        return m !== null && m === n
+      })
+  },
   /** Quante volte compare un testo: COUNTIN({risorse}; "legno") */
   COUNTIN: (a) => {
     const text = toText(a[0]()).toLowerCase()

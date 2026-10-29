@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { bindCard, rowToCard } from '../bind'
+import { evaluateFormula } from '../formula'
+import { cellsCondition, pickedCells } from '../cellRules'
 import { normalizeTemplate } from '../normalize'
 import { snapPoints } from '../ttsSnap'
-import type { GridLayer, GroupLayer, Template } from '../template'
+import type { GridLayer, GroupLayer, ImageLayer, Template, TextLayer } from '../template'
 import type { BoundCard } from '../bind'
 
 const template = (rules: GridLayer['cellRules'], extra: Partial<GridLayer> = {}): Template =>
@@ -90,5 +92,66 @@ describe('regole delle caselle', () => {
       snap: { tags: '', rotated: false }
     } as Partial<GridLayer>)
     expect(snapPoints([grid(t).grid])).toHaveLength(4)
+  })
+
+  it('INLIST: elenchi, intervalli e testi', () => {
+    const is = (expr: string, fields: Record<string, string> = {}): string =>
+      evaluateFormula(expr, fields).value
+    expect(is('=INLIST(8; "3, 8, 11")')).toBe('true')
+    expect(is('=INLIST(9; "3, 8, 11")')).toBe('false')
+    expect(is('=INLIST(4; "1-5, 9")')).toBe('true')
+    expect(is('=INLIST(6; "1-5, 9")')).toBe('false')
+    expect(is('=INLIST(11; 3; 8; 11)')).toBe('true')
+    expect(is('=INLIST({tipo}; "drago, orco")', { tipo: 'Orco' })).toBe('true')
+    expect(is('=INLIST({tipo}; "drago, orco")', { tipo: 'elfo' })).toBe('false')
+  })
+
+  it('le regole danno valori ai livelli del contenuto', () => {
+    const t = normalizeTemplate({
+      name: 't',
+      front: [
+        {
+          type: 'group',
+          name: 'casella',
+          children: [
+            { type: 'text', name: 'scritta', text: '' },
+            { type: 'image', name: 'icona', src: '' }
+          ]
+        },
+        {
+          type: 'grid',
+          name: 'g',
+          rows: 3,
+          columns: 5,
+          content: 'casella',
+          cellRules: [
+            { when: '=INLIST({cell.index}; "3, 8, 11")', values: { icona: 'spada' } },
+            { when: '=INLIST({cell.index}; "5, 6, 13")', values: { scritta: 'xyz' } },
+            {
+              when: '=INLIST({cell.index}; "2, 4, 10")',
+              values: { scritta: 'Casella {cell.index} di {nome}', icona: 'scudo' }
+            },
+            { when: '={cell.index} = 1', values: { manca: 'x' } }
+          ]
+        }
+      ]
+    })
+    const r = bindCard(t, rowToCard(['nome'], ['Plancia']))
+    expect(r.problems.map((p) => p.key)).toEqual(['bind.cellRuleLayer'])
+    const g = r.template.front.find((l) => l.type === 'grid') as GridLayer
+    const cell = (i: number): { text: string; src: string } => {
+      const [text, image] = g.cells![i - 1].children as [TextLayer, ImageLayer]
+      return { text: text.text, src: image.src }
+    }
+    expect(cell(3)).toEqual({ text: '', src: 'spada' })
+    expect(cell(5)).toEqual({ text: 'xyz', src: '' })
+    expect(cell(10)).toEqual({ text: 'Casella 10 di Plancia', src: 'scudo' })
+    expect(cell(7)).toEqual({ text: '', src: '' })
+  })
+
+  it('le caselle scelte con il clic diventano una condizione e tornano indietro', () => {
+    expect(cellsCondition([10, 2, 4, 11, 12, 1])).toBe('=INLIST({cell.index}; "1, 2, 4, 10-12")')
+    expect(pickedCells('=INLIST({cell.index}; "1, 2, 4, 10-12")')).toEqual([1, 2, 4, 10, 11, 12])
+    expect(pickedCells('={cell.row} = 1')).toBeNull()
   })
 })

@@ -133,8 +133,26 @@ describe('frasi guidate', () => {
     expect(ids({ inCell: false, condition: false, onGrid: true })).not.toContain('everyN')
     expect(ids({ inCell: false, condition: true, onGrid: false })).toEqual([
       'compare',
+      'inListCond',
       'notEmptyCond'
     ])
+    expect(ids({ inCell: true, condition: true, onGrid: false })).toEqual([
+      'inCellsCond',
+      'compare',
+      'inListCond',
+      'notEmptyCond'
+    ])
+  })
+
+  it('riconosce INLIST come frase, per le caselle e per i campi', async () => {
+    const { guide } = await import('../formulaAssist')
+    const texts = (src: string, inCell = false): string[] =>
+      (guide(parseExpression(src).node!, { inCell }) ?? []).flatMap((p) =>
+        'text' in p ? [p.text] : []
+      )
+    expect(texts('IF(INLIST({cell.index}; "3, 8"); "a"; "")', true)).toContain('fx.s.inCells')
+    expect(texts('INLIST({cell.index}; "3, 8")', true)).toContain('fx.s.trueInCells')
+    expect(texts('IF(INLIST({tipo}; "drago, orco"); "a"; "b")')).toContain('fx.s.isOneOf')
   })
 })
 
