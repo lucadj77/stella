@@ -90,6 +90,13 @@ Un campo della carta con lo stesso nome di una variabile vince sulla variabile.
 "sets": [{ "name": "Eroi", "template": "eroe", "names": { "en": "Heroes" } }]
 ```
 
+`numberFormat` (facoltativo) dice come si scrivono i numeri sulle carte nella lingua principale: `plain` (1 234.5, il valore di base), `it` (1.234,5), `en` (1,234.5), `fr` (1 234,5). Con la virgola per i decimali (`it`, `fr`) nelle formule `2,5` è un numero. `numberFormats` (facoltativo) dà lo stile delle altre lingue, per codice; una lingua assente usa il suo stile abituale (`en` per l'inglese, `it` per l'italiano e il tedesco, `fr` per il francese). Il separatore delle migliaia compare solo dove il formato della cella del foglio lo prevede. Vedi `src/shared/model/numberFormat.ts`.
+
+```json
+"numberFormat": "it",
+"numberFormats": { "de": "fr" }
+```
+
 `order` (facoltativo) ricorda l'ordine scelto a mano trascinando le voci della barra laterale, con una chiave per elenco: `templates`, `styles`, `variables`. Senza la chiave l'elenco è in ordine alfabetico; i nomi che non compaiono vanno in fondo, in ordine alfabetico. L'ordine dei set è quello di `sets`. Sotto `groups` stanno i gruppi di stili e variabili nella barra laterale, per nome: `"groups": { "variables": { "oro": "Risorse" } }`; una voce assente non ha gruppo.
 
 ```json

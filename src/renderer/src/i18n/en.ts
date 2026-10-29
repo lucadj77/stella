@@ -2162,6 +2162,10 @@ export const en = {
   'languages.hint':
     'The first language is the main one: the columns without @ hold its texts. The translations of a column go in a column with the same name followed by @ and the language code, for example name@en. An empty translated cell uses the main language.',
   'languages.main': 'main language',
+  'languages.numbers': 'Numbers',
+  'languages.numbersExample': 'Numbers: {example}',
+  'languages.numbersHint':
+    'How numbers are written on the cards in this language: the decimal separator, and the thousands separator where the sheet cell format has one. Formulas are written with the decimal separator of the main language.',
   'languages.untranslated': '{n} texts to translate',
   'languages.untranslatedHint':
     'Fixed texts, variables and empty @language cells without a translation: the cards use the main language. stella check lists them.',

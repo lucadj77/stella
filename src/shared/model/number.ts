@@ -45,3 +45,32 @@ export function readNumber(text: string): number | null {
   if (!Number.isFinite(n)) return null
   return percent ? n / 100 : n
 }
+
+/** Separatori di un numero scritto sulla carta (vedi model/numberFormat.ts) */
+export interface NumberFormat {
+  decimal: '.' | ','
+  group: string
+}
+
+/** Un numero calcolato scritto nel formato, senza separatore delle migliaia: 2,5 */
+export function writeNumber(n: number, format?: NumberFormat): string {
+  const s = String(Math.round(n * 1e6) / 1e6)
+  return format?.decimal === ',' ? s.replace('.', ',') : s
+}
+
+// un solo numero come lo dà il foglio, con le migliaia separate da spazi unificatori; intorno
+// solo segno, valuta, percentuale e spazi
+const SHEET_NUMBER =
+  /^([-+\s\u00a0€$£¥₹%]*?)(\d{1,3}(?:\u00a0\d{3})+|\d+)(?:\.(\d+))?([\s\u00a0€$£¥₹%]*)$/
+
+/**
+ * Un valore che è un numero (2.5, 1 234.50 €, 50%) scritto nel formato; un altro testo resta
+ * com'è, così una data, un codice o una frase non cambiano.
+ */
+export function localizeNumber(text: string, format?: NumberFormat): string {
+  if (!format || (format.decimal === '.' && format.group === '\u00a0')) return text
+  const m = SHEET_NUMBER.exec(text)
+  if (!m) return text
+  const [, before, int, frac, after] = m
+  return `${before}${int.replace(/\u00a0/g, format.group)}${frac !== undefined ? format.decimal + frac : ''}${after}`
+}

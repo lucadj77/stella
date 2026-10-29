@@ -20,7 +20,7 @@ import { templateColumns } from '../../../shared/model/sheet'
 import type { Template } from '../../../shared/model/template'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
-import { AssetsContext } from '../render/assets'
+import { AssetsContext, useDecimalComma } from '../render/assets'
 import MarkupText from '../render/MarkupText'
 import Segmented from './Segmented'
 import FormulaDialog from './FormulaDialog'
@@ -122,10 +122,11 @@ export default function GenerateDialog({
     update(i, { text: names.join('\n') })
   }
 
+  const decimalComma = useDecimalComma()
   const result = useMemo(
-    () => generateCards({ columns: list, filter, copies, random }),
+    () => generateCards({ columns: list, filter, copies, random, decimalComma }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [list, filter, copies, isRandom, count, seed, unique]
+    [list, filter, copies, isRandom, count, seed, unique, decimalComma]
   )
   const active = list.filter((c) => c.column.trim() && c.values.length)
   /** Una colonna dell'anteprima mostra le icone se uno degli insiemi che la riempiono le usa */

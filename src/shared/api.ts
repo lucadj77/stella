@@ -13,6 +13,7 @@ import type {
 import type { Template } from './model/template'
 import type { Variables } from './model/variables'
 import type { Localization } from './model/language'
+import type { NumberSettings } from './model/numberFormat'
 import type { SheetInspection } from './dataCheck'
 import type { Message } from './messages'
 
@@ -111,6 +112,8 @@ export interface DocRenderInput {
   variables: Variables
   /** Lingua delle carte del documento, se non è la principale */
   localization?: Localization
+  /** Lingue e formati dei numeri del progetto */
+  numbers?: NumberSettings
 }
 
 /** File di un documento esportato, con i dati binari in base64 per passare tra i processi */

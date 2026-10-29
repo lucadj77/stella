@@ -5,7 +5,7 @@
 // - Espressione, se inizia con "=" come in Excel: =IF({forza}>3; "Forte"; "Debole").
 //   Vedi docs/specifica.md, "Formule".
 
-import { readNumber } from './number'
+import { localizeNumber, readNumber, writeNumber, type NumberFormat } from './number'
 
 export interface FormulaResult {
   value: string
@@ -15,8 +15,22 @@ export interface FormulaResult {
   error?: string
 }
 
-export function evaluateFormula(expr: string, fields: Record<string, string>): FormulaResult {
-  if (expr.trimStart().startsWith('=')) return evaluateExpression(expr.trimStart().slice(1), fields)
+/**
+ * Opzioni dei numeri (vedi model/numberFormat.ts): `shown` scrive il risultato come sulla carta,
+ * 1.234,5; con `decimalComma` nelle espressioni 2,5 è un numero
+ */
+export interface FormulaNumbers {
+  shown?: NumberFormat
+  decimalComma?: boolean
+}
+
+export function evaluateFormula(
+  expr: string,
+  fields: Record<string, string>,
+  numbers?: FormulaNumbers
+): FormulaResult {
+  if (expr.trimStart().startsWith('='))
+    return evaluateExpression(expr.trimStart().slice(1), fields, numbers)
   const missing: string[] = []
   const text = expr.replace(/(?<!\\)\{([^{}*]+)\}/g, (_, raw: string) => {
     const name = raw.trim()
@@ -28,12 +42,27 @@ export function evaluateFormula(expr: string, fields: Record<string, string>): F
   // campo non deve diventare una sottrazione
   const hasOperator = /[-+*/]/.test(expr.replace(/\{[^{}]*\}/g, ''))
   const n = hasOperator ? arithmetic(text) : null
-  return { value: n === null ? text : formatNumber(n), missing }
+  if (n !== null) return { value: writeNumber(n, numbers?.shown), missing }
+  // un testo: i campi che sono numeri si scrivono come sulla carta
+  const shown = numbers?.shown
+  return {
+    value: shown
+      ? expr.replace(/(?<!\\)\{([^{}*]+)\}/g, (_, raw: string) =>
+          Object.prototype.hasOwnProperty.call(fields, raw.trim())
+            ? localizeNumber(fields[raw.trim()], shown)
+            : ''
+        )
+      : text,
+    missing
+  }
 }
 
 function formatNumber(n: number): string {
-  return String(Math.round(n * 1e6) / 1e6)
+  return writeNumber(n, shownFormat)
 }
+
+/** Formato dei numeri del risultato mentre si calcola un'espressione (evaluateNodeText) */
+let shownFormat: NumberFormat | undefined
 
 /**
  * Calcola un'espressione con + - * / e parentesi; null se non è un'espressione numerica. Un
@@ -90,7 +119,7 @@ type Token =
 
 class FormulaError extends Error {}
 
-function tokenize(src: string): Token[] {
+function tokenize(src: string, decimalComma = false): Token[] {
   const out: Token[] = []
   let i = 0
   while (i < src.length) {
@@ -121,6 +150,13 @@ function tokenize(src: string): Token[] {
       }
       out.push({ t: 'str', v })
     } else if (/\d/.test(c) || (c === '.' && /\d/.test(src[i + 1] ?? ''))) {
+      const comma = decimalComma ? /^\d+,\d+/.exec(src.slice(i)) : null
+      if (comma) {
+        // con la virgola per i decimali, come in Excel in italiano: gli argomenti si separano con ;
+        out.push({ t: 'num', v: Number(comma[0].replace(',', '.')) })
+        i += comma[0].length
+        continue
+      }
       const m = /^\d*\.?\d+|^\d+/.exec(src.slice(i))!
       // 2,5 sarebbe letto come due argomenti, 2 e 5: meglio un errore che un risultato sbagliato
       if (/^,\d/.test(src.slice(i + m[0].length)))
@@ -160,7 +196,8 @@ function toNumber(v: Value): number {
 function toText(v: Value): string {
   if (typeof v === 'number') return formatNumber(v)
   if (typeof v === 'boolean') return v ? 'true' : 'false'
-  return v
+  // un campo come 1 234.5 € resta testo, ma sulla carta si scrive nel suo formato
+  return localizeNumber(v, shownFormat)
 }
 
 function toBool(v: Value): boolean {
@@ -276,10 +313,10 @@ export interface ParsedExpression {
 }
 
 /** Legge un'espressione senza il = iniziale */
-export function parseExpression(src: string): ParsedExpression {
+export function parseExpression(src: string, decimalComma = false): ParsedExpression {
   const fields: string[] = []
   try {
-    const tokens = tokenize(src)
+    const tokens = tokenize(src, decimalComma)
     let i = 0
     const peek = (): Token | undefined => tokens[i]
     const isOp = (v: string): boolean => peek()?.t === 'op' && peek()!.v === v
@@ -403,13 +440,17 @@ export function evaluateNode(node: FormulaNode, fields: Record<string, string>):
 /** Il valore di un nodo come lo darebbe la formula, o l'errore */
 export function evaluateNodeText(
   node: FormulaNode,
-  fields: Record<string, string>
+  fields: Record<string, string>,
+  shown?: NumberFormat
 ): { value: string; error?: string } {
+  shownFormat = shown
   try {
     return { value: toText(evaluateNode(node, fields)) }
   } catch (e) {
     if (e instanceof FormulaError) return { value: '', error: e.message }
     throw e
+  } finally {
+    shownFormat = undefined
   }
 }
 
@@ -434,14 +475,14 @@ function precedence(n: FormulaNode): number {
 }
 
 /** Scrive un nodo come testo, senza il = iniziale; le parentesi solo dove servono */
-export function printExpression(node: FormulaNode): string {
+export function printExpression(node: FormulaNode, decimalComma = false): string {
   const wrap = (n: FormulaNode, min: number): string => {
-    const s = printExpression(n)
+    const s = printExpression(n, decimalComma)
     return precedence(n) < min ? `(${s})` : s
   }
   switch (node.k) {
     case 'num':
-      return String(node.v)
+      return decimalComma ? String(node.v).replace('.', ',') : String(node.v)
     case 'str':
       return `"${node.v.replace(/"/g, '""')}"`
     case 'bool':
@@ -453,7 +494,7 @@ export function printExpression(node: FormulaNode): string {
     case 'neg':
       return `-${wrap(node.v, 5)}`
     case 'call':
-      return `${node.fn}(${node.args.map(printExpression).join('; ')})`
+      return `${node.fn}(${node.args.map((a) => printExpression(a, decimalComma)).join('; ')})`
     case 'bin': {
       const p = PRECEDENCE[node.op]
       // a sinistra basta la stessa precedenza (a - b - c); a destra serve più alta: a - (b - c)
@@ -464,10 +505,14 @@ export function printExpression(node: FormulaNode): string {
   }
 }
 
-function evaluateExpression(src: string, fields: Record<string, string>): FormulaResult {
-  const parsed = parseExpression(src)
+function evaluateExpression(
+  src: string,
+  fields: Record<string, string>,
+  numbers?: FormulaNumbers
+): FormulaResult {
+  const parsed = parseExpression(src, numbers?.decimalComma)
   const missing = parsed.fields.filter((f) => !Object.prototype.hasOwnProperty.call(fields, f))
   if (!parsed.node) return { value: '', missing, error: parsed.error }
-  const r = evaluateNodeText(parsed.node, fields)
+  const r = evaluateNodeText(parsed.node, fields, numbers?.shown)
   return r.error ? { value: '', missing, error: r.error } : { value: r.value, missing }
 }

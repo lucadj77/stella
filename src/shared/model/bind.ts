@@ -5,7 +5,9 @@ import { isGradient, mapGradientColors } from './gradient'
 import { resolveAsset } from './assets'
 import { parseCrop } from './crop'
 import { isGenericFont, markupFonts } from './fonts'
-import { evaluateFormula } from './formula'
+import { evaluateFormula, type FormulaNumbers } from './formula'
+import { localizeNumber } from './number'
+import type { NumberFormatting } from './numberFormat'
 import { markupProblems, markupRefs } from './markup'
 import { walkLayers } from './normalize'
 import { imageBackdrop } from './shapes'
@@ -82,6 +84,17 @@ export interface BindContext {
   system?: SystemInfo
   /** Lingua in cui disegnare la carta, se non è la principale: vedi model/language.ts */
   localization?: Localization
+  /** Come si leggono i numeri nelle formule e si scrivono sulla carta: vedi model/numberFormat.ts */
+  numbers?: NumberFormatting
+}
+
+/** Le opzioni dei numeri per leggere le formule, e per scrivere il risultato se `shown` */
+function formulaNumbers(
+  numbers: NumberFormatting | undefined,
+  shown = false
+): FormulaNumbers | undefined {
+  if (!numbers) return undefined
+  return shown ? numbers : { decimalComma: numbers.decimalComma }
 }
 
 /** Progetto e set con i nomi della lingua scelta */
@@ -153,10 +166,11 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
       else if (name in card.fields) problems.push(msg('bind.variableIsColumn', { name }))
     }
   }
-  const front = fieldSets(template, card, ctx.variables, system, 'front', language)
+  const nums = ctx.numbers
+  const front = fieldSets(template, card, ctx.variables, system, 'front', language, nums)
   // {card.side} vale back sul retro: solo allora servono campi a parte
   const back = usesSide(template)
-    ? fieldSets(template, card, ctx.variables, system, 'back', language)
+    ? fieldSets(template, card, ctx.variables, system, 'back', language, nums)
     : front
   const pal = palette(ctx.variables)
   // i testi tradotti valgono solo per ciò che si legge: nomi di immagini e font, colori,
@@ -170,7 +184,7 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
         const column = l.source.column ?? l.name
         if (shown[column] !== main[column]) fields[column] = shown[column]
       }
-    const images = imageFields(template, fields)
+    const images = imageFields(template, fields, nums)
     // i gruppi che una griglia ripete nelle caselle si disegnano solo lì
     const raw = walkLayers(layers)
     const contents = new Set(
@@ -189,6 +203,12 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
       const say = (m: Message): void => {
         if (report) problems.push(m)
       }
+      // nei testi i campi che sono numeri si scrivono nel formato della lingua: 2,5
+      const written = nums
+        ? Object.fromEntries(
+            Object.entries(shown).map(([k, v]) => [k, localizeNumber(v, nums.shown)])
+          )
+        : shown
       const apply = (layers: Layer[]): Layer[] =>
         layers.map((layer) => {
           if (!inCell && layer.type === 'group' && contents.has(layer.name))
@@ -206,7 +226,7 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
           }
           if (src.kind === 'formula') {
             const read = layer.type === 'text' && !isExpression(src.expr) ? shown : fields
-            const r = evaluateFormula(src.expr, read)
+            const r = evaluateFormula(src.expr, read, formulaNumbers(nums, layer.type === 'text'))
             for (const f of r.missing)
               say(msg('bind.formulaField', { layer: layer.name, field: f }))
             if (r.error) say(msg('bind.formulaError', { layer: layer.name, error: r.error }))
@@ -216,6 +236,9 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
               props.set('', r.value)
             else props.delete('')
           }
+          // il numero di una colonna, sulla carta, nel formato della lingua
+          if (nums && layer.type === 'text' && src.kind === 'column' && props.has(''))
+            props.set('', localizeNumber(props.get('')!, nums.shown))
           if (props.size) {
             const patch: Record<string, unknown> = {}
             for (const [prop, raw] of props) {
@@ -239,7 +262,7 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
             // il font può essere una variabile o un campo: {titoli}
             out = {
               ...out,
-              text: substituteFields(out.text, shown, images),
+              text: substituteFields(out.text, written, images),
               font: substituteFields(out.font, fields).trim()
             }
             if (out.visible) {
@@ -397,9 +420,10 @@ export function cardFields(
   card: CardData,
   variables?: Variables,
   system?: SystemInfo,
-  side: Side = 'front'
+  side: Side = 'front',
+  numbers?: NumberFormatting
 ): Record<string, string> {
-  return fieldSets(template, card, variables, system, side).main
+  return fieldSets(template, card, variables, system, side, undefined, numbers).main
 }
 
 /** I campi di una carta nella lingua principale e in quella scelta */
@@ -420,8 +444,10 @@ export function fieldSets(
   variables?: Variables,
   system?: SystemInfo,
   side: Side = 'front',
-  language?: string
+  language?: string,
+  numbers?: NumberFormatting
 ): FieldSets {
+  const parse = formulaNumbers(numbers)
   const all = walkLayers([...template.front, ...template.back])
   // le variabili di testo e valore valgono come campi, ma un campo con lo stesso nome vince;
   // sotto ancora le variabili di sistema
@@ -449,7 +475,9 @@ export function fieldSets(
     all.some(
       (l) => l.type === 'value' && l.source.kind === 'fixed' && translation(l.values, language)
     )
-  const shown = translated ? { ...fields } : fields
+  // con un formato dei numeri i valori calcolati si vedono scritti in quel formato
+  const separate = translated || numbers !== undefined
+  const shown = separate ? { ...fields } : fields
   for (const k of varChanges) shown[k] = localVars[k]
   for (const [k, v] of Object.entries(local)) shown[k] = v.trim() === '' ? '' : v
   for (const l of all) {
@@ -459,17 +487,19 @@ export function fieldSets(
       fields[l.name] = l.value
       shown[l.name] = translation(l.values, language) ?? l.value
     } else if (src.kind === 'formula') {
-      fields[l.name] = evaluateFormula(src.expr, fields).value
-      if (translated)
+      fields[l.name] = evaluateFormula(src.expr, fields, parse).value
+      if (separate)
         shown[l.name] = isExpression(src.expr)
-          ? fields[l.name]
-          : evaluateFormula(src.expr, shown).value
+          ? numbers
+            ? evaluateFormula(src.expr, fields, numbers).value
+            : fields[l.name]
+          : evaluateFormula(src.expr, shown, numbers).value
     } else if (src.column) {
       const cell = card.fields[src.column]
       fields[l.name] = cell ? (cell.trim() ? cell : '') : l.value
       if (translated && src.column in local)
         shown[l.name] = local[src.column].trim() ? local[src.column] : ''
-      else if (translated) shown[l.name] = fields[l.name]
+      else if (separate) shown[l.name] = fields[l.name]
     }
   }
   return { main: fields, shown }
@@ -482,9 +512,11 @@ export function fieldSets(
 export function computedValues(
   template: Template,
   card: CardData,
-  variables?: Variables
+  variables?: Variables,
+  numbers?: NumberFormatting
 ): Record<string, string> {
-  const fields = cardFields(template, card, variables)
+  const fields = cardFields(template, card, variables, undefined, 'front', numbers)
+  const parse = formulaNumbers(numbers)
   const out: Record<string, string> = {}
   for (const l of walkLayers([...template.front, ...template.back])) {
     if (l.source.kind === 'column' || l.type === 'group') continue
@@ -492,7 +524,7 @@ export function computedValues(
       l.type === 'value'
         ? (fields[l.name] ?? '')
         : l.source.kind === 'formula'
-          ? evaluateFormula(l.source.expr, fields).value
+          ? evaluateFormula(l.source.expr, fields, parse).value
           : (defaultValue(l) ?? '')
   }
   return out
@@ -512,7 +544,8 @@ function unbrace(value: string): string {
  */
 export function imageFields(
   template: Template,
-  fields: Record<string, string>
+  fields: Record<string, string>,
+  numbers?: NumberFormatting
 ): Record<string, string> {
   const out: Record<string, string> = {}
   for (const l of walkLayers([...template.front, ...template.back])) {
@@ -521,7 +554,7 @@ export function imageFields(
     const column = src.kind === 'column' && src.column ? src.column : l.name
     const raw =
       src.kind === 'formula'
-        ? evaluateFormula(src.expr, fields).value
+        ? evaluateFormula(src.expr, fields, formulaNumbers(numbers)).value
         : src.kind === 'fixed'
           ? l.src
           : (fields[column] ?? l.src)

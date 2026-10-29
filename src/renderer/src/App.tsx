@@ -138,6 +138,7 @@ import CardSvg from './render/CardSvg'
 import {
   AssetsContext,
   LocalizationContext,
+  NumberSettingsContext,
   ProjectLanguagesContext,
   ProjectColorsContext,
   SaveStyleContext,
@@ -494,6 +495,15 @@ function App(): React.JSX.Element {
     () => (project ? localizationOf(project.file, project.sets, cardLanguage) : undefined),
     [project, cardLanguage]
   )
+  const projectFile = project?.file
+  const numberSettings = useMemo(
+    () => ({
+      languages: projectFile?.languages,
+      numberFormat: projectFile?.numberFormat,
+      numberFormats: projectFile?.numberFormats
+    }),
+    [projectFile?.languages, projectFile?.numberFormat, projectFile?.numberFormats]
+  )
 
   /** Lingue del progetto, nomi tradotti e colonne da tradurre: ⌘Z annulla */
   const saveLanguages = (c: LanguagesChange): void => {
@@ -509,6 +519,11 @@ function App(): React.JSX.Element {
     }
     const file: ProjectFile = withNames({ ...project.file, languages: c.languages }, c.names)
     if (!c.languages.length) delete file.languages
+    // numeri come prima e stili abituali delle lingue: non restano nel file
+    if (c.numberFormat === 'plain') delete file.numberFormat
+    else file.numberFormat = c.numberFormat
+    if (Object.keys(c.numberFormats).length) file.numberFormats = c.numberFormats
+    else delete file.numberFormats
     file.sets = file.sets.map((s, i) => withNames(s, c.setNames[i]))
     // le colonne vanno nel foglio: due set con lo stesso foglio le ricevono una volta sola
     const bySheet = new Map<string, string[]>()
@@ -2515,574 +2530,590 @@ function App(): React.JSX.Element {
         <VariablesContext.Provider value={variables}>
           <ProjectColorsContext.Provider value={projectColors}>
             <LocalizationContext.Provider value={localization}>
-              <ProjectLanguagesContext.Provider value={languages}>
-                <SaveStyleContext.Provider value={project ? saveStyle : null}>
-                  <div className="app">
-                    <Tooltip />
-                    {contextMenu.node}
-                    {!window.api.isWeb && <UpdateNotice dirty={anyDirty} />}
-                    {help && (
-                      <HelpDialog
-                        onClose={() => setHelp(false)}
-                        start={
-                          !project || !project.sets.some((s) => (s.data?.rows.length ?? 0) > 0)
-                        }
-                      />
-                    )}
-                    {project && !sidebarCompact && (
-                      <SidebarPreview
-                        hover={sidebarPreview.hover}
-                        project={project}
-                        styles={allStyles}
-                        side={sidebarSide}
-                      />
-                    )}
-                    {project && (
-                      <header className="toolbar">
-                        <span className="project-name" title={project.folder}>
-                          {project.file.name}
-                        </span>
-                        {/* annulla e ripeti valgono per ciò che è aperto: l'editor o i dati */}
-                        <span className="tool-group">
-                          <button
-                            className="tool"
-                            title={t('editor.undo')}
-                            disabled={editing ? !editorHistory.undo : !history.past.length}
-                            onClick={() => undoAny(false)}
-                          >
-                            ↶
-                          </button>
-                          <button
-                            className="tool"
-                            title={t('editor.redo')}
-                            disabled={editing ? !editorHistory.redo : !history.future.length}
-                            onClick={() => undoAny(true)}
-                          >
-                            ↷
-                          </button>
-                        </span>
-                        {languages.length > 0 && (
-                          <select
-                            className="card-language"
-                            value={localization?.language ?? languages[0]}
-                            title={t('tip.cardLanguage')}
-                            aria-label={t('app.cardLanguage')}
-                            onChange={(e) =>
-                              setCardLanguage(
-                                e.target.value === languages[0] ? null : e.target.value
-                              )
-                            }
-                          >
-                            {languages.map((l) => (
-                              <option key={l} value={l}>
-                                {languageName(l, lang)}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                        {loading && <span className="muted">{t('app.loading')}</span>}
-                        <span className="spacer" />
-                        {/* dal più usato al meno usato; ciò che serve di rado sta nel menu Progetto */}
-                        <button
-                          className="primary"
-                          disabled={!anyDirty || saving}
-                          title={t('app.saveHint')}
-                          onClick={saveAll}
-                        >
-                          {anyDirty ? t('app.save') : t('app.saved')}
-                        </button>
-                        <span className="split-button">
-                          <button onClick={() => openExport()} title={t('tip.export')}>
-                            {t('app.export')}
-                          </button>
-                          <Menu
-                            label="▾"
-                            title={t('app.exportMenu')}
-                            alignRight
-                            items={exportMenu}
-                          />
-                        </span>
-                        <Menu
-                          label={`${t('app.projectMenu')} ▾`}
-                          title={t('tip.projectMenu')}
-                          alignRight
-                          items={projectMenu}
+              <NumberSettingsContext.Provider value={numberSettings}>
+                <ProjectLanguagesContext.Provider value={languages}>
+                  <SaveStyleContext.Provider value={project ? saveStyle : null}>
+                    <div className="app">
+                      <Tooltip />
+                      {contextMenu.node}
+                      {!window.api.isWeb && <UpdateNotice dirty={anyDirty} />}
+                      {help && (
+                        <HelpDialog
+                          onClose={() => setHelp(false)}
+                          start={
+                            !project || !project.sets.some((s) => (s.data?.rows.length ?? 0) > 0)
+                          }
                         />
-                        <button onClick={() => setHelp(true)} title={t('tip.help')}>
-                          {t('app.help')}
-                        </button>
-                        {settings}
-                      </header>
-                    )}
-
-                    {project && error && <div className="banner error">{t(error)}</div>}
-                    {project && refsNotice && (
-                      <div className="banner info refs-notice">
-                        {refsNotice}
-                        <button onClick={() => setRefsNotice(null)}>{t('dialog.close')}</button>
-                      </div>
-                    )}
-                    {project && dataChanged && !canReloadData && (
-                      <div className="banner warning data-changed">
-                        {t('data.changedOutside')}
-                        <button onClick={async () => (await discardOk()) && load(project.folder)}>
-                          {t('app.reload')}
-                        </button>
-                        <button onClick={() => setDataChanged(false)}>{t('data.ignore')}</button>
-                      </div>
-                    )}
-                    {project?.warnings.map((w, i) => (
-                      <div key={i} className="banner warning">
-                        {t(w)}
-                      </div>
-                    ))}
-
-                    {project && (
-                      <FirstSteps
-                        key={project.folder}
-                        project={project}
-                        exported={exportedIn === project.folder}
-                        onNewTemplate={() => setCreating(true)}
-                        onNewSet={() => setCreatingSet(true)}
-                        onOpenSet={() => setSelected({ kind: 'set', index: 0 })}
-                        onExport={openExport}
-                      />
-                    )}
-
-                    {project ? (
-                      <main className="workspace">
-                        {sidebarSide === 'left' && (
-                          <>
-                            {sidebar}
-                            {!sidebarCompact && (
-                              <Resizer
-                                width={sidebarWidth}
-                                onChange={setSidebarWidth}
-                                edge="left"
-                                max={400}
-                              />
-                            )}
-                          </>
-                        )}
-                        {openDocument && project.documents?.some((d) => d.name === openDocument) ? (
-                          <DocumentView
-                            key={openDocument}
-                            name={openDocument}
-                            text={
-                              project.documents.find((d) => d.name === openDocument)?.text ?? ''
-                            }
-                            others={project.documents
-                              .map((d) => d.name)
-                              .filter((n) => n !== openDocument)}
-                            project={project.file.name}
-                            file={project.file}
-                            sets={project.sets}
-                            templates={project.templates}
-                            fonts={project.fonts}
-                            onChange={(text) => documents.change(openDocument, text)}
-                            onRename={(to) =>
-                              void documents
-                                .rename(openDocument, to)
-                                .then((ok) => ok && setSelected({ kind: 'document', name: to }))
-                            }
-                            onDelete={() => void deleteDocument(openDocument)}
-                            onDuplicate={() => void duplicateDocument(openDocument)}
+                      )}
+                      {project && !sidebarCompact && (
+                        <SidebarPreview
+                          hover={sidebarPreview.hover}
+                          project={project}
+                          styles={allStyles}
+                          side={sidebarSide}
+                        />
+                      )}
+                      {project && (
+                        <header className="toolbar">
+                          <span className="project-name" title={project.folder}>
+                            {project.file.name}
+                          </span>
+                          {/* annulla e ripeti valgono per ciò che è aperto: l'editor o i dati */}
+                          <span className="tool-group">
+                            <button
+                              className="tool"
+                              title={t('editor.undo')}
+                              disabled={editing ? !editorHistory.undo : !history.past.length}
+                              onClick={() => undoAny(false)}
+                            >
+                              ↶
+                            </button>
+                            <button
+                              className="tool"
+                              title={t('editor.redo')}
+                              disabled={editing ? !editorHistory.redo : !history.future.length}
+                              onClick={() => undoAny(true)}
+                            >
+                              ↷
+                            </button>
+                          </span>
+                          {languages.length > 0 && (
+                            <select
+                              className="card-language"
+                              value={localization?.language ?? languages[0]}
+                              title={t('tip.cardLanguage')}
+                              aria-label={t('app.cardLanguage')}
+                              onChange={(e) =>
+                                setCardLanguage(
+                                  e.target.value === languages[0] ? null : e.target.value
+                                )
+                              }
+                            >
+                              {languages.map((l) => (
+                                <option key={l} value={l}>
+                                  {languageName(l, lang)}
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                          {loading && <span className="muted">{t('app.loading')}</span>}
+                          <span className="spacer" />
+                          {/* dal più usato al meno usato; ciò che serve di rado sta nel menu Progetto */}
+                          <button
+                            className="primary"
+                            disabled={!anyDirty || saving}
+                            title={t('app.saveHint')}
+                            onClick={saveAll}
+                          >
+                            {anyDirty ? t('app.save') : t('app.saved')}
+                          </button>
+                          <span className="split-button">
+                            <button onClick={() => openExport()} title={t('tip.export')}>
+                              {t('app.export')}
+                            </button>
+                            <Menu
+                              label="▾"
+                              title={t('app.exportMenu')}
+                              alignRight
+                              items={exportMenu}
+                            />
+                          </span>
+                          <Menu
+                            label={`${t('app.projectMenu')} ▾`}
+                            title={t('tip.projectMenu')}
+                            alignRight
+                            items={projectMenu}
                           />
-                        ) : editing ? (
-                          <TemplateEditor
-                            key={`${editing.name}:${editorRev}`}
-                            template={editing}
-                            sets={editorSets}
-                            initialPreview={editorPreview}
-                            projectName={project.file.name}
-                            onChange={updateTemplate}
-                            base={baseOf(project.templates, editing)}
-                            onOpen={(name) => setSelected({ kind: 'template', name })}
-                            onDetach={() => detachTemplate(editing.name)}
-                            menu={templateMenu(editing.name)}
-                            onHistory={setEditorHistory}
-                          />
-                        ) : current ? (
-                          <SetView
-                            key={project.sets.indexOf(current)}
-                            set={current}
-                            projectName={project.file.name}
-                            readOnly={readOnlyData}
-                            templates={project.templates}
-                            onChange={(sheet, key) =>
-                              updateSheet(selected.kind === 'set' ? selected.index : 0, sheet, key)
-                            }
-                            onEditTemplate={(name, row) => {
-                              const sel: Selected = { kind: 'template', name }
-                              setEditPreview(
-                                row === undefined || row < 0
-                                  ? null
-                                  : { for: sel, set: current.name, row }
-                              )
-                              setSelected(sel)
-                            }}
-                            menu={setMenu(selected.kind === 'set' ? selected.index : 0)}
+                          <button onClick={() => setHelp(true)} title={t('tip.help')}>
+                            {t('app.help')}
+                          </button>
+                          {settings}
+                        </header>
+                      )}
 
-                            onChangeTemplate={(name) =>
-                              setTemplate(selected.kind === 'set' ? selected.index : 0, name)
-                            }
-                            onChangeColumns={(view) =>
-                              setColumnsView(selected.kind === 'set' ? selected.index : 0, view)
-                            }
-                            compare={
-                              compareBase && changed
-                                ? { label: compareBase.label, rows: changed[current.name] ?? [] }
-                                : null
-                            }
-                            onCompare={() => setComparing(true)}
-                            onEndCompare={() => setCompareBase(null)}
-                          />
-                        ) : (
-                          <section className="content">
-                            {!project.sets.length && (
-                              <div className="empty">
-                                <div>
-                                  {project.templates.length ? (
-                                    <>
-                                      <p>{t('app.noSets')}</p>
-                                      <button
-                                        className="primary"
-                                        onClick={() => setCreatingSet(true)}
-                                      >
-                                        {t('sidebar.newSet')}
-                                      </button>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <p>{t('app.emptyProject')}</p>
-                                      <button className="primary" onClick={() => setCreating(true)}>
-                                        {t('sidebar.newTemplate')}
-                                      </button>
-                                    </>
-                                  )}
+                      {project && error && <div className="banner error">{t(error)}</div>}
+                      {project && refsNotice && (
+                        <div className="banner info refs-notice">
+                          {refsNotice}
+                          <button onClick={() => setRefsNotice(null)}>{t('dialog.close')}</button>
+                        </div>
+                      )}
+                      {project && dataChanged && !canReloadData && (
+                        <div className="banner warning data-changed">
+                          {t('data.changedOutside')}
+                          <button onClick={async () => (await discardOk()) && load(project.folder)}>
+                            {t('app.reload')}
+                          </button>
+                          <button onClick={() => setDataChanged(false)}>{t('data.ignore')}</button>
+                        </div>
+                      )}
+                      {project?.warnings.map((w, i) => (
+                        <div key={i} className="banner warning">
+                          {t(w)}
+                        </div>
+                      ))}
+
+                      {project && (
+                        <FirstSteps
+                          key={project.folder}
+                          project={project}
+                          exported={exportedIn === project.folder}
+                          onNewTemplate={() => setCreating(true)}
+                          onNewSet={() => setCreatingSet(true)}
+                          onOpenSet={() => setSelected({ kind: 'set', index: 0 })}
+                          onExport={openExport}
+                        />
+                      )}
+
+                      {project ? (
+                        <main className="workspace">
+                          {sidebarSide === 'left' && (
+                            <>
+                              {sidebar}
+                              {!sidebarCompact && (
+                                <Resizer
+                                  width={sidebarWidth}
+                                  onChange={setSidebarWidth}
+                                  edge="left"
+                                  max={400}
+                                />
+                              )}
+                            </>
+                          )}
+                          {openDocument &&
+                          project.documents?.some((d) => d.name === openDocument) ? (
+                            <DocumentView
+                              key={openDocument}
+                              name={openDocument}
+                              text={
+                                project.documents.find((d) => d.name === openDocument)?.text ?? ''
+                              }
+                              others={project.documents
+                                .map((d) => d.name)
+                                .filter((n) => n !== openDocument)}
+                              project={project.file.name}
+                              file={project.file}
+                              sets={project.sets}
+                              templates={project.templates}
+                              fonts={project.fonts}
+                              onChange={(text) => documents.change(openDocument, text)}
+                              onRename={(to) =>
+                                void documents
+                                  .rename(openDocument, to)
+                                  .then((ok) => ok && setSelected({ kind: 'document', name: to }))
+                              }
+                              onDelete={() => void deleteDocument(openDocument)}
+                              onDuplicate={() => void duplicateDocument(openDocument)}
+                            />
+                          ) : editing ? (
+                            <TemplateEditor
+                              key={`${editing.name}:${editorRev}`}
+                              template={editing}
+                              sets={editorSets}
+                              initialPreview={editorPreview}
+                              projectName={project.file.name}
+                              onChange={updateTemplate}
+                              base={baseOf(project.templates, editing)}
+                              onOpen={(name) => setSelected({ kind: 'template', name })}
+                              onDetach={() => detachTemplate(editing.name)}
+                              menu={templateMenu(editing.name)}
+                              onHistory={setEditorHistory}
+                            />
+                          ) : current ? (
+                            <SetView
+                              key={project.sets.indexOf(current)}
+                              set={current}
+                              projectName={project.file.name}
+                              readOnly={readOnlyData}
+                              templates={project.templates}
+                              onChange={(sheet, key) =>
+                                updateSheet(
+                                  selected.kind === 'set' ? selected.index : 0,
+                                  sheet,
+                                  key
+                                )
+                              }
+                              onEditTemplate={(name, row) => {
+                                const sel: Selected = { kind: 'template', name }
+                                setEditPreview(
+                                  row === undefined || row < 0
+                                    ? null
+                                    : { for: sel, set: current.name, row }
+                                )
+                                setSelected(sel)
+                              }}
+                              menu={setMenu(selected.kind === 'set' ? selected.index : 0)}
+
+                              onChangeTemplate={(name) =>
+                                setTemplate(selected.kind === 'set' ? selected.index : 0, name)
+                              }
+                              onChangeColumns={(view) =>
+                                setColumnsView(selected.kind === 'set' ? selected.index : 0, view)
+                              }
+                              compare={
+                                compareBase && changed
+                                  ? { label: compareBase.label, rows: changed[current.name] ?? [] }
+                                  : null
+                              }
+                              onCompare={() => setComparing(true)}
+                              onEndCompare={() => setCompareBase(null)}
+                            />
+                          ) : (
+                            <section className="content">
+                              {!project.sets.length && (
+                                <div className="empty">
+                                  <div>
+                                    {project.templates.length ? (
+                                      <>
+                                        <p>{t('app.noSets')}</p>
+                                        <button
+                                          className="primary"
+                                          onClick={() => setCreatingSet(true)}
+                                        >
+                                          {t('sidebar.newSet')}
+                                        </button>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <p>{t('app.emptyProject')}</p>
+                                        <button
+                                          className="primary"
+                                          onClick={() => setCreating(true)}
+                                        >
+                                          {t('sidebar.newTemplate')}
+                                        </button>
+                                      </>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            )}
-                          </section>
-                        )}
-                        {openNote && project.notes?.some((n) => n.name === openNote) && (
-                          <NotePanel
-                            key={openNote}
-                            name={openNote}
-                            text={project.notes.find((n) => n.name === openNote)?.text ?? ''}
-                            others={project.notes.map((n) => n.name).filter((n) => n !== openNote)}
-                            onChange={(text) => changeNote(openNote, text)}
-                            onRename={(to) => void renameNote(openNote, to)}
-                            onDelete={() => void deleteNote(openNote)}
-                            onClose={closeNote}
-                          />
-                        )}
-                        {sidebarSide === 'right' && (
-                          <>
-                            {!sidebarCompact && (
-                              <Resizer
-                                width={sidebarWidth}
-                                onChange={setSidebarWidth}
-                                edge="right"
-                                max={400}
-                              />
-                            )}
-                            {sidebar}
-                          </>
-                        )}
-                      </main>
-                    ) : (
-                      <StartScreen
-                        onHelp={() => setHelp(true)}
-                        error={error}
-                        loading={loading}
-                        settings={settings}
-                        onOpen={load}
-                        onChoose={open}
-                        onImport={() => setImporting(true)}
-                      />
-                    )}
-                    {renamingTemplate !== null && project && (
-                      <DuplicateDialog
-                        title={t('rename.templateTitle')}
-                        okLabel={t('rename.ok')}
-                        initial={renamingTemplate}
-                        validate={(name) => {
-                          const tpl = project.templates.find((x) => x.name === renamingTemplate)
-                          const own = [renamingTemplate, tpl?.file, tpl?.origin]
-                          return !isValidTemplateName(name)
-                            ? t('newTemplate.invalidName')
-                            : !own.includes(name) && templateNames().includes(name)
-                              ? t('newTemplate.exists')
-                              : null
-                        }}
-                        onDuplicate={(name) => {
-                          if (name !== renamingTemplate) renameTemplateTo(renamingTemplate, name)
-                          setRenamingTemplate(null)
-                        }}
-                        onClose={() => setRenamingTemplate(null)}
-                      />
-                    )}
-                    {renamingSet !== null && project?.sets[renamingSet] && (
-                      <DuplicateDialog
-                        title={t('rename.setTitle')}
-                        okLabel={t('rename.ok')}
-                        initial={project.sets[renamingSet].name}
-                        validate={(name) => {
-                          const set = project.sets[renamingSet]
-                          const own = [set.name, set.data?.name, set.data?.origin]
-                          return !isValidSheetName(name)
-                            ? t('newSet.invalidName')
-                            : !own.includes(name) && setNames().includes(name)
-                              ? t('newSet.exists')
-                              : null
-                        }}
-                        onDuplicate={(name) => {
-                          if (name !== project.sets[renamingSet].name)
-                            renameSetAt(renamingSet, name)
-                          setRenamingSet(null)
-                        }}
-                        onClose={() => setRenamingSet(null)}
-                      />
-                    )}
-                    {duplicating && project && (
-                      <DuplicateDialog
-                        title={
-                          duplicating.kind === 'set'
-                            ? t('duplicate.setTitle')
-                            : t('duplicate.templateTitle')
-                        }
-                        initial={copyName(
-                          duplicating.kind === 'set'
-                            ? project.sets[duplicating.index].name
-                            : duplicating.name,
-                          duplicating.kind === 'set' ? setNames() : templateNames()
-                        )}
-                        validate={(name) =>
-                          duplicating.kind === 'set'
-                            ? !isValidSheetName(name)
+                              )}
+                            </section>
+                          )}
+                          {openNote && project.notes?.some((n) => n.name === openNote) && (
+                            <NotePanel
+                              key={openNote}
+                              name={openNote}
+                              text={project.notes.find((n) => n.name === openNote)?.text ?? ''}
+                              others={project.notes
+                                .map((n) => n.name)
+                                .filter((n) => n !== openNote)}
+                              onChange={(text) => changeNote(openNote, text)}
+                              onRename={(to) => void renameNote(openNote, to)}
+                              onDelete={() => void deleteNote(openNote)}
+                              onClose={closeNote}
+                            />
+                          )}
+                          {sidebarSide === 'right' && (
+                            <>
+                              {!sidebarCompact && (
+                                <Resizer
+                                  width={sidebarWidth}
+                                  onChange={setSidebarWidth}
+                                  edge="right"
+                                  max={400}
+                                />
+                              )}
+                              {sidebar}
+                            </>
+                          )}
+                        </main>
+                      ) : (
+                        <StartScreen
+                          onHelp={() => setHelp(true)}
+                          error={error}
+                          loading={loading}
+                          settings={settings}
+                          onOpen={load}
+                          onChoose={open}
+                          onImport={() => setImporting(true)}
+                        />
+                      )}
+                      {renamingTemplate !== null && project && (
+                        <DuplicateDialog
+                          title={t('rename.templateTitle')}
+                          okLabel={t('rename.ok')}
+                          initial={renamingTemplate}
+                          validate={(name) => {
+                            const tpl = project.templates.find((x) => x.name === renamingTemplate)
+                            const own = [renamingTemplate, tpl?.file, tpl?.origin]
+                            return !isValidTemplateName(name)
+                              ? t('newTemplate.invalidName')
+                              : !own.includes(name) && templateNames().includes(name)
+                                ? t('newTemplate.exists')
+                                : null
+                          }}
+                          onDuplicate={(name) => {
+                            if (name !== renamingTemplate) renameTemplateTo(renamingTemplate, name)
+                            setRenamingTemplate(null)
+                          }}
+                          onClose={() => setRenamingTemplate(null)}
+                        />
+                      )}
+                      {renamingSet !== null && project?.sets[renamingSet] && (
+                        <DuplicateDialog
+                          title={t('rename.setTitle')}
+                          okLabel={t('rename.ok')}
+                          initial={project.sets[renamingSet].name}
+                          validate={(name) => {
+                            const set = project.sets[renamingSet]
+                            const own = [set.name, set.data?.name, set.data?.origin]
+                            return !isValidSheetName(name)
                               ? t('newSet.invalidName')
-                              : setNames().includes(name)
+                              : !own.includes(name) && setNames().includes(name)
                                 ? t('newSet.exists')
                                 : null
-                            : !isValidTemplateName(name)
+                          }}
+                          onDuplicate={(name) => {
+                            if (name !== project.sets[renamingSet].name)
+                              renameSetAt(renamingSet, name)
+                            setRenamingSet(null)
+                          }}
+                          onClose={() => setRenamingSet(null)}
+                        />
+                      )}
+                      {duplicating && project && (
+                        <DuplicateDialog
+                          title={
+                            duplicating.kind === 'set'
+                              ? t('duplicate.setTitle')
+                              : t('duplicate.templateTitle')
+                          }
+                          initial={copyName(
+                            duplicating.kind === 'set'
+                              ? project.sets[duplicating.index].name
+                              : duplicating.name,
+                            duplicating.kind === 'set' ? setNames() : templateNames()
+                          )}
+                          validate={(name) =>
+                            duplicating.kind === 'set'
+                              ? !isValidSheetName(name)
+                                ? t('newSet.invalidName')
+                                : setNames().includes(name)
+                                  ? t('newSet.exists')
+                                  : null
+                              : !isValidTemplateName(name)
+                                ? t('newTemplate.invalidName')
+                                : templateNames().includes(name)
+                                  ? t('newTemplate.exists')
+                                  : null
+                          }
+                          onDuplicate={(name) => {
+                            if (duplicating.kind === 'set') duplicateSet(duplicating.index, name)
+                            else duplicateTemplate(duplicating.name, name)
+                            setDuplicating(null)
+                          }}
+                          onClose={() => setDuplicating(null)}
+                        />
+                      )}
+                      {deriving && project && (
+                        <DuplicateDialog
+                          title={t('inherit.deriveTitle')}
+                          okLabel={t('inherit.deriveOk')}
+                          initial={copyName(deriving, templateNames())}
+                          validate={(name) =>
+                            !isValidTemplateName(name)
                               ? t('newTemplate.invalidName')
                               : templateNames().includes(name)
                                 ? t('newTemplate.exists')
                                 : null
-                        }
-                        onDuplicate={(name) => {
-                          if (duplicating.kind === 'set') duplicateSet(duplicating.index, name)
-                          else duplicateTemplate(duplicating.name, name)
-                          setDuplicating(null)
-                        }}
-                        onClose={() => setDuplicating(null)}
-                      />
-                    )}
-                    {deriving && project && (
-                      <DuplicateDialog
-                        title={t('inherit.deriveTitle')}
-                        okLabel={t('inherit.deriveOk')}
-                        initial={copyName(deriving, templateNames())}
-                        validate={(name) =>
-                          !isValidTemplateName(name)
-                            ? t('newTemplate.invalidName')
-                            : templateNames().includes(name)
-                              ? t('newTemplate.exists')
-                              : null
-                        }
-                        onDuplicate={(name) => {
-                          deriveTemplate(deriving, name)
-                          setDeriving(null)
-                        }}
-                        onClose={() => setDeriving(null)}
-                      />
-                    )}
-                    {checkingData && project && (
-                      <DataCheckDialog
-                        project={project}
-                        onImport={() => {
-                          setCheckingData(false)
-                          setImportingSheet(true)
-                        }}
-                        onClose={() => setCheckingData(false)}
-                      />
-                    )}
-                    {importingSheet && project && (
-                      <ImportSheetDialog
-                        project={project}
-                        initialSet={
-                          selected.kind === 'set' ? project.sets[selected.index]?.name : undefined
-                        }
-                        onImport={(set, sheet) => void importSheetFromFile(set, sheet)}
-                        onClose={() => setImportingSheet(false)}
-                      />
-                    )}
-                    {creatingSet && project && (
-                      <NewSetDialog
-                        templates={project.templates}
-                        existing={[
-                          ...project.sets.map((x) => x.name),
-                          ...project.sets.flatMap((x) => (x.data ? [x.data.name] : [])),
-                          ...project.unusedSheets
-                        ]}
-                        unusedSheets={project.unusedSheets}
-                        usedSheets={[
-                          ...new Map(
-                            project.sets.flatMap((x) =>
-                              x.data
-                                ? [[x.data.name, { sheet: x.data.name, set: x.name }] as const]
-                                : []
-                            )
-                          ).values()
-                        ]}
-                        onCreate={createSet}
-                        onClose={() => setCreatingSet(false)}
-                      />
-                    )}
-                    {creating && project && (
-                      <NewTemplateDialog
-                        existing={templateNames()}
-                        onCreate={createTemplate}
-                        onClose={() => setCreating(false)}
-                      />
-                    )}
-                  </div>
-                  {importing && (
-                    <ImportTtcDialog
-                      onOpen={async (folder) => {
-                        if (!(await discardOk())) return
-                        setImporting(false)
-                        load(folder)
-                      }}
-                      onClose={() => setImporting(false)}
-                    />
-                  )}
-                  {aiTools && <AiToolsDialog onClose={() => setAiTools(false)} />}
-                  {findingAll && project && (
-                    <ProjectFindDialog
-                      scope={findScope(project)}
-                      onReplace={replaceAcrossProject}
-                      onOpen={openFound}
-                      onClose={() => setFindingAll(false)}
-                    />
-                  )}
-                  {agentLock && agentLock.folder === folder && (
-                    <AgentLockOverlay
-                      lock={agentLock.lock}
-                      onUnlock={() =>
-                        window.api.unlockAgent().catch((e) => setError(messageFromError(e)))
-                      }
-                    />
-                  )}
-                  {comparing && project && (
-                    <CompareDialog
-                      project={project}
-                      onCompare={(base) => {
-                        setCompareBase(base)
-                        setComparing(false)
-                      }}
-                      onClose={() => setComparing(false)}
-                    />
-                  )}
-                  {languagesOpen && project && (
-                    <LanguagesDialog
-                      project={project}
-                      onSave={saveLanguages}
-                      onClose={() => setLanguagesOpen(false)}
-                    />
-                  )}
-                  {sheetsOpen && project && (
-                    <GoogleSheetsDialog
-                      project={project}
-                      onImport={importGoogleSheet}
-                      onClose={() => setSheetsOpen(false)}
-                    />
-                  )}
-                  {trashOpen && project && (
-                    <TrashDialog
-                      templates={project.templates}
-                      onRestore={restoreDeleted}
-                      onClose={() => setTrashOpen(false)}
-                    />
-                  )}
-                  {backingUp && project && (
-                    <BackupDialog
-                      dirty={anyDirty}
-                      onSave={saveAll}
-                      onRestored={async (folder) => {
-                        setBackingUp(false)
-                        if (await discardOk()) load(folder)
-                      }}
-                      onClose={() => setBackingUp(false)}
-                    />
-                  )}
-                  {exportRun && <ExportToast run={exportRun} onClose={() => setExportRun(null)} />}
-                  {exporting !== null && project && (
-                    <ExportDialog
-                      project={project}
-                      profile={exporting}
-                      changed={changed}
-                      language={localization?.language ?? null}
-                      // le opzioni sono già scritte su disco: il progetto non risulta modificato
-                      onProfiles={(profiles) =>
-                        setProject((p) => p && { ...p, file: { ...p.file, export: profiles } })
-                      }
-                      onClose={() => setExporting(false)}
-                    />
-                  )}
-                  {editingStyle !== null && project && (
-                    <FormatDialog
-                      mode="style"
-                      styleName={editingStyle || undefined}
-                      group={groupOf(order, 'styles', editingStyle)}
-                      usages={editingStyle ? usagesNav('style', editingStyle) : undefined}
-                      groups={groupNames(order, 'styles', styleList)}
-                      initial={parseAttrs(allStyles[editingStyle] ?? '').attrs}
-                      sample={editingStyle || 'Aa'}
-                      onApply={(attrs, name, group) => {
-                        if (name)
-                          saveStyle(name, serializeAttrs(attrs), editingStyle || undefined, group)
-                        setEditingStyle(null)
-                      }}
-                      onDelete={() => {
-                        saveStyle(editingStyle, null)
-                        setEditingStyle(null)
-                      }}
-                      onClose={() => setEditingStyle(null)}
-                    />
-                  )}
-                  {editingVariable !== null && project && (
-                    <VariableDialog
-                      name={editingVariable}
-                      group={groupOf(order, 'variables', editingVariable)}
-                      usages={editingVariable ? usagesNav('variable', editingVariable) : undefined}
-                      fieldNames={
-                        new Set([
-                          ...project.templates.flatMap((x) =>
-                            walkLayers([...x.front, ...x.back]).map((l) => l.name)
-                          ),
-                          ...project.sets.flatMap((x) => x.data?.headers ?? [])
-                        ])
-                      }
-                      groups={groupNames(
-                        order,
-                        'variables',
-                        variableList.map(([n]) => n)
+                          }
+                          onDuplicate={(name) => {
+                            deriveTemplate(deriving, name)
+                            setDeriving(null)
+                          }}
+                          onClose={() => setDeriving(null)}
+                        />
                       )}
-                      onSave={(name, v, group) => {
-                        saveVariable(name, v, editingVariable || undefined, group)
-                        setEditingVariable(null)
-                      }}
-                      onDelete={() => {
-                        saveVariable(editingVariable, null)
-                        setEditingVariable(null)
-                      }}
-                      onClose={() => setEditingVariable(null)}
-                    />
-                  )}
-                </SaveStyleContext.Provider>
-              </ProjectLanguagesContext.Provider>
+                      {checkingData && project && (
+                        <DataCheckDialog
+                          project={project}
+                          onImport={() => {
+                            setCheckingData(false)
+                            setImportingSheet(true)
+                          }}
+                          onClose={() => setCheckingData(false)}
+                        />
+                      )}
+                      {importingSheet && project && (
+                        <ImportSheetDialog
+                          project={project}
+                          initialSet={
+                            selected.kind === 'set' ? project.sets[selected.index]?.name : undefined
+                          }
+                          onImport={(set, sheet) => void importSheetFromFile(set, sheet)}
+                          onClose={() => setImportingSheet(false)}
+                        />
+                      )}
+                      {creatingSet && project && (
+                        <NewSetDialog
+                          templates={project.templates}
+                          existing={[
+                            ...project.sets.map((x) => x.name),
+                            ...project.sets.flatMap((x) => (x.data ? [x.data.name] : [])),
+                            ...project.unusedSheets
+                          ]}
+                          unusedSheets={project.unusedSheets}
+                          usedSheets={[
+                            ...new Map(
+                              project.sets.flatMap((x) =>
+                                x.data
+                                  ? [[x.data.name, { sheet: x.data.name, set: x.name }] as const]
+                                  : []
+                              )
+                            ).values()
+                          ]}
+                          onCreate={createSet}
+                          onClose={() => setCreatingSet(false)}
+                        />
+                      )}
+                      {creating && project && (
+                        <NewTemplateDialog
+                          existing={templateNames()}
+                          onCreate={createTemplate}
+                          onClose={() => setCreating(false)}
+                        />
+                      )}
+                    </div>
+                    {importing && (
+                      <ImportTtcDialog
+                        onOpen={async (folder) => {
+                          if (!(await discardOk())) return
+                          setImporting(false)
+                          load(folder)
+                        }}
+                        onClose={() => setImporting(false)}
+                      />
+                    )}
+                    {aiTools && <AiToolsDialog onClose={() => setAiTools(false)} />}
+                    {findingAll && project && (
+                      <ProjectFindDialog
+                        scope={findScope(project)}
+                        onReplace={replaceAcrossProject}
+                        onOpen={openFound}
+                        onClose={() => setFindingAll(false)}
+                      />
+                    )}
+                    {agentLock && agentLock.folder === folder && (
+                      <AgentLockOverlay
+                        lock={agentLock.lock}
+                        onUnlock={() =>
+                          window.api.unlockAgent().catch((e) => setError(messageFromError(e)))
+                        }
+                      />
+                    )}
+                    {comparing && project && (
+                      <CompareDialog
+                        project={project}
+                        onCompare={(base) => {
+                          setCompareBase(base)
+                          setComparing(false)
+                        }}
+                        onClose={() => setComparing(false)}
+                      />
+                    )}
+                    {languagesOpen && project && (
+                      <LanguagesDialog
+                        project={project}
+                        onSave={saveLanguages}
+                        onClose={() => setLanguagesOpen(false)}
+                      />
+                    )}
+                    {sheetsOpen && project && (
+                      <GoogleSheetsDialog
+                        project={project}
+                        onImport={importGoogleSheet}
+                        onClose={() => setSheetsOpen(false)}
+                      />
+                    )}
+                    {trashOpen && project && (
+                      <TrashDialog
+                        templates={project.templates}
+                        onRestore={restoreDeleted}
+                        onClose={() => setTrashOpen(false)}
+                      />
+                    )}
+                    {backingUp && project && (
+                      <BackupDialog
+                        dirty={anyDirty}
+                        onSave={saveAll}
+                        onRestored={async (folder) => {
+                          setBackingUp(false)
+                          if (await discardOk()) load(folder)
+                        }}
+                        onClose={() => setBackingUp(false)}
+                      />
+                    )}
+                    {exportRun && (
+                      <ExportToast run={exportRun} onClose={() => setExportRun(null)} />
+                    )}
+                    {exporting !== null && project && (
+                      <ExportDialog
+                        project={project}
+                        profile={exporting}
+                        changed={changed}
+                        language={localization?.language ?? null}
+                        // le opzioni sono già scritte su disco: il progetto non risulta modificato
+                        onProfiles={(profiles) =>
+                          setProject((p) => p && { ...p, file: { ...p.file, export: profiles } })
+                        }
+                        onClose={() => setExporting(false)}
+                      />
+                    )}
+                    {editingStyle !== null && project && (
+                      <FormatDialog
+                        mode="style"
+                        styleName={editingStyle || undefined}
+                        group={groupOf(order, 'styles', editingStyle)}
+                        usages={editingStyle ? usagesNav('style', editingStyle) : undefined}
+                        groups={groupNames(order, 'styles', styleList)}
+                        initial={parseAttrs(allStyles[editingStyle] ?? '').attrs}
+                        sample={editingStyle || 'Aa'}
+                        onApply={(attrs, name, group) => {
+                          if (name)
+                            saveStyle(name, serializeAttrs(attrs), editingStyle || undefined, group)
+                          setEditingStyle(null)
+                        }}
+                        onDelete={() => {
+                          saveStyle(editingStyle, null)
+                          setEditingStyle(null)
+                        }}
+                        onClose={() => setEditingStyle(null)}
+                      />
+                    )}
+                    {editingVariable !== null && project && (
+                      <VariableDialog
+                        name={editingVariable}
+                        group={groupOf(order, 'variables', editingVariable)}
+                        usages={
+                          editingVariable ? usagesNav('variable', editingVariable) : undefined
+                        }
+                        fieldNames={
+                          new Set([
+                            ...project.templates.flatMap((x) =>
+                              walkLayers([...x.front, ...x.back]).map((l) => l.name)
+                            ),
+                            ...project.sets.flatMap((x) => x.data?.headers ?? [])
+                          ])
+                        }
+                        groups={groupNames(
+                          order,
+                          'variables',
+                          variableList.map(([n]) => n)
+                        )}
+                        onSave={(name, v, group) => {
+                          saveVariable(name, v, editingVariable || undefined, group)
+                          setEditingVariable(null)
+                        }}
+                        onDelete={() => {
+                          saveVariable(editingVariable, null)
+                          setEditingVariable(null)
+                        }}
+                        onClose={() => setEditingVariable(null)}
+                      />
+                    )}
+                  </SaveStyleContext.Provider>
+                </ProjectLanguagesContext.Provider>
+              </NumberSettingsContext.Provider>
             </LocalizationContext.Provider>
           </ProjectColorsContext.Provider>
         </VariablesContext.Provider>
@@ -3225,7 +3256,8 @@ function SetView({
             computedValues(
               rowTemplates[i] ?? template,
               rowToCard(set.data!.headers, r),
-              bindCtx.variables
+              bindCtx.variables,
+              bindCtx.numbers
             )
           )
         : [],

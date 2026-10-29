@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useContext, useMemo, useState } from 'react'
 import type { Sheet } from '../../../shared/project'
 import type { ColumnInfo } from '../../../shared/model/sheet'
 import { columnStats, columnValues, rowAmounts } from '../../../shared/model/stats'
@@ -6,6 +6,8 @@ import type { Template } from '../../../shared/model/template'
 import type { Variables } from '../../../shared/model/variables'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
+import { NumberSettingsContext } from '../render/assets'
+import { numberFormatting } from '../../../shared/model/numberFormat'
 
 const fmt = (n: number): string =>
   Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/, '')
@@ -36,11 +38,13 @@ export default function StatsDialog({
   const [column, setColumn] = useState(names[0] ?? '')
   const hasAmount = sheet.headers.includes('amount')
   const [copies, setCopies] = useState(true)
+  const settings = useContext(NumberSettingsContext)
   const stats = useMemo(() => {
-    const values = columnValues(sheet, column, rows, template, templates, variables)
+    const numbers = numberFormatting(settings)
+    const values = columnValues(sheet, column, rows, template, templates, variables, numbers)
     const amounts = hasAmount && copies ? rowAmounts(sheet, rows) : rows.map(() => 1)
     return columnStats(column, values, amounts)
-  }, [sheet, column, rows, template, templates, variables, hasAmount, copies])
+  }, [sheet, column, rows, template, templates, variables, hasAmount, copies, settings])
   const top = Math.max(1, ...stats.groups.map((g) => g.cards))
 
   return (

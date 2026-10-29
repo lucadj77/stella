@@ -4,6 +4,12 @@ import {
   missingTranslationColumns,
   missingTranslations
 } from '../../../shared/model/language'
+import {
+  languageStyle,
+  numberExample,
+  NUMBER_STYLES,
+  type NumberStyle
+} from '../../../shared/model/numberFormat'
 import { textColumns } from '../../../shared/model/sheet'
 import type { LoadedProject } from '../../../shared/project'
 import { Dialog } from '../editor/dialogs'
@@ -21,6 +27,10 @@ export interface LanguagesChange {
   setNames: Record<string, string>[]
   /** Colonne `campo@lingua` da aggiungere, per indice del set */
   columns: string[][]
+  /** Come si scrivono i numeri nella lingua principale */
+  numberFormat: NumberStyle
+  /** Come si scrivono i numeri nelle altre lingue, solo dove non è quello abituale della lingua */
+  numberFormats: Record<string, NumberStyle>
 }
 
 /**
@@ -44,6 +54,10 @@ export default function LanguagesDialog({
   const [names, setNames] = useState<Record<string, string>>(project.file.names ?? {})
   const [setTitles, setSetTitles] = useState<Record<string, string>[]>(() =>
     project.sets.map((s) => s.names ?? {})
+  )
+  const [mainNumbers, setMainNumbers] = useState<NumberStyle>(project.file.numberFormat ?? 'plain')
+  const [numbers, setNumbers] = useState<Record<string, NumberStyle>>(
+    project.file.numberFormats ?? {}
   )
   const [code, setCode] = useState('')
   const [addColumns, setAddColumns] = useState(true)
@@ -90,7 +104,12 @@ export default function LanguagesDialog({
       languages: others.length ? languages : [],
       names: keep(names),
       setNames: setTitles.map(keep),
-      columns: addColumns ? columns : project.sets.map(() => [])
+      columns: addColumns ? columns : project.sets.map(() => []),
+      numberFormat: mainNumbers,
+      // lo stile abituale della lingua non serve scriverlo
+      numberFormats: Object.fromEntries(
+        Object.entries(numbers).filter(([l, s]) => others.includes(l) && s !== languageStyle(l))
+      )
     })
   }
 
@@ -102,6 +121,23 @@ export default function LanguagesDialog({
           {languages.map((l, i) => (
             <li key={l}>
               <span>{languageName(l, ui)}</span>
+              <select
+                className="language-numbers"
+                value={i === 0 ? mainNumbers : (numbers[l] ?? languageStyle(l))}
+                title={t('languages.numbersHint')}
+                aria-label={t('languages.numbers')}
+                onChange={(e) => {
+                  const s = e.target.value as NumberStyle
+                  if (i === 0) setMainNumbers(s)
+                  else setNumbers((n) => ({ ...n, [l]: s }))
+                }}
+              >
+                {NUMBER_STYLES.map((s) => (
+                  <option key={s} value={s}>
+                    {t('languages.numbersExample', { example: numberExample(s) })}
+                  </option>
+                ))}
+              </select>
               {i === 0 ? (
                 <span className="muted small">{t('languages.main')}</span>
               ) : (

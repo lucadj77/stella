@@ -6,6 +6,7 @@ import type { ExportProfiles } from './export'
 import type { Sources } from './library'
 import type { Variables } from './model/variables'
 import type { ListOrder } from './model/order'
+import type { NumberStyle } from './model/numberFormat'
 
 export const PROJECT_FILE = 'stella.json'
 /** Nomi del file dei progetti creati quando l'app si chiamava Naibi e, prima, GameCreator */
@@ -60,6 +61,13 @@ export interface ProjectFile {
   languages?: string[]
   /** Nome del progetto nelle altre lingue, per codice della lingua */
   names?: Record<string, string>
+  /**
+   * Come si scrivono i numeri sulle carte nella lingua principale (vedi model/numberFormat.ts);
+   * assente: 1234.5, con il punto
+   */
+  numberFormat?: NumberStyle
+  /** Come si scrivono i numeri nelle altre lingue; assente: come si usa in quella lingua */
+  numberFormats?: Record<string, NumberStyle>
 }
 
 export interface Sheet {

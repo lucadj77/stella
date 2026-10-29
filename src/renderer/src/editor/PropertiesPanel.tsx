@@ -14,6 +14,7 @@ import {
   uniqueName
 } from '../../../shared/model/edit'
 import { assetRefName, isImageAsset, resolveAsset } from '../../../shared/model/assets'
+import { numberFormatting } from '../../../shared/model/numberFormat'
 import { COMPONENT_KINDS, kindOf, type ComponentKind } from '../../../shared/model/template'
 import type {
   Anchor,
@@ -71,6 +72,7 @@ import type { MessageKey } from '../i18n/en'
 import {
   AssetsContext,
   ProjectLanguagesContext,
+  NumberSettingsContext,
   VariablesContext,
   assetUrl
 } from '../render/assets'
@@ -2148,17 +2150,29 @@ function ValueSource({
   // anteprima della formula sulla prima riga disponibile, o con i soli valori del template
   const sample = sheets.find((s) => s.rows.length)
   const variables = useContext(VariablesContext)
+  // come sulla carta nella lingua principale: 2,5 se usa la virgola
+  const numbers = numberFormatting(useContext(NumberSettingsContext))
   const cells = contentGrid(template, l.id)
   const fields = {
     ...cardFields(
       template,
       sample ? rowToCard(sample.headers, sample.rows[0]) : { fields: {}, amount: 1 },
-      variables
+      variables,
+      undefined,
+      'front',
+      numbers
     ),
     // nel contenuto di una griglia l'anteprima è quella della prima casella
     ...(cells && cellFields(cells.grid, 0, cells.columns, cells.rows * cells.columns))
   }
-  const result = src.kind === 'formula' ? evaluateFormula(src.expr, fields) : null
+  const result =
+    src.kind === 'formula'
+      ? evaluateFormula(
+          src.expr,
+          fields,
+          numbers && (l.type === 'text' ? numbers : { decimalComma: numbers.decimalComma })
+        )
+      : null
   // come sulla carta: i {campo} rimasti nel risultato si sostituiscono
   const preview = result && { ...result, value: substituteFields(result.value, fields) }
   // il componente è montato per livello (key), quindi l'apertura automatica è lo stato iniziale

@@ -2195,6 +2195,10 @@ export const it: Record<MessageKey, string> = {
   'languages.hint':
     'La prima lingua è la principale: le colonne senza @ contengono i suoi testi. Le traduzioni di una colonna vanno in una colonna con lo stesso nome seguito da @ e dal codice della lingua, per esempio nome@en. Una cella tradotta vuota usa la lingua principale.',
   'languages.main': 'lingua principale',
+  'languages.numbers': 'Numeri',
+  'languages.numbersExample': 'Numeri: {example}',
+  'languages.numbersHint':
+    'Come si scrivono i numeri sulle carte in questa lingua: il separatore dei decimali e, dove il formato della cella del foglio lo prevede, quello delle migliaia. Le formule si scrivono con il separatore dei decimali della lingua principale.',
   'languages.untranslated': '{n} testi da tradurre',
   'languages.untranslatedHint':
     'Testi fissi, variabili e celle @lingua vuote senza traduzione: le carte usano la lingua principale. stella check li elenca.',
