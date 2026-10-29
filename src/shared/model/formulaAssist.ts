@@ -360,16 +360,16 @@ export interface OpenedFormula {
  * "{nome}.png" (testo con campi) o "{forza}+2" (un calcolo). Nella composizione ogni graffa è un
  * campo, come quando si calcola.
  */
-export function openFormula(expr: string): OpenedFormula {
+export function openFormula(expr: string, decimalComma = false): OpenedFormula {
   const src = expr.trim()
   if (!src) return { node: E }
   if (src.startsWith('=')) {
-    const p = parseExpression(src.slice(1))
+    const p = parseExpression(src.slice(1), decimalComma)
     return p.node ? { node: p.node } : { error: p.error }
   }
   // un calcolo si riconosce dall'operatore scritto fuori dalle graffe, come nella composizione
   if (/[-+*/]/.test(src.replace(/\{[^{}]*\}/g, ''))) {
-    const p = parseExpression(src)
+    const p = parseExpression(src, decimalComma)
     if (p.node) return { node: p.node }
   }
   return { node: writeText({ parts: partsFromTemplate(src, () => true), attrs: { styles: [] } }) }
@@ -379,7 +379,7 @@ export function openFormula(expr: string): OpenedFormula {
  * La formula da scrivere nel campo. Un testo con soli campi resta una composizione senza =
  * ("Forza {forza}"), che nei livelli testo legge le colonne tradotte; il resto è un'espressione.
  */
-export function formulaText(node: FormulaNode): string {
+export function formulaText(node: FormulaNode, decimalComma = false): string {
   const t = readText(node)
   if (t && !serializeAttrs(t.attrs)) {
     const plain = templateFromParts(t.parts)
@@ -387,7 +387,7 @@ export function formulaText(node: FormulaNode): string {
     // nella composizione un operatore farebbe un calcolo e una graffa un campo
     if (!/[-+*/{}\\]/.test(literals) && plain) return plain
   }
-  return '=' + printExpression(node)
+  return '=' + printExpression(node, decimalComma)
 }
 
 // --- dove si trova il livello ---

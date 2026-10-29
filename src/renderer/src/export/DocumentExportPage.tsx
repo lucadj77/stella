@@ -2,11 +2,19 @@ import { useEffect, useRef, useState } from 'react'
 import type { DocRenderFile, DocRenderInput } from '../../../shared/api'
 import { documentSettings } from '../../../shared/model/document'
 import DocumentPreview from '../render/DocumentPreview'
-import { AssetsContext, StylesContext, VariablesContext } from '../render/assets'
+import {
+  AssetsContext,
+  NumberSettingsContext,
+  StylesContext,
+  VariablesContext
+} from '../render/assets'
+import type { NumberSettings } from '../../../shared/model/numberFormat'
 import { useRegisterFonts } from '../render/fonts'
 import { documentHtml, documentMarkdown } from './documentExport'
 import { documentDocx } from './documentDocx'
 import { settle } from './settle'
+
+const NO_NUMBERS: NumberSettings = {}
 
 // Pagina della finestra nascosta che esporta un documento senza l'app (stella export-doc): lo
 // disegna come l'anteprima, alla misura vera, e ne ricava l'HTML o il Markdown con le carte in
@@ -90,18 +98,20 @@ export default function DocumentExportPage(): React.JSX.Element {
     <AssetsContext.Provider value={input?.assets ?? []}>
       <StylesContext.Provider value={input?.styles ?? {}}>
         <VariablesContext.Provider value={input?.variables ?? {}}>
-          <div ref={root}>
-            {input && (
-              <DocumentPreview
-                text={input.text}
-                project={input.project}
-                sets={input.sets}
-                templates={input.templates}
-                zoom={1}
-                localization={input.localization}
-              />
-            )}
-          </div>
+          <NumberSettingsContext.Provider value={input?.numbers ?? NO_NUMBERS}>
+            <div ref={root}>
+              {input && (
+                <DocumentPreview
+                  text={input.text}
+                  project={input.project}
+                  sets={input.sets}
+                  templates={input.templates}
+                  zoom={1}
+                  localization={input.localization}
+                />
+              )}
+            </div>
+          </NumberSettingsContext.Provider>
         </VariablesContext.Provider>
       </StylesContext.Provider>
     </AssetsContext.Provider>

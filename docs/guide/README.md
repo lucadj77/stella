@@ -407,6 +407,8 @@ The menu next to the project name, at the top, picks the language the cards are 
 
 Only what is read on the card is translated. Image names, colours and formulas starting with `=` always use the values of the main language: a formula such as `=IF({type}="Attack"; ...)` works in every language without changing it. To have a different image in one language, add its translated column, for example `icon@en`.
 
+Each language also has its own way of writing numbers, chosen in the **Languages** window with the **Numbers** menu on its row: for English, by default, 1,234.5. Cards in English write numbers this way even when the main language uses the decimal comma (see chapter 9).
+
 Texts that do not come from the sheet are translated where you write them. A text layer whose **Value on cards** is **Fixed** has, under its text, a field for each other language; the same goes for fixed value layers and, in their window, for text and value variables. A field left empty uses the text of the main language. If a formula with `=` must write a translated text, make it return a variable: `=IF({type}="Attack";"{attack}";"{defence}")` compares the main-language value and writes the `attack` variable in the language of the card.
 
 A document always uses the main language, even when another language is chosen at the top. For an English rulebook write `language: en` at the top of the document, or choose it in **Page**, under **Card language**: the document's cards and variables will be in English. The **Languages** window says how many texts are left to translate in each language, and `stella check` lists them one by one.
@@ -582,7 +584,7 @@ A layer with **Value on cards: Formula** calculates its value from the other fie
 
 - **Text composition**: `{name}.png`, `Strength {strength}`.
 - **Calculation**: if the formula contains `+ - * /` and the result is a number, it is calculated: `{strength}+2`.
-- **Expression**: with a leading `=` it works like Excel. Text in quotes, comparisons `= <> < > <= >=`, `&` to join text, arguments separated by `;` or `,`. Functions: `IF`, `AND`, `OR`, `NOT`, `MIN`, `MAX`, `ABS`, `ROUND`, `FLOOR`, `CEILING`, `UPPER`, `LOWER`, `LEN`, `CONCAT`, `ISBLANK`, `COUNTIN`, `MOD`, `PICK`.
+- **Expression**: with a leading `=` it works like Excel. Text in quotes, comparisons `= <> < > <= >=`, `&` to join text, arguments separated by `;` (or by `,` followed by a space). Functions: `IF`, `AND`, `OR`, `NOT`, `MIN`, `MAX`, `ABS`, `ROUND`, `FLOOR`, `CEILING`, `UPPER`, `LOWER`, `LEN`, `CONCAT`, `ISBLANK`, `COUNTIN`, `MOD`, `PICK`.
 
 The functions, with an example on the cards of this guide (Dragon, strength 4, cost `{gold}{gold}{wood}`):
 
@@ -602,6 +604,8 @@ The functions, with an example on the cards of this guide (Dragon, strength 4, c
 | `PICK(n; value1; value2; …)`                  | the n-th value, starting again after the last | `=PICK({strength}; "sword"; "shield"; "hand")` → sword  |
 
 The **Help** window (F1), **Formulas** tab, has the same table with the result computed on the cards of the open project.
+
+**Numbers with a decimal comma.** By default Stella writes numbers with a point: `=ROUND(7/3; 2)` gives 2.33. For a comma, open **Project › Languages…** and, on the main language's row, choose **Numbers: 1.234,5**. From then on the numbers on the cards are written with a comma, both those from the sheet and the results of formulas, and in formulas you write `2,5`: this is why arguments are separated with `;`. The thousands separator appears only where the sheet cell has a format with thousands (in Excel, _Use 1000 separator_); formula results don't have one, so a year stays 2026. Calculated file names, colours and sizes do not change. Without the comma, `=MIN(2,5; 3)` gives the error _write 2.5 with a dot_: you write `2.5`.
 
 In the example the `rank` layer shows "Hero" or "Follower" depending on strength. Below the formula is its result for the first card of the set.
 

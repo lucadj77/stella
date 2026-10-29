@@ -5,6 +5,20 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.7.1-beta.1
+
+### English
+
+- **Numbers in each language's style**: **Project › Languages…** has a **Numbers** menu on each language's row: 1 234.5 (as before), 1.234,5, 1,234.5 or 1 234,5. The numbers on the cards follow the language they are shown or exported in, both the sheet's values and formula results: with an Italian main language and an English translation, Italian cards say 2,5 and English cards 2.5. Other languages start from their usual style. The thousands separator appears only where the sheet cell's format has one, never in formula results, so a year stays 2026. File names, colors and sizes computed by formulas do not change.
+- **Decimal comma in formulas**: when the main language uses the comma, formulas take `2,5` as a number, as in Italian Excel; arguments are separated with `;`. The formula assistant writes numbers the same way.
+- **A clearer error**: without the decimal comma, `=MIN(2,5; 3)` used to give 2 without warning, reading 2 and 5 as two arguments. Now it is an error that says to write 2.5. A field such as 1,5 passed through a formula (for example by an `IF`) stays 1,5 instead of becoming 1.5.
+
+### Italiano
+
+- **Numeri nello stile di ogni lingua**: in **Progetto › Lingue…** ogni lingua ha il menu **Numeri**: 1 234.5 (come prima), 1.234,5, 1,234.5 o 1 234,5. I numeri sulle carte seguono la lingua in cui si mostrano o si esportano, sia i valori del foglio sia i risultati delle formule: con l'italiano come lingua principale e una traduzione inglese, le carte italiane scrivono 2,5 e quelle inglesi 2.5. Le altre lingue partono dal loro stile abituale. Il separatore delle migliaia compare solo dove il formato della cella del foglio lo prevede, mai nei risultati delle formule, così un anno resta 2026. Nomi di file, colori e misure calcolati dalle formule non cambiano.
+- **La virgola nelle formule**: se la lingua principale usa la virgola, nelle formule `2,5` è un numero, come in Excel in italiano; gli argomenti si separano con `;`. Anche l'assistente formule scrive così i numeri.
+- **Un errore più chiaro**: senza la virgola per i decimali, `=MIN(2,5; 3)` dava 2 senza avvisare, leggendo 2 e 5 come due argomenti. Ora è un errore che dice di scrivere 2.5. Un campo come 1,5 passato da una formula (per esempio da un `IF`) resta 1,5 invece di diventare 1.5.
+
 ## 1.7.0
 
 ### English

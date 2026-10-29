@@ -2,6 +2,7 @@ import type { ExportSet } from './export'
 import type { LoadedProject } from './project'
 import { bindCard, fieldSets, rowToCard } from './model/bind'
 import { localizationOf } from './model/language'
+import { numberFormatting } from './model/numberFormat'
 import { cardTemplate } from './model/inherit'
 import { systemOfSet, usesCopy } from './model/system'
 
@@ -21,7 +22,8 @@ export function buildSets(
     assets: project.assets,
     styles: project.file.styles,
     variables: project.file.variables,
-    localization
+    localization,
+    numbers: numberFormatting(project.file, language)
   }
   return project.sets
     .filter((s) => !names.length || names.includes(s.name))
@@ -48,8 +50,15 @@ export function buildSets(
           n: i + 1,
           amount: card.amount,
           label: bound.label,
-          fields: fieldSets(own, card, ctx.variables, system, 'front', localization?.language)
-            .shown,
+          fields: fieldSets(
+            own,
+            card,
+            ctx.variables,
+            system,
+            'front',
+            localization?.language,
+            ctx.numbers
+          ).shown,
           template: bound.template,
           ...(perCopy ? { perCopy } : {})
         }

@@ -1,3 +1,4 @@
+import type { NumberFormatting } from './numberFormat'
 import type { Sheet } from '../project'
 import { computedValues, rowToCard } from './bind'
 import { cardTemplate } from './inherit'
@@ -39,14 +40,15 @@ export function columnValues(
   rows: number[],
   template: Template | null,
   templates: Template[],
-  variables?: Variables
+  variables?: Variables,
+  numbers?: NumberFormatting
 ): string[] {
   const i = sheet.headers.indexOf(column)
   if (i >= 0 || !template) return rows.map((r) => (i >= 0 ? (sheet.rows[r]?.[i] ?? '') : ''))
   return rows.map((r) => {
     const row = sheet.rows[r] ?? []
     const t = cardTemplate(sheet.headers, row, template, templates).template
-    return computedValues(t, rowToCard(sheet.headers, row), variables)[column] ?? ''
+    return computedValues(t, rowToCard(sheet.headers, row), variables, numbers)[column] ?? ''
   })
 }
 

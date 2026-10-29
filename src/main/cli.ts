@@ -30,6 +30,7 @@ import {
 } from '../shared/export'
 import { buildSets } from '../shared/exportJob'
 import { localizationOf, missingTranslations, projectLanguages } from '../shared/model/language'
+import { numberFormatting } from '../shared/model/numberFormat'
 import { runExport } from './export/run'
 import { renderDocument } from './export/docWindow'
 import { writeDocumentExport } from './project/docExport'
@@ -307,7 +308,8 @@ async function check(p: Parsed): Promise<number> {
       const bound = bindRow(s.data!.headers, row, tpl, project.templates, {
         ...ctx,
         system: { ...info, number: i + 1 },
-        localization
+        localization,
+        numbers: numberFormatting(project.file, language)
       })
       const problems = bound.problems.map(messageText)
       // le immagini dei livelli: l'app le segnala solo all'esportazione
@@ -878,7 +880,12 @@ async function exportDoc(p: Parsed): Promise<number> {
       assets: project.assets,
       fonts: project.fonts,
       styles: project.file.styles ?? {},
-      variables: project.file.variables ?? {}
+      variables: project.file.variables ?? {},
+      numbers: {
+        languages: project.file.languages,
+        numberFormat: project.file.numberFormat,
+        numberFormats: project.file.numberFormats
+      }
     })
     const dir = await writeDocumentExport(project.folder, files, out)
     print(`${d.name}: ${files.length} files in ${dir}`)

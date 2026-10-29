@@ -3,6 +3,7 @@ import { createContext, useContext, useMemo } from 'react'
 import type { BindContext } from '../../../shared/model/bind'
 import type { Variables } from '../../../shared/model/variables'
 import type { Localization } from '../../../shared/model/language'
+import { numberFormatting, type NumberSettings } from '../../../shared/model/numberFormat'
 import { useProjectFonts } from './fonts'
 
 /** File sotto assets/ del progetto aperto, per risolvere i nomi delle immagini */
@@ -48,15 +49,32 @@ export const LocalizationContext = createContext<Localization | undefined>(undef
 /** Lingue del progetto, la principale per prima; vuoto se il progetto ha una sola lingua */
 export const ProjectLanguagesContext = createContext<string[]>([])
 
+/** Lingue e formati dei numeri del progetto aperto: vedi model/numberFormat.ts */
+export const NumberSettingsContext = createContext<NumberSettings>({})
+
+/** Nelle formule del progetto aperto 2,5 è un numero: la lingua principale usa la virgola */
+export function useDecimalComma(): boolean {
+  const settings = useContext(NumberSettingsContext)
+  return useMemo(() => numberFormatting(settings)?.decimalComma ?? false, [settings])
+}
+
 /** Ciò che serve per applicare una riga a un template: immagini, stili, variabili e lingua */
 export function useBindContext(): BindContext {
   const assets = useContext(AssetsContext)
   const styles = useContext(StylesContext)
   const variables = useContext(VariablesContext)
   const localization = useContext(LocalizationContext)
+  const settings = useContext(NumberSettingsContext)
   const { has: hasFont } = useProjectFonts()
   return useMemo(
-    () => ({ assets, styles, variables, hasFont, localization }),
-    [assets, styles, variables, hasFont, localization]
+    () => ({
+      assets,
+      styles,
+      variables,
+      hasFont,
+      localization,
+      numbers: numberFormatting(settings, localization?.language)
+    }),
+    [assets, styles, variables, hasFont, localization, settings]
   )
 }

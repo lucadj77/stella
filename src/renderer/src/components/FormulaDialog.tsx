@@ -47,7 +47,7 @@ import { plainText, serializeAttrs, type Attrs } from '../../../shared/model/mar
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import type { MessageKey } from '../i18n/en'
-import { VariablesContext } from '../render/assets'
+import { useDecimalComma, VariablesContext } from '../render/assets'
 import AssetPicker from './AssetPicker'
 import { ColorSwatch } from './ColorPicker'
 import FormatDialog from './FormatDialog'
@@ -155,6 +155,7 @@ export default function FormulaDialog({
 }: Props): React.JSX.Element {
   const { t } = useI18n()
   const variables = useContext(VariablesContext)
+  const comma = useDecimalComma()
   const ctx: CatalogContext = useMemo(() => ({ inCell: !!cells }), [cells])
   const sctx: SentenceContext = {
     inCell: !!cells,
@@ -163,7 +164,7 @@ export default function FormulaDialog({
     bool: expect === 'bool',
     text: expect === 'text'
   }
-  const opened = useMemo(() => openFormula(value), [value])
+  const opened = useMemo(() => openFormula(value, comma), [value, comma])
   const [root, setRoot] = useState<FormulaNode>(opened.node ?? { k: 'empty' })
   const [text, setText] = useState(value)
   const [textError, setTextError] = useState(opened.error ?? null)
@@ -198,7 +199,7 @@ export default function FormulaDialog({
 
   const change = (next: FormulaNode, select?: NodePath | null): void => {
     setRoot(next)
-    setText(formulaText(next))
+    setText(formulaText(next, comma))
     setTextError(null)
     setTyped(false)
     const g = guide(next, ctx)
@@ -211,7 +212,7 @@ export default function FormulaDialog({
   const typeText = (s: string): void => {
     setText(s)
     setTyped(true)
-    const o = openFormula(s)
+    const o = openFormula(s, comma)
     if (o.node) {
       setRoot(o.node)
       setTextError(null)
@@ -538,7 +539,7 @@ export default function FormulaDialog({
             className="primary"
             disabled={mode === 'start' || !!textError || incomplete}
             onClick={() => {
-              onApply(unchanged ? value : typed ? text.trim() : formulaText(root))
+              onApply(unchanged ? value : typed ? text.trim() : formulaText(root, comma))
               onClose()
             }}
           >
@@ -809,6 +810,7 @@ interface ViewProps {
 function NodeView(props: ViewProps): React.JSX.Element {
   const { node, path, root, selected, onSelect, onChange, preview, base, onDrill } = props
   const { t } = useI18n()
+  const comma = useDecimalComma()
   const inner = path.length > base.length
   const holdsSelection =
     !!selected && selected.length >= path.length && same(selected.slice(0, path.length), path)
@@ -826,7 +828,7 @@ function NodeView(props: ViewProps): React.JSX.Element {
         title={t('fx.expand')}
         onClick={() => onSelect(path)}
       >
-        <code>{printExpression(node)}</code>
+        <code>{printExpression(node, comma)}</code>
       </button>
     )
   const sub = (child: FormulaNode, i: number): React.JSX.Element => (
@@ -1042,12 +1044,13 @@ function Leaf({
   const { t } = useI18n()
   const label = useFieldLabel()
   const variables = useContext(VariablesContext)
+  const comma = useDecimalComma()
   const pal = useMemo(() => palette(variables), [variables])
   const cls = `fx-leaf${selected ? ' selected' : ''}`
   const text = node.k === 'bin' || node.k === 'str' ? readText(node) : null
   let body: React.ReactNode
   if (node.k === 'empty') body = <span className="fx-empty">{t('fx.choose')}</span>
-  else if (node.k === 'num') body = <span className="fx-chip">{node.v}</span>
+  else if (node.k === 'num') body = <span className="fx-chip">{printExpression(node, comma)}</span>
   else if (node.k === 'neg' && node.v.k === 'num')
     body = <span className="fx-chip">-{node.v.v}</span>
   else if (node.k === 'bool')
@@ -1495,7 +1498,8 @@ function SystemTab(p: PickerProps): React.JSX.Element {
 
 function NumberTab(p: PickerProps): React.JSX.Element {
   const { t } = useI18n()
-  const [v, setV] = useState(p.node.k === 'num' ? String(p.node.v) : '')
+  const comma = useDecimalComma()
+  const [v, setV] = useState(p.node.k === 'num' ? printExpression(p.node, comma) : '')
   const n = Number(v.replace(',', '.'))
   const ok = v.trim() !== '' && Number.isFinite(n)
   const pick = (): void => {

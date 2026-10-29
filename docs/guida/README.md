@@ -407,6 +407,8 @@ Il menu accanto al nome del progetto, in alto, sceglie in che lingua mostrare le
 
 Si traduce solo ciò che si legge sulla carta. Nomi delle immagini, colori e formule che cominciano con `=` usano sempre i valori della lingua principale: una formula come `=IF({tipo}="Attacco"; ...)` funziona in ogni lingua senza cambiarla. Per avere un'immagine diversa in una lingua aggiungi la sua colonna tradotta, per esempio `icona@en`.
 
+Ogni lingua ha anche il suo modo di scrivere i numeri, che scegli nella finestra **Lingue** con il menu **Numeri** della sua riga: per l'inglese, di base, 1,234.5. Le carte in inglese scrivono così i numeri anche se la lingua principale usa la virgola (vedi il capitolo 9).
+
 I testi che non vengono dal foglio si traducono dove si scrivono. Un livello di testo con **Valore sulle carte** su **Fisso** ha, sotto il testo, un campo per ogni altra lingua; lo stesso vale per i livelli valore fissi e, nella loro finestra, per le variabili di testo e valore. Un campo lasciato vuoto usa il testo della lingua principale. Se una formula con `=` deve scrivere un testo tradotto, falle restituire una variabile: `=IF({tipo}="Attacco";"{attacco}";"{difesa}")` confronta il valore italiano e scrive la variabile `attacco` nella lingua della carta.
 
 Un documento usa sempre la lingua principale, anche se in alto è scelta un'altra lingua. Per un regolamento in inglese scrivi `language: en` nella testa del documento, o sceglilo in **Pagina**, alla voce **Lingua delle carte**: carte e variabili del documento saranno in inglese. La finestra **Lingue** dice quanti testi restano da tradurre in ogni lingua, e `stella check` li elenca uno per uno.
@@ -582,7 +584,7 @@ Un livello con **Valore sulle carte: Formula** calcola il proprio valore dagli a
 
 - **Composizione di testo**: `{nome}.png`, `Forza {forza}`.
 - **Calcolo**: se la formula contiene `+ - * /` e il risultato è un numero, si calcola: `{forza}+2`.
-- **Espressione**: con `=` iniziale funziona come in Excel. Testi tra virgolette, confronti `= <> < > <= >=`, `&` per unire testi, argomenti separati da `;` o `,`. Funzioni: `IF`, `AND`, `OR`, `NOT`, `MIN`, `MAX`, `ABS`, `ROUND`, `FLOOR`, `CEILING`, `UPPER`, `LOWER`, `LEN`, `CONCAT`, `ISBLANK`, `COUNTIN`, `MOD`, `PICK`.
+- **Espressione**: con `=` iniziale funziona come in Excel. Testi tra virgolette, confronti `= <> < > <= >=`, `&` per unire testi, argomenti separati da `;` (o da `,` seguita da uno spazio). Funzioni: `IF`, `AND`, `OR`, `NOT`, `MIN`, `MAX`, `ABS`, `ROUND`, `FLOOR`, `CEILING`, `UPPER`, `LOWER`, `LEN`, `CONCAT`, `ISBLANK`, `COUNTIN`, `MOD`, `PICK`.
 
 Le funzioni, con un esempio sulle carte della guida (Drago, forza 4, costo `{oro}{oro}{legno}`):
 
@@ -602,6 +604,8 @@ Le funzioni, con un esempio sulle carte della guida (Drago, forza 4, costo `{oro
 | `PICK(n; valore1; valore2; …)`                | l'n-esimo valore, ricominciando dopo l'ultimo | `=PICK({forza}; "spada"; "scudo"; "mano")` → spada  |
 
 La finestra **Aiuto** (F1), scheda **Formule**, ha la stessa tabella con il risultato calcolato sulle carte del progetto aperto.
+
+**Numeri con la virgola.** Di base Stella scrive i numeri con il punto: `=ROUND(7/3; 2)` dà 2.33. Per la virgola apri **Progetto › Lingue…** e, nella riga della lingua principale, scegli **Numeri: 1.234,5**. Da quel momento i numeri sulle carte si scrivono con la virgola, sia quelli del foglio sia i risultati delle formule, e nelle formule si scrive `2,5`: per questo gli argomenti vanno separati con `;`. Il punto delle migliaia compare solo dove la cella del foglio ha un formato con le migliaia (in Excel, _Usa separatore delle migliaia_); i risultati delle formule non lo hanno, così un anno resta 2026. I nomi dei file, i colori e le misure calcolati non cambiano. Senza la virgola, `=MIN(2,5; 3)` dà l'errore _write 2.5 with a dot_: si scrive `2.5`.
 
 Nell'esempio il livello `rango` mostra "Eroe" o "Gregario" secondo la forza. Sotto la formula compare il risultato per la prima carta del set.
 

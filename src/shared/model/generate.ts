@@ -43,6 +43,8 @@ export interface GeneratorSpec {
   copies: number
   /** Carte a caso invece di tutte le combinazioni */
   random?: RandomOptions
+  /** Nel filtro 2,5 è un numero: vedi model/numberFormat.ts */
+  decimalComma?: boolean
 }
 
 export interface RandomOptions {
@@ -196,7 +198,9 @@ export function generateCards(spec: GeneratorSpec): GeneratedCards {
         cols.forEach((c, j) =>
           picked[j].forEach((v, n) => (fields[`${c.column.trim()}_${n + 1}`] ??= v))
         )
-        const r = evaluateFormula(filter.startsWith('=') ? filter : `=${filter}`, fields)
+        const r = evaluateFormula(filter.startsWith('=') ? filter : `=${filter}`, fields, {
+          decimalComma: spec.decimalComma
+        })
         if (r.error) {
           filterError ??= r.error
           return true
@@ -353,7 +357,9 @@ function generateRandom(spec: GeneratorSpec, o: RandomOptions): GeneratedCards {
     }
     if (filter) {
       names.forEach((name, j) => (fields[name] = values[j]))
-      const r = evaluateFormula(filter.startsWith('=') ? filter : `=${filter}`, fields)
+      const r = evaluateFormula(filter.startsWith('=') ? filter : `=${filter}`, fields, {
+        decimalComma: spec.decimalComma
+      })
       if (r.error) {
         filterError ??= r.error
         break
