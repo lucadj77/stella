@@ -402,8 +402,8 @@ export const videos = [
     },
     minutes: 10,
     url: {
-      it: 'https://www.youtube.com/watch?v=kUgGQ_ab8Yg',
-      en: 'https://www.youtube.com/watch?v=YISuOjfzjJU'
+      it: 'https://www.youtube.com/watch?v=l7tMw_gYE7k',
+      en: 'https://www.youtube.com/watch?v=dIXdNuigAnY'
     }
   },
   {

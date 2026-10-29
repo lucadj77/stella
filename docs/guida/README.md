@@ -10,7 +10,7 @@ Video tutorial su YouTube, senza voce ([tutta la playlist](https://www.youtube.c
 
 - 15 · [Installare Stella e la versione web](https://www.youtube.com/watch?v=Jx6QC7Ucfrw) (3 minuti)
 - 1 · [Panoramica delle funzioni di base](https://www.youtube.com/watch?v=GYwoJcKFGSg) (4 minuti)
-- 2 · [Il tuo primo componente da zero](https://www.youtube.com/watch?v=kUgGQ_ab8Yg) (10 minuti)
+- 2 · [Il tuo primo componente da zero](https://www.youtube.com/watch?v=l7tMw_gYE7k) (10 minuti)
 - 14 · [Un gioco completo, dall’idea al tavolo](https://www.youtube.com/watch?v=hQx902sBZIQ) (20 minuti)
 
 **Componenti**

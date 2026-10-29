@@ -23,8 +23,8 @@ export const FIRST_VIDEOS = {
     en: 'https://www.youtube.com/watch?v=qe6E6msuJDw'
   },
   firstComponent: {
-    it: 'https://www.youtube.com/watch?v=kUgGQ_ab8Yg',
-    en: 'https://www.youtube.com/watch?v=YISuOjfzjJU'
+    it: 'https://www.youtube.com/watch?v=l7tMw_gYE7k',
+    en: 'https://www.youtube.com/watch?v=dIXdNuigAnY'
   }
 } as const
 export const videoUrl = (v: keyof typeof FIRST_VIDEOS, lang: string): string =>
