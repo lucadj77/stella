@@ -259,6 +259,17 @@ a.button {
   flex-shrink: 0;
 }
 
+/* il tipo di componente del template o del set */
+.sidebar li .kind-icon {
+  vertical-align: -3px;
+  margin-right: 6px;
+}
+
+.set-header h1 .kind-icon {
+  vertical-align: -2px;
+  margin-right: 8px;
+}
+
 /* duplica: accanto alla riga, non sopra il conteggio; visibile al passaggio e sulla riga scelta */
 .sidebar li button.item-dup {
   width: auto;
@@ -1089,6 +1100,11 @@ textarea.invalid {
   display: grid;
   place-items: center;
   z-index: 10;
+}
+
+/* con il contagocce lo schermo si vede com'è: vedi ColorPicker */
+.picking-color .dialog-backdrop {
+  background: transparent;
 }
 
 .dialog-backdrop.confirm-backdrop {

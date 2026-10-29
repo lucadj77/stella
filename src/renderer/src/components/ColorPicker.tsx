@@ -185,12 +185,18 @@ function ColorPopover({
 
   const dropper = typeof window !== 'undefined' && 'EyeDropper' in window
   const pick = async (): Promise<void> => {
+    // lo sfondo scuro delle finestre si toglie mentre si sceglie, o i colori presi sarebbero più scuri
+    document.documentElement.classList.add('picking-color')
     try {
+      // prima si ridisegna senza lo sfondo scuro
+      await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
       const r = await eyeDropper()?.open()
       const c = r && cssColor(r.sRGBHex)
       if (c) applyRgb({ ...c, a: alpha })
     } catch {
       // annullato con Esc
+    } finally {
+      document.documentElement.classList.remove('picking-color')
     }
   }
 
