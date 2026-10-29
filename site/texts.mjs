@@ -124,7 +124,7 @@ export const texts = {
     },
     tutorial: {
       title: 'Tutorial',
-      text: 'Video brevi, per imparare subito a usare Stella Game Center.',
+      text: 'Video brevi per imparare subito a usare Stella Game Center, e approfondimenti su un argomento alla volta.',
       soon: 'I primi video arrivano a breve.',
       playlist: 'Tutti i video nella playlist di YouTube',
       news: 'Escono di continuo nuovi tutorial: iscriviti al canale YouTube per sapere ogni volta che ne pubblico uno.',
@@ -136,8 +136,13 @@ export const texts = {
         text: ['Testo e formule', 'Cosa c’è scritto sulle carte e come cambia da una all’altra.'],
         data: ['Dati e lingue', 'Il foglio di calcolo e i giochi in più lingue.'],
         table: ['Dal file al tavolo', 'Stampa, Tabletop Simulator e regolamento.'],
-        tools: ['Strumenti', 'Per lavorare meglio e senza perdere niente.']
+        tools: ['Strumenti', 'Per lavorare meglio e senza perdere niente.'],
+        deep: [
+          'Approfondimenti',
+          'Un argomento alla volta, con tutte le opzioni e un progetto da scaricare per seguire passo passo.'
+        ]
       },
+      project: 'Scarica il progetto del video {n}',
       watch: 'Guarda su YouTube'
     },
     guide: {
@@ -312,7 +317,7 @@ export const texts = {
     },
     tutorial: {
       title: 'Tutorials',
-      text: 'Short videos to start using Stella Game Center right away.',
+      text: 'Short videos to start using Stella Game Center right away, and deep dives on one topic at a time.',
       soon: 'The first videos are coming soon.',
       playlist: 'All the videos in the YouTube playlist',
       news: 'New tutorials come out all the time: subscribe to the YouTube channel to hear about each new one.',
@@ -326,8 +331,13 @@ export const texts = {
         ],
         data: ['Data and languages', 'The spreadsheet and games in several languages.'],
         table: ['From file to table', 'Printing, Tabletop Simulator and the rulebook.'],
-        tools: ['Tools', 'To work better and never lose anything.']
+        tools: ['Tools', 'To work better and never lose anything.'],
+        deep: [
+          'Deep dives',
+          'One topic at a time, with every option and a project to download and follow along.'
+        ]
       },
+      project: 'Download the project of video {n}',
       watch: 'Watch on YouTube'
     },
     guide: {
@@ -647,6 +657,25 @@ export const videos = [
       it: 'https://www.youtube.com/watch?v=nJ9AjWRp_0E',
       en: 'https://www.youtube.com/watch?v=XSceyDoLmw8'
     }
+  },
+  {
+    n: 20,
+    it: 'Approfondimento: il testo',
+    en: 'Deep dive: text',
+    about: {
+      it: 'Formattazione, adattamento al riquadro, markup e stili, con tutte le opzioni.',
+      en: 'Formatting, fitting the box, markup and styles, with every option.'
+    },
+    minutes: 13,
+    url: {
+      it: 'https://www.youtube.com/watch?v=zLVh4VNaADg',
+      en: 'https://www.youtube.com/watch?v=-zQmXMRJBog'
+    },
+    // il progetto da scaricare per seguire il video
+    project: {
+      it: 'progetti/mercanti.zip',
+      en: 'progetti/merchants.zip'
+    }
   }
 ]
 
@@ -658,7 +687,8 @@ export const videoGroups = {
   text: [4, 13],
   data: [10, 12],
   table: [9, 3, 19, 5],
-  tools: [6, 17, 18]
+  tools: [6, 17, 18],
+  deep: [20]
 }
 
 export const playlists = {

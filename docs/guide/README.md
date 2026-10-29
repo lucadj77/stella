@@ -43,6 +43,10 @@ Video tutorials on YouTube, no voice ([whole playlist](https://www.youtube.com/p
 - 17 · [Backups and recovery](https://www.youtube.com/watch?v=AeSwGYOWRCs) (5 minutes)
 - 18 · [Working faster](https://www.youtube.com/watch?v=sdlhIDNbUyg) (5 minutes)
 
+**Deep dives**
+
+- 20 · [Deep dive: text](https://www.youtube.com/watch?v=-zQmXMRJBog) (13 minutes), with the ["Merchants" project to download](https://stella.lucadj.eu/progetti/merchants.zip)
+
 Versione italiana: [../guida/README.md](../guida/README.md).
 
 Questions, help and ideas, in English and Italian: the [Stella Game Center Discord server](https://discord.gg/bkP3a3CwkP).
@@ -129,7 +133,7 @@ On the Mac, drag Stella from the Applications folder to the Trash; on Windows, u
 | **layer**    | an element of the template. The layer name is also the name of the sheet column it takes its value from                       |
 | **asset**    | the project's images, icons and fonts, in the `assets/` folder                                                                |
 | **variable** | a name you call in texts with `{name}`: an icon, a formatted text, a color or a value                                         |
-| **style**    | a named set of text attributes, applied to a layer, a paragraph or a word                                                     |
+| **style**    | a named set of text attributes, applied to a paragraph or a word                                                              |
 
 Data and design are always linked the same way: in the template, the text layer `name` shows on each card the content of the `name` column of its row.
 
@@ -512,7 +516,7 @@ A sample sentence at the top of the window shows the result. Renaming a variable
 
 ### 7.2 Text styles
 
-A style groups text attributes under a name: it applies to a whole layer (**Style** property), to a paragraph (`{.name}` at the start of a line) or to a portion of text (`[text]{.name}`). Changing a style changes every card that uses it. A style can be based on another and inherit its attributes.
+A style groups text attributes under a name: it applies to a paragraph (`{.name}` at the start of a line) or to a portion of text (`[text]{.name}`). Changing a style changes every card that uses it. A style can be based on another and inherit its attributes.
 
 `heading1`, `heading2` and `note` exist in every project and match `#`, `##` and `>`; they can be redefined.
 

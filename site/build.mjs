@@ -78,6 +78,8 @@ for (const f of ['style.css', 'site.js', 'contact.js']) cpSync(`${here}${f}`, `$
 cpSync(`${here}fonts`, `${out}/fonts`, { recursive: true })
 // pagina nascosta con i conteggi dei download (nessun link dal sito, noindex)
 cpSync(`${here}dcount`, `${out}/dcount`, { recursive: true })
+// i progetti dimostrativi dei video di approfondimento (creati da scripts/video/progetto-*.mjs)
+cpSync(`${here}progetti`, `${out}/progetti`, { recursive: true })
 for (const f of ['stella.svg', 'predigarama.png']) cpSync(`${here}img/${f}`, `${out}/img/${f}`)
 for (const [lang, dir] of [
   ['it', 'guida'],
@@ -159,7 +161,15 @@ for (const lang of ['it', 'en']) {
                 .join('\n')
               // a fisarmonica: con lo stesso name si apre un gruppo alla volta; Inizia qui parte aperto
               const count = `${items.length} ${lang === 'en' && items.length > 1 ? 'videos' : 'video'}`
-              return `<details class="video-group${key === 'start' ? ' start' : ''}" name="video-groups"${key === 'start' ? ' open' : ''}><summary><h3>${esc(title)} <span class="count">(${count})</span></h3><p class="group-text">${esc(text)}</p></summary><div class="videos">${cards}</div></details>`
+              // i progetti da scaricare stanno sotto le copertine: un link dentro il link del video non si può
+              const projects = items
+                .filter((v) => v.project)
+                .map(
+                  (v) =>
+                    `<p class="video-project"><a href="${t.root}${v.project[lang]}" download>${esc(t.tutorial.project.replace('{n}', v.n))}</a></p>`
+                )
+                .join('')
+              return `<details class="video-group${key === 'start' ? ' start' : ''}" name="video-groups"${key === 'start' ? ' open' : ''}><summary><h3>${esc(title)} <span class="count">(${count})</span></h3><p class="group-text">${esc(text)}</p></summary><div class="videos">${cards}</div>${projects}</details>`
             })
             .join('\n')
         : `<p>${esc(t.tutorial.soon)}</p>`,
