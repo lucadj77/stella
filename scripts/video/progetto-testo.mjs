@@ -168,19 +168,13 @@ const PORTS = {
   ]
 }
 
-export async function make(dest, lang) {
-  const it = lang === 'it'
-  const L = (a, b) => (it ? a : b)
-  const N = names(lang)
-  const C = N.C
-  rmSync(dest, { recursive: true, force: true })
-  for (const d of ['data', 'templates', 'assets/icons'])
-    mkdirSync(join(dest, d), { recursive: true })
-
+/** scrive le icone di game-icons.net in assets/icons, con i crediti in assets/sources.json */
+export function writeIcons(dest, icons) {
+  mkdirSync(join(dest, 'assets/icons'), { recursive: true })
   const catalog = JSON.parse(readFileSync(join(REPO, 'resources/catalogs/game-icons.json'), 'utf8'))
   const paths = new Map(catalog.icons.map((i) => [i[0], i[1]]))
   const sources = {}
-  for (const [name, id] of Object.entries(ICONS[lang])) {
+  for (const [name, id] of Object.entries(icons)) {
     const d = paths.get(id)
     if (!d) throw new Error('icona mancante: ' + id)
     writeFileSync(
@@ -200,6 +194,18 @@ export async function make(dest, lang) {
     }
   }
   writeFileSync(join(dest, 'assets/sources.json'), JSON.stringify(sources, null, 2))
+}
+
+export async function make(dest, lang) {
+  const it = lang === 'it'
+  const L = (a, b) => (it ? a : b)
+  const N = names(lang)
+  const C = N.C
+  rmSync(dest, { recursive: true, force: true })
+  for (const d of ['data', 'templates', 'assets/icons'])
+    mkdirSync(join(dest, d), { recursive: true })
+
+  writeIcons(dest, ICONS[lang])
 
   const action = {
     name: N.tAction,
