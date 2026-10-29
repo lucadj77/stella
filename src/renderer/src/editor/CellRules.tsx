@@ -257,12 +257,7 @@ export default function CellRules({
           </div>
         )
       })}
-      <button
-        type="button"
-        onClick={() =>
-          onChange([...rules, { when: '=INLIST({cell.index}; "1, 2, 3")', fill: '#C62828' }])
-        }
-      >
+      <button type="button" onClick={() => onChange([...rules, { when: '' }])}>
         {t('editor.cellRuleAdd')}
       </button>
       {picking !== null && rules[picking] && (
