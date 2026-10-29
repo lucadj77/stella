@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.8.0-beta.1
+
+### English
+
+- **New version number**: the betas 1.7.1-beta.1, beta.2 and beta.3 add new features (number format per language, cell rules for grids, INLIST), so they become the 1.8 series. This beta has the same content as 1.7.1-beta.3; the next stable release will be 1.8.0.
+
+### Italiano
+
+- **Nuovo numero di versione**: le beta 1.7.1-beta.1, beta.2 e beta.3 aggiungono funzionalità nuove (formato dei numeri per lingua, regole delle caselle nelle griglie, INLIST), quindi diventano la serie 1.8. Questa beta ha lo stesso contenuto della 1.7.1-beta.3; la prossima versione stabile sarà la 1.8.0.
+
 ## 1.7.1-beta.3
 
 ### English
