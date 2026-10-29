@@ -1091,6 +1091,8 @@ export const it: Record<MessageKey, string> = {
     'La variabile "{name}" ha lo stesso nome di una colonna: {{name}} mostra la cella, non la variabile. Rinomina la variabile o la colonna',
   'bind.gridContent': 'Griglia {layer}: non c\'è un gruppo "{group}" da ripetere nelle caselle',
   'bind.formulaError': 'Livello {layer}: errore nella formula: {error}',
+  'bind.cellRuleError':
+    'Griglia {layer}, regola delle caselle {rule}: errore nella formula: {error}',
   'bind.markup': 'Livello {layer}: {problem}',
   'bind.unknownRef': "Livello {layer}: {{name}} non è un campo né un'immagine degli asset",
   'bind.missingVariableImage':
@@ -2563,6 +2565,24 @@ export const it: Record<MessageKey, string> = {
   'editor.gridContentNone': '(nessuno)',
   'editor.gridContentPlace': 'Porta nella prima casella',
   'editor.gridContentNoGroups': 'Raggruppa prima alcuni livelli, poi scegli qui il gruppo.',
+  'editor.cellRules': 'Regole delle caselle',
+  'editor.cellRulesHelp':
+    "Cambia l'aspetto di alcune caselle: dove la condizione è vera la casella prende il riempimento, il contorno o il raggio della regola, oppure si nasconde. Le regole valgono in ordine e una regola dopo prevale. Nella condizione usa {cell.index}, {cell.row}, {cell.column} e i campi del componente, per esempio ={cell.row} = 1 oppure =MOD({cell.index}; 5) = 0.",
+  'editor.cellRulesNone': 'Nessuna regola: tutte le caselle sono uguali.',
+  'editor.cellRule': 'Regola {n}',
+  'editor.cellRuleUp': 'Sposta su',
+  'editor.cellRuleDown': 'Sposta giù',
+  'editor.cellRuleRemove': 'Elimina la regola',
+  'editor.cellRuleWhen': 'Quando',
+  'editor.cellRuleMatches': 'Nel primo componente vale per {n} caselle su {count}.',
+  'editor.cellRuleEmpty': 'Scrivi una condizione, o costruiscila con fx.',
+  'editor.cellRuleFill': 'Cambia il riempimento',
+  'editor.cellRuleStroke': 'Cambia il contorno',
+  'editor.cellRuleRadius': 'Cambia il raggio degli angoli',
+  'editor.cellRuleHidden': 'Nascondi la casella',
+  'editor.cellRuleHiddenHint': 'La casella, il suo contenuto e il suo snap point non si disegnano',
+  'editor.cellRuleAdd': '+ Aggiungi una regola',
+  'editor.cellRuleFx': 'Assistente formule: regola delle caselle {n}',
   'editor.gridContentFields':
     'Dentro il gruppo: {cell.index} (1, 2, 3...), {cell.row}, {cell.column}, {cell.count} (numero di caselle), {cell.random} (fisso per ogni componente). Formula di esempio: =IF(MOD({cell.index}; 10) = 0; "bold"; "normal") oppure =PICK({cell.index}; "a"; "b"; "c").',
   'fx.open': 'Assistente formule: costruisci la formula passo per passo',

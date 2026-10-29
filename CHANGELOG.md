@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.7.1-beta.3
+
+### English
+
+- **Cell rules for grids**: a grid has a new **Cell rules** section. Each rule has a condition and changes, where it is true, the fill, the outline or the corner radius of the cell, or hides it (with its content and its snap point). Conditions are formulas with `{cell.index}`, `{cell.row}`, `{cell.column}` and the component fields, built with the formula assistant if you like: `=MOD({cell.index}; 5) = 0` colours one cell in five, `={cell.row} = {row}` highlights a row chosen in the sheet, hidden cells make irregular boards. Rules work with every cell shape, hexagons and outlines from images included. Projects without rules do not change.
+
+### Italiano
+
+- **Regole delle caselle nelle griglie**: una griglia ha la nuova sezione **Regole delle caselle**. Ogni regola ha una condizione e, dove è vera, cambia il riempimento, il contorno o il raggio degli angoli della casella, oppure la nasconde (con il suo contenuto e il suo snap point). Le condizioni sono formule con `{cell.index}`, `{cell.row}`, `{cell.column}` e i campi del componente, da costruire anche con l'assistente formule: `=MOD({cell.index}; 5) = 0` colora una casella ogni cinque, `={cell.row} = {riga}` mette in evidenza una riga scelta nel foglio, le caselle nascoste fanno plance irregolari. Le regole valgono con tutte le forme di casella, compresi esagoni e contorni presi da un'immagine. I progetti senza regole non cambiano.
+
 ## 1.7.1-beta.2
 
 ### English

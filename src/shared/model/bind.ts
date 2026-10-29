@@ -5,7 +5,7 @@ import { isGradient, mapGradientColors } from './gradient'
 import { resolveAsset } from './assets'
 import { parseCrop } from './crop'
 import { isGenericFont, markupFonts } from './fonts'
-import { evaluateFormula, type FormulaNumbers } from './formula'
+import { evaluateFormula, truthy, type FormulaNumbers } from './formula'
 import { localizeNumber } from './number'
 import type { NumberFormatting } from './numberFormat'
 import { markupProblems, markupRefs } from './markup'
@@ -25,6 +25,8 @@ import {
 } from './variables'
 import {
   PRIMARY_PROPERTY,
+  type CellLook,
+  type GridLayer,
   type GroupLayer,
   type Layer,
   type Side,
@@ -110,6 +112,62 @@ function localizeSystem(system?: SystemInfo, loc?: Localization): SystemInfo | u
 /** Una formula con = (logica e calcoli) usa i valori della lingua principale */
 function isExpression(expr: string): boolean {
   return expr.trimStart().startsWith('=')
+}
+
+/**
+ * Aspetto di ogni casella secondo le regole della griglia, in ordine: una regola dopo prevale.
+ * Le condizioni leggono i campi della carta e quelli della casella; una casella nascosta
+ * nasconde anche il suo contenuto. I problemi si segnalano dalla prima casella.
+ */
+function applyCellRules(
+  grid: GridLayer,
+  fields: Record<string, string>,
+  say: (m: Message) => void,
+  numbers?: NumberFormatting,
+  card = 0
+): GridLayer {
+  const { rows, columns } = gridSize(grid)
+  const count = rows * columns
+  const base: CellLook = {
+    fill: grid.fill,
+    stroke: grid.stroke,
+    radius: grid.radius,
+    hidden: false
+  }
+  const looks = Array.from({ length: count }, (_, i) => {
+    const f = { ...fields, ...cellFields(grid.name, i, columns, count, card) }
+    let look = base
+    grid.cellRules.forEach((rule, k) => {
+      const when = rule.when.trim()
+      if (!when) return
+      const r = evaluateFormula(
+        when.startsWith('=') ? when : `=${when}`,
+        f,
+        formulaNumbers(numbers)
+      )
+      if (i === 0) {
+        const layer = `${grid.name} (${k + 1})`
+        for (const field of r.missing) say(msg('bind.formulaField', { layer, field }))
+        if (r.error)
+          say(msg('bind.cellRuleError', { layer: grid.name, rule: k + 1, error: r.error }))
+      }
+      if (r.error || !truthy(r.value)) return
+      look = {
+        fill: rule.fill !== undefined ? rule.fill : look.fill,
+        stroke: rule.stroke !== undefined ? rule.stroke : look.stroke,
+        radius: rule.radius ?? look.radius,
+        hidden: rule.hidden ?? look.hidden
+      }
+    })
+    return look
+  })
+  return {
+    ...grid,
+    looks,
+    ...(grid.cells && {
+      cells: grid.cells.map((c, i) => (looks[i]?.hidden ? { ...c, visible: false } : c))
+    })
+  }
 }
 
 /**
@@ -318,6 +376,8 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
               out = { ...out, cells }
             }
           }
+          if (out.type === 'grid' && out.cellRules?.length)
+            out = applyCellRules(out, fields, say, nums, system?.number)
           // i tag dello snap point possono leggere i campi: {tipo}
           if (out.snap?.tags.includes('{'))
             out = { ...out, snap: { ...out.snap, tags: substituteFields(out.snap.tags, fields) } }
@@ -668,6 +728,13 @@ function paintLayer(
         shadow,
         fill: l.fill && (isGradient(l.fill) ? mapGradientColors(l.fill, paint) : paint(l.fill)),
         stroke: stroke(l.stroke),
+        ...(l.looks && {
+          looks: l.looks.map((k) => ({
+            ...k,
+            fill: k.fill && (isGradient(k.fill) ? mapGradientColors(k.fill, paint) : paint(k.fill)),
+            stroke: stroke(k.stroke)
+          }))
+        }),
         background:
           l.background &&
           (isGradient(l.background) ? mapGradientColors(l.background, paint) : paint(l.background)),

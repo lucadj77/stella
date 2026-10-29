@@ -1,5 +1,5 @@
 import type { Sheet } from '../project'
-import { evaluateFormula } from './formula'
+import { evaluateFormula, truthy } from './formula'
 
 // Generatore di carte: da alcuni insiemi di valori crea le righe di un set con tutte le
 // combinazioni. Ogni colonna sceglie `pick` valori dal suo insieme (con o senza ripetizioni,
@@ -369,11 +369,6 @@ function generateRandom(spec: GeneratorSpec, o: RandomOptions): GeneratedCards {
     rows.push([...values, copiesOf(spec)])
   }
   return { headers, rows, total: count, truncated: false, ...(filterError ? { filterError } : {}) }
-}
-
-function truthy(v: string): boolean {
-  const s = v.trim().toLowerCase()
-  return s !== '' && s !== '0' && s !== 'false' && s !== 'no'
 }
 
 /** Come entrano le carte generate nel set */

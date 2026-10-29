@@ -1,4 +1,4 @@
-import { useContext, useId, useLayoutEffect, useRef, useState } from 'react'
+import { Fragment, useContext, useId, useLayoutEffect, useRef, useState } from 'react'
 import { arrangeGroup } from '../../../shared/model/arrange'
 import { smoothStops } from './smoothGradient'
 import { resolveAsset } from '../../../shared/model/assets'
@@ -24,6 +24,7 @@ import {
   type Gradient
 } from '../../../shared/model/gradient'
 import type {
+  CellLook,
   Fade,
   GridLayer,
   GroupLayer,
@@ -488,6 +489,31 @@ function paintOf(
  * Griglia di caselle: lo sfondo col bordo, le caselle, poi il contenuto di ogni casella (il
  * gruppo scelto, legato alla casella e spostato dalla prima casella alla sua)
  */
+/**
+ * Le caselle raggruppate per aspetto, un tracciato per gruppo: senza regole un gruppo solo.
+ * Le caselle nascoste non si disegnano; un raggio diverso ridisegna le sue caselle
+ */
+function cellGroups(l: GridLayer, cells: string[]): { look: CellLook; d: string }[] {
+  const plain: CellLook = { fill: l.fill, stroke: l.stroke, radius: l.radius, hidden: false }
+  if (!l.looks) return [{ look: plain, d: cells.join('') }]
+  const byRadius = new Map<number, string[]>([[l.radius, cells]])
+  const shaped = (radius: number): string[] => {
+    let c = byRadius.get(radius)
+    if (!c) byRadius.set(radius, (c = gridGeometry({ ...l, radius }).cells))
+    return c
+  }
+  const groups = new Map<string, { look: CellLook; d: string }>()
+  cells.forEach((_, i) => {
+    const look = l.looks?.[i] ?? plain
+    if (look.hidden) return
+    const key = JSON.stringify([look.fill, look.stroke, look.radius])
+    const g = groups.get(key) ?? { look, d: '' }
+    g.d += shaped(look.radius)[i] ?? ''
+    groups.set(key, g)
+  })
+  return [...groups.values()]
+}
+
 function GridView({
   layer: l,
   id,
@@ -502,12 +528,15 @@ function GridView({
   // tutto si disegna spostato nell'angolo del livello: sfumature e ritaglio partono da 0, 0
   const box = { x: 0, y: 0, w: l.w, h: l.h }
   const back = paintOf(l.background, `${id}-bg`, box)
-  const cell = paintOf(l.fill, `${id}-fill`, box)
   const r = Math.max(0, Math.min(l.backgroundRadius, b.w / 2, b.h / 2))
+  const groups = cellGroups(l, cells)
+  const paints = groups.map((g, k) => paintOf(g.look.fill, `${id}-fill${k || ''}`, box))
   return (
     <>
       {back.def}
-      {cell.def}
+      {paints.map((p, k) => (
+        <Fragment key={k}>{p.def}</Fragment>
+      ))}
       {l.clip && (
         <defs>
           <clipPath id={`${id}-clip`}>
@@ -528,13 +557,17 @@ function GridView({
               {...strokeProps(l.border)}
             />
           )}
-          {(l.fill || l.stroke) && (
-            <path
-              d={cells.join('')}
-              fill={cell.fill}
-              strokeLinejoin="round"
-              {...strokeProps(l.stroke)}
-            />
+          {groups.map(
+            ({ look, d }, k) =>
+              (look.fill || look.stroke) && (
+                <path
+                  key={k}
+                  d={d}
+                  fill={paints[k].fill}
+                  strokeLinejoin="round"
+                  {...strokeProps(look.stroke)}
+                />
+              )
           )}
         </g>
         {first &&

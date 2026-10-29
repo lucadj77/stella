@@ -59,7 +59,9 @@ export function snapPoints(layers: Layer[]): SnapPoint[] {
       const tags = parseTags(l.snap.tags)
       const centers =
         l.type === 'grid'
-          ? gridGeometry(l).centers.map((c) => ({ x: l.x + c.x, y: l.y + c.y }))
+          ? gridGeometry(l)
+              .centers.filter((_, i) => !l.looks?.[i]?.hidden)
+              .map((c) => ({ x: l.x + c.x, y: l.y + c.y }))
           : [{ x: l.x + l.w / 2, y: l.y + l.h / 2 }]
       for (const c of centers) {
         const p = place(c)

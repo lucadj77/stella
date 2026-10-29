@@ -250,6 +250,35 @@ export interface GridLayer extends LayerBase {
   content: string
   /** Solo sulla carta disegnata: il gruppo del contenuto legato a ogni casella, in ordine */
   cells?: GroupLayer[]
+  /**
+   * Regole delle caselle, in ordine: dove la condizione è vera la casella cambia riempimento,
+   * contorno, raggio o si nasconde. Una regola dopo prevale su una prima
+   */
+  cellRules: CellRule[]
+  /** Solo sulla carta disegnata: l'aspetto di ogni casella dopo le regole, in ordine */
+  looks?: CellLook[]
+}
+
+/**
+ * Una regola delle caselle di una griglia. Le proprietà assenti restano come le dà la griglia
+ * (o una regola prima); null toglie il riempimento o il contorno
+ */
+export interface CellRule {
+  /** Condizione, una formula con {cell.index}, {cell.row}, {cell.column} e i campi della carta */
+  when: string
+  fill?: string | null
+  stroke?: Stroke | null
+  radius?: number
+  /** La casella non si disegna, né il suo contenuto né il suo snap point */
+  hidden?: boolean
+}
+
+/** Come si disegna una casella sulla carta */
+export interface CellLook {
+  fill: string | null
+  stroke: Stroke | null
+  radius: number
+  hidden: boolean
 }
 
 export type GroupLayout = 'none' | 'row' | 'column' | 'grid'

@@ -115,7 +115,8 @@ const GRID_DEFAULTS: Omit<GridLayer, keyof LayerBase | 'type'> = {
   background: null,
   border: null,
   backgroundRadius: 0,
-  content: ''
+  content: '',
+  cellRules: []
 }
 
 let idCounter = 0

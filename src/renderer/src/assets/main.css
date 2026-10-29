@@ -6932,6 +6932,31 @@ button.more-button {
   margin: 4px 0;
 }
 
+/* regole delle caselle della griglia: un riquadro per regola */
+.cell-rule {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin: 6px 0;
+}
+
+.cell-rule-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.cell-rule-tools {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.cell-rule-tools button {
+  min-width: 30px;
+  padding: 2px 8px;
+}
+
 /* modo avanzato: funzioni annidate chiuse in una riga, apertura da sola e percorso */
 .fx-node-top {
   display: inline-flex;

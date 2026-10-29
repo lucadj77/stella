@@ -57,6 +57,12 @@ export function evaluateFormula(
   }
 }
 
+/** Il risultato di una condizione: vuoto, 0, FALSE e no valgono falso */
+export function truthy(v: string): boolean {
+  const s = v.trim().toLowerCase()
+  return s !== '' && s !== '0' && s !== 'false' && s !== 'no'
+}
+
 function formatNumber(n: number): string {
   return writeNumber(n, shownFormat)
 }
