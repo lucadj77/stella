@@ -558,10 +558,10 @@ export const videos = [
       it: 'Le formule costruite a parole, senza scriverle a mano.',
       en: 'Formulas built in plain words, without typing them.'
     },
-    minutes: 12,
+    minutes: 11,
     url: {
-      it: 'https://www.youtube.com/watch?v=azgDlcktVfk',
-      en: 'https://www.youtube.com/watch?v=V2qYi4r4uJA'
+      it: 'https://www.youtube.com/watch?v=z-LHAFi0z3Y',
+      en: 'https://www.youtube.com/watch?v=5Go9c8dgOSc'
     }
   },
   {

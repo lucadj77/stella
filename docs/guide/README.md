@@ -23,7 +23,7 @@ Video tutorials on YouTube, no voice ([whole playlist](https://www.youtube.com/p
 **Text and formulas**
 
 - 4 · [Text, icons, styles and formulas](https://www.youtube.com/watch?v=SKoi6EaFY6k) (5 minutes)
-- 13 · [The formula assistant](https://www.youtube.com/watch?v=V2qYi4r4uJA) (12 minutes)
+- 13 · [The formula assistant](https://www.youtube.com/watch?v=5Go9c8dgOSc) (11 minutes)
 
 **Data and languages**
 
