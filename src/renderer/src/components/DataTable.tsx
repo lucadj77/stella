@@ -36,6 +36,8 @@ interface Props {
   sort?: { column: string | null; desc: boolean }
   /** Clic sull'intestazione: ordina per quella colonna */
   onSort?(column: string): void
+  /** Il pulsante che aggiunge una riga, come lo scrive il set: «+ Carta», «+ Segnalino» */
+  addLabel?: string
 }
 
 interface Cell {
@@ -59,7 +61,8 @@ function DataTable({
   onChange,
   rows: shown,
   sort,
-  onSort
+  onSort,
+  addLabel
 }: Props): React.JSX.Element {
   const { t } = useI18n()
   const [active, setActive] = useState<Cell | null>(null)
@@ -326,7 +329,11 @@ function DataTable({
           })}
         </tbody>
       </table>
-      {sheet.rows.length === 0 && <p className="muted table-empty">{t('table.empty')}</p>}
+      {sheet.rows.length === 0 && (
+        <p className="muted table-empty">
+          {t('table.empty', { add: addLabel ?? t('kind.card.add') })}
+        </p>
+      )}
       {sheet.rows.length > 0 && rows.length === 0 && (
         <p className="muted table-empty">{t('table.noMatch')}</p>
       )}

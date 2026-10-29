@@ -38,6 +38,8 @@ import {
   syncDerived
 } from '../../shared/model/inherit'
 import type { GroupLayer, Layer, Side, Template } from '../../shared/model/template'
+import { kindOf } from '../../shared/model/template'
+import { KindIcon } from './export/exportIcons'
 import type { Bounds } from '../../shared/model/edit'
 import {
   addColumn,
@@ -1928,6 +1930,10 @@ function App(): React.JSX.Element {
                     {...sidebarPreview.bind({ kind: 'set', index: i })}
                   >
                     <span>
+                      <KindIcon
+                        kind={kindOf(project.templates.find((x) => x.name === s.template))}
+                        size={16}
+                      />
                       {s.name}
                       {s.data && dirtySheets.has(s.data.name) && (
                         <span className="dirty-dot" title={t('app.unsaved')} />
@@ -1980,6 +1986,7 @@ function App(): React.JSX.Element {
                     {...sidebarPreview.bind({ kind: 'template', name: tpl.name })}
                   >
                     <span>
+                      <KindIcon kind={kindOf(tpl)} size={16} />
                       {tpl.name}
                       {dirty.has(tpl.name) && (
                         <span className="dirty-dot" title={t('app.unsaved')} />
@@ -3607,7 +3614,10 @@ function SetView({
       )}
       <section className="content" ref={contentRef}>
         <div className="set-header">
-          <h1>{set.name}</h1>
+          <h1>
+            <KindIcon kind={kindOf(template)} size={24} />
+            {set.name}
+          </h1>
           <Menu className="more-button" label="⋯" title={t('app.more')} items={menu} />
 
           <span className="muted set-template">
@@ -3854,6 +3864,7 @@ function SetView({
             rows={order}
             sort={{ column: rowView.sort, desc: rowView.desc }}
             onSort={sortBy}
+            addLabel={words.add}
           />
         ) : (
           <CardGrid

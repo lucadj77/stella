@@ -5,6 +5,20 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.7.1-beta.2
+
+### English
+
+- **Components, not only cards**: buttons, tooltips, messages and windows say "components" wherever they mean every kind (cards, tokens, tiles, boards, dice and standees), for example **Value on components**, **Component name**, **Insert component** and **Anatomy** in documents, **Generate components**. Where the set is known, the words follow its kind, as in **+ Token** or "8 tokens". The guide uses the new names.
+- **Kind icons**: the sidebar shows the icon of the component kind (the same one used in Export and in the new template window) next to every template and set, and the set page shows it next to the set's name.
+- **Eyedropper without the dark veil**: while you pick a color with the eyedropper, the dark background of the open window (for example the formula window) disappears, so the color you pick is the real one.
+
+### Italiano
+
+- **Componenti, non solo carte**: pulsanti, suggerimenti, messaggi e finestre dicono «componenti» dove si intendono tutti i tipi (carte, segnalini, tessere, plance, dadi e pedine), per esempio **Valore sui componenti**, **Nome dei componenti**, **Inserisci componente** e **Anatomia** nei documenti, **Genera componenti**. Dove il set è noto le parole seguono il suo tipo, come in **+ Segnalino** o «8 segnalini». La guida usa i nomi nuovi.
+- **Icone dei tipi**: nella barra laterale ogni template e ogni set ha accanto l'icona del tipo di componente (la stessa dell'esportazione e della finestra del nuovo template), e la pagina del set la mostra accanto al nome.
+- **Contagocce senza velo scuro**: mentre scegli un colore con il contagocce, lo sfondo scuro della finestra aperta (per esempio quella delle formule) sparisce, così il colore preso è quello vero.
+
 ## 1.7.1-beta.1
 
 ### English
