@@ -355,7 +355,7 @@ const FUNCTIONS: Record<string, Fn> = {
    * ognuna: DEAL("spada"; 4; "scudo"; "3-5"; "mano"; ""). La quantità è un numero (esatta), un
    * intervallo ("3-5", "2-" almeno, "-3" al massimo) o vuota (quante servono). Prima si mettono i
    * minimi, poi le caselle che restano prendono voci a caso fino ai massimi; le caselle in più
-   * restano vuote. Le posizioni sono mescolate, uguali a ogni disegno della stessa carta
+   * restano vuote, in posti a caso. Le posizioni sono mescolate, uguali a ogni disegno della stessa carta
    */
   DEAL: (a, fields) => {
     const index = Number(fields['cell.index'] ?? NaN)
@@ -407,6 +407,8 @@ const FUNCTIONS: Record<string, Fn> = {
       left--
     }
     const bag = items.flatMap((x, k) => Array<string>(times[k]).fill(x.value))
+    // le caselle che restano senza voce si mescolano con le altre
+    while (bag.length < total) bag.push('')
     for (let i = bag.length - 1; i > 0; i--) {
       const j = Math.floor(rand() * (i + 1))
       ;[bag[i], bag[j]] = [bag[j], bag[i]]

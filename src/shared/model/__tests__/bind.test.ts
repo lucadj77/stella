@@ -431,6 +431,10 @@ describe('contenuto della griglia', () => {
     expect(mixed.b).toBeGreaterThanOrEqual(2)
     expect(mixed.b).toBeLessThanOrEqual(3)
     expect(mixed.a + mixed.b + mixed.c).toBe(16)
+    // con meno voci che caselle le vuote sono mescolate, non tutte in fondo
+    const few = make('=DEAL("a"; 2; "b"; 2)')
+    expect(tally(few)).toEqual({ a: 2, b: 2, '': 12 })
+    expect(few.slice(0, 12).some((x) => x !== '')).toBe(true)
     // le caselle nascoste non prendono voci: 12 caselle, 3 per voce
     const hidden = make('=DEAL("a"; 3; "b"; 3; "c"; 3; "d"; 3)', 1, '1-4')
     expect(hidden.slice(0, 4)).toEqual(['', '', '', ''])

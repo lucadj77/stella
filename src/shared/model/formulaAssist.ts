@@ -18,7 +18,8 @@ export const FORMULA_CATEGORIES = ['condition', 'selection', 'math', 'text', 're
 export type FormulaCategory = (typeof FORMULA_CATEGORIES)[number]
 
 /** Cosa ci si aspetta in una casella: decide la scheda che si apre per prima */
-export type SlotKind = 'condition' | 'number' | 'text' | 'value' | 'result'
+/** times: quante volte, un numero o un intervallo come "3-5" (DEAL) */
+export type SlotKind = 'condition' | 'number' | 'times' | 'text' | 'value' | 'result'
 
 export interface ArgSpec {
   /** Etichetta: chiave fx.arg.<key> */
@@ -717,7 +718,7 @@ const dealing: SentenceTemplate = {
       txt('fx.s.deal'),
       ...n.args.flatMap((_, i) =>
         i % 2
-          ? [txt('fx.s.dealTimes'), blank([i], 'text', 'fx.b.dealTimes')]
+          ? [txt('fx.s.dealTimes'), blank([i], 'times', 'fx.b.dealTimes')]
           : [...(i ? [txt('fx.s.comma')] : []), blank([i], 'result', 'fx.b.item')]
       ),
       { add: [], label: 'fx.addItem', pair: true }
