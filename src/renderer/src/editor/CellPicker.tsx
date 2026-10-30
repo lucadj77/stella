@@ -37,6 +37,7 @@ export default function CellPicker({
   return (
     <Dialog title={t('cellPicker.title')} onClose={onClose}>
       <p className="muted small">{t('cellPicker.hint')}</p>
+      <p className="muted small">{t('cellPicker.index')}</p>
       <svg
         className="cell-picker"
         viewBox={`${b.x - 1} ${b.y - 1} ${b.w + 2} ${b.h + 2}`}

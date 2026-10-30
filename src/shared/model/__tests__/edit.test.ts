@@ -22,7 +22,7 @@ import {
   uniqueName
 } from '../edit'
 import { normalizeTemplate, walkLayers } from '../normalize'
-import type { GridLayer, GroupLayer, Template, TextLayer } from '../template'
+import type { GridLayer, GroupLayer, Layer, Template, TextLayer } from '../template'
 
 const base = normalizeTemplate({
   name: 't',
@@ -428,6 +428,31 @@ describe('contenuto della griglia dalla lista', () => {
     const inside = (out.front[0] as GridLayer).groups[0].children[0]
     expect(inside.id).toBe(layer.id)
     expect(inside).toMatchObject({ w: 20, h: 20 })
+  })
+
+  it('rinominare un gruppo o un livello del contenuto non stacca la griglia', () => {
+    const base = make()
+    let t = attachGridGroup(base, 'front', base.front[1].id, 'content', base.front[0] as GroupLayer)
+    t = attachGridGroup(t, 'front', t.front[0].id, 0, {
+      ...(base.front[0] as GroupLayer),
+      id: 'r',
+      name: 'altro'
+    })
+    t = patchLayer(t, 'front', t.front[0].id, {
+      cellRules: [{ when: '=MOD({p}; 2) = 0', content: 'altro', values: { p: '1' } }]
+    } as Partial<Layer>)
+    const g0 = t.front[0] as GridLayer
+    t = patchLayer(t, 'front', g0.groups[0].id, { name: 'pezzo2' })
+    t = patchLayer(t, 'front', 'r', { name: 'altro2' })
+    const p = walkLayers((t.front[0] as GridLayer).groups).find((l) => l.name === 'p')!
+    t = patchLayer(t, 'front', p.id, { name: 'q' })
+    const g = t.front[0] as GridLayer
+    expect(g.content).toBe('pezzo2')
+    expect(g.cellRules[0]).toMatchObject({
+      when: '=MOD({q}; 2) = 0',
+      content: 'altro2',
+      values: { q: '1' }
+    })
   })
 
   it('nel gruppo di una regola il livello nuovo va nella casella della regola', () => {

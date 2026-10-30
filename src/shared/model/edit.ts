@@ -99,6 +99,39 @@ export function updateLayers(t: Template, side: Side, fn: (l: Layer) => Layer): 
 }
 
 export function patchLayer(t: Template, side: Side, id: string, patch: Partial<Layer>): Template {
+  const before = patch.name !== undefined ? findLayer(t[side], id) : null
+  const out = patchOne(t, side, id, patch)
+  return before && patch.name && before.name !== patch.name
+    ? followGridRename(out, side, id, before.name, patch.name)
+    : out
+}
+
+/**
+ * Un gruppo della griglia o un livello del contenuto ha cambiato nome: la griglia lo segue nel
+ * contenuto, nei gruppi delle regole, nei valori delle regole e nelle condizioni ({nome})
+ */
+function followGridRename(t: Template, side: Side, id: string, from: string, to: string): Template {
+  const ref = new RegExp(`\\{${from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\}`, 'g')
+  return updateLayers(t, side, (l) => {
+    if (l.type !== 'grid' || !walkLayers(l.groups).some((x) => x.id === id)) return l
+    const g: GridLayer = {
+      ...l,
+      content: l.content.trim() === from ? to : l.content,
+      cellRules: l.cellRules.map((r) => {
+        const next = { ...r, when: r.when.replace(ref, `{${to}}`) }
+        if (r.content?.trim() === from) next.content = to
+        if (r.values && from in r.values)
+          next.values = Object.fromEntries(
+            Object.entries(r.values).map(([k, v]) => [k === from ? to : k, v])
+          )
+        return next
+      })
+    }
+    return placeGridGroups(g)
+  })
+}
+
+function patchOne(t: Template, side: Side, id: string, patch: Partial<Layer>): Template {
   return updateLayers(t, side, (l) => {
     if (l.id !== id) return l
     let next = { ...l, ...patch } as Layer

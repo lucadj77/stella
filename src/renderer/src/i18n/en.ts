@@ -2602,6 +2602,8 @@ export const en = {
   'cellPicker.title': 'Choose the cells',
   'cellPicker.hint':
     'Click the cells the rule applies to; drag to pick or drop several at once. The rule remembers the cell numbers: if you change the rows or columns of the grid, check it again.',
+  'cellPicker.index':
+    'The numbers you see here are the position of the cell in the grid ({cell.index}): from 1, row by row from left to right, hidden cells included. They are not the numbers the content writes in the cells, for example with a running number.',
   'cellPicker.count': '{n} cells: {list}',
   'cellPicker.none': 'No cells chosen.',
   'cellPicker.clear': 'None',
