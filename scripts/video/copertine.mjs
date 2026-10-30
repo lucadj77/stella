@@ -13,7 +13,7 @@ const SUBTITLES = {
   agente: ['Stella con un agente IA', 'Stella with an AI agent'],
   plance: ['Plance, tessere, segnalini e dadi', 'Boards, tiles, tokens and dice'],
   stampa: ['Stampare i componenti', 'Printing your components'],
-  griglie: ['Le griglie e le formule nelle caselle', 'Grids and cell formulas'],
+  griglie: ['Le griglie: caselle, numeri e regole', 'Grids: cells, numbers and rules'],
   genera: ["Generare le carte e dividere un'immagine", 'Generating cards and splitting an image'],
   backup: ['Backup e recupero', 'Backups and recovery'],
   veloce: ['Lavorare più veloce', 'Working faster'],
@@ -26,7 +26,9 @@ const SUBTITLES = {
   assistente: ['L’assistente formule', 'The formula assistant'],
   testo: ['Approfondimento: il testo', 'Deep dive: text'],
   variabili: ['Approfondimento: icone e variabili', 'Deep dive: icons and variables'],
-  valori: ['Approfondimento: due campi, tutta la carta', 'Deep dive: two fields, the whole card']
+  valori: ['Approfondimento: due campi, tutta la carta', 'Deep dive: two fields, the whole card'],
+  tabellone: ['Approfondimento: il tabellone', 'Deep dive: the game board'],
+  caso: ['Approfondimento: giocare con il caso', 'Deep dive: playing with chance']
 }
 if (!SUBTITLES[video]) throw new Error('video sconosciuto: ' + video)
 const subtitle = SUBTITLES[video][it ? 0 : 1]
