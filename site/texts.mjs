@@ -712,6 +712,24 @@ export const videos = [
       it: 'progetti/incontri.zip',
       en: 'progetti/encounters.zip'
     }
+  },
+  {
+    n: 24,
+    it: 'Approfondimento: il tabellone',
+    en: 'Deep dive: the game board',
+    about: {
+      it: 'Un tabellone da 38 cm pezzo per pezzo, la plancia giocatore, le pedine, la stampa a poster e Tabletop Simulator.',
+      en: 'A 38 cm board piece by piece, the player board, pawns, poster printing and Tabletop Simulator.'
+    },
+    minutes: 28,
+    url: {
+      it: 'https://www.youtube.com/watch?v=I2RtWcY2YWo',
+      en: 'https://www.youtube.com/watch?v=_Dvf3MXblf0'
+    },
+    project: {
+      it: 'progetti/tabellone.zip',
+      en: 'progetti/game-board.zip'
+    }
   }
 ]
 
@@ -724,7 +742,7 @@ export const videoGroups = {
   data: [10, 12],
   table: [9, 3, 19, 5],
   tools: [6, 17, 18],
-  deep: [20, 21, 22]
+  deep: [20, 21, 22, 24]
 }
 
 export const playlists = {
