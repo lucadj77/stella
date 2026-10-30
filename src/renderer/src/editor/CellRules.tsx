@@ -18,7 +18,7 @@ import { useI18n } from '../i18n/context'
 import type { MessageKey } from '../i18n/en'
 import { NumberSettingsContext, VariablesContext } from '../render/assets'
 import { CheckField, FillField, NumberField, StrokeField, TextField } from './fields'
-import CellPicker from './CellPicker'
+import CellPicker, { type PickerCell } from './CellPicker'
 import { cellsCondition, pickedCells } from '../../../shared/model/cellRules'
 import { Inherit } from './inheritance'
 
@@ -95,6 +95,24 @@ export default function CellRules({
       if (truthy(r.value) && !hidden.has(i + 1)) n++
     }
     return { n }
+  }
+
+  /** Come appare ogni casella nel componente d'esempio con le regole diverse dalla k */
+  const pickerCells = (k: number): PickerCell[] => {
+    const shown = contentCounters(l)[0]
+    return perCell.slice(0, count).map((f) => {
+      let fill = l.fill
+      let hidden = false
+      rules.forEach((r, j) => {
+        const expr = j === k ? '' : condition(r.when)
+        if (!expr) return
+        const v = evaluateFormula(expr, f, numbers && { decimalComma: numbers.decimalComma })
+        if (v.error || !truthy(v.value)) return
+        if (r.fill !== undefined) fill = r.fill
+        if (r.hidden !== undefined) hidden = r.hidden
+      })
+      return { fill, hidden, label: shown ? (f[shown] ?? '') : '' }
+    })
   }
 
   const change = (i: number, patch: Partial<CellRule>): void =>
@@ -372,6 +390,7 @@ export default function CellRules({
       {picking !== null && rules[picking] && (
         <CellPicker
           grid={l}
+          cells={pickerCells(picking)}
           selected={pickedCells(rules[picking].when) ?? []}
           onApply={(cells) => change(picking, { when: cellsCondition(cells) })}
           onClose={() => setPicking(null)}

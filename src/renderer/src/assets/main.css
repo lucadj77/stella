@@ -7093,12 +7093,26 @@ button.wide {
   fill: var(--accent-soft);
 }
 
-.cell-picker-cell.on path {
-  fill: var(--accent);
+.cell-picker-cell.hidden path {
+  fill: none;
+  stroke-dasharray: 1 0.8;
 }
 
-.cell-picker-cell.on text {
-  fill: #fff;
+.cell-picker-cell.hidden text {
+  fill: var(--muted);
+}
+
+/* la casella scelta: velo e bordo del colore dell'app sopra il suo aspetto */
+.cell-picker-cell path.cell-picker-mark {
+  fill: var(--accent);
+  fill-opacity: 0.45;
+  stroke: var(--accent);
+  stroke-width: 0.8;
+  stroke-dasharray: none;
+}
+
+.cell-picker-cell text.cell-picker-index {
+  fill: var(--muted);
 }
 
 .cell-rule-tools button {

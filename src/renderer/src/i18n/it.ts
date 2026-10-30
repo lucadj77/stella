@@ -2636,7 +2636,7 @@ export const it: Record<MessageKey, string> = {
   'cellPicker.hint':
     'Fai clic sulle caselle a cui si applica la regola; trascinando ne scegli o togli più di una alla volta. La regola ricorda i numeri delle caselle: se cambi righe o colonne della griglia, ricontrollala.',
   'cellPicker.index':
-    'I numeri che vedi qui sono la posizione della casella nella griglia ({cell.index}): da 1, riga per riga da sinistra a destra, contando anche le caselle nascoste. Non sono i numeri che il contenuto scrive nelle caselle, per esempio con il numero continuo.',
+    'La griglia è come nel primo componente, con le caselle nascoste tratteggiate. Il numero piccolo nell’angolo (o al centro, se la casella non ha contenuto) è la posizione della casella nella griglia, {cell.index}: da 1, riga per riga da sinistra a destra, contando anche le caselle nascoste. La regola ricorda queste posizioni, non i numeri che il contenuto scrive nelle caselle.',
   'cellPicker.count': '{n} caselle: {list}',
   'cellPicker.none': 'Nessuna casella scelta.',
   'cellPicker.clear': 'Nessuna',
