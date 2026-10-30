@@ -16,7 +16,7 @@ Video tutorials on YouTube, no voice ([whole playlist](https://www.youtube.com/p
 **Components**
 
 - 7 · [Boards, tiles, tokens and dice](https://www.youtube.com/watch?v=uFpBpGkuAYc) (9 minutes)
-- 8 · [Grids and cell formulas](https://www.youtube.com/watch?v=DgaXcUt2N-M) (14 minutes)
+- 8 · [Grids: cells, numbers and rules](https://www.youtube.com/watch?v=TtTKJ9p3pxA) (9 minutes)
 - 11 · [Images, icons and fonts](https://www.youtube.com/watch?v=Rw60_QDED9Q) (6 minutes)
 - 16 · [Generating cards and splitting an image](https://www.youtube.com/watch?v=p46_avMl4dU) (7 minutes)
 
