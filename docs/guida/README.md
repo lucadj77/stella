@@ -48,6 +48,7 @@ Video tutorial su YouTube, senza voce ([tutta la playlist](https://www.youtube.c
 - 20 · [Approfondimento: il testo](https://www.youtube.com/watch?v=zLVh4VNaADg) (13 minuti), con il [progetto «Mercanti» da scaricare](https://stella.lucadj.eu/progetti/mercanti.zip)
 - 21 · [Approfondimento: icone e variabili](https://www.youtube.com/watch?v=gYUayFjoemo) (11 minuti), con il [progetto «Contratti» da scaricare](https://stella.lucadj.eu/progetti/contratti.zip)
 - 22 · [Approfondimento: due campi, tutta la carta](https://www.youtube.com/watch?v=sOHOWDYIoPk) (10 minuti), con il [progetto «Incontri» da scaricare](https://stella.lucadj.eu/progetti/incontri.zip)
+- 24 · [Approfondimento: il tabellone](https://www.youtube.com/watch?v=I2RtWcY2YWo) (28 minuti), con il [progetto «Tabellone» da scaricare](https://stella.lucadj.eu/progetti/tabellone.zip)
 
 English version: [../guide/README.md](../guide/README.md).
 

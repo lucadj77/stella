@@ -529,6 +529,13 @@ await r.title(
   ),
   5200
 )
+await r.title(
+  t(
+    'Le copie di una carta sono identiche: il caso dipende dalla riga del foglio. Per griglie diverse, una riga per ogni carta',
+    'The copies of a card are identical: chance depends on the sheet row. For different grids, one row per card'
+  ),
+  5600
+)
 await r.clear()
 await r.click(saveButton(), { after: 600 })
 
