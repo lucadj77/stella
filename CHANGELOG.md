@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.8.1
+
+### English
+
+- **Empty cells stay empty**: an image layer whose formula gives nothing now shows no image, instead of the template's image. With `DEAL`, the cells left over (or an empty item with its quantity) were showing the template's icon; now they are really empty. Colors and other properties still go back to the template's value.
+
+### Italiano
+
+- **Le caselle vuote restano vuote**: un livello immagine la cui formula non dà nulla ora non mostra immagini, invece dell'immagine del template. Con `DEAL` le caselle che restavano (o una voce vuota con la sua quantità) mostravano l'icona del template; ora sono vuote davvero. Colori e altre proprietà tornano ancora al valore del template.
+
 ## 1.8.0
 
 ### English

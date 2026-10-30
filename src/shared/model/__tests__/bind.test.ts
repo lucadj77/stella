@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { bindCard, cellFields, parseValue, rowToCard, substituteFields } from '../bind'
 import { normalizeTemplate } from '../normalize'
-import type { GridLayer, ShapeLayer, TextLayer } from '../template'
+import type { GridLayer, ImageLayer, ShapeLayer, TextLayer } from '../template'
 import { gridGeometry } from '../grid'
 
 const template = normalizeTemplate({
@@ -555,13 +555,20 @@ describe('formula con risultato vuoto', () => {
         name: 'fondo',
         fill: '#2F5DA8',
         source: { kind: 'formula', expr: '=IF({forza} <= 4; "#A33A2A"; "")' }
+      },
+      {
+        type: 'image',
+        name: 'icona',
+        src: 'moneta.png',
+        source: { kind: 'formula', expr: '=IF({forza} <= 4; "spada.png"; "")' }
       }
     ]
   })
-  it('un testo resta vuoto, un colore torna quello del template', () => {
-    const [testo, fondo] = bindCard(tpl, rowToCard(['forza'], ['9'])).template.front
+  it('un testo e un\'immagine restano vuoti, un colore torna quello del template', () => {
+    const [testo, fondo, icona] = bindCard(tpl, rowToCard(['forza'], ['9'])).template.front
     expect((testo as TextLayer).text).toBe('')
     expect((fondo as ShapeLayer).fill).toBe('#2F5DA8')
+    expect((icona as ImageLayer).src).toBe('')
     const [pieno] = bindCard(tpl, rowToCard(['forza'], ['3'])).template.front
     expect((pieno as TextLayer).text).toBe('3')
   })

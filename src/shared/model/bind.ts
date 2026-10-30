@@ -301,9 +301,14 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
             for (const f of r.missing)
               say(msg('bind.formulaField', { layer: layer.name, field: f }))
             if (r.error) say(msg('bind.formulaError', { layer: layer.name, error: r.error }))
-            // un testo o un valore vuoto resta vuoto; per le altre proprietà (colore, immagine,
-            // numeri) un risultato vuoto lascia il valore del template
-            if (r.value.trim() !== '' || layer.type === 'text' || layer.type === 'value')
+            // un testo, un valore o un'immagine vuoti restano vuoti (DEAL lascia caselle vuote); per
+            // le altre proprietà (colore, numeri) un risultato vuoto lascia il valore del template
+            if (
+              r.value.trim() !== '' ||
+              layer.type === 'text' ||
+              layer.type === 'value' ||
+              layer.type === 'image'
+            )
               props.set('', r.value)
             else props.delete('')
           }
