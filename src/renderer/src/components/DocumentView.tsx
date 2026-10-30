@@ -42,10 +42,23 @@ import ImageDialog, { type DocImageValue } from './ImageDialog'
 import BoxDialog from './BoxDialog'
 import { boxStartLine, unwrapBox, wrapInBox, type DocBox } from '../../../shared/model/docBox'
 import DocumentProperties from './DocumentProperties'
-import { headingAt } from '../../../shared/model/docEdit'
+import { headingAt, toggleWrap } from '../../../shared/model/docEdit'
 import Menu from './Menu'
 import { runEdit } from './editRun'
 import FindBar from './FindBar'
+import Resizer from './Resizer'
+import { usePanelWidth } from './usePanelWidth'
+
+/** I passi dello zoom dell'anteprima, in percento */
+const ZOOM_STEPS = [25, 33, 50, 67, 75, 90, 100, 110, 125, 150, 175, 200, 250, 300, 400]
+
+/** Il passo di zoom dopo (o prima di) quello di ora; agli estremi resta dov'è */
+function zoomStep(zoom: number, dir: 1 | -1): number {
+  const now = Math.round(zoom * 100)
+  const next =
+    dir > 0 ? ZOOM_STEPS.find((z) => z > now) : [...ZOOM_STEPS].reverse().find((z) => z < now)
+  return next ?? now
+}
 
 // Un documento del progetto (docs/<nome>.md: regolamento, sell sheet, appendice): a sinistra il
 // testo in Markdown con il markup di Stella, a destra l'anteprima sempre visibile, con le carte
@@ -170,7 +183,44 @@ export default function DocumentView({
     return () => observer.disconnect()
   }, [])
   const pageWidth = DOC_PAGES[settings.page][0] * DOC_UNIT
-  const zoom = room ? Math.min(1, (room - 26) / pageWidth) : 1
+  const fit = room ? Math.min(1, (room - 26) / pageWidth) : 1
+  // lo zoom scelto, in percento; 0 è la pagina intera, che segue la larghezza dell'anteprima
+  const [zoomPct, setZoomPct] = usePanelWidth('document.zoom', 0)
+  const zoom = zoomPct ? zoomPct / 100 : fit
+  const zoomBy = (dir: 1 | -1): void => setZoomPct(zoomStep(zoom, dir))
+  // ⌘ o Ctrl con la rotella ingrandisce l'anteprima; serve un ascoltatore non passivo
+  useEffect(() => {
+    const box = preview.current
+    if (!box) return undefined
+    const onWheel = (e: WheelEvent): void => {
+      if (!e.metaKey && !e.ctrlKey) return
+      e.preventDefault()
+      setZoomPct(zoomStep(zoom, e.deltaY < 0 ? 1 : -1))
+    }
+    box.addEventListener('wheel', onWheel, { passive: false })
+    return () => box.removeEventListener('wheel', onWheel)
+  }, [zoom, setZoomPct])
+
+  // la larghezza del testo, trascinando il bordo con l'anteprima; 0 è metà e metà
+  const body = useRef<HTMLDivElement>(null)
+  const [bodyWidth, setBodyWidth] = useState(0)
+  useEffect(() => {
+    const box = body.current
+    if (!box) return undefined
+    const observer = new ResizeObserver(() => setBodyWidth(box.clientWidth))
+    observer.observe(box)
+    return () => observer.disconnect()
+  }, [])
+  const [editorWidth, setEditorWidth] = usePanelWidth('document.editor', 0)
+  // senza una larghezza scelta il testo prende metà dello spazio che resta alle due colonne
+  const settingsWidth = pageOpen ? 266 : 0
+  const halfWidth = Math.max(260, (bodyWidth - settingsWidth - 17) / 2)
+  const columns = [
+    editorWidth ? `${editorWidth}px` : 'minmax(0, 1fr)',
+    'auto',
+    'minmax(0, 1fr)',
+    ...(pageOpen ? ['260px'] : [])
+  ].join(' ')
 
   useEffect(() => {
     const el = editor.current
@@ -341,6 +391,12 @@ export default function DocumentView({
         className="content document-view"
         onKeyDown={(e) => {
           const mod = e.metaKey || e.ctrlKey
+          // ⌘/ mette o toglie il commento sulla selezione
+          if (mod && e.key === '/' && e.target === editor.current) {
+            e.preventDefault()
+            runEdit(editor.current, (s, a, b) => toggleWrap(s, a, b, '%%'))
+            return
+          }
           // ⌘F cerca; ⌥⌘F sul Mac e Ctrl+H altrove anche sostituiscono
           const replace =
             (e.code === 'KeyF' && e.metaKey && e.altKey && !e.shiftKey) ||
@@ -402,7 +458,7 @@ export default function DocumentView({
             {t('documents.exportButton')}
           </button>
         </div>
-        <div className={pageOpen ? 'document-body with-settings' : 'document-body'}>
+        <div className="document-body" ref={body} style={{ gridTemplateColumns: columns }}>
           <div className="document-editor">
             <DocumentProperties
               text={text}
@@ -423,6 +479,7 @@ export default function DocumentView({
             <MarkupTextarea
               ref={editor}
               fields={[]}
+              comments
               value={text}
               placeholder={t('documents.placeholder')}
               toolbar={(format) => (
@@ -467,7 +524,30 @@ export default function DocumentView({
               {t('documents.hint', { file: `${DOCUMENTS_DIR}/${name}.md` })}
             </p>
           </div>
+          <Resizer
+            width={editorWidth || halfWidth}
+            onChange={setEditorWidth}
+            edge="left"
+            min={260}
+            max={Math.max(260, bodyWidth - settingsWidth - 300)}
+          />
           <div className="document-preview" ref={preview}>
+            <div className="document-zoom" role="group" aria-label={t('documents.zoom')}>
+              <button type="button" title={t('documents.zoomOut')} onClick={() => zoomBy(-1)}>
+                −
+              </button>
+              <button
+                type="button"
+                className={zoomPct ? '' : 'active'}
+                title={t('documents.zoomFit')}
+                onClick={() => setZoomPct(0)}
+              >
+                {Math.round(zoom * 100)}%
+              </button>
+              <button type="button" title={t('documents.zoomIn')} onClick={() => zoomBy(1)}>
+                +
+              </button>
+            </div>
             <DocumentPreview
               text={text}
               project={project}

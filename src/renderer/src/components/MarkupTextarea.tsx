@@ -8,6 +8,7 @@ import {
   type Attrs,
   type MarkupProblem
 } from '../../../shared/model/markup'
+import { withoutComments } from '../../../shared/model/document'
 import { highlightMarkup, type HighlightKind } from '../../../shared/model/markupHighlight'
 import { suggestAt, type Suggestion, type SuggestionResult } from '../../../shared/model/markupHelp'
 import { useI18n } from '../i18n/context'
@@ -36,6 +37,7 @@ export default function MarkupTextarea({
   ref: outerRef,
   showProblems = true,
   toolbar,
+  comments = false,
   ...rest
 }: TextareaProps & {
   value: string
@@ -46,6 +48,8 @@ export default function MarkupTextarea({
   showProblems?: boolean
   /** Barra sopra il campo, che prende il posto del pulsante "Formatta…" sotto */
   toolbar?(format: FormatControl): React.ReactNode
+  /** Nei documenti: %% commento %% si colora come commento */
+  comments?: boolean
 }): React.JSX.Element {
   const { t } = useI18n()
   const assets = useContext(AssetsContext)
@@ -148,12 +152,13 @@ export default function MarkupTextarea({
     el.setSelectionRange(start, start + inner.length)
   }
 
-  const allProblems = markupProblems(value, styles, fields)
+  // nei documenti il markup dentro un commento non si controlla
+  const allProblems = markupProblems(comments ? withoutComments(value) : value, styles, fields)
   // i colori stanno sul testo intero, senza dividerlo in pezzi: vedi markHighlights
   useLayoutEffect(() => {
     const node = overlayRef.current?.firstChild
     if (!HIGHLIGHTS || !(node instanceof Text)) return undefined
-    return markHighlights(node, value, allProblems)
+    return markHighlights(node, value, allProblems, comments)
   })
   const problems = showProblems ? allProblems : []
   const current = help?.items[help.index]
@@ -207,7 +212,7 @@ export default function MarkupTextarea({
           }}
         />
         <div className="markup-overlay" ref={overlayRef} aria-hidden>
-          {HIGHLIGHTS ? `${value}\u200b` : highlighted(value, allProblems)}
+          {HIGHLIGHTS ? `${value}\u200b` : highlighted(value, allProblems, comments)}
         </div>
       </span>
       {help && pos && (
@@ -353,7 +358,12 @@ function highlightGroup(name: string): Highlight {
 }
 
 /** Colora il testo dello strato; restituisce la funzione che toglie i colori */
-function markHighlights(node: Text, src: string, problems: MarkupProblem[]): () => void {
+function markHighlights(
+  node: Text,
+  src: string,
+  problems: MarkupProblem[],
+  comments: boolean
+): () => void {
   const ranges: [Highlight, Range][] = []
   const clamp = (n: number): number => Math.max(0, Math.min(src.length, n))
   const add = (name: string, from: number, to: number): void => {
@@ -365,7 +375,7 @@ function markHighlights(node: Text, src: string, problems: MarkupProblem[]): () 
     h.add(r)
     ranges.push([h, r])
   }
-  for (const p of highlightMarkup(src)) add(`mk-${p.kind}`, p.from, p.to)
+  for (const p of highlightMarkup(src, { comments })) add(`mk-${p.kind}`, p.from, p.to)
   for (const p of problems) add('mk-err', p.from, p.to)
   return () => {
     for (const [h, r] of ranges) h.delete(r)
@@ -373,8 +383,8 @@ function markHighlights(node: Text, src: string, problems: MarkupProblem[]): () 
 }
 
 /** Il testo diviso in pezzi colorati; gli errori sono sottolineati */
-function highlighted(src: string, problems: MarkupProblem[]): React.ReactNode[] {
-  const pieces = highlightMarkup(src)
+function highlighted(src: string, problems: MarkupProblem[], comments: boolean): React.ReactNode[] {
+  const pieces = highlightMarkup(src, { comments })
   const cuts = new Set([0, src.length])
   for (const p of [...pieces, ...problems]) {
     cuts.add(Math.max(0, Math.min(src.length, p.from)))

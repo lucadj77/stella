@@ -11,7 +11,7 @@ export interface DocEdit {
 }
 
 /** Segni Markdown che si mettono intorno al testo */
-export type WrapMark = '**' | '*' | '++' | '~~'
+export type WrapMark = '**' | '*' | '++' | '~~' | '%%'
 
 /** Il segno intorno a from..to, se c'è; per il corsivo non vale la stella di un grassetto */
 function marked(src: string, from: number, to: number, mark: WrapMark): boolean {

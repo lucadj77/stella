@@ -1,4 +1,4 @@
-import { setHeading, toggleLines } from '../../../shared/model/docEdit'
+import { setHeading, toggleLines, toggleWrap } from '../../../shared/model/docEdit'
 import { useI18n } from '../i18n/context'
 import { runEdit as run } from './editRun'
 import type { FormatControl } from './MarkupTextarea'
@@ -70,6 +70,9 @@ export default function DocumentToolbar({
       )}
       {button('❝', t('docTools.quote'), () =>
         run(editor.current, (s, a, b) => toggleLines(s, a, b, 'quote'))
+      )}
+      {button('%%', t('docTools.comment'), () =>
+        run(editor.current, (s, a, b) => toggleWrap(s, a, b, '%%'))
       )}
       <span className="sep" />
       <StyleMenu editor={editor} format={format} />

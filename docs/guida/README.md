@@ -592,23 +592,23 @@ Un livello con **Valore sui componenti: Formula** calcola il proprio valore dagl
 
 Le funzioni, con un esempio sulle carte della guida (Drago, forza 4, costo `{oro}{oro}{legno}`):
 
-| funzione                                      | cosa fa                                                           | esempio                                             |
-| --------------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------- |
-| `IF(condizione; se vera; se falsa)`           | sceglie tra due valori                                            | `=IF({forza}>3; "Forte"; "Debole")` → Forte         |
-| `AND`, `OR`, `NOT`                            | combinano condizioni                                              | `=IF(AND({forza}>3; {costo}<>""); "sì"; "no")` → sì |
-| `MIN`, `MAX`                                  | il numero più piccolo o più grande                                | `=MAX({forza}; 3)` → 4                              |
-| `ABS`                                         | il numero senza segno                                             | `=ABS({forza}-6)` → 2                               |
-| `ROUND(numero; decimali)`, `FLOOR`, `CEILING` | arrotondano                                                       | `=ROUND({forza}/3; 1)` → 1.3                        |
-| `UPPER`, `LOWER`                              | maiuscole e minuscole                                             | `=UPPER({nome})` → DRAGO                            |
-| `LEN`                                         | quanti caratteri ha il testo                                      | `=LEN({nome})` → 5                                  |
-| `CONCAT`                                      | unisce i testi (come `&`)                                         | `=CONCAT({nome}; " "; {forza})` → Drago 4           |
-| `ISBLANK`                                     | vero se il valore è vuoto                                         | `=IF(ISBLANK({nota}); "-"; {nota})` → -             |
-| `COUNTIN(testo; cercato)`                     | quante volte un testo ne contiene un altro                        | `=COUNTIN({costo}; "oro")` → 2                      |
-| `INLIST(valore; elenco)`                      | vero se il valore è nell'elenco; `1-5` vale per i numeri da 1 a 5 | `=INLIST({tipo}; "drago, orco")` → vero per un orco |
-| `MOD(numero; divisore)`                       | il resto della divisione                                          | `=MOD({cell.index}; 10)` → 0 ogni dieci caselle     |
-| `PICK(n; valore1; valore2; …)`                | l'n-esimo valore, ricominciando dopo l'ultimo                     | `=PICK({forza}; "spada"; "scudo"; "mano")` → spada  |
+| funzione                                               | cosa fa                                                                                                                       | esempio                                                            |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `IF(condizione; se vera; se falsa)`                    | sceglie tra due valori                                                                                                        | `=IF({forza}>3; "Forte"; "Debole")` → Forte                        |
+| `AND`, `OR`, `NOT`                                     | combinano condizioni                                                                                                          | `=IF(AND({forza}>3; {costo}<>""); "sì"; "no")` → sì                |
+| `MIN`, `MAX`                                           | il numero più piccolo o più grande                                                                                            | `=MAX({forza}; 3)` → 4                                             |
+| `ABS`                                                  | il numero senza segno                                                                                                         | `=ABS({forza}-6)` → 2                                              |
+| `ROUND(numero; decimali)`, `FLOOR`, `CEILING`          | arrotondano                                                                                                                   | `=ROUND({forza}/3; 1)` → 1.3                                       |
+| `UPPER`, `LOWER`                                       | maiuscole e minuscole                                                                                                         | `=UPPER({nome})` → DRAGO                                           |
+| `LEN`                                                  | quanti caratteri ha il testo                                                                                                  | `=LEN({nome})` → 5                                                 |
+| `CONCAT`                                               | unisce i testi (come `&`)                                                                                                     | `=CONCAT({nome}; " "; {forza})` → Drago 4                          |
+| `ISBLANK`                                              | vero se il valore è vuoto                                                                                                     | `=IF(ISBLANK({nota}); "-"; {nota})` → -                            |
+| `COUNTIN(testo; cercato)`                              | quante volte un testo ne contiene un altro                                                                                    | `=COUNTIN({costo}; "oro")` → 2                                     |
+| `INLIST(valore; elenco)`                               | vero se il valore è nell'elenco; `1-5` vale per i numeri da 1 a 5                                                             | `=INLIST({tipo}; "drago, orco")` → vero per un orco                |
+| `MOD(numero; divisore)`                                | il resto della divisione                                                                                                      | `=MOD({cell.index}; 10)` → 0 ogni dieci caselle                    |
+| `PICK(n; valore1; valore2; …)`                         | l'n-esimo valore, ricominciando dopo l'ultimo                                                                                 | `=PICK({forza}; "spada"; "scudo"; "mano")` → spada                 |
 | `CELLNUMBER(verso; ordine; percorso; caselle; inizio)` | il numero continuo della casella: `"up"`/`"down"`, `"rows"`/`"columns"`, `"straight"`/`"snake"`/`"path"`, `"all"`/`"visible"` | `=CELLNUMBER("up"; "rows"; "snake"; "all"; 1)` → 1 2 3 4 / 8 7 6 5 |
-| `DEAL(voce; quante; voce; quante; …)` | distribuisce a caso le voci nelle caselle visibili, ognuna quante volte dici: `4`, `3-5`, `2-`, `-3` o vuoto | `=DEAL("spada"; 4; "scudo"; "")` → 4 spade, il resto scudi |
+| `DEAL(voce; quante; voce; quante; …)`                  | distribuisce a caso le voci nelle caselle visibili, ognuna quante volte dici: `4`, `3-5`, `2-`, `-3` o vuoto                  | `=DEAL("spada"; 4; "scudo"; "")` → 4 spade, il resto scudi         |
 
 La finestra **Aiuto** (F1), scheda **Formule**, ha la stessa tabella con il risultato calcolato sulle carte del progetto aperto.
 
@@ -770,13 +770,13 @@ Il menu **Profilo ▾** in basso salva le opzioni attuali come profilo del proge
 
 ## 12. Documenti
 
-Nella sezione **Documenti** della barra laterale si scrivono i testi che accompagnano il gioco: il regolamento, una sell sheet, un'appendice, le domande frequenti. Il + crea un documento, un clic lo apre al posto del set o del template aperto. A sinistra si scrive, a destra l'anteprima mostra la pagina mentre si scrive e segue il cursore; un clic su un punto dell'anteprima porta il cursore a quel punto del testo. Il nome si cambia dal titolo; il ⋯ accanto al titolo, e il clic destro sul documento nella barra laterale, hanno **Rinomina**, **Duplica** (una copia con il nome seguito da un numero) ed **Elimina**, che sposta il documento in `deleted`. I documenti si salvano da soli mentre si scrive, come file `docs/<nome>.md` del progetto, e si possono scrivere anche con un altro editor o da un agente IA.
+Nella sezione **Documenti** della barra laterale si scrivono i testi che accompagnano il gioco: il regolamento, una sell sheet, un'appendice, le domande frequenti. Il + crea un documento, un clic lo apre al posto del set o del template aperto. A sinistra si scrive, a destra l'anteprima mostra la pagina mentre si scrive e segue il cursore; un clic su un punto dell'anteprima porta il cursore a quel punto del testo. Il bordo tra testo e anteprima si trascina per dare più spazio all'uno o all'altra; in alto a destra nell'anteprima − e + cambiano lo zoom (anche ⌘ / Ctrl con la rotella) e la percentuale torna alla pagina intera. Il nome si cambia dal titolo; il ⋯ accanto al titolo, e il clic destro sul documento nella barra laterale, hanno **Rinomina**, **Duplica** (una copia con il nome seguito da un numero) ed **Elimina**, che sposta il documento in `deleted`. I documenti si salvano da soli mentre si scrive, come file `docs/<nome>.md` del progetto, e si possono scrivere anche con un altro editor o da un agente IA.
 
 ![Un documento con l'anteprima della pagina accanto](img/documento.png)
 
 ### 12.1 Scrivere e formattare
 
-Sopra il testo c'è la barra di formattazione: il menu **Testo** fa della riga un titolo di primo, secondo o terzo livello o la riporta a paragrafo; **B**, _I_, U e S mettono o tolgono grassetto, corsivo, sottolineato e barrato al testo selezionato (senza selezione lasciano il cursore tra i due segni); i tre tasti successivi fanno delle righe scelte un elenco puntato, un elenco numerato o una citazione, e un secondo clic li toglie. **Stile** applica al testo selezionato uno stile del progetto e ha in fondo **Aa Formatta…**, la formattazione avanzata del [capitolo 6](#6-testo-e-markup). Gli ultimi tasti inseriscono un'immagine degli asset, una tabella, una carta, un'anatomia o uno schema del tavolo. La barra scrive nel testo il markup che si scriverebbe a mano, e ⌘Z / Ctrl+Z lo annulla.
+Sopra il testo c'è la barra di formattazione: il menu **Testo** fa della riga un titolo di primo, secondo o terzo livello o la riporta a paragrafo; **B**, _I_, U e S mettono o tolgono grassetto, corsivo, sottolineato e barrato al testo selezionato (senza selezione lasciano il cursore tra i due segni); i tre tasti successivi fanno delle righe scelte un elenco puntato, un elenco numerato o una citazione, e un secondo clic li toglie; **%%** (o ⌘/ / Ctrl+/) fa del testo selezionato un commento. **Stile** applica al testo selezionato uno stile del progetto e ha in fondo **Aa Formatta…**, la formattazione avanzata del [capitolo 6](#6-testo-e-markup). Gli ultimi tasti inseriscono un'immagine degli asset, una tabella, una carta, un'anatomia o uno schema del tavolo. La barra scrive nel testo il markup che si scriverebbe a mano, e ⌘Z / Ctrl+Z lo annulla.
 
 Il testo è Markdown, con il markup di Stella del [capitolo 6](#6-testo-e-markup) dentro le righe:
 
@@ -788,6 +788,7 @@ Il testo è Markdown, con il markup di Stella del [capitolo 6](#6-testo-e-markup
 | `> testo`                                   | un riquadro per una nota                                            |
 | `\| a \| b \|` e sotto `\|---\|---\|`       | una tabella; `:--`, `:-:` e `--:` allineano la colonna              |
 | `---`                                       | una linea                                                           |
+| `%%nota%%`                                  | un commento: resta nel file ma non si vede e non si esporta         |
 | `{spada}`, `[testo]{.keyword}`              | icone, variabili e stili, come sulle carte                          |
 | `{project.name}`, `{date}`                  | il nome del progetto e la data di oggi                              |
 | `![Il mago](card:Personaggi/nome=Mago)`     | una carta del gioco, con la didascalia "Il mago"                    |

@@ -2087,7 +2087,8 @@ export const en = {
   'help.ex.INLIST': '=INLIST({cell.index}; "2, 4, 10-12") → true in cells 2, 4, 10, 11 and 12',
   'help.fn.DEAL':
     'Deals values at random in the visible cells, each as many times as you say: a number, a range like "3-5", "2-" (at least), "-3" (at most) or empty (as needed)',
-  'help.ex.DEAL': '=DEAL("sword"; 4; "shield"; "3-5"; "hand"; "") → 16 cells: 4 swords, 3 to 5 shields, the rest hands',
+  'help.ex.DEAL':
+    '=DEAL("sword"; 4; "shield"; "3-5"; "hand"; "") → 16 cells: 4 swords, 3 to 5 shields, the rest hands',
   'help.ex.CELLNUMBER': '=CELLNUMBER("up"; "rows"; "snake"; "all"; 1) → 1 2 3 4 / 8 7 6 5',
   'help.keys.save': 'Save templates, data and settings',
   'help.keys.project': 'Open and close the project (desktop app)',
@@ -2443,6 +2444,10 @@ export const en = {
   'menu.uiReset': 'Normal interface size',
   'menu.whatsNew': "What's new",
   'menu.website': 'Stella on GitHub',
+  'documents.zoom': 'Preview zoom',
+  'documents.zoomIn': 'Zoom in (⌘ / Ctrl and scroll wheel)',
+  'documents.zoomOut': 'Zoom out (⌘ / Ctrl and scroll wheel)',
+  'documents.zoomFit': 'Whole page in the width of the preview',
   'documents.exportButton': 'Export document…',
   'menu.undo': 'Undo',
   'menu.redo': 'Redo',
@@ -2481,6 +2486,8 @@ export const en = {
   'docTools.bullets': 'Bulleted list',
   'docTools.numbers': 'Numbered list',
   'docTools.quote': 'Quote (>)',
+  'docTools.comment':
+    'Comment (%% … %%): the text stays in the document but is hidden in the preview and not exported (⌘/ / Ctrl+/)',
   'docTools.style': 'Style ▾',
   'docTools.styleHint': 'Apply a style of the project to the selected text ([text]{.style})',
   'docTools.sample': 'text',
@@ -2909,7 +2916,8 @@ export const en = {
     'First item on the first component, second on the second, then again from the start',
   'fx.card.random': 'Pick at random',
   'fx.card.deal': 'Deal at random, with quantities',
-  'fx.card.deal.hint': 'Shuffle the items in the cells: each appears exactly, at least or at most N times',
+  'fx.card.deal.hint':
+    'Shuffle the items in the cells: each appears exactly, at least or at most N times',
   'fx.s.deal': 'Deal at random in the cells:',
   'fx.s.dealTimes': 'times',
   'fx.b.dealTimes':
