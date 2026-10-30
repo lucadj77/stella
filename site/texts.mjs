@@ -714,6 +714,24 @@ export const videos = [
     }
   },
   {
+    n: 23,
+    it: 'Approfondimento: le formule',
+    en: 'Deep dive: formulas',
+    about: {
+      it: 'Le funzioni una alla volta su un bestiario: testo, calcoli, confronti, elenchi, colori, variabili di sistema e griglie.',
+      en: 'The functions one at a time on a bestiary: text, calculations, comparisons, lists, colors, system variables and grids.'
+    },
+    minutes: 15,
+    url: {
+      it: 'https://www.youtube.com/watch?v=ipwS6RiEa50',
+      en: 'https://www.youtube.com/watch?v=h3hayhBaID0'
+    },
+    project: {
+      it: 'progetti/bestiario.zip',
+      en: 'progetti/bestiary.zip'
+    }
+  },
+  {
     n: 24,
     it: 'Approfondimento: il tabellone',
     en: 'Deep dive: the game board',
@@ -760,7 +778,7 @@ export const videoGroups = {
   data: [10, 12],
   table: [9, 3, 19, 5],
   tools: [6, 17, 18],
-  deep: [20, 21, 22, 24, 25]
+  deep: [20, 21, 22, 23, 24, 25]
 }
 
 export const playlists = {

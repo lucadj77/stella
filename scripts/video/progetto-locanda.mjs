@@ -1,5 +1,5 @@
 // Crea il progetto dimostrativo del sesto approfondimento (video 26, impaginare un template): «Locanda».
-// Otto avventori con nome, costo, forza, tipo e testo; il template della carta ha i livelli messi a occhio
+// Otto avventori (cinque popolani e tre nobili, in due set) con nome, costo, forza, tipo e testo; il template della carta ha i livelli messi a occhio
 // (titolo e ritratto un po' storti, tre icone non allineate, la spada da ripetere), che il video sistema
 // con allinea e distribuisci, gruppi, Disponi i figli, Ripeti e vincoli. Il retro cambia colore con il
 // tipo; un segnalino moneta con il retro e una tessera stanza mostrano gli altri componenti.
@@ -27,6 +27,7 @@ export function names(lang) {
     project: L('Locanda', 'Tavern'),
     folder: L('Locanda', 'Tavern'),
     patrons: L('Avventori', 'Patrons'),
+    nobles: L('Nobili', 'Nobles'),
     coins: L('Monete', 'Coins'),
     rooms: L('Stanze', 'Rooms'),
     tPatron: L('avventore', 'patron'),
@@ -337,7 +338,7 @@ export async function make(dest, lang) {
       icon(C.icon, box(5, 5, 15, 15)),
       {
         type: 'shape',
-        name: C.bg,
+        name: C.backBg,
         ...box(-2, -2, 29, 29),
         shape: 'ellipse',
         fill: '#C99A3B',
@@ -408,12 +409,15 @@ export async function make(dest, lang) {
 
   const dataFile = L('data/locanda.xlsx', 'data/tavern.xlsx')
   const wb = new ExcelJS.Workbook()
-  const a = wb.addWorksheet(N.patrons)
-  a.addRow([C.name, C.cost, C.strength, C.type, C.text, C.portrait])
-  for (const [n, p, c, s, k, tx] of PATRONS[lang])
-    a.addRow([n, c, s, k ? N.noble : N.commoner, tx, p])
-  a.getColumn(1).width = 22
-  a.getColumn(5).width = 50
+  // popolani e nobili in due set: il video dà ai nobili un template derivato
+  for (const noble of [0, 1]) {
+    const a = wb.addWorksheet(noble ? N.nobles : N.patrons)
+    a.addRow([C.name, C.cost, C.strength, C.type, C.text, C.portrait])
+    for (const [n, p, c, s, k, tx] of PATRONS[lang])
+      if (k === noble) a.addRow([n, c, s, k ? N.noble : N.commoner, tx, p])
+    a.getColumn(1).width = 22
+    a.getColumn(5).width = 50
+  }
   const m = wb.addWorksheet(N.coins)
   m.addRow(['amount', C.value])
   m.addRow([10, 1])
@@ -436,6 +440,7 @@ export async function make(dest, lang) {
         dataFile,
         sets: [
           { name: N.patrons, template: N.tPatron },
+          { name: N.nobles, template: N.tPatron },
           { name: N.coins, template: N.tCoin },
           { name: N.rooms, template: N.tRoom }
         ],

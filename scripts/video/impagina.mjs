@@ -137,6 +137,14 @@ async function openTemplate(name, set, n = 0) {
 }
 async function previewRow(set, n) {
   const sel = win.locator('.preview-data select')
+  if (process.env.SHOT)
+    await sel
+      .first()
+      .selectOption({ label: set }, { timeout: 5000 })
+      .catch(async (e) => {
+        await win.screenshot({ path: process.env.SHOT })
+        throw e
+      })
   await sel.first().selectOption({ label: set })
   await r.wait(300)
   await sel.nth(1).selectOption(String(n))
@@ -222,6 +230,11 @@ async function arrange(key) {
     after: 700
   })
 }
+/** un clic sulla tela fuori dal componente: nessun livello selezionato, il pannello mostra il template */
+async function deselect() {
+  const b = await win.locator('.canvas-viewport').first().boundingBox()
+  await clickAt({ x: b.x + 25, y: b.y + 25 })
+}
 /** cerca nelle proprietà: restano le voci che contengono il testo */
 async function search(text) {
   await key('Control+F', 400)
@@ -229,9 +242,20 @@ async function search(text) {
   await r.wait(700)
 }
 async function clearSearch() {
+  const box = props.locator(`input[placeholder="${T['editor.searchProperties']}"]`).first()
+  await box.click()
+  await win.keyboard.press('Control+A')
+  await win.keyboard.press('Delete')
   await key('Escape', 400)
 }
-const eye = (n) => layerRow(n).locator('button').filter({ hasText: /👁|◉|○/ }).first()
+const eye = (n) =>
+  layerRow(n)
+    .locator(
+      ['layers.hide', 'layers.show']
+        .map((k) => `button[title="${T[k]}"], button[data-tip="${T[k]}"]`)
+        .join(', ')
+    )
+    .first()
 
 // ================= apertura
 await mockOpen(r.app, dest)
@@ -250,8 +274,8 @@ await r.overlay()
 await r.focus(
   grid(),
   t(
-    'Otto avventori: i dati ci sono, ma la carta è impaginata a occhio',
-    'Eight patrons: the data is there, but the card is laid out by eye'
+    'Cinque avventori, e tre nobili in un altro set: i dati ci sono, ma la carta è impaginata a occhio',
+    'Five patrons, and three nobles in another set: the data is there, but the card is laid out by eye'
   ),
   'right',
   { pad: 4 }
@@ -341,8 +365,8 @@ await onStage(
 for (let i = 0; i < 3; i++) await key('ArrowLeft', 350)
 await onStage(
   t(
-    'Le frecce spostano di 0,5 mm; con ⇧ / Maiuscolo di 5 mm. Alt trascina senza agganci',
-    'Arrow keys move by 0.5 mm; with ⇧ / Shift by 5 mm. Alt drags without snapping'
+    'Le frecce spostano di 0,5 mm; con ⇧ / Maiuscolo di 5 mm. Alt trascina senza agganci, Alt+clic prende il livello sotto',
+    'Arrow keys move by 0.5 mm; with ⇧ / Shift by 5 mm. Alt drags without snapping, Alt+click picks the layer underneath'
   )
 )
 await fill(field(T['prop.w']), '44')
@@ -357,19 +381,7 @@ await r.focus(
   'left',
   { pad: 4 }
 )
-// Alt+clic: il ritratto copre il riquadro e il cerchio
 await r.click(layer(C.portrait), { after: 500 })
-b = await selBox()
-await clickAt({ x: b.cx, y: b.cy }, 'Alt')
-await r.focus(
-  [layers(), stage()],
-  t(
-    'Alt+clic prende il livello che sta sotto, nello stesso punto: il riquadro dietro il ritratto',
-    'Alt+click picks the layer underneath, at the same spot: the square behind the portrait'
-  ),
-  'right',
-  { pad: 4 }
-)
 const yLabel = prow('Y').locator('.field-label').first()
 await center(yLabel)
 const yb = await yLabel.boundingBox()
@@ -393,8 +405,8 @@ await search(t('cont', 'outl'))
 await r.focus(
   props,
   t(
-    '⌘F / Ctrl+F cerca nelle proprietà: «cont» lascia solo Contorno',
-    '⌘F / Ctrl+F searches the properties: “outl” leaves only Outline'
+    '⌘F / Ctrl+F cerca nelle proprietà: «cont» lascia solo le voci che lo contengono',
+    '⌘F / Ctrl+F searches the properties: “outl” leaves only the matching entries'
   ),
   'left',
   { pad: 4 }
@@ -477,6 +489,9 @@ await key('Control+G', 1000)
 await fill(field(T['prop.name']), C.services)
 await choose(field(T['prop.layout']), 'row')
 await fill(field(T['prop.gap']), '2')
+await fill(field(T['prop.w']), '26')
+await fill(field('X'), '7')
+await fill(field('Y'), '49')
 await look(
   t('Disponi i figli: in riga, a 2 mm l’uno dall’altro', 'Arrange children: in a row, 2 mm apart')
 )
@@ -541,7 +556,7 @@ await r.focus(
   { pad: 4 }
 )
 await clearSearch()
-await key('Escape', 500)
+await deselect()
 await fill(field(T['prop.height']), '120')
 await r.focus(
   dialog(),
@@ -588,11 +603,11 @@ await r.focus(
   'left',
   { pad: 4 }
 )
-await previewRow(N.patrons, 5)
+await previewRow(N.nobles, 0)
 await onStage(t('…blu per i nobili', '…blue for nobles'))
 await face('preview.front')
 await save()
-await openSet(N.patrons)
+await openSet(N.nobles)
 await r.click(
   win
     .locator('aside.preview button')
@@ -602,7 +617,10 @@ await r.click(
 )
 await r.focus(
   grid(),
-  t('Nella griglia del set, Retro mostra tutti i retri', 'In the set grid, Back shows every back'),
+  t(
+    'Nella griglia del set, Retro mostra tutti i retri: blu per i nobili',
+    'In the set grid, Back shows every back: blue for the nobles'
+  ),
   'right',
   { pad: 4 }
 )
@@ -644,16 +662,26 @@ await r.click(dialog().getByRole('button', { name: T['inherit.deriveOk'], exact:
   after: 1400
 })
 await r.overlay()
-await previewRow(N.patrons, 5)
 await r.focus(
-  win.locator('.editor-header, .template-header').first(),
+  win.getByRole('button', { name: T['inherit.detach'] }).first(),
   t(
-    '↳ Deriva: «avventore-nobile» parte da «avventore» e ne segue tutto',
-    '↳ Derive: “patron-noble” starts from “patron” and follows all of it'
+    'Deriva: «avventore-nobile» parte da «avventore» e ne segue tutto',
+    'Derive: “patron-noble” starts from “patron” and follows all of it'
   ),
   'below',
   { pad: 4 }
 )
+await save()
+await openSet(N.nobles)
+await choose(win.locator('.set-template select').first(), N.tNoble)
+await r.focus(
+  win.locator('.set-template').first(),
+  t('Il set Nobili ora usa il derivato', 'The Nobles set now uses the derived template'),
+  'below',
+  { pad: 4 }
+)
+await r.click(win.getByRole('button', { name: T['preview.editTemplate'] }).first(), { after: 1200 })
+await r.overlay()
 await r.click(layer(C.band), { after: 500 })
 await fill(colorField(T['prop.fill']), '#34466E')
 await r.click(layer(C.bg), { after: 500 })
@@ -685,7 +713,7 @@ await fill(
   `${t('Locanda del Cinghiale', 'Boar’s Head Tavern')} · {card.number}/{set.cards}`
 )
 await save()
-await openTemplate(N.tNoble, N.patrons, 5)
+await openTemplate(N.tNoble, N.nobles, 0)
 await onStage(
   t(
     'Il piede cambiato nel base arriva anche al derivato',
