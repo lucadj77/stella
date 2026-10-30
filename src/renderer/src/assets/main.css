@@ -889,6 +889,8 @@ textarea.invalid {
 .properties {
   width: 320px;
   border-left: 1px solid var(--border);
+  /* Etichette larghe: le frasi lunghe stanno su una riga o due, non su tre */
+  --label-w: 118px;
 }
 
 .field {
@@ -900,7 +902,7 @@ textarea.invalid {
 }
 
 .field-label {
-  width: 88px;
+  width: var(--label-w, 88px);
   flex-shrink: 0;
   color: var(--muted);
   font-size: 12px;
@@ -980,7 +982,7 @@ textarea.invalid {
 .field-note {
   color: var(--muted);
   font-size: 12px;
-  margin: -2px 0 6px 96px;
+  margin: -2px 0 6px calc(var(--label-w, 88px) + 8px);
 }
 
 .field-grid {

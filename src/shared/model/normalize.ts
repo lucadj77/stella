@@ -15,6 +15,7 @@ import type {
   TextLayer,
   ValueLayer
 } from './template'
+import { fitFixedGrid } from './grid'
 import { isComponentKind, isDrawn, isShapeRotation } from './template'
 
 // Nei file i livelli riportano solo le proprietà diverse dai default; qui si completano.
@@ -99,6 +100,7 @@ const GRID_DEFAULTS: Omit<GridLayer, keyof LayerBase | 'type'> = {
   rows: 4,
   columns: 4,
   cellRatio: 1,
+  cellSize: null,
   orientation: 'pointy',
   cellRotation: 0,
   cellPath: '',
@@ -178,13 +180,13 @@ export function normalizeLayer(raw: RawLayer, index: number): Layer {
         type: 'shape'
       }
     case 'grid':
-      return {
+      return fitFixedGrid<GridLayer>({
         ...base,
         ...GRID_DEFAULTS,
         ...(raw as Partial<GridLayer>),
         id: base.id,
         type: 'grid'
-      }
+      })
     case 'value':
       return {
         ...base,

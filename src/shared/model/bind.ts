@@ -1,6 +1,6 @@
 import { msg, type Message } from '../messages'
 import { parseRepeat } from './arrange'
-import { gridSize } from './grid'
+import { fitFixedGrid, gridSize } from './grid'
 import { isGradient, mapGradientColors } from './gradient'
 import { resolveAsset } from './assets'
 import { parseCrop } from './crop'
@@ -394,7 +394,8 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
             out = { ...out, repeat, children: apply(out.children) }
           }
           if (out.type === 'grid') {
-            const grid = out
+            // righe e colonne dal foglio cambiano la misura di una griglia con la casella fissa
+            const grid = fitFixedGrid(out)
             const { rows, columns } = gridSize(grid)
             const ruled = grid.cellRules?.length
               ? cellRuleResults(grid, fields, say, nums, system?.number)

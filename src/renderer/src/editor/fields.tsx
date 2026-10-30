@@ -634,10 +634,13 @@ export function SizeFields({
   layout = 'row',
   locked,
   onLock,
+  disabled,
   onChange
 }: {
   labels: [string, string]
   hints?: [string, string]
+  /** Misura che si ricava da altro: si legge ma non si cambia */
+  disabled?: boolean
   w: number
   h: number
   min?: number
@@ -660,9 +663,10 @@ export function SizeFields({
         min={min}
         unit={unit}
         deferred={deferred}
+        disabled={disabled}
         onChange={(v) => onChange(v, locked ? other(v, w, h) : h)}
       />
-      <RatioLock locked={locked} onChange={onLock} />
+      {!disabled && <RatioLock locked={locked} onChange={onLock} />}
       <NumberField
         label={labels[1]}
         hint={hints?.[1]}
@@ -670,6 +674,7 @@ export function SizeFields({
         min={min}
         unit={unit}
         deferred={deferred}
+        disabled={disabled}
         onChange={(v) => onChange(locked ? other(v, h, w) : w, v)}
       />
     </div>

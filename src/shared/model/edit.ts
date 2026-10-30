@@ -1,4 +1,5 @@
 import { arrangeModel } from './arrange'
+import { fitFixedGrid } from './grid'
 import { isArranged, normalizeLayer, SNAP_SIZE, walkLayers, type RawLayer } from './normalize'
 import {
   isDrawn,
@@ -61,6 +62,8 @@ export function patchLayer(t: Template, side: Side, id: string, patch: Partial<L
     if (l.id !== id) return l
     let next = { ...l, ...patch } as Layer
     if (next.type === 'group' && 'clip' in patch) next = fitGroup(next)
+    // con la casella fissa la misura della griglia si ricava dalle caselle
+    if (next.type === 'grid') next = fitFixedGrid(next)
     // spostare o ridimensionare un gruppo dal pannello proprietà trascina i figli
     if (l.type === 'group' && ('x' in patch || 'y' in patch || 'w' in patch || 'h' in patch)) {
       return transformInto(l, next as Bounds)

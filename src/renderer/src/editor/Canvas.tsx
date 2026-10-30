@@ -697,21 +697,23 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
                       >
                         <title>{t('editor.rotateHint')}</title>
                       </circle>
-                      {HANDLES.map((h) => {
-                        const pos = handlePosition(l, h)
-                        return (
-                          <rect
-                            key={h}
-                            x={pos.x - (HANDLE_PX / 2) * px}
-                            y={pos.y - (HANDLE_PX / 2) * px}
-                            width={HANDLE_PX * px}
-                            height={HANDLE_PX * px}
-                            className={`handle h-${h}`}
-                            vectorEffect="non-scaling-stroke"
-                            onPointerDown={(e) => onHandleDown(e, l, h)}
-                          />
-                        )
-                      })}
+                      {/* una griglia con la casella fissa prende la misura dalle caselle */}
+                      {!(l.type === 'grid' && l.cellSize) &&
+                        HANDLES.map((h) => {
+                          const pos = handlePosition(l, h)
+                          return (
+                            <rect
+                              key={h}
+                              x={pos.x - (HANDLE_PX / 2) * px}
+                              y={pos.y - (HANDLE_PX / 2) * px}
+                              width={HANDLE_PX * px}
+                              height={HANDLE_PX * px}
+                              className={`handle h-${h}`}
+                              vectorEffect="non-scaling-stroke"
+                              onPointerDown={(e) => onHandleDown(e, l, h)}
+                            />
+                          )
+                        })}
                     </>
                   )}
               </Framed>

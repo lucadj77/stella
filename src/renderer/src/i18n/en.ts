@@ -2507,6 +2507,13 @@ export const en = {
     'The cells take the outline and the proportions of the image (its transparent part stays outside).',
   'prop.rows': 'Rows',
   'prop.interlock': 'Interlocking',
+  'prop.autoSize': 'Automatic size',
+  'editor.autoSizeHint':
+    'On: the cell size comes from the grid size. Off: choose the cell size and the grid takes the size that results.',
+  'prop.cellWidth': 'Cell width',
+  'prop.cellHeight': 'Cell height',
+  'prop.cellAcross': 'Cell size (side to side)',
+  'prop.cellSide': 'Cell side',
   'editor.interlockHint.square': 'Odd rows shift by half a cell, like bricks.',
   'editor.interlockHint.circle': 'Odd rows shift by half a cell and move closer, packed together.',
   'editor.interlockHint.hex':
@@ -2523,7 +2530,7 @@ export const en = {
   'prop.gridBorder': 'Grid border',
   'editor.gridPaddingHint': 'Space between the outer cells and the grid border.',
   'prop.backgroundRadius': 'Background corner radius',
-  'prop.cellRatio': 'Cell width',
+  'prop.cellRatio': 'Cell proportions',
   'editor.cellRatioHint': 'Width compared with the height: 100% is as wide as tall.',
   'editor.gridZoomHint':
     '100% is the largest grid that fits the frame without stretching the cells.',

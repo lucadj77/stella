@@ -2537,6 +2537,13 @@ export const it: Record<MessageKey, string> = {
     "Le caselle prendono il contorno e le proporzioni dell'immagine (la parte trasparente resta fuori).",
   'prop.rows': 'Righe',
   'prop.interlock': 'A incastro',
+  'prop.autoSize': 'Dimensioni automatiche',
+  'editor.autoSizeHint':
+    'Attiva: la casella si ricava dalla misura della griglia. Spenta: scegli la misura della casella e la griglia prende la misura che ne risulta.',
+  'prop.cellWidth': 'Larghezza casella',
+  'prop.cellHeight': 'Altezza casella',
+  'prop.cellAcross': 'Misura casella (da lato a lato)',
+  'prop.cellSide': 'Lato della casella',
   'editor.interlockHint.square': 'Le righe dispari si spostano di mezza casella, come i mattoni.',
   'editor.interlockHint.circle':
     'Le righe dispari si spostano di mezza casella e si avvicinano, le caselle si stringono tra loro.',
@@ -2556,7 +2563,7 @@ export const it: Record<MessageKey, string> = {
   'prop.gridBorder': 'Bordo della griglia',
   'editor.gridPaddingHint': 'Spazio tra le caselle esterne e il bordo della griglia.',
   'prop.backgroundRadius': 'Raggio angoli dello sfondo',
-  'prop.cellRatio': 'Larghezza casella',
+  'prop.cellRatio': 'Proporzione casella',
   'editor.cellRatioHint': "Larghezza rispetto all'altezza: 100% è larga quanto alta.",
   'editor.gridZoomHint':
     '100% è la griglia più grande che sta nel riquadro senza deformare le caselle.',

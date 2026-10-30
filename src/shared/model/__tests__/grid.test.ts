@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { gridGeometry, placeCellPath, type GridSpec } from '../grid'
+import { fitFixedGrid, fixedGridSize, gridGeometry, placeCellPath, type GridSpec } from '../grid'
 
 const base: GridSpec = {
   w: 50,
@@ -111,5 +111,35 @@ describe('forma e rotazione delle caselle', () => {
     expect(placeCellPath('M0 0h1z', 0, 0, 1, 1)).toBeNull()
     const g = gridGeometry({ ...base, cell: 'path', cellPath: 'M0 0L1 0L0.5 1Z' })
     expect(g.cells).toEqual(['M0 0L20 0L10 20Z', 'M20 0L40 0L30 20Z'])
+  })
+})
+
+describe('casella a misura fissa', () => {
+  it('la griglia prende la misura delle caselle, degli spazi e del margine', () => {
+    const g = { ...base, cellSize: { w: 20, h: 20 }, gap: 1, padding: 2 }
+    expect(fixedGridSize(g)).toEqual({ w: 5 * 20 + 4 + 4, h: 4 * 20 + 3 + 4 })
+    const geo = gridGeometry({ ...g, ...fixedGridSize(g)! })
+    expect(geo.cell).toEqual({ w: 20, h: 20 })
+    expect(geo.centers[0]).toEqual({ x: 12, y: 12 })
+  })
+
+  it('caselle rettangolari: larghezza e altezza scelte', () => {
+    const geo = gridGeometry({ ...base, cellSize: { w: 30, h: 15 } })
+    expect(geo.cell.w).toBeCloseTo(30)
+    expect(geo.cell.h).toBeCloseTo(15)
+  })
+
+  it('esagoni da lato a lato e triangoli dal lato', () => {
+    const hex = gridGeometry({ ...base, cell: 'hex', cellSize: { w: 20, h: 20 } })
+    expect(hex.cell.w).toBeCloseTo(20)
+    const tri = gridGeometry({ ...base, cell: 'triangle', cellSize: { w: 20, h: 20 } })
+    expect(tri.cell.w).toBeCloseTo(20)
+  })
+
+  it("si riadatta con l'angolo in alto a sinistra fermo", () => {
+    const g = { ...base, x: 5, y: 7, cellSize: { w: 10, h: 10 } }
+    expect(fitFixedGrid(g)).toMatchObject({ x: 5, y: 7, w: 50, h: 40 })
+    expect(fitFixedGrid({ ...g, columns: 6 })).toMatchObject({ x: 5, y: 7, w: 60, h: 40 })
+    expect(fitFixedGrid({ ...base, x: 0, y: 0 })).toMatchObject({ w: 50, h: 40 })
   })
 })

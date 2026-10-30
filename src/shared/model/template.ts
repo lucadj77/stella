@@ -207,6 +207,12 @@ export interface GridLayer extends LayerBase {
   columns: number
   /** Larghezza della casella rispetto all'altezza (quadrata, tonda, rombo): 1 = uguali */
   cellRatio: number
+  /**
+   * Misura fissa della casella in mm: la griglia prende la misura che ne risulta, con l'angolo in
+   * alto a sinistra fermo. Esagoni: da lato a lato; triangoli: il lato (conta solo w).
+   * null: la casella si ricava dalla misura della griglia
+   */
+  cellSize: { w: number; h: number } | null
   /** Esagoni con la punta in alto (pointy) o con un lato in alto (flat) */
   orientation: 'pointy' | 'flat'
   /**

@@ -1021,6 +1021,8 @@ function DrawnProperties({
                 unit="mm"
                 locked={locked}
                 onLock={setLocked}
+                // la misura di una griglia con la casella fissa viene dalle caselle
+                disabled={l.type === 'grid' && !!l.cellSize}
                 onChange={(w, h) => set(anchoredResize(l, w, h))}
               />
             </div>
@@ -1878,6 +1880,7 @@ function GridProperties({
   const set = setLayer as SetFn<GridLayer>
   const count = (v: number): number => Math.max(1, Math.round(v))
   const content = groups.find((g) => g.name === l.content)
+  const [cellLocked, setCellLocked] = useState(false)
   // esagoni e triangoli hanno le proporzioni fisse
   const ratio =
     l.cell === 'square' || l.cell === 'circle' || l.cell === 'diamond' || l.cell === 'path'
@@ -1912,6 +1915,47 @@ function GridProperties({
             min={1}
             onChange={(columns) => set({ columns: count(columns) })}
           />
+        </P>
+        <P id="cellSize">
+          <CheckField
+            label={t('prop.autoSize')}
+            hint={t('editor.autoSizeHint')}
+            value={!l.cellSize}
+            onChange={(auto) => {
+              if (auto) return set({ cellSize: null })
+              // si parte dalla casella di adesso: la griglia non cambia
+              const { cell } = gridGeometry(l)
+              const round = (v: number): number => Math.round(v * 100) / 100
+              const side = l.cell === 'hex' ? (l.orientation === 'flat' ? cell.h : cell.w) : cell.w
+              set({
+                cellSize:
+                  l.cell === 'hex' || l.cell === 'triangle'
+                    ? { w: round(side), h: round(side) }
+                    : { w: round(cell.w), h: round(cell.h) }
+              })
+            }}
+          />
+          {l.cellSize &&
+            (l.cell === 'hex' || l.cell === 'triangle' ? (
+              <NumberField
+                label={t(l.cell === 'hex' ? 'prop.cellAcross' : 'prop.cellSide')}
+                value={l.cellSize.w}
+                min={0.5}
+                unit="mm"
+                onChange={(w) => set({ cellSize: { w, h: w } })}
+              />
+            ) : (
+              <SizeFields
+                labels={[t('prop.cellWidth'), t('prop.cellHeight')]}
+                w={l.cellSize.w}
+                h={l.cellSize.h}
+                min={0.5}
+                unit="mm"
+                locked={cellLocked}
+                onLock={setCellLocked}
+                onChange={(w, h) => set({ cellSize: { w, h } })}
+              />
+            ))}
         </P>
         <P id="interlock">
           <CheckField
@@ -2034,7 +2078,7 @@ function GridProperties({
             onChange={(backgroundRadius) => set({ backgroundRadius })}
           />
         </P>
-        {ratio && (
+        {ratio && !l.cellSize && (
           <P id="cellRatio" adv>
             <NumberField
               label={t('prop.cellRatio')}
@@ -2048,34 +2092,38 @@ function GridProperties({
             />
           </P>
         )}
-        <P id="zoom" adv>
-          <NumberField
-            label={t('prop.zoom')}
-            hint={`${t('editor.gridZoomHint')} ${col('zoom')}`}
-            value={l.zoom}
-            factor={100}
-            step={5}
-            min={0.01}
-            unit="%"
-            onChange={(zoom) => set({ zoom })}
-          />
-        </P>
-        <P id="gridAlign" adv>
-          <SelectField<LayoutAlign>
-            label={t('prop.alignX')}
-            hint={col('alignX')}
-            value={l.alignX}
-            options={options(t, 'justifyH', ALIGNS)}
-            onChange={(alignX) => set({ alignX })}
-          />
-          <SelectField<LayoutAlign>
-            label={t('prop.alignY')}
-            hint={col('alignY')}
-            value={l.alignY}
-            options={options(t, 'justifyV', ALIGNS)}
-            onChange={(alignY) => set({ alignY })}
-          />
-        </P>
+        {!l.cellSize && (
+          <>
+            <P id="zoom" adv>
+              <NumberField
+                label={t('prop.zoom')}
+                hint={`${t('editor.gridZoomHint')} ${col('zoom')}`}
+                value={l.zoom}
+                factor={100}
+                step={5}
+                min={0.01}
+                unit="%"
+                onChange={(zoom) => set({ zoom })}
+              />
+            </P>
+            <P id="gridAlign" adv>
+              <SelectField<LayoutAlign>
+                label={t('prop.alignX')}
+                hint={col('alignX')}
+                value={l.alignX}
+                options={options(t, 'justifyH', ALIGNS)}
+                onChange={(alignX) => set({ alignX })}
+              />
+              <SelectField<LayoutAlign>
+                label={t('prop.alignY')}
+                hint={col('alignY')}
+                value={l.alignY}
+                options={options(t, 'justifyV', ALIGNS)}
+                onChange={(alignY) => set({ alignY })}
+              />
+            </P>
+          </>
+        )}
         <P id="clip" adv>
           <CheckField
             label={t('prop.gridClip')}
