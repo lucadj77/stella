@@ -2947,7 +2947,8 @@ export const it: Record<MessageKey, string> = {
   'fx.card.deal.hint': 'Mescola le voci nelle caselle: ognuna compare esattamente, almeno o al massimo N volte',
   'fx.s.deal': 'Distribuisci a caso nelle caselle:',
   'fx.s.dealTimes': 'volte',
-  'fx.b.dealTimes': 'Quante: 4, 3-5, 2- o vuoto',
+  'fx.b.dealTimes':
+    'Quante? indica un numero singolo o un intervallo come 3-5 (da tre a cinque volte), 3- (almeno tre), -5 (massimo 5), o lascia vuoto per metterne quante ne servono per riempire',
   'fx.card.random.hint': 'Una voce scelta a caso per ogni casella, la stessa a ogni esportazione',
   'fx.card.notEmpty': 'Mostra solo se un campo non è vuoto',
   'fx.card.notEmpty.hint': 'Niente quando la cella della riga è vuota',

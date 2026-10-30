@@ -2911,7 +2911,8 @@ export const en = {
   'fx.card.deal.hint': 'Shuffle the items in the cells: each appears exactly, at least or at most N times',
   'fx.s.deal': 'Deal at random in the cells:',
   'fx.s.dealTimes': 'times',
-  'fx.b.dealTimes': 'How many: 4, 3-5, 2- or empty',
+  'fx.b.dealTimes':
+    'How many? Type a single number or a range such as 3-5 (three to five times), 3- (at least three), -5 (at most 5), or leave it empty to use as many as needed to fill',
   'fx.card.random.hint': 'An item chosen at random for each cell, the same at every export',
   'fx.card.notEmpty': 'Show only if a field is not empty',
   'fx.card.notEmpty.hint': 'Nothing when the cell of the row is empty',
