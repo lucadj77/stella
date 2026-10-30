@@ -680,6 +680,24 @@ function Sentence({
             </select>
           )
         }
+        if ('choice' in p) {
+          const n = nodeAt(root, p.choice)
+          if (n?.k !== 'str') return null
+          return (
+            <select
+              key={i}
+              className="fx-op fx-choice"
+              value={n.v}
+              onChange={(e) => onChange(replaceAt(root, p.choice, { k: 'str', v: e.target.value }))}
+            >
+              {p.options.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {t(o.label as MessageKey)}
+                </option>
+              ))}
+            </select>
+          )
+        }
         if ('join' in p) {
           // un confronto in più nella condizione: e anche (AND), oppure (OR)
           const add = (): void => {

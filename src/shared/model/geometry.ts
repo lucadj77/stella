@@ -1,4 +1,4 @@
-import type { GroupLayer, Layer, LayerBase, ShapeLayer } from './template'
+import { innerLayers, type Layer, type LayerBase, type ShapeLayer } from './template'
 import { findLayer, type Bounds } from './edit'
 import { arrangeGroup } from './arrange'
 
@@ -36,19 +36,18 @@ export function toLocal(l: LayerBase, p: Point): Point {
   return rotateAround(p, anchorPoint(l), -l.rotation)
 }
 
-/** Gruppi che contengono il livello, dal più esterno */
-export function ancestorsOf(layers: Layer[], id: string): GroupLayer[] {
+/** Gruppi (e griglie) che contengono il livello, dal più esterno */
+export function ancestorsOf(layers: Layer[], id: string): Layer[] {
   for (const l of layers) {
     if (l.id === id) return []
-    if (l.type === 'group') {
-      if (findLayer(l.children, id)) return [l, ...ancestorsOf(l.children, id)]
-    }
+    const inner = innerLayers(l)
+    if (inner && findLayer(inner, id)) return [l, ...ancestorsOf(inner, id)]
   }
   return []
 }
 
 /** Porta un punto della carta nel sistema dei figli dell'ultimo gruppo della catena */
-export function toFrame(p: Point, chain: GroupLayer[]): Point {
+export function toFrame(p: Point, chain: LayerBase[]): Point {
   return chain.reduce((q, g) => toLocal(g, q), p)
 }
 
@@ -70,7 +69,7 @@ export function hitTest(l: Layer, p: Point, pad = HIT_PAD): boolean {
 }
 
 /** Riquadro sulla carta di un livello, con le rotazioni sue e dei gruppi che lo contengono */
-export function worldBounds(l: Layer, chain: GroupLayer[] = []): Bounds {
+export function worldBounds(l: Layer, chain: LayerBase[] = []): Bounds {
   const corners = [
     { x: l.x, y: l.y },
     { x: l.x + l.w, y: l.y },

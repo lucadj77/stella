@@ -232,7 +232,8 @@ function compare(a: Value, b: Value): number {
   return toText(a).localeCompare(toText(b), undefined, { sensitivity: 'base' })
 }
 
-type Fn = (args: (() => Value)[]) => Value
+/** Le funzioni leggono gli argomenti; poche, come CELLNUMBER, anche i campi della casella */
+type Fn = (args: (() => Value)[], fields: Record<string, string>) => Value
 
 /** Funzioni disponibili; gli argomenti si valutano solo se servono (IF non calcola il ramo scartato) */
 const FUNCTIONS: Record<string, Fn> = {
@@ -290,6 +291,59 @@ const FUNCTIONS: Record<string, Fn> = {
    * virgole vale come più voci, e una voce come 1-5 vale per tutti i numeri da 1 a 5. I testi si
    * confrontano senza badare alle maiuscole: INLIST({tipo}; "drago, orco")
    */
+  /**
+   * Numero continuo delle caselle di una griglia, con le scelte in parole:
+   * CELLNUMBER("columns"; "snake"; "down"; "visible"; 10). Ordine "rows" (di base) o "columns";
+   * percorso "straight" (di base) o "snake", che torna indietro a ogni riga; verso "up" (di base)
+   * o "down", dall'ultima casella; "visible" salta le caselle nascoste dalle regole; l'ultimo
+   * numero è da dove si parte (1 di base). Le scelte valgono in qualsiasi ordine
+   */
+  CELLNUMBER: (a, fields) => {
+    const num = (k: string): number => Number(fields[k] ?? NaN)
+    const [row, column, rows, columns] = [
+      'cell.row',
+      'cell.column',
+      'cell.rows',
+      'cell.columns'
+    ].map(num)
+    if (![row, column, rows, columns].every(Number.isFinite))
+      throw new FormulaError('CELLNUMBER works only in the cells of a grid')
+    const words = new Set<string>()
+    let start = 1
+    for (const x of a) {
+      const v = x()
+      const n = typeof v === 'number' ? v : readNumber(toText(v))
+      if (n !== null) start = n
+      else words.add(toText(v).trim().toLowerCase())
+    }
+    for (const w of words)
+      if (!['rows', 'columns', 'straight', 'snake', 'up', 'down', 'visible', 'all'].includes(w))
+        throw new FormulaError(`CELLNUMBER: unknown choice "${w}"`)
+    const byColumn = words.has('columns')
+    const snake = words.has('snake')
+    // posizione da 0 lungo il percorso
+    const at = (r: number, c: number): number => {
+      const [major, minor, size] = byColumn ? [c, r, rows] : [r, c, columns]
+      return major * size + (snake && major % 2 === 1 ? size - 1 - minor : minor)
+    }
+    let pos = at(row - 1, column - 1)
+    let total = rows * columns
+    if (words.has('visible')) {
+      const hidden = (fields['cell.hidden'] ?? '')
+        .split(',')
+        .flatMap((x) => {
+          const m = /^\s*(\d+)\s*(?:-\s*(\d+))?\s*$/.exec(x)
+          if (!m) return []
+          const to = Number(m[2] ?? m[1])
+          return Array.from({ length: to - Number(m[1]) + 1 }, (_, k) => Number(m[1]) + k)
+        })
+        .map((i) => at(Math.floor((i - 1) / columns), (i - 1) % columns))
+      if (hidden.includes(pos)) return ''
+      pos -= hidden.filter((p) => p < pos).length
+      total -= hidden.length
+    }
+    return start + (words.has('down') ? total - 1 - pos : pos)
+  },
   INLIST: (a) => {
     if (a.length < 2) throw new FormulaError('INLIST needs a value and at least one item')
     const v = a[0]()
@@ -446,7 +500,10 @@ export function evaluateNode(node: FormulaNode, fields: Record<string, string>):
     case 'call': {
       const fn = FUNCTIONS[node.fn]
       if (!fn) throw new FormulaError(`unknown function ${node.fn}`)
-      return fn(node.args.map((a) => () => ev(a)))
+      return fn(
+        node.args.map((a) => () => ev(a)),
+        fields
+      )
     }
     case 'bin': {
       const { op } = node

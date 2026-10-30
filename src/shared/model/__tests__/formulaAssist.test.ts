@@ -147,6 +147,14 @@ describe('frasi guidate', () => {
     ])
   })
 
+  it('il numero continuo è la prima scheda nelle caselle, e solo lì', async () => {
+    const { availableSentences } = await import('../formulaAssist')
+    const ids = (inCell: boolean): string[] =>
+      availableSentences({ inCell, condition: false, onGrid: false }).map((s) => s.id)
+    expect(ids(true)[0]).toBe('cellNumber')
+    expect(ids(false)).not.toContain('cellNumber')
+  })
+
   it('riconosce ogni N caselle e la scacchiera come condizioni', async () => {
     const { findSentence } = await import('../formulaAssist')
     const id = (src: string): string | undefined =>

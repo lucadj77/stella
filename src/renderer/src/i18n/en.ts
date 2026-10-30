@@ -575,6 +575,8 @@ export const en = {
   'layers.ungroup': 'Ungroup (⇧⌘G)',
   'layers.duplicate': 'Duplicate (⌘D)',
   'layers.delete': 'Delete (⌫)',
+  'layers.gridContent': 'content',
+  'layers.gridRule': 'rule {n}',
   'layers.lock': 'Lock',
   'layers.unlock': 'Unlock',
   'layers.hide': 'Hide',
@@ -2537,13 +2539,38 @@ export const en = {
   'prop.alignX': 'Horizontal position',
   'prop.alignY': 'Vertical position',
   'prop.gridClip': 'Cut what goes outside the frame',
+  'editor.gridContentInsert': 'Insert content in all cells',
+  'editor.gridContentRepeat':
+    'Every cell repeats the content of the group above. Add or edit the elements of the group to see them in all cells.',
+  'editor.gridContentSelect': 'Select',
+  'editor.gridContentChange': 'Change…',
+  'editor.gridContentRemove': 'Remove',
+  'editor.gridContentRemoveHint':
+    'The group leaves the grid and goes back to the layer list, above the grid.',
+  'editor.gridContentMissing': 'The group “{name}” is no longer there.',
+  'prop.centered': 'Centered on the cells',
+  'editor.centeredHint':
+    'The group stays at the center of the first cell: it does not move and, if you resize it, it grows from the center. Turn off to move it freely.',
+  'editor.ruleContent': 'Custom content',
+  'editor.ruleContentHint':
+    'The cells of this rule draw other content instead of the content of all cells.',
+  'cellContent.title': 'Insert content in all cells',
+  'cellContent.ruleTitle': 'Content of the cells of rule {n}',
+  'cellContent.value': 'Value',
+  'cellContent.valueHint':
+    'A text that can change in every cell: numbers, letters, words. The formula assistant opens.',
+  'cellContent.shape': 'Shape or image',
+  'cellContent.shapeHint': 'A shape or an image, also from an image variable.',
+  'cellContent.group': 'Group',
+  'cellContent.groupHint': 'A group you already have in the layer list.',
+  'cellContent.noGroups': 'There are no groups to use in the layer list.',
+  'cellContent.shapes': 'Shapes',
+  'cellContent.images': 'Images',
+  'cellContent.imageFile': 'Image (choose the file afterwards)',
+  'cellContent.noImageVariables': 'The project has no image variables.',
+  'cellContent.groupMove': 'The chosen group leaves the layer list and goes into the grid.',
+  'cellContent.back': '‹ Back',
   'editor.gridContent': 'Cell content',
-  'prop.content': 'Group',
-  'editor.gridContentHint':
-    'A group of this side repeated in every cell. Draw it in the first cell: the other cells get a copy moved to their place.',
-  'editor.gridContentNone': '(none)',
-  'editor.gridContentPlace': 'Move to the first cell',
-  'editor.gridContentNoGroups': 'Group some layers first, then choose the group here.',
   'editor.cellRules': 'Cell rules',
   'editor.cellRulesHelp':
     'Change the look of some cells: where the condition is true, the cell takes the fill, outline or radius of the rule, or is hidden. Rules apply in order, and a later rule wins. In the condition use {cell.index}, {cell.row}, {cell.column} and the component fields, for example ={cell.row} = 1 or =MOD({cell.index}; 5) = 0.',
@@ -2574,6 +2601,12 @@ export const en = {
   'cellPicker.clear': 'None',
   'cellPicker.all': 'All',
   'cellPicker.apply': 'Use these cells',
+  'editor.cellRuleOpen': 'Open the rule',
+  'editor.cellRuleClose': 'Close the rule',
+  'editor.cellRuleHiddenTag': 'hidden',
+  'editor.cellRuleErrorTag': 'error in the condition',
+  'editor.cellRuleMatchesShort': '{n} of {count} cells',
+  'editor.cellRuleEmptyShort': 'no condition',
   'editor.cellRuleAdd': '+ Add a rule',
   'editor.cellRuleFx': 'Formula assistant: cell rule {n}',
   'editor.gridContentFields':
@@ -2836,6 +2869,21 @@ export const en = {
   'fx.card.alternate.hint': 'Odd cells one way, even cells the other',
   'fx.card.alternate.out': 'Alternate two values',
   'fx.card.alternate.out.hint': 'Odd components one way, even ones the other',
+  'fx.card.cellNumber': 'Running number',
+  'fx.card.cellNumber.hint':
+    'Numbers the cells: ascending or descending, by row or by column, also snaking',
+  'fx.s.cellNumber': 'Running number',
+  'fx.s.comma': ',',
+  'fx.s.startFrom': 'starting from',
+  'fx.b.start': 'First number',
+  'fx.cn.up': 'ascending',
+  'fx.cn.down': 'descending',
+  'fx.cn.rows': 'by row',
+  'fx.cn.columns': 'by column',
+  'fx.cn.straight': 'in sequence (1 2 3 4 / 5 6 7 8)',
+  'fx.cn.snake': 'snaking (1 2 3 4 / 8 7 6 5)',
+  'fx.cn.all': 'all cells',
+  'fx.cn.visible': 'skip hidden cells',
   'fx.card.checkerboard': 'Checkerboard',
   'fx.card.checkerboard.hint': 'Two values arranged like the squares of a chessboard',
   'fx.card.cycle': 'Cycle through a list',
@@ -2900,12 +2948,7 @@ export const en = {
   'fx.arg.compareLeft': 'This value',
   'fx.arg.compareRight': 'Compared with',
   'fx.arg.first': 'First value',
-  'fx.arg.second': 'Second value',
-  'editor.gridContentCreate': 'Vary cell by cell:',
-  'editor.gridContentText': 'Text in each cell',
-  'editor.gridContentShape': 'Shape in each cell',
-  'editor.gridContentCreateHint':
-    'Creates a group placed in the first cell and repeated in all the others. The formulas of its layers can change from cell to cell.'
+  'fx.arg.second': 'Second value'
 }
 
 export type MessageKey = keyof typeof en

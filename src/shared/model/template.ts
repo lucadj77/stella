@@ -249,11 +249,18 @@ export interface GridLayer extends LayerBase {
   /** Raggio degli angoli dello sfondo in mm */
   backgroundRadius: number
   /**
-   * Nome di un gruppo dello stesso lato che si ripete in ogni casella: disegnato com'è nella
-   * prima, spostato nelle altre. Dentro valgono {cell.index}, {cell.row}, {cell.column},
-   * {cell.count} e {cell.random}. Vuoto: caselle vuote
+   * Nome del gruppo, tra i `groups` della griglia, che si ripete in ogni casella: disegnato
+   * com'è nella prima, spostato nelle altre. Dentro valgono {cell.index}, {cell.row},
+   * {cell.column}, {cell.count} e {cell.random}. Vuoto: caselle vuote
    */
   content: string
+  /** Il gruppo del contenuto resta centrato sulla prima casella */
+  centered: boolean
+  /**
+   * I gruppi della griglia: il contenuto delle caselle e quelli delle regole. Coordinate sulla
+   * carta, come i figli di un gruppo; non si disegnano da soli, solo nelle caselle
+   */
+  groups: GroupLayer[]
   /** Solo sulla carta disegnata: il gruppo del contenuto legato a ogni casella, in ordine */
   cells?: GroupLayer[]
   /**
@@ -282,6 +289,10 @@ export interface CellRule {
    * sorgente dell'immagine, il colore della forma), scritto come una formula
    */
   values?: Record<string, string>
+  /** Nome di un gruppo della griglia che prende il posto del contenuto in queste caselle */
+  content?: string
+  /** Il gruppo della regola resta centrato sulla prima casella */
+  centered?: boolean
 }
 
 /** Come si disegna una casella sulla carta */
@@ -455,3 +466,18 @@ export const PRIMARY_PROPERTY: Record<LayerType, string> = {
 
 /** I livelli valore non hanno riquadro: non si disegnano, non si selezionano sulla carta */
 export const isDrawn = (l: Layer): boolean => l.type !== 'value'
+
+/** I livelli dentro un livello: i figli di un gruppo, i gruppi di una griglia; null per gli altri */
+export function innerLayers(l: Layer): Layer[] | null {
+  if (l.type === 'group') return l.children
+  if (l.type === 'grid') return l.groups
+  return null
+}
+
+/** Il livello con altri livelli dentro; una griglia tiene solo i gruppi */
+export function withInner(l: Layer, inner: Layer[]): Layer {
+  if (l.type === 'group') return { ...l, children: inner }
+  if (l.type === 'grid')
+    return { ...l, groups: inner.filter((c): c is GroupLayer => c.type === 'group') }
+  return l
+}

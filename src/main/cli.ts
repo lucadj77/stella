@@ -188,6 +188,8 @@ function templateOutline(t: Template): string[] {
     for (const l of layers) {
       out.push(`${'  '.repeat(depth)}- ${layerSummary(l)}`)
       if (l.type === 'group') walk(l.children, depth + 1)
+      // i gruppi che la griglia ripete nelle caselle
+      if (l.type === 'grid') walk(l.groups, depth + 1)
     }
   }
   for (const side of ['front', 'back'] as const) {

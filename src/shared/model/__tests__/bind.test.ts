@@ -279,16 +279,93 @@ describe('contenuto della griglia', () => {
     ]
   })
 
-  it('lega una copia del gruppo per casella e nasconde il gruppo', () => {
+  it('un file di prima porta il gruppo dentro la griglia', () => {
+    expect(tpl.front).toHaveLength(1)
+    const grid = tpl.front[0]
+    expect(grid.type === 'grid' && grid.groups.map((g) => g.name)).toEqual(['numero'])
+  })
+
+  it('lega una copia del gruppo per casella', () => {
     const bound = bindCard(tpl, rowToCard([], []))
-    const [grid, group] = bound.template.front
-    expect(group.visible).toBe(false)
+    const [grid] = bound.template.front
     const cells = grid.type === 'grid' ? (grid.cells ?? []) : []
     expect(cells).toHaveLength(6)
     const text = (i: number): string => (cells[i].children[0] as TextLayer).text
     expect(text(0)).toBe('1/6 r1c1')
     expect(text(4)).toBe('5/6 r2c2')
     expect(bound.problems).toEqual([])
+  })
+
+  it('numero continuo per colonna, a serpentina, dall’ultima, saltando le nascoste', () => {
+    const t = normalizeTemplate({
+      name: 't',
+      front: [
+        {
+          type: 'grid',
+          name: 'g',
+          rows: 2,
+          columns: 3,
+          content: 'c',
+          cellRules: [{ when: '={cell.index}=2', hidden: true }],
+          groups: [
+            {
+              type: 'group',
+              name: 'c',
+              children: [
+                { type: 'text', name: 'a', source: { kind: 'formula', expr: '=CELLNUMBER()' } },
+                {
+                  type: 'text',
+                  name: 'b',
+                  source: { kind: 'formula', expr: '=CELLNUMBER("columns"; "snake")' }
+                },
+                {
+                  type: 'text',
+                  name: 'd',
+                  source: { kind: 'formula', expr: '=CELLNUMBER("down"; "visible"; 10)' }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    })
+    const bound = bindCard(t, rowToCard([], []))
+    const grid = bound.template.front[0]
+    const cells = grid.type === 'grid' ? (grid.cells ?? []) : []
+    const col = (k: number): string[] => cells.map((c) => (c.children[k] as TextLayer).text)
+    expect(col(0)).toEqual(['1', '2', '3', '4', '5', '6'])
+    // per colonna: 1 3 | 2 4 | … a serpentina la seconda colonna sale
+    expect(col(1)).toEqual(['1', '4', '5', '2', '3', '6'])
+    // la casella 2 è nascosta: restano 5 caselle, da 14 a 10
+    expect(col(2)).toEqual(['14', '', '13', '12', '11', '10'])
+    expect(bound.problems).toEqual([])
+  })
+
+  it('una regola con il suo gruppo prende il posto del contenuto', () => {
+    const t = normalizeTemplate({
+      name: 't',
+      front: [
+        {
+          type: 'grid',
+          name: 'g',
+          rows: 1,
+          columns: 3,
+          content: 'c',
+          cellRules: [{ when: '={cell.index}=3', content: 'r' }],
+          groups: [
+            { type: 'group', name: 'c', children: [{ type: 'text', name: 'a', text: 'base' }] },
+            { type: 'group', name: 'r', children: [{ type: 'text', name: 'b', text: 'speciale' }] }
+          ]
+        }
+      ]
+    })
+    const grid = bindCard(t, rowToCard([], [])).template.front[0]
+    const cells = grid.type === 'grid' ? (grid.cells ?? []) : []
+    expect(cells.map((c) => (c.children[0] as TextLayer).text)).toEqual([
+      'base',
+      'base',
+      'speciale'
+    ])
   })
 
   it('segnala un gruppo che non c’è', () => {

@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { findParent, isNameTaken, moveLayerTo, patchLayer } from '../../../shared/model/edit'
 import { switchSource } from '../../../shared/model/bind'
-import type { Layer, Template, ValueSource } from '../../../shared/model/template'
+import {
+  innerLayers,
+  type GridLayer,
+  type Layer,
+  type Template,
+  type ValueSource
+} from '../../../shared/model/template'
 import { layerStatus, revertLayer } from '../../../shared/model/inherit'
 import { useI18n } from '../i18n/context'
 import HelpTip from '../components/HelpTip'
@@ -108,7 +114,7 @@ export default function LayersPanel({
   const select = (l: Layer, e: React.MouseEvent): void => {
     const parentLayer = findParent(layers, l.id)
     const parent = parentLayer?.id ?? null
-    const siblings = parentLayer ? parentLayer.children : layers
+    const siblings = parentLayer ? (innerLayers(parentLayer) ?? layers) : layers
     const sameParent = selection.every((id) => (findParent(layers, id)?.id ?? null) === parent)
     let ids = [l.id]
     // l'estremo vale finché è selezionato (la selezione può cambiare anche dalla carta)
@@ -137,9 +143,20 @@ export default function LayersPanel({
     dispatch({ type: 'change', template: patchLayer(tpl, side, l.id, { name: clean }) })
   }
 
-  const rows = (list: Layer[], depth: number): React.ReactNode =>
+  const rows = (list: Layer[], depth: number, grid?: GridLayer): React.ReactNode =>
     list.map((l) => {
-      const open = l.type === 'group' && !collapsed.has(l.id)
+      const inner = innerLayers(l)
+      const nested = !!inner?.length
+      const open = nested && !collapsed.has(l.id)
+      // nei gruppi di una griglia: a cosa serve il gruppo
+      const rule = grid ? grid.cellRules.findIndex((r) => r.content?.trim() === l.name) : -1
+      const role = !grid
+        ? null
+        : grid.content.trim() === l.name
+          ? t('layers.gridContent')
+          : rule >= 0
+            ? t('layers.gridRule', { n: rule + 1 })
+            : null
       // in un derivato: livello del base, cambiato, o solo di questo template
       const status = base ? layerStatus(base, l).status : null
       const own = status === null || status === 'added'
@@ -192,7 +209,7 @@ export default function LayersPanel({
             <span
               className="layer-twisty"
               onClick={(e) => {
-                if (l.type !== 'group') return
+                if (!nested) return
                 e.stopPropagation()
                 const next = new Set(collapsed)
                 if (open) next.add(l.id)
@@ -200,7 +217,7 @@ export default function LayersPanel({
                 setCollapsed(next)
               }}
             >
-              {l.type === 'group' ? (open ? '▾' : '▸') : ''}
+              {nested ? (open ? '▾' : '▸') : ''}
             </span>
             <span className="layer-icon">{ICONS[l.type === 'shape' ? l.shape : l.type]}</span>
             {renaming === l.id ? (
@@ -218,6 +235,7 @@ export default function LayersPanel({
             ) : (
               <span className="layer-name">{l.name}</span>
             )}
+            {role && <span className="layer-role">{role}</span>}
             {status === 'inherited' && (
               <span className="layer-inherit" title={t('inherit.layerFromBase')}>
                 <LinkIcon />
@@ -300,7 +318,7 @@ export default function LayersPanel({
               {l.visible ? '👁' : '–'}
             </button>
           </div>
-          {open && l.type === 'group' && <ul>{rows(l.children, depth + 1)}</ul>}
+          {open && <ul>{rows(inner!, depth + 1, l.type === 'grid' ? l : undefined)}</ul>}
         </li>
       )
     })

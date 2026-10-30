@@ -408,12 +408,10 @@ export interface CellContext {
 export function contentGrid(template: Template, layerId: string): CellContext | null {
   for (const side of [template.front, template.back]) {
     const all = walkLayers(side)
-    for (const g of all) {
-      if (g.type !== 'grid' || !g.content.trim()) continue
-      const group = all.find((l) => l.type === 'group' && l.name === g.content.trim())
-      if (group && walkLayers([group]).some((l) => l.id === layerId))
+    // ogni gruppo della griglia, quello del contenuto e quelli delle regole
+    for (const g of all)
+      if (g.type === 'grid' && walkLayers(g.groups).some((l) => l.id === layerId))
         return { grid: g.name, ...gridSize(g) }
-    }
   }
   return null
 }
@@ -447,6 +445,8 @@ export type SentencePart =
       image?: boolean
     }
   | { op: NodePath; ops: readonly BinaryOperator[] }
+  /** Una scelta tra testi fissi, nel testo in `choice`: le etichette sono chiavi della traduzione */
+  | { choice: NodePath; options: readonly { value: string; label: string }[] }
   /** Aggiunge una voce: un argomento alla funzione in `add`, o una fascia se `band` (con il campo in `field`) */
   | { add: NodePath; label: string; band?: boolean; field?: NodePath }
   /** Aggiunge un confronto alla condizione in `join`, con AND (e anche) o OR (oppure) */
@@ -580,6 +580,46 @@ const everyNthCond: SentenceTemplate = {
       txt('fx.s.trueEvery'),
       blank([0, 1], 'number', 'fx.b.n'),
       txt(c.inCell ? 'fx.s.cells' : 'fx.s.components')
+    ]
+  }
+}
+
+/** Le scelte di CELLNUMBER, nell'ordine in cui le scrive l'assistente */
+const CELLNUMBER_CHOICES = [
+  ['up', 'down'],
+  ['rows', 'columns'],
+  ['straight', 'snake'],
+  ['all', 'visible']
+] as const
+
+/**
+ * CELLNUMBER("up"; "rows"; "straight"; "all"; 1): il numero continuo delle caselle, con le
+ * scelte in parole
+ */
+const cellNumber: SentenceTemplate = {
+  id: 'cellNumber',
+  cell: true,
+  make: () => call('CELLNUMBER', ...CELLNUMBER_CHOICES.map(([first]) => str(first)), num(1)),
+  parts: (n) => {
+    if (!isCall(n, 'CELLNUMBER', CELLNUMBER_CHOICES.length + 1)) return null
+    const ok = CELLNUMBER_CHOICES.every((options, i) => {
+      const a = n.args[i]
+      return a.k === 'str' && (options as readonly string[]).includes(a.v)
+    })
+    if (!ok) return null
+    const choice = (i: number): SentencePart => ({
+      choice: [i],
+      options: CELLNUMBER_CHOICES[i].map((value) => ({ value, label: `fx.cn.${value}` }))
+    })
+    return [
+      txt('fx.s.cellNumber'),
+      choice(0),
+      choice(1),
+      choice(2),
+      txt('fx.s.comma'),
+      choice(3),
+      txt('fx.s.startFrom'),
+      blank([4], 'number', 'fx.b.start')
     ]
   }
 }
@@ -883,6 +923,7 @@ const inListCond: SentenceTemplate = {
 
 /** In ordine di riconoscimento: le forme più specifiche prima */
 export const SENTENCES: SentenceTemplate[] = [
+  cellNumber,
   everyNth,
   alternating,
   checker,
@@ -906,6 +947,7 @@ export const SENTENCES: SentenceTemplate[] = [
 
 /** Ordine della schermata "cosa vuoi fare" */
 export const START_ORDER = [
+  'cellNumber',
   'if',
   'everyN',
   'alternate',
@@ -974,6 +1016,7 @@ const prefixed = (p: SentencePart, at: NodePath): SentencePart => {
   const pre = (x: NodePath): NodePath => [...at, ...x]
   if ('blank' in p) return { ...p, blank: pre(p.blank), also: p.also?.map(pre) }
   if ('op' in p) return { ...p, op: pre(p.op) }
+  if ('choice' in p) return { ...p, choice: pre(p.choice) }
   if ('add' in p) return { ...p, add: pre(p.add), field: p.field && pre(p.field) }
   if ('join' in p) return { ...p, join: pre(p.join) }
   if ('drop' in p) return { ...p, drop: pre(p.drop) }

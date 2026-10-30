@@ -851,6 +851,14 @@ textarea.invalid {
   opacity: 0.45;
 }
 
+/* a cosa serve un gruppo della griglia: contenuto, regola 2 */
+.layer-role {
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 11px;
+  margin-left: 4px;
+}
+
 .layer-twisty {
   width: 12px;
   font-size: 10px;
@@ -6926,12 +6934,62 @@ button.more-button {
   border-color: var(--mk-value);
 }
 
-.fx-content-create {
+/* contenuto delle caselle: il gruppo, i suoi tasti e la spunta «centrato» */
+.grid-content {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin: 4px 0 6px;
+}
+
+.grid-content-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.grid-content-name {
+  flex: 1 1 100%;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+button.wide {
+  display: block;
+  width: 100%;
+  margin: 4px 0;
+}
+
+/* finestra «Inserisci un contenuto»: tre scelte grandi, poi gli elenchi */
+.cell-content-choices {
+  display: grid;
+  gap: 8px;
+  min-width: min(420px, 80vw);
+}
+
+.cell-content-choices button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.cell-content-choices button span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.cell-content-list {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  align-items: center;
-  margin: 4px 0;
+  margin-bottom: 8px;
 }
 
 /* regole delle caselle della griglia: un riquadro per regola */
@@ -6952,6 +7010,51 @@ button.more-button {
 .cell-rule-tools {
   display: inline-flex;
   gap: 4px;
+}
+
+/* la testata si apre e si chiude con un clic: colore, nascoste, gruppo, caselle */
+.cell-rule-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  border: none;
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cell-rule-twisty {
+  width: 10px;
+  color: var(--muted);
+}
+
+.cell-rule-swatch {
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+.cell-rule-tag {
+  padding: 0 5px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.cell-rule-summary {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.cell-rule.open .cell-rule-head {
+  margin-bottom: 4px;
 }
 
 .cell-rule-pick {

@@ -15,8 +15,8 @@ import type {
   TextLayer,
   ValueLayer
 } from './template'
-import { fitFixedGrid } from './grid'
-import { isComponentKind, isDrawn, isShapeRotation } from './template'
+import { fitFixedGrid, gridGeometry } from './grid'
+import { innerLayers, isComponentKind, isDrawn, isShapeRotation } from './template'
 
 // Nei file i livelli riportano solo le proprietà diverse dai default; qui si completano.
 
@@ -118,6 +118,8 @@ const GRID_DEFAULTS: Omit<GridLayer, keyof LayerBase | 'type'> = {
   border: null,
   backgroundRadius: 0,
   content: '',
+  centered: true,
+  groups: [],
   cellRules: []
 }
 
@@ -185,7 +187,10 @@ export function normalizeLayer(raw: RawLayer, index: number): Layer {
         ...GRID_DEFAULTS,
         ...(raw as Partial<GridLayer>),
         id: base.id,
-        type: 'grid'
+        type: 'grid',
+        groups: ((raw.groups as RawLayer[] | undefined) ?? [])
+          .map(normalizeLayer)
+          .filter((g): g is GroupLayer => g.type === 'group')
       })
     case 'value':
       return {
@@ -297,14 +302,64 @@ export function normalizeTemplate(raw: RawTemplate): Template {
     cornerRadius: 3,
     ...plain,
     ...(isShapeRotation(shapeRotation) && shapeRotation ? { shapeRotation } : {}),
-    front: (raw.front ?? []).map(normalizeLayer),
-    back: (raw.back ?? []).map(normalizeLayer)
+    front: adoptGridGroups((raw.front ?? []).map(normalizeLayer)),
+    back: adoptGridGroups((raw.back ?? []).map(normalizeLayer))
   }
+}
+
+/**
+ * File di prima della 1.8.0-beta.3: il gruppo del contenuto di una griglia era un livello a sé,
+ * legato per nome. Passa dentro la griglia; resta centrato sulla prima casella solo se lo era
+ */
+export function adoptGridGroups(layers: Layer[]): Layer[] {
+  const wanted = new Set<string>()
+  for (const l of walkLayers(layers))
+    if (l.type === 'grid' && l.content.trim() && !l.groups.some((g) => g.name === l.content.trim()))
+      wanted.add(l.content.trim())
+  if (!wanted.size) return layers
+  const found = new Map<string, GroupLayer>()
+  const take = (list: Layer[]): Layer[] =>
+    list.flatMap((l): Layer[] => {
+      if (l.type === 'group' && wanted.has(l.name) && !found.has(l.name)) {
+        found.set(l.name, l)
+        return []
+      }
+      if (l.type !== 'group') return [l]
+      const children = take(l.children)
+      if (children.length === l.children.length) return [l]
+      // un gruppo rimasto vuoto non ha senso; gli altri si riadattano ai figli rimasti
+      if (!children.length) return []
+      return [{ ...l, children, ...(isArranged(l) ? {} : extent(children)) }]
+    })
+  const rest = take(layers)
+  if (!found.size) return layers
+  const adopt = (list: Layer[]): Layer[] =>
+    list.map((l) => {
+      if (l.type === 'group') return { ...l, children: adopt(l.children) }
+      if (l.type !== 'grid') return l
+      const g = found.get(l.content.trim())
+      if (!g || l.groups.length) return l
+      found.delete(l.content.trim())
+      return { ...l, groups: [g], centered: isCentered(l, g) }
+    })
+  return adopt(rest)
+}
+
+/** Il gruppo ha il centro su quello della prima casella, a meno di un decimo di mm */
+export function isCentered(grid: GridLayer, g: GroupLayer): boolean {
+  const c = gridGeometry(grid).centers[0]
+  if (!c) return true
+  return (
+    Math.abs(g.x + g.w / 2 - (grid.x + c.x)) < 0.1 && Math.abs(g.y + g.h / 2 - (grid.y + c.y)) < 0.1
+  )
 }
 
 /** Tutti i livelli in profondità, gruppi compresi */
 export function walkLayers(layers: Layer[]): Layer[] {
-  return layers.flatMap((l) => (l.type === 'group' ? [l, ...walkLayers(l.children)] : [l]))
+  return layers.flatMap((l) => {
+    const inner = innerLayers(l)
+    return inner ? [l, ...walkLayers(inner)] : [l]
+  })
 }
 
 /** Nomi duplicati tra fronte e retro di un template */
@@ -342,7 +397,7 @@ export function denormalizeLayer(l: Layer): RawLayer {
   const defaults: Record<string, unknown> = { ...BASE_DEFAULTS, ...TYPE_DEFAULTS[l.type] }
   const out: RawLayer = { type: l.type, name: l.name }
   for (const [k, v] of Object.entries(l)) {
-    if (k === 'id' || k === 'type' || k === 'name' || k === 'children') continue
+    if (k === 'id' || k === 'type' || k === 'name' || k === 'children' || k === 'groups') continue
     // il riquadro di un gruppo si ricava dai figli
     // (salvo con la disposizione automatica, dove è il riquadro in cui si dispongono)
     const fitted = l.type === 'value' || (l.type === 'group' && !isArranged(l))
@@ -355,6 +410,7 @@ export function denormalizeLayer(l: Layer): RawLayer {
     out[k] = value
   }
   if (l.type === 'group') out.children = l.children.map(denormalizeLayer)
+  if (l.type === 'grid' && l.groups.length) out.groups = l.groups.map(denormalizeLayer)
   return out
 }
 
