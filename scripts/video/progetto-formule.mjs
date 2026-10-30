@@ -15,6 +15,10 @@ const ExcelJS = createRequire(join(REPO, 'package.json'))('exceljs')
 
 const box = (x, y, w, h) => ({ x, y, w, h })
 const fixed = { source: { kind: 'fixed' } }
+const column = (c) => ({ source: { kind: 'column', column: c } })
+// un livello Valore che prende dal foglio la colonna con il suo nome: le formule usano solo campi
+// che si vedono nel template, mai colonne che stanno solo nel foglio
+const value = (name, v = '') => ({ type: 'value', name, value: v, ...box(0, 0, 10, 10) })
 
 export function names(lang) {
   const it = lang === 'it'
@@ -64,7 +68,10 @@ export function names(lang) {
       count: L('conteggio', 'count'),
       footer: L('piede', 'footer'),
       points: L('punti', 'points'),
-      length: L('lunghezza', 'length')
+      length: L('lunghezza', 'length'),
+      // i livelli testo che mostrano nome e abilità: i dati del foglio stanno nei livelli Valore
+      title: L('titolo', 'title'),
+      abilityText: L('testo_abilita', 'ability_text')
     }
   }
 }
@@ -138,9 +145,15 @@ export async function make(dest, lang) {
     safeMargin: 3,
     cornerRadius: 3,
     front: [
+      value(C.name, L('Nome', 'Name')),
+      value(C.level, '1'),
+      value(C.attack, '0'),
+      value(C.defense, '0'),
+      value(C.ability),
       {
         type: 'text',
-        name: C.name,
+        name: C.title,
+        ...column(C.name),
         ...box(6, 5, 51, 9),
         text: L('Nome', 'Name'),
         weight: 800,
@@ -235,7 +248,8 @@ export async function make(dest, lang) {
       },
       {
         type: 'text',
-        name: C.ability,
+        name: C.abilityText,
+        ...column(C.ability),
         ...box(6, 64, 51, 15),
         text: '',
         weight: 500,
@@ -327,6 +341,7 @@ export async function make(dest, lang) {
     safeMargin: 2,
     cornerRadius: 0,
     front: [
+      value(C.type, I.wound),
       {
         type: 'text',
         name: C.count,
@@ -486,6 +501,7 @@ export async function make(dest, lang) {
     safeMargin: 3,
     cornerRadius: 0,
     front: [
+      value(C.length),
       {
         type: 'text',
         name: C.name,

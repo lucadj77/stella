@@ -322,21 +322,22 @@ await r.clear()
 await r.click(win.getByRole('button', { name: T['preview.editTemplate'] }).first())
 await r.clear(1200)
 await r.overlay()
-await formula(C.name, X.name)
+await r.click(layer(C.level))
+await r.focus(
+  [win.locator('.layers').first(), sourceLine()],
+  t(
+    'Nome, livello, attacco, difesa e abilità sono livelli Valore: prendono il dato dal foglio, e le formule usano loro',
+    'Name, level, attack, defense and ability are Value layers: they take the data from the sheet, and formulas use them'
+  ),
+  'right',
+  { pad: 4 }
+)
+await formula(C.title, X.name)
 await r.focus(
   [sourceLine(), stage()],
   t(
-    'Composizione: il testo con i campi tra graffe. Il nome resta, si aggiunge il livello',
-    'Composition: text with fields in braces. The name stays, the level is added'
-  ),
-  'left',
-  { pad: 4 }
-)
-await r.focus(
-  sourceLine(),
-  t(
-    '{nome} è la colonna del foglio, non il livello: la formula legge il dato e non gira su se stessa',
-    '{name} is the sheet column, not the layer: the formula reads the data and does not loop on itself'
+    'Composizione: il testo con i campi tra graffe. Il titolo unisce {nome} e {livello}',
+    'Composition: text with fields in braces. The title joins {name} and {level}'
   ),
   'left',
   { pad: 4 }
@@ -491,7 +492,7 @@ await test(
 await r.title(t('4 · Le funzioni sul testo', '4 · Text functions'))
 await r.clear()
 await previewRow(1)
-await formula(C.ability, X.ability)
+await formula(C.abilityText, X.ability)
 await r.focus(
   [sourceLine(), stage()],
   t(
@@ -600,19 +601,17 @@ await r.focus(
 await save()
 await openSet(N.creatures)
 await r.focus(grid(), t('Tutte le carte, calcolate', 'Every card, computed'), 'right', { pad: 4 })
-await openSet(N.wounds)
-await view('set.table')
+await openTemplateOf(N.tMarker, N.wounds)
+await r.click(layer(C.type))
 await r.focus(
-  win.locator('.data-table').first(),
+  [win.locator('.layers').first(), sourceLine()],
   t(
-    'Nel foglio dei segnalini la colonna tipo dice ferita o veleno',
-    'In the markers sheet the type column says wound or poison'
+    'Il segnalino ha il livello Valore tipo: ferita o veleno, dal foglio',
+    'The marker has the Value layer type: wound or poison, from the sheet'
   ),
   'right',
   { pad: 4 }
 )
-await view('set.grid')
-await openTemplateOf(N.tMarker, N.wounds)
 await formula(C.bg, X.marker)
 await r.focus(
   [sourceLine(), stage()],
@@ -688,12 +687,12 @@ await face('preview.front')
 // 8. chi vince
 await r.title(t('8 · Chi vince', '8 · What wins'))
 await r.clear()
-await r.click(layer(C.name))
+await r.click(layer(C.title))
 await r.focus(
   sourceLine(),
   t(
-    'La colonna nome è ancora nel foglio, ma il livello ha una formula: vince la formula',
-    'The name column is still in the sheet, but the layer has a formula: the formula wins'
+    'Il titolo leggeva la colonna nome; ora ha una formula, e vince la formula',
+    'The title used to read the name column; now it has a formula, and the formula wins'
   ),
   'left',
   { pad: 4 }
@@ -717,7 +716,7 @@ await r.click(
     .first()
 )
 await r.clear(700)
-await choose(dialog().locator('select').first(), C.name)
+await choose(dialog().locator('select').first(), C.title)
 await r.click(
   dialog()
     .locator('.chips button')
@@ -726,12 +725,12 @@ await r.click(
   { after: 700 }
 )
 await pick(7)
-await fill(cardField(`${C.name}.color`), '#F2C14E')
+await fill(cardField(`${C.title}.color`), '#F2C14E')
 await r.focus(
-  [cardField(`${C.name}.color`), previewCard()],
+  [cardField(`${C.title}.color`), previewCard()],
   t(
-    'Una colonna nome.color cambia una proprietà su una carta sola',
-    'A name.color column changes one property on a single card'
+    'Una colonna titolo.color cambia una proprietà su una carta sola',
+    'A title.color column changes one property on a single card'
   ),
   'left',
   { pad: 4 }
@@ -751,19 +750,17 @@ await save()
 // 9. le formule nelle griglie
 await r.title(t('9 · Le formule nelle griglie', '9 · Formulas in grids'))
 await r.clear()
-await openSet(N.tracks)
-await view('set.table')
+await openTemplateOf(N.tTrack, N.tracks)
+await r.click(layer(C.length))
 await r.focus(
-  win.locator('.data-table').first(),
+  [win.locator('.layers').first(), sourceLine()],
   t(
-    'Un tracciato nel set Tracciati: la colonna lunghezza vale 26',
-    'One track in the Tracks set: the length column is 26'
+    'Il livello Valore lunghezza prende dal foglio quante caselle usa il tracciato: 26',
+    'The Value layer length takes from the sheet how many cells the track uses: 26'
   ),
   'right',
   { pad: 4 }
 )
-await view('set.grid')
-await openTemplateOf(N.tTrack, N.tracks)
 await r.click(layer(C.points))
 await r.focus(
   [sourceLine(), stage()],
