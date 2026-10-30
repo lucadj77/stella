@@ -196,9 +196,15 @@ async function templateProps() {
   await win.keyboard.press('Escape')
   await r.wait(300)
 }
-async function shape(key) {
-  await r.click(win.locator(`.menu-button[title="${T['tool.shapes']}"]`).first(), { after: 500 })
-  await r.click(win.locator('.menu-panel .menu-item').filter({ hasText: T[key] }).first(), {
+async function shape(kind) {
+  await top()
+  await r.unzoom(400)
+  // il titolo diventa data-tip dopo il primo suggerimento mostrato
+  const menu = win.locator(
+    `.menu-button[title="${T['tool.shapes']}"], .menu-button[data-tip="${T['tool.shapes']}"]`
+  )
+  await r.click(menu.first(), { after: 500 })
+  await r.click(win.locator('.menu-panel .menu-item').filter({ hasText: T[kind] }).first(), {
     after: 600
   })
   await r.clear(400)
@@ -294,7 +300,13 @@ async function insertContent(kind, item) {
     })
 }
 /** la griglia con la casella fissa: righe, colonne, forma, misura e posizione */
+/** niente selezionato e fuori dai gruppi: il livello nuovo va in cima alla lista */
+async function top() {
+  await key('Escape', 250)
+  await key('Escape', 250)
+}
 async function grid(name, { rows, cols, cell = 'square', w, h = w, x, y, gap, interlock = false }) {
+  await top()
   await r.click(tool('tool.grid'))
   await r.clear(600)
   await fill(field(T['prop.name']), name)
@@ -370,6 +382,7 @@ async function fillRule(i, color) {
 }
 /** un testo nuovo, con le proprietà di base */
 async function text(name, value, { size, weight, color, align = 'center' } = {}) {
+  await top()
   await r.click(tool('tool.text'))
   await r.clear(400)
   await fill(field(T['prop.name']), name)
@@ -623,6 +636,7 @@ for (const [i, y] of [
 ]) {
   // senza niente selezionato la copia va in cima alla lista, non dentro il gruppo di prima
   await key('Escape', 300)
+  await key('Escape', 300)
   await key('Control+v', 1000)
   await fill(field('X'), '268')
   await fill(field('Y'), String(y))
@@ -706,22 +720,22 @@ await r.clear()
 await text(t('titolo', 'title'), GAME, { size: 34, weight: 800, color: '#3B2A14', align: 'left' })
 await place(47, 42, 200, 24)
 // il tracciato dei round, con una freccia tra le caselle
-await grid(ROUND, { rows: 1, cols: 10, w: 16, x: 47, y: 222, gap: 5 })
+await grid(ROUND, { rows: 1, cols: 10, w: 17, x: 47, y: 222, gap: 4 })
 await fill(colorField(T['prop.cellFill']), '#F5EEDC')
 await stroke(T['prop.cellStroke'], '#7A6A55', 0.6)
 await insertContent(0)
 await card('fx.card.cellNumber')
 await applyFx()
-await fill(field(T['prop.size']), '11')
+await fill(field(T['prop.size']), '16')
 await choose(field(T['prop.weight']), '700')
 await r.click(tool('tool.text'))
 await r.clear(500)
 await fill(field(T['prop.name']), ARROW)
-await fill(field(T['prop.text']), '→')
-await fill(field(T['prop.size']), '10')
-await fill(field(T['prop.w']), '5')
-await fill(field(T['prop.h']), '16')
-await put(field('X'), '63')
+await fill(field(T['prop.text']), '›')
+await fill(field(T['prop.size']), '18')
+await fill(field(T['prop.w']), '4')
+await fill(field(T['prop.h']), '17')
+await put(field('X'), '64')
 await put(field('Y'), '222')
 await r.click(layer(ROUND), { after: 700 })
 await addRule()
@@ -736,27 +750,28 @@ await look(
   )
 )
 await closeRules()
-// la legenda: esagono e nome, in fila
+// la legenda: esagono e nome, in fila. Il gruppo mette in fila i figli nell'ordine della lista, dall'alto
+await text(AREA, t('Pianura', 'Plain'), { size: 14, weight: 600, color: '#3B2A14', align: 'left' })
+await choose(field(T['prop.valign']), 'middle')
+await place(62, 322, 32, 12)
 await shape('tool.polygon')
 await fill(field(T['prop.name']), HEX)
 await fill(field(T['prop.sides']), '6')
-await place(47, 322, 9, 9)
-await fill(colorField(T['prop.fill']), COLORS.forest)
-await text(AREA, areas[0][0], { size: 10, weight: 600, color: '#3B2A14', align: 'left' })
-await choose(field(T['prop.valign']), 'middle')
-await place(58, 322, 26, 9)
-await selectRange(AREA, HEX)
+await place(47, 322, 12, 12)
+await fill(colorField(T['prop.fill']), COLORS.plain)
+await selectRange(HEX, AREA)
 await key('Control+g', 900)
 await fill(field(T['prop.name']), LEGEND)
 await choose(field(T['prop.layout']), 'row')
 await fill(field(T['prop.gap']), '3')
-await selectRange(AREA, HEX)
+await selectRange(HEX, AREA)
 await key('Control+c', 700)
 for (let i = 0; i < 3; i++) await key('Control+v', 900)
+// le copie vanno in testa alla fila: l'ultima incollata è la prima da sinistra
 const legend = [
-  [areas[1][0], COLORS.lake],
   [areas[2][0], COLORS.mountains],
-  [t('Pianura', 'Plain'), COLORS.plain]
+  [areas[1][0], COLORS.lake],
+  [areas[0][0], COLORS.forest]
 ]
 for (let i = 0; i < legend.length; i++) {
   await r.click(layer(`${HEX}_${i + 2}`), { after: 500 })
@@ -839,6 +854,8 @@ await r.focus(
   ),
   'left'
 )
+// la griglia nuova va sopra il livello selezionato: il nome, in cima, così non resta sotto il fondo
+await r.click(layer(C.name), { after: 500 })
 await grid(t('riserve', 'supply'), { rows: 2, cols: 4, w: 30, x: 36, y: 52, gap: 6 })
 await fill(colorField(T['prop.cellFill']), '#FFFFFF')
 await fill(field(T['prop.radius']), '3')

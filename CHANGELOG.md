@@ -5,6 +5,38 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.8.0
+
+### English
+
+- **Grids, much more powerful**:
+  - **Cell rules**: each rule has a condition and, where it is true, changes the fill, the outline or the corner radius of the cell, hides it (with its content and its snap point), gives a value to the layers of the cell content or uses a content of its own. Conditions are formulas with `{cell.index}`, `{cell.row}`, `{cell.column}`, the component fields and the content layers by name, or ready sentences of the formula assistant: **In cells 3, 8, 11**, **Every N cells** (also **counting** the written number), **Checkerboard**. **Choose the cells…** shows the grid as in the first component: click the cells and the condition is written for you. Rules open and close, and closed they sum up what they do.
+  - **Insert content in all cells**: one window to put a **Value**, a **Shape or image** or an existing **Group** in every cell. The content now lives in the grid, moves with it, stays centred on the cells and can be cut at the cell edge. Older files are converted when opened.
+  - **Fixed cell size**: turn off **Automatic size** and type the size of the cell; the grid follows.
+  - **Running number** (`CELLNUMBER`): numbers the cells by row or by column, in sequence, snaking or **along a path** around rings, spirals and roads drawn by hiding cells.
+  - **Deal at random** (`DEAL`): shuffles items in the cells, each exactly, at least or at most N times.
+- **INLIST**: a new formula function, true when a value is in a list (`=INLIST({type}; "dragon, orc")`, `1-5` for a range). The formula assistant offers it as ready sentences instead of a chain of OR.
+- **Numbers in each language's style**: **Project › Languages…** chooses the number format of each language (1 234.5, 1.234,5, 1,234.5, 1 234,5), and the cards follow the language they are shown or exported in. When the main language uses the decimal comma, formulas accept `2,5` as in Excel.
+- **Components, not only cards**: the interface says "components" where it means every kind, and the sidebar and set page show the icon of each kind.
+- **Eyedropper without the dark veil**: the background of the open window disappears while you pick a color.
+- **Wider labels** in the properties panel.
+- Fixes: rule values such as `+2` stay text; `=MIN(2,5; 3)` without the decimal comma is now an error instead of a silent 2; renaming a grid group no longer detaches it from the grid.
+
+### Italiano
+
+- **Griglie molto più potenti**:
+  - **Regole delle caselle**: ogni regola ha una condizione e, dove è vera, cambia il riempimento, il contorno o il raggio degli angoli della casella, la nasconde (con il suo contenuto e il suo snap point), dà un valore ai livelli del contenuto o usa un contenuto suo. Le condizioni sono formule con `{cell.index}`, `{cell.row}`, `{cell.column}`, i campi del componente e i livelli del contenuto per nome, oppure frasi pronte dell'assistente formule: **Nelle caselle 3, 8, 11**, **Ogni N caselle** (anche **contando** il numero scritto), **Scacchiera**. **Scegli le caselle…** mostra la griglia com'è nel primo componente: fai clic sulle caselle e la condizione si scrive da sola. Le regole si aprono e si chiudono, e chiuse riassumono cosa fanno.
+  - **Inserisci un contenuto in tutte le caselle**: una sola finestra per mettere in ogni casella un **Valore**, una **Forma o immagine** o un **Gruppo** che c'è già. Il contenuto ora sta nella griglia, si muove con lei, resta centrato sulle caselle e si può tagliare al bordo della casella. I file precedenti si convertono all'apertura.
+  - **Casella a misura fissa**: spegni **Dimensioni automatiche** e scrivi la misura della casella; la griglia si adegua.
+  - **Numero continuo** (`CELLNUMBER`): numera le caselle per riga o per colonna, in sequenza, a serpentina o **a percorso** lungo anelli, spirali e strade disegnate nascondendo caselle.
+  - **Distribuisci a caso** (`DEAL`): mescola le voci nelle caselle, ognuna esattamente, almeno o al massimo N volte.
+- **INLIST**: una nuova funzione delle formule, vera quando un valore è in un elenco (`=INLIST({tipo}; "drago, orco")`, `1-5` per un intervallo). L'assistente formule la propone come frasi pronte al posto di una catena di OR.
+- **Numeri nello stile di ogni lingua**: **Progetto › Lingue…** sceglie il formato dei numeri di ogni lingua (1 234.5, 1.234,5, 1,234.5, 1 234,5), e le carte seguono la lingua in cui si mostrano o si esportano. Se la lingua principale usa la virgola, nelle formule `2,5` è un numero, come in Excel.
+- **Componenti, non solo carte**: l'interfaccia dice «componenti» dove intende tutti i tipi, e la barra laterale e la pagina del set mostrano l'icona di ogni tipo.
+- **Contagocce senza velo scuro**: lo sfondo della finestra aperta sparisce mentre scegli un colore.
+- **Etichette più larghe** nel pannello delle proprietà.
+- Correzioni: valori delle regole come `+2` restano testo; `=MIN(2,5; 3)` senza la virgola decimale ora è un errore invece di un 2 silenzioso; rinominare un gruppo della griglia non lo stacca più dalla griglia.
+
 ## 1.8.0-beta.4
 
 ### English
