@@ -332,6 +332,15 @@ await r.focus(
   'left',
   { pad: 4 }
 )
+await r.focus(
+  sourceLine(),
+  t(
+    '{nome} è la colonna del foglio, non il livello: la formula legge il dato e non gira su se stessa',
+    '{name} is the sheet column, not the layer: the formula reads the data and does not loop on itself'
+  ),
+  'left',
+  { pad: 4 }
+)
 await formula(C.strength, X.sum)
 await r.focus(
   [sourceLine(), stage()],
@@ -591,6 +600,18 @@ await r.focus(
 await save()
 await openSet(N.creatures)
 await r.focus(grid(), t('Tutte le carte, calcolate', 'Every card, computed'), 'right', { pad: 4 })
+await openSet(N.wounds)
+await view('set.table')
+await r.focus(
+  win.locator('.data-table').first(),
+  t(
+    'Nel foglio dei segnalini la colonna tipo dice ferita o veleno',
+    'In the markers sheet the type column says wound or poison'
+  ),
+  'right',
+  { pad: 4 }
+)
+await view('set.grid')
 await openTemplateOf(N.tMarker, N.wounds)
 await formula(C.bg, X.marker)
 await r.focus(
@@ -730,6 +751,18 @@ await save()
 // 9. le formule nelle griglie
 await r.title(t('9 · Le formule nelle griglie', '9 · Formulas in grids'))
 await r.clear()
+await openSet(N.tracks)
+await view('set.table')
+await r.focus(
+  win.locator('.data-table').first(),
+  t(
+    'Un tracciato nel set Tracciati: la colonna lunghezza vale 26',
+    'One track in the Tracks set: the length column is 26'
+  ),
+  'right',
+  { pad: 4 }
+)
+await view('set.grid')
 await openTemplateOf(N.tTrack, N.tracks)
 await r.click(layer(C.points))
 await r.focus(
