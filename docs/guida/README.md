@@ -16,7 +16,7 @@ Video tutorial su YouTube, senza voce ([tutta la playlist](https://www.youtube.c
 **Componenti**
 
 - 7 · [Plance, tessere, segnalini e dadi](https://www.youtube.com/watch?v=8wrjo3743w8) (9 minuti)
-- 8 · [Le griglie e le formule nelle caselle](https://www.youtube.com/watch?v=wY4PRv9vN1o) (14 minuti)
+- 8 · [Le griglie: caselle, numeri e regole](https://www.youtube.com/watch?v=uJCO9J_bdLI) (10 minuti)
 - 11 · [Immagini, icone e font](https://www.youtube.com/watch?v=LhgecwJeUWU) (6 minuti)
 - 16 · [Generare le carte e dividere un’immagine](https://www.youtube.com/watch?v=tiB1KT81WlE) (7 minuti)
 

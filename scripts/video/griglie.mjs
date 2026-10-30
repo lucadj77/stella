@@ -614,6 +614,8 @@ await r.title(t('Le formule dietro', 'The formulas behind'))
 await r.clear()
 await r.click(layer(TEXT), { after: 800 })
 const textFormula = field(T['source.formula'])
+// il campo della formula sta in alto nel pannello: al centro, sotto la barra di ricerca non si vede intero
+await center(textFormula)
 await explain(textFormula, [
   t(
     'Il numero continuo è la funzione CELLNUMBER: verso, ordine, percorso, caselle, inizio',
@@ -622,12 +624,14 @@ await explain(textFormula, [
 ])
 await r.click(layer(GRID), { after: 700 })
 for (const i of [0, 1]) await setRuleOpen(i, true)
+await center(field(T['editor.cellRuleWhen'], rule(0)))
 await explain(field(T['editor.cellRuleWhen'], rule(0)), [
   t(
     'Scegli le caselle ha scritto INLIST({cell.index}; "6, 13, 27")',
     'Choose the cells wrote INLIST({cell.index}; "6, 13, 27")'
   )
 ])
+await center(field(T['editor.cellRuleWhen'], rule(1)))
 await explain(field(T['editor.cellRuleWhen'], rule(1)), [
   t(
     'Ogni 5 caselle è MOD: il resto della divisione per 5 è zero',

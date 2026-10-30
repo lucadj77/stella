@@ -492,16 +492,16 @@ export const videos = [
   },
   {
     n: 8,
-    it: 'Le griglie e le formule nelle caselle',
-    en: 'Grids and cell formulas',
+    it: 'Le griglie: caselle, numeri e regole',
+    en: 'Grids: cells, numbers and rules',
     about: {
-      it: 'Griglie di caselle per plance e tracciati, con le formule.',
-      en: 'Grids of cells for boards and tracks, with formulas.'
+      it: 'Griglie di caselle per plance e tracciati: numeri, regole e contenuti diversi.',
+      en: 'Grids of cells for boards and tracks: numbers, rules and different content.'
     },
-    minutes: 14,
+    minutes: 10,
     url: {
-      it: 'https://www.youtube.com/watch?v=wY4PRv9vN1o',
-      en: 'https://www.youtube.com/watch?v=DgaXcUt2N-M'
+      it: 'https://www.youtube.com/watch?v=uJCO9J_bdLI',
+      en: 'https://www.youtube.com/watch?v=TtTKJ9p3pxA'
     }
   },
   {
