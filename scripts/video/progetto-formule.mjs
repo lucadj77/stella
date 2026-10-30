@@ -1,18 +1,24 @@
 // Crea il progetto dimostrativo del quarto approfondimento (video 23, le formule): «Bestiario». Otto
 // creature con nome, elemento, livello, attacco, difesa e abilità; il template ha già il posto per i
 // valori calcolati (forza, indole, costo, rango, numero), che il video riempie con le formule una funzione
-// alla volta. Un segnalino ferita stampato in più copie e una tessera tana mostrano le variabili di sistema.
+// alla volta. Un segnalino ferita stampato in più copie e una tessera tana mostrano le variabili di sistema;
+// un tracciato con una griglia di caselle numerate serve al capitolo sulle formule nelle griglie.
 // Uso: node progetto-formule.mjs <cartella di destinazione> <it|en>
 //      oppure da un altro script: make(cartella, lingua)
 import { createRequire } from 'node:module'
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { writeIcons } from './progetto-testo.mjs'
+import { gridGeometry } from '../../src/shared/model/grid.ts'
 const REPO = new URL('../..', import.meta.url).pathname
 const ExcelJS = createRequire(join(REPO, 'package.json'))('exceljs')
 
 const box = (x, y, w, h) => ({ x, y, w, h })
 const fixed = { source: { kind: 'fixed' } }
+const column = (c) => ({ source: { kind: 'column', column: c } })
+// un livello Valore che prende dal foglio la colonna con il suo nome: le formule usano solo campi
+// che si vedono nel template, mai colonne che stanno solo nel foglio
+const value = (name, v = '') => ({ type: 'value', name, value: v, ...box(0, 0, 10, 10) })
 
 export function names(lang) {
   const it = lang === 'it'
@@ -26,6 +32,10 @@ export function names(lang) {
     tCreature: L('creatura', 'creature'),
     tMarker: L('segnalino', 'marker'),
     tLair: L('tana', 'lair'),
+    tracks: L('Tracciati', 'Tracks'),
+    tTrack: L('tracciato', 'track'),
+    grid: L('caselle', 'cells'),
+    gridCell: L('casella', 'cell'),
     // elementi: anche i nomi delle variabili icona
     E: [L('fuoco', 'fire'), L('acqua', 'water'), L('terra', 'earth')],
     I: {
@@ -56,7 +66,12 @@ export function names(lang) {
       type: L('tipo', 'type'),
       mark: L('segno', 'mark'),
       count: L('conteggio', 'count'),
-      footer: L('piede', 'footer')
+      footer: L('piede', 'footer'),
+      points: L('punti', 'points'),
+      length: L('lunghezza', 'length'),
+      // i livelli testo che mostrano nome e abilità: i dati del foglio stanno nei livelli Valore
+      title: L('titolo', 'title'),
+      abilityText: L('testo_abilita', 'ability_text')
     }
   }
 }
@@ -130,9 +145,15 @@ export async function make(dest, lang) {
     safeMargin: 3,
     cornerRadius: 3,
     front: [
+      value(C.name, L('Nome', 'Name')),
+      value(C.level, '1'),
+      value(C.attack, '0'),
+      value(C.defense, '0'),
+      value(C.ability),
       {
         type: 'text',
-        name: C.name,
+        name: C.title,
+        ...column(C.name),
         ...box(6, 5, 51, 9),
         text: L('Nome', 'Name'),
         weight: 800,
@@ -227,7 +248,8 @@ export async function make(dest, lang) {
       },
       {
         type: 'text',
-        name: C.ability,
+        name: C.abilityText,
+        ...column(C.ability),
         ...box(6, 64, 51, 15),
         text: '',
         weight: 500,
@@ -319,6 +341,7 @@ export async function make(dest, lang) {
     safeMargin: 2,
     cornerRadius: 0,
     front: [
+      value(C.type, I.wound),
       {
         type: 'text',
         name: C.count,
@@ -402,7 +425,107 @@ export async function make(dest, lang) {
     ],
     back: []
   }
-  for (const t of [creature, marker, lair])
+  // il tracciato del capitolo sulle griglie: 3 righe di 10 caselle numerate con {cell.index}, senza regole
+  const grid = {
+    type: 'grid',
+    name: N.grid,
+    ...box(8, 16, 184, 58),
+    cell: 'square',
+    rows: 3,
+    columns: 10,
+    cellRatio: 1,
+    cellSize: null,
+    orientation: 'pointy',
+    cellRotation: 0,
+    cellPath: '',
+    interlock: false,
+    gap: 1.5,
+    padding: 0,
+    zoom: 1,
+    alignX: 'center',
+    alignY: 'center',
+    clip: false,
+    radius: 1.5,
+    fill: '#FFFFFF',
+    stroke: { color: '#6B6255', width: 0.4 },
+    background: null,
+    border: null,
+    backgroundRadius: 0,
+    content: N.gridCell,
+    centered: true,
+    clipCells: false,
+    cellRules: [],
+    ...fixed
+  }
+  const g = gridGeometry(grid)
+  const first = g.centers[0]
+  const side = g.centers[1].x - first.x - grid.gap
+  grid.groups = [
+    {
+      type: 'group',
+      name: N.gridCell,
+      ...box(grid.x + first.x - side / 2, grid.y + first.y - side / 2, side, side),
+      layout: 'none',
+      gap: 0,
+      columns: 1,
+      justify: 'center',
+      alignItems: 'center',
+      clip: false,
+      children: [
+        {
+          type: 'text',
+          name: C.points,
+          ...box(
+            grid.x + first.x - side * 0.4,
+            grid.y + first.y - side * 0.3,
+            side * 0.8,
+            side * 0.6
+          ),
+          text: '{cell.index}',
+          weight: 700,
+          size: 14,
+          color: ink,
+          align: 'center',
+          valign: 'middle',
+          ...fixed
+        }
+      ]
+    }
+  ]
+  const track = {
+    name: N.tTrack,
+    kind: 'board',
+    width: 200,
+    height: 80,
+    bleed: 3,
+    safeMargin: 3,
+    cornerRadius: 0,
+    front: [
+      value(C.length),
+      {
+        type: 'text',
+        name: C.name,
+        ...box(8, 4, 184, 9),
+        text: '',
+        weight: 800,
+        size: 11,
+        color: ink,
+        align: 'left',
+        valign: 'middle'
+      },
+      grid,
+      {
+        type: 'shape',
+        name: C.bg,
+        ...box(-3, -3, 206, 86),
+        fill: '#D9C7A8',
+        locked: true,
+        ...fixed
+      }
+    ],
+    back: []
+  }
+  for (const t of [creature, marker, lair, track])
     writeFileSync(join(dest, 'templates', t.name + '.json'), JSON.stringify(t, null, 2) + '\n')
 
   const dataFile = L('data/carte.xlsx', 'data/cards.xlsx')
@@ -425,6 +548,9 @@ export async function make(dest, lang) {
     ['Ember cave', 'Seabed', 'Old forest', 'Quarry']
   ))
     t.addRow([n])
+  const k = wb.addWorksheet(N.tracks)
+  k.addRow([C.name, C.length])
+  k.addRow([L('Tracciato della caccia', 'Hunt track'), 26])
   await wb.xlsx.writeFile(join(dest, dataFile))
 
   const badge = (src, bgColor) => ({
@@ -441,11 +567,14 @@ export async function make(dest, lang) {
       {
         formatVersion: 1,
         name: N.project,
+        // i numeri all'italiana nel progetto italiano: 3,3 sulle carte e 2,5 nelle formule
+        ...(lang === 'it' ? { numberFormat: 'it' } : {}),
         dataFile,
         sets: [
           { name: N.creatures, template: N.tCreature },
           { name: N.wounds, template: N.tMarker },
-          { name: N.lairs, template: N.tLair }
+          { name: N.lairs, template: N.tLair },
+          { name: N.tracks, template: N.tTrack }
         ],
         styles: {},
         variables: {
