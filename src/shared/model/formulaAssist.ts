@@ -710,7 +710,7 @@ const randomPick: SentenceTemplate = {
 const dealing: SentenceTemplate = {
   id: 'deal',
   cell: true,
-  make: () => call('DEAL', E, str(''), E, str('')),
+  make: (_, d) => call('DEAL', d.yes, str(''), d.no, str('')),
   parts: (n) => {
     if (!isCall(n, 'DEAL') || !n.args.length || n.args.length % 2) return null
     return [
