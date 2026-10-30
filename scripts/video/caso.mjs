@@ -361,7 +361,7 @@ await lookCards(
   )
 )
 
-async function deal(times, text) {
+async function deal(times, text, cardsText) {
   await open(N.tCard)
   await r.click(layer(IMG), { after: 700 })
   await openFx()
@@ -369,12 +369,18 @@ async function deal(times, text) {
   await r.focus(result(), text, 'above', { pad: 4 })
   await applyFx()
   await look(text)
+  await open(N.places)
+  await lookCards(cardsText)
 }
 await deal(
   ['5', '3', '', ''],
   t(
     'Moneta 5, legno 3, pietra e grano vuoti: quante ne servono a riempire',
     'Coin 5, wood 3, stone and wheat empty: as many as it takes to fill'
+  ),
+  t(
+    'Su ogni carta 5 monete e 3 legni; pietre e grani cambiano da carta a carta',
+    'On every card 5 coins and 3 logs; stones and wheat change from card to card'
   )
 )
 await deal(
@@ -382,6 +388,10 @@ await deal(
   t(
     'Moneta da 2 a 4, legno almeno 3, grano al massimo 2, la pietra riempie',
     'Coin 2 to 4, wood at least 3, wheat at most 2, stone fills the rest'
+  ),
+  t(
+    'Ogni carta pesca quantità diverse dentro i limiti',
+    'Every card draws different amounts within the limits'
   )
 )
 await r.title(
@@ -401,6 +411,10 @@ await deal(
   t(
     'Moneta 3, legno 3, pietra 2, grano 0: le 8 caselle che restano sono vuote, sparse a caso',
     'Coin 3, wood 3, stone 2, wheat 0: the 8 cells left over are empty, scattered at random'
+  ),
+  t(
+    'Su ogni carta 8 caselle vuote, in posti diversi',
+    'On every card 8 empty cells, in different places'
   )
 )
 await open(N.tCard)
