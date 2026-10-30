@@ -2095,7 +2095,7 @@ export const it: Record<MessageKey, string> = {
   'help.fn.INLIST':
     'Vero se il valore è nell\'elenco; 1-5 vale per tutti i numeri da 1 a 5: INLIST({cell.index}; "3, 8, 11")',
   'help.fn.CELLNUMBER':
-    'Il numero continuo della casella, nell\'ordine che scegli: "up"/"down" (crescente o decrescente), "rows"/"columns", "straight"/"snake" (a serpentina), "all"/"visible", poi il numero da cui partire',
+    'Il numero continuo della casella, nell\'ordine che scegli: "up"/"down" (crescente o decrescente), "rows"/"columns", "straight"/"snake"/"path" (a serpentina, a percorso), "all"/"visible", poi il numero da cui partire',
   'help.examplesIntro':
     'Gli esempi usano una carta con forza 4, difesa 2, nome Drago, costo "oro oro legno" e nota vuota.',
   'help.ex.IF': '=IF({forza}>3; "Forte"; "Debole") → Forte',
@@ -2918,7 +2918,7 @@ export const it: Record<MessageKey, string> = {
   'fx.card.alternate.out.hint': 'I componenti dispari in un modo, i pari in un altro',
   'fx.card.cellNumber': 'Numero continuo',
   'fx.card.cellNumber.hint':
-    'Numera le caselle: crescente o decrescente, per riga o per colonna, anche a serpentina',
+    'Numera le caselle: crescente o decrescente, per riga o per colonna, anche a serpentina o a percorso',
   'fx.s.cellNumber': 'Numero continuo',
   'fx.s.comma': ',',
   'fx.s.startFrom': 'a partire da',
@@ -2932,6 +2932,7 @@ export const it: Record<MessageKey, string> = {
   'fx.cn.columns': 'per colonna',
   'fx.cn.straight': 'in sequenza (1 2 3 4 / 5 6 7 8)',
   'fx.cn.snake': 'a serpentina (1 2 3 4 / 8 7 6 5)',
+  'fx.cn.path': 'a percorso (sempre alla casella accanto)',
   'fx.cn.all': 'tutte le caselle',
   'fx.cn.visible': 'salta le caselle nascoste',
   'fx.card.checkerboard': 'Scacchiera',

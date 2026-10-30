@@ -232,6 +232,63 @@ function compare(a: Value, b: Value): number {
   return toText(a).localeCompare(toText(b), undefined, { sensitivity: 'base' })
 }
 
+/**
+ * Il percorso «a passi» tra le caselle (da 0, per righe) non nascoste: dalla prima, sempre alla
+ * casella accanto non ancora contata, dritto se si può, altrimenti girando a destra, poi a
+ * sinistra. Senza caselle accanto si salta alla più vicina. Segue un anello sul bordo, una
+ * spirale o una strada disegnata nascondendo caselle
+ */
+function walkCells(
+  rows: number,
+  columns: number,
+  hidden: Set<number>,
+  byColumn: boolean
+): number[] {
+  const open = (r: number, c: number): boolean =>
+    r >= 0 && r < rows && c >= 0 && c < columns && !hidden.has(r * columns + c)
+  const all: [number, number][] = []
+  for (let a = 0; a < (byColumn ? columns : rows); a++)
+    for (let b = 0; b < (byColumn ? rows : columns); b++) {
+      const [r, c] = byColumn ? [b, a] : [a, b]
+      if (open(r, c)) all.push([r, c])
+    }
+  if (!all.length) return []
+  const seen = new Set<number>()
+  const order: number[] = []
+  let [r, c] = all[0]
+  // si parte verso destra (per riga) o verso il basso (per colonna)
+  let [dr, dc] = byColumn ? [1, 0] : [0, 1]
+  for (;;) {
+    seen.add(r * columns + c)
+    order.push(r * columns + c)
+    const free = (rr: number, cc: number): boolean => open(rr, cc) && !seen.has(rr * columns + cc)
+    // dritto, a destra, a sinistra
+    const step = (
+      [
+        [dr, dc],
+        [dc, -dr],
+        [-dc, dr]
+      ] as [number, number][]
+    ).find(([a, b]) => free(r + a, c + b))
+    if (step) {
+      ;[dr, dc] = step
+      r += dr
+      c += dc
+      continue
+    }
+    // nessuna casella accanto: la più vicina tra quelle che restano
+    let best: [number, number] | null = null
+    let dist = Infinity
+    for (const [rr, cc] of all) {
+      if (seen.has(rr * columns + cc)) continue
+      const d = Math.abs(rr - r) + Math.abs(cc - c)
+      if (d < dist) [best, dist] = [[rr, cc], d]
+    }
+    if (!best) return order
+    ;[r, c] = best
+  }
+}
+
 /** Le funzioni leggono gli argomenti; poche, come CELLNUMBER, anche i campi della casella */
 type Fn = (args: (() => Value)[], fields: Record<string, string>) => Value
 
@@ -290,7 +347,8 @@ const FUNCTIONS: Record<string, Fn> = {
    * Numero continuo delle caselle di una griglia, con le scelte in parole:
    * CELLNUMBER("columns"; "snake"; "down"; "visible"; 10). Ordine "rows" (di base) o "columns";
    * percorso "straight" (di base) o "snake", che a ogni riga riparte dal lato più vicino a dove
-   * è finita la riga prima, come un percorso; verso "up" (di base) o "down", dall'ultima casella;
+   * è finita la riga prima, o "path", che passa sempre alla casella accanto (un anello sul bordo,
+   * una spirale; vedi walkCells); verso "up" (di base) o "down", dall'ultima casella;
    * "visible" salta le caselle nascoste dalle regole (e le righe senza caselle); l'ultimo numero è
    * da dove si parte (1 di base). Le scelte valgono in qualsiasi ordine
    */
@@ -313,7 +371,11 @@ const FUNCTIONS: Record<string, Fn> = {
       else words.add(toText(v).trim().toLowerCase())
     }
     for (const w of words)
-      if (!['rows', 'columns', 'straight', 'snake', 'up', 'down', 'visible', 'all'].includes(w))
+      if (
+        !['rows', 'columns', 'straight', 'snake', 'path', 'up', 'down', 'visible', 'all'].includes(
+          w
+        )
+      )
         throw new FormulaError(`CELLNUMBER: unknown choice "${w}"`)
     const byColumn = words.has('columns')
     const hidden = new Set(
@@ -328,10 +390,10 @@ const FUNCTIONS: Record<string, Fn> = {
     )
     // le caselle (da 0, per righe) nell'ordine del percorso
     const [lines, size] = byColumn ? [columns, rows] : [rows, columns]
-    const order: number[] = []
+    const order: number[] = words.has('path') ? walkCells(rows, columns, hidden, byColumn) : []
     let forward = true
     let last = -1
-    for (let line = 0; line < lines; line++) {
+    for (let line = 0; line < (words.has('path') ? 0 : lines); line++) {
       const minors = Array.from({ length: size }, (_, m) => m).filter(
         (m) => !hidden.has(byColumn ? m * columns + line : line * columns + m)
       )

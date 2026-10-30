@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.8.0-beta.4
+
+### English
+
+- **Running number along a path**: the formula assistant's **Running number** card and `CELLNUMBER` have a third choice, **along a path** (`"path"`): the number always steps to the next uncounted cell, so it goes around a ring of border cells, spirals on a full grid or follows a road drawn by hiding cells.
+
+### Italiano
+
+- **Numero continuo a percorso**: la scheda **Numero continuo** dell'assistente formule e `CELLNUMBER` hanno una terza scelta, **a percorso** (`"path"`): il numero passa sempre alla casella accanto non ancora contata, quindi fa il giro di un anello di caselle sul bordo, una spirale su una griglia piena o segue una strada disegnata nascondendo caselle.
+
 ## 1.8.0-beta.3
 
 ### English
