@@ -730,6 +730,24 @@ export const videos = [
       it: 'progetti/tabellone.zip',
       en: 'progetti/game-board.zip'
     }
+  },
+  {
+    n: 25,
+    it: 'Approfondimento: giocare con il caso',
+    en: 'Deep dive: playing with chance',
+    about: {
+      it: 'Una griglia di risorse riempita a caso: tutto a caso, con le quantità, con le caselle vuote e dal foglio.',
+      en: 'A resource grid filled at random: all random, with quantities, with empty cells and from the sheet.'
+    },
+    minutes: 12,
+    url: {
+      it: 'https://www.youtube.com/watch?v=bp4MGWdtzHo',
+      en: 'https://www.youtube.com/watch?v=NcbSnlPjj3o'
+    },
+    project: {
+      it: 'progetti/risorse.zip',
+      en: 'progetti/resources.zip'
+    }
   }
 ]
 
@@ -742,7 +760,7 @@ export const videoGroups = {
   data: [10, 12],
   table: [9, 3, 19, 5],
   tools: [6, 17, 18],
-  deep: [20, 21, 22, 24]
+  deep: [20, 21, 22, 24, 25]
 }
 
 export const playlists = {

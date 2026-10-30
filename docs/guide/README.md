@@ -49,6 +49,7 @@ Video tutorials on YouTube, no voice ([whole playlist](https://www.youtube.com/p
 - 21 · [Deep dive: icons and variables](https://www.youtube.com/watch?v=Sg-ktAAh1Ww) (12 minutes), with the ["Contracts" project to download](https://stella.lucadj.eu/progetti/contracts.zip)
 - 22 · [Deep dive: two fields, the whole card](https://www.youtube.com/watch?v=43E0tSVZQHM) (9 minutes), with the ["Encounters" project to download](https://stella.lucadj.eu/progetti/encounters.zip)
 - 24 · [Deep dive: the game board](https://www.youtube.com/watch?v=_Dvf3MXblf0) (27 minutes), with the ["Game board" project to download](https://stella.lucadj.eu/progetti/game-board.zip)
+- 25 · [Deep dive: playing with chance](https://www.youtube.com/watch?v=NcbSnlPjj3o) (12 minutes), with the ["Resources" project to download](https://stella.lucadj.eu/progetti/resources.zip)
 
 Versione italiana: [../guida/README.md](../guida/README.md).
 
