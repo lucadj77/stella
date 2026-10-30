@@ -37,6 +37,7 @@ import {
   type Template
 } from '../../../shared/model/template'
 import { gridGeometry } from '../../../shared/model/grid'
+import { ruleAnchor } from '../../../shared/model/cells'
 import CardSvg, { CardOutline } from '../render/CardSvg'
 import { ShowEmptyContext } from '../render/assets'
 import { useI18n } from '../i18n/context'
@@ -522,7 +523,13 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     const name = (drawn?.type === 'grid' && drawn.cells?.[k]?.name) || grid.content.trim()
     const group = grid.groups.find((g) => g.name === name)
     if (!group) return
-    const at = { x: q.x + centers[0].x - centers[k].x, y: q.y + centers[0].y - centers[k].y }
+    // il gruppo sta nella prima casella, o in quella di riferimento della sua regola
+    const rule =
+      grid.content.trim() === name
+        ? -1
+        : grid.cellRules.findIndex((r) => r.content?.trim() === name)
+    const home = centers[rule >= 0 ? ruleAnchor(grid, rule) : 0] ?? centers[0]
+    const at = { x: q.x + home.x - centers[k].x, y: q.y + home.y - centers[k].y }
     const child = group.children.find((l) => !l.locked && hitTest(l, at, hitPad))
     dispatch({ type: 'select', ids: [child?.id ?? group.id], scope: child ? group.id : grid.id })
   }

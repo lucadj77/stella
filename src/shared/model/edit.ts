@@ -1,4 +1,5 @@
 import { arrangeModel } from './arrange'
+import { ruleAnchor } from './cells'
 import { fitFixedGrid, gridGeometry } from './grid'
 import { isArranged, normalizeLayer, SNAP_SIZE, walkLayers, type RawLayer } from './normalize'
 import {
@@ -65,21 +66,25 @@ function mapLayers(layers: Layer[], fn: (l: Layer) => Layer): Layer[] {
 }
 
 /**
- * I gruppi della griglia che restano centrati sulla prima casella: quello del contenuto e quelli
- * delle regole. Gli altri restano dove sono
+ * I gruppi della griglia che restano centrati: quello del contenuto sulla prima casella, quelli
+ * delle regole sulla prima casella dove la regola vale (ruleAnchor). Gli altri restano dove sono
  */
 export function placeGridGroups(g: GridLayer): GridLayer {
   if (!g.groups.length) return g
-  const centered = new Set<string>()
-  if (g.centered && g.content.trim()) centered.add(g.content.trim())
-  for (const r of g.cellRules)
-    if (r.content?.trim() && r.centered !== false) centered.add(r.content.trim())
+  // ogni gruppo centrato, con la casella su cui sta: la prima, o quella della sua regola
+  const centered = new Map<string, number>()
+  g.cellRules.forEach((r, k) => {
+    if (r.content?.trim() && r.centered !== false) centered.set(r.content.trim(), ruleAnchor(g, k))
+  })
+  if (g.centered && g.content.trim()) centered.set(g.content.trim(), 0)
   if (!centered.size) return g
-  const c = gridGeometry(g).centers[0]
-  if (!c) return g
+  const { centers } = gridGeometry(g)
+  if (!centers.length) return g
   let changed = false
   const groups = g.groups.map((gr) => {
-    if (!centered.has(gr.name)) return gr
+    const at = centered.get(gr.name)
+    if (at === undefined) return gr
+    const c = centers[at] ?? centers[0]
     const dx = g.x + c.x - (gr.x + gr.w / 2)
     const dy = g.y + c.y - (gr.y + gr.h / 2)
     if (Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001) return gr

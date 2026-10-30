@@ -1905,7 +1905,6 @@ function GridProperties({
   const set = setLayer as SetFn<GridLayer>
   const count = (v: number): number => Math.max(1, Math.round(v))
   const content = l.groups.find((g) => g.name === l.content.trim())
-  const [cellLocked, setCellLocked] = useState(false)
   // esagoni e triangoli hanno le proporzioni fisse
   const ratio =
     l.cell === 'square' || l.cell === 'circle' || l.cell === 'diamond' || l.cell === 'path'
@@ -1970,16 +1969,22 @@ function GridProperties({
                 onChange={(w) => set({ cellSize: { w, h: w } })}
               />
             ) : (
-              <SizeFields
-                labels={[t('prop.cellWidth'), t('prop.cellHeight')]}
-                w={l.cellSize.w}
-                h={l.cellSize.h}
-                min={0.5}
-                unit="mm"
-                locked={cellLocked}
-                onLock={setCellLocked}
-                onChange={(w, h) => set({ cellSize: { w, h } })}
-              />
+              <>
+                <NumberField
+                  label={t('prop.cellWidth')}
+                  value={l.cellSize.w}
+                  min={0.5}
+                  unit="mm"
+                  onChange={(w) => set({ cellSize: { w, h: l.cellSize!.h } })}
+                />
+                <NumberField
+                  label={t('prop.cellHeight')}
+                  value={l.cellSize.h}
+                  min={0.5}
+                  unit="mm"
+                  onChange={(h) => set({ cellSize: { w: l.cellSize!.w, h } })}
+                />
+              </>
             ))}
         </P>
         <P id="interlock">

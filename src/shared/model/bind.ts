@@ -1,6 +1,8 @@
 import { msg, type Message } from '../messages'
 import { parseRepeat } from './arrange'
-import { fitFixedGrid, gridSize } from './grid'
+import { translateLayer } from './edit'
+import { cellFields, ruleAnchor } from './cells'
+import { fitFixedGrid, gridGeometry, gridSize } from './grid'
 import { isGradient, mapGradientColors } from './gradient'
 import { resolveAsset } from './assets'
 import { parseCrop } from './crop'
@@ -127,7 +129,12 @@ function cellRuleResults(
   say: (m: Message) => void,
   numbers?: NumberFormatting,
   card = 0
-): { looks: CellLook[]; values: Record<string, string>[]; contents: (string | null)[] } {
+): {
+  looks: CellLook[]
+  values: Record<string, string>[]
+  /** Il gruppo di una regola che prende il posto del contenuto, e la regola */
+  contents: ({ name: string; rule: number } | null)[]
+} {
   const { rows, columns } = gridSize(grid)
   const count = rows * columns
   const base: CellLook = {
@@ -138,12 +145,12 @@ function cellRuleResults(
   }
   const looks: CellLook[] = []
   const values: Record<string, string>[] = []
-  const contents: (string | null)[] = []
+  const contents: ({ name: string; rule: number } | null)[] = []
   for (let i = 0; i < count; i++) {
     const f = { ...fields, ...cellFields(grid.name, i, columns, count, card) }
     let look = base
     let set: Record<string, string> = {}
-    let content: string | null = null
+    let content: { name: string; rule: number } | null = null
     grid.cellRules.forEach((rule, k) => {
       const when = rule.when.trim()
       if (!when) return
@@ -166,7 +173,7 @@ function cellRuleResults(
         hidden: rule.hidden ?? look.hidden
       }
       if (rule.values) set = { ...set, ...rule.values }
-      if (rule.content?.trim()) content = rule.content.trim()
+      if (rule.content?.trim()) content = { name: rule.content.trim(), rule: k }
     })
     looks.push(look)
     values.push(set)
@@ -208,33 +215,7 @@ function withCellValues(group: GroupLayer, values: Record<string, string>): Grou
   return apply([group])[0] as GroupLayer
 }
 
-/**
- * Campi di una casella della griglia: posizione da 1 riga per riga, numero di caselle e un
- * numero a caso fisso per carta, griglia e casella, da usare con PICK.
- */
-export function cellFields(
-  grid: string,
-  index: number,
-  columns: number,
-  count: number,
-  card = 0
-): Record<string, string> {
-  // FNV-1a: lo stesso numero a ogni disegno della stessa carta
-  let h = 2166136261
-  for (const c of `${card}|${grid}|${index}`) {
-    h ^= c.charCodeAt(0)
-    h = Math.imul(h, 16777619)
-  }
-  return {
-    'cell.index': String(index + 1),
-    'cell.row': String(Math.floor(index / columns) + 1),
-    'cell.column': String((index % columns) + 1),
-    'cell.count': String(count),
-    'cell.rows': String(Math.ceil(count / columns)),
-    'cell.columns': String(columns),
-    'cell.random': String(((h >>> 0) % 999999) + 1)
-  }
-}
+export { cellFields }
 
 export function bindCard(template: Template, card: CardData, ctx: BindContext = {}): BoundCard {
   const problems: Message[] = []
@@ -431,11 +412,27 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
               id: `${grid.id}-c${i}`
             })
             const reported = new Set<string>()
+            // il gruppo di una regola è disegnato nella sua casella di riferimento: nelle altre
+            // si sposta come quello del contenuto, che sta nella prima
+            const { centers } = gridGeometry(grid)
+            const anchors = new Map<number, { x: number; y: number }>()
+            const shift = (rule: number): { x: number; y: number } => {
+              if (!anchors.has(rule)) {
+                const a = centers[ruleAnchor(grid, rule)] ?? centers[0]
+                anchors.set(rule, { x: centers[0].x - a.x, y: centers[0].y - a.y })
+              }
+              return anchors.get(rule)!
+            }
             const cells =
-              (group || ruled?.contents.some((c) => c && groupNamed(c))) &&
+              (group || ruled?.contents.some((c) => c && groupNamed(c.name))) &&
               Array.from({ length: count }, (_, i) => {
                 const own = ruled?.contents[i]
-                const base = (own && groupNamed(own)) || group
+                const ruleGroup = own ? groupNamed(own.name) : undefined
+                const d = ruleGroup && own ? shift(own.rule) : null
+                const base =
+                  ruleGroup && d && (d.x || d.y)
+                    ? (translateLayer(ruleGroup, d.x, d.y) as GroupLayer)
+                    : (ruleGroup ?? group)
                 if (!base) return empty(i)
                 const cell = {
                   ...cellFields(grid.name, i, columns, count, system?.number),

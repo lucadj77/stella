@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { bindCard, cellFields, parseValue, rowToCard, substituteFields } from '../bind'
 import { normalizeTemplate } from '../normalize'
-import type { ShapeLayer, TextLayer } from '../template'
+import type { GridLayer, ShapeLayer, TextLayer } from '../template'
+import { gridGeometry } from '../grid'
 
 const template = normalizeTemplate({
   name: 't',
@@ -366,6 +367,10 @@ describe('contenuto della griglia', () => {
       'base',
       'speciale'
     ])
+    // il gruppo della regola sta già nella sua casella (la terza): lì si disegna com'è
+    const own = (t.front[0] as GridLayer).groups[1]
+    const { centers } = gridGeometry(t.front[0] as GridLayer)
+    expect(cells[2].x - own.x).toBeCloseTo(centers[0].x - centers[2].x)
   })
 
   it('segnala un gruppo che non c’è', () => {

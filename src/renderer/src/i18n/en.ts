@@ -598,7 +598,7 @@ export const en = {
   'layerType.image': 'Image',
   'layerType.shape': 'Shape',
   'source.formulaHelp':
-    'Start with = for an Excel-style expression: =IF({strength}>3; "Strong"; "Weak"). Functions: IF, AND, OR, NOT, MIN, MAX, ABS, ROUND, FLOOR, CEILING, UPPER, LOWER, LEN, CONCAT, ISBLANK, COUNTIN (how many times a text contains another: COUNTIN({cost}; "gold")), INLIST, MOD, PICK. & joins text. The fx button builds the formula step by step.',
+    'Start with = for an Excel-style expression: =IF({strength}>3; "Strong"; "Weak"). Functions: IF, AND, OR, NOT, MIN, MAX, ABS, ROUND, FLOOR, CEILING, UPPER, LOWER, LEN, CONCAT, ISBLANK, COUNTIN (how many times a text contains another: COUNTIN({cost}; "gold")), INLIST, MOD, PICK, CELLNUMBER. & joins text. The fx button builds the formula step by step.',
   'source.formulaError': 'Formula error: {error}',
   'source.formulaPreviewDefaults': 'With the template values: {value}',
   'source.computedHint': 'Calculated by the formula above',
@@ -2062,6 +2062,8 @@ export const en = {
   'help.fn.COUNTIN': 'How many times a text contains another: COUNTIN({cost}; "gold")',
   'help.fn.INLIST':
     'True if the value is in the list; 1-5 stands for every number from 1 to 5: INLIST({cell.index}; "3, 8, 11")',
+  'help.fn.CELLNUMBER':
+    'The running number of the cell, in the order you choose: "up"/"down", "rows"/"columns", "straight"/"snake", "all"/"visible", then the starting number',
   'help.examplesIntro':
     'The examples use a card with strength 4, defense 2, name Dragon, cost "gold gold wood" and an empty note.',
   'help.ex.IF': '=IF({strength}>3; "Strong"; "Weak") → Strong',
@@ -2083,6 +2085,7 @@ export const en = {
   'help.ex.PICK': '=PICK({strength}; "sword"; "shield"; "hand") → sword',
   'help.ex.COUNTIN': '=COUNTIN({cost}; "gold") → 2',
   'help.ex.INLIST': '=INLIST({cell.index}; "2, 4, 10-12") → true in cells 2, 4, 10, 11 and 12',
+  'help.ex.CELLNUMBER': '=CELLNUMBER("up"; "rows"; "snake"; "all"; 1) → 1 2 3 4 / 8 7 6 5',
   'help.keys.save': 'Save templates, data and settings',
   'help.keys.project': 'Open and close the project (desktop app)',
   'help.keys.export': 'Export; with ⇧ repeat the last export',
@@ -2739,6 +2742,7 @@ export const en = {
   'fx.fn.CONCAT': 'Join texts',
   'fx.fn.COUNTIN': 'Count occurrences',
   'fx.fn.INLIST': 'Is in the list',
+  'fx.fn.CELLNUMBER': 'Running number',
   'fx.entry.if': 'Conditional result',
   'fx.entry.if.hint': 'One value if the condition is true, another if it is false',
   'fx.entry.cases': 'Several cases',
