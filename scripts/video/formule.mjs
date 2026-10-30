@@ -1,7 +1,7 @@
 // Video 23, quarto approfondimento: le formule, una funzione alla volta. Circa 14 minuti senza voce, sul
 // progetto «Bestiario» di progetto-formule.mjs, che chi guarda scarica dal sito. Capitoli: composizione,
 // calcolo ed espressione; confronti e IF; i numeri; il testo; PICK ed elenchi; livelli Valore e colori
-// calcolati; variabili di sistema; chi vince; errori e aiuti.
+// calcolati; variabili di sistema; chi vince; le formule nelle griglie; errori e aiuti.
 // Uso: xvfb-run -a -s "-screen 0 2000x1300x24" node --experimental-strip-types --no-warnings scripts/video/formule.mjs it|en
 // FAST=1 accorcia attese e scrittura; SHOT=<file.png> salva la schermata se un elemento non si trova;
 // SNAP=<cartella> salva una schermata dopo ogni testo.
@@ -103,8 +103,14 @@ const previewCard = () => win.locator('aside.preview .preview-card').first()
 const stage = () => win.locator('.canvas-stage').first()
 const sourceLine = () => props.locator('.source-line').first()
 
+// al centro del pannello: in alto la barra di ricerca resta ferma e coprirebbe il campo
+const center = (loc) =>
+  loc
+    .first()
+    .evaluate((el) => el.scrollIntoView({ block: 'center' }))
+    .then(() => r.wait(150))
 async function fill(loc, text, { tab = true } = {}) {
-  await loc.scrollIntoViewIfNeeded()
+  await center(loc)
   await r.click(loc, { after: 250, before: 200, ms: 450 })
   await win.keyboard.press('Control+A')
   await r.type(text)
@@ -172,6 +178,25 @@ async function valueLayer(name) {
   await fill(field(T['prop.name']), name)
   await r.wait(400)
 }
+// regole delle caselle di una griglia
+const rule = (i) => props.locator('.cell-rule').nth(i)
+const ruleCheck = (i, key) => prow(T[key], rule(i)).locator('input[type=checkbox]').first()
+const colorField = (label, scope = props) => prow(label, scope).locator('input.color-text').first()
+async function addRule() {
+  await r.click(props.getByRole('button', { name: T['editor.cellRuleAdd'], exact: true }).first(), {
+    after: 700
+  })
+}
+async function check(loc) {
+  await center(loc)
+  await r.click(loc, { after: 500, before: 200, ms: 450 })
+}
+/** zoom sulla carta e testo sopra: per leggere i numeri piccoli delle caselle */
+async function look(text) {
+  await r.clear(100)
+  await r.zoom(stage(), { max: 1.7, fill: 0.72 })
+  await r.focus(stage(), text, 'above', { pad: 0, dim: false })
+}
 async function pick(n) {
   await r.click(cell(n), { after: 600 })
 }
@@ -218,7 +243,14 @@ const X = {
   legendBg: `=IF(${LV} = 3; "#F2DFA8"; "")`,
   typo: `="${t('Forza', 'Strength')} " & {${POWER}z}`,
   unknown: `=${t('SOMMA', 'SUM')}(${AT}; ${DF})`,
-  zero: `=MOD(${AT}; 0)`
+  zero: `=MOD(${AT}; 0)`,
+  inlist: `=INLIST(${f(C.element)}; "${E[0]}, ${E[1]}")`,
+  inlist2: `=INLIST(${LV}; "2-3")`,
+  decimal: t('=2,5 * 2', '=2.5 * 2'),
+  snake: '=CELLNUMBER("snake")',
+  snakeVisible: '=CELLNUMBER("snake"; "visible")',
+  hideRule: `={cell.index} > ${f(C.length)}`,
+  everyFive: `=MOD(${f(C.points)}; 5) = 0`
 }
 /** scrive una formula nel livello prova e mostra il risultato sulla prima carta */
 async function test(expr, text) {
@@ -380,6 +412,20 @@ await test(
   X.or,
   t('OR: vero se almeno una è vera. NOT rovescia', 'OR: true if at least one is true. NOT flips it')
 )
+await test(
+  X.inlist,
+  t(
+    'INLIST: vero se il valore è uno dell’elenco. Al posto di una catena di OR',
+    'INLIST: true if the value is one of the list. Instead of a chain of OR'
+  )
+)
+await test(
+  X.inlist2,
+  t(
+    'Nell’elenco anche un intervallo: 2-3 vale per i livelli 2 e 3',
+    'The list takes a range too: 2-3 means levels 2 and 3'
+  )
+)
 
 // 3. i numeri
 await r.title(t('3 · Le funzioni sui numeri', '3 · Number functions'))
@@ -398,6 +444,13 @@ await r.focus(
   t('ROUND arrotonda, qui a un decimale: 3,3', 'ROUND rounds, here to one decimal: 3.3'),
   'left',
   { pad: 4 }
+)
+await test(
+  X.decimal,
+  t(
+    'I decimali seguono il formato dei numeri del progetto (Progetto › Lingue… › Numeri): qui all’italiana, 2,5 anche nelle formule',
+    'Decimals follow the project’s number format (Project › Languages… › Numbers): here 2.5; an Italian project writes 2,5'
+  )
 )
 await formula(C.cost, X.cost3)
 await r.focus(
@@ -628,8 +681,8 @@ await formula(C.bg, X.legendBg)
 await r.focus(
   [sourceLine(), stage()],
   t(
-    'Un risultato vuoto lascia il valore del template: solo le leggendarie hanno lo sfondo dorato',
-    'An empty result keeps the template value: only legendary cards get the gold background'
+    'Per un colore un risultato vuoto lascia il valore del template: solo le leggendarie hanno lo sfondo dorato. Un testo o un’immagine restano vuoti',
+    'For a color an empty result keeps the template value: only legendary cards get the gold background. A text or an image stays empty'
   ),
   'left',
   { pad: 4 }
@@ -672,12 +725,76 @@ await r.focus(
   { pad: 4 }
 )
 
-// 9. errori e aiuti
-await r.title(t('9 · Errori e aiuti', '9 · Errors and help'))
+await save()
+
+// 9. le formule nelle griglie
+await r.title(t('9 · Le formule nelle griglie', '9 · Formulas in grids'))
 await r.clear()
-await r.click(win.getByRole('button', { name: T['preview.editTemplate'] }).first())
-await r.clear(1200)
-await r.overlay()
+await openTemplateOf(N.tTrack, N.tracks)
+await r.click(layer(C.points))
+await r.focus(
+  [sourceLine(), stage()],
+  t(
+    'Nel contenuto delle caselle valgono {cell.index}, {cell.row} e {cell.column}',
+    'Inside the cells you can use {cell.index}, {cell.row} and {cell.column}'
+  ),
+  'left',
+  { pad: 4 }
+)
+await formula(C.points, X.snake)
+await look(
+  t(
+    'CELLNUMBER("snake"): a ogni riga la numerazione torna indietro',
+    'CELLNUMBER("snake"): the numbering turns back on every row'
+  )
+)
+await r.click(layer(N.grid))
+await addRule()
+await fill(field(T['editor.cellRuleWhen'], rule(0)), X.hideRule)
+await check(ruleCheck(0, 'editor.cellRuleHidden'))
+await r.focus(
+  [rule(0), stage()],
+  t(
+    'Una regola legge anche i campi della carta: oltre la lunghezza, 26, le caselle spariscono',
+    'A rule also reads the card’s fields: past the length, 26, the cells disappear'
+  ),
+  'left',
+  { pad: 4 }
+)
+await formula(C.points, X.snakeVisible)
+await look(
+  t(
+    'Con "visible" i numeri saltano le caselle nascoste: da 1 a 26',
+    'With "visible" the numbers skip hidden cells: 1 to 26'
+  )
+)
+await r.click(layer(N.grid))
+await addRule()
+await fill(field(T['editor.cellRuleWhen'], rule(1)), X.everyFive)
+await check(ruleCheck(1, 'editor.cellRuleFill'))
+await fill(colorField(T['prop.cellFill'], rule(1)), '#F2C14E')
+await r.focus(
+  [rule(1), stage()],
+  t(
+    'MOD sul numero scritto nella casella, {punti}: una casella gialla ogni 5',
+    'MOD on the number written in the cell, {points}: a yellow cell every 5'
+  ),
+  'left',
+  { pad: 4 }
+)
+await save()
+await r.title(
+  t(
+    'Le regole con il mouse: video 8. DEAL e le caselle a caso: video 24 e 25',
+    'Rules with the mouse: video 8. DEAL and random cells: videos 24 and 25'
+  ),
+  4200
+)
+
+// 10. errori e aiuti
+await r.title(t('10 · Errori e aiuti', '10 · Errors and help'))
+await r.clear()
+await openTemplateOf(N.tCreature, N.creatures)
 await previewRow(0)
 await formula(C.strength, X.typo)
 await r.focus(
@@ -719,7 +836,18 @@ await r.focus(
 await win.keyboard.press('Escape')
 await r.wait(500)
 await r.title(
-  t('Nel prossimo approfondimento: immagini e forme', 'In the next deep dive: images and shapes')
+  t(
+    'Le formule al lavoro: video 13 (assistente), 22 (risorse), 8 (griglie), 25 (caso)',
+    'Formulas at work: videos 13 (assistant), 22 (resources), 8 (grids), 25 (chance)'
+  ),
+  4400
+)
+await r.title(
+  t(
+    'Tutti gli approfondimenti sono nella playlist e su stella.lucadj.eu',
+    'All the deep dives are in the playlist and on stella.lucadj.eu'
+  ),
+  4000
 )
 await r.clear(800)
 console.log('VIDEO ' + (await r.finish()))
