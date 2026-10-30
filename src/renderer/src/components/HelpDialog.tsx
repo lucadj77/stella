@@ -60,7 +60,9 @@ const FUNCTIONS = [
   'COUNTIN',
   'INLIST',
   'MOD',
-  'PICK'
+  'PICK',
+  'CELLNUMBER',
+  'DEAL'
 ] as const
 
 const KEYS: [string, MessageKey][] = [

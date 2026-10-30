@@ -1,8 +1,10 @@
 import { msg, type Message } from '../messages'
-import { fitGroup } from './edit'
+import { refit } from './edit'
 import { isArranged, walkLayers } from './normalize'
 import {
   INHERITABLE_TEMPLATE_KEYS,
+  innerLayers,
+  withInner,
   type AddedLayer,
   type InheritableTemplateKey,
   type Layer,
@@ -18,7 +20,7 @@ import {
 const SIDES: Side[] = ['front', 'back']
 
 /** Proprietà dei livelli che non si confrontano: identità e struttura */
-const STRUCTURAL = new Set(['id', 'type', 'name', 'children'])
+const STRUCTURAL = new Set(['id', 'type', 'name', 'children', 'groups'])
 const FRAME = ['x', 'y', 'w', 'h']
 /** Traduzioni dei livelli fissi: facoltative, il derivato le può aggiungere */
 const TRANSLATIONS = ['texts', 'values']
@@ -77,10 +79,11 @@ export function resolveTemplate(
     const layers = list.map((l) => {
       let out: Layer = l
       let changed = false
-      if (l.type === 'group') {
-        const inner = apply(l.children)
+      const own = innerLayers(l)
+      if (own) {
+        const inner = apply(own)
         if (inner.changed) {
-          out = { ...l, children: inner.layers }
+          out = withInner(l, inner.layers)
           changed = true
         }
       }
@@ -105,7 +108,7 @@ export function resolveTemplate(
           changed = true
         }
       }
-      if (changed && out.type === 'group') out = fitGroup(out)
+      if (changed) out = refit(out)
       any ||= changed
       return out
     })
@@ -159,15 +162,18 @@ function insertAdded(layers: Layer[], a: AddedLayer): Layer[] | null {
   let found = false
   const visit = (list: Layer[]): Layer[] =>
     list.map((l) => {
-      if (found || l.type !== 'group') return l
+      const own = innerLayers(l)
+      if (found || !own) return l
       if (l.name === a.parent) {
-        const children = place(l.children)
+        // tra i gruppi di una griglia vanno solo gruppi
+        if (l.type === 'grid' && a.layer.type !== 'group') return l
+        const children = place(own)
         if (!children) return l
         found = true
-        return fitGroup({ ...l, children })
+        return refit(withInner(l, children))
       }
-      const children = visit(l.children)
-      return children === l.children || !found ? l : fitGroup({ ...l, children })
+      const children = visit(own)
+      return children === own || !found ? l : refit(withInner(l, children))
     })
   const out = visit(layers)
   return found ? out : null
@@ -206,7 +212,8 @@ export function diffTemplate(base: Template, edited: Template): TemplateChanges 
   const collect = (list: Layer[], side: Side, parent?: string): void => {
     list.forEach((l, i) => {
       if (inherited.has(l.id)) {
-        if (l.type === 'group') collect(l.children, side, l.name)
+        const own = innerLayers(l)
+        if (own) collect(own, side, l.name)
         return
       }
       const own = withoutInherited(l, inherited)
@@ -230,12 +237,14 @@ export function diffTemplate(base: Template, edited: Template): TemplateChanges 
  * quelli restano al loro posto nel base. Un gruppo rimasto vuoto non conta.
  */
 function withoutInherited(l: Layer, inherited: Map<string, Layer>): Layer | null {
-  if (l.type !== 'group') return l
-  const children = l.children.flatMap((c) =>
+  const own = innerLayers(l)
+  if (!own) return l
+  const children = own.flatMap((c) =>
     inherited.has(c.id) ? [] : (withoutInherited(c, inherited) ?? [])
   )
-  if (!children.length && l.children.length) return null
-  return children.length === l.children.length ? l : fitGroup({ ...l, children })
+  // una griglia aggiunta resta anche senza gruppi
+  if (l.type === 'group' && !children.length && own.length) return null
+  return children.length === own.length ? l : refit(withInner(l, children))
 }
 
 /**
@@ -377,9 +386,9 @@ export function layerStatus(base: Template, l: Layer): { status: InheritStatus; 
   const b = l as unknown as Record<string, unknown>
   const keys = layerKeys(bl, l).filter((k) => !same(a[k], b[k]))
   // un gruppo cambia anche quando cambiano i suoi figli
-  const inner =
-    l.type === 'group' &&
-    walkLayers(l.children).some((c) => layerStatus(base, c).status !== 'inherited')
+  const inner = walkLayers(innerLayers(l) ?? []).some(
+    (c) => layerStatus(base, c).status !== 'inherited'
+  )
   return { status: keys.length || inner ? 'changed' : 'inherited', keys }
 }
 
@@ -430,13 +439,15 @@ export function revertLayer(base: Template, t: Template, id: string): Template {
     const a = b as unknown as Record<string, unknown>
     let out = { ...l } as Layer
     for (const k of layerKeys(b, l)) Object.assign(out, { [k]: a[k] })
-    if (out.type === 'group') out = fitGroup({ ...out, children: out.children.map(revert) })
+    const own = innerLayers(out)
+    if (own) out = refit(withInner(out, own.map(revert)))
     return out
   }
   const visit = (list: Layer[]): Layer[] =>
     list.map((l) => {
       if (l.id === id) return revert(l)
-      return l.type === 'group' ? fitGroup({ ...l, children: visit(l.children) }) : l
+      const own = innerLayers(l)
+      return own ? refit(withInner(l, visit(own))) : l
     })
   return { ...t, front: visit(t.front), back: visit(t.back) }
 }

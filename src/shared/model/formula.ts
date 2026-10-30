@@ -232,7 +232,8 @@ function compare(a: Value, b: Value): number {
   return toText(a).localeCompare(toText(b), undefined, { sensitivity: 'base' })
 }
 
-type Fn = (args: (() => Value)[]) => Value
+/** Le funzioni leggono gli argomenti; poche, come CELLNUMBER, anche i campi della casella */
+type Fn = (args: (() => Value)[], fields: Record<string, string>) => Value
 
 /** Funzioni disponibili; gli argomenti si valutano solo se servono (IF non calcola il ramo scartato) */
 const FUNCTIONS: Record<string, Fn> = {
@@ -284,6 +285,135 @@ const FUNCTIONS: Record<string, Fn> = {
     if (!items.length || (items.length === 1 && items[0] === '')) return ''
     const k = items.length
     return items[(((n - 1) % k) + k) % k]
+  },
+  /**
+   * Numero continuo delle caselle di una griglia, con le scelte in parole:
+   * CELLNUMBER("columns"; "snake"; "down"; "visible"; 10). Ordine "rows" (di base) o "columns";
+   * percorso "straight" (di base) o "snake", che a ogni riga riparte dal lato più vicino a dove
+   * è finita la riga prima, come un percorso; verso "up" (di base) o "down", dall'ultima casella;
+   * "visible" salta le caselle nascoste dalle regole (e le righe senza caselle); l'ultimo numero è
+   * da dove si parte (1 di base). Le scelte valgono in qualsiasi ordine
+   */
+  CELLNUMBER: (a, fields) => {
+    const num = (k: string): number => Number(fields[k] ?? NaN)
+    const [row, column, rows, columns] = [
+      'cell.row',
+      'cell.column',
+      'cell.rows',
+      'cell.columns'
+    ].map(num)
+    if (![row, column, rows, columns].every(Number.isFinite))
+      throw new FormulaError('CELLNUMBER works only in the cells of a grid')
+    const words = new Set<string>()
+    let start = 1
+    for (const x of a) {
+      const v = x()
+      const n = typeof v === 'number' ? v : readNumber(toText(v))
+      if (n !== null) start = n
+      else words.add(toText(v).trim().toLowerCase())
+    }
+    for (const w of words)
+      if (!['rows', 'columns', 'straight', 'snake', 'up', 'down', 'visible', 'all'].includes(w))
+        throw new FormulaError(`CELLNUMBER: unknown choice "${w}"`)
+    const byColumn = words.has('columns')
+    const hidden = new Set(
+      words.has('visible')
+        ? (fields['cell.hidden'] ?? '').split(',').flatMap((x) => {
+            const m = /^\s*(\d+)\s*(?:-\s*(\d+))?\s*$/.exec(x)
+            if (!m) return []
+            const to = Number(m[2] ?? m[1])
+            return Array.from({ length: to - Number(m[1]) + 1 }, (_, k) => Number(m[1]) + k - 1)
+          })
+        : []
+    )
+    // le caselle (da 0, per righe) nell'ordine del percorso
+    const [lines, size] = byColumn ? [columns, rows] : [rows, columns]
+    const order: number[] = []
+    let forward = true
+    let last = -1
+    for (let line = 0; line < lines; line++) {
+      const minors = Array.from({ length: size }, (_, m) => m).filter(
+        (m) => !hidden.has(byColumn ? m * columns + line : line * columns + m)
+      )
+      if (!minors.length) continue
+      if (words.has('snake') && last >= 0) {
+        // si riparte dal capo più vicino a dove si è finito; a pari distanza si torna indietro
+        const near = Math.abs(minors[0] - last)
+        const far = Math.abs(minors[minors.length - 1] - last)
+        forward = near === far ? !forward : near < far
+      }
+      const run = forward ? minors : [...minors].reverse()
+      for (const m of run) order.push(byColumn ? m * columns + line : line * columns + m)
+      last = run[run.length - 1]
+    }
+    const pos = order.indexOf((row - 1) * columns + (column - 1))
+    if (pos < 0) return ''
+    return start + (words.has('down') ? order.length - 1 - pos : pos)
+  },
+  /**
+   * Distribuisce a caso le voci nelle caselle visibili di una griglia, con quante volte compare
+   * ognuna: DEAL("spada"; 4; "scudo"; "3-5"; "mano"; ""). La quantità è un numero (esatta), un
+   * intervallo ("3-5", "2-" almeno, "-3" al massimo) o vuota (quante servono). Prima si mettono i
+   * minimi, poi le caselle che restano prendono voci a caso fino ai massimi; le caselle in più
+   * restano vuote, in posti a caso. Le posizioni sono mescolate, uguali a ogni disegno della stessa carta
+   */
+  DEAL: (a, fields) => {
+    const index = Number(fields['cell.index'] ?? NaN)
+    const count = Number(fields['cell.count'] ?? NaN)
+    if (!Number.isFinite(index) || !Number.isFinite(count))
+      throw new FormulaError('DEAL works only in the cells of a grid')
+    if (!a.length || a.length % 2)
+      throw new FormulaError('DEAL needs pairs of a value and how many times')
+    const hidden = new Set<number>()
+    for (const item of (fields['cell.hidden'] ?? '').split(',')) {
+      const m = /^\s*(\d+)\s*(?:-\s*(\d+))?\s*$/.exec(item)
+      if (m) for (let i = Number(m[1]); i <= Number(m[2] ?? m[1]); i++) hidden.add(i)
+    }
+    if (hidden.has(index)) return ''
+    const total = count - [...hidden].filter((i) => i <= count).length
+    const pos = index - 1 - [...hidden].filter((i) => i < index).length
+    const items: { value: string; min: number; max: number }[] = []
+    for (let i = 0; i < a.length; i += 2) {
+      const value = toText(a[i]())
+      const q = a[i + 1]()
+      const text = toText(q).trim()
+      const n = typeof q === 'number' ? q : readNumber(text)
+      const range = /^(\d*)\s*-\s*(\d*)$/.exec(text)
+      if (n !== null) items.push({ value, min: n, max: n })
+      else if (!text) items.push({ value, min: 0, max: Infinity })
+      else if (range && (range[1] || range[2]))
+        items.push({
+          value,
+          min: range[1] ? Number(range[1]) : 0,
+          max: range[2] ? Number(range[2]) : Infinity
+        })
+      else throw new FormulaError(`DEAL: "${text}" is not a quantity`)
+    }
+    // mulberry32: numeri a caso ripetibili dalla griglia e dalla carta
+    let seed = Number(fields['cell.seed'] ?? 0) >>> 0
+    const rand = (): number => {
+      seed = (seed + 0x6d2b79f5) >>> 0
+      let t = seed
+      t = Math.imul(t ^ (t >>> 15), t | 1)
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+    }
+    const times = items.map((x) => Math.max(0, Math.floor(x.min)))
+    let left = total - times.reduce((s, x) => s + x, 0)
+    while (left > 0) {
+      const open = items.flatMap((x, k) => (times[k] < x.max ? [k] : []))
+      if (!open.length) break
+      times[open[Math.floor(rand() * open.length)]]++
+      left--
+    }
+    const bag = items.flatMap((x, k) => Array<string>(times[k]).fill(x.value))
+    // le caselle che restano senza voce si mescolano con le altre
+    while (bag.length < total) bag.push('')
+    for (let i = bag.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1))
+      ;[bag[i], bag[j]] = [bag[j], bag[i]]
+    }
+    return bag[pos] ?? ''
   },
   /**
    * Vero se il valore è nell'elenco: INLIST({cell.index}; "3, 8, 11"). Un elenco scritto con le
@@ -446,7 +576,10 @@ export function evaluateNode(node: FormulaNode, fields: Record<string, string>):
     case 'call': {
       const fn = FUNCTIONS[node.fn]
       if (!fn) throw new FormulaError(`unknown function ${node.fn}`)
-      return fn(node.args.map((a) => () => ev(a)))
+      return fn(
+        node.args.map((a) => () => ev(a)),
+        fields
+      )
     }
     case 'bin': {
       const { op } = node

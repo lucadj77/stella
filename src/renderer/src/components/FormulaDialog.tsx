@@ -156,7 +156,10 @@ export default function FormulaDialog({
   const { t } = useI18n()
   const variables = useContext(VariablesContext)
   const comma = useDecimalComma()
-  const ctx: CatalogContext = useMemo(() => ({ inCell: !!cells }), [cells])
+  const ctx: CatalogContext = useMemo(
+    () => ({ inCell: !!cells, counters: cells?.counters }),
+    [cells]
+  )
   const sctx: SentenceContext = {
     inCell: !!cells,
     condition: !!condition,
@@ -186,7 +189,10 @@ export default function FormulaDialog({
   const fields = useMemo(() => {
     const out = { ...sample }
     if (cells)
-      Object.assign(out, cellFields(cells.grid, 0, cells.columns, cells.rows * cells.columns))
+      Object.assign(
+        out,
+        cells.fields?.[0] ?? cellFields(cells.grid, 0, cells.columns, cells.rows * cells.columns)
+      )
     return out
   }, [sample, cells])
   const known = (name: string): boolean =>
@@ -282,7 +288,10 @@ export default function FormulaDialog({
     if (!cells || incomplete) return null
     const count = cells.rows * cells.columns
     return Array.from({ length: Math.min(STRIP, count) }, (_, i) => {
-      const f = { ...sample, ...cellFields(cells.grid, i, cells.columns, count) }
+      const f = {
+        ...sample,
+        ...(cells.fields?.[i] ?? cellFields(cells.grid, i, cells.columns, count))
+      }
       return evaluateNodeText(root, f)
     })
   }, [cells, incomplete, root, sample])
@@ -680,6 +689,33 @@ function Sentence({
             </select>
           )
         }
+        if ('choice' in p) {
+          const n = nodeAt(root, p.choice)
+          const value = p.field ? (n?.k === 'field' ? n.name : null) : n?.k === 'str' ? n.v : null
+          if (value === null) return null
+          return (
+            <select
+              key={i}
+              className="fx-op fx-choice"
+              value={value}
+              onChange={(e) =>
+                onChange(
+                  replaceAt(
+                    root,
+                    p.choice,
+                    p.field ? { k: 'field', name: e.target.value } : { k: 'str', v: e.target.value }
+                  )
+                )
+              }
+            >
+              {p.options.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.raw ? o.label : t(o.label as MessageKey)}
+                </option>
+              ))}
+            </select>
+          )
+        }
         if ('join' in p) {
           // un confronto in più nella condizione: e anche (AND), oppure (OR)
           const add = (): void => {
@@ -730,7 +766,8 @@ function Sentence({
           const add = (): void => {
             if (!p.band) {
               const target = nodeAt(root, p.add)
-              const next = addArg(root, p.add)
+              const one = addArg(root, p.add)
+              const next = p.pair ? addArg(one, p.add) : one
               onChange(next, target?.k === 'call' ? [...p.add, target.args.length] : undefined)
               return
             }
@@ -1115,6 +1152,7 @@ interface PickerProps {
 function firstTab(kind: SlotKind, expect: FormulaExpect, node: FormulaNode): Tab {
   if (node.k === 'call' || (node.k === 'bin' && !readText(node))) return 'formula'
   if (node.k === 'field') return 'field'
+  if (kind === 'times') return 'number'
   if (node.k === 'num') return 'number'
   if (node.k === 'bool') return 'bool'
   if (kind === 'condition') return 'compare'
@@ -1131,6 +1169,8 @@ function relevantTabs(kind: SlotKind, expect: FormulaExpect): Tab[] {
       return ['compare', 'formula', 'field', 'bool']
     case 'number':
       return ['number', 'field', 'system', 'formula']
+    case 'times':
+      return ['number', 'field', 'variable']
     case 'text':
       return ['text', 'field', 'variable', 'formula']
     case 'value':
@@ -1262,7 +1302,7 @@ function SlotPicker(p: PickerProps): React.JSX.Element {
   // un campo o un testo nella casella si formatta direttamente, senza passare dalla scheda Testo
   const formattable: FormattedText | null = compose
     ? null
-    : p.kind === 'condition' || p.kind === 'number' || p.expect === 'image'
+    : p.kind === 'condition' || p.kind === 'number' || p.kind === 'times' || p.expect === 'image'
       ? null
       : p.node.k === 'field'
         ? { parts: [{ field: p.node.name }], attrs: { styles: [] } }
@@ -1499,17 +1539,28 @@ function SystemTab(p: PickerProps): React.JSX.Element {
 function NumberTab(p: PickerProps): React.JSX.Element {
   const { t } = useI18n()
   const comma = useDecimalComma()
-  const [v, setV] = useState(p.node.k === 'num' ? printExpression(p.node, comma) : '')
+  const times = p.kind === 'times'
+  const [v, setV] = useState(
+    p.node.k === 'num'
+      ? printExpression(p.node, comma)
+      : times && p.node.k === 'str'
+        ? p.node.v
+        : ''
+  )
   const n = Number(v.replace(',', '.'))
-  const ok = v.trim() !== '' && Number.isFinite(n)
+  // quante volte: anche un intervallo (3-5, 3-, -5) o niente, scritti come testo
+  const range = times && (v.trim() === '' || /^\s*\d*\s*-\s*\d*\s*$/.test(v)) && v.trim() !== '-'
+  const ok = (v.trim() !== '' && Number.isFinite(n)) || range
   const pick = (): void => {
-    if (ok) p.onPick(n < 0 ? { k: 'neg', v: { k: 'num', v: -n } } : { k: 'num', v: n })
+    if (!ok) return
+    if (range) p.onPick({ k: 'str', v: v.replace(/\s+/g, '') })
+    else p.onPick(n < 0 ? { k: 'neg', v: { k: 'num', v: -n } } : { k: 'num', v: n })
   }
   return (
     <div className="fx-row">
       <input
         type="text"
-        inputMode="decimal"
+        inputMode={times ? 'text' : 'decimal'}
         autoFocus
         value={v}
         onChange={(e) => setV(e.target.value)}

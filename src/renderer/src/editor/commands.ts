@@ -4,6 +4,7 @@ import {
   findParent,
   groupLayers,
   insertLayer,
+  insertNewLayer,
   layersFromClipboard,
   layersToClipboard,
   moveLayer,
@@ -75,7 +76,7 @@ export function commands(
       const scopeGroup = state.scope ? findLayer(layers, state.scope) : null
       const above =
         selection[0] ?? (scopeGroup?.type === 'group' ? scopeGroup.children[0]?.id : undefined)
-      change(insertLayer(tpl, side, layer, above), [layer.id])
+      change(insertNewLayer(tpl, side, layer, above), [layer.id])
     },
 
     addImages(srcs) {
@@ -83,7 +84,7 @@ export function commands(
       const ids: string[] = []
       for (const src of srcs) {
         const layer = { ...newLayer(t, 'image', undefined, names), src } as Layer
-        t = insertLayer(t, side, layer, ids[ids.length - 1] ?? selection[0])
+        t = insertNewLayer(t, side, layer, ids[ids.length - 1] ?? selection[0])
         ids.push(layer.id)
       }
       if (ids.length) change(t, ids)

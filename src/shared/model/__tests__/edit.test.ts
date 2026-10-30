@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   anchoredResize,
+  attachGridGroup,
+  detachGridGroup,
+  insertNewLayer,
   duplicateLayer,
   findLayer,
   groupLayers,
@@ -19,7 +22,7 @@ import {
   uniqueName
 } from '../edit'
 import { normalizeTemplate, walkLayers } from '../normalize'
-import type { GroupLayer, TextLayer } from '../template'
+import type { GridLayer, GroupLayer, Layer, Template, TextLayer } from '../template'
 
 const base = normalizeTemplate({
   name: 't',
@@ -283,5 +286,186 @@ describe('misura dal pannello', () => {
     expect(anchoredResize(box('bottom-right'), 40, 20)).toEqual({ x: 0, y: 10, w: 40, h: 20 })
     expect(anchoredResize(box('top'), 40, 20)).toEqual({ x: 5, y: 20, w: 40, h: 20 })
     expect(anchoredResize(box('left'), 40, 20)).toEqual({ x: 10, y: 15, w: 40, h: 20 })
+  })
+})
+
+describe('gruppi della griglia', () => {
+  const make = (): Template =>
+    normalizeTemplate({
+      name: 't',
+      front: [
+        {
+          type: 'grid',
+          name: 'g',
+          x: 0,
+          y: 0,
+          w: 40,
+          h: 20,
+          rows: 1,
+          columns: 2,
+          gap: 0,
+          content: 'c',
+          groups: [
+            {
+              type: 'group',
+              name: 'c',
+              children: [{ type: 'shape', name: 's', x: 5, y: 5, w: 10, h: 10 }]
+            }
+          ]
+        }
+      ]
+    })
+  const gridOf = (t: Template): GridLayer => t.front[0] as GridLayer
+
+  it('si trovano e si spostano con la griglia', () => {
+    const t = make()
+    expect(findLayer(t.front, gridOf(t).groups[0].children[0].id)?.name).toBe('s')
+    const moved = patchLayer(t, 'front', gridOf(t).id, { x: 10 })
+    expect(gridOf(moved).groups[0].x).toBe(15)
+  })
+
+  it('il gruppo centrato resta sulla prima casella', () => {
+    const t = make()
+    const s = gridOf(t).groups[0].children[0]
+    // la prima casella è 0-20 × 0-20: centro 10, 10
+    const moved = patchLayer(t, 'front', s.id, { x: 0, y: 0, w: 4, h: 4 })
+    const g = gridOf(moved).groups[0]
+    expect(g.x + g.w / 2).toBeCloseTo(10)
+    expect(g.y + g.h / 2).toBeCloseTo(10)
+  })
+
+  it('togliendo il gruppo la griglia resta senza contenuto', () => {
+    const t = make()
+    const out = removeLayers(t, 'front', [gridOf(t).groups[0].id])
+    expect(gridOf(out).content).toBe('')
+    expect(gridOf(out).groups).toEqual([])
+  })
+
+  it('una copia della griglia ha i suoi gruppi, con nomi nuovi', () => {
+    const t = make()
+    const copy = duplicateLayer(t, gridOf(t)) as GridLayer
+    expect(copy.groups[0].name).not.toBe('c')
+    expect(copy.content).toBe(copy.groups[0].name)
+    expect(copy.groups[0].id).not.toBe(gridOf(t).groups[0].id)
+  })
+
+  it('tra i gruppi della griglia non entrano altri livelli', () => {
+    const t = normalizeTemplate({
+      name: 't',
+      front: [
+        { type: 'text', name: 'x' },
+        {
+          type: 'grid',
+          name: 'g',
+          content: 'c',
+          groups: [{ type: 'group', name: 'c', children: [{ type: 'text', name: 'y' }] }]
+        }
+      ]
+    })
+    const g = t.front[1] as GridLayer
+    expect(moveLayerTo(t, 'front', t.front[0].id, g.groups[0].id, 'before')).toBe(t)
+  })
+})
+
+describe('contenuto della griglia dalla lista', () => {
+  const make = (): Template =>
+    normalizeTemplate({
+      name: 't',
+      front: [
+        {
+          type: 'group',
+          name: 'pezzo',
+          children: [{ type: 'shape', name: 'p', x: 50, y: 50, w: 6, h: 6 }]
+        },
+        {
+          type: 'grid',
+          name: 'g',
+          x: 0,
+          y: 0,
+          w: 40,
+          h: 20,
+          rows: 1,
+          columns: 2,
+          gap: 0,
+          cellRules: [{ when: '={cell.index}=2' }]
+        }
+      ]
+    })
+
+  it('un gruppo della lista entra nella griglia, centrato sulla prima casella', () => {
+    const t = make()
+    const group = t.front[0] as GroupLayer
+    const out = attachGridGroup(t, 'front', t.front[1].id, 'content', group)
+    expect(out.front).toHaveLength(1)
+    const g = out.front[0] as GridLayer
+    expect(g.content).toBe('pezzo')
+    expect(g.groups[0].x + g.groups[0].w / 2).toBeCloseTo(10)
+  })
+
+  it('il gruppo di una regola, e togliendolo torna nella lista', () => {
+    const t = make()
+    const group = t.front[0] as GroupLayer
+    const out = attachGridGroup(t, 'front', t.front[1].id, 0, group)
+    const g = out.front[0] as GridLayer
+    expect(g.cellRules[0]).toMatchObject({ content: 'pezzo', centered: true })
+    const back = detachGridGroup(out, 'front', g.id, 0)
+    expect(back.front.map((l) => l.name)).toEqual(['pezzo', 'g'])
+    expect((back.front[1] as GridLayer).cellRules[0].content).toBeUndefined()
+  })
+
+  it('un livello nuovo nel gruppo della griglia prende la misura della casella', () => {
+    const base = make()
+    const t = attachGridGroup(
+      base,
+      'front',
+      base.front[1].id,
+      'content',
+      base.front[0] as GroupLayer
+    )
+    const g = t.front[0] as GridLayer
+    const layer = newLayer(t, 'shape', 'rect')
+    const out = insertNewLayer(t, 'front', layer, g.groups[0].id)
+    const inside = (out.front[0] as GridLayer).groups[0].children[0]
+    expect(inside.id).toBe(layer.id)
+    expect(inside).toMatchObject({ w: 20, h: 20 })
+  })
+
+  it('rinominare un gruppo o un livello del contenuto non stacca la griglia', () => {
+    const base = make()
+    let t = attachGridGroup(base, 'front', base.front[1].id, 'content', base.front[0] as GroupLayer)
+    t = attachGridGroup(t, 'front', t.front[0].id, 0, {
+      ...(base.front[0] as GroupLayer),
+      id: 'r',
+      name: 'altro'
+    })
+    t = patchLayer(t, 'front', t.front[0].id, {
+      cellRules: [{ when: '=MOD({p}; 2) = 0', content: 'altro', values: { p: '1' } }]
+    } as Partial<Layer>)
+    const g0 = t.front[0] as GridLayer
+    t = patchLayer(t, 'front', g0.groups[0].id, { name: 'pezzo2' })
+    t = patchLayer(t, 'front', 'r', { name: 'altro2' })
+    const p = walkLayers((t.front[0] as GridLayer).groups).find((l) => l.name === 'p')!
+    t = patchLayer(t, 'front', p.id, { name: 'q' })
+    const g = t.front[0] as GridLayer
+    expect(g.content).toBe('pezzo2')
+    expect(g.cellRules[0]).toMatchObject({
+      when: '=MOD({q}; 2) = 0',
+      content: 'altro2',
+      values: { q: '1' }
+    })
+  })
+
+  it('nel gruppo di una regola il livello nuovo va nella casella della regola', () => {
+    const base = make()
+    const t = attachGridGroup(base, 'front', base.front[1].id, 0, base.front[0] as GroupLayer)
+    const g = t.front[0] as GridLayer
+    const before = g.groups[0].children[0]
+    const layer = newLayer(t, 'shape', 'rect')
+    const out = insertNewLayer(t, 'front', layer, g.groups[0].id)
+    const [inside, kept] = (out.front[0] as GridLayer).groups[0].children
+    // la regola vale nella seconda casella, da 20 a 40
+    expect(inside).toMatchObject({ x: 20, y: 0, w: 20, h: 20 })
+    // il resto del gruppo non si sposta
+    expect(kept).toMatchObject({ x: before.x, y: before.y })
   })
 })

@@ -1,12 +1,15 @@
 import { msg, type Message } from '../messages'
 import { parseRepeat } from './arrange'
-import { gridSize } from './grid'
+import { translateLayer } from './edit'
+import { cellFields, ruleAnchor, ruleCellFields } from './cells'
+import { fitFixedGrid, gridGeometry, gridSize } from './grid'
 import { isGradient, mapGradientColors } from './gradient'
 import { resolveAsset } from './assets'
 import { parseCrop } from './crop'
 import { isGenericFont, markupFonts } from './fonts'
 import { evaluateFormula, truthy, type FormulaNumbers } from './formula'
 import { localizeNumber } from './number'
+import { cellsList } from './cellRules'
 import type { NumberFormatting } from './numberFormat'
 import { markupProblems, markupRefs } from './markup'
 import { walkLayers } from './normalize'
@@ -126,9 +129,14 @@ function cellRuleResults(
   say: (m: Message) => void,
   numbers?: NumberFormatting,
   card = 0
-): { looks: CellLook[]; values: Record<string, string>[] } {
-  const { rows, columns } = gridSize(grid)
-  const count = rows * columns
+): {
+  looks: CellLook[]
+  values: Record<string, string>[]
+  /** Il gruppo di una regola che prende il posto del contenuto, e la regola */
+  contents: ({ name: string; rule: number } | null)[]
+} {
+  const cells = ruleCellFields(grid, fields, formulaNumbers(numbers), card)
+  const count = cells.length
   const base: CellLook = {
     fill: grid.fill,
     stroke: grid.stroke,
@@ -137,10 +145,12 @@ function cellRuleResults(
   }
   const looks: CellLook[] = []
   const values: Record<string, string>[] = []
+  const contents: ({ name: string; rule: number } | null)[] = []
   for (let i = 0; i < count; i++) {
-    const f = { ...fields, ...cellFields(grid.name, i, columns, count, card) }
+    const f = cells[i]
     let look = base
     let set: Record<string, string> = {}
+    let content: { name: string; rule: number } | null = null
     grid.cellRules.forEach((rule, k) => {
       const when = rule.when.trim()
       if (!when) return
@@ -163,11 +173,13 @@ function cellRuleResults(
         hidden: rule.hidden ?? look.hidden
       }
       if (rule.values) set = { ...set, ...rule.values }
+      if (rule.content?.trim()) content = { name: rule.content.trim(), rule: k }
     })
     looks.push(look)
     values.push(set)
+    contents.push(content)
   }
-  return { looks, values }
+  return { looks, values, contents }
 }
 
 /**
@@ -203,31 +215,7 @@ function withCellValues(group: GroupLayer, values: Record<string, string>): Grou
   return apply([group])[0] as GroupLayer
 }
 
-/**
- * Campi di una casella della griglia: posizione da 1 riga per riga, numero di caselle e un
- * numero a caso fisso per carta, griglia e casella, da usare con PICK.
- */
-export function cellFields(
-  grid: string,
-  index: number,
-  columns: number,
-  count: number,
-  card = 0
-): Record<string, string> {
-  // FNV-1a: lo stesso numero a ogni disegno della stessa carta
-  let h = 2166136261
-  for (const c of `${card}|${grid}|${index}`) {
-    h ^= c.charCodeAt(0)
-    h = Math.imul(h, 16777619)
-  }
-  return {
-    'cell.index': String(index + 1),
-    'cell.row': String(Math.floor(index / columns) + 1),
-    'cell.column': String((index % columns) + 1),
-    'cell.count': String(count),
-    'cell.random': String(((h >>> 0) % 999999) + 1)
-  }
-}
+export { cellFields }
 
 export function bindCard(template: Template, card: CardData, ctx: BindContext = {}): BoundCard {
   const problems: Message[] = []
@@ -276,11 +264,6 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
         if (shown[column] !== main[column]) fields[column] = shown[column]
       }
     const images = imageFields(template, fields, nums)
-    // i gruppi che una griglia ripete nelle caselle si disegnano solo lì
-    const raw = walkLayers(layers)
-    const contents = new Set(
-      raw.flatMap((l) => (l.type === 'grid' && l.content.trim() ? [l.content.trim()] : []))
-    )
     /**
      * Lega i livelli con i campi dati. Le caselle di una griglia ripetono il legame con i campi
      * {cell.…}; i problemi si segnalano una volta sola, dalla prima casella.
@@ -288,7 +271,6 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
     const bindWith = (
       fields: Record<string, string>,
       shown: Record<string, string>,
-      inCell: boolean,
       report: boolean
     ): ((layers: Layer[]) => Layer[]) => {
       const say = (m: Message): void => {
@@ -302,8 +284,6 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
         : shown
       const apply = (layers: Layer[]): Layer[] =>
         layers.map((layer) => {
-          if (!inCell && layer.type === 'group' && contents.has(layer.name))
-            return { ...layer, visible: false }
           let out: Layer = layer
           const src = layer.source
           const column = src.kind === 'column' && src.column ? src.column : layer.name
@@ -394,29 +374,77 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
             out = { ...out, repeat, children: apply(out.children) }
           }
           if (out.type === 'grid') {
-            const grid = out
+            // righe e colonne dal foglio cambiano la misura di una griglia con la casella fissa
+            const grid = fitFixedGrid(out)
             const { rows, columns } = gridSize(grid)
             const ruled = grid.cellRules?.length
               ? cellRuleResults(grid, fields, say, nums, system?.number)
               : null
+            // i gruppi della griglia si disegnano solo nelle caselle
+            const groupNamed = (name: string): GroupLayer | undefined =>
+              grid.groups.find((g) => g.name === name)
             const name = grid.content.trim()
-            const group = name
-              ? raw.find((l): l is GroupLayer => l.type === 'group' && l.name === name)
-              : undefined
+            const group = name ? groupNamed(name) : undefined
             if (name && !group) say(msg('bind.gridContent', { layer: grid.name, group: name }))
             if (ruled && report)
-              for (const [k, rule] of grid.cellRules.entries())
+              for (const [k, rule] of grid.cellRules.entries()) {
+                const own = rule.content?.trim()
+                if (own && !groupNamed(own))
+                  say(msg('bind.gridContent', { layer: `${grid.name} (${k + 1})`, group: own }))
                 for (const layer of Object.keys(rule.values ?? {}))
-                  if (!group || !walkLayers([group]).some((l) => l.name === layer))
+                  if (
+                    ![group, own ? groupNamed(own) : undefined].some(
+                      (g) => g && walkLayers([g]).some((l) => l.name === layer)
+                    )
+                  )
                     say(msg('bind.cellRuleLayer', { layer: grid.name, rule: k + 1, name: layer }))
+              }
+            const count = rows * columns
+            // le caselle nascoste, per CELLNUMBER(…; "visible")
+            const hidden = ruled
+              ? cellsList(ruled.looks.flatMap((k, i) => (k.hidden ? [i + 1] : [])))
+              : ''
+            // una casella vuota resta un gruppo vuoto: l'ordine delle caselle non cambia
+            const empty = (i: number): GroupLayer => ({
+              ...(group ?? grid.groups[0]),
+              children: [],
+              visible: false,
+              id: `${grid.id}-c${i}`
+            })
+            const reported = new Set<string>()
+            // il gruppo di una regola è disegnato nella sua casella di riferimento: nelle altre
+            // si sposta come quello del contenuto, che sta nella prima
+            const { centers } = gridGeometry(grid)
+            const anchors = new Map<number, { x: number; y: number }>()
+            const shift = (rule: number): { x: number; y: number } => {
+              if (!anchors.has(rule)) {
+                const a = centers[ruleAnchor(grid, rule)] ?? centers[0]
+                anchors.set(rule, { x: centers[0].x - a.x, y: centers[0].y - a.y })
+              }
+              return anchors.get(rule)!
+            }
             const cells =
-              group &&
-              Array.from({ length: rows * columns }, (_, i) => {
-                const cell = cellFields(grid.name, i, columns, rows * columns, system?.number)
+              (group || ruled?.contents.some((c) => c && groupNamed(c.name))) &&
+              Array.from({ length: count }, (_, i) => {
+                const own = ruled?.contents[i]
+                const ruleGroup = own ? groupNamed(own.name) : undefined
+                const d = ruleGroup && own ? shift(own.rule) : null
+                const base =
+                  ruleGroup && d && (d.x || d.y)
+                    ? (translateLayer(ruleGroup, d.x, d.y) as GroupLayer)
+                    : (ruleGroup ?? group)
+                if (!base) return empty(i)
+                const cell = {
+                  ...cellFields(grid.name, i, columns, count, system?.number),
+                  'cell.hidden': hidden
+                }
                 const f = { ...fields, ...cell }
                 const sh = shown === fields ? f : { ...shown, ...cell }
-                const g = ruled ? withCellValues(group, ruled.values[i]) : group
-                const bound = bindWith(f, sh, true, report && i === 0)([g])[0] as GroupLayer
+                const g = ruled ? withCellValues(base, ruled.values[i]) : base
+                // i problemi di ogni gruppo si dicono una volta, dalla sua prima casella
+                const first = report && !reported.has(base.name)
+                reported.add(base.name)
+                const bound = bindWith(f, sh, first)([g])[0] as GroupLayer
                 // una casella nascosta da una regola nasconde anche il suo contenuto
                 return ruled?.looks[i].hidden ? { ...bound, visible: false } : bound
               })
@@ -429,7 +457,7 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
         })
       return apply
     }
-    return bindWith(fields, shown, false, true)(layers)
+    return bindWith(fields, shown, true)(layers)
   }
 
   return {

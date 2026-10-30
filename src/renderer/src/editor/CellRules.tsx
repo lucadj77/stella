@@ -1,17 +1,24 @@
 import { Fragment, useContext, useState } from 'react'
 import FormulaDialog from '../components/FormulaDialog'
 import HelpTip from '../components/HelpTip'
-import { cardFields, cellFields, defaultValue, rowToCard } from '../../../shared/model/bind'
+import { cardFields, defaultValue, rowToCard } from '../../../shared/model/bind'
+import { contentCounters, hiddenCells, ruleCellFields } from '../../../shared/model/cells'
 import { evaluateFormula, truthy } from '../../../shared/model/formula'
 import { gridSize } from '../../../shared/model/grid'
 import { walkLayers } from '../../../shared/model/normalize'
 import { numberFormatting } from '../../../shared/model/numberFormat'
-import type { CellRule, GridLayer, Template } from '../../../shared/model/template'
+import type {
+  CellRule,
+  GridLayer,
+  GroupLayer,
+  Layer,
+  Template
+} from '../../../shared/model/template'
 import { useI18n } from '../i18n/context'
 import type { MessageKey } from '../i18n/en'
 import { NumberSettingsContext, VariablesContext } from '../render/assets'
 import { CheckField, FillField, NumberField, StrokeField, TextField } from './fields'
-import CellPicker from './CellPicker'
+import CellPicker, { type PickerCell } from './CellPicker'
 import { cellsCondition, pickedCells } from '../../../shared/model/cellRules'
 import { Inherit } from './inheritance'
 
@@ -24,18 +31,35 @@ export default function CellRules({
   l,
   template,
   sheets,
-  onChange
+  onChange,
+  onContent,
+  onSelectGroup,
+  onRemoveContent
 }: {
   l: GridLayer
   template: Template
   sheets: Sheets
   onChange(rules: CellRule[]): void
+  /** Apre «Inserisci un contenuto» per la regola k (da 0) */
+  onContent(k: number): void
+  onSelectGroup(id: string): void
+  /** Il gruppo della regola esce dalla griglia */
+  onRemoveContent(k: number): void
 }): React.JSX.Element {
   const { t } = useI18n()
   const variables = useContext(VariablesContext)
   const numbers = numberFormatting(useContext(NumberSettingsContext))
   const [fx, setFx] = useState<number | null>(null)
   const [picking, setPicking] = useState<number | null>(null)
+  // le regole aperte: all'inizio tutte chiuse, una regola nuova si apre
+  const [open, setOpen] = useState<Set<number>>(() => new Set())
+  const flip = (i: number): void =>
+    setOpen((o) => {
+      const next = new Set(o)
+      if (next.has(i)) next.delete(i)
+      else next.add(i)
+      return next
+    })
   const rules = l.cellRules
   const { rows, columns } = gridSize(l)
   const count = rows * columns
@@ -49,6 +73,8 @@ export default function CellRules({
     'front',
     numbers
   )
+  // i campi di ogni casella, con i valori del contenuto e le caselle nascoste
+  const perCell = ruleCellFields(l, fields, numbers && { decimalComma: numbers.decimalComma })
   const headers = [...new Set(sheets.flatMap((s) => s.headers))].filter(
     (h) => h !== 'amount' && !h.includes('.')
   )
@@ -61,16 +87,32 @@ export default function CellRules({
     const expr = condition(rule.when)
     if (!expr) return { n: 0 }
     let n = 0
+    // le caselle nascoste da altre regole non contano
+    const hidden = rule.hidden ? new Set<number>() : hiddenCells(perCell[0] ?? {})
     for (let i = 0; i < count; i++) {
-      const r = evaluateFormula(
-        expr,
-        { ...fields, ...cellFields(l.name, i, columns, count) },
-        numbers && { decimalComma: numbers.decimalComma }
-      )
+      const r = evaluateFormula(expr, perCell[i], numbers && { decimalComma: numbers.decimalComma })
       if (r.error) return { n: 0, error: r.error }
-      if (truthy(r.value)) n++
+      if (truthy(r.value) && !hidden.has(i + 1)) n++
     }
     return { n }
+  }
+
+  /** Come appare ogni casella nel componente d'esempio con le regole diverse dalla k */
+  const pickerCells = (k: number): PickerCell[] => {
+    const shown = contentCounters(l)[0]
+    return perCell.slice(0, count).map((f) => {
+      let fill = l.fill
+      let hidden = false
+      rules.forEach((r, j) => {
+        const expr = j === k ? '' : condition(r.when)
+        if (!expr) return
+        const v = evaluateFormula(expr, f, numbers && { decimalComma: numbers.decimalComma })
+        if (v.error || !truthy(v.value)) return
+        if (r.fill !== undefined) fill = r.fill
+        if (r.hidden !== undefined) hidden = r.hidden
+      })
+      return { fill, hidden, label: shown ? (f[shown] ?? '') : '' }
+    })
   }
 
   const change = (i: number, patch: Partial<CellRule>): void =>
@@ -91,13 +133,26 @@ export default function CellRules({
     const [r] = next.splice(i, 1)
     next.splice(i + by, 0, r)
     onChange(next)
+    // la regola aperta resta aperta al suo nuovo posto
+    setOpen((o) => {
+      const out = new Set<number>()
+      for (const k of o) out.add(k === i ? i + by : k === i + by ? i : k)
+      return out
+    })
+  }
+  const remove = (i: number): void => {
+    onChange(rules.filter((_, k) => k !== i))
+    setOpen((o) => new Set([...o].filter((k) => k !== i).map((k) => (k > i ? k - 1 : k))))
   }
   const shaped = l.cell !== 'circle' && l.cell !== 'path'
-  // i livelli del contenuto delle caselle a cui una regola può dare un valore
-  const group = walkLayers([...template.front, ...template.back]).find(
-    (x) => x.type === 'group' && x.name === l.content.trim()
-  )
-  const targets = group ? walkLayers([group]).filter((x) => x.type !== 'group') : []
+  // i livelli del contenuto delle caselle a cui una regola può dare un valore: quelli del
+  // contenuto di tutte le caselle e quelli del gruppo della regola
+  const groupNamed = (name?: string): GroupLayer | undefined =>
+    name?.trim() ? l.groups.find((g) => g.name === name.trim()) : undefined
+  const targetsOf = (rule: CellRule): Layer[] =>
+    [groupNamed(l.content), groupNamed(rule.content)]
+      .flatMap((g) => (g ? walkLayers([g]) : []))
+      .filter((x) => x.type !== 'group')
   const setValue = (i: number, name: string, value: string | null): void => {
     const values = { ...rules[i].values }
     if (value === null) delete values[name]
@@ -115,10 +170,38 @@ export default function CellRules({
       {!rules.length && <p className="muted small">{t('editor.cellRulesNone')}</p>}
       {rules.map((rule, i) => {
         const m = matches(rule)
+        const isOpen = open.has(i)
+        const own = groupNamed(rule.content)
+        const targets = targetsOf(rule)
         return (
-          <div className="cell-rule" key={i}>
+          <div className={'cell-rule' + (isOpen ? ' open' : '')} key={i}>
             <div className="cell-rule-head">
-              <strong>{t('editor.cellRule', { n: i + 1 })}</strong>
+              <button
+                type="button"
+                className="cell-rule-toggle"
+                aria-expanded={isOpen}
+                title={isOpen ? t('editor.cellRuleClose') : t('editor.cellRuleOpen')}
+                onClick={() => flip(i)}
+              >
+                <span className="cell-rule-twisty">{isOpen ? '▾' : '▸'}</span>
+                <strong>{t('editor.cellRule', { n: i + 1 })}</strong>
+                {typeof rule.fill === 'string' && (
+                  <span className="cell-rule-swatch" style={{ background: rule.fill }} />
+                )}
+                {rule.hidden && (
+                  <span className="cell-rule-tag">{t('editor.cellRuleHiddenTag')}</span>
+                )}
+                {own && <span className="cell-rule-tag">{own.name}</span>}
+                {!isOpen && (
+                  <span className="cell-rule-summary">
+                    {m.error
+                      ? t('editor.cellRuleErrorTag')
+                      : rule.when.trim()
+                        ? t('editor.cellRuleMatchesShort', { n: m.n, count })
+                        : t('editor.cellRuleEmptyShort')}
+                  </span>
+                )}
+              </button>
               <span className="cell-rule-tools">
                 <button
                   type="button"
@@ -140,129 +223,174 @@ export default function CellRules({
                   type="button"
                   className="danger"
                   title={t('editor.cellRuleRemove')}
-                  onClick={() => onChange(rules.filter((_, k) => k !== i))}
+                  onClick={() => remove(i)}
                 >
                   ×
                 </button>
               </span>
             </div>
-            <TextField
-              label={t('editor.cellRuleWhen')}
-              value={rule.when}
-              placeholder="={cell.row} = 1"
-              onChange={(when) => change(i, { when })}
-              action={
-                <button
-                  type="button"
-                  className="pick-btn fx-button"
-                  title={t('fx.open')}
-                  onClick={() => setFx(i)}
-                >
-                  fx
-                </button>
-              }
-            />
-            <button type="button" className="cell-rule-pick" onClick={() => setPicking(i)}>
-              {t('cellPicker.open')}
-            </button>
-            <p className="small muted">
-              {m.error
-                ? t('source.formulaError', { error: m.error })
-                : rule.when.trim()
-                  ? t('editor.cellRuleMatches', { n: m.n, count })
-                  : t('editor.cellRuleEmpty')}
-            </p>
-            <CheckField
-              label={t('editor.cellRuleFill')}
-              value={rule.fill !== undefined}
-              onChange={(on) => toggle(i, 'fill', on, l.fill ?? '#FFFFFF')}
-            />
-            {rule.fill !== undefined && (
-              <FillField
-                label={t('prop.cellFill')}
-                value={rule.fill}
-                fallback="#FFFFFF"
-                onChange={(fill) => change(i, { fill })}
-              />
-            )}
-            <CheckField
-              label={t('editor.cellRuleStroke')}
-              value={rule.stroke !== undefined}
-              onChange={(on) =>
-                toggle(i, 'stroke', on, l.stroke ?? { color: '#333333', width: 0.3 })
-              }
-            />
-            {rule.stroke !== undefined && (
-              <StrokeField
-                label={t('prop.cellStroke')}
-                value={rule.stroke}
-                dashable
-                onChange={(stroke) => change(i, { stroke })}
-              />
-            )}
-            {shaped && (
+            {isOpen && (
               <>
-                <CheckField
-                  label={t('editor.cellRuleRadius')}
-                  value={rule.radius !== undefined}
-                  onChange={(on) => toggle(i, 'radius', on, l.radius)}
+                <TextField
+                  label={t('editor.cellRuleWhen')}
+                  value={rule.when}
+                  placeholder="={cell.row} = 1"
+                  onChange={(when) => change(i, { when })}
+                  action={
+                    <button
+                      type="button"
+                      className="pick-btn fx-button"
+                      title={t('fx.open')}
+                      onClick={() => setFx(i)}
+                    >
+                      fx
+                    </button>
+                  }
                 />
-                {rule.radius !== undefined && (
-                  <NumberField
-                    label={t('prop.radius')}
-                    value={rule.radius}
-                    min={0}
-                    step={0.5}
-                    unit="mm"
-                    onChange={(radius) => change(i, { radius })}
+                <button type="button" className="cell-rule-pick" onClick={() => setPicking(i)}>
+                  {t('cellPicker.open')}
+                </button>
+                <p className="small muted">
+                  {m.error
+                    ? t('source.formulaError', { error: m.error })
+                    : rule.when.trim()
+                      ? t('editor.cellRuleMatches', { n: m.n, count })
+                      : t('editor.cellRuleEmpty')}
+                </p>
+                <CheckField
+                  label={t('editor.cellRuleFill')}
+                  value={rule.fill !== undefined}
+                  onChange={(on) => toggle(i, 'fill', on, l.fill ?? '#FFFFFF')}
+                />
+                {rule.fill !== undefined && (
+                  <FillField
+                    label={t('prop.cellFill')}
+                    value={rule.fill}
+                    fallback="#FFFFFF"
+                    onChange={(fill) => change(i, { fill })}
                   />
+                )}
+                <CheckField
+                  label={t('editor.cellRuleStroke')}
+                  value={rule.stroke !== undefined}
+                  onChange={(on) =>
+                    toggle(i, 'stroke', on, l.stroke ?? { color: '#333333', width: 0.3 })
+                  }
+                />
+                {rule.stroke !== undefined && (
+                  <StrokeField
+                    label={t('prop.cellStroke')}
+                    value={rule.stroke}
+                    dashable
+                    onChange={(stroke) => change(i, { stroke })}
+                  />
+                )}
+                {shaped && (
+                  <>
+                    <CheckField
+                      label={t('editor.cellRuleRadius')}
+                      value={rule.radius !== undefined}
+                      onChange={(on) => toggle(i, 'radius', on, l.radius)}
+                    />
+                    {rule.radius !== undefined && (
+                      <NumberField
+                        label={t('prop.radius')}
+                        value={rule.radius}
+                        min={0}
+                        step={0.5}
+                        unit="mm"
+                        onChange={(radius) => change(i, { radius })}
+                      />
+                    )}
+                  </>
+                )}
+                <CheckField
+                  label={t('editor.cellRuleHidden')}
+                  hint={t('editor.cellRuleHiddenHint')}
+                  value={!!rule.hidden}
+                  onChange={(on) => toggle(i, 'hidden', on, true)}
+                />
+                {targets.map((x) => {
+                  const v = rule.values?.[x.name]
+                  return (
+                    <Fragment key={x.id}>
+                      <CheckField
+                        label={t('editor.cellRuleLayer', { name: x.name })}
+                        hint={t('editor.cellRuleLayerHint')}
+                        value={v !== undefined}
+                        onChange={(on) =>
+                          setValue(
+                            i,
+                            x.name,
+                            on ? (x.type === 'image' ? x.src : (defaultValue(x) ?? '')) : null
+                          )
+                        }
+                      />
+                      {v !== undefined && (
+                        <TextField
+                          label={t(`layerType.${x.type}` as MessageKey)}
+                          value={v}
+                          placeholder={x.type === 'image' ? 'spada' : ''}
+                          hint={t('editor.cellRuleLayerHint')}
+                          onChange={(value) => setValue(i, x.name, value)}
+                        />
+                      )}
+                    </Fragment>
+                  )
+                })}
+                {!targets.length && <p className="small muted">{t('editor.cellRuleNoContent')}</p>}
+                {own ? (
+                  <div className="grid-content">
+                    <div className="grid-content-head">
+                      <span className="grid-content-name">{own.name}</span>
+                      <button type="button" onClick={() => onSelectGroup(own.id)}>
+                        {t('editor.gridContentSelect')}
+                      </button>
+                      <button type="button" onClick={() => onContent(i)}>
+                        {t('editor.gridContentChange')}
+                      </button>
+                      <button
+                        type="button"
+                        title={t('editor.gridContentRemoveHint')}
+                        onClick={() => onRemoveContent(i)}
+                      >
+                        {t('editor.gridContentRemove')}
+                      </button>
+                    </div>
+                    <CheckField
+                      label={t('prop.centered')}
+                      hint={t('editor.centeredHint')}
+                      value={rule.centered !== false}
+                      onChange={(centered) => change(i, { centered })}
+                    />
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    title={t('editor.ruleContentHint')}
+                    onClick={() => onContent(i)}
+                  >
+                    {t('editor.ruleContent')}
+                  </button>
                 )}
               </>
             )}
-            <CheckField
-              label={t('editor.cellRuleHidden')}
-              hint={t('editor.cellRuleHiddenHint')}
-              value={!!rule.hidden}
-              onChange={(on) => toggle(i, 'hidden', on, true)}
-            />
-            {targets.map((x) => {
-              const v = rule.values?.[x.name]
-              return (
-                <Fragment key={x.id}>
-                  <CheckField
-                    label={t('editor.cellRuleLayer', { name: x.name })}
-                    hint={t('editor.cellRuleLayerHint')}
-                    value={v !== undefined}
-                    onChange={(on) =>
-                      setValue(
-                        i,
-                        x.name,
-                        on ? (x.type === 'image' ? x.src : (defaultValue(x) ?? '')) : null
-                      )
-                    }
-                  />
-                  {v !== undefined && (
-                    <TextField
-                      label={t(`layerType.${x.type}` as MessageKey)}
-                      value={v}
-                      placeholder={x.type === 'image' ? 'spada' : ''}
-                      hint={t('editor.cellRuleLayerHint')}
-                      onChange={(value) => setValue(i, x.name, value)}
-                    />
-                  )}
-                </Fragment>
-              )
-            })}
-            {!targets.length && <p className="small muted">{t('editor.cellRuleNoContent')}</p>}
           </div>
         )
       })}
-      <button type="button" onClick={() => onChange([...rules, { when: '' }])}>
+      <button
+        type="button"
+        onClick={() => {
+          onChange([...rules, { when: '' }])
+          setOpen((o) => new Set([...o, rules.length]))
+        }}
+      >
         {t('editor.cellRuleAdd')}
       </button>
       {picking !== null && rules[picking] && (
         <CellPicker
           grid={l}
+          cells={pickerCells(picking)}
           selected={pickedCells(rules[picking].when) ?? []}
           onApply={(cells) => change(picking, { when: cellsCondition(cells) })}
           onClose={() => setPicking(null)}
@@ -278,9 +406,9 @@ export default function CellRules({
           layers={walkLayers([...template.front, ...template.back])
             .filter((x) => x.type !== 'group')
             .map((x) => x.name)}
-          sample={{ ...fields, ...cellFields(l.name, 0, columns, count) }}
+          sample={perCell[0] ?? fields}
           sampleLabel={sample ? t('fx.firstCardOf', { set: sample.set }) : undefined}
-          cells={{ grid: l.name, rows, columns }}
+          cells={{ grid: l.name, rows, columns, fields: perCell, counters: contentCounters(l) }}
           onApply={(when) => change(fx, { when })}
           onClose={() => setFx(null)}
         />

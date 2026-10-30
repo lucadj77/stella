@@ -21,7 +21,7 @@ export type GridSpec = Pick<
   | 'alignY'
   | 'radius'
 > &
-  Partial<Pick<GridLayer, 'cellRotation' | 'cellPath'>>
+  Partial<Pick<GridLayer, 'cellRotation' | 'cellPath' | 'cellSize'>>
 
 export interface GridGeometry {
   /** Tracciato SVG di ogni casella, riga per riga */
@@ -277,22 +277,71 @@ function cellPath(g: GridSpec, c: Placed, w: number, h: number): string {
   }
 }
 
-/** Le caselle della griglia e il riquadro dello sfondo, in mm nel riquadro del livello */
-export function gridGeometry(g: GridSpec): GridGeometry {
+/**
+ * Con la misura fissa: l'altezza s della casella e le proporzioni che la danno. Esagoni e
+ * triangoli hanno proporzioni fisse e una misura sola (w)
+ */
+function fixedCell(g: GridSpec): { s: number; spec: GridSpec } | null {
+  const c = g.cellSize
+  if (!c) return null
+  const w = Math.max(0, c.w)
+  const h = Math.max(0, c.h)
+  switch (g.cell) {
+    case 'hex':
+      // da lato a lato: (s · √3) / 2
+      return { s: (2 * w) / R3, spec: g }
+    case 'triangle':
+      // il lato: 2s / √3
+      return { s: (w * R3) / 2, spec: g }
+    default:
+      return { s: h, spec: { ...g, cellRatio: h > 0 ? w / h : 1 } }
+  }
+}
+
+/**
+ * Misura del livello griglia con la casella fissa: le caselle, gli spazi e il margine interno.
+ * null se la misura si ricava dal riquadro
+ */
+export function fixedGridSize(g: GridSpec): { w: number; h: number } | null {
+  const f = fixedCell(g)
+  if (!f) return null
   const pad = Math.max(0, g.padding)
+  const e = f.s > 0 ? extent(f.spec, f.s) : { w: 0, h: 0 }
+  const round = (v: number): number => Math.round(v * 1000) / 1000
+  return { w: round(e.w + 2 * pad), h: round(e.h + 2 * pad) }
+}
+
+/**
+ * La griglia con la casella fissa riportata alla sua misura, con l'angolo in alto a sinistra
+ * fermo. Senza misura fissa resta com'è
+ */
+export function fitFixedGrid<T extends GridSpec & { x: number; y: number }>(g: T): T {
+  const size = fixedGridSize(g)
+  if (!size || (size.w === g.w && size.h === g.h)) return g
+  return { ...g, ...size }
+}
+
+/** Le caselle della griglia e il riquadro dello sfondo, in mm nel riquadro del livello */
+export function gridGeometry(spec: GridSpec): GridGeometry {
+  const pad = Math.max(0, spec.padding)
+  const fixed = fixedCell(spec)
+  const g = fixed ? fixed.spec : spec
   // l'ingombro cresce in modo lineare con s: due misure bastano per trovare la s che ci sta
   const e1 = extent(g, 1)
   const e2 = extent(g, 2)
   const fit = (room: number, a: number, b: number): number =>
     b - a > 0 ? (room - (2 * a - b)) / (b - a) : Infinity
   const fitted = Math.min(fit(g.w - 2 * pad, e1.w, e2.w), fit(g.h - 2 * pad, e1.h, e2.h))
-  const s = Math.max(0, Number.isFinite(fitted) ? fitted : 0) * Math.max(0, g.zoom)
+  const s = fixed
+    ? Math.max(0, fixed.s)
+    : Math.max(0, Number.isFinite(fitted) ? fitted : 0) * Math.max(0, g.zoom)
   const { w, h } = cellSize(g, s)
   const e = extent(g, s)
   const bw = e.w + 2 * pad
   const bh = e.h + 2 * pad
+  // con la casella fissa la griglia parte dall'angolo in alto a sinistra del riquadro
   const at = (align: GridSpec['alignX'], room: number, size: number): number =>
-    align === 'start' ? 0 : align === 'end' ? room - size : (room - size) / 2
+    fixed || align === 'start' ? 0 : align === 'end' ? room - size : (room - size) / 2
   const bx = at(g.alignX, g.w, bw)
   const by = at(g.alignY, g.h, bh)
   // le caselle partono dall'angolo dello sfondo più il margine

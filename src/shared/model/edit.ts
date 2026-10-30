@@ -1,8 +1,13 @@
 import { arrangeModel } from './arrange'
+import { ruleAnchor } from './cells'
+import { fitFixedGrid, gridGeometry } from './grid'
 import { isArranged, normalizeLayer, SNAP_SIZE, walkLayers, type RawLayer } from './normalize'
 import {
+  innerLayers,
   isDrawn,
+  withInner,
   type Constraints,
+  type GridLayer,
   type GroupLayer,
   type Layer,
   type LayerType,
@@ -24,32 +29,69 @@ export interface Bounds {
 export function findLayer(layers: Layer[], id: string): Layer | null {
   for (const l of layers) {
     if (l.id === id) return l
-    if (l.type === 'group') {
-      const found = findLayer(l.children, id)
+    const inner = innerLayers(l)
+    if (inner) {
+      const found = findLayer(inner, id)
       if (found) return found
     }
   }
   return null
 }
 
-/** Gruppo che contiene il livello (null se è al primo livello) */
-export function findParent(layers: Layer[], id: string): GroupLayer | null {
+/** Gruppo o griglia che contiene il livello (null se è al primo livello) */
+export function findParent(layers: Layer[], id: string): GroupLayer | GridLayer | null {
   for (const l of layers) {
-    if (l.type !== 'group') continue
-    if (l.children.some((c) => c.id === id)) return l
-    const found = findParent(l.children, id)
+    if (l.type !== 'group' && l.type !== 'grid') continue
+    const inner = innerLayers(l)!
+    if (inner.some((c) => c.id === id)) return l
+    const found = findParent(inner, id)
     if (found) return found
   }
   return null
 }
 
+/** Il contenitore riadattato dopo un cambio dentro: il gruppo ai figli, la griglia ai suoi gruppi */
+export function refit(l: Layer): Layer {
+  if (l.type === 'group') return fitGroup(l)
+  if (l.type === 'grid') return placeGridGroups(l)
+  return l
+}
+
 function mapLayers(layers: Layer[], fn: (l: Layer) => Layer): Layer[] {
   return layers.map((l) => {
     const mapped = fn(l)
-    return mapped.type === 'group'
-      ? fitGroup({ ...mapped, children: mapLayers(mapped.children, fn) })
-      : mapped
+    const inner = innerLayers(mapped)
+    return inner ? refit(withInner(mapped, mapLayers(inner, fn))) : mapped
   })
+}
+
+/**
+ * I gruppi della griglia che restano centrati: quello del contenuto sulla prima casella, quelli
+ * delle regole sulla prima casella dove la regola vale (ruleAnchor). Gli altri restano dove sono
+ */
+export function placeGridGroups(g: GridLayer): GridLayer {
+  if (!g.groups.length) return g
+  // ogni gruppo centrato, con la casella su cui sta: la prima, o quella della sua regola
+  const centered = new Map<string, number>()
+  g.cellRules.forEach((r, k) => {
+    if (r.content?.trim() && r.centered !== false) centered.set(r.content.trim(), ruleAnchor(g, k))
+  })
+  if (g.centered && g.content.trim()) centered.set(g.content.trim(), 0)
+  if (!centered.size) return g
+  const { centers } = gridGeometry(g)
+  if (!centers.length) return g
+  let changed = false
+  const groups = g.groups.map((gr) => {
+    const at = centered.get(gr.name)
+    if (at === undefined) return gr
+    const c = centers[at] ?? centers[0]
+    const dx = g.x + c.x - (gr.x + gr.w / 2)
+    const dy = g.y + c.y - (gr.y + gr.h / 2)
+    if (Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001) return gr
+    changed = true
+    return translateLayer(gr, dx, dy) as GroupLayer
+  })
+  return changed ? { ...g, groups } : g
 }
 
 export function updateLayers(t: Template, side: Side, fn: (l: Layer) => Layer): Template {
@@ -57,10 +99,56 @@ export function updateLayers(t: Template, side: Side, fn: (l: Layer) => Layer): 
 }
 
 export function patchLayer(t: Template, side: Side, id: string, patch: Partial<Layer>): Template {
+  const before = patch.name !== undefined ? findLayer(t[side], id) : null
+  const out = patchOne(t, side, id, patch)
+  return before && patch.name && before.name !== patch.name
+    ? followGridRename(out, side, id, before.name, patch.name)
+    : out
+}
+
+/**
+ * Un gruppo della griglia o un livello del contenuto ha cambiato nome: la griglia lo segue nel
+ * contenuto, nei gruppi delle regole, nei valori delle regole e nelle condizioni ({nome})
+ */
+function followGridRename(t: Template, side: Side, id: string, from: string, to: string): Template {
+  const ref = new RegExp(`\\{${from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\}`, 'g')
+  return updateLayers(t, side, (l) => {
+    if (l.type !== 'grid' || !walkLayers(l.groups).some((x) => x.id === id)) return l
+    const g: GridLayer = {
+      ...l,
+      content: l.content.trim() === from ? to : l.content,
+      cellRules: l.cellRules.map((r) => {
+        const next = { ...r, when: r.when.replace(ref, `{${to}}`) }
+        if (r.content?.trim() === from) next.content = to
+        if (r.values && from in r.values)
+          next.values = Object.fromEntries(
+            Object.entries(r.values).map(([k, v]) => [k === from ? to : k, v])
+          )
+        return next
+      })
+    }
+    return placeGridGroups(g)
+  })
+}
+
+function patchOne(t: Template, side: Side, id: string, patch: Partial<Layer>): Template {
   return updateLayers(t, side, (l) => {
     if (l.id !== id) return l
     let next = { ...l, ...patch } as Layer
     if (next.type === 'group' && 'clip' in patch) next = fitGroup(next)
+    // con la casella fissa la misura della griglia si ricava dalle caselle
+    if (next.type === 'grid') {
+      next = fitFixedGrid(next)
+      // spostare la griglia porta con sé i suoi gruppi
+      if (l.type === 'grid' && (next.x !== l.x || next.y !== l.y))
+        next = {
+          ...next,
+          groups: next.groups.map(
+            (g) => translateLayer(g, next.x - l.x, next.y - l.y) as GroupLayer
+          )
+        }
+      next = placeGridGroups(next as GridLayer)
+    }
     // spostare o ridimensionare un gruppo dal pannello proprietà trascina i figli
     if (l.type === 'group' && ('x' in patch || 'y' in patch || 'w' in patch || 'h' in patch)) {
       return transformInto(l, next as Bounds)
@@ -151,6 +239,8 @@ export function fitGroup(g: GroupLayer): GroupLayer {
 export function translateLayer(l: Layer, dx: number, dy: number): Layer {
   const moved = { ...l, x: l.x + dx, y: l.y + dy }
   if (moved.type === 'group') moved.children = moved.children.map((c) => translateLayer(c, dx, dy))
+  if (moved.type === 'grid')
+    moved.groups = moved.groups.map((c) => translateLayer(c, dx, dy) as GroupLayer)
   return moved
 }
 
@@ -171,6 +261,14 @@ export function transformInto(l: Layer, b: Bounds): Layer {
     if (out.type === 'group') out.children = out.children.map(map)
     return out
   }
+  // i gruppi di una griglia seguono lo spostamento; quelli centrati tornano sulla prima casella
+  if (l.type === 'grid') {
+    const out = fitFixedGrid({ ...l, ...b })
+    return placeGridGroups({
+      ...out,
+      groups: l.groups.map((g) => translateLayer(g, out.x - l.x, out.y - l.y) as GroupLayer)
+    })
+  }
   return map(l)
 }
 
@@ -178,23 +276,222 @@ export function removeLayers(t: Template, side: Side, ids: string[]): Template {
   const drop = (layers: Layer[]): Layer[] =>
     layers
       .filter((l) => !ids.includes(l.id))
-      .map((l) => (l.type === 'group' ? fitGroup({ ...l, children: drop(l.children) }) : l))
+      .map((l) => {
+        const inner = innerLayers(l)
+        return inner ? refit(forgetGroups(withInner(l, drop(inner)))) : l
+      })
       // un gruppo rimasto vuoto non ha senso
       .filter((l) => l.type !== 'group' || l.children.length > 0)
   return { ...t, [side]: drop(t[side]) }
 }
 
+/** Una griglia dimentica i gruppi che non ha più: il contenuto e quelli delle regole */
+function forgetGroups(l: Layer): Layer {
+  if (l.type !== 'grid') return l
+  const has = (name?: string): boolean => !!name && l.groups.some((g) => g.name === name)
+  const content = l.content && !has(l.content.trim()) ? '' : l.content
+  const rules = l.cellRules.some((r) => r.content && !has(r.content.trim()))
+    ? l.cellRules.map((r) => {
+        if (!r.content || has(r.content.trim())) return r
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { content: _gone, centered: _c, ...rest } = r
+        return rest
+      })
+    : l.cellRules
+  return content === l.content && rules === l.cellRules ? l : { ...l, content, cellRules: rules }
+}
+
 /** Inserisce sopra al livello di riferimento (o in cima se assente), nello stesso contenitore */
 export function insertLayer(t: Template, side: Side, layer: Layer, aboveId?: string): Template {
   if (!aboveId) return { ...t, [side]: [layer, ...t[side]] }
+  // tra i gruppi di una griglia stanno solo gruppi: un altro livello entra nel gruppo scelto
+  if (layer.type !== 'group' && findParent(t[side], aboveId)?.type === 'grid')
+    return moveInto(t, side, layer, aboveId)
   const ins = (layers: Layer[]): Layer[] => {
     const i = layers.findIndex((l) => l.id === aboveId)
     if (i >= 0) return [...layers.slice(0, i), layer, ...layers.slice(i)]
-    return layers.map((l) =>
-      l.type === 'group' ? fitGroup({ ...l, children: ins(l.children) }) : l
-    )
+    return layers.map((l) => {
+      const inner = innerLayers(l)
+      return inner ? refit(withInner(l, ins(inner))) : l
+    })
   }
   return { ...t, [side]: ins(t[side]) }
+}
+
+/** Mette il livello in cima ai figli del gruppo */
+function moveInto(t: Template, side: Side, layer: Layer, groupId: string): Template {
+  const put = (layers: Layer[]): Layer[] =>
+    layers.map((l) => {
+      if (l.id === groupId && l.type === 'group')
+        return fitGroup({ ...l, children: [layer, ...l.children] })
+      const inner = innerLayers(l)
+      return inner ? refit(withInner(l, put(inner))) : l
+    })
+  return { ...t, [side]: put(t[side]) }
+}
+
+/**
+ * La griglia e il gruppo della griglia in cui finisce un livello inserito sopra a `aboveId`
+ */
+function hostGrid(
+  layers: Layer[],
+  aboveId: string
+): { grid: GridLayer; group: GroupLayer | null } | null {
+  const parent = findParent(layers, aboveId)
+  if (parent?.type === 'grid') {
+    // sopra a un gruppo della griglia il livello entra in quel gruppo (insertLayer)
+    const target = findLayer(layers, aboveId)
+    return { grid: parent, group: target?.type === 'group' ? target : null }
+  }
+  if (parent?.type !== 'group') return null
+  const outer = findParent(layers, parent.id)
+  return outer?.type === 'grid' ? { grid: outer, group: parent } : null
+}
+
+/** Il riquadro della casella i (da 0) sulla carta; null se la griglia non ha quella casella */
+export function cellBox(g: GridLayer, i: number): Bounds | null {
+  const geo = gridGeometry(g)
+  const c = geo.centers[i]
+  if (!c) return null
+  const w = Math.max(1, geo.cell.w)
+  const h = Math.max(1, geo.cell.h)
+  return { x: g.x + c.x - w / 2, y: g.y + c.y - h / 2, w, h }
+}
+
+/** Il riquadro della prima casella sulla carta; null se la griglia non ha caselle */
+export function firstCellBox(g: GridLayer): Bounds | null {
+  return cellBox(g, 0)
+}
+
+/**
+ * La casella dove si disegna un gruppo della griglia: la prima per il contenuto, la prima dove
+ * vale la regola per il gruppo di una regola
+ */
+export function groupCell(g: GridLayer, name: string): number {
+  if (name === g.content.trim()) return 0
+  const k = g.cellRules.findIndex((r) => r.content?.trim() === name)
+  return k < 0 ? 0 : ruleAnchor(g, k)
+}
+
+/** Un livello nuovo grande quanto la casella: un testo con il corpo ai due quinti dell'altezza */
+export function fitToCell(layer: Layer, box: Bounds): Layer {
+  // una linea resta una linea
+  const h = layer.type === 'shape' && layer.shape === 'line' ? 0 : box.h
+  const out = { ...layer, x: box.x, y: box.y + (box.h - h) / 2, w: box.w, h } as Layer
+  if (out.type === 'text')
+    return {
+      ...out,
+      // in punti: 1 mm = 72/25.4 pt
+      size: Math.max(4, Math.round((box.h * 0.4 * 72) / 25.4)),
+      align: 'center',
+      valign: 'middle'
+    }
+  return out
+}
+
+/**
+ * Inserisce un livello nuovo: come insertLayer, ma nei gruppi di una griglia il livello prende
+ * la misura della casella
+ */
+export function insertNewLayer(t: Template, side: Side, layer: Layer, aboveId?: string): Template {
+  const host = aboveId ? hostGrid(t[side], aboveId) : null
+  const box = host && cellBox(host.grid, host.group ? groupCell(host.grid, host.group.name) : 0)
+  return insertLayer(t, side, box ? fitToCell(layer, box) : layer, aboveId)
+}
+
+/** Di chi è un gruppo della griglia: il contenuto di tutte le caselle o una regola (da 0) */
+export type GridGroupTarget = 'content' | number
+
+/** Il nome del gruppo che la griglia usa per il contenuto o per la regola */
+export function gridGroupName(g: GridLayer, target: GridGroupTarget): string {
+  return (target === 'content' ? g.content : (g.cellRules[target]?.content ?? '')).trim()
+}
+
+/** La griglia con un altro nome di gruppo per il contenuto o per la regola, centrato */
+function withGroupName(g: GridLayer, target: GridGroupTarget, name: string): GridLayer {
+  if (target === 'content') return { ...g, content: name, centered: name ? g.centered : true }
+  return {
+    ...g,
+    cellRules: g.cellRules.map((r, k) => {
+      if (k !== target) return r
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { content: _c, centered: _k, ...rest } = r
+      return name ? { ...rest, content: name } : rest
+    })
+  }
+}
+
+/**
+ * Il gruppo esce dalla griglia e torna un gruppo normale nella lista, sopra alla griglia. Il
+ * contenuto o la regola restano senza gruppo
+ */
+export function detachGridGroup(
+  t: Template,
+  side: Side,
+  gridId: string,
+  target: GridGroupTarget
+): Template {
+  const grid = findLayer(t[side], gridId)
+  if (grid?.type !== 'grid') return t
+  const name = gridGroupName(grid, target)
+  const group = grid.groups.find((g) => g.name === name)
+  const next = withGroupName(grid, target, '')
+  // un gruppo usato anche altrove nella griglia resta dentro
+  const shared = group && gridGroupName(next, 'content') === name
+  const still =
+    shared || next.cellRules.some((r) => r.content?.trim() === name) || !group
+      ? next
+      : { ...next, groups: next.groups.filter((g) => g !== group) }
+  let out = updateLayers(t, side, (l) => (l.id === gridId ? still : l))
+  if (group && still !== next) out = insertLayer(out, side, group, gridId)
+  return out
+}
+
+/**
+ * Il gruppo diventa il contenuto delle caselle o quello della regola, centrato sulla prima
+ * casella. Un gruppo che era nella lista vi entra; quello di prima torna nella lista
+ */
+export function attachGridGroup(
+  t: Template,
+  side: Side,
+  gridId: string,
+  target: GridGroupTarget,
+  group: GroupLayer
+): Template {
+  let out =
+    findLayer(t[side], gridId)?.type === 'grid' ? detachGridGroup(t, side, gridId, target) : t
+  const inList = findLayer(out[side], group.id)
+  if (inList) out = removeLayers(out, side, [group.id])
+  return updateLayers(out, side, (l) => {
+    if (l.id !== gridId || l.type !== 'grid') return l
+    const g = withGroupName(l, target, group.name)
+    const centered =
+      target === 'content'
+        ? { ...g, centered: true }
+        : {
+            ...g,
+            cellRules: g.cellRules.map((r, k) => (k === target ? { ...r, centered: true } : r))
+          }
+    return placeGridGroups({ ...centered, groups: [...centered.groups, group] })
+  })
+}
+
+/** Centrato o no sulla prima casella, il gruppo del contenuto o della regola */
+export function setGridGroupCentered(
+  t: Template,
+  side: Side,
+  gridId: string,
+  target: GridGroupTarget,
+  centered: boolean
+): Template {
+  return updateLayers(t, side, (l) => {
+    if (l.id !== gridId || l.type !== 'grid') return l
+    if (target === 'content') return { ...l, centered }
+    return {
+      ...l,
+      cellRules: l.cellRules.map((r, k) => (k === target ? { ...r, centered } : r))
+    }
+  })
 }
 
 /** Sposta di una posizione nell'ordine di sovrapposizione: 'up' verso la cima */
@@ -208,7 +505,10 @@ export function moveLayer(t: Template, side: Side, id: string, direction: 'up' |
       ;[out[i], out[j]] = [out[j], out[i]]
       return out
     }
-    return layers.map((l) => (l.type === 'group' ? { ...l, children: mv(l.children) } : l))
+    return layers.map((l) => {
+      const inner = innerLayers(l)
+      return inner ? withInner(l, mv(inner)) : l
+    })
   }
   return { ...t, [side]: mv(t[side]) }
 }
@@ -228,8 +528,12 @@ export function moveLayerTo(
   const target = findLayer(t[side], targetId)
   if (!layer || !target || id === targetId) return t
   // un gruppo non può finire dentro se stesso
-  if (layer.type === 'group' && findLayer(layer.children, targetId)) return t
+  const own = innerLayers(layer)
+  if (own && findLayer(own, targetId)) return t
   if (where === 'inside' && target.type !== 'group') return t
+  // tra i gruppi di una griglia vanno solo gruppi
+  const host = findParent(t[side], targetId)
+  if (where !== 'inside' && host?.type === 'grid' && layer.type !== 'group') return t
   const without = removeLayers(t, side, [id])
   if (!findLayer(without[side], targetId)) return t
   const put = (layers: Layer[]): Layer[] => {
@@ -244,9 +548,10 @@ export function moveLayerTo(
       const at = where === 'before' ? i : i + 1
       return [...layers.slice(0, at), layer, ...layers.slice(at)]
     }
-    return layers.map((l) =>
-      l.type === 'group' ? fitGroup({ ...l, children: put(l.children) }) : l
-    )
+    return layers.map((l) => {
+      const inner = innerLayers(l)
+      return inner ? refit(withInner(l, put(inner))) : l
+    })
   }
   return { ...without, [side]: put(without[side]) }
 }
@@ -273,7 +578,7 @@ export function groupLayers(
 ): { template: Template; groupId: string | null } {
   if (!ids.length) return { template: t, groupId: null }
   const parent = findParent(t[side], ids[0])
-  const siblings = parent ? parent.children : t[side]
+  const siblings = parent ? innerLayers(parent)! : t[side]
   if (!ids.every((id) => siblings.some((l) => l.id === id))) return { template: t, groupId: null }
 
   const members = siblings.filter((l) => ids.includes(l.id))
@@ -289,9 +594,10 @@ export function groupLayers(
   const replace = (layers: Layer[]): Layer[] =>
     layers === siblings
       ? rebuilt
-      : layers.map((l) =>
-          l.type === 'group' ? fitGroup({ ...l, children: replace(l.children) }) : l
-        )
+      : layers.map((l) => {
+          const inner = innerLayers(l)
+          return inner ? refit(withInner(l, replace(inner))) : l
+        })
   return { template: { ...t, [side]: replace(t[side]) }, groupId: fitted.id }
 }
 
@@ -302,14 +608,14 @@ export function ungroupLayer(
 ): { template: Template; childIds: string[] } {
   const g = findLayer(t[side], id)
   if (!g || g.type !== 'group') return { template: t, childIds: [] }
+  // i gruppi di una griglia non si sciolgono: dentro la griglia stanno solo gruppi
+  if (findParent(t[side], id)?.type === 'grid') return { template: t, childIds: [] }
   const un = (layers: Layer[]): Layer[] =>
-    layers.flatMap((l) =>
-      l.id === id
-        ? (l as GroupLayer).children
-        : l.type === 'group'
-          ? [fitGroup({ ...l, children: un(l.children) })]
-          : [l]
-    )
+    layers.flatMap((l) => {
+      if (l.id === id) return (l as GroupLayer).children
+      const inner = innerLayers(l)
+      return inner ? [refit(withInner(l, un(inner)))] : [l]
+    })
   return { template: { ...t, [side]: un(t[side]) }, childIds: g.children.map((c) => c.id) }
 }
 
@@ -325,9 +631,25 @@ export function duplicateLayer(t: Template, l: Layer): Layer {
     // il nome appena preso deve risultare occupato per i fratelli successivi
     current = { ...current, front: [...current.front, out] }
     if (out.type === 'group' && src.type === 'group') out.children = src.children.map(copy)
+    if (out.type === 'grid' && src.type === 'grid') copyGridGroups(out, src, copy)
     return out
   }
   return translateLayer(copy(l), 2, 2)
+}
+
+/**
+ * I gruppi di una griglia copiata: nomi nuovi, e il contenuto e le regole che li seguono
+ */
+function copyGridGroups(out: GridLayer, src: GridLayer, copy: (l: Layer) => Layer): void {
+  const names = new Map<string, string>()
+  out.groups = src.groups.map((g) => {
+    const c = copy(g) as GroupLayer
+    names.set(g.name, c.name)
+    return c
+  })
+  const renamed = (n: string): string => names.get(n.trim()) ?? n
+  out.content = renamed(out.content)
+  out.cellRules = out.cellRules.map((r) => (r.content ? { ...r, content: renamed(r.content) } : r))
 }
 
 /** Testo negli appunti per i livelli copiati: si incollano in qualsiasi template, anche di un altro progetto */
@@ -338,7 +660,7 @@ export function layersToClipboard(template: Template, side: Side, ids: string[])
   const visit = (list: Layer[]): void => {
     for (const l of list) {
       if (chosen.has(l.id)) layers.push(l)
-      else if (l.type === 'group') visit(l.children)
+      else if (innerLayers(l)) visit(innerLayers(l)!)
     }
   }
   visit(template[side])
@@ -387,6 +709,7 @@ export function pasteLayers(
     )
     current = { ...current, front: [...current.front, out] }
     if (out.type === 'group' && src.type === 'group') out.children = src.children.map(copy)
+    if (out.type === 'grid' && src.type === 'grid') copyGridGroups(out, src, copy)
     return out
   }
   const copies = layers.map((l) => (offset ? translateLayer(copy(l), 2, 2) : copy(l)))
@@ -508,7 +831,9 @@ export function resizeTemplate(
       if (l.type === 'group') return fitGroup({ ...l, children: l.children.map(follow) })
       const [x, w] = constrain(l.constraints.h, l.x, l.w, t.width, width)
       const [y, h] = constrain(l.constraints.v, l.y, l.h, t.height, height)
-      return x === l.x && y === l.y && w === l.w && h === l.h ? l : ({ ...l, x, y, w, h } as Layer)
+      if (x === l.x && y === l.y && w === l.w && h === l.h) return l
+      if (l.type === 'grid') return transformInto(l, { x, y, w, h })
+      return { ...l, x, y, w, h } as Layer
     }
     return { ...t, width, height, front: t.front.map(follow), back: t.back.map(follow) }
   }
@@ -543,6 +868,10 @@ export function resizeTemplate(
         children: l.children.map(scale)
       })
     if (l.type === 'group') return fitGroup({ ...l, children: l.children.map(scale) })
+    if (l.type === 'grid')
+      return placeGridGroups(
+        fitFixedGrid({ ...l, x, y, w, h, groups: l.groups.map((g) => scale(g) as GroupLayer) })
+      )
     const out = { ...l, x, y, w, h } as Layer
     if (out.type === 'text') out.size = out.size * Math.min(sx, sy)
     return out

@@ -3,6 +3,7 @@ import { useBindContext } from '../render/assets'
 import { bindCard, rowToCard } from '../../../shared/model/bind'
 import { systemOfSet } from '../../../shared/model/system'
 import { findLayer, findParent, resizeTemplate } from '../../../shared/model/edit'
+import { useLayerNames } from './layerNames'
 import type { LoadedSet } from '../../../shared/project'
 import { isStandee, type ShapeKind, type Side, type Template } from '../../../shared/model/template'
 import { rebase, resolveTemplate } from '../../../shared/model/inherit'
@@ -75,26 +76,7 @@ export default function TemplateEditor({
     () => (base ? new Set(walkLayers([...base.front, ...base.back]).map((l) => l.id)) : null),
     [base]
   )
-  const layerNames = useMemo(
-    () => ({
-      text: t('layerName.text'),
-      image: t('layerName.image'),
-      value: t('layerName.value'),
-      grid: t('layerName.grid'),
-      snap: t('layerName.snap'),
-      shape: t('layerName.shape'),
-      sample: t('layerName.sample'),
-      shapes: {
-        rect: t('layerName.rect'),
-        ellipse: t('layerName.ellipse'),
-        polygon: t('layerName.polygon'),
-        star: t('layerName.star'),
-        line: t('layerName.line'),
-        path: t('layerName.path')
-      }
-    }),
-    [t]
-  )
+  const layerNames = useLayerNames()
   const cmd = commands(state, dispatch, (id) => !!inheritedIds?.has(id), layerNames)
   const inheritProblems = useMemo(
     () => (base ? resolveTemplate(base, state.template).problems : []),

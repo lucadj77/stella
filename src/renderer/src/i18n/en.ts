@@ -575,6 +575,8 @@ export const en = {
   'layers.ungroup': 'Ungroup (⇧⌘G)',
   'layers.duplicate': 'Duplicate (⌘D)',
   'layers.delete': 'Delete (⌫)',
+  'layers.gridContent': 'content',
+  'layers.gridRule': 'rule {n}',
   'layers.lock': 'Lock',
   'layers.unlock': 'Unlock',
   'layers.hide': 'Hide',
@@ -596,7 +598,7 @@ export const en = {
   'layerType.image': 'Image',
   'layerType.shape': 'Shape',
   'source.formulaHelp':
-    'Start with = for an Excel-style expression: =IF({strength}>3; "Strong"; "Weak"). Functions: IF, AND, OR, NOT, MIN, MAX, ABS, ROUND, FLOOR, CEILING, UPPER, LOWER, LEN, CONCAT, ISBLANK, COUNTIN (how many times a text contains another: COUNTIN({cost}; "gold")), INLIST, MOD, PICK. & joins text. The fx button builds the formula step by step.',
+    'Start with = for an Excel-style expression: =IF({strength}>3; "Strong"; "Weak"). Functions: IF, AND, OR, NOT, MIN, MAX, ABS, ROUND, FLOOR, CEILING, UPPER, LOWER, LEN, CONCAT, ISBLANK, COUNTIN (how many times a text contains another: COUNTIN({cost}; "gold")), INLIST, MOD, PICK, CELLNUMBER. & joins text. The fx button builds the formula step by step.',
   'source.formulaError': 'Formula error: {error}',
   'source.formulaPreviewDefaults': 'With the template values: {value}',
   'source.computedHint': 'Calculated by the formula above',
@@ -2060,6 +2062,8 @@ export const en = {
   'help.fn.COUNTIN': 'How many times a text contains another: COUNTIN({cost}; "gold")',
   'help.fn.INLIST':
     'True if the value is in the list; 1-5 stands for every number from 1 to 5: INLIST({cell.index}; "3, 8, 11")',
+  'help.fn.CELLNUMBER':
+    'The running number of the cell, in the order you choose: "up"/"down", "rows"/"columns", "straight"/"snake", "all"/"visible", then the starting number',
   'help.examplesIntro':
     'The examples use a card with strength 4, defense 2, name Dragon, cost "gold gold wood" and an empty note.',
   'help.ex.IF': '=IF({strength}>3; "Strong"; "Weak") → Strong',
@@ -2081,6 +2085,10 @@ export const en = {
   'help.ex.PICK': '=PICK({strength}; "sword"; "shield"; "hand") → sword',
   'help.ex.COUNTIN': '=COUNTIN({cost}; "gold") → 2',
   'help.ex.INLIST': '=INLIST({cell.index}; "2, 4, 10-12") → true in cells 2, 4, 10, 11 and 12',
+  'help.fn.DEAL':
+    'Deals values at random in the visible cells, each as many times as you say: a number, a range like "3-5", "2-" (at least), "-3" (at most) or empty (as needed)',
+  'help.ex.DEAL': '=DEAL("sword"; 4; "shield"; "3-5"; "hand"; "") → 16 cells: 4 swords, 3 to 5 shields, the rest hands',
+  'help.ex.CELLNUMBER': '=CELLNUMBER("up"; "rows"; "snake"; "all"; 1) → 1 2 3 4 / 8 7 6 5',
   'help.keys.save': 'Save templates, data and settings',
   'help.keys.project': 'Open and close the project (desktop app)',
   'help.keys.export': 'Export; with ⇧ repeat the last export',
@@ -2507,6 +2515,13 @@ export const en = {
     'The cells take the outline and the proportions of the image (its transparent part stays outside).',
   'prop.rows': 'Rows',
   'prop.interlock': 'Interlocking',
+  'prop.autoSize': 'Automatic size',
+  'editor.autoSizeHint':
+    'On: the cell size comes from the grid size. Off: choose the cell size and the grid takes the size that results.',
+  'prop.cellWidth': 'Cell width',
+  'prop.cellHeight': 'Cell height',
+  'prop.cellAcross': 'Cell size (side to side)',
+  'prop.cellSide': 'Cell side',
   'editor.interlockHint.square': 'Odd rows shift by half a cell, like bricks.',
   'editor.interlockHint.circle': 'Odd rows shift by half a cell and move closer, packed together.',
   'editor.interlockHint.hex':
@@ -2523,20 +2538,48 @@ export const en = {
   'prop.gridBorder': 'Grid border',
   'editor.gridPaddingHint': 'Space between the outer cells and the grid border.',
   'prop.backgroundRadius': 'Background corner radius',
-  'prop.cellRatio': 'Cell width',
+  'prop.cellRatio': 'Cell proportions',
   'editor.cellRatioHint': 'Width compared with the height: 100% is as wide as tall.',
   'editor.gridZoomHint':
     '100% is the largest grid that fits the frame without stretching the cells.',
   'prop.alignX': 'Horizontal position',
   'prop.alignY': 'Vertical position',
   'prop.gridClip': 'Cut what goes outside the frame',
+  'editor.gridContentInsert': 'Insert content in all cells',
+  'editor.gridContentRepeat':
+    'Every cell repeats the content of the group above. Add or edit the elements of the group to see them in all cells.',
+  'editor.gridContentSelect': 'Select',
+  'editor.gridContentChange': 'Change…',
+  'editor.gridContentRemove': 'Remove',
+  'editor.gridContentRemoveHint':
+    'The group leaves the grid and goes back to the layer list, above the grid.',
+  'editor.gridContentMissing': 'The group “{name}” is no longer there.',
+  'prop.clipCells': 'Cut at the cell edge',
+  'editor.clipCellsHint':
+    'What goes outside a cell is not drawn, also for the content of the rules.',
+  'prop.centered': 'Centered on the cells',
+  'editor.centeredHint':
+    'The group stays at the center of the first cell: it does not move and, if you resize it, it grows from the center. Turn off to move it freely.',
+  'editor.ruleContent': 'Custom content',
+  'editor.ruleContentHint':
+    'The cells of this rule draw other content instead of the content of all cells.',
+  'cellContent.title': 'Insert content in all cells',
+  'cellContent.ruleTitle': 'Content of the cells of rule {n}',
+  'cellContent.value': 'Value',
+  'cellContent.valueHint':
+    'A text that can change in every cell: numbers, letters, words. The formula assistant opens.',
+  'cellContent.shape': 'Shape or image',
+  'cellContent.shapeHint': 'A shape or an image, also from an image variable.',
+  'cellContent.group': 'Group',
+  'cellContent.groupHint': 'A group you already have in the layer list.',
+  'cellContent.noGroups': 'There are no groups to use in the layer list.',
+  'cellContent.shapes': 'Shapes',
+  'cellContent.images': 'Images',
+  'cellContent.imageFile': 'Image (choose the file afterwards)',
+  'cellContent.noImageVariables': 'The project has no image variables.',
+  'cellContent.groupMove': 'The chosen group leaves the layer list and goes into the grid.',
+  'cellContent.back': '‹ Back',
   'editor.gridContent': 'Cell content',
-  'prop.content': 'Group',
-  'editor.gridContentHint':
-    'A group of this side repeated in every cell. Draw it in the first cell: the other cells get a copy moved to their place.',
-  'editor.gridContentNone': '(none)',
-  'editor.gridContentPlace': 'Move to the first cell',
-  'editor.gridContentNoGroups': 'Group some layers first, then choose the group here.',
   'editor.cellRules': 'Cell rules',
   'editor.cellRulesHelp':
     'Change the look of some cells: where the condition is true, the cell takes the fill, outline or radius of the rule, or is hidden. Rules apply in order, and a later rule wins. In the condition use {cell.index}, {cell.row}, {cell.column} and the component fields, for example ={cell.row} = 1 or =MOD({cell.index}; 5) = 0.',
@@ -2562,15 +2605,21 @@ export const en = {
   'cellPicker.title': 'Choose the cells',
   'cellPicker.hint':
     'Click the cells the rule applies to; drag to pick or drop several at once. The rule remembers the cell numbers: if you change the rows or columns of the grid, check it again.',
+  'cellPicker.index':
+    'The grid looks as in the first component, with hidden cells dashed. The small number in the corner (or in the middle, if the cell has no content) is the position of the cell in the grid, {cell.index}: from 1, row by row from left to right, hidden cells included. The rule remembers these positions, not the numbers the content writes in the cells.',
   'cellPicker.count': '{n} cells: {list}',
   'cellPicker.none': 'No cells chosen.',
   'cellPicker.clear': 'None',
   'cellPicker.all': 'All',
   'cellPicker.apply': 'Use these cells',
+  'editor.cellRuleOpen': 'Open the rule',
+  'editor.cellRuleClose': 'Close the rule',
+  'editor.cellRuleHiddenTag': 'hidden',
+  'editor.cellRuleErrorTag': 'error in the condition',
+  'editor.cellRuleMatchesShort': '{n} of {count} cells',
+  'editor.cellRuleEmptyShort': 'no condition',
   'editor.cellRuleAdd': '+ Add a rule',
   'editor.cellRuleFx': 'Formula assistant: cell rule {n}',
-  'editor.gridContentFields':
-    'Inside the group: {cell.index} (1, 2, 3...), {cell.row}, {cell.column}, {cell.count} (number of cells), {cell.random} (fixed for each component). Formula example: =IF(MOD({cell.index}; 10) = 0; "bold"; "normal") or =PICK({cell.index}; "a"; "b"; "c").',
   'fx.open': 'Formula assistant: build the formula step by step',
   'fx.firstCardOf': 'the first component of {set}',
   'fx.yes.sample': 'Yes',
@@ -2699,6 +2748,8 @@ export const en = {
   'fx.fn.CONCAT': 'Join texts',
   'fx.fn.COUNTIN': 'Count occurrences',
   'fx.fn.INLIST': 'Is in the list',
+  'fx.fn.DEAL': 'Deal at random',
+  'fx.fn.CELLNUMBER': 'Running number',
   'fx.entry.if': 'Conditional result',
   'fx.entry.if.hint': 'One value if the condition is true, another if it is false',
   'fx.entry.cases': 'Several cases',
@@ -2829,6 +2880,24 @@ export const en = {
   'fx.card.alternate.hint': 'Odd cells one way, even cells the other',
   'fx.card.alternate.out': 'Alternate two values',
   'fx.card.alternate.out.hint': 'Odd components one way, even ones the other',
+  'fx.card.cellNumber': 'Running number',
+  'fx.card.cellNumber.hint':
+    'Numbers the cells: ascending or descending, by row or by column, also snaking',
+  'fx.s.cellNumber': 'Running number',
+  'fx.s.comma': ',',
+  'fx.s.startFrom': 'starting from',
+  'fx.b.start': 'First number',
+  'fx.s.countingBy': 'counting',
+  'fx.s.commaShow': ', show',
+  'fx.cn.position': 'the position in the grid',
+  'fx.cn.up': 'ascending',
+  'fx.cn.down': 'descending',
+  'fx.cn.rows': 'by row',
+  'fx.cn.columns': 'by column',
+  'fx.cn.straight': 'in sequence (1 2 3 4 / 5 6 7 8)',
+  'fx.cn.snake': 'snaking (1 2 3 4 / 8 7 6 5)',
+  'fx.cn.all': 'all cells',
+  'fx.cn.visible': 'skip hidden cells',
   'fx.card.checkerboard': 'Checkerboard',
   'fx.card.checkerboard.hint': 'Two values arranged like the squares of a chessboard',
   'fx.card.cycle': 'Cycle through a list',
@@ -2838,6 +2907,12 @@ export const en = {
   'fx.card.cycle.out.hint':
     'First item on the first component, second on the second, then again from the start',
   'fx.card.random': 'Pick at random',
+  'fx.card.deal': 'Deal at random, with quantities',
+  'fx.card.deal.hint': 'Shuffle the items in the cells: each appears exactly, at least or at most N times',
+  'fx.s.deal': 'Deal at random in the cells:',
+  'fx.s.dealTimes': 'times',
+  'fx.b.dealTimes':
+    'How many? Type a single number or a range such as 3-5 (three to five times), 3- (at least three), -5 (at most 5), or leave it empty to use as many as needed to fill',
   'fx.card.random.hint': 'An item chosen at random for each cell, the same at every export',
   'fx.card.notEmpty': 'Show only if a field is not empty',
   'fx.card.notEmpty.hint': 'Nothing when the cell of the row is empty',
@@ -2893,12 +2968,7 @@ export const en = {
   'fx.arg.compareLeft': 'This value',
   'fx.arg.compareRight': 'Compared with',
   'fx.arg.first': 'First value',
-  'fx.arg.second': 'Second value',
-  'editor.gridContentCreate': 'Vary cell by cell:',
-  'editor.gridContentText': 'Text in each cell',
-  'editor.gridContentShape': 'Shape in each cell',
-  'editor.gridContentCreateHint':
-    'Creates a group placed in the first cell and repeated in all the others. The formulas of its layers can change from cell to cell.'
+  'fx.arg.second': 'Second value'
 }
 
 export type MessageKey = keyof typeof en

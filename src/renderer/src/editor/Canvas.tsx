@@ -29,7 +29,15 @@ import { cardArea, unionBounds } from '../../../shared/model/align'
 import { linesOf, nearest, snapBox, type SnapLines } from '../../../shared/model/snap'
 import { snapPoints } from '../../../shared/model/ttsSnap'
 import { walkLayers } from '../../../shared/model/normalize'
-import { isDrawn, type GroupLayer, type Layer, type Template } from '../../../shared/model/template'
+import {
+  innerLayers,
+  isDrawn,
+  type GridLayer,
+  type Layer,
+  type Template
+} from '../../../shared/model/template'
+import { gridGeometry } from '../../../shared/model/grid'
+import { ruleAnchor } from '../../../shared/model/cells'
 import CardSvg, { CardOutline } from '../render/CardSvg'
 import { ShowEmptyContext } from '../render/assets'
 import { useI18n } from '../i18n/context'
@@ -59,7 +67,7 @@ type Gesture =
       kind: 'move'
       start: Template
       ids: string[]
-      frame: GroupLayer[]
+      frame: Layer[]
       p0: Point
       ref: Layer
       /**
@@ -77,18 +85,18 @@ type Gesture =
       kind: 'resize'
       start: Template
       layer: Layer
-      frame: GroupLayer[]
+      frame: Layer[]
       handle: Handle
       lines: SnapLines
     }
-  | { kind: 'rotate'; start: Template; layer: Layer; frame: GroupLayer[]; a0: number }
-  | { kind: 'guide'; start: Template; axis: 'x' | 'y'; index: number; frame: GroupLayer[] }
+  | { kind: 'rotate'; start: Template; layer: Layer; frame: Layer[]; a0: number }
+  | { kind: 'guide'; start: Template; axis: 'x' | 'y'; index: number; frame: Layer[] }
   | {
       kind: 'end'
       start: Template
       layer: Layer
       end: 0 | 1
-      frame: GroupLayer[]
+      frame: Layer[]
       lines: SnapLines
     }
 
@@ -240,11 +248,11 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     return { hit: choose(layers, p), scope: null }
   }
 
-  const frameOf = (id: string): GroupLayer[] => ancestorsOf(layers, id)
+  const frameOf = (id: string): Layer[] => ancestorsOf(layers, id)
 
   /** Lati e centri degli altri livelli dello stesso contenitore, della carta e dell'area sicura */
-  const snapLines = (exclude: string[], frame: GroupLayer[]): SnapLines => {
-    const container = frame.length ? frame[frame.length - 1].children : layers
+  const snapLines = (exclude: string[], frame: Layer[]): SnapLines => {
+    const container = frame.length ? (innerLayers(frame[frame.length - 1]) ?? layers) : layers
     const boxes = container
       .filter((l) => isDrawn(l) && l.visible && !exclude.includes(l.id))
       .map((l) => worldBounds(l))
@@ -493,10 +501,44 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     }
   }
 
+  /**
+   * Doppio clic su una griglia: si entra nel gruppo della casella cliccata (quello del contenuto
+   * o di una regola) e si seleziona il livello sotto il puntatore, che sta nella prima casella
+   */
+  const enterGrid = (grid: GridLayer, p: Point): void => {
+    const q = toLocal(grid, toFrame(p, frameOf(grid.id)))
+    const { centers } = gridGeometry(grid)
+    if (!centers.length) return
+    const local = { x: q.x - grid.x, y: q.y - grid.y }
+    let k = 0
+    centers.forEach((c, i) => {
+      if (
+        Math.hypot(c.x - local.x, c.y - local.y) <
+        Math.hypot(centers[k].x - local.x, centers[k].y - local.y)
+      )
+        k = i
+    })
+    // il gruppo che la casella disegna: quello della regola, se una regola lo cambia
+    const drawn = walkLayers(display[side]).find((l) => l.id === grid.id)
+    const name = (drawn?.type === 'grid' && drawn.cells?.[k]?.name) || grid.content.trim()
+    const group = grid.groups.find((g) => g.name === name)
+    if (!group) return
+    // il gruppo sta nella prima casella, o in quella di riferimento della sua regola
+    const rule =
+      grid.content.trim() === name
+        ? -1
+        : grid.cellRules.findIndex((r) => r.content?.trim() === name)
+    const home = centers[rule >= 0 ? ruleAnchor(grid, rule) : 0] ?? centers[0]
+    const at = { x: q.x + home.x - centers[k].x, y: q.y + home.y - centers[k].y }
+    const child = group.children.find((l) => !l.locked && hitTest(l, at, hitPad))
+    dispatch({ type: 'select', ids: [child?.id ?? group.id], scope: child ? group.id : grid.id })
+  }
+
   /** Doppio clic su un gruppo: si entra nel gruppo e si seleziona il figlio sotto il puntatore */
   const onDoubleClick = (e: React.MouseEvent): void => {
     const p = cardPoint(e)
     const { hit } = pick(p)
+    if (hit?.type === 'grid') return enterGrid(hit, p)
     if (!hit || hit.type !== 'group') return
     const q = toFrame(p, [...frameOf(hit.id), hit])
     const child = hit.children.find((l) => !l.locked && hitTest(l, q, hitPad))
@@ -697,21 +739,23 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
                       >
                         <title>{t('editor.rotateHint')}</title>
                       </circle>
-                      {HANDLES.map((h) => {
-                        const pos = handlePosition(l, h)
-                        return (
-                          <rect
-                            key={h}
-                            x={pos.x - (HANDLE_PX / 2) * px}
-                            y={pos.y - (HANDLE_PX / 2) * px}
-                            width={HANDLE_PX * px}
-                            height={HANDLE_PX * px}
-                            className={`handle h-${h}`}
-                            vectorEffect="non-scaling-stroke"
-                            onPointerDown={(e) => onHandleDown(e, l, h)}
-                          />
-                        )
-                      })}
+                      {/* una griglia con la casella fissa prende la misura dalle caselle */}
+                      {!(l.type === 'grid' && l.cellSize) &&
+                        HANDLES.map((h) => {
+                          const pos = handlePosition(l, h)
+                          return (
+                            <rect
+                              key={h}
+                              x={pos.x - (HANDLE_PX / 2) * px}
+                              y={pos.y - (HANDLE_PX / 2) * px}
+                              width={HANDLE_PX * px}
+                              height={HANDLE_PX * px}
+                              className={`handle h-${h}`}
+                              vectorEffect="non-scaling-stroke"
+                              onPointerDown={(e) => onHandleDown(e, l, h)}
+                            />
+                          )
+                        })}
                     </>
                   )}
               </Framed>
@@ -894,7 +938,7 @@ function Framed({
   layer,
   children
 }: {
-  chain: GroupLayer[]
+  chain: Layer[]
   layer: Layer
   children: React.ReactNode
 }): React.JSX.Element {
@@ -948,7 +992,7 @@ function intersects(a: Bounds, b: Bounds): boolean {
 }
 
 function applyBounds(l: Layer, b: Bounds): Layer {
-  return l.type === 'group' ? transformInto(l, b) : ({ ...l, ...b } as Layer)
+  return l.type === 'group' || l.type === 'grid' ? transformInto(l, b) : ({ ...l, ...b } as Layer)
 }
 
 function replace(t: Template, side: 'front' | 'back', id: string, layer: Layer): Template {

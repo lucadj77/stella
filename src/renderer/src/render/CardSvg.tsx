@@ -574,9 +574,19 @@ function GridView({
           l.cells?.map((content, i) => {
             const c = centers[i]
             if (!c) return null
+            const cut = l.clipCells && cells[i] ? `${id}-cell${i}` : null
             return (
-              <g key={i} transform={`translate(${c.x - first.x} ${c.y - first.y})`}>
-                <LayerView layer={content} uid={`${uid}-${l.id}-c${i}`} />
+              <g key={i} clipPath={cut ? `url(#${cut})` : undefined}>
+                {cut && (
+                  <defs>
+                    <clipPath id={cut}>
+                      <path d={cells[i]} transform={`translate(${l.x} ${l.y})`} />
+                    </clipPath>
+                  </defs>
+                )}
+                <g transform={`translate(${c.x - first.x} ${c.y - first.y})`}>
+                  <LayerView layer={content} uid={`${uid}-${l.id}-c${i}`} />
+                </g>
               </g>
             )
           })}

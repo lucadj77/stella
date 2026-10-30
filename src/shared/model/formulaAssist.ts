@@ -18,7 +18,8 @@ export const FORMULA_CATEGORIES = ['condition', 'selection', 'math', 'text', 're
 export type FormulaCategory = (typeof FORMULA_CATEGORIES)[number]
 
 /** Cosa ci si aspetta in una casella: decide la scheda che si apre per prima */
-export type SlotKind = 'condition' | 'number' | 'text' | 'value' | 'result'
+/** times: quante volte, un numero o un intervallo come "3-5" (DEAL) */
+export type SlotKind = 'condition' | 'number' | 'times' | 'text' | 'value' | 'result'
 
 export interface ArgSpec {
   /** Etichetta: chiave fx.arg.<key> */
@@ -83,6 +84,8 @@ const bin = (op: BinaryOperator, l: FormulaNode, r: FormulaNode): FormulaNode =>
 export interface CatalogContext {
   /** Dentro il contenuto di una griglia: valgono {cell.*} */
   inCell: boolean
+  /** Nelle regole delle caselle: i livelli del contenuto che si possono contare */
+  counters?: string[]
 }
 
 export interface CatalogEntry {
@@ -399,6 +402,10 @@ export interface CellContext {
   grid: string
   rows: number
   columns: number
+  /** I campi di ogni casella, se già calcolati (con i valori del contenuto, nelle regole) */
+  fields?: Record<string, string>[]
+  /** I livelli del contenuto che una condizione può contare al posto di {cell.index} */
+  counters?: string[]
 }
 
 /**
@@ -408,12 +415,10 @@ export interface CellContext {
 export function contentGrid(template: Template, layerId: string): CellContext | null {
   for (const side of [template.front, template.back]) {
     const all = walkLayers(side)
-    for (const g of all) {
-      if (g.type !== 'grid' || !g.content.trim()) continue
-      const group = all.find((l) => l.type === 'group' && l.name === g.content.trim())
-      if (group && walkLayers([group]).some((l) => l.id === layerId))
+    // ogni gruppo della griglia, quello del contenuto e quelli delle regole
+    for (const g of all)
+      if (g.type === 'grid' && walkLayers(g.groups).some((l) => l.id === layerId))
         return { grid: g.name, ...gridSize(g) }
-    }
   }
   return null
 }
@@ -447,8 +452,16 @@ export type SentencePart =
       image?: boolean
     }
   | { op: NodePath; ops: readonly BinaryOperator[] }
+  /** Una scelta tra testi fissi, nel testo in `choice`: le etichette sono chiavi della traduzione */
+  | {
+      choice: NodePath
+      /** Le etichette sono testo da mostrare così com'è con raw */
+      options: readonly { value: string; label: string; raw?: boolean }[]
+      /** La scelta scrive un campo {nome} e non un testo */
+      field?: boolean
+    }
   /** Aggiunge una voce: un argomento alla funzione in `add`, o una fascia se `band` (con il campo in `field`) */
-  | { add: NodePath; label: string; band?: boolean; field?: NodePath }
+  | { add: NodePath; label: string; band?: boolean; field?: NodePath; pair?: boolean }
   /** Aggiunge un confronto alla condizione in `join`, con AND (e anche) o OR (oppure) */
   | { join: NodePath; fn: 'AND' | 'OR'; label: string }
   /** Toglie il confronto in `drop` da un AND o un OR */
@@ -490,7 +503,25 @@ const isBin = (n: FormulaNode, ops: readonly string[]): n is Extract<FormulaNode
 const isNum = (n: FormulaNode, v?: number): boolean =>
   n.k === 'num' && (v === undefined || n.v === v)
 const isCounter = (n: FormulaNode, ctx: CatalogContext): boolean =>
-  n.k === 'field' && n.name === (ctx.inCell ? 'cell.index' : 'card.number')
+  n.k === 'field' &&
+  (n.name === (ctx.inCell ? 'cell.index' : 'card.number') ||
+    (ctx.inCell && !!ctx.counters?.includes(n.name)))
+
+/** «contando [la posizione / un livello del contenuto]», se ci sono livelli da contare */
+const countBy = (path: NodePath, ctx: CatalogContext): SentencePart[] =>
+  ctx.inCell && ctx.counters?.length
+    ? [
+        txt('fx.s.countingBy'),
+        {
+          choice: path,
+          field: true,
+          options: [
+            { value: 'cell.index', label: 'fx.cn.position' },
+            ...ctx.counters.map((name) => ({ value: name, label: name, raw: true }))
+          ]
+        }
+      ]
+    : []
 const ARITH: readonly BinaryOperator[] = ['+', '-', '*', '/']
 
 const blank = (path: NodePath, kind: SlotKind, label: string, also?: NodePath[]): SentencePart => ({
@@ -513,7 +544,9 @@ const everyNth: SentenceTemplate = {
     return [
       txt('fx.s.every'),
       blank([0, 0, 1], 'number', 'fx.b.n'),
-      txt(c.inCell ? 'fx.s.cellsShow' : 'fx.s.componentsShow'),
+      ...(c.inCell && c.counters?.length
+        ? [txt('fx.s.cells'), ...countBy([0, 0, 0], c), txt('fx.s.commaShow')]
+        : [txt(c.inCell ? 'fx.s.cellsShow' : 'fx.s.componentsShow')]),
       blank([1], 'result', 'fx.b.show'),
       txt('fx.s.otherwise'),
       blank([2], 'result', 'fx.b.otherwise')
@@ -579,7 +612,48 @@ const everyNthCond: SentenceTemplate = {
     return [
       txt('fx.s.trueEvery'),
       blank([0, 1], 'number', 'fx.b.n'),
-      txt(c.inCell ? 'fx.s.cells' : 'fx.s.components')
+      txt(c.inCell ? 'fx.s.cells' : 'fx.s.components'),
+      ...countBy([0, 0], c)
+    ]
+  }
+}
+
+/** Le scelte di CELLNUMBER, nell'ordine in cui le scrive l'assistente */
+const CELLNUMBER_CHOICES = [
+  ['up', 'down'],
+  ['rows', 'columns'],
+  ['straight', 'snake'],
+  ['all', 'visible']
+] as const
+
+/**
+ * CELLNUMBER("up"; "rows"; "straight"; "all"; 1): il numero continuo delle caselle, con le
+ * scelte in parole
+ */
+const cellNumber: SentenceTemplate = {
+  id: 'cellNumber',
+  cell: true,
+  make: () => call('CELLNUMBER', ...CELLNUMBER_CHOICES.map(([first]) => str(first)), num(1)),
+  parts: (n) => {
+    if (!isCall(n, 'CELLNUMBER', CELLNUMBER_CHOICES.length + 1)) return null
+    const ok = CELLNUMBER_CHOICES.every((options, i) => {
+      const a = n.args[i]
+      return a.k === 'str' && (options as readonly string[]).includes(a.v)
+    })
+    if (!ok) return null
+    const choice = (i: number): SentencePart => ({
+      choice: [i],
+      options: CELLNUMBER_CHOICES[i].map((value) => ({ value, label: `fx.cn.${value}` }))
+    })
+    return [
+      txt('fx.s.cellNumber'),
+      choice(0),
+      choice(1),
+      choice(2),
+      txt('fx.s.comma'),
+      choice(3),
+      txt('fx.s.startFrom'),
+      blank([4], 'number', 'fx.b.start')
     ]
   }
 }
@@ -631,6 +705,25 @@ const randomPick: SentenceTemplate = {
     n.args[0].name === 'cell.random'
       ? pickParts(n, 'fx.s.random')
       : null
+}
+
+/** DEAL(voce; quante; voce; quante…): le voci mescolate nelle caselle, ognuna quante volte si vuole */
+const dealing: SentenceTemplate = {
+  id: 'deal',
+  cell: true,
+  make: (_, d) => call('DEAL', d.yes, str(''), d.no, str('')),
+  parts: (n) => {
+    if (!isCall(n, 'DEAL') || !n.args.length || n.args.length % 2) return null
+    return [
+      txt('fx.s.deal'),
+      ...n.args.flatMap((_, i) =>
+        i % 2
+          ? [txt('fx.s.dealTimes'), blank([i], 'times', 'fx.b.dealTimes')]
+          : [...(i ? [txt('fx.s.comma')] : []), blank([i], 'result', 'fx.b.item')]
+      ),
+      { add: [], label: 'fx.addItem', pair: true }
+    ]
+  }
 }
 
 /** IF(campo >= soglia; A; IF(campo >= soglia; B; C)): fasce dalla più alta */
@@ -883,10 +976,12 @@ const inListCond: SentenceTemplate = {
 
 /** In ordine di riconoscimento: le forme più specifiche prima */
 export const SENTENCES: SentenceTemplate[] = [
+  cellNumber,
   everyNth,
   alternating,
   checker,
   randomPick,
+  dealing,
   cycling,
   ranges,
   inCellsShow,
@@ -906,6 +1001,7 @@ export const SENTENCES: SentenceTemplate[] = [
 
 /** Ordine della schermata "cosa vuoi fare" */
 export const START_ORDER = [
+  'cellNumber',
   'if',
   'everyN',
   'alternate',
@@ -914,6 +1010,7 @@ export const START_ORDER = [
   'inList',
   'cycle',
   'random',
+  'deal',
   'notEmpty',
   'ranges',
   'calc',
@@ -974,6 +1071,7 @@ const prefixed = (p: SentencePart, at: NodePath): SentencePart => {
   const pre = (x: NodePath): NodePath => [...at, ...x]
   if ('blank' in p) return { ...p, blank: pre(p.blank), also: p.also?.map(pre) }
   if ('op' in p) return { ...p, op: pre(p.op) }
+  if ('choice' in p) return { ...p, choice: pre(p.choice) }
   if ('add' in p) return { ...p, add: pre(p.add), field: p.field && pre(p.field) }
   if ('join' in p) return { ...p, join: pre(p.join) }
   if ('drop' in p) return { ...p, drop: pre(p.drop) }

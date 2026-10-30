@@ -147,6 +147,14 @@ describe('frasi guidate', () => {
     ])
   })
 
+  it('il numero continuo è la prima scheda nelle caselle, e solo lì', async () => {
+    const { availableSentences } = await import('../formulaAssist')
+    const ids = (inCell: boolean): string[] =>
+      availableSentences({ inCell, condition: false, onGrid: false }).map((s) => s.id)
+    expect(ids(true)[0]).toBe('cellNumber')
+    expect(ids(false)).not.toContain('cellNumber')
+  })
+
   it('riconosce ogni N caselle e la scacchiera come condizioni', async () => {
     const { findSentence } = await import('../formulaAssist')
     const id = (src: string): string | undefined =>
@@ -154,6 +162,23 @@ describe('frasi guidate', () => {
     expect(id('MOD({cell.index}; 10) = 0')).toBe('everyNCond')
     expect(id('MOD({cell.row} + {cell.column}; 2) = 0')).toBe('checkerboardCond')
     expect(id('{cell.row} = 1')).toBe('compare')
+  })
+
+  it('ogni N caselle può contare un livello del contenuto', async () => {
+    const { findSentence, guide } = await import('../formulaAssist')
+    const ctx = { inCell: true, counters: ['numero'] }
+    const n = parseExpression('MOD({numero}; 10) = 0').node!
+    expect(findSentence(n, ctx)?.template.id).toBe('everyNCond')
+    const choice = guide(n, ctx)?.find((p) => 'choice' in p)
+    expect(choice && 'choice' in choice && choice.field).toBe(true)
+    expect(choice && 'choice' in choice && choice.options.map((o) => o.value)).toEqual([
+      'cell.index',
+      'numero'
+    ])
+    // senza livelli da contare la frase resta com'era
+    expect(
+      guide(parseExpression('MOD({cell.index}; 10) = 0').node!, { inCell: true })
+    ).not.toContainEqual(expect.objectContaining({ field: true }))
   })
 
   it('riconosce INLIST come frase, per le caselle e per i campi', async () => {

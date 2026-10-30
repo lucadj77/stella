@@ -5,14 +5,20 @@ import Segmented from '../components/Segmented'
 import { ImageIcon } from '../components/icons'
 import { P, Section } from './advanced'
 import {
+  attachGridGroup,
+  detachGridGroup,
   findLayer,
-  groupLayers,
-  insertLayer,
+  cellBox,
+  fitGroup,
+  fitToCell,
   isNameTaken,
   anchoredResize,
+  newLayer,
   patchLayers,
-  uniqueName
+  uniqueName,
+  type GridGroupTarget
 } from '../../../shared/model/edit'
+import { useLayerNames } from './layerNames'
 import { assetRefName, isImageAsset, resolveAsset } from '../../../shared/model/assets'
 import { numberFormatting } from '../../../shared/model/numberFormat'
 import { COMPONENT_KINDS, kindOf, type ComponentKind } from '../../../shared/model/template'
@@ -43,6 +49,7 @@ import {
   walkLayers
 } from '../../../shared/model/normalize'
 import { gridGeometry } from '../../../shared/model/grid'
+import { ruleAnchor } from '../../../shared/model/cells'
 import { baseLayer, baseTemplateValue, changedTemplateKeys } from '../../../shared/model/inherit'
 import {
   INHERITABLE_TEMPLATE_KEYS,
@@ -103,6 +110,7 @@ import type { Commands } from './commands'
 import PanelSideButton from '../components/PanelSideButton'
 import AlignSection from './AlignSection'
 import CellRules from './CellRules'
+import CellContentDialog, { type CellContentChoice } from './CellContentDialog'
 import type { PanelSide } from '../components/usePanelWidth'
 import { useRatioLock, type LockKind } from './ratioLock'
 import TranslationFields from '../components/TranslationFields'
@@ -516,57 +524,62 @@ function LayerProperties({
   // con una formula il valore principale è calcolato: il campo del valore non serve
   const computed = l.source.kind === 'formula'
 
+  const names = useLayerNames()
+  // la finestra «Inserisci un contenuto»: per tutte le caselle o per una regola
+  const [contentFor, setContentFor] = useState<GridGroupTarget | null>(null)
+
   /**
-   * Crea un testo o una forma nella prima casella della griglia, lo chiude in un gruppo e
-   * lo imposta come contenuto: così le formule del livello variano casella per casella.
+   * Mette nella griglia il contenuto scelto: un testo con l'assistente, una forma, un'immagine
+   * (grandi quanto la prima casella, in un gruppo nuovo) o un gruppo della lista
    */
-  const createContent = (kind: 'text' | 'shape'): void => {
+  const insertCellContent = (target: GridGroupTarget, choice: CellContentChoice): void => {
     if (l.type !== 'grid') return
-    const geo = gridGeometry(l)
-    const c = geo.centers[0]
-    if (!c) return
-    // il livello è grande quanto la casella: uno sfondo nel testo resta centrato sulla casella
-    const w = Math.max(1, geo.cell.w)
-    const h = Math.max(1, geo.cell.h)
-    const box = { x: l.x + c.x - w / 2, y: l.y + c.y - h / 2, w, h }
-    const layer =
-      kind === 'text'
-        ? normalizeLayer(
-            {
-              type: 'text',
-              name: uniqueName(tpl, `${l.name}_text`),
-              text: '1',
-              // due quinti dell'altezza della casella, in punti (1 mm = 72/25.4 pt)
-              size: Math.max(4, Math.round((h * 0.4 * 72) / 25.4)),
-              align: 'center',
-              valign: 'middle',
-              source: { kind: 'formula', expr: '={cell.index}' },
-              ...box
-            },
-            0
-          )
-        : normalizeLayer(
-            {
-              type: 'shape',
-              shape: 'rect',
-              name: uniqueName(tpl, `${l.name}_shape`),
-              fill: '#dddddd',
-              ...box
-            },
-            0
-          )
-    const t1 = insertLayer(tpl, side, layer, l.id)
-    const { template: t2, groupId } = groupLayers(t1, side, [layer.id])
-    if (!groupId) return
-    const group = findLayer(t2[side], groupId)
+    let group: GroupLayer | null = null
+    let first: Layer | null = null
+    if (choice.kind === 'group') {
+      const g = findLayer(tpl[side], choice.id)
+      if (g?.type === 'group') group = g
+    } else {
+      const box = cellBox(l, target === 'content' ? 0 : ruleAnchor(l, target))
+      if (!box) return
+      const stem = target === 'content' ? `${l.name}_cell` : `${l.name}_rule${target + 1}`
+      const layer =
+        choice.kind === 'value'
+          ? normalizeLayer(
+              {
+                type: 'text',
+                name: uniqueName(tpl, `${l.name}_text`),
+                text: '1',
+                source: { kind: 'formula', expr: '={cell.index}' }
+              },
+              0
+            )
+          : choice.kind === 'shape'
+            ? newLayer(tpl, 'shape', choice.shape, names)
+            : { ...newLayer(tpl, 'image', undefined, names), src: choice.src }
+      first = fitToCell(layer, box)
+      const name = uniqueName({ ...tpl, front: [...tpl.front, first] }, stem)
+      group = fitGroup({
+        ...(normalizeLayer({ type: 'group', name, children: [] }, 0) as GroupLayer),
+        children: [first]
+      })
+    }
     if (!group) return
-    const name = uniqueName(t2, `${l.name}_cell`)
-    const t3 = patchLayers(t2, side, [groupId], group, { name })
-    const grid = findLayer(t3[side], l.id)
-    if (!grid) return
-    const t4 = patchLayers(t3, side, [l.id], grid, { content: name } as Partial<Layer>)
-    dispatch({ type: 'change', template: t4, selection: [layer.id] })
-    if (kind === 'text') setFxFor?.(layer.id)
+    const next = attachGridGroup(tpl, side, l.id, target, group)
+    dispatch({ type: 'change', template: next, selection: [first?.id ?? group.id] })
+    if (choice.kind === 'value' && first) setFxFor?.(first.id)
+  }
+
+  /** I gruppi della lista che possono entrare nella griglia: non le contengono e non vi stanno già */
+  const freeGroups = (): GroupLayer[] => {
+    const inGrids = new Set(
+      walkLayers(tpl[side])
+        .flatMap((x) => (x.type === 'grid' ? walkLayers(x.groups) : []))
+        .map((x) => x.id)
+    )
+    return walkLayers(tpl[side]).flatMap((x) =>
+      x.type === 'group' && !inGrids.has(x.id) && !findLayer(x.children, l.id) ? [x] : []
+    )
   }
 
   // livello ereditato da un base: ogni proprietà mostra se è del base o cambiata
@@ -615,7 +628,7 @@ function LayerProperties({
               set={set}
               autoOpen={fxFor === l.id}
               onAutoOpened={() => setFxFor?.(null)}
-              onVaryCells={l.type === 'grid' ? () => createContent('text') : undefined}
+              onVaryCells={l.type === 'grid' ? () => setContentFor('content') : undefined}
             />
           </Inherit>
         </>
@@ -642,15 +655,11 @@ function LayerProperties({
           set={set}
           col={col}
           computed={computed}
-          groups={walkLayers(tpl[side]).flatMap((x) => (x.type === 'group' ? [x] : []))}
-          onPlace={(g) => {
-            // il gruppo va al centro della prima casella, dove la griglia lo disegna com'è
-            const c = gridGeometry(l as GridLayer).centers[0]
-            if (!c) return
-            const patch = { x: l.x + c.x - g.w / 2, y: l.y + c.y - g.h / 2 }
-            dispatch({ type: 'change', template: patchLayers(tpl, side, [g.id], g, patch) })
-          }}
-          onCreate={createContent}
+          onInsert={() => setContentFor('content')}
+          onSelect={(id) => dispatch({ type: 'select', ids: [id], scope: l.id })}
+          onRemove={() =>
+            dispatch({ type: 'change', template: detachGridGroup(tpl, side, l.id, 'content') })
+          }
         />
       )}
       {same && !multi && l.type === 'grid' && (
@@ -659,6 +668,23 @@ function LayerProperties({
           template={tpl}
           sheets={sheets}
           onChange={(cellRules) => set({ cellRules } as Partial<Layer>)}
+          onContent={(k) => setContentFor(k)}
+          onSelectGroup={(id) => dispatch({ type: 'select', ids: [id], scope: l.id })}
+          onRemoveContent={(k) =>
+            dispatch({ type: 'change', template: detachGridGroup(tpl, side, l.id, k) })
+          }
+        />
+      )}
+      {contentFor !== null && l.type === 'grid' && (
+        <CellContentDialog
+          title={
+            contentFor === 'content'
+              ? t('cellContent.title')
+              : t('cellContent.ruleTitle', { n: contentFor + 1 })
+          }
+          groups={freeGroups()}
+          onPick={(c) => insertCellContent(contentFor, c)}
+          onClose={() => setContentFor(null)}
         />
       )}
       {same && !multi && l.type === 'value' && (
@@ -1021,6 +1047,8 @@ function DrawnProperties({
                 unit="mm"
                 locked={locked}
                 onLock={setLocked}
+                // la misura di una griglia con la casella fissa viene dalle caselle
+                disabled={l.type === 'grid' && !!l.cellSize}
                 onChange={(w, h) => set(anchoredResize(l, w, h))}
               />
             </div>
@@ -1863,21 +1891,21 @@ function GridProperties({
   set: setLayer,
   col,
   computed,
-  groups,
-  onPlace,
-  onCreate
+  onInsert,
+  onSelect,
+  onRemove
 }: TypeProps<GridLayer> & {
-  /** Gruppi dello stesso lato, da ripetere nelle caselle */
-  groups: GroupLayer[]
-  /** Porta il gruppo del contenuto nella prima casella */
-  onPlace(group: GroupLayer): void
-  /** Crea un testo o una forma nelle caselle, già raggruppato e impostato come contenuto */
-  onCreate(kind: 'text' | 'shape'): void
+  /** Apre la finestra «Inserisci un contenuto» */
+  onInsert(): void
+  /** Seleziona il gruppo del contenuto */
+  onSelect(id: string): void
+  /** Il gruppo esce dalla griglia */
+  onRemove(): void
 }): React.JSX.Element {
   const { t } = useI18n()
   const set = setLayer as SetFn<GridLayer>
   const count = (v: number): number => Math.max(1, Math.round(v))
-  const content = groups.find((g) => g.name === l.content)
+  const content = l.groups.find((g) => g.name === l.content.trim())
   // esagoni e triangoli hanno le proporzioni fisse
   const ratio =
     l.cell === 'square' || l.cell === 'circle' || l.cell === 'diamond' || l.cell === 'path'
@@ -1912,6 +1940,53 @@ function GridProperties({
             min={1}
             onChange={(columns) => set({ columns: count(columns) })}
           />
+        </P>
+        <P id="cellSize">
+          <CheckField
+            label={t('prop.autoSize')}
+            hint={t('editor.autoSizeHint')}
+            value={!l.cellSize}
+            onChange={(auto) => {
+              if (auto) return set({ cellSize: null })
+              // si parte dalla casella di adesso: la griglia non cambia
+              const { cell } = gridGeometry(l)
+              const round = (v: number): number => Math.round(v * 100) / 100
+              const side = l.cell === 'hex' ? (l.orientation === 'flat' ? cell.h : cell.w) : cell.w
+              set({
+                cellSize:
+                  l.cell === 'hex' || l.cell === 'triangle'
+                    ? { w: round(side), h: round(side) }
+                    : { w: round(cell.w), h: round(cell.h) }
+              })
+            }}
+          />
+          {l.cellSize &&
+            (l.cell === 'hex' || l.cell === 'triangle' ? (
+              <NumberField
+                label={t(l.cell === 'hex' ? 'prop.cellAcross' : 'prop.cellSide')}
+                value={l.cellSize.w}
+                min={0.5}
+                unit="mm"
+                onChange={(w) => set({ cellSize: { w, h: w } })}
+              />
+            ) : (
+              <>
+                <NumberField
+                  label={t('prop.cellWidth')}
+                  value={l.cellSize.w}
+                  min={0.5}
+                  unit="mm"
+                  onChange={(w) => set({ cellSize: { w, h: l.cellSize!.h } })}
+                />
+                <NumberField
+                  label={t('prop.cellHeight')}
+                  value={l.cellSize.h}
+                  min={0.5}
+                  unit="mm"
+                  onChange={(h) => set({ cellSize: { w: l.cellSize!.w, h } })}
+                />
+              </>
+            ))}
         </P>
         <P id="interlock">
           <CheckField
@@ -2034,7 +2109,7 @@ function GridProperties({
             onChange={(backgroundRadius) => set({ backgroundRadius })}
           />
         </P>
-        {ratio && (
+        {ratio && !l.cellSize && (
           <P id="cellRatio" adv>
             <NumberField
               label={t('prop.cellRatio')}
@@ -2048,34 +2123,38 @@ function GridProperties({
             />
           </P>
         )}
-        <P id="zoom" adv>
-          <NumberField
-            label={t('prop.zoom')}
-            hint={`${t('editor.gridZoomHint')} ${col('zoom')}`}
-            value={l.zoom}
-            factor={100}
-            step={5}
-            min={0.01}
-            unit="%"
-            onChange={(zoom) => set({ zoom })}
-          />
-        </P>
-        <P id="gridAlign" adv>
-          <SelectField<LayoutAlign>
-            label={t('prop.alignX')}
-            hint={col('alignX')}
-            value={l.alignX}
-            options={options(t, 'justifyH', ALIGNS)}
-            onChange={(alignX) => set({ alignX })}
-          />
-          <SelectField<LayoutAlign>
-            label={t('prop.alignY')}
-            hint={col('alignY')}
-            value={l.alignY}
-            options={options(t, 'justifyV', ALIGNS)}
-            onChange={(alignY) => set({ alignY })}
-          />
-        </P>
+        {!l.cellSize && (
+          <>
+            <P id="zoom" adv>
+              <NumberField
+                label={t('prop.zoom')}
+                hint={`${t('editor.gridZoomHint')} ${col('zoom')}`}
+                value={l.zoom}
+                factor={100}
+                step={5}
+                min={0.01}
+                unit="%"
+                onChange={(zoom) => set({ zoom })}
+              />
+            </P>
+            <P id="gridAlign" adv>
+              <SelectField<LayoutAlign>
+                label={t('prop.alignX')}
+                hint={col('alignX')}
+                value={l.alignX}
+                options={options(t, 'justifyH', ALIGNS)}
+                onChange={(alignX) => set({ alignX })}
+              />
+              <SelectField<LayoutAlign>
+                label={t('prop.alignY')}
+                hint={col('alignY')}
+                value={l.alignY}
+                options={options(t, 'justifyV', ALIGNS)}
+                onChange={(alignY) => set({ alignY })}
+              />
+            </P>
+          </>
+        )}
         <P id="clip" adv>
           <CheckField
             label={t('prop.gridClip')}
@@ -2086,42 +2165,46 @@ function GridProperties({
         </P>
       </Section>
       <h3>{t('editor.gridContent')}</h3>
-      <Inherit keys={['content']}>
-        <SelectField<string>
-          label={t('prop.content')}
-          hint={`${t('editor.gridContentHint')} ${col('content')}`}
-          value={l.content}
-          options={[
-            ['', t('editor.gridContentNone')],
-            ...groups.map((g): [string, string] => [g.name, g.name]),
-            // un nome scritto a mano o dal foglio che non è un gruppo resta visibile
-            ...(l.content && !groups.some((g) => g.name === l.content)
-              ? [[l.content, l.content] as [string, string]]
-              : [])
-          ]}
-          onChange={(content) => set({ content })}
-        />
-      </Inherit>
       {content ? (
-        <button type="button" onClick={() => onPlace(content)}>
-          {t('editor.gridContentPlace')}
-        </button>
-      ) : (
-        <div className="fx-content-create">
-          {!groups.length && <p className="muted small">{t('editor.gridContentNoGroups')}</p>}
-          <span>{t('editor.gridContentCreate')}</span>
-          <div className="fx-buttons">
-            <button type="button" onClick={() => onCreate('text')}>
-              {t('editor.gridContentText')}
+        <div className="grid-content">
+          <div className="grid-content-head">
+            <span className="grid-content-name">{content.name}</span>
+            <button type="button" onClick={() => onSelect(content.id)}>
+              {t('editor.gridContentSelect')}
             </button>
-            <button type="button" onClick={() => onCreate('shape')}>
-              {t('editor.gridContentShape')}
+            <button type="button" onClick={onInsert}>
+              {t('editor.gridContentChange')}
+            </button>
+            <button type="button" title={t('editor.gridContentRemoveHint')} onClick={onRemove}>
+              {t('editor.gridContentRemove')}
             </button>
           </div>
-          <p className="muted small">{t('editor.gridContentCreateHint')}</p>
+          <p className="muted small">{t('editor.gridContentRepeat')}</p>
+          <CheckField
+            label={t('prop.centered')}
+            hint={t('editor.centeredHint')}
+            value={l.centered}
+            onChange={(centered) => set({ centered })}
+          />
+          <CheckField
+            label={t('prop.clipCells')}
+            hint={t('editor.clipCellsHint')}
+            value={l.clipCells}
+            onChange={(clipCells) => set({ clipCells })}
+          />
         </div>
+      ) : (
+        <>
+          {l.content.trim() && (
+            <p className="field-error">
+              {t('editor.gridContentMissing', { name: l.content.trim() })}
+            </p>
+          )}
+          <button type="button" className="primary wide" onClick={onInsert}>
+            {t('editor.gridContentInsert')}
+          </button>
+        </>
       )}
-      <p className="muted small">{t('editor.gridContentFields')}</p>
     </>
   )
 }

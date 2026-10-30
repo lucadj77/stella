@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { bindCard, cellFields, parseValue, rowToCard, substituteFields } from '../bind'
 import { normalizeTemplate } from '../normalize'
-import type { ShapeLayer, TextLayer } from '../template'
+import type { GridLayer, ShapeLayer, TextLayer } from '../template'
+import { gridGeometry } from '../grid'
 
 const template = normalizeTemplate({
   name: 't',
@@ -279,16 +280,196 @@ describe('contenuto della griglia', () => {
     ]
   })
 
-  it('lega una copia del gruppo per casella e nasconde il gruppo', () => {
+  it('un file di prima porta il gruppo dentro la griglia', () => {
+    expect(tpl.front).toHaveLength(1)
+    const grid = tpl.front[0]
+    expect(grid.type === 'grid' && grid.groups.map((g) => g.name)).toEqual(['numero'])
+  })
+
+  it('lega una copia del gruppo per casella', () => {
     const bound = bindCard(tpl, rowToCard([], []))
-    const [grid, group] = bound.template.front
-    expect(group.visible).toBe(false)
+    const [grid] = bound.template.front
     const cells = grid.type === 'grid' ? (grid.cells ?? []) : []
     expect(cells).toHaveLength(6)
     const text = (i: number): string => (cells[i].children[0] as TextLayer).text
     expect(text(0)).toBe('1/6 r1c1')
     expect(text(4)).toBe('5/6 r2c2')
     expect(bound.problems).toEqual([])
+  })
+
+  it('numero continuo per colonna, a serpentina, dall’ultima, saltando le nascoste', () => {
+    const t = normalizeTemplate({
+      name: 't',
+      front: [
+        {
+          type: 'grid',
+          name: 'g',
+          rows: 2,
+          columns: 3,
+          content: 'c',
+          cellRules: [{ when: '={cell.index}=2', hidden: true }],
+          groups: [
+            {
+              type: 'group',
+              name: 'c',
+              children: [
+                { type: 'text', name: 'a', source: { kind: 'formula', expr: '=CELLNUMBER()' } },
+                {
+                  type: 'text',
+                  name: 'b',
+                  source: { kind: 'formula', expr: '=CELLNUMBER("columns"; "snake")' }
+                },
+                {
+                  type: 'text',
+                  name: 'd',
+                  source: { kind: 'formula', expr: '=CELLNUMBER("down"; "visible"; 10)' }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    })
+    const bound = bindCard(t, rowToCard([], []))
+    const grid = bound.template.front[0]
+    const cells = grid.type === 'grid' ? (grid.cells ?? []) : []
+    const col = (k: number): string[] => cells.map((c) => (c.children[k] as TextLayer).text)
+    expect(col(0)).toEqual(['1', '2', '3', '4', '5', '6'])
+    // per colonna: 1 3 | 2 4 | … a serpentina la seconda colonna sale
+    expect(col(1)).toEqual(['1', '4', '5', '2', '3', '6'])
+    // la casella 2 è nascosta: restano 5 caselle, da 14 a 10
+    expect(col(2)).toEqual(['14', '', '13', '12', '11', '10'])
+    expect(bound.problems).toEqual([])
+  })
+
+  it('la serpentina segue il percorso quando una riga ha solo alcune caselle', () => {
+    // 4 righe × 3 colonne; nella seconda riga resta solo l'ultima casella (6)
+    const t = normalizeTemplate({
+      name: 't',
+      front: [
+        {
+          type: 'grid',
+          name: 'g',
+          rows: 4,
+          columns: 3,
+          content: 'c',
+          cellRules: [
+            { when: '=INLIST({cell.index}; "4, 5")', hidden: true },
+            // la regola conta il numero scritto nella casella, non la posizione
+            { when: '=MOD({n}; 4) = 0', fill: '#FF0000' }
+          ],
+          groups: [
+            {
+              type: 'group',
+              name: 'c',
+              children: [
+                {
+                  type: 'text',
+                  name: 'n',
+                  source: { kind: 'formula', expr: '=CELLNUMBER("snake"; "visible")' }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    })
+    const bound = bindCard(t, rowToCard([], []))
+    const grid = bound.template.front[0]
+    if (grid.type !== 'grid') throw new Error('griglia')
+    const nums = (grid.cells ?? []).map((c) => (c.children[0] as TextLayer).text)
+    // 1 2 3 / - - 4 / 7 6 5 (riparte da destra, vicino al 4) / 8 9 10
+    expect(nums).toEqual(['1', '2', '3', '', '', '4', '7', '6', '5', '8', '9', '10'])
+    const red = (grid.looks ?? []).flatMap((k, i) =>
+      k.fill === '#FF0000' && !k.hidden ? [i + 1] : []
+    )
+    expect(red).toEqual([6, 10])
+    expect(bound.problems).toEqual([])
+  })
+
+  it('DEAL distribuisce le voci a caso con le quantità scelte', () => {
+    const make = (expr: string, card = 1, hide = ''): string[] => {
+      const t = normalizeTemplate({
+        name: 't',
+        front: [
+          {
+            type: 'grid',
+            name: 'g',
+            rows: 4,
+            columns: 4,
+            content: 'c',
+            cellRules: hide ? [{ when: `=INLIST({cell.index}; "${hide}")`, hidden: true }] : [],
+            groups: [
+              {
+                type: 'group',
+                name: 'c',
+                children: [{ type: 'text', name: 'a', source: { kind: 'formula', expr } }]
+              }
+            ]
+          }
+        ]
+      })
+      const bound = bindCard(t, rowToCard([], []), { system: { number: card } as never })
+      expect(bound.problems).toEqual([])
+      const grid = bound.template.front[0]
+      return grid.type === 'grid'
+        ? (grid.cells ?? []).map((c) => (c.children[0] as TextLayer).text)
+        : []
+    }
+    const tally = (xs: string[]): Record<string, number> =>
+      xs.reduce<Record<string, number>>((o, x) => ({ ...o, [x]: (o[x] ?? 0) + 1 }), {})
+    const four = '=DEAL("a"; 4; "b"; 4; "c"; 4; "d"; 4)'
+    const one = make(four)
+    expect(tally(one)).toEqual({ a: 4, b: 4, c: 4, d: 4 })
+    // sempre uguale per la stessa carta
+    expect(make(four)).toEqual(one)
+    // un'altra carta mescola in un altro modo
+    expect(make(four, 2)).not.toEqual(one)
+    // limiti: a 5, b da 2 a 3, il resto c senza limiti
+    const mixed = tally(make('=DEAL("a"; 5; "b"; "2-3"; "c"; "")'))
+    expect(mixed.a).toBe(5)
+    expect(mixed.b).toBeGreaterThanOrEqual(2)
+    expect(mixed.b).toBeLessThanOrEqual(3)
+    expect(mixed.a + mixed.b + mixed.c).toBe(16)
+    // con meno voci che caselle le vuote sono mescolate, non tutte in fondo
+    const few = make('=DEAL("a"; 2; "b"; 2)')
+    expect(tally(few)).toEqual({ a: 2, b: 2, '': 12 })
+    expect(few.slice(0, 12).some((x) => x !== '')).toBe(true)
+    // le caselle nascoste non prendono voci: 12 caselle, 3 per voce
+    const hidden = make('=DEAL("a"; 3; "b"; 3; "c"; 3; "d"; 3)', 1, '1-4')
+    expect(hidden.slice(0, 4)).toEqual(['', '', '', ''])
+    expect(tally(hidden.slice(4))).toEqual({ a: 3, b: 3, c: 3, d: 3 })
+  })
+
+  it('una regola con il suo gruppo prende il posto del contenuto', () => {
+    const t = normalizeTemplate({
+      name: 't',
+      front: [
+        {
+          type: 'grid',
+          name: 'g',
+          rows: 1,
+          columns: 3,
+          content: 'c',
+          cellRules: [{ when: '={cell.index}=3', content: 'r' }],
+          groups: [
+            { type: 'group', name: 'c', children: [{ type: 'text', name: 'a', text: 'base' }] },
+            { type: 'group', name: 'r', children: [{ type: 'text', name: 'b', text: 'speciale' }] }
+          ]
+        }
+      ]
+    })
+    const grid = bindCard(t, rowToCard([], [])).template.front[0]
+    const cells = grid.type === 'grid' ? (grid.cells ?? []) : []
+    expect(cells.map((c) => (c.children[0] as TextLayer).text)).toEqual([
+      'base',
+      'base',
+      'speciale'
+    ])
+    // il gruppo della regola sta già nella sua casella (la terza): lì si disegna com'è
+    const own = (t.front[0] as GridLayer).groups[1]
+    const { centers } = gridGeometry(t.front[0] as GridLayer)
+    expect(cells[2].x - own.x).toBeCloseTo(centers[0].x - centers[2].x)
   })
 
   it('segnala un gruppo che non c’è', () => {
