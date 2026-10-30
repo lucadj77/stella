@@ -1,7 +1,7 @@
 {
   "name": "stella",
   "productName": "Stella",
-  "version": "1.9.0-beta.1",
+  "version": "1.8.2",
   "description": "Create cards and other game components",
   "main": "./out/main/index.js",
   "author": "Luca Di Gialleonardo",
