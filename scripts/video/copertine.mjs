@@ -30,6 +30,7 @@ const SUBTITLES = {
   tabellone: ['Approfondimento: il tabellone', 'Deep dive: the game board'],
   caso: ['Approfondimento: giocare con il caso', 'Deep dive: playing with chance'],
   formule: ['Approfondimento: le formule', 'Deep dive: formulas']
+  impagina: ['Approfondimento: impaginare un template', 'Deep dive: laying out a template'],
 }
 if (!SUBTITLES[video]) throw new Error('video sconosciuto: ' + video)
 const subtitle = SUBTITLES[video][it ? 0 : 1]
