@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
+  documentComments,
+  withoutComments,
   cardRefSource,
   DEFAULT_DOC_SETTINGS,
   documentProblems,
@@ -456,5 +458,22 @@ describe('opzioni delle immagini', () => {
     const problems = documentProblems('![](mappa.png?colore=rosso)\n', { assets: ['mappa.png'] })
     expect(problems.map((p) => p.message.key)).toContain('doc.image.badOption')
     expect(documentProblems('![](mappa.png?width=20)\n', { assets: ['mappa.png'] })).toEqual([])
+  })
+})
+
+describe('commenti', () => {
+  it('un commento sparisce dal documento, anche su più righe, e le posizioni restano', () => {
+    const src = 'Prima %%da rivedere%% parte.\n\n%%Paragrafo\nnascosto%%\n\nUltimo.'
+    const blocks = parseDocument(src)
+    expect(blocks.map((b) => (b.kind === 'paragraph' ? b.text.trim() : b.kind))).toEqual([
+      'Prima                 parte.',
+      'Ultimo.'
+    ])
+    expect(blocks[1].from).toBe(src.indexOf('Ultimo'))
+    expect(withoutComments(src)).toHaveLength(src.length)
+  })
+  it('senza la chiusura il commento arriva alla fine', () => {
+    expect(documentComments('Testo %%resto')).toEqual([{ from: 6, to: 13 }])
+    expect(parseDocument('Testo %%resto\n\naltro').length).toBe(1)
   })
 })

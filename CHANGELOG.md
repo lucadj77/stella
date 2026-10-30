@@ -5,6 +5,24 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.9.0-beta.1
+
+### English
+
+- **Documents: preview zoom**: − and + at the top right of the preview change the zoom, also with ⌘ / Ctrl and the scroll wheel; the percentage goes back to the whole page. The zoom is remembered.
+- **Documents: resizable text and preview**: drag the border between the text and the preview to give more room to either; the width is remembered.
+- **Documents: comments**: text between `%%` and `%%`, on one line or several, stays in the document but is hidden in the preview and not exported. The new **%%** button (or ⌘/ / Ctrl+/) comments the selected text, and comments are shown in grey.
+- **Windows without the dark veil**: windows no longer darken the screen behind them, so the component stays visible while you change it.
+- In **Split image**, the Columns, Rows and From number fields no longer go beyond the window's border.
+
+### Italiano
+
+- **Documenti: zoom dell'anteprima**: − e + in alto a destra nell'anteprima cambiano lo zoom, anche con ⌘ / Ctrl e la rotella; la percentuale torna alla pagina intera. Lo zoom si ricorda.
+- **Documenti: testo e anteprima ridimensionabili**: si trascina il bordo tra il testo e l'anteprima per dare più spazio all'uno o all'altra; la larghezza si ricorda.
+- **Documenti: commenti**: il testo tra `%%` e `%%`, su una riga o su più righe, resta nel documento ma non si vede nell'anteprima e non si esporta. Il nuovo tasto **%%** (o ⌘/ / Ctrl+/) mette in commento il testo selezionato, e i commenti si vedono in grigio.
+- **Finestre senza velo scuro**: le finestre non scuriscono più lo schermo dietro, così il componente resta visibile mentre lo si cambia.
+- In **Dividi immagine** i campi Colonne, Righe e Dal numero non escono più dal bordo della finestra.
+
 ## 1.8.1
 
 ### English

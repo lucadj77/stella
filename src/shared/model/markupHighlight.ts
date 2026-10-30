@@ -17,6 +17,8 @@ export type HighlightKind =
   | 'md'
   /** \{ e simili */
   | 'escape'
+  /** %% commento %% nei documenti */
+  | 'comment'
 
 export interface HighlightPiece {
   from: number
@@ -38,7 +40,7 @@ const LINE_START = /^(#{1,2} +|> ?|[-*•] +|\d+[.)] +|-{3,}\s*$)/
 const DOUBLES = ['**', '++', '~~', '==']
 const SINGLES = new Set(['*', '^', '~'])
 
-export function highlightMarkup(src: string): HighlightPiece[] {
+function highlightPlain(src: string): HighlightPiece[] {
   const out: HighlightPiece[] = []
   const push = (from: number, to: number, kind: HighlightKind): void => {
     if (to > from) out.push({ from, to, kind })
@@ -148,4 +150,21 @@ export function highlightMarkup(src: string): HighlightPiece[] {
     i++
   }
   return out
+}
+
+/**
+ * I pezzi colorati del markup. Con `comments` (nei documenti) le parti tra %% e %% sono commenti:
+ * si colorano come tali e il markup che contengono non si colora
+ */
+export function highlightMarkup(src: string, opts: { comments?: boolean } = {}): HighlightPiece[] {
+  if (!opts.comments || !src.includes('%%')) return highlightPlain(src)
+  const comments: HighlightPiece[] = [...src.matchAll(/%%[\s\S]*?(?:%%|$)/g)].map((m) => ({
+    from: m.index,
+    to: m.index + m[0].length,
+    kind: 'comment'
+  }))
+  let masked = src
+  for (const c of comments)
+    masked = masked.slice(0, c.from) + ' '.repeat(c.to - c.from) + masked.slice(c.to)
+  return [...highlightPlain(masked), ...comments].sort((a, b) => a.from - b.from)
 }

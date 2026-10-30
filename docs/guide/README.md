@@ -592,23 +592,23 @@ A layer with **Value on components: Formula** calculates its value from the othe
 
 The functions, with an example on the cards of this guide (Dragon, strength 4, cost `{gold}{gold}{wood}`):
 
-| function                                      | what it does                                                          | example                                                 |
-| --------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------- |
-| `IF(condition; if true; if false)`            | chooses between two values                                            | `=IF({strength}>3; "Strong"; "Weak")` → Strong          |
-| `AND`, `OR`, `NOT`                            | combine conditions                                                    | `=IF(AND({strength}>3; {cost}<>""); "yes"; "no")` → yes |
-| `MIN`, `MAX`                                  | the smallest or largest number                                        | `=MAX({strength}; 3)` → 4                               |
-| `ABS`                                         | the number without its sign                                           | `=ABS({strength}-6)` → 2                                |
-| `ROUND(number; decimals)`, `FLOOR`, `CEILING` | round                                                                 | `=ROUND({strength}/3; 1)` → 1.3                         |
-| `UPPER`, `LOWER`                              | capitals and lower case                                               | `=UPPER({name})` → DRAGON                               |
-| `LEN`                                         | how many characters the text has                                      | `=LEN({name})` → 6                                      |
-| `CONCAT`                                      | joins texts (like `&`)                                                | `=CONCAT({name}; " "; {strength})` → Dragon 4           |
-| `ISBLANK`                                     | true if the value is empty                                            | `=IF(ISBLANK({note}); "-"; {note})` → -                 |
-| `COUNTIN(text; wanted)`                       | how many times a text contains another                                | `=COUNTIN({cost}; "gold")` → 2                          |
-| `INLIST(value; list)`                         | true if the value is in the list; `1-5` stands for the numbers 1 to 5 | `=INLIST({type}; "dragon, orc")` → true for an orc      |
-| `MOD(number; divisor)`                        | the remainder of a division                                           | `=MOD({cell.index}; 10)` → 0 on every tenth cell        |
-| `PICK(n; value1; value2; …)`                  | the n-th value, starting again after the last                         | `=PICK({strength}; "sword"; "shield"; "hand")` → sword  |
+| function                                           | what it does                                                                                                                | example                                                            |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `IF(condition; if true; if false)`                 | chooses between two values                                                                                                  | `=IF({strength}>3; "Strong"; "Weak")` → Strong                     |
+| `AND`, `OR`, `NOT`                                 | combine conditions                                                                                                          | `=IF(AND({strength}>3; {cost}<>""); "yes"; "no")` → yes            |
+| `MIN`, `MAX`                                       | the smallest or largest number                                                                                              | `=MAX({strength}; 3)` → 4                                          |
+| `ABS`                                              | the number without its sign                                                                                                 | `=ABS({strength}-6)` → 2                                           |
+| `ROUND(number; decimals)`, `FLOOR`, `CEILING`      | round                                                                                                                       | `=ROUND({strength}/3; 1)` → 1.3                                    |
+| `UPPER`, `LOWER`                                   | capitals and lower case                                                                                                     | `=UPPER({name})` → DRAGON                                          |
+| `LEN`                                              | how many characters the text has                                                                                            | `=LEN({name})` → 6                                                 |
+| `CONCAT`                                           | joins texts (like `&`)                                                                                                      | `=CONCAT({name}; " "; {strength})` → Dragon 4                      |
+| `ISBLANK`                                          | true if the value is empty                                                                                                  | `=IF(ISBLANK({note}); "-"; {note})` → -                            |
+| `COUNTIN(text; wanted)`                            | how many times a text contains another                                                                                      | `=COUNTIN({cost}; "gold")` → 2                                     |
+| `INLIST(value; list)`                              | true if the value is in the list; `1-5` stands for the numbers 1 to 5                                                       | `=INLIST({type}; "dragon, orc")` → true for an orc                 |
+| `MOD(number; divisor)`                             | the remainder of a division                                                                                                 | `=MOD({cell.index}; 10)` → 0 on every tenth cell                   |
+| `PICK(n; value1; value2; …)`                       | the n-th value, starting again after the last                                                                               | `=PICK({strength}; "sword"; "shield"; "hand")` → sword             |
 | `CELLNUMBER(direction; order; path; cells; start)` | the running number of the cell: `"up"`/`"down"`, `"rows"`/`"columns"`, `"straight"`/`"snake"`/`"path"`, `"all"`/`"visible"` | `=CELLNUMBER("up"; "rows"; "snake"; "all"; 1)` → 1 2 3 4 / 8 7 6 5 |
-| `DEAL(item; times; item; times; …)` | deals the items at random in the visible cells, each as many times as you say: `4`, `3-5`, `2-`, `-3` or empty | `=DEAL("sword"; 4; "shield"; "")` → 4 swords, the rest shields |
+| `DEAL(item; times; item; times; …)`                | deals the items at random in the visible cells, each as many times as you say: `4`, `3-5`, `2-`, `-3` or empty              | `=DEAL("sword"; 4; "shield"; "")` → 4 swords, the rest shields     |
 
 The **Help** window (F1), **Formulas** tab, has the same table with the result computed on the cards of the open project.
 
@@ -770,13 +770,13 @@ The **Profile ▾** menu at the bottom stores the current options as a named pro
 
 ## 12. Documents
 
-The **Documents** section of the sidebar holds the texts that go with the game: the rules, a sell sheet, an appendix, a FAQ. The + creates a document, a click opens it in place of the open set or template. You write on the left; on the right the preview shows the page as you type and follows the cursor, and a click on a point of the preview moves the cursor to that point of the text. The name changes from the title; the ⋯ next to the title, and a right click on the document in the sidebar, have **Rename**, **Duplicate** (a copy whose name ends with a number) and **Delete**, which moves the document to `deleted`. Documents save themselves as you type, as `docs/<name>.md` files in the project, so another editor or an AI agent can write them too.
+The **Documents** section of the sidebar holds the texts that go with the game: the rules, a sell sheet, an appendix, a FAQ. The + creates a document, a click opens it in place of the open set or template. You write on the left; on the right the preview shows the page as you type and follows the cursor, and a click on a point of the preview moves the cursor to that point of the text. Drag the border between text and preview to give more room to either; at the top right of the preview − and + change the zoom (also ⌘ / Ctrl with the scroll wheel) and the percentage goes back to the whole page. The name changes from the title; the ⋯ next to the title, and a right click on the document in the sidebar, have **Rename**, **Duplicate** (a copy whose name ends with a number) and **Delete**, which moves the document to `deleted`. Documents save themselves as you type, as `docs/<name>.md` files in the project, so another editor or an AI agent can write them too.
 
 ![A document with the page preview beside it](img/documento.png)
 
 ### 12.1 Writing and formatting
 
-Above the text is the formatting bar: the **Text** menu turns the line into a first, second or third level heading, or back into a paragraph; **B**, _I_, U and S add or remove bold, italic, underline and strikethrough on the selected text (with no selection they leave the cursor between the two marks); the next three buttons turn the chosen lines into a bulleted list, a numbered list or a quote, and a second click removes them. **Style** applies a style of the project to the selected text and ends with **Aa Format…**, the advanced formatting of [chapter 6](#6-text-and-markup). The last buttons insert an image of the assets, a table, a card, an anatomy or a table setup. The bar writes in the text the markup you would write by hand, and ⌘Z / Ctrl+Z undoes it.
+Above the text is the formatting bar: the **Text** menu turns the line into a first, second or third level heading, or back into a paragraph; **B**, _I_, U and S add or remove bold, italic, underline and strikethrough on the selected text (with no selection they leave the cursor between the two marks); the next three buttons turn the chosen lines into a bulleted list, a numbered list or a quote, and a second click removes them; **%%** (or ⌘/ / Ctrl+/) turns the selected text into a comment. **Style** applies a style of the project to the selected text and ends with **Aa Format…**, the advanced formatting of [chapter 6](#6-text-and-markup). The last buttons insert an image of the assets, a table, a card, an anatomy or a table setup. The bar writes in the text the markup you would write by hand, and ⌘Z / Ctrl+Z undoes it.
 
 The text is Markdown, with Stella's markup from [chapter 6](#6-text-and-markup) inside the lines:
 
@@ -788,6 +788,7 @@ The text is Markdown, with Stella's markup from [chapter 6](#6-text-and-markup) 
 | `> text`                                     | a box for a note                                                 |
 | `\| a \| b \|` with `\|---\|---\|` below     | a table; `:--`, `:-:` and `--:` align the column                 |
 | `---`                                        | a line                                                           |
+| `%%note%%`                                   | a comment: it stays in the file but is not shown or exported     |
 | `{sword}`, `[text]{.keyword}`                | icons, variables and styles, as on the cards                     |
 | `{project.name}`, `{date}`                   | the project name and today's date                                |
 | `![The wizard](card:Characters/name=Wizard)` | a card of the game, with the caption "The wizard"                |

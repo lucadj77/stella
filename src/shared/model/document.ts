@@ -211,9 +211,26 @@ const ONLY_IMAGES = /^\s*(?:!\[[^\]]*\]\([^)]*\)\s*)+$/
 const LIST_ITEM = /^(\s*)([-*+]|\d+[.)])\s+(.*)$/
 const TABLE_SEPARATOR = /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/
 
+/** Un commento: %% testo %%, anche su più righe; senza la chiusura arriva alla fine */
+const COMMENT = /%%[\s\S]*?(?:%%|$)/g
+
+/** Le parti tra %% e %%, che non si vedono nell'anteprima e non si esportano */
+export function documentComments(src: string): { from: number; to: number }[] {
+  return [...src.matchAll(COMMENT)].map((m) => ({ from: m.index, to: m.index + m[0].length }))
+}
+
+/**
+ * Il documento senza i commenti: ogni carattere commentato diventa uno spazio e gli a capo
+ * restano, così le posizioni non cambiano e un clic sull'anteprima porta al punto giusto
+ */
+export function withoutComments(src: string): string {
+  return src.replace(COMMENT, (c) => c.replace(/[^\n]/g, ' '))
+}
+
 /** Divide il documento in blocchi: titoli, paragrafi, elenchi, citazioni, tabelle, immagini */
-export function parseDocument(src: string): DocBlock[] {
-  const lines = src.replace(/\r\n?/g, '\n').split('\n')
+export function parseDocument(source: string): DocBlock[] {
+  const src = withoutComments(source.replace(/\r\n?/g, '\n'))
+  const lines = src.split('\n')
   const starts: number[] = []
   let pos = 0
   for (const l of lines) {
@@ -390,9 +407,9 @@ export function parseDocument(src: string): DocBlock[] {
 }
 
 /** I riquadri del documento, anche quelli vuoti */
-export function documentBoxes(src: string): DocBox[] {
+export function documentBoxes(source: string): DocBox[] {
   const out: DocBox[] = []
-  const lines = src.replace(/\r\n?/g, '\n').split('\n')
+  const lines = withoutComments(source.replace(/\r\n?/g, '\n')).split('\n')
   let pos = 0
   let open: DocBox | null = null
   let fence: string | null = null
@@ -409,7 +426,14 @@ export function documentBoxes(src: string): DocBox[] {
       }
       if (isBoxStart(line)) {
         const { style, bad } = parseBoxStyle(line)
-        open = { style, bad, from: pos, headTo: pos + line.length, endFrom: null, to: src.length }
+        open = {
+          style,
+          bad,
+          from: pos,
+          headTo: pos + line.length,
+          endFrom: null,
+          to: source.length
+        }
         out.push(open)
       }
     }
@@ -872,7 +896,8 @@ export function documentLocalization(
 
 /**
  * Testo di un blocco pronto per il markup: variabili di testo e valore e {project.name} e {date}
- * sostituite; un collegamento [testo](indirizzo) diventa testo sottolineato
+ * sostituite; un collegamento [testo](indirizzo) diventa testo sottolineato; più spazi tra due
+ * parole diventano uno
  */
 export function documentText(text: string, ctx: DocumentContext): string {
   const fields = {
@@ -880,9 +905,14 @@ export function documentText(text: string, ctx: DocumentContext): string {
     'project.name': ctx.project ?? '',
     date: today()
   }
-  return substituteFields(text, fields).replace(
-    /(?<![!\\])\[([^\]]+)\]\(([^)\s]+)\)/g,
-    (_, label: string) => `[${label}]{underline}`
+  return (
+    substituteFields(text, fields)
+      .replace(
+        /(?<![!\\])\[([^\]]+)\]\(([^)\s]+)\)/g,
+        (_, label: string) => `[${label}]{underline}`
+      )
+      // gli spazi lasciati da un commento in mezzo alla riga contano come uno, come in Markdown
+      .replace(/(\S) {2,}(?=\S)/g, '$1 ')
   )
 }
 

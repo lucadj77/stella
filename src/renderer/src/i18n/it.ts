@@ -2119,7 +2119,8 @@ export const it: Record<MessageKey, string> = {
   'help.ex.INLIST': '=INLIST({cell.index}; "2, 4, 10-12") → vero nelle caselle 2, 4, 10, 11 e 12',
   'help.fn.DEAL':
     'Distribuisce a caso dei valori nelle caselle visibili, ognuno quante volte dici: un numero, un intervallo come "3-5", "2-" (almeno), "-3" (al massimo) o vuoto (quanti servono)',
-  'help.ex.DEAL': '=DEAL("spada"; 4; "scudo"; "3-5"; "mano"; "") → 16 caselle: 4 spade, da 3 a 5 scudi, il resto mani',
+  'help.ex.DEAL':
+    '=DEAL("spada"; 4; "scudo"; "3-5"; "mano"; "") → 16 caselle: 4 spade, da 3 a 5 scudi, il resto mani',
   'help.ex.CELLNUMBER': '=CELLNUMBER("up"; "rows"; "snake"; "all"; 1) → 1 2 3 4 / 8 7 6 5',
   'help.keys.save': 'Salva template, dati e impostazioni',
   'help.keys.project': 'Apri e chiudi il progetto (app desktop)',
@@ -2473,6 +2474,10 @@ export const it: Record<MessageKey, string> = {
   'menu.uiReset': 'Dimensione normale',
   'menu.whatsNew': 'Novità',
   'menu.website': 'Stella su GitHub',
+  'documents.zoom': "Zoom dell'anteprima",
+  'documents.zoomIn': 'Ingrandisci (⌘ / Ctrl e rotella)',
+  'documents.zoomOut': 'Riduci (⌘ / Ctrl e rotella)',
+  'documents.zoomFit': "Pagina intera nella larghezza dell'anteprima",
   'documents.exportButton': 'Esporta documento…',
   'menu.undo': 'Annulla',
   'menu.redo': 'Ripeti',
@@ -2511,6 +2516,8 @@ export const it: Record<MessageKey, string> = {
   'docTools.bullets': 'Elenco puntato',
   'docTools.numbers': 'Elenco numerato',
   'docTools.quote': 'Citazione (>)',
+  'docTools.comment':
+    "Commento (%% … %%): il testo resta nel documento ma non si vede nell'anteprima e non si esporta (⌘/ / Ctrl+/)",
   'docTools.style': 'Stile ▾',
   'docTools.styleHint': 'Applica uno stile del progetto al testo selezionato ([testo]{.stile})',
   'docTools.sample': 'testo',
@@ -2945,7 +2952,8 @@ export const it: Record<MessageKey, string> = {
     "La prima voce sul primo componente, la seconda sul secondo, poi di nuovo dall'inizio",
   'fx.card.random': 'Scegli a caso',
   'fx.card.deal': 'Distribuisci a caso, con le quantità',
-  'fx.card.deal.hint': 'Mescola le voci nelle caselle: ognuna compare esattamente, almeno o al massimo N volte',
+  'fx.card.deal.hint':
+    'Mescola le voci nelle caselle: ognuna compare esattamente, almeno o al massimo N volte',
   'fx.s.deal': 'Distribuisci a caso nelle caselle:',
   'fx.s.dealTimes': 'volte',
   'fx.b.dealTimes':
