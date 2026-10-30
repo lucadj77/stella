@@ -2551,6 +2551,9 @@ export const en = {
   'editor.gridContentRemoveHint':
     'The group leaves the grid and goes back to the layer list, above the grid.',
   'editor.gridContentMissing': 'The group “{name}” is no longer there.',
+  'prop.clipCells': 'Cut at the cell edge',
+  'editor.clipCellsHint':
+    'What goes outside a cell is not drawn, also for the content of the rules.',
   'prop.centered': 'Centered on the cells',
   'editor.centeredHint':
     'The group stays at the center of the first cell: it does not move and, if you resize it, it grows from the center. Turn off to move it freely.',
@@ -2612,8 +2615,6 @@ export const en = {
   'editor.cellRuleEmptyShort': 'no condition',
   'editor.cellRuleAdd': '+ Add a rule',
   'editor.cellRuleFx': 'Formula assistant: cell rule {n}',
-  'editor.gridContentFields':
-    'Inside the group: {cell.index} (1, 2, 3...), {cell.row}, {cell.column}, {cell.count} (number of cells), {cell.random} (fixed for each component). Formula example: =IF(MOD({cell.index}; 10) = 0; "bold"; "normal") or =PICK({cell.index}; "a"; "b"; "c").',
   'fx.open': 'Formula assistant: build the formula step by step',
   'fx.firstCardOf': 'the first component of {set}',
   'fx.yes.sample': 'Yes',
@@ -2880,6 +2881,9 @@ export const en = {
   'fx.s.comma': ',',
   'fx.s.startFrom': 'starting from',
   'fx.b.start': 'First number',
+  'fx.s.countingBy': 'counting',
+  'fx.s.commaShow': ', show',
+  'fx.cn.position': 'the position in the grid',
   'fx.cn.up': 'ascending',
   'fx.cn.down': 'descending',
   'fx.cn.rows': 'by row',

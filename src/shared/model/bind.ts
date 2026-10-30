@@ -1,7 +1,7 @@
 import { msg, type Message } from '../messages'
 import { parseRepeat } from './arrange'
 import { translateLayer } from './edit'
-import { cellFields, ruleAnchor } from './cells'
+import { cellFields, ruleAnchor, ruleCellFields } from './cells'
 import { fitFixedGrid, gridGeometry, gridSize } from './grid'
 import { isGradient, mapGradientColors } from './gradient'
 import { resolveAsset } from './assets'
@@ -135,8 +135,8 @@ function cellRuleResults(
   /** Il gruppo di una regola che prende il posto del contenuto, e la regola */
   contents: ({ name: string; rule: number } | null)[]
 } {
-  const { rows, columns } = gridSize(grid)
-  const count = rows * columns
+  const cells = ruleCellFields(grid, fields, formulaNumbers(numbers), card)
+  const count = cells.length
   const base: CellLook = {
     fill: grid.fill,
     stroke: grid.stroke,
@@ -147,7 +147,7 @@ function cellRuleResults(
   const values: Record<string, string>[] = []
   const contents: ({ name: string; rule: number } | null)[] = []
   for (let i = 0; i < count; i++) {
-    const f = { ...fields, ...cellFields(grid.name, i, columns, count, card) }
+    const f = cells[i]
     let look = base
     let set: Record<string, string> = {}
     let content: { name: string; rule: number } | null = null

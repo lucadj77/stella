@@ -8,7 +8,7 @@ import {
   attachGridGroup,
   detachGridGroup,
   findLayer,
-  firstCellBox,
+  cellBox,
   fitGroup,
   fitToCell,
   isNameTaken,
@@ -49,6 +49,7 @@ import {
   walkLayers
 } from '../../../shared/model/normalize'
 import { gridGeometry } from '../../../shared/model/grid'
+import { ruleAnchor } from '../../../shared/model/cells'
 import { baseLayer, baseTemplateValue, changedTemplateKeys } from '../../../shared/model/inherit'
 import {
   INHERITABLE_TEMPLATE_KEYS,
@@ -539,7 +540,7 @@ function LayerProperties({
       const g = findLayer(tpl[side], choice.id)
       if (g?.type === 'group') group = g
     } else {
-      const box = firstCellBox(l)
+      const box = cellBox(l, target === 'content' ? 0 : ruleAnchor(l, target))
       if (!box) return
       const stem = target === 'content' ? `${l.name}_cell` : `${l.name}_rule${target + 1}`
       const layer =
@@ -2185,6 +2186,12 @@ function GridProperties({
             value={l.centered}
             onChange={(centered) => set({ centered })}
           />
+          <CheckField
+            label={t('prop.clipCells')}
+            hint={t('editor.clipCellsHint')}
+            value={l.clipCells}
+            onChange={(clipCells) => set({ clipCells })}
+          />
         </div>
       ) : (
         <>
@@ -2198,7 +2205,6 @@ function GridProperties({
           </button>
         </>
       )}
-      <p className="muted small">{t('editor.gridContentFields')}</p>
     </>
   )
 }

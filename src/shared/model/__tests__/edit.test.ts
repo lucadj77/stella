@@ -429,4 +429,18 @@ describe('contenuto della griglia dalla lista', () => {
     expect(inside.id).toBe(layer.id)
     expect(inside).toMatchObject({ w: 20, h: 20 })
   })
+
+  it('nel gruppo di una regola il livello nuovo va nella casella della regola', () => {
+    const base = make()
+    const t = attachGridGroup(base, 'front', base.front[1].id, 0, base.front[0] as GroupLayer)
+    const g = t.front[0] as GridLayer
+    const before = g.groups[0].children[0]
+    const layer = newLayer(t, 'shape', 'rect')
+    const out = insertNewLayer(t, 'front', layer, g.groups[0].id)
+    const [inside, kept] = (out.front[0] as GridLayer).groups[0].children
+    // la regola vale nella seconda casella, da 20 a 40
+    expect(inside).toMatchObject({ x: 20, y: 0, w: 20, h: 20 })
+    // il resto del gruppo non si sposta
+    expect(kept).toMatchObject({ x: before.x, y: before.y })
+  })
 })

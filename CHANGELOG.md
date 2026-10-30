@@ -16,6 +16,9 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Collapsible rules**: each cell rule opens and closes; closed, it shows its colour, whether it hides cells and how many cells it applies to.
 - **Running number**: a new card of the formula assistant and the function `CELLNUMBER` number the cells by row or by column, ascending or descending, in sequence or snaking, skipping hidden cells if you want.
 - **Wider labels** in the properties panel: long labels no longer wrap on several lines.
+- **Rules that count the written number**: a cell rule condition can read the content layers by name, so `=MOD({grid_text}; 10) = 0` follows a running number; the assistant's **Every N cells** has a **counting** choice.
+- **Cut at the cell edge**: the content of each cell can be cut to the cell shape.
+- The snaking running number follows a path: each row starts from the side closest to where the previous one ended.
 - "Text in each cell", "Shape in each cell" and "Move to the first cell" are replaced by the new window.
 
 ### Italiano
@@ -27,6 +30,9 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Regole richiudibili**: ogni regola si apre e si chiude; chiusa, mostra il colore, se nasconde caselle e per quante caselle vale.
 - **Numero continuo**: una nuova scheda dell'assistente formule e la funzione `CELLNUMBER` numerano le caselle per riga o per colonna, in ordine crescente o decrescente, in sequenza o a serpentina, saltando se vuoi le caselle nascoste.
 - **Etichette più larghe** nel pannello delle proprietà: le etichette lunghe non vanno più a capo su più righe.
+- **Regole che contano il numero scritto**: la condizione di una regola delle caselle legge i livelli del contenuto per nome, così `=MOD({griglia_text}; 10) = 0` segue un numero continuo; **Ogni N caselle** dell'assistente ha la scelta **contando**.
+- **Taglia al bordo della casella**: il contenuto di ogni casella si può tagliare alla forma della casella.
+- Il numero continuo a serpentina segue il percorso: ogni riga riparte dal lato più vicino a dove è finita la precedente.
 - «Testo in ogni casella», «Forma in ogni casella» e «Porta nella prima casella» sono sostituiti dalla nuova finestra.
 
 ## 1.8.0-beta.2

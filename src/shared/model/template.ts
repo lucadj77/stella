@@ -256,6 +256,8 @@ export interface GridLayer extends LayerBase {
   content: string
   /** Il gruppo del contenuto resta centrato sulla prima casella */
   centered: boolean
+  /** Il contenuto di ogni casella (anche quello delle regole) è tagliato alla forma della casella */
+  clipCells: boolean
   /**
    * I gruppi della griglia: il contenuto delle caselle e quelli delle regole. Coordinate sulla
    * carta, come i figli di un gruppo; non si disegnano da soli, solo nelle caselle

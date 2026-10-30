@@ -287,16 +287,12 @@ const FUNCTIONS: Record<string, Fn> = {
     return items[(((n - 1) % k) + k) % k]
   },
   /**
-   * Vero se il valore è nell'elenco: INLIST({cell.index}; "3, 8, 11"). Un elenco scritto con le
-   * virgole vale come più voci, e una voce come 1-5 vale per tutti i numeri da 1 a 5. I testi si
-   * confrontano senza badare alle maiuscole: INLIST({tipo}; "drago, orco")
-   */
-  /**
    * Numero continuo delle caselle di una griglia, con le scelte in parole:
    * CELLNUMBER("columns"; "snake"; "down"; "visible"; 10). Ordine "rows" (di base) o "columns";
-   * percorso "straight" (di base) o "snake", che torna indietro a ogni riga; verso "up" (di base)
-   * o "down", dall'ultima casella; "visible" salta le caselle nascoste dalle regole; l'ultimo
-   * numero è da dove si parte (1 di base). Le scelte valgono in qualsiasi ordine
+   * percorso "straight" (di base) o "snake", che a ogni riga riparte dal lato più vicino a dove
+   * è finita la riga prima, come un percorso; verso "up" (di base) o "down", dall'ultima casella;
+   * "visible" salta le caselle nascoste dalle regole (e le righe senza caselle); l'ultimo numero è
+   * da dove si parte (1 di base). Le scelte valgono in qualsiasi ordine
    */
   CELLNUMBER: (a, fields) => {
     const num = (k: string): number => Number(fields[k] ?? NaN)
@@ -320,30 +316,45 @@ const FUNCTIONS: Record<string, Fn> = {
       if (!['rows', 'columns', 'straight', 'snake', 'up', 'down', 'visible', 'all'].includes(w))
         throw new FormulaError(`CELLNUMBER: unknown choice "${w}"`)
     const byColumn = words.has('columns')
-    const snake = words.has('snake')
-    // posizione da 0 lungo il percorso
-    const at = (r: number, c: number): number => {
-      const [major, minor, size] = byColumn ? [c, r, rows] : [r, c, columns]
-      return major * size + (snake && major % 2 === 1 ? size - 1 - minor : minor)
+    const hidden = new Set(
+      words.has('visible')
+        ? (fields['cell.hidden'] ?? '').split(',').flatMap((x) => {
+            const m = /^\s*(\d+)\s*(?:-\s*(\d+))?\s*$/.exec(x)
+            if (!m) return []
+            const to = Number(m[2] ?? m[1])
+            return Array.from({ length: to - Number(m[1]) + 1 }, (_, k) => Number(m[1]) + k - 1)
+          })
+        : []
+    )
+    // le caselle (da 0, per righe) nell'ordine del percorso
+    const [lines, size] = byColumn ? [columns, rows] : [rows, columns]
+    const order: number[] = []
+    let forward = true
+    let last = -1
+    for (let line = 0; line < lines; line++) {
+      const minors = Array.from({ length: size }, (_, m) => m).filter(
+        (m) => !hidden.has(byColumn ? m * columns + line : line * columns + m)
+      )
+      if (!minors.length) continue
+      if (words.has('snake') && last >= 0) {
+        // si riparte dal capo più vicino a dove si è finito; a pari distanza si torna indietro
+        const near = Math.abs(minors[0] - last)
+        const far = Math.abs(minors[minors.length - 1] - last)
+        forward = near === far ? !forward : near < far
+      }
+      const run = forward ? minors : [...minors].reverse()
+      for (const m of run) order.push(byColumn ? m * columns + line : line * columns + m)
+      last = run[run.length - 1]
     }
-    let pos = at(row - 1, column - 1)
-    let total = rows * columns
-    if (words.has('visible')) {
-      const hidden = (fields['cell.hidden'] ?? '')
-        .split(',')
-        .flatMap((x) => {
-          const m = /^\s*(\d+)\s*(?:-\s*(\d+))?\s*$/.exec(x)
-          if (!m) return []
-          const to = Number(m[2] ?? m[1])
-          return Array.from({ length: to - Number(m[1]) + 1 }, (_, k) => Number(m[1]) + k)
-        })
-        .map((i) => at(Math.floor((i - 1) / columns), (i - 1) % columns))
-      if (hidden.includes(pos)) return ''
-      pos -= hidden.filter((p) => p < pos).length
-      total -= hidden.length
-    }
-    return start + (words.has('down') ? total - 1 - pos : pos)
+    const pos = order.indexOf((row - 1) * columns + (column - 1))
+    if (pos < 0) return ''
+    return start + (words.has('down') ? order.length - 1 - pos : pos)
   },
+  /**
+   * Vero se il valore è nell'elenco: INLIST({cell.index}; "3, 8, 11"). Un elenco scritto con le
+   * virgole vale come più voci, e una voce come 1-5 vale per tutti i numeri da 1 a 5. I testi si
+   * confrontano senza badare alle maiuscole: INLIST({tipo}; "drago, orco")
+   */
   INLIST: (a) => {
     if (a.length < 2) throw new FormulaError('INLIST needs a value and at least one item')
     const v = a[0]()

@@ -2584,6 +2584,9 @@ export const it: Record<MessageKey, string> = {
   'editor.gridContentRemoveHint':
     'Il gruppo esce dalla griglia e torna nella lista dei livelli, sopra alla griglia.',
   'editor.gridContentMissing': 'Il gruppo «{name}» non c’è più.',
+  'prop.clipCells': 'Taglia al bordo della casella',
+  'editor.clipCellsHint':
+    'Quello che esce da una casella non si disegna, anche per il contenuto delle regole.',
   'prop.centered': 'Centrato con le caselle',
   'editor.centeredHint':
     'Il gruppo resta al centro della prima casella: non si sposta e, se lo ridimensioni, cresce dal centro. Spegni per spostarlo liberamente.',
@@ -2645,8 +2648,6 @@ export const it: Record<MessageKey, string> = {
   'editor.cellRuleEmptyShort': 'senza condizione',
   'editor.cellRuleAdd': '+ Aggiungi una regola',
   'editor.cellRuleFx': 'Assistente formule: regola delle caselle {n}',
-  'editor.gridContentFields':
-    'Dentro il gruppo: {cell.index} (1, 2, 3...), {cell.row}, {cell.column}, {cell.count} (numero di caselle), {cell.random} (fisso per ogni componente). Formula di esempio: =IF(MOD({cell.index}; 10) = 0; "bold"; "normal") oppure =PICK({cell.index}; "a"; "b"; "c").',
   'fx.open': 'Assistente formule: costruisci la formula passo per passo',
   'fx.firstCardOf': 'il primo componente di {set}',
   'fx.yes.sample': 'Sì',
@@ -2916,6 +2917,9 @@ export const it: Record<MessageKey, string> = {
   'fx.s.comma': ',',
   'fx.s.startFrom': 'a partire da',
   'fx.b.start': 'Primo numero',
+  'fx.s.countingBy': 'contando',
+  'fx.s.commaShow': ', mostra',
+  'fx.cn.position': 'la posizione nella griglia',
   'fx.cn.up': 'crescente',
   'fx.cn.down': 'decrescente',
   'fx.cn.rows': 'per riga',

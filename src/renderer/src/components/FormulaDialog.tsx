@@ -156,7 +156,10 @@ export default function FormulaDialog({
   const { t } = useI18n()
   const variables = useContext(VariablesContext)
   const comma = useDecimalComma()
-  const ctx: CatalogContext = useMemo(() => ({ inCell: !!cells }), [cells])
+  const ctx: CatalogContext = useMemo(
+    () => ({ inCell: !!cells, counters: cells?.counters }),
+    [cells]
+  )
   const sctx: SentenceContext = {
     inCell: !!cells,
     condition: !!condition,
@@ -186,7 +189,10 @@ export default function FormulaDialog({
   const fields = useMemo(() => {
     const out = { ...sample }
     if (cells)
-      Object.assign(out, cellFields(cells.grid, 0, cells.columns, cells.rows * cells.columns))
+      Object.assign(
+        out,
+        cells.fields?.[0] ?? cellFields(cells.grid, 0, cells.columns, cells.rows * cells.columns)
+      )
     return out
   }, [sample, cells])
   const known = (name: string): boolean =>
@@ -282,7 +288,10 @@ export default function FormulaDialog({
     if (!cells || incomplete) return null
     const count = cells.rows * cells.columns
     return Array.from({ length: Math.min(STRIP, count) }, (_, i) => {
-      const f = { ...sample, ...cellFields(cells.grid, i, cells.columns, count) }
+      const f = {
+        ...sample,
+        ...(cells.fields?.[i] ?? cellFields(cells.grid, i, cells.columns, count))
+      }
       return evaluateNodeText(root, f)
     })
   }, [cells, incomplete, root, sample])
@@ -682,17 +691,26 @@ function Sentence({
         }
         if ('choice' in p) {
           const n = nodeAt(root, p.choice)
-          if (n?.k !== 'str') return null
+          const value = p.field ? (n?.k === 'field' ? n.name : null) : n?.k === 'str' ? n.v : null
+          if (value === null) return null
           return (
             <select
               key={i}
               className="fx-op fx-choice"
-              value={n.v}
-              onChange={(e) => onChange(replaceAt(root, p.choice, { k: 'str', v: e.target.value }))}
+              value={value}
+              onChange={(e) =>
+                onChange(
+                  replaceAt(
+                    root,
+                    p.choice,
+                    p.field ? { k: 'field', name: e.target.value } : { k: 'str', v: e.target.value }
+                  )
+                )
+              }
             >
               {p.options.map((o) => (
                 <option key={o.value} value={o.value}>
-                  {t(o.label as MessageKey)}
+                  {o.raw ? o.label : t(o.label as MessageKey)}
                 </option>
               ))}
             </select>

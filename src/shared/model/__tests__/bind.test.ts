@@ -342,6 +342,51 @@ describe('contenuto della griglia', () => {
     expect(bound.problems).toEqual([])
   })
 
+  it('la serpentina segue il percorso quando una riga ha solo alcune caselle', () => {
+    // 4 righe × 3 colonne; nella seconda riga resta solo l'ultima casella (6)
+    const t = normalizeTemplate({
+      name: 't',
+      front: [
+        {
+          type: 'grid',
+          name: 'g',
+          rows: 4,
+          columns: 3,
+          content: 'c',
+          cellRules: [
+            { when: '=INLIST({cell.index}; "4, 5")', hidden: true },
+            // la regola conta il numero scritto nella casella, non la posizione
+            { when: '=MOD({n}; 4) = 0', fill: '#FF0000' }
+          ],
+          groups: [
+            {
+              type: 'group',
+              name: 'c',
+              children: [
+                {
+                  type: 'text',
+                  name: 'n',
+                  source: { kind: 'formula', expr: '=CELLNUMBER("snake"; "visible")' }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    })
+    const bound = bindCard(t, rowToCard([], []))
+    const grid = bound.template.front[0]
+    if (grid.type !== 'grid') throw new Error('griglia')
+    const nums = (grid.cells ?? []).map((c) => (c.children[0] as TextLayer).text)
+    // 1 2 3 / - - 4 / 7 6 5 (riparte da destra, vicino al 4) / 8 9 10
+    expect(nums).toEqual(['1', '2', '3', '', '', '4', '7', '6', '5', '8', '9', '10'])
+    const red = (grid.looks ?? []).flatMap((k, i) =>
+      k.fill === '#FF0000' && !k.hidden ? [i + 1] : []
+    )
+    expect(red).toEqual([6, 10])
+    expect(bound.problems).toEqual([])
+  })
+
   it('una regola con il suo gruppo prende il posto del contenuto', () => {
     const t = normalizeTemplate({
       name: 't',

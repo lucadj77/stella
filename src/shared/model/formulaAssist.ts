@@ -83,6 +83,8 @@ const bin = (op: BinaryOperator, l: FormulaNode, r: FormulaNode): FormulaNode =>
 export interface CatalogContext {
   /** Dentro il contenuto di una griglia: valgono {cell.*} */
   inCell: boolean
+  /** Nelle regole delle caselle: i livelli del contenuto che si possono contare */
+  counters?: string[]
 }
 
 export interface CatalogEntry {
@@ -399,6 +401,10 @@ export interface CellContext {
   grid: string
   rows: number
   columns: number
+  /** I campi di ogni casella, se già calcolati (con i valori del contenuto, nelle regole) */
+  fields?: Record<string, string>[]
+  /** I livelli del contenuto che una condizione può contare al posto di {cell.index} */
+  counters?: string[]
 }
 
 /**
@@ -446,7 +452,13 @@ export type SentencePart =
     }
   | { op: NodePath; ops: readonly BinaryOperator[] }
   /** Una scelta tra testi fissi, nel testo in `choice`: le etichette sono chiavi della traduzione */
-  | { choice: NodePath; options: readonly { value: string; label: string }[] }
+  | {
+      choice: NodePath
+      /** Le etichette sono testo da mostrare così com'è con raw */
+      options: readonly { value: string; label: string; raw?: boolean }[]
+      /** La scelta scrive un campo {nome} e non un testo */
+      field?: boolean
+    }
   /** Aggiunge una voce: un argomento alla funzione in `add`, o una fascia se `band` (con il campo in `field`) */
   | { add: NodePath; label: string; band?: boolean; field?: NodePath }
   /** Aggiunge un confronto alla condizione in `join`, con AND (e anche) o OR (oppure) */
@@ -490,7 +502,25 @@ const isBin = (n: FormulaNode, ops: readonly string[]): n is Extract<FormulaNode
 const isNum = (n: FormulaNode, v?: number): boolean =>
   n.k === 'num' && (v === undefined || n.v === v)
 const isCounter = (n: FormulaNode, ctx: CatalogContext): boolean =>
-  n.k === 'field' && n.name === (ctx.inCell ? 'cell.index' : 'card.number')
+  n.k === 'field' &&
+  (n.name === (ctx.inCell ? 'cell.index' : 'card.number') ||
+    (ctx.inCell && !!ctx.counters?.includes(n.name)))
+
+/** «contando [la posizione / un livello del contenuto]», se ci sono livelli da contare */
+const countBy = (path: NodePath, ctx: CatalogContext): SentencePart[] =>
+  ctx.inCell && ctx.counters?.length
+    ? [
+        txt('fx.s.countingBy'),
+        {
+          choice: path,
+          field: true,
+          options: [
+            { value: 'cell.index', label: 'fx.cn.position' },
+            ...ctx.counters.map((name) => ({ value: name, label: name, raw: true }))
+          ]
+        }
+      ]
+    : []
 const ARITH: readonly BinaryOperator[] = ['+', '-', '*', '/']
 
 const blank = (path: NodePath, kind: SlotKind, label: string, also?: NodePath[]): SentencePart => ({
@@ -513,7 +543,9 @@ const everyNth: SentenceTemplate = {
     return [
       txt('fx.s.every'),
       blank([0, 0, 1], 'number', 'fx.b.n'),
-      txt(c.inCell ? 'fx.s.cellsShow' : 'fx.s.componentsShow'),
+      ...(c.inCell && c.counters?.length
+        ? [txt('fx.s.cells'), ...countBy([0, 0, 0], c), txt('fx.s.commaShow')]
+        : [txt(c.inCell ? 'fx.s.cellsShow' : 'fx.s.componentsShow')]),
       blank([1], 'result', 'fx.b.show'),
       txt('fx.s.otherwise'),
       blank([2], 'result', 'fx.b.otherwise')
@@ -579,7 +611,8 @@ const everyNthCond: SentenceTemplate = {
     return [
       txt('fx.s.trueEvery'),
       blank([0, 1], 'number', 'fx.b.n'),
-      txt(c.inCell ? 'fx.s.cells' : 'fx.s.components')
+      txt(c.inCell ? 'fx.s.cells' : 'fx.s.components'),
+      ...countBy([0, 0], c)
     ]
   }
 }

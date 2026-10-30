@@ -1,7 +1,8 @@
 import { Fragment, useContext, useState } from 'react'
 import FormulaDialog from '../components/FormulaDialog'
 import HelpTip from '../components/HelpTip'
-import { cardFields, cellFields, defaultValue, rowToCard } from '../../../shared/model/bind'
+import { cardFields, defaultValue, rowToCard } from '../../../shared/model/bind'
+import { contentCounters, hiddenCells, ruleCellFields } from '../../../shared/model/cells'
 import { evaluateFormula, truthy } from '../../../shared/model/formula'
 import { gridSize } from '../../../shared/model/grid'
 import { walkLayers } from '../../../shared/model/normalize'
@@ -72,6 +73,8 @@ export default function CellRules({
     'front',
     numbers
   )
+  // i campi di ogni casella, con i valori del contenuto e le caselle nascoste
+  const perCell = ruleCellFields(l, fields, numbers && { decimalComma: numbers.decimalComma })
   const headers = [...new Set(sheets.flatMap((s) => s.headers))].filter(
     (h) => h !== 'amount' && !h.includes('.')
   )
@@ -84,14 +87,12 @@ export default function CellRules({
     const expr = condition(rule.when)
     if (!expr) return { n: 0 }
     let n = 0
+    // le caselle nascoste da altre regole non contano
+    const hidden = rule.hidden ? new Set<number>() : hiddenCells(perCell[0] ?? {})
     for (let i = 0; i < count; i++) {
-      const r = evaluateFormula(
-        expr,
-        { ...fields, ...cellFields(l.name, i, columns, count) },
-        numbers && { decimalComma: numbers.decimalComma }
-      )
+      const r = evaluateFormula(expr, perCell[i], numbers && { decimalComma: numbers.decimalComma })
       if (r.error) return { n: 0, error: r.error }
-      if (truthy(r.value)) n++
+      if (truthy(r.value) && !hidden.has(i + 1)) n++
     }
     return { n }
   }
@@ -386,9 +387,9 @@ export default function CellRules({
           layers={walkLayers([...template.front, ...template.back])
             .filter((x) => x.type !== 'group')
             .map((x) => x.name)}
-          sample={{ ...fields, ...cellFields(l.name, 0, columns, count) }}
+          sample={perCell[0] ?? fields}
           sampleLabel={sample ? t('fx.firstCardOf', { set: sample.set }) : undefined}
-          cells={{ grid: l.name, rows, columns }}
+          cells={{ grid: l.name, rows, columns, fields: perCell, counters: contentCounters(l) }}
           onApply={(when) => change(fx, { when })}
           onClose={() => setFx(null)}
         />

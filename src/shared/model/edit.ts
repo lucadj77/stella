@@ -297,23 +297,47 @@ function moveInto(t: Template, side: Side, layer: Layer, groupId: string): Templ
   return { ...t, [side]: put(t[side]) }
 }
 
-/** La griglia che ripete il gruppo in cui finisce un livello inserito sopra a `aboveId` */
-function hostGrid(layers: Layer[], aboveId: string): GridLayer | null {
+/**
+ * La griglia e il gruppo della griglia in cui finisce un livello inserito sopra a `aboveId`
+ */
+function hostGrid(
+  layers: Layer[],
+  aboveId: string
+): { grid: GridLayer; group: GroupLayer | null } | null {
   const parent = findParent(layers, aboveId)
-  if (parent?.type === 'grid') return parent
+  if (parent?.type === 'grid') {
+    // sopra a un gruppo della griglia il livello entra in quel gruppo (insertLayer)
+    const target = findLayer(layers, aboveId)
+    return { grid: parent, group: target?.type === 'group' ? target : null }
+  }
   if (parent?.type !== 'group') return null
   const outer = findParent(layers, parent.id)
-  return outer?.type === 'grid' ? outer : null
+  return outer?.type === 'grid' ? { grid: outer, group: parent } : null
 }
 
-/** Il riquadro della prima casella sulla carta; null se la griglia non ha caselle */
-export function firstCellBox(g: GridLayer): Bounds | null {
+/** Il riquadro della casella i (da 0) sulla carta; null se la griglia non ha quella casella */
+export function cellBox(g: GridLayer, i: number): Bounds | null {
   const geo = gridGeometry(g)
-  const c = geo.centers[0]
+  const c = geo.centers[i]
   if (!c) return null
   const w = Math.max(1, geo.cell.w)
   const h = Math.max(1, geo.cell.h)
   return { x: g.x + c.x - w / 2, y: g.y + c.y - h / 2, w, h }
+}
+
+/** Il riquadro della prima casella sulla carta; null se la griglia non ha caselle */
+export function firstCellBox(g: GridLayer): Bounds | null {
+  return cellBox(g, 0)
+}
+
+/**
+ * La casella dove si disegna un gruppo della griglia: la prima per il contenuto, la prima dove
+ * vale la regola per il gruppo di una regola
+ */
+export function groupCell(g: GridLayer, name: string): number {
+  if (name === g.content.trim()) return 0
+  const k = g.cellRules.findIndex((r) => r.content?.trim() === name)
+  return k < 0 ? 0 : ruleAnchor(g, k)
 }
 
 /** Un livello nuovo grande quanto la casella: un testo con il corpo ai due quinti dell'altezza */
@@ -337,8 +361,8 @@ export function fitToCell(layer: Layer, box: Bounds): Layer {
  * la misura della casella
  */
 export function insertNewLayer(t: Template, side: Side, layer: Layer, aboveId?: string): Template {
-  const grid = aboveId ? hostGrid(t[side], aboveId) : null
-  const box = grid && firstCellBox(grid)
+  const host = aboveId ? hostGrid(t[side], aboveId) : null
+  const box = host && cellBox(host.grid, host.group ? groupCell(host.grid, host.group.name) : 0)
   return insertLayer(t, side, box ? fitToCell(layer, box) : layer, aboveId)
 }
 

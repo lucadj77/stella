@@ -111,6 +111,7 @@ const GRID_DEFAULTS: Omit<GridLayer, keyof LayerBase | 'type'> = {
   alignX: 'center',
   alignY: 'center',
   clip: false,
+  clipCells: false,
   radius: 0,
   fill: '#FFFFFF',
   stroke: { color: '#333333', width: 0.3 },

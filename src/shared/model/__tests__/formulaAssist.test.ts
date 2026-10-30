@@ -164,6 +164,23 @@ describe('frasi guidate', () => {
     expect(id('{cell.row} = 1')).toBe('compare')
   })
 
+  it('ogni N caselle può contare un livello del contenuto', async () => {
+    const { findSentence, guide } = await import('../formulaAssist')
+    const ctx = { inCell: true, counters: ['numero'] }
+    const n = parseExpression('MOD({numero}; 10) = 0').node!
+    expect(findSentence(n, ctx)?.template.id).toBe('everyNCond')
+    const choice = guide(n, ctx)?.find((p) => 'choice' in p)
+    expect(choice && 'choice' in choice && choice.field).toBe(true)
+    expect(choice && 'choice' in choice && choice.options.map((o) => o.value)).toEqual([
+      'cell.index',
+      'numero'
+    ])
+    // senza livelli da contare la frase resta com'era
+    expect(
+      guide(parseExpression('MOD({cell.index}; 10) = 0').node!, { inCell: true })
+    ).not.toContainEqual(expect.objectContaining({ field: true }))
+  })
+
   it('riconosce INLIST come frase, per le caselle e per i campi', async () => {
     const { guide } = await import('../formulaAssist')
     const texts = (src: string, inCell = false): string[] =>
