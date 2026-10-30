@@ -2063,7 +2063,7 @@ export const en = {
   'help.fn.INLIST':
     'True if the value is in the list; 1-5 stands for every number from 1 to 5: INLIST({cell.index}; "3, 8, 11")',
   'help.fn.CELLNUMBER':
-    'The running number of the cell, in the order you choose: "up"/"down", "rows"/"columns", "straight"/"snake", "all"/"visible", then the starting number',
+    'The running number of the cell, in the order you choose: "up"/"down", "rows"/"columns", "straight"/"snake"/"path", "all"/"visible", then the starting number',
   'help.examplesIntro':
     'The examples use a card with strength 4, defense 2, name Dragon, cost "gold gold wood" and an empty note.',
   'help.ex.IF': '=IF({strength}>3; "Strong"; "Weak") → Strong',
@@ -2882,7 +2882,7 @@ export const en = {
   'fx.card.alternate.out.hint': 'Odd components one way, even ones the other',
   'fx.card.cellNumber': 'Running number',
   'fx.card.cellNumber.hint':
-    'Numbers the cells: ascending or descending, by row or by column, also snaking',
+    'Numbers the cells: ascending or descending, by row or by column, also snaking or along a path',
   'fx.s.cellNumber': 'Running number',
   'fx.s.comma': ',',
   'fx.s.startFrom': 'starting from',
@@ -2896,6 +2896,7 @@ export const en = {
   'fx.cn.columns': 'by column',
   'fx.cn.straight': 'in sequence (1 2 3 4 / 5 6 7 8)',
   'fx.cn.snake': 'snaking (1 2 3 4 / 8 7 6 5)',
+  'fx.cn.path': 'along a path (always to the next cell)',
   'fx.cn.all': 'all cells',
   'fx.cn.visible': 'skip hidden cells',
   'fx.card.checkerboard': 'Checkerboard',

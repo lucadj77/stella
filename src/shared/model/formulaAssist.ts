@@ -622,7 +622,7 @@ const everyNthCond: SentenceTemplate = {
 const CELLNUMBER_CHOICES = [
   ['up', 'down'],
   ['rows', 'columns'],
-  ['straight', 'snake'],
+  ['straight', 'snake', 'path'],
   ['all', 'visible']
 ] as const
 

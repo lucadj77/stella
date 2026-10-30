@@ -387,6 +387,42 @@ describe('contenuto della griglia', () => {
     expect(bound.problems).toEqual([])
   })
 
+  it('a percorso il numero fa il giro del bordo', () => {
+    const t = normalizeTemplate({
+      name: 't',
+      front: [
+        {
+          type: 'grid',
+          name: 'g',
+          rows: 3,
+          columns: 4,
+          content: 'c',
+          cellRules: [{ when: '=INLIST({cell.index}; "6, 7")', hidden: true }],
+          groups: [
+            {
+              type: 'group',
+              name: 'c',
+              children: [
+                {
+                  type: 'text',
+                  name: 'n',
+                  source: { kind: 'formula', expr: '=CELLNUMBER("path"; "visible")' }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    })
+    const bound = bindCard(t, rowToCard([], []))
+    const grid = bound.template.front[0]
+    if (grid.type !== 'grid') throw new Error('griglia')
+    const nums = (grid.cells ?? []).map((c) => (c.children[0] as TextLayer).text)
+    // 1 2 3 4 / 10 - - 5 / 9 8 7 6
+    expect(nums).toEqual(['1', '2', '3', '4', '10', '', '', '5', '9', '8', '7', '6'])
+    expect(bound.problems).toEqual([])
+  })
+
   it('DEAL distribuisce le voci a caso con le quantità scelte', () => {
     const make = (expr: string, card = 1, hide = ''): string[] => {
       const t = normalizeTemplate({
