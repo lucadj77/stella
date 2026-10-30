@@ -387,6 +387,56 @@ describe('contenuto della griglia', () => {
     expect(bound.problems).toEqual([])
   })
 
+  it('DEAL distribuisce le voci a caso con le quantità scelte', () => {
+    const make = (expr: string, card = 1, hide = ''): string[] => {
+      const t = normalizeTemplate({
+        name: 't',
+        front: [
+          {
+            type: 'grid',
+            name: 'g',
+            rows: 4,
+            columns: 4,
+            content: 'c',
+            cellRules: hide ? [{ when: `=INLIST({cell.index}; "${hide}")`, hidden: true }] : [],
+            groups: [
+              {
+                type: 'group',
+                name: 'c',
+                children: [{ type: 'text', name: 'a', source: { kind: 'formula', expr } }]
+              }
+            ]
+          }
+        ]
+      })
+      const bound = bindCard(t, rowToCard([], []), { system: { number: card } as never })
+      expect(bound.problems).toEqual([])
+      const grid = bound.template.front[0]
+      return grid.type === 'grid'
+        ? (grid.cells ?? []).map((c) => (c.children[0] as TextLayer).text)
+        : []
+    }
+    const tally = (xs: string[]): Record<string, number> =>
+      xs.reduce<Record<string, number>>((o, x) => ({ ...o, [x]: (o[x] ?? 0) + 1 }), {})
+    const four = '=DEAL("a"; 4; "b"; 4; "c"; 4; "d"; 4)'
+    const one = make(four)
+    expect(tally(one)).toEqual({ a: 4, b: 4, c: 4, d: 4 })
+    // sempre uguale per la stessa carta
+    expect(make(four)).toEqual(one)
+    // un'altra carta mescola in un altro modo
+    expect(make(four, 2)).not.toEqual(one)
+    // limiti: a 5, b da 2 a 3, il resto c senza limiti
+    const mixed = tally(make('=DEAL("a"; 5; "b"; "2-3"; "c"; "")'))
+    expect(mixed.a).toBe(5)
+    expect(mixed.b).toBeGreaterThanOrEqual(2)
+    expect(mixed.b).toBeLessThanOrEqual(3)
+    expect(mixed.a + mixed.b + mixed.c).toBe(16)
+    // le caselle nascoste non prendono voci: 12 caselle, 3 per voce
+    const hidden = make('=DEAL("a"; 3; "b"; 3; "c"; 3; "d"; 3)', 1, '1-4')
+    expect(hidden.slice(0, 4)).toEqual(['', '', '', ''])
+    expect(tally(hidden.slice(4))).toEqual({ a: 3, b: 3, c: 3, d: 3 })
+  })
+
   it('una regola con il suo gruppo prende il posto del contenuto', () => {
     const t = normalizeTemplate({
       name: 't',

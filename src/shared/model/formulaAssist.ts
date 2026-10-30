@@ -460,7 +460,7 @@ export type SentencePart =
       field?: boolean
     }
   /** Aggiunge una voce: un argomento alla funzione in `add`, o una fascia se `band` (con il campo in `field`) */
-  | { add: NodePath; label: string; band?: boolean; field?: NodePath }
+  | { add: NodePath; label: string; band?: boolean; field?: NodePath; pair?: boolean }
   /** Aggiunge un confronto alla condizione in `join`, con AND (e anche) o OR (oppure) */
   | { join: NodePath; fn: 'AND' | 'OR'; label: string }
   /** Toglie il confronto in `drop` da un AND o un OR */
@@ -704,6 +704,25 @@ const randomPick: SentenceTemplate = {
     n.args[0].name === 'cell.random'
       ? pickParts(n, 'fx.s.random')
       : null
+}
+
+/** DEAL(voce; quante; voce; quante…): le voci mescolate nelle caselle, ognuna quante volte si vuole */
+const dealing: SentenceTemplate = {
+  id: 'deal',
+  cell: true,
+  make: () => call('DEAL', E, str(''), E, str('')),
+  parts: (n) => {
+    if (!isCall(n, 'DEAL') || !n.args.length || n.args.length % 2) return null
+    return [
+      txt('fx.s.deal'),
+      ...n.args.flatMap((_, i) =>
+        i % 2
+          ? [txt('fx.s.dealTimes'), blank([i], 'text', 'fx.b.dealTimes')]
+          : [...(i ? [txt('fx.s.comma')] : []), blank([i], 'result', 'fx.b.item')]
+      ),
+      { add: [], label: 'fx.addItem', pair: true }
+    ]
+  }
 }
 
 /** IF(campo >= soglia; A; IF(campo >= soglia; B; C)): fasce dalla più alta */
@@ -961,6 +980,7 @@ export const SENTENCES: SentenceTemplate[] = [
   alternating,
   checker,
   randomPick,
+  dealing,
   cycling,
   ranges,
   inCellsShow,
@@ -989,6 +1009,7 @@ export const START_ORDER = [
   'inList',
   'cycle',
   'random',
+  'deal',
   'notEmpty',
   'ranges',
   'calc',

@@ -18,11 +18,15 @@ export function cellFields(
   card = 0
 ): Record<string, string> {
   // FNV-1a: lo stesso numero a ogni disegno della stessa carta
-  let h = 2166136261
-  for (const c of `${card}|${grid}|${index}`) {
-    h ^= c.charCodeAt(0)
-    h = Math.imul(h, 16777619)
+  const hash = (text: string): number => {
+    let h = 2166136261
+    for (const c of text) {
+      h ^= c.charCodeAt(0)
+      h = Math.imul(h, 16777619)
+    }
+    return h >>> 0
   }
+  const h = hash(`${card}|${grid}|${index}`)
   return {
     'cell.index': String(index + 1),
     'cell.row': String(Math.floor(index / columns) + 1),
@@ -30,7 +34,9 @@ export function cellFields(
     'cell.count': String(count),
     'cell.rows': String(Math.ceil(count / columns)),
     'cell.columns': String(columns),
-    'cell.random': String(((h >>> 0) % 999999) + 1)
+    'cell.random': String((h % 999999) + 1),
+    // uguale in tutte le caselle della griglia: DEAL mescola con questo
+    'cell.seed': String(hash(`${card}|${grid}`))
   }
 }
 

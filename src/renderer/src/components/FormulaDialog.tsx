@@ -766,7 +766,8 @@ function Sentence({
           const add = (): void => {
             if (!p.band) {
               const target = nodeAt(root, p.add)
-              const next = addArg(root, p.add)
+              const one = addArg(root, p.add)
+              const next = p.pair ? addArg(one, p.add) : one
               onChange(next, target?.k === 'call' ? [...p.add, target.args.length] : undefined)
               return
             }

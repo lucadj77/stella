@@ -351,6 +351,69 @@ const FUNCTIONS: Record<string, Fn> = {
     return start + (words.has('down') ? order.length - 1 - pos : pos)
   },
   /**
+   * Distribuisce a caso le voci nelle caselle visibili di una griglia, con quante volte compare
+   * ognuna: DEAL("spada"; 4; "scudo"; "3-5"; "mano"; ""). La quantità è un numero (esatta), un
+   * intervallo ("3-5", "2-" almeno, "-3" al massimo) o vuota (quante servono). Prima si mettono i
+   * minimi, poi le caselle che restano prendono voci a caso fino ai massimi; le caselle in più
+   * restano vuote. Le posizioni sono mescolate, uguali a ogni disegno della stessa carta
+   */
+  DEAL: (a, fields) => {
+    const index = Number(fields['cell.index'] ?? NaN)
+    const count = Number(fields['cell.count'] ?? NaN)
+    if (!Number.isFinite(index) || !Number.isFinite(count))
+      throw new FormulaError('DEAL works only in the cells of a grid')
+    if (!a.length || a.length % 2)
+      throw new FormulaError('DEAL needs pairs of a value and how many times')
+    const hidden = new Set<number>()
+    for (const item of (fields['cell.hidden'] ?? '').split(',')) {
+      const m = /^\s*(\d+)\s*(?:-\s*(\d+))?\s*$/.exec(item)
+      if (m) for (let i = Number(m[1]); i <= Number(m[2] ?? m[1]); i++) hidden.add(i)
+    }
+    if (hidden.has(index)) return ''
+    const total = count - [...hidden].filter((i) => i <= count).length
+    const pos = index - 1 - [...hidden].filter((i) => i < index).length
+    const items: { value: string; min: number; max: number }[] = []
+    for (let i = 0; i < a.length; i += 2) {
+      const value = toText(a[i]())
+      const q = a[i + 1]()
+      const text = toText(q).trim()
+      const n = typeof q === 'number' ? q : readNumber(text)
+      const range = /^(\d*)\s*-\s*(\d*)$/.exec(text)
+      if (n !== null) items.push({ value, min: n, max: n })
+      else if (!text) items.push({ value, min: 0, max: Infinity })
+      else if (range && (range[1] || range[2]))
+        items.push({
+          value,
+          min: range[1] ? Number(range[1]) : 0,
+          max: range[2] ? Number(range[2]) : Infinity
+        })
+      else throw new FormulaError(`DEAL: "${text}" is not a quantity`)
+    }
+    // mulberry32: numeri a caso ripetibili dalla griglia e dalla carta
+    let seed = Number(fields['cell.seed'] ?? 0) >>> 0
+    const rand = (): number => {
+      seed = (seed + 0x6d2b79f5) >>> 0
+      let t = seed
+      t = Math.imul(t ^ (t >>> 15), t | 1)
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+    }
+    const times = items.map((x) => Math.max(0, Math.floor(x.min)))
+    let left = total - times.reduce((s, x) => s + x, 0)
+    while (left > 0) {
+      const open = items.flatMap((x, k) => (times[k] < x.max ? [k] : []))
+      if (!open.length) break
+      times[open[Math.floor(rand() * open.length)]]++
+      left--
+    }
+    const bag = items.flatMap((x, k) => Array<string>(times[k]).fill(x.value))
+    for (let i = bag.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1))
+      ;[bag[i], bag[j]] = [bag[j], bag[i]]
+    }
+    return bag[pos] ?? ''
+  },
+  /**
    * Vero se il valore è nell'elenco: INLIST({cell.index}; "3, 8, 11"). Un elenco scritto con le
    * virgole vale come più voci, e una voce come 1-5 vale per tutti i numeri da 1 a 5. I testi si
    * confrontano senza badare alle maiuscole: INLIST({tipo}; "drago, orco")
