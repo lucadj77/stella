@@ -28,7 +28,8 @@ const SUBTITLES = {
   variabili: ['Approfondimento: icone e variabili', 'Deep dive: icons and variables'],
   valori: ['Approfondimento: due campi, tutta la carta', 'Deep dive: two fields, the whole card'],
   tabellone: ['Approfondimento: il tabellone', 'Deep dive: the game board'],
-  caso: ['Approfondimento: giocare con il caso', 'Deep dive: playing with chance']
+  caso: ['Approfondimento: giocare con il caso', 'Deep dive: playing with chance'],
+  formule: ['Approfondimento: le formule', 'Deep dive: formulas']
 }
 if (!SUBTITLES[video]) throw new Error('video sconosciuto: ' + video)
 const subtitle = SUBTITLES[video][it ? 0 : 1]
