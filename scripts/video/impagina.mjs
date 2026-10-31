@@ -4,7 +4,8 @@
 // vincoli; il retro; i template derivati; copiare tra template.
 // Uso: xvfb-run -a -s "-screen 0 2000x1300x24" node --experimental-strip-types --no-warnings scripts/video/impagina.mjs it|en
 // FAST=1 accorcia attese e scrittura; SHOT=<file.png> salva la schermata se un elemento non si trova;
-// SNAP=<cartella> salva una schermata dopo ogni testo.
+// SNAP=<cartella> salva una schermata dopo ogni testo, e i testi in testi.tsv (per lo storyboard).
+import { appendFileSync } from 'node:fs'
 import { launch, mockOpen } from './lib.mjs'
 import { docs } from '../guide/lib.mjs'
 import { make, names } from './progetto-locanda.mjs'
@@ -41,7 +42,10 @@ if (process.env.SNAP) {
     const f = r[k].bind(r)
     r[k] = async (...a) => {
       await f(...a)
-      await win.screenshot({ path: `${process.env.SNAP}/${String(++n).padStart(3, '0')}.png` })
+      const id = String(++n).padStart(3, '0')
+      await win.screenshot({ path: `${process.env.SNAP}/${id}.png` })
+      const text = String(k === 'title' ? a[0] : a[1]).replace(/\s+/g, ' ')
+      appendFileSync(`${process.env.SNAP}/testi.tsv`, `${id}\t${k}\t${text}\n`)
     }
   }
 }

@@ -4,7 +4,8 @@
 // Aspetto; sulla tessera e sui segnalini.
 // Uso: xvfb-run -a -s "-screen 0 2000x1300x24" node --experimental-strip-types --no-warnings scripts/video/immagini.mjs it|en
 // FAST=1 accorcia attese e scrittura; SHOT=<file.png> salva la schermata se un elemento non si trova;
-// SNAP=<cartella> salva una schermata dopo ogni testo.
+// SNAP=<cartella> salva una schermata dopo ogni testo, e i testi in testi.tsv (per lo storyboard).
+import { appendFileSync } from 'node:fs'
 import { launch, mockOpen } from './lib.mjs'
 import { docs } from '../guide/lib.mjs'
 import { make, names } from './progetto-spedizione.mjs'
@@ -12,7 +13,7 @@ const lang = process.argv[2] || 'it'
 const it = lang === 'it'
 const t = (a, b) => (it ? a : b)
 const N = names(lang)
-const { C, I } = N
+const { C, I, A } = N
 const dest = `${docs(lang)}/Stella/${N.folder}`
 await make(dest, lang)
 const r = await launch({ lang, ...(process.env.UD ? { ud: process.env.UD } : {}) })
@@ -41,7 +42,10 @@ if (process.env.SNAP) {
     const f = r[k].bind(r)
     r[k] = async (...a) => {
       await f(...a)
-      await win.screenshot({ path: `${process.env.SNAP}/${String(++n).padStart(3, '0')}.png` })
+      const id = String(++n).padStart(3, '0')
+      await win.screenshot({ path: `${process.env.SNAP}/${id}.png` })
+      const text = String(k === 'title' ? a[0] : a[1]).replace(/\s+/g, ' ')
+      appendFileSync(`${process.env.SNAP}/testi.tsv`, `${id}\t${k}\t${text}\n`)
     }
   }
 }
@@ -307,6 +311,15 @@ async function shape(kind) {
   })
   await r.clear(400)
 }
+const source = (kind) =>
+  props
+    .locator('.source-line .segmented button')
+    .filter({
+      hasText: new RegExp(
+        `^${kind === 'column' ? T['source.short.column'] : T['source.kind.' + kind]}$`
+      )
+    })
+    .first()
 const asset = (name) =>
   dialog().locator(`.asset-tile[title*="${name}"], .asset-tile[data-tip*="${name}"]`).first()
 /** il campo e un testo accanto */
@@ -417,18 +430,53 @@ await look(
   )
 )
 await previewRow(N.places, 1)
-await r.click(layer(C.texture), { after: 600 })
+await r.click(layer(C.bg), { after: 600 })
 await look(
   t(
-    `La trama della carta è a ${T['imageFit.original']}: un quadrato di 25 mm, in basso`,
-    `The paper texture is at ${T['imageFit.original']}: a 25 mm square, at the bottom`
+    'Ora una trama di carta sopra lo sfondo: seleziono lo sfondo, perché il nuovo livello entra subito sopra quello selezionato',
+    'Now a paper texture over the background: I select the background, because the new layer goes right above the selected one'
+  )
+)
+await r.click(tool('tool.image'))
+await r.clear(800)
+await look(
+  t(
+    'Una trama è un’immagine come le altre: la scelgo tra le immagini del progetto',
+    'A texture is an image like any other: I pick it from the project’s images'
+  )
+)
+await r.click(asset(A.paper), { after: 1000 })
+await r.clear(800)
+await fill(field(T['prop.name']), C.texture)
+await r.click(source('fixed'), { after: 600 })
+await r.focus(
+  props.locator('.source-line').first(),
+  t(
+    `${T['source.kind.fixed']}: la stessa trama su tutte le carte, senza una colonna nel foglio`,
+    `${T['source.kind.fixed']}: the same texture on every card, with no sheet column`
+  ),
+  'left',
+  { pad: 4 }
+)
+await place(-3, -3, 69, 94)
+await look(
+  t(
+    `La porto a coprire tutta la carta, abbondanza compresa. Con ${T['imageFit.contain']} l’immagine si allarga per stare nel riquadro`,
+    `I make it cover the whole card, bleed included. With ${T['imageFit.contain']} the image is enlarged to fit the frame`
+  )
+)
+await fit(
+  'original',
+  t(
+    `${T['imageFit.original']}: la trama torna alla sua misura, un quadrato di 25 mm`,
+    `${T['imageFit.original']}: the texture goes back to its own size, a 25 mm square`
   )
 )
 await fit(
   'tile',
   t(
-    `${T['imageFit.tile']}: l’immagine alla sua misura, ripetuta fino a coprire il riquadro`,
-    `${T['imageFit.tile']}: the image at its own size, repeated until it covers the frame`
+    `${T['imageFit.tile']}: l’immagine alla sua misura, ripetuta fino a coprire il riquadro. È il modo giusto per una trama`,
+    `${T['imageFit.tile']}: the image at its own size, repeated until it covers the frame. It is the right way for a texture`
   )
 )
 await save()
@@ -622,11 +670,27 @@ await look(
     `${T['prop.missing']}: ${T['missing.hide']}, and the card stays without an illustration`
   )
 )
+await previewRow(N.places, 1)
 await about(
   field(T['prop.radius']),
   t(
-    `Qui ci sono anche ${T['prop.radius']} e ${T['prop.stroke']} dell’immagine`,
-    `Here there are also the image’s ${T['prop.radius']} and ${T['prop.stroke']}`
+    `Qui ci sono anche ${T['prop.radius']}, per arrotondare gli angoli, e ${T['prop.stroke']}`,
+    `Here there are also ${T['prop.radius']}, to round the corners, and ${T['prop.stroke']}`
+  )
+)
+await r.click(layer(C.icon), { after: 600 })
+await stroke('#FFFFFF', 0.8)
+await deselect()
+await look(
+  t(
+    `${T['prop.stroke']} sull’icona: segue la sagoma, perché attorno al disegno l’immagine è trasparente`,
+    `${T['prop.stroke']} on the icon: it follows the silhouette, because around the drawing the image is transparent`
+  )
+)
+await look(
+  t(
+    'Su un’immagine senza trasparenza, come una foto JPG, il contorno la racchiude invece in un riquadro',
+    'On an image without transparency, like a JPG photo, the stroke instead encloses it in a box'
   )
 )
 await previewRow(N.places, 1)
