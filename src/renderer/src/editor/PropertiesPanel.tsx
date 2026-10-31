@@ -1716,7 +1716,6 @@ function ImageProperties({
             label={t('prop.stroke')}
             hint={col('stroke')}
             value={l.stroke}
-            dashable
             onChange={(stroke) => set({ stroke })}
           />
         </P>

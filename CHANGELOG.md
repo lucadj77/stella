@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.8.4
+
+### English
+
+- **Image stroke follows the silhouette**: the stroke of an image layer is now drawn around what you see, like the stroke of a text: around the drawing of a PNG or SVG with transparency (an icon gets an outline that follows its shape), and around the picture itself on an image without transparency, such as a JPG photo, which is enclosed in a box. Before, it was always a rectangle around the layer's frame. The image stroke no longer has dashed or dotted lines.
+
+### Italiano
+
+- **Il contorno dell'immagine segue la sagoma**: il contorno di un livello immagine ora si disegna attorno a ciò che si vede, come quello del testo: attorno al disegno di una PNG o SVG con trasparenza (un'icona prende un contorno che ne segue la forma) e attorno all'immagine stessa se non ha trasparenza, come una foto JPG, che resta racchiusa in un riquadro. Prima era sempre un rettangolo attorno al riquadro del livello. Il contorno dell'immagine non ha più le linee tratteggiate o a punti.
+
 ## 1.8.3
 
 ### English
