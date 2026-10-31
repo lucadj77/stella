@@ -51,6 +51,7 @@ Video tutorial su YouTube, senza voce ([tutta la playlist](https://www.youtube.c
 - 23 · [Approfondimento: le formule](https://www.youtube.com/watch?v=ipwS6RiEa50) (16 minuti), con il [progetto «Bestiario» da scaricare](https://stella.lucadj.eu/progetti/bestiario.zip)
 - 24 · [Approfondimento: il tabellone](https://www.youtube.com/watch?v=I2RtWcY2YWo) (28 minuti), con il [progetto «Tabellone» da scaricare](https://stella.lucadj.eu/progetti/tabellone.zip)
 - 25 · [Approfondimento: giocare con il caso](https://www.youtube.com/watch?v=bp4MGWdtzHo) (12 minuti), con il [progetto «Risorse» da scaricare](https://stella.lucadj.eu/progetti/risorse.zip)
+- 26 · [Approfondimento: impaginare un template](https://www.youtube.com/watch?v=9RCQ24GUg3Q) (16 minuti), con il [progetto «Locanda» da scaricare](https://stella.lucadj.eu/progetti/locanda.zip)
 - 27 · [Approfondimento: immagini e forme](https://www.youtube.com/watch?v=klhDqqy7_iw) (16 minuti), con il [progetto «Spedizione» da scaricare](https://stella.lucadj.eu/progetti/spedizione.zip)
 
 English version: [../guide/README.md](../guide/README.md).
