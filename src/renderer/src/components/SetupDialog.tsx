@@ -76,6 +76,8 @@ type Drag =
       orig: Item[]
       /** Clic su un elemento già scelto con altri: se non si trascina resta scelto solo lui */
       only?: boolean
+      /** Maiuscolo o ⌘/Ctrl su un elemento già scelto: se non si trascina esce dalla scelta */
+      drop?: boolean
     }
   | { mode: 'marquee'; x: number; y: number; add: number[] }
   | { mode: 'pan'; cx: number; cy: number; left: number; top: number }
@@ -416,21 +418,18 @@ export default function SetupDialog({
       drag.current = { mode: 'item', index: single, handle, ...p, orig: items }
     } else if (hit != null) {
       const index = Number(hit)
-      if (toggle) {
-        // Maiuscolo o ⌘/Ctrl + clic aggiunge o toglie l'elemento dalla scelta
-        if (chosen.includes(index)) {
-          setSelection(chosen.filter((k) => k !== index))
-          return
-        }
-        setSelection([...chosen, index])
-      } else if (!chosen.includes(index)) setSelection([index])
+      // Maiuscolo o ⌘/Ctrl + clic aggiunge l'elemento alla scelta; se era già scelto lo toglie
+      // al rilascio, ma solo se non lo si è trascinato
+      if (toggle && !chosen.includes(index)) setSelection([...chosen, index])
+      else if (!toggle && !chosen.includes(index)) setSelection([index])
       drag.current = {
         mode: 'item',
         index,
         handle: null,
         ...p,
         orig: items,
-        only: !toggle && chosen.length > 1 && chosen.includes(index)
+        only: !toggle && chosen.length > 1 && chosen.includes(index),
+        drop: toggle && chosen.includes(index)
       }
     } else {
       // sul vuoto: un riquadro sceglie gli elementi che tocca
@@ -487,13 +486,14 @@ export default function SetupDialog({
     // si spostano insieme tutti gli elementi scelti, a passi di 1 mm rispetto al primo
     const mx = snap(o.x + dx) - o.x
     const my = snap(o.y + dy) - o.y
-    if (mx || my) d.only = false
+    if (mx || my) d.only = d.drop = false
     const moving = chosen.includes(d.index) ? chosen : [d.index]
     setItems(d.orig.map((it, k) => (moving.includes(k) ? moveSetupItem(it, mx, my) : it)))
   }
   const onPointerUp = (): void => {
     const d = drag.current
     if (d?.mode === 'item' && d.only) setSelection([d.index])
+    if (d?.mode === 'item' && d.drop) setSelection(chosen.filter((k) => k !== d.index))
     drag.current = null
     setFrozen(null)
     setMarquee(null)
