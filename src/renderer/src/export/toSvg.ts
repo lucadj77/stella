@@ -58,6 +58,17 @@ export async function svgOfCard(
     clone.insertBefore(bg, clone.firstChild)
   }
 
+  // maschere dei gruppi a canale alfa: mask-type non lo leggono tutti i programmi, quindi
+  // diventano maschere a luminanza con il contenuto reso bianco dove è opaco
+  for (const m of clone.querySelectorAll('mask')) {
+    if (!/mask-type:\s*alpha/.test(m.getAttribute('style') ?? '')) continue
+    m.removeAttribute('style')
+    const white = document.createElementNS(SVG_NS, 'g')
+    white.setAttribute('filter', 'url(#stella-white)')
+    white.append(...m.childNodes)
+    m.appendChild(white)
+  }
+
   // filtro che rende bianca ogni parte opaca: le maschere delle icone colorate lo usano
   const defs = document.createElementNS(SVG_NS, 'defs')
   defs.innerHTML =
@@ -83,7 +94,10 @@ export async function svgOfCard(
  * misure del browser sono riquadri allineati alla pagina, e con una rotazione non direbbero dove
  * sta ogni lettera. L'impaginazione del testo non cambia.
  */
-function convertForeignObject(fo: SVGForeignObjectElement, families: Set<string>): SVGGElement {
+export function convertForeignObject(
+  fo: SVGForeignObjectElement,
+  families: Set<string> = new Set()
+): SVGGElement {
   const g = document.createElementNS(SVG_NS, 'g')
   const content = fo.firstElementChild as HTMLElement | null
   if (!content) return g
