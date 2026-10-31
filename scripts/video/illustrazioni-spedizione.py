@@ -150,12 +150,12 @@ for name, f in [('bosco', bosco), ('montagna', montagna), ('lago', lago), ('dese
 # la trama della carta, ripetibile: rumore leggero e qualche fibra
 T = 300
 rng = random.Random(7)
-n = Image.effect_noise((T, T), 22).convert('L').filter(ImageFilter.GaussianBlur(0.8))
-tex = Image.merge('RGB', [n.point(lambda v: 205 + (v - 128) // 4), n.point(lambda v: 192 + (v - 128) // 4), n.point(lambda v: 165 + (v - 128) // 4)])
+n = Image.effect_noise((T, T), 40).convert('L').filter(ImageFilter.GaussianBlur(0.8))
+tex = Image.merge('RGB', [n.point(lambda v: 196 + (v - 128) // 2), n.point(lambda v: 178 + (v - 128) // 2), n.point(lambda v: 142 + (v - 128) // 2)])
 d = ImageDraw.Draw(tex)
-for _ in range(45):
+for _ in range(80):
     x, y = rng.uniform(0, T), rng.uniform(0, T); a = rng.uniform(0, 6.28); l = rng.uniform(8, 30)
     for dx in (-T, 0, T):
         for dy in (-T, 0, T):
-            d.line([(x + dx, y + dy), (x + dx + l * math.cos(a), y + dy + l * math.sin(a))], fill=(186, 172, 140), width=1)
+            d.line([(x + dx, y + dy), (x + dx + l * math.cos(a), y + dy + l * math.sin(a))], fill=(132, 108, 76), width=2)
 tex.save(f'{OUT}/carta.png')

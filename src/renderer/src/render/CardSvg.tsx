@@ -695,6 +695,7 @@ function ImageBody({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
     l.grayscale || l.brightness !== 1 || l.contrast !== 1 || l.saturation !== 1 || !!l.tint
   const filter = adjusted ? `url(#${id}-fx)` : undefined
   const tile = l.fit === 'tile' && size
+  const outline = l.stroke ? strokeWidth(l.stroke) : 0
   const place = tile ? { x: 0, y: 0, width: r.w, height: r.h } : rect
   const image =
     crop && natural ? (
@@ -744,35 +745,42 @@ function ImageBody({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
           </pattern>
         )}
       </defs>
-      {/* "lascia uscire": la parte fuori dal riquadro resta visibile (la carta ritaglia comunque) */}
-      <g clipPath={l.fit === 'overflow' ? undefined : `url(#${id}-clip)`}>
-        {tile ? (
-          <rect
-            x={l.x}
-            y={l.y}
-            width={l.w}
-            height={l.h}
-            fill={`url(#${id}-tile)`}
-            transform={flip}
-            filter={filter}
-          />
-        ) : (
-          <g transform={flip}>
-            <g transform={turn}>{image}</g>
-          </g>
-        )}
-      </g>
-      {l.stroke && (
-        <rect
-          x={l.x}
-          y={l.y}
-          width={l.w}
-          height={l.h}
-          rx={l.radius}
-          fill="none"
-          {...strokeProps(l.stroke)}
-        />
+      {/* il contorno segue la sagoma di ciò che si vede (la trasparenza della PNG o della SVG),
+          come quello del testo; su un'immagine opaca la sagoma è il rettangolo dell'immagine */}
+      {outline > 0 && l.stroke && (
+        <defs>
+          <filter
+            id={`${id}-outline`}
+            filterUnits="userSpaceOnUse"
+            x={l.x - l.w / 2 - outline}
+            y={l.y - l.h / 2 - outline}
+            width={2 * l.w + 2 * outline}
+            height={2 * l.h + 2 * outline}
+          >
+            <TextOutline r={outline} color={l.stroke.color} soft={outline * 0.3} />
+          </filter>
+        </defs>
       )}
+      <g filter={outline > 0 ? `url(#${id}-outline)` : undefined}>
+        {/* "lascia uscire": la parte fuori dal riquadro resta visibile (la carta ritaglia comunque) */}
+        <g clipPath={l.fit === 'overflow' ? undefined : `url(#${id}-clip)`}>
+          {tile ? (
+            <rect
+              x={l.x}
+              y={l.y}
+              width={l.w}
+              height={l.h}
+              fill={`url(#${id}-tile)`}
+              transform={flip}
+              filter={filter}
+            />
+          ) : (
+            <g transform={flip}>
+              <g transform={turn}>{image}</g>
+            </g>
+          )}
+        </g>
+      </g>
     </>
   )
 }
@@ -894,7 +902,16 @@ function inkOverflows(fo: SVGForeignObjectElement, box: HTMLElement, inner: HTML
  * direzione. feMorphology allarga solo a rettangolo; tre rettangoli (largo, alto, quadrato a 45°)
  * insieme fanno quasi un cerchio, e una sfocatura riportata a bordo netto toglie i gradini.
  */
-function TextOutline({ r, color }: { r: number; color: string }): React.JSX.Element {
+function TextOutline({
+  r,
+  color,
+  soft = Math.max(0.5, r * 0.3)
+}: {
+  r: number
+  color: string
+  /** la sfocatura che toglie i gradini, nelle unità del filtro (il testo è ingrandito, l'immagine in mm) */
+  soft?: number
+}): React.JSX.Element {
   const k = Math.SQRT2 - 1
   const d = Math.SQRT1_2
   return (
@@ -908,7 +925,7 @@ function TextOutline({ r, color }: { r: number; color: string }): React.JSX.Elem
         <feMergeNode in="o3" />
       </feMerge>
       {/* i gradini dei rettangoli si ammorbidiscono: sfocatura, poi di nuovo un bordo netto a metà */}
-      <feGaussianBlur in="grown" stdDeviation={Math.max(0.5, r * 0.3)} />
+      <feGaussianBlur in="grown" stdDeviation={soft} />
       <feComponentTransfer result="smooth">
         <feFuncA type="linear" slope={8} intercept={-3.5} />
       </feComponentTransfer>

@@ -219,14 +219,6 @@ export async function make(dest, lang) {
         fill: '#E3CFA8',
         ...fixed
       },
-      {
-        type: 'shape',
-        name: C.circle,
-        ...box(15, 16.5, 30, 30),
-        shape: 'ellipse',
-        fill: '#C9B48A',
-        ...fixed
-      },
       icon(I.coin, box(7, 49, 6, 6)),
       icon(I.mug, box(15.5, 50.5, 6, 6)),
       icon(I.key, box(27, 48.5, 6, 6)),

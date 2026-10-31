@@ -4,7 +4,8 @@
 // vincoli; il retro; i template derivati; copiare tra template.
 // Uso: xvfb-run -a -s "-screen 0 2000x1300x24" node --experimental-strip-types --no-warnings scripts/video/impagina.mjs it|en
 // FAST=1 accorcia attese e scrittura; SHOT=<file.png> salva la schermata se un elemento non si trova;
-// SNAP=<cartella> salva una schermata dopo ogni testo.
+// SNAP=<cartella> salva una schermata dopo ogni testo, e i testi in testi.tsv (per lo storyboard).
+import { appendFileSync } from 'node:fs'
 import { launch, mockOpen } from './lib.mjs'
 import { docs } from '../guide/lib.mjs'
 import { make, names } from './progetto-locanda.mjs'
@@ -41,7 +42,10 @@ if (process.env.SNAP) {
     const f = r[k].bind(r)
     r[k] = async (...a) => {
       await f(...a)
-      await win.screenshot({ path: `${process.env.SNAP}/${String(++n).padStart(3, '0')}.png` })
+      const id = String(++n).padStart(3, '0')
+      await win.screenshot({ path: `${process.env.SNAP}/${id}.png` })
+      const text = String(k === 'title' ? a[0] : a[1]).replace(/\s+/g, ' ')
+      appendFileSync(`${process.env.SNAP}/testi.tsv`, `${id}\t${k}\t${text}\n`)
     }
   }
 }
@@ -257,6 +261,18 @@ const eye = (n) =>
     )
     .first()
 
+/** una forma dal menu Forme: entra sopra al livello selezionato, anche dentro un gruppo */
+async function shape(kind) {
+  const menu = win.locator(
+    `.menu-button[title="${T['tool.shapes']}"], .menu-button[data-tip="${T['tool.shapes']}"]`
+  )
+  await r.click(menu.first(), { after: 500 })
+  await r.click(win.locator('.menu-panel .menu-item').filter({ hasText: T[kind] }).first(), {
+    after: 600
+  })
+  await r.clear(400)
+}
+
 // ================= apertura
 await mockOpen(r.app, dest)
 await r.overlay()
@@ -435,13 +451,13 @@ await look(
     'Align top edges, then distribute horizontally with equal spacing'
   )
 )
-await selectLayers(C.portrait, C.square, C.circle)
+await selectLayers(C.portrait, C.square)
 await choose(field(T['arrange.relativeTo']), 'card')
 await arrange('arrange.hcenter')
 await look(
   t(
-    'Rispetto al componente: ritratto, riquadro e cerchio al centro della carta',
-    'Relative to the component: portrait, square and circle centered on the card'
+    'Rispetto al componente: ritratto e riquadro al centro della carta',
+    'Relative to the component: portrait and square centered on the card'
   )
 )
 await selectLayers(C.description, C.footer)
@@ -457,43 +473,149 @@ await r.focus(
 )
 await save()
 
-// ================= 4. i gruppi
-await r.title(t('4 · I gruppi', '4 · Groups'))
+// ================= 4. i gruppi e la maschera
+await r.title(t('4 · I gruppi e la maschera', '4 · Groups and masks'))
 await r.clear()
-await selectLayers(C.portrait, C.square, C.circle)
+await selectLayers(C.portrait, C.square)
 await key('Control+G', 1000)
 await fill(field(T['prop.name']), C.medallion)
 await r.focus(
   layers(),
   t(
-    '⌘G / Ctrl+G raggruppa: i tre livelli si spostano e si nascondono insieme',
-    '⌘G / Ctrl+G groups: the three layers move and hide together'
+    '⌘G / Ctrl+G raggruppa: ritratto e riquadro si spostano e si nascondono insieme',
+    '⌘G / Ctrl+G groups: portrait and square move and hide together'
   ),
   'right',
   { pad: 4 }
 )
+await onStage(
+  t(
+    'Vorremmo il ritratto in un tondo, non in un quadrato: serve una maschera',
+    'We would like the portrait in a round frame, not a square: we need a mask'
+  )
+)
+await r.title(
+  t(
+    'Una maschera è una sagoma: del gruppo si vede solo quello che sta dentro la sagoma, il resto sparisce',
+    'A mask is a silhouette: only the part of the group inside the silhouette shows, the rest disappears'
+  ),
+  4600
+)
+// il cerchio nasce nel gruppo, sopra al livello selezionato
+await r.click(layer(C.square), { after: 500 })
+await shape('tool.ellipse')
+await fill(field(T['prop.name']), C.circle)
+await fill(field(T['prop.w']), '30')
+await fill(field(T['prop.h']), '30')
+await fill(field('X'), '16.5')
+await fill(field('Y'), '16.5')
+await fill(colorField(T['prop.fill']), '#E4572E')
+await look(
+  t(
+    'Un cerchio arancione nel gruppo, grande come il riquadro: per ora copre il ritratto',
+    'An orange circle in the group, as big as the square: for now it covers the portrait'
+  )
+)
+await r.click(titled('layers.down'), { after: 800 })
+await r.focus(
+  [layers(), stage()],
+  t(
+    'Porta indietro: il cerchio scende in fondo al gruppo, sotto il riquadro, e non si vede più',
+    'Send backward: the circle goes to the bottom of the group, under the square, and is no longer visible'
+  ),
+  'right',
+  { pad: 4 }
+)
+await r.click(layer(C.medallion), { after: 500 })
 await check(checkbox(T['prop.clip']))
 await look(
   t(
-    'Livello in fondo come maschera: il cerchio ritaglia il riquadro e il ritratto',
-    'Bottom layer as mask: the circle cuts out the square and the portrait'
+    'Livello in fondo come maschera: il cerchio diventa la sagoma, e del gruppo resta solo il tondo',
+    'Bottom layer as mask: the circle becomes the silhouette, and only the round part of the group is left'
   )
 )
+await r.focus(
+  [checkbox(T['prop.clip']), stage()],
+  t(
+    'Il colore del cerchio non si vede: della maschera conta solo la forma',
+    'The circle’s color does not show: only the shape of the mask counts'
+  ),
+  'left',
+  { pad: 4 }
+)
+await r.click(layer(C.circle), { after: 500 })
+await fill(field('X'), '8')
+await look(
+  t(
+    'Si sposta il cerchio e si sposta la finestra: il ritratto resta fermo',
+    'Move the circle and the window moves: the portrait stays put'
+  )
+)
+await choose(field(T['prop.shape']), 'star')
+await look(
+  t(
+    'Con una stella il gruppo prende la forma della stella',
+    'With a star the group takes the shape of the star'
+  )
+)
+await choose(field(T['prop.shape']), 'ellipse')
+await fill(field('X'), '16.5')
+await look(t('E di nuovo il tondo, al centro', 'And back to the round frame, centered'))
 await save()
 
 // ================= 5. disponi i figli e ripeti
 await r.title(t('5 · Disponi i figli e Ripeti', '5 · Arrange children and Repeat'))
 await r.clear()
+await onStage(
+  t(
+    'Moneta, boccale e chiave: le vogliamo in riga, sempre alla stessa distanza, anche se una manca',
+    'Coin, mug and key: we want them in a row, always the same distance apart, even if one is missing'
+  )
+)
 await selectLayers(I.coin, I.mug, I.key)
 await key('Control+G', 1000)
 await fill(field(T['prop.name']), C.services)
+await r.focus(
+  layers(),
+  t(
+    'Per prima cosa un gruppo con le tre icone: ⌘G / Ctrl+G. Disponi i figli è una proprietà del gruppo',
+    'First a group with the three icons: ⌘G / Ctrl+G. Arrange children is a property of the group'
+  ),
+  'right',
+  { pad: 4 }
+)
+const explain = async (label, text) => {
+  await center(field(label))
+  await r.focus(prow(label), text, 'left', { pad: 4 })
+}
 await choose(field(T['prop.layout']), 'row')
+await explain(
+  T['prop.layout'],
+  t(
+    `${T['prop.layout']}: In riga. Le icone si mettono una dopo l’altra, nell’ordine dell’elenco dei livelli`,
+    `${T['prop.layout']}: In a row. The icons line up one after the other, in the order of the layer list`
+  )
+)
 await fill(field(T['prop.gap']), '2')
+await explain(
+  T['prop.gap'],
+  t(`${T['prop.gap']}: 2 mm tra un’icona e l’altra`, `${T['prop.gap']}: 2 mm between one icon and the next`)
+)
+await explain(
+  T['prop.justify'],
+  t(
+    `${T['prop.justify']}: dove sta la fila dentro il gruppo; ${T['prop.alignItems']}: come si allinea ogni icona in altezza`,
+    `${T['prop.justify']}: where the row sits inside the group; ${T['prop.alignItems']}: how each icon lines up in height`
+  )
+)
 await fill(field(T['prop.w']), '26')
 await fill(field('X'), '7')
 await fill(field('Y'), '49')
 await look(
-  t('Disponi i figli: in riga, a 2 mm l’uno dall’altro', 'Arrange children: in a row, 2 mm apart')
+  t(
+    'Il gruppo largo 26 mm, sotto il ritratto: le tre icone in riga, a 2 mm l’una dall’altra',
+    'The group 26 mm wide, under the portrait: the three icons in a row, 2 mm apart'
+  )
 )
 await r.click(eye(I.mug), { after: 700 })
 await look(
@@ -506,6 +628,15 @@ await r.click(eye(I.mug), { after: 700 })
 await r.click(layer(I.sword), { after: 500 })
 await key('Control+G', 1000)
 await fill(field(T['prop.name']), C.swords)
+await r.focus(
+  layers(),
+  t(
+    'Ora le spade: un gruppo con la sola spada, da ripetere tante volte quanta è la forza',
+    'Now the swords: a group with just the sword, to repeat as many times as the strength'
+  ),
+  'right',
+  { pad: 4 }
+)
 await fill(field(T['prop.repeat']), `{${C.strength}}`)
 await fill(field(T['prop.w']), '26')
 await fill(field('X'), '31')
@@ -567,13 +698,25 @@ await r.focus(
   'left',
   { pad: 4 }
 )
+await r.click(dialog().getByRole('button', { name: T['resize.scale'], exact: true }), {
+  after: 900
+})
+await onStage(
+  t(
+    `${T['resize.scale']}: posizioni e misure dei livelli seguono il nuovo formato, in proporzione. I vincoli non contano`,
+    `${T['resize.scale']}: the layers’ positions and sizes follow the new format, in proportion. Constraints do not matter`
+  )
+)
+await key('Control+Z', 900)
+await onStage(t('Annulliamo, e proviamo l’altra scelta', 'Let’s undo, and try the other choice'))
+await fill(field(T['prop.height']), '120')
 await r.click(dialog().getByRole('button', { name: T['resize.keep'], exact: true }), {
   after: 900
 })
 await onStage(
   t(
-    'Lo sfondo si è allungato e il piede è sceso; il resto è rimasto dov’era',
-    'The background stretched and the footer moved down; the rest stayed where it was'
+    `${T['resize.keep']}: lo sfondo si è allungato e il piede è sceso, come dicono i vincoli; il resto è rimasto dov’era`,
+    `${T['resize.keep']}: the background stretched and the footer moved down, as the constraints say; the rest stayed where it was`
   )
 )
 await fill(field(T['prop.height']), '88')
@@ -586,6 +729,13 @@ await save()
 // ================= 7. il retro
 await r.title(t('7 · Il retro', '7 · The back'))
 await r.clear()
+await r.title(
+  t(
+    'Avventori e Nobili sono due set con lo stesso template: la carta è la stessa, cambiano i dati',
+    'Patrons and Nobles are two sets with the same template: the card is the same, the data changes'
+  ),
+  4400
+)
 await face('preview.back')
 await onStage(
   t(
@@ -605,6 +755,12 @@ await r.focus(
 )
 await previewRow(N.nobles, 0)
 await onStage(t('…blu per i nobili', '…blue for nobles'))
+await onStage(
+  t(
+    'Con una formula si personalizza un dettaglio, qui il retro, senza duplicare il template',
+    'With a formula you customize one detail, here the back, without duplicating the template'
+  )
+)
 await face('preview.front')
 await save()
 await openSet(N.nobles)
@@ -643,6 +799,13 @@ await face('preview.front')
 
 // ================= 8. template derivati
 await r.title(t('8 · I template derivati', '8 · Derived templates'))
+await r.title(
+  t(
+    'Per cambiamenti più grandi, ma non di tutta la carta, un template derivato: niente formule complicate',
+    'For bigger changes that do not involve the whole card, a derived template: no complicated formulas'
+  ),
+  4600
+)
 await r.clear()
 const tplItem = side(N.tPatron)
 await tplItem.hover()

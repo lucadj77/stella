@@ -200,7 +200,6 @@ export async function make(dest, lang) {
         fit: 'contain',
         ...column(C.art)
       },
-      paper(box(-3, -3, 69, 94), 'original', 'bottom'),
       {
         type: 'shape',
         name: C.bg,
