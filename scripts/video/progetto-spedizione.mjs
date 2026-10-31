@@ -47,7 +47,7 @@ export function names(lang) {
       stone: L('pietra', 'stone'),
       food: L('cibo', 'food'),
       gold: L('oro', 'gold'),
-      sun: L('sole', 'sun')
+      badge: L('distintivo', 'badge')
     },
     C: {
       name: L('nome', 'name'),
@@ -110,7 +110,7 @@ export async function make(dest, lang) {
     [I.stone]: 'delapouite/stone-pile',
     [I.food]: 'lorc/wheat',
     [I.gold]: 'delapouite/gold-nuggets',
-    [I.sun]: 'lorc/sun'
+    [I.badge]: 'delapouite/round-star'
   })
   for (const [k, f] of Object.entries(FILES))
     copyFileSync(join(ART, f), join(dest, 'assets/images', A[k] + f.slice(f.lastIndexOf('.'))))

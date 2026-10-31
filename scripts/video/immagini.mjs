@@ -701,14 +701,14 @@ await about(
 await r.click(props.getByRole('button', { name: T['editor.outlinePick'], exact: true }), {
   after: 800
 })
-await r.click(asset(I.sun), { after: 1000 })
+await r.click(asset(I.badge), { after: 1000 })
 await place(1, 1, 23, 23)
 await choose(field(T['prop.fill']), 'none')
 await stroke(`{${C.color}}`, 0.6)
 await look(
   t(
-    'La sagoma del sole fa da cornice; il contorno usa {colore}, come la colorazione',
-    'The sun silhouette makes a frame; the stroke uses {color}, like the tint'
+    'La sagoma di una stella arrotondata fa da cornice; il contorno usa {colore}, come la colorazione',
+    'The silhouette of a rounded star makes a frame; the stroke uses {color}, like the tint'
   )
 )
 await save()
@@ -760,7 +760,7 @@ await search(T['prop.blend'])
 await choose(field(T['prop.blend']), 'multiply')
 await clearSearch()
 await r.click(layer(C.bg), { after: 600 })
-await fill(colorField(T['prop.fill']), '#C9D6B8')
+await fill(colorField(T['prop.fill']), '#D8E3C6')
 await look(
   t(
     `Trama in ${T['blend.multiply']}: scurisce il colore dello sfondo che sta sotto, che ora è verde`,
@@ -778,15 +778,16 @@ await look(
 await r.click(layer(C.art), { after: 600 })
 await search(T['prop.fade'])
 await check(prow(T['prop.fade']).locator('input[type=checkbox]').first())
+await clearSearch()
+await advanced(T['prop.fade'])
 await fill(field(T['fade.start']), '65')
 await about(
   field(T['fade.start']),
   t(
-    `${T['prop.fade']}: ${T['fade.dir.down']}, da ${T['fade.start'].toLowerCase()} 65%`,
+    `${T['prop.fade']}: ${T['fade.dir.down']}, ${T['fade.start'].toLowerCase()} 65%`,
     `${T['prop.fade']}: ${T['fade.dir.down']}, ${T['fade.start'].toLowerCase()} 65%`
   )
 )
-await clearSearch()
 await look(
   t(
     'L’illustrazione sfuma nella carta dove comincia il testo',
@@ -796,8 +797,9 @@ await look(
 await r.click(layer(C.title), { after: 600 })
 await search(T['prop.shadow'])
 await nullableColor(T['prop.shadow'], '#000000AA')
-await fill(field(T['prop.shadowBlur']), '0.8')
 await clearSearch()
+await advanced(T['prop.shadow'])
+await fill(field(T['prop.shadowBlur']), '0.8')
 await look(
   t(
     `${T['prop.shadow']}: colore, sfocatura e scostamento. Il titolo si stacca dal cielo`,
@@ -807,7 +809,7 @@ await look(
 await r.click(layer(C.bg), { after: 600 })
 await search(T['prop.locked'])
 await about(
-  field(T['prop.locked']),
+  checkbox(T['prop.locked']),
   t(
     `Lo sfondo è ${T['prop.locked'].toLowerCase()}: sulla tela un clic non lo prende per sbaglio`,
     `The background is ${T['prop.locked'].toLowerCase()}: on the canvas a click does not grab it by mistake`
@@ -826,12 +828,11 @@ await r.title(t('8 · Sulla tessera e sui segnalini', '8 · On the tile and the 
 await r.clear()
 await openTemplate(N.tTile, N.terrains, 0)
 await r.click(layer(C.art), { after: 600 })
-await search(T['prop.fade'])
+await advanced(T['prop.fade'])
 await check(prow(T['prop.fade']).locator('input[type=checkbox]').first())
 await choose(prow(T['prop.fade']).locator('select').first(), 'out')
 await fill(field(T['fade.start']), '55')
 await fill(field(T['fade.end']), '95')
-await clearSearch()
 await look(
   t(
     `${T['fade.dir.out']}: il bosco svanisce nella trama, che qui è già a ${T['imageFit.tile']}`,
