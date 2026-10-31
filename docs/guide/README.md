@@ -51,6 +51,7 @@ Video tutorials on YouTube, no voice ([whole playlist](https://www.youtube.com/p
 - 23 · [Deep dive: formulas](https://www.youtube.com/watch?v=h3hayhBaID0) (15 minutes), with the ["Bestiary" project to download](https://stella.lucadj.eu/progetti/bestiary.zip)
 - 24 · [Deep dive: the game board](https://www.youtube.com/watch?v=_Dvf3MXblf0) (27 minutes), with the ["Game board" project to download](https://stella.lucadj.eu/progetti/game-board.zip)
 - 25 · [Deep dive: playing with chance](https://www.youtube.com/watch?v=NcbSnlPjj3o) (12 minutes), with the ["Resources" project to download](https://stella.lucadj.eu/progetti/resources.zip)
+- 27 · [Deep dive: images and shapes](https://www.youtube.com/watch?v=WJUt8pr3BTI) (16 minutes), with the ["Expedition" project to download](https://stella.lucadj.eu/progetti/expedition.zip)
 
 Versione italiana: [../guida/README.md](../guida/README.md).
 

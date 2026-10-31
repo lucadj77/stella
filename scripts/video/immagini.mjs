@@ -83,6 +83,8 @@ const layer = (n) => layerRow(n).locator('.layer-name').first()
 const tool = (key) =>
   win.locator(`button.tool[title="${T[key]}"], button.tool[data-tip="${T[key]}"]`).first()
 const titled = (key) => win.locator(`[title="${T[key]}"], [data-tip="${T[key]}"]`).first()
+const form = win.locator('.card-form')
+const cell = (i) => win.locator('.card-grid .card-cell').nth(i)
 const side = (name) => win.locator('.sidebar').getByText(name, { exact: true }).first()
 const saveButton = () =>
   win
@@ -479,6 +481,24 @@ await fit(
     `${T['imageFit.tile']}: the image at its own size, repeated until it covers the frame. It is the right way for a texture`
   )
 )
+await fill(field(T['prop.zoom']), '50')
+await look(
+  t(
+    `Con ${T['imageFit.tile']}, ${T['prop.zoom']} cambia la misura della piastrella: al 50% la trama è più fitta`,
+    `With ${T['imageFit.tile']}, ${T['prop.zoom']} changes the size of the tile: at 50% the texture is denser`
+  )
+)
+await fill(field(T['prop.zoom']), '180')
+await look(t('Al 180% è più larga', 'At 180% it is wider'))
+await fill(field(T['prop.zoom']), '100')
+await fill(field(T['prop.imageRotation']), '45')
+await look(
+  t(
+    `${T['prop.imageRotation']} gira la trama dentro il riquadro: le fibre cambiano direzione, il riquadro resta fermo`,
+    `${T['prop.imageRotation']} turns the texture inside the frame: the fibers change direction, the frame stays put`
+  )
+)
+await fill(field(T['prop.imageRotation']), '0')
 await save()
 
 // ================= 2. ritaglia
@@ -885,6 +905,50 @@ for (const n of [0, 2, 3]) {
   await r.wait(1400)
 }
 await look(t('Tutti i luoghi con le stesse scelte', 'All the places with the same choices'))
+await save()
+// a volte serve cambiare una carta sola: dal set, nelle proprietà del livello per quel componente
+await openSet(N.places)
+await r.click(cell(4), { after: 900 })
+await r.focus(
+  form,
+  t(
+    'A volte serve cambiare una carta sola. Nel set seleziono le Rovine perdute: qui ci sono i suoi dati',
+    'Sometimes you need to change one card only. In the set I select Lost ruins: here are its data'
+  ),
+  'left'
+)
+const artRow = form
+  .locator('label')
+  .filter({ has: win.locator('.field-label', { hasText: new RegExp(`^${C.art}$`) }) })
+  .first()
+await r.click(artRow.locator(`button[title="${T['cardForm.details']}"]`).first(), { after: 900 })
+await r.focus(
+  form.locator('.field-details').first(),
+  t(
+    `${T['cardForm.details']}: vuote, valgono quelle del template`,
+    `${T['cardForm.details']}: when empty, the template’s values apply`
+  ),
+  'left'
+)
+const gray = form.locator(`[data-column="${C.art}.grayscale"]`).first()
+await center(gray)
+await r.click(gray, { after: 900 })
+await r.focus(
+  [gray, cell(4)],
+  t(
+    `${T['prop.grayscale']} solo sulle rovine, già esplorate. Il valore va nel foglio, nella colonna ${C.art}.grayscale`,
+    `${T['prop.grayscale']} on the ruins only, already explored. The value goes into the sheet, in the ${C.art}.grayscale column`
+  ),
+  'left'
+)
+await r.focus(
+  win.locator('.card-grid').first(),
+  t(
+    'Le altre carte restano come nel template',
+    'The other cards stay as in the template'
+  ),
+  'left'
+)
 await save()
 
 // ================= 8. sulla tessera e sui segnalini

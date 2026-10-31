@@ -364,6 +364,92 @@ await onStage(
     'A vertical guide in the middle of the card, 31.5 mm: layers snap to it'
   )
 )
+// la barra sotto la tela: cosa si vede e a cosa ci si aggancia
+const zc = win.locator('.zoom-controls').first()
+const zbtn = (key, n = 0) =>
+  zc
+    .locator('button')
+    .filter({ hasText: new RegExp(`^${T[key]}$`) })
+    .nth(n)
+await r.focus(
+  zc,
+  t(
+    'Sotto la tela, i pulsanti che decidono cosa si vede e a cosa si agganciano i livelli',
+    'Under the canvas, the buttons that decide what you see and what layers snap to'
+  ),
+  'above',
+  { pad: 4 }
+)
+await r.click(zbtn('editor.showBleed'), { after: 400 })
+await r.click(zbtn('editor.showSafe'), { after: 700 })
+await onStage(
+  t(
+    `${T['editor.showBleed']} e ${T['editor.showSafe']} mostrano o nascondono le linee del taglio e del margine di sicurezza. Non si stampano mai`,
+    `${T['editor.showBleed']} and ${T['editor.showSafe']} show or hide the trim and safety margin lines. They never print`
+  )
+)
+await r.click(zbtn('editor.showBleed'), { after: 400 })
+await r.click(zbtn('editor.showSafe'), { after: 400 })
+await r.click(zbtn('editor.showGrid'), { after: 700 })
+await r.focus(
+  [zc.locator('.grid-step').first(), stage()],
+  t(
+    `${T['editor.showGrid']} disegna una quadrettatura sulla tela; il passo, qui 5 mm, si scrive accanto`,
+    `${T['editor.showGrid']} draws a square grid on the canvas; the step, here 5 mm, is written next to it`
+  ),
+  'above',
+  { pad: 4 }
+)
+const snapGrid = zbtn('editor.snapGrid', 1)
+const gridWasOn = (await snapGrid.getAttribute('aria-pressed')) === 'true'
+if (!gridWasOn) await r.click(snapGrid, { after: 600 })
+await r.focus(
+  [snapGrid, zbtn('editor.snapObjects')],
+  t(
+    `${T['editor.snap']} ${T['editor.snapGrid']}, trascinando i lati si fermano sulle righe della griglia; ${T['editor.snapObjects']}, su lati e centri degli altri livelli, del componente e delle guide. Alt trascina libero`,
+    `${T['editor.snap']} ${T['editor.snapGrid']}, when dragging, edges stop on the grid lines; ${T['editor.snapObjects']}, on the edges and centers of other layers, of the component and of the guides. Alt drags freely`
+  ),
+  'above',
+  { pad: 4 }
+)
+await r.click(layer(I.coin), { after: 600 })
+{
+  const g = await selBox()
+  await drag({ x: g.cx, y: g.cy }, { x: g.cx + 45, y: g.cy + 30 }, undefined, 1800)
+}
+await onStage(
+  t(
+    'La moneta trascinata si ferma a scatti, sulle righe della griglia',
+    'The dragged coin moves in steps, on the grid lines'
+  )
+)
+await key('Control+Z', 800)
+if (!gridWasOn) await r.click(snapGrid, { after: 400 })
+await r.click(zbtn('editor.showGrid'), { after: 600 })
+await r.focus(
+  zc.locator('button').filter({ hasText: new RegExp(`^${T['editor.zoomFit']}$`) }).first(),
+  t(
+    `− e + cambiano lo zoom (anche con ⌘ / Ctrl e la rotella), ${T['editor.zoomFit']} riporta il componente intero nella tela`,
+    `− and + change the zoom (also with ⌘ / Ctrl and the scroll wheel), ${T['editor.zoomFit']} brings the whole component back into view`
+  ),
+  'above',
+  { pad: 4 }
+)
+// l'aggancio agli oggetti: la moneta trascinata verso il centro della carta si ferma sulla guida
+await r.click(layer(C.portrait), { after: 500 })
+const mid = await selBox()
+await r.click(layer(I.coin), { after: 600 })
+{
+  const g = await selBox()
+  await drag({ x: g.cx, y: g.cy }, { x: mid.cx + 4, y: g.cy - 6 }, undefined, 2600)
+}
+await onStage(
+  t(
+    `Con ${T['editor.snapObjects']} acceso la moneta, avvicinata al centro, si aggancia alla guida: compare una linea che lo segnala. Lo stesso con i lati e i centri degli altri livelli`,
+    `With ${T['editor.snapObjects']} on, the coin brought near the center snaps to the guide: a line shows it. The same happens with the edges and centers of the other layers`
+  )
+)
+await key('Control+Z', 800)
 await save()
 
 // ================= 2. spostare con precisione
@@ -439,6 +525,16 @@ await r.focus(
   t(
     'Tre icone selezionate con ⇧ / Maiuscolo: i pulsanti di allineamento in cima al pannello',
     'Three icons selected with ⇧ / Shift: the alignment buttons at the top of the panel'
+  ),
+  'left',
+  { pad: 4 }
+)
+await choose(field(T['arrange.relativeTo']), 'selection')
+await r.focus(
+  field(T['arrange.relativeTo']),
+  t(
+    `${T['arrange.relativeTo']}: ${T['arrange.target.selection']}, così le icone si allineano fra loro e non al bordo della carta`,
+    `${T['arrange.relativeTo']}: ${T['arrange.target.selection']}, so the icons line up with each other, not with the edge of the card`
   ),
   'left',
   { pad: 4 }
@@ -561,6 +657,64 @@ await look(
 await choose(field(T['prop.shape']), 'ellipse')
 await fill(field('X'), '16.5')
 await look(t('E di nuovo il tondo, al centro', 'And back to the round frame, centered'))
+// la maschera da un'immagine con trasparenza: nasce sopra il cerchio, poi scende in fondo
+await r.click(tool('tool.image'))
+await r.clear(800)
+await r.click(dialog().locator(`[title*="${I.crown}"], [data-tip*="${I.crown}"]`).first(), {
+  after: 1000
+})
+await r.clear(600)
+await fill(field(T['prop.name']), t('corona', 'crown'))
+for (const [k, v] of [
+  [T['prop.w'], 30],
+  [T['prop.h'], 30],
+  ['X', 16.5],
+  ['Y', 16.5]
+])
+  await fill(field(k), String(v))
+await r.click(titled('layers.down'), { after: 800 })
+await deselect()
+await look(
+  t(
+    'Anche un’immagine con trasparenza, PNG o SVG come questa corona, fa da maschera: conta la parte disegnata',
+    'An image with transparency, PNG or SVG like this crown, works as a mask too: the drawn part is what counts'
+  )
+)
+await r.click(layer(t('corona', 'crown')), { after: 500 })
+await key('Delete', 900)
+// e dal testo
+await r.click(layer(C.circle), { after: 500 })
+await r.click(tool('tool.text'))
+await r.clear(400)
+await fill(field(T['prop.name']), t('scritta', 'lettering'))
+await fill(field(T['prop.text']), t('OSTE', 'HOST'))
+await fill(field(T['prop.size']), '28')
+await choose(field(T['prop.weight']), '900')
+await choose(field(T['prop.align']), 'center')
+await choose(field(T['prop.valign']), 'middle')
+for (const [k, v] of [
+  [T['prop.w'], 30],
+  [T['prop.h'], 30],
+  ['X', 16.5],
+  ['Y', 16.5]
+])
+  await fill(field(k), String(v))
+await r.click(titled('layers.down'), { after: 800 })
+await deselect()
+await look(
+  t(
+    'E anche un testo: il gruppo, ritratto e riquadro, si vede solo dentro le lettere',
+    'And a text too: the group, portrait and square, shows only inside the letters'
+  )
+)
+await r.click(layer(t('scritta', 'lettering')), { after: 500 })
+await key('Delete', 900)
+await look(
+  t(
+    'Tolgo il testo e la maschera torna il cerchio, il livello in fondo al gruppo',
+    'I remove the text and the mask is the circle again, the bottom layer of the group'
+  )
+)
 await save()
 
 // ================= 5. disponi i figli e ripeti
@@ -688,12 +842,12 @@ await r.focus(
 )
 await clearSearch()
 await deselect()
-await fill(field(T['prop.height']), '120')
+await fill(field(T['prop.width']), it ? '31,5' : '31.5')
 await r.focus(
   dialog(),
   t(
-    'Da carta poker a tarocchi: scalare tutto o lasciare i livelli e seguire i vincoli',
-    'From poker card to tarot: scale everything or keep the layers and follow the constraints'
+    'Da carta poker a mini poker, metà larghezza e metà altezza: Stella chiede cosa fare dei livelli',
+    'From poker card to mini poker, half the width and half the height: Stella asks what to do with the layers'
   ),
   'left',
   { pad: 4 }
@@ -701,14 +855,23 @@ await r.focus(
 await r.click(dialog().getByRole('button', { name: T['resize.scale'], exact: true }), {
   after: 900
 })
+await fill(field(T['prop.height']), '44')
+const scaleBtn = dialog().getByRole('button', { name: T['resize.scale'], exact: true })
+if (await scaleBtn.count()) await r.click(scaleBtn, { after: 900 })
 await onStage(
   t(
-    `${T['resize.scale']}: posizioni e misure dei livelli seguono il nuovo formato, in proporzione. I vincoli non contano`,
-    `${T['resize.scale']}: the layers’ positions and sizes follow the new format, in proportion. Constraints do not matter`
+    `${T['resize.scale']}: tutto rimpicciolisce in proporzione, testi compresi. La carta è la stessa, in piccolo`,
+    `${T['resize.scale']}: everything shrinks in proportion, text included. The same card, smaller`
   )
 )
 await key('Control+Z', 900)
-await onStage(t('Annulliamo, e proviamo l’altra scelta', 'Let’s undo, and try the other choice'))
+await key('Control+Z', 900)
+await onStage(
+  t(
+    'Annulliamo e torniamo alla poker. Ora l’altra scelta, allungando la carta in un tarocco',
+    'Let’s undo and go back to poker. Now the other choice, stretching the card into a tarot card'
+  )
+)
 await fill(field(T['prop.height']), '120')
 await r.click(dialog().getByRole('button', { name: T['resize.keep'], exact: true }), {
   after: 900
