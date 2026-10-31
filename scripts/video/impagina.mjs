@@ -435,6 +435,21 @@ await r.focus(
   'above',
   { pad: 4 }
 )
+// l'aggancio agli oggetti: la moneta trascinata verso il centro della carta si ferma sulla guida
+await r.click(layer(C.portrait), { after: 500 })
+const mid = await selBox()
+await r.click(layer(I.coin), { after: 600 })
+{
+  const g = await selBox()
+  await drag({ x: g.cx, y: g.cy }, { x: mid.cx + 4, y: g.cy - 6 }, undefined, 2600)
+}
+await onStage(
+  t(
+    `Con ${T['editor.snapObjects']} acceso la moneta, avvicinata al centro, si aggancia alla guida: compare una linea che lo segnala. Lo stesso con i lati e i centri degli altri livelli`,
+    `With ${T['editor.snapObjects']} on, the coin brought near the center snaps to the guide: a line shows it. The same happens with the edges and centers of the other layers`
+  )
+)
+await key('Control+Z', 800)
 await save()
 
 // ================= 2. spostare con precisione

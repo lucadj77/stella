@@ -766,6 +766,24 @@ export const videos = [
       it: 'progetti/risorse.zip',
       en: 'progetti/resources.zip'
     }
+  },
+  {
+    n: 27,
+    it: 'Approfondimento: immagini e forme',
+    en: 'Deep dive: images and shapes',
+    about: {
+      it: 'Adattamenti, ritaglio, trama, colorazione, contorno, forme, riempimenti e la sezione Aspetto, su carte luogo, segnalini e tessere esagonali.',
+      en: 'Fit, crop, texture, tint, stroke, shapes, fills and the Appearance section, on place cards, tokens and hexagonal tiles.'
+    },
+    minutes: 16,
+    url: {
+      it: 'https://www.youtube.com/watch?v=klhDqqy7_iw',
+      en: 'https://www.youtube.com/watch?v=WJUt8pr3BTI'
+    },
+    project: {
+      it: 'progetti/spedizione.zip',
+      en: 'progetti/expedition.zip'
+    }
   }
 ]
 
@@ -778,7 +796,7 @@ export const videoGroups = {
   data: [10, 12],
   table: [9, 3, 19, 5],
   tools: [6, 17, 18],
-  deep: [20, 21, 22, 23, 24, 25]
+  deep: [20, 21, 22, 23, 24, 25, 27]
 }
 
 export const playlists = {
