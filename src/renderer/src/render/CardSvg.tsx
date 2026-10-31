@@ -13,6 +13,7 @@ import { useI18n } from '../i18n/context'
 import { AssetsContext, ShowEmptyContext, assetUrl } from './assets'
 import { fitRect, useImageSize } from './imageSize'
 import { SvgBackdrop } from './backdrop'
+import { convertForeignObject } from '../export/toSvg'
 import { backdropInner } from '../../../shared/model/shapes'
 import { cropRect } from '../../../shared/model/crop'
 import { gridGeometry } from '../../../shared/model/grid'
@@ -1055,6 +1056,81 @@ function TextView({ layer: l, id }: { layer: TextLayer; id: string }): React.JSX
  * Con "ritaglia" il livello in fondo al gruppo fa da maschera: non si disegna e i livelli
  * sopra si vedono solo dentro la sua forma.
  */
+/** Metà del lato dell'area della maschera di un gruppo, in mm: abbastanza per ogni componente */
+const MASK_REACH = 10000
+
+/**
+ * Maschera fatta con un livello che contiene HTML (testi). Il livello si disegna invisibile, così
+ * il browser lo impagina; la maschera ne è una copia con i foreignObject convertiti in SVG, rifatta
+ * a ogni cambiamento dell'impaginazione (font caricati, testo adattato al riquadro).
+ */
+function LiveMask({
+  id,
+  box,
+  layer,
+  uid
+}: {
+  id: string
+  box: React.SVGProps<SVGMaskElement>
+  layer: Layer
+  uid: string
+}): React.JSX.Element {
+  const live = useRef<SVGGElement>(null)
+  const target = useRef<SVGMaskElement>(null)
+  useLayoutEffect(() => {
+    const src = live.current
+    const dst = target.current
+    if (!src || !dst) return
+    const copy = (): void => {
+      const clone = src.cloneNode(true) as SVGGElement
+      clone.removeAttribute('opacity')
+      const fos = [...src.querySelectorAll('foreignObject')]
+      ;[...clone.querySelectorAll('foreignObject')].forEach((fo, i) =>
+        fo.replaceWith(convertForeignObject(fos[i]))
+      )
+      // gli id della copia non devono ripetere quelli della copia invisibile
+      const ids = [...clone.querySelectorAll('[id]')].map((el) => el.id)
+      for (const el of [clone, ...clone.querySelectorAll('*')]) {
+        if (el.id) el.id += '-m'
+        for (const a of [...el.attributes])
+          if (a.value.includes('url(#'))
+            el.setAttribute(
+              a.name,
+              a.value.replace(/url\(#([^)]+)\)/g, (m, ref: string) =>
+                ids.includes(ref) ? `url(#${ref}-m)` : m
+              )
+            )
+      }
+      dst.replaceChildren(clone)
+    }
+    const watch = { subtree: true, childList: true, attributes: true, characterData: true }
+    const observer = new MutationObserver(() => {
+      observer.disconnect()
+      copy()
+      // le misure tolgono e rimettono le trasformazioni: non sono cambiamenti da seguire
+      observer.takeRecords()
+      observer.observe(src, watch)
+    })
+    copy()
+    observer.takeRecords()
+    observer.observe(src, watch)
+    let alive = true
+    void document.fonts.ready.then(() => alive && copy())
+    return () => {
+      alive = false
+      observer.disconnect()
+    }
+  }, [layer])
+  return (
+    <>
+      <mask ref={target} id={id} {...box} />
+      <g ref={live} opacity={0} aria-hidden>
+        <LayerView layer={layer} uid={uid} />
+      </g>
+    </>
+  )
+}
+
 function GroupView({
   layer: group,
   id,
@@ -1067,6 +1143,38 @@ function GroupView({
   const l = arrangeGroup(group)
   const mask = l.clip ? l.children[l.children.length - 1] : undefined
   if (!mask || group.children.length < 2) return <LayerList layers={l.children} uid={uid} />
+  const content = <LayerList layers={l.children.slice(0, -1)} uid={uid} />
+  if (mask.type !== 'shape' || mask.shape === 'line') {
+    // immagini, testi e il resto: conta quello che si vede del livello, la trasparenza nasconde.
+    // Il livello si disegna com'è (adattamento, rotazione, opacità), senza ombra e fusione
+    const shown: Layer = { ...mask, visible: true, shadow: null, blend: 'normal' }
+    const box = {
+      maskUnits: 'userSpaceOnUse',
+      x: -MASK_REACH,
+      y: -MASK_REACH,
+      width: MASK_REACH * 2,
+      height: MASK_REACH * 2,
+      style: { maskType: 'alpha' }
+    } as const
+    // Chromium non disegna i foreignObject dentro una maschera: i testi passano da una copia
+    // invisibile, convertita in elementi SVG come nell'esportazione in SVG
+    const html = shown.type === 'text' || shown.type === 'grid' || shown.type === 'group'
+    return (
+      <>
+        {html ? (
+          // fuori da <defs>: la copia invisibile deve essere impaginata
+          <LiveMask id={`${id}-mask`} box={box} layer={shown} uid={`${uid}-mask`} />
+        ) : (
+          <defs>
+            <mask id={`${id}-mask`} {...box}>
+              <LayerView layer={shown} uid={`${uid}-mask`} />
+            </mask>
+          </defs>
+        )}
+        <g mask={`url(#${id}-mask)`}>{content}</g>
+      </>
+    )
+  }
   const a = anchorPoint(mask)
   return (
     <>
@@ -1076,16 +1184,10 @@ function GroupView({
           id={`${id}-clip`}
           transform={mask.rotation ? `rotate(${mask.rotation} ${a.x} ${a.y})` : undefined}
         >
-          {mask.type === 'shape' && mask.shape !== 'line' ? (
-            <ShapeBody layer={mask} fill="#000" />
-          ) : (
-            <rect x={mask.x} y={mask.y} width={mask.w} height={mask.h} />
-          )}
+          <ShapeBody layer={mask} fill="#000" />
         </clipPath>
       </defs>
-      <g clipPath={`url(#${id}-clip)`}>
-        <LayerList layers={l.children.slice(0, -1)} uid={uid} />
-      </g>
+      <g clipPath={`url(#${id}-clip)`}>{content}</g>
     </>
   )
 }

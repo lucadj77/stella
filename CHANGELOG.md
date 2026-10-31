@@ -5,6 +5,18 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.9.0-beta.1
+
+### English
+
+- **Group masks follow what you see**: when the bottom layer of a group with the mask is an image with transparent parts (PNG or SVG) or a text, the rest of the group now shows only inside what is visible of that layer, not inside its whole box. A dog silhouette in PNG gives a dog-shaped mask, a text gives letter-shaped windows. Shapes work as before. It works in the editor, in previews and in every export (PDF, images, SVG, Tabletop Simulator).
+- **Shift no longer drops the selection when you drag**: on the canvas, pressing Shift and then pressing on a layer that is already selected used to remove it from the selection; now, if you drag, the selection moves and Shift keeps the direction horizontal, vertical or at 45°. Shift+click without dragging still removes the layer from the selection. The same applies in the table schema with Shift or ⌘ / Ctrl.
+
+### Italiano
+
+- **La maschera del gruppo segue quello che si vede**: quando il livello in fondo a un gruppo con la maschera è un'immagine con parti trasparenti (PNG o SVG) o un testo, il resto del gruppo ora si vede solo dentro la parte visibile di quel livello, non in tutto il suo riquadro. La sagoma di un cane in PNG dà una maschera a forma di cane, un testo dà finestre a forma di lettere. Le forme funzionano come prima. Vale nell'editor, nelle anteprime e in tutte le esportazioni (PDF, immagini, SVG, Tabletop Simulator).
+- **Maiuscolo non toglie più la selezione quando si trascina**: sulla tela, premendo Maiuscolo e poi premendo su un livello già selezionato, il livello veniva tolto dalla selezione; ora, se si trascina, la selezione si sposta e Maiuscolo tiene la direzione orizzontale, verticale o a 45°. Maiuscolo + clic senza trascinare toglie ancora il livello dalla selezione. Lo stesso vale nello schema del tavolo con Maiuscolo o ⌘ / Ctrl.
+
 ## 1.8.2
 
 ### English

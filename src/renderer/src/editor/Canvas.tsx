@@ -75,6 +75,11 @@ type Gesture =
        * lo seleziona
        */
       top: string | null
+      /**
+       * Livello già selezionato premuto con Maiuscolo: un clic senza trascinare lo toglie dalla
+       * selezione, un trascinamento sposta tutta la selezione
+       */
+      deselect: string | null
       /** Punto del clic sulla carta, in mm */
       down: Point
       /** Ingombro dei livelli spostati all'inizio del gesto */
@@ -284,14 +289,13 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
       return
     }
     const sameContainer = hitScope === scope
+    const selected = selection.includes(hit.id) && sameContainer
+    // Maiuscolo su un livello già selezionato: si decide al rilascio se toglierlo o trascinare
+    const deselect = e.shiftKey && selected ? hit.id : null
     let ids: string[]
-    if (e.shiftKey && sameContainer)
-      ids = selection.includes(hit.id)
-        ? selection.filter((id) => id !== hit.id)
-        : [...selection, hit.id]
-    else ids = selection.includes(hit.id) && sameContainer ? selection : [hit.id]
+    if (e.shiftKey && sameContainer) ids = selected ? selection : [...selection, hit.id]
+    else ids = selected ? selection : [hit.id]
     dispatch({ type: 'select', ids, scope: hitScope })
-    if (!ids.includes(hit.id)) return
     const movable = ids.filter((id) => !findLayer(layers, id)?.locked)
     const frame = frameOf(hit.id)
     const boxes = movable
@@ -306,6 +310,7 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
       p0: toFrame(p, frame),
       ref: hit,
       top: top && top.id !== hit.id ? top.id : null,
+      deselect,
       down: p,
       box: boxes.length ? unionBounds(boxes) : worldBounds(hit),
       lines: snapLines(movable, frame)
@@ -491,10 +496,14 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     setSnapped({ x: null, y: null })
     overlayRef.current?.releasePointerCapture(e.pointerId)
     dispatch({ type: 'gestureEnd' })
-    // un clic senza trascinare sopra il livello selezionato ma coperto sceglie quello in cima
-    if (ended.kind === 'move' && ended.top) {
+    if (ended.kind === 'move') {
       const p = cardPoint(e)
-      if (Math.hypot(p.x - ended.down.x, p.y - ended.down.y) * scale < 3) {
+      const click = Math.hypot(p.x - ended.down.x, p.y - ended.down.y) * scale < 3
+      if (click && ended.deselect)
+        // Maiuscolo + clic senza trascinare su un livello selezionato lo toglie dalla selezione
+        dispatch({ type: 'select', ids: selection.filter((id) => id !== ended.deselect) })
+      else if (click && ended.top) {
+        // un clic senza trascinare sopra il livello selezionato ma coperto sceglie quello in cima
         const { hit, scope: hitScope } = pick(p)
         if (hit) dispatch({ type: 'select', ids: [hit.id], scope: hitScope })
       }
