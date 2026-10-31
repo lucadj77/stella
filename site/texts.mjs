@@ -768,6 +768,24 @@ export const videos = [
     }
   },
   {
+    n: 26,
+    it: 'Approfondimento: impaginare un template',
+    en: 'Deep dive: laying out a template',
+    about: {
+      it: 'Misure, guide e griglia, allineamenti, gruppi e maschere, Disponi i figli, Scala i livelli e vincoli, il retro e i template derivati.',
+      en: 'Sizes, guides and grid, alignment, groups and masks, Arrange children, Scale layers and constraints, the back and derived templates.'
+    },
+    minutes: 16,
+    url: {
+      it: 'https://www.youtube.com/watch?v=9RCQ24GUg3Q',
+      en: 'https://www.youtube.com/watch?v=bCB3t14oRGg'
+    },
+    project: {
+      it: 'progetti/locanda.zip',
+      en: 'progetti/tavern.zip'
+    }
+  },
+  {
     n: 27,
     it: 'Approfondimento: immagini e forme',
     en: 'Deep dive: images and shapes',
@@ -796,7 +814,7 @@ export const videoGroups = {
   data: [10, 12],
   table: [9, 3, 19, 5],
   tools: [6, 17, 18],
-  deep: [20, 21, 22, 23, 24, 25, 27]
+  deep: [20, 21, 22, 23, 24, 25, 26, 27]
 }
 
 export const playlists = {
