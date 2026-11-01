@@ -5034,8 +5034,27 @@ details.usages button.link {
   overflow: hidden;
 }
 
-.note-panel.floating .note-panel-head {
+.note-panel.floating {
+  padding-top: 0;
+}
+
+/* maniglia per spostare la nota staccata */
+.note-grip {
+  flex: 0 0 auto;
+  height: 18px;
+  margin: 0 -12px;
   cursor: move;
+  touch-action: none;
+  background: radial-gradient(circle, var(--muted) 1px, transparent 1.5px) center / 6px 6px repeat-x;
+  background-size: 6px 6px;
+  background-position: center;
+  opacity: 0.85;
+  border-bottom: 1px solid var(--border);
+}
+
+.note-grip:hover {
+  opacity: 1;
+  background-color: var(--accent-soft);
 }
 
 .note-table {

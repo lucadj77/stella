@@ -129,6 +129,31 @@ export default function NotePanel({
     else onRename(draftName)
   }
 
+  // la finestra mobile si sposta trascinando la maniglia in alto o i punti vuoti della barra
+  const dragHandlers = {
+    onPointerDown: (e: React.PointerEvent<HTMLDivElement>): void => {
+      if (!floating || (e.target as HTMLElement).closest('input, button')) return
+      drag.current = { x: e.clientX, y: e.clientY, from: floating }
+      e.currentTarget.setPointerCapture(e.pointerId)
+      e.preventDefault()
+    },
+    onPointerMove: (e: React.PointerEvent<HTMLDivElement>): void => {
+      const d = drag.current
+      if (!d) return
+      setFloatingState(
+        clampFloating({ ...d.from, x: d.from.x + e.clientX - d.x, y: d.from.y + e.clientY - d.y })
+      )
+    },
+    onPointerUp: (): void => {
+      if (!drag.current) return
+      drag.current = null
+      setFloatingState((f) => {
+        saveFloating(f)
+        return f
+      })
+    }
+  }
+
   const aside = (
     <aside
       ref={panel}
@@ -140,33 +165,15 @@ export default function NotePanel({
           : { width }
       }
     >
-      <div
-        className="note-panel-head"
-        onPointerDown={(e) => {
-          if (!floating || (e.target as HTMLElement).closest('input, button')) return
-          drag.current = { x: e.clientX, y: e.clientY, from: floating }
-          e.currentTarget.setPointerCapture(e.pointerId)
-        }}
-        onPointerMove={(e) => {
-          const d = drag.current
-          if (!d) return
-          setFloatingState(
-            clampFloating({
-              ...d.from,
-              x: d.from.x + e.clientX - d.x,
-              y: d.from.y + e.clientY - d.y
-            })
-          )
-        }}
-        onPointerUp={() => {
-          if (!drag.current) return
-          drag.current = null
-          setFloatingState((f) => {
-            saveFloating(f)
-            return f
-          })
-        }}
-      >
+      {floating && (
+        <div
+          className="note-grip"
+          title={t('notes.move')}
+          aria-label={t('notes.move')}
+          {...dragHandlers}
+        />
+      )}
+      <div className="note-panel-head" {...dragHandlers}>
         <input
           className={nameError ? 'note-name invalid' : 'note-name'}
           value={draftName}

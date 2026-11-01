@@ -1609,6 +1609,7 @@ export const en = {
   'notes.nameHint': 'Name of the note: it is also the name of its file',
   'notes.delete': 'Delete the note (it goes to the deleted folder)',
   'notes.close': 'Close the note',
+  'notes.move': 'Drag to move the note',
   'notes.detach': 'Detach the note into a floating window',
   'notes.dock': 'Dock the note to the side of the window',
   'notes.edit': 'Write',

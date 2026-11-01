@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.8.5-beta.3
+
+### English
+
+- **Notes**: a detached note can now really be moved: drag the dotted handle at the top of the floating window. Before, the bar was almost all taken by the note name, so there was nowhere to grab it.
+
+### Italiano
+
+- **Note**: una nota staccata ora si sposta davvero: si trascina la maniglia puntinata in cima alla finestra mobile. Prima la barra era quasi tutta occupata dal nome della nota e non c'era un punto da afferrare.
+
 ## 1.8.5-beta.2
 
 ### English

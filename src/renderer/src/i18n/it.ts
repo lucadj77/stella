@@ -1637,6 +1637,7 @@ export const it: Record<MessageKey, string> = {
   'notes.nameHint': 'Nome della nota: è anche il nome del suo file',
   'notes.delete': 'Elimina la nota (va nella cartella deleted)',
   'notes.close': 'Chiudi la nota',
+  'notes.move': 'Trascina per spostare la nota',
   'notes.detach': 'Stacca la nota in una finestra mobile',
   'notes.dock': 'Riaggancia la nota al lato della finestra',
   'notes.edit': 'Scrivi',
