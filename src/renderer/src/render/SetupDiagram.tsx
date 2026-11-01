@@ -110,7 +110,7 @@ export default function SetupDiagram({
   )
 }
 
-/** Un testo con il markup in un riquadro, centrato o a sinistra */
+/** Un testo con il markup in un riquadro, centrato, a sinistra o a destra */
 function Label({
   x,
   y,
@@ -125,7 +125,7 @@ function Label({
   w: number
   font: number
   text: string
-  align?: 'left' | 'center'
+  align?: 'left' | 'center' | 'right'
   background?: boolean
 }): React.JSX.Element {
   // la posizione sta nel gruppo: l'esportazione in SVG converte il foreignObject da sé
@@ -255,7 +255,7 @@ function Item({
     case 'text':
       return (
         <g data-item={i}>
-          <Label x={it.x} y={it.y} w={it.w} font={font} text={it.text} align="left" />
+          <Label x={it.x} y={it.y} w={it.w} font={font} text={it.text} align={it.align} />
         </g>
       )
     case 'image':

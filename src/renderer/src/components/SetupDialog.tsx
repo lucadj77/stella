@@ -28,6 +28,7 @@ import { itemBox, setupView, setupWithText, type Box } from '../render/setupGeom
 import AssetPicker from './AssetPicker'
 import InsertCardDialog from './InsertCardDialog'
 import FormattedField from './TextFormatBar'
+import Segmented from './Segmented'
 
 // Editor dello schema della preparazione del tavolo (```setup, model/setup.ts): si aggiungono
 // zone, carte, mazzi, testi, frecce e immagini e si spostano con il mouse sul disegno, che è lo
@@ -844,6 +845,15 @@ export default function SetupDialog({
                       rows={3}
                       value={sel.text}
                       onChange={(text) => change({ text })}
+                    />
+                    <Segmented<'left' | 'center' | 'right'>
+                      value={sel.align ?? 'center'}
+                      onChange={(a) => change({ align: a === 'center' ? undefined : a })}
+                      options={[
+                        ['left', t('align.left')],
+                        ['center', t('align.center')],
+                        ['right', t('align.right')]
+                      ]}
                     />
                   </div>
                 ) : sel.kind !== 'image' ? (

@@ -53,6 +53,18 @@ describe('schema del tavolo', () => {
     expect(s.items[5]).toMatchObject({ src: 'icons/moneta oro.png', w: 10 })
   })
 
+  it("legge e riscrive l'allineamento dei testi, di base al centro", () => {
+    const s = parse('text 0,0 "a"\ntext 0,10 width=40 align=left "b"\ntext 0,20 align=RIGHT "c"')
+    expect(s.items.map((i) => (i.kind === 'text' ? (i.align ?? 'center') : ''))).toEqual([
+      'center',
+      'left',
+      'right'
+    ])
+    expect(setupSource(s)).toContain('text 0,10 width=40 align=left "b"')
+    expect(setupSource(s)).toContain('text 0,0 width=50 "a"')
+    expect(parse('card X 0,0 align=left').bad).toHaveLength(1)
+  })
+
   it('segnala le righe che non capisce', () => {
     const s = parse('zone 0,0 "senza misura"\ncard 10,10\nboh\nzone 1,1 5x5')
     expect(s.bad.map((b) => b.from)).toEqual([0, 24, 35])

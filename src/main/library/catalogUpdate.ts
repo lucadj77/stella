@@ -4,16 +4,24 @@ import { mkdir, rename, writeFile } from 'fs/promises'
 import { join } from 'path'
 import type { CatalogUpdate, IconCatalog } from '../../shared/library'
 import { MessageError, msg } from '../../shared/messages'
-import { gameIconsCatalog, googleFontsCatalog, tagPageIcons, untgz } from './catalogParse'
+import {
+  gameIconsCatalog,
+  googleFontTags,
+  googleFontsCatalog,
+  tagPageIcons,
+  untgz
+} from './catalogParse'
 import { fontCatalog, forgetCatalogs, iconCatalog, userCatalogDir } from './catalogs'
 
 // Aggiornamento dall'app dei cataloghi di game-icons.net (archivio del repository su GitHub e
-// pagine dei tag del sito) e dei font Google (pacchetto npm google-font-metadata). Il risultato
+// pagine dei tag del sito) e dei font Google (pacchetto npm google-font-metadata, e gli stili dal
+// repository google/fonts). Il risultato
 // va nella cartella dei dati dell'utente; quelli inclusi nell'app non si toccano.
 
 const GAME_ICONS_ZIP = 'https://github.com/game-icons/icons/archive/refs/heads/master.zip'
 const TAG_PAGE = 'https://game-icons.net/tags/'
 const FONT_METADATA = 'https://registry.npmjs.org/google-font-metadata/latest'
+const FONT_TAGS = 'https://raw.githubusercontent.com/google/fonts/main/tags/all/families.csv'
 
 async function get(url: string): Promise<Response> {
   let res: Response
@@ -101,7 +109,12 @@ export async function updateGoogleFonts(): Promise<CatalogUpdate> {
   )
   if (catalog.families.length < before.families.length / 2)
     throw new MessageError(msg('catalog.tooSmall', { n: catalog.families.length }))
+  // gli stili: se il file non si legge o è troppo piccolo resta la copia che c'è
+  const tags = googleFontTags(await (await get(FONT_TAGS)).text())
+  const oldTags = Object.keys(before.tags?.families ?? {}).length
   await save('google-fonts.json', { ...catalog, updated: new Date().toISOString() })
+  if (Object.keys(tags.families).length >= oldTags / 2)
+    await save('google-fonts-tags.json', { source: FONT_TAGS, ...tags })
   forgetCatalogs()
   return { before: before.families.length, after: catalog.families.length }
 }

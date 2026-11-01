@@ -71,6 +71,18 @@ export type FontFamilyEntry = [string, string, number[], 0 | 1, string[], string
 export interface FontCatalog {
   source: string
   families: FontFamilyEntry[]
+  /** Stili dei font secondo Google (google-fonts-tags.json), se il catalogo dei tag c'è */
+  tags?: FontTags
+}
+
+/**
+ * Tag di Google Fonts (google/fonts, tags/all/families.csv): gli stessi dei filtri del sito
+ * fonts.google.com. Ogni famiglia ha coppie piatte [indice del tag, punteggio 0-100, ...].
+ */
+export interface FontTags {
+  /** "/Theme/Medieval", "/Expressive/Calm"… */
+  tags: string[]
+  families: Record<string, number[]>
 }
 
 export interface IconImport {

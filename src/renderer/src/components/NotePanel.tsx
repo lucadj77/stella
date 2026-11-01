@@ -1,12 +1,55 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { isValidNoteName } from '../../../shared/project'
+import { noteParts, type TableBlock } from '../../../shared/model/noteParts'
 import MarkupText from '../render/MarkupText'
 import { useI18n } from '../i18n/context'
 import { TrashIcon } from './icons'
+import Resizer from './Resizer'
 import Segmented from './Segmented'
+import { usePanelWidth } from './usePanelWidth'
 
 // Una nota del progetto (notes/<nome>.md), accanto a qualsiasi schermata: si scrive in Markdown e
-// si salva da sola mentre si scrive.
+// si salva da sola mentre si scrive. Il pannello si allarga trascinandone il bordo, oppure si
+// stacca e diventa una finestra mobile sopra l'app, da spostare e ridimensionare.
+
+interface Floating {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+const FLOAT_KEY = 'notePanel.floating'
+
+function loadFloating(): Floating | null {
+  try {
+    const f = JSON.parse(localStorage.getItem(FLOAT_KEY) ?? 'null') as Floating | null
+    return f && [f.x, f.y, f.w, f.h].every((n) => typeof n === 'number') ? f : null
+  } catch {
+    return null
+  }
+}
+
+function saveFloating(f: Floating | null): void {
+  try {
+    if (f) localStorage.setItem(FLOAT_KEY, JSON.stringify(f))
+    else localStorage.removeItem(FLOAT_KEY)
+  } catch {
+    // preferenza non essenziale
+  }
+}
+
+/** La finestra mobile resta dentro quella dell'app, almeno con la sua barra */
+function clampFloating(f: Floating): Floating {
+  const w = Math.min(Math.max(f.w, 260), window.innerWidth)
+  const h = Math.min(Math.max(f.h, 220), window.innerHeight)
+  return {
+    w,
+    h,
+    x: Math.min(Math.max(f.x, 0), Math.max(0, window.innerWidth - w)),
+    y: Math.min(Math.max(f.y, 0), Math.max(0, window.innerHeight - 40))
+  }
+}
 
 interface Props {
   name: string
@@ -33,6 +76,47 @@ export default function NotePanel({
   const [mode, setMode] = useState<'edit' | 'preview'>(text.trim() ? 'preview' : 'edit')
   // il pannello si ricrea con un'altra nota o un nome nuovo (key), quindi basta lo stato iniziale
   const [draftName, setDraftName] = useState(name)
+  const [width, setWidth] = usePanelWidth('note', 380)
+  const [floating, setFloatingState] = useState<Floating | null>(() => {
+    const f = loadFloating()
+    return f && clampFloating(f)
+  })
+  const setFloating = (f: Floating | null): void => {
+    setFloatingState(f)
+    saveFloating(f)
+  }
+  const panel = useRef<HTMLElement>(null)
+  const drag = useRef<{ x: number; y: number; from: Floating } | null>(null)
+
+  // la finestra mobile si ridimensiona dall'angolo (resize del CSS): si ricorda la misura
+  useEffect(() => {
+    const el = panel.current
+    if (!floating || !el) return
+    const obs = new ResizeObserver(() => {
+      const w = Math.round(el.offsetWidth)
+      const h = Math.round(el.offsetHeight)
+      setFloatingState((f) => {
+        if (!f || (f.w === w && f.h === h)) return f
+        const next = { ...f, w, h }
+        saveFloating(next)
+        return next
+      })
+    })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [floating !== null]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const detach = (): void => {
+    const r = panel.current?.getBoundingClientRect()
+    setFloating(
+      clampFloating({
+        x: (r?.left ?? 200) - 40,
+        y: (r?.top ?? 80) + 20,
+        w: r?.width ?? width,
+        h: Math.min(r?.height ?? 500, 560)
+      })
+    )
+  }
 
   const nameError = !isValidNoteName(draftName)
     ? t('note.invalidName', { name: draftName })
@@ -45,9 +129,44 @@ export default function NotePanel({
     else onRename(draftName)
   }
 
-  return (
-    <aside className="note-panel" aria-label={t('notes.panel')}>
-      <div className="note-panel-head">
+  const aside = (
+    <aside
+      ref={panel}
+      className={floating ? 'note-panel floating' : 'note-panel'}
+      aria-label={t('notes.panel')}
+      style={
+        floating
+          ? { left: floating.x, top: floating.y, width: floating.w, height: floating.h }
+          : { width }
+      }
+    >
+      <div
+        className="note-panel-head"
+        onPointerDown={(e) => {
+          if (!floating || (e.target as HTMLElement).closest('input, button')) return
+          drag.current = { x: e.clientX, y: e.clientY, from: floating }
+          e.currentTarget.setPointerCapture(e.pointerId)
+        }}
+        onPointerMove={(e) => {
+          const d = drag.current
+          if (!d) return
+          setFloatingState(
+            clampFloating({
+              ...d.from,
+              x: d.from.x + e.clientX - d.x,
+              y: d.from.y + e.clientY - d.y
+            })
+          )
+        }}
+        onPointerUp={() => {
+          if (!drag.current) return
+          drag.current = null
+          setFloatingState((f) => {
+            saveFloating(f)
+            return f
+          })
+        }}
+      >
         <input
           className={nameError ? 'note-name invalid' : 'note-name'}
           value={draftName}
@@ -59,6 +178,14 @@ export default function NotePanel({
             if (e.key === 'Escape') setDraftName(name)
           }}
         />
+        <button
+          className="icon-btn"
+          title={floating ? t('notes.dock') : t('notes.detach')}
+          aria-label={floating ? t('notes.dock') : t('notes.detach')}
+          onClick={() => (floating ? setFloating(null) : detach())}
+        >
+          {floating ? <DockIcon /> : <DetachIcon />}
+        </button>
         <button className="icon-btn danger" title={t('notes.delete')} onClick={onDelete}>
           <TrashIcon />
         </button>
@@ -86,7 +213,13 @@ export default function NotePanel({
       ) : (
         <div className="note-preview">
           {text.trim() ? (
-            <MarkupText text={text} unit={3.8} ratio={1} paragraphSpacing={1.5} />
+            noteParts(text).map((p, k) =>
+              p.kind === 'text' ? (
+                <MarkupText key={k} text={p.text} unit={3.8} ratio={1} paragraphSpacing={1.5} />
+              ) : (
+                <NoteTable key={k} table={p.table} />
+              )
+            )
           ) : (
             <p className="muted">{t('notes.empty')}</p>
           )}
@@ -94,5 +227,80 @@ export default function NotePanel({
       )}
       <p className="muted small">{t('notes.hint', { file: `notes/${name}.md` })}</p>
     </aside>
+  )
+
+  if (floating) return aside
+  return (
+    <>
+      <Resizer width={width} onChange={setWidth} edge="right" min={260} max={900} />
+      {aside}
+    </>
+  )
+}
+
+/** Tabella Markdown della nota, con il testo delle celle nel markup delle carte */
+function NoteTable({ table }: { table: TableBlock }): React.JSX.Element {
+  const cell = (text: string): React.JSX.Element => (
+    <MarkupText text={text} unit={3.8} ratio={1} paragraphSpacing={0} />
+  )
+  return (
+    <div className="note-table">
+      <table>
+        <thead>
+          <tr>
+            {table.header.map((h, k) => (
+              <th key={k} style={{ textAlign: table.align[k] ?? undefined }}>
+                {cell(h)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {table.rows.map((r, i) => (
+            <tr key={i}>
+              {r.map((c, k) => (
+                <td key={k} style={{ textAlign: table.align[k] ?? undefined }}>
+                  {cell(c)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function DetachIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      aria-hidden
+    >
+      <rect x="1.5" y="4.5" width="10" height="10" rx="1" />
+      <path d="M8 1.5h6.5V8M14.5 1.5 8.5 7.5" />
+    </svg>
+  )
+}
+
+function DockIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      aria-hidden
+    >
+      <rect x="1.5" y="1.5" width="13" height="13" rx="1" />
+      <path d="M10 1.5v13" />
+    </svg>
   )
 }

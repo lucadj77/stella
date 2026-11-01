@@ -1,5 +1,11 @@
 import { gunzipSync } from 'zlib'
-import type { FontCatalog, FontFamilyEntry, IconAuthor, IconCatalog } from '../../shared/library'
+import type {
+  FontCatalog,
+  FontFamilyEntry,
+  FontTags,
+  IconAuthor,
+  IconCatalog
+} from '../../shared/library'
 
 // Costruzione dei cataloghi dai dati delle fonti, per l'aggiornamento dall'app. Fa lo stesso
 // lavoro di scripts/make-icon-catalog.mjs, fetch-icon-tags.mjs e make-font-catalog.mjs.
@@ -84,6 +90,77 @@ export function googleFontsCatalog(
     })
     .sort((a, b) => a[0].localeCompare(b[0]))
   return { source: 'https://fonts.google.com', families }
+}
+
+/** Punteggio minimo di un tag per tenerlo nel catalogo: sotto non serve a cercare */
+const MIN_TAG_SCORE = 20
+
+/**
+ * Tag dei font Google da tags/all/families.csv del repository google/fonts: righe "famiglia,
+ * asse, /Gruppo/Tag, punteggio". I tag di qualità (usati da Google per l'ordine) si scartano. Per
+ * le sensazioni (/Expressive/) il punteggio cambia col peso: vale quello del peso normale, se c'è.
+ */
+export function googleFontTags(csv: string): FontTags {
+  const scores = new Map<string, Map<string, { score: number; normal: boolean }>>()
+  for (const line of csv.split(/\r?\n/)) {
+    const cells = csvCells(line)
+    if (cells.length !== 4 || !cells[2].startsWith('/') || !/^\d+(\.\d+)?$/.test(cells[3])) continue
+    const [family, axis, tag, value] = cells
+    if (tag.startsWith('/Quality/')) continue
+    const score = Math.round(Number(value))
+    const normal = axis === '' || axis === 'wght@400'
+    let fam = scores.get(family)
+    if (!fam) scores.set(family, (fam = new Map()))
+    const old = fam.get(tag)
+    const keep = !old
+      ? true
+      : tag.startsWith('/Expressive/')
+        ? normal && !old.normal
+          ? true
+          : normal === old.normal && score > old.score
+        : score > old.score
+    if (keep) fam.set(tag, { score, normal: normal || (old?.normal ?? false) })
+  }
+  const all = [
+    ...new Set(
+      [...scores.values()].flatMap((f) =>
+        [...f].filter(([, v]) => v.score >= MIN_TAG_SCORE).map(([t]) => t)
+      )
+    )
+  ].sort()
+  const index = new Map(all.map((t, i) => [t, i]))
+  const families: Record<string, number[]> = {}
+  for (const [family, fam] of [...scores].sort(([a], [b]) => a.localeCompare(b))) {
+    const flat = [...fam]
+      .filter(([, v]) => v.score >= MIN_TAG_SCORE)
+      .sort(([a], [b]) => index.get(a)! - index.get(b)!)
+      .flatMap(([t, v]) => [index.get(t)!, v.score])
+    if (flat.length) families[family] = flat
+  }
+  return { tags: all, families }
+}
+
+/** Celle di una riga CSV, con le virgolette per le celle che hanno virgole */
+function csvCells(line: string): string[] {
+  const out: string[] = []
+  let cell = ''
+  let quoted = false
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i]
+    if (quoted) {
+      if (c === '"' && line[i + 1] === '"') {
+        cell += '"'
+        i++
+      } else if (c === '"') quoted = false
+      else cell += c
+    } else if (c === '"') quoted = true
+    else if (c === ',') {
+      out.push(cell)
+      cell = ''
+    } else cell += c
+  }
+  out.push(cell)
+  return out.map((c) => c.trim())
 }
 
 /** File di un archivio .tgz (come i pacchetti npm) i cui percorsi soddisfano `want` */

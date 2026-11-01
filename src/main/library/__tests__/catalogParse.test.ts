@@ -1,6 +1,12 @@
 import { gzipSync } from 'zlib'
 import { describe, expect, it } from 'vitest'
-import { gameIconsCatalog, googleFontsCatalog, tagPageIcons, untgz } from '../catalogParse'
+import {
+  gameIconsCatalog,
+  googleFontTags,
+  googleFontsCatalog,
+  tagPageIcons,
+  untgz
+} from '../catalogParse'
 
 describe('gameIconsCatalog', () => {
   it('reads authors from license.txt and paths without the background', () => {
@@ -69,6 +75,34 @@ function tar(files: Record<string, string>): Buffer {
   parts.push(Buffer.alloc(1024))
   return gzipSync(Buffer.concat(parts))
 }
+
+describe('googleFontTags', () => {
+  it('legge i tag, col punteggio del peso normale per le sensazioni', () => {
+    const csv = [
+      'Family,Axes,Tag,Weight',
+      'Cinzel,wght@900,/Expressive/Loud,74',
+      'Cinzel,wght@400,/Expressive/Loud,44',
+      'Cinzel,,/Seasonal/Christmas,86',
+      'Cinzel,,/Quality/Drawing,70',
+      'Advent Pro,"wdth,wght@100,900",/Expressive/Active,40',
+      'Advent Pro,"wdth,wght@100,100",/Expressive/Active,5',
+      'Aladin,,/Theme/Art Nouveau,70',
+      'Aladin,,/Theme/Pixel,10'
+    ].join('\n')
+    const t = googleFontTags(csv)
+    expect(t.tags).toEqual([
+      '/Expressive/Active',
+      '/Expressive/Loud',
+      '/Seasonal/Christmas',
+      '/Theme/Art Nouveau'
+    ])
+    expect(t.families.Cinzel).toEqual([1, 44, 2, 86])
+    // senza il peso normale vale il punteggio più alto
+    expect(t.families['Advent Pro']).toEqual([0, 40])
+    // sotto 20 il tag non si tiene
+    expect(t.families.Aladin).toEqual([3, 70])
+  })
+})
 
 describe('untgz', () => {
   it('extracts the files asked for', () => {
