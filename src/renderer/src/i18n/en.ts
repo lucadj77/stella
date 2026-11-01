@@ -2214,7 +2214,7 @@ export const en = {
   'help.keys.help': 'This help',
   'ai.title': 'Tools for AI agents',
   'ai.intro':
-    'An AI agent that can run commands on this computer (for example Claude Code, Codex or Cursor) can work on Stella projects: read and change components, templates and styles, check for problems and draw the components to look at them. It needs the Stella skill below.',
+    'An AI agent that can run commands on this computer (for example Claude Code, Codex or Cursor) can work on Stella projects: read and change components, templates and styles, check for problems and draw the components to look at them. It needs the Stella skill.',
   'ai.step1': 'Copy the skill.',
   'ai.step2':
     'Paste it into your agent and ask it to install it as a skill (or as project instructions, if it has no skills).',
@@ -2226,6 +2226,12 @@ export const en = {
     'In the web version the skill finds the stella command by itself: it uses the desktop app if it is installed, otherwise it offers to install the command (it needs Node.js, which the agent offers to install if missing). For this to work you must allow your agent to download from GitHub and to install the command and its updates: it will ask for permission the first time. It also updates itself and the command when a new version comes out. The skill is in English, the language agents follow best.',
   'ai.notBuilt':
     'The stella command used by the skill works only after building the app once: run `npm run build` in the Stella code folder.',
+  'ai.downloadHint':
+    'The skill is not inside Stella: Copy and Save download it from GitHub, in the version that matches the installed app. The network is needed only at that moment.',
+  'ai.downloading': 'Downloading the skill…',
+  'ai.downloadFailed':
+    "Can't download the skill from GitHub ({error}). Check your connection and try again, or download it by hand: {url}",
+  'ai.openPage': 'Open the skill page',
   'ai.copy': 'Copy the skill',
   'ai.save': 'Save as file…',
   'ai.copied': 'Skill copied. Paste it into your agent.',

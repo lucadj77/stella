@@ -35,6 +35,7 @@ import {
   registerAssetScheme,
   setProjectFolder
 } from './protocol'
+import { downloadSkill } from '../shared/skill'
 import { MessageError, msg } from '../shared/messages'
 import type { Template } from '../shared/model/template'
 import type {
@@ -546,6 +547,9 @@ function registerIpc(): void {
   )
   ipcMain.handle('update:mode', () => updateMode())
   ipcMain.handle('update:install', (e, version: string) => installUpdate(version, e.sender))
+  ipcMain.handle('ai:download-skill', () =>
+    downloadSkill(app.getVersion(), (url) => net.fetch(url))
+  )
   ipcMain.handle('ai:save-skill', async (_, folder: string, text: string) => {
     const file = join(folder, 'stella', 'SKILL.md')
     await mkdir(dirname(file), { recursive: true })

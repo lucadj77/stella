@@ -29,9 +29,10 @@ There is no AI inside the app:
 
 The only AI-related part is optional. A project is just files on your disk, so you can let an AI agent you already use (ChatGPT, Codex, Claude Code…) work on it. To help with that, Stella has a command-line tool and a skill file (`skill/stella/SKILL.md`) that explain the project format to the agent.
 
-- The `skill/` folder is not packaged as a file in the exe, AppImage or dmg.
-- The skill text is embedded in the app only to be shown in the optional **AI tools** window, and it's written to disk only if you press the button that saves it for your agent. If you never open that window, nothing AI-related is installed, runs or is sent anywhere.
-- Deleting `skill/stella/SKILL.md` doesn't change how the app works. If you build from source, the build currently needs the file, because the AI tools window imports it.
+- The skill is not part of the app: the exe, AppImage and dmg contain no skill file and no skill text.
+- The optional **AI tools** window downloads the skill from GitHub (the version matching your installed app) only when you press the button to copy it or save it for your agent. If you never do, nothing AI-related is installed, runs or is sent anywhere.
+- The `stella` command-line tool stays in the app: it isn't AI, it lets you run the same operations from a terminal or a script, and it's also what agents use.
+- Deleting `skill/stella/SKILL.md` from the sources doesn't affect the app or the build.
 
 ## Development
 

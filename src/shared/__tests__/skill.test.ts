@@ -1,6 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { COMMAND_PLACEHOLDER, fillSkill, VERSION_PLACEHOLDER } from '../skill'
+import {
+  COMMAND_PLACEHOLDER,
+  downloadSkill,
+  fillSkill,
+  skillUrls,
+  VERSION_PLACEHOLDER
+} from '../skill'
 
 const source = readFileSync('skill/stella/SKILL.md', 'utf8')
 const command = '"/Users/me/Apps/Stella.app/Contents/MacOS/Stella" --cli'
@@ -21,5 +27,27 @@ describe('fillSkill', () => {
     const skill = fillSkill(source, '1.4.1', '')
     expect(skill).toContain('```\n' + COMMAND_PLACEHOLDER + '\n```')
     expect(skill).toContain('This skill is for Stella 1.4.1.')
+  })
+})
+
+describe('downloadSkill', () => {
+  const ok = (text: string): Response => new Response(text, { status: 200 })
+  it('scarica la skill della versione, poi quella di main', async () => {
+    const asked: string[] = []
+    const text = await downloadSkill('1.8.5', async (url) => {
+      asked.push(url)
+      return url.includes('/v1.8.5/') ? new Response('', { status: 404 }) : ok(source)
+    })
+    expect(text).toBe(source)
+    expect(asked).toEqual(skillUrls('1.8.5'))
+    expect(asked[0]).toContain('/v1.8.5/skill/stella/SKILL.md')
+  })
+
+  it('senza rete dà un messaggio con la pagina da cui scaricarla', async () => {
+    await expect(
+      downloadSkill('1.8.5', async () => {
+        throw new Error('offline')
+      })
+    ).rejects.toThrow(/ai\.downloadFailed.*offline/)
   })
 })

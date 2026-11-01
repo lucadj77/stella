@@ -2250,7 +2250,7 @@ export const it: Record<MessageKey, string> = {
   'help.keys.help': 'Questo aiuto',
   'ai.title': 'Strumenti per gli agenti IA',
   'ai.intro':
-    'Un agente IA che può eseguire comandi su questo computer (per esempio Claude Code, Codex o Cursor) può lavorare sui progetti Stella: leggere e modificare componenti, modelli e stili, cercare i problemi e disegnare i componenti per guardarli. Gli serve la skill di Stella qui sotto.',
+    'Un agente IA che può eseguire comandi su questo computer (per esempio Claude Code, Codex o Cursor) può lavorare sui progetti Stella: leggere e modificare componenti, modelli e stili, cercare i problemi e disegnare i componenti per guardarli. Gli serve la skill di Stella.',
   'ai.step1': 'Copia la skill.',
   'ai.step2':
     'Incollala nel tuo agente e chiedigli di installarla come skill (o come istruzioni del progetto, se non gestisce le skill).',
@@ -2262,6 +2262,12 @@ export const it: Record<MessageKey, string> = {
     "Nella versione web la skill trova da sola il comando stella: usa l'app desktop se è installata, altrimenti propone di installare il comando (serve Node.js, che se manca l'agente propone di installare). Perché funzioni devi autorizzare il tuo agente a scaricare da GitHub e a installare il comando e gli aggiornamenti: ti chiederà il permesso la prima volta. Si aggiorna anche da sola, insieme al comando, quando esce una nuova versione. La skill è in inglese, la lingua che gli agenti seguono meglio.",
   'ai.notBuilt':
     "Il comando stella usato dalla skill funziona solo dopo aver compilato l'app una volta: esegui `npm run build` nella cartella del codice di Stella.",
+  'ai.downloadHint':
+    'La skill non è dentro Stella: Copia e Salva la scaricano da GitHub, nella versione adatta a quella installata. Serve la rete solo in quel momento.',
+  'ai.downloading': 'Scarico la skill…',
+  'ai.downloadFailed':
+    'Non riesco a scaricare la skill da GitHub ({error}). Controlla la connessione e riprova, oppure scaricala a mano: {url}',
+  'ai.openPage': 'Apri la pagina della skill',
   'ai.copy': 'Copia la skill',
   'ai.save': 'Salva come file…',
   'ai.copied': 'Skill copiata. Incollala nel tuo agente.',

@@ -77,7 +77,7 @@ export const texts = {
         ]
       ],
       note: 'Stella si collega a internet solo per controllare gli aggiornamenti, per scaricare font e icone quando li scegli tu e per leggere un foglio Google se ne colleghi uno.',
-      ai: 'Stella è progettata, diretta e provata da me, Luca Di Gialleonardo, sui miei prototipi; buona parte del codice è scritta con un assistente di programmazione IA (Claude Code), come si vede nella storia dei commit. Nell’app non c’è IA: non genera immagini né testi e non manda i tuoi dati a nessun servizio. L’unica parte legata all’IA è facoltativa: un progetto è fatto di file, quindi puoi farci lavorare un agente IA che usi già, con lo strumento a riga di comando e il file di istruzioni che Stella offre. Se non apri la finestra Strumenti IA, non si installa e non parte niente.'
+      ai: 'Stella è progettata, diretta e provata da me, Luca Di Gialleonardo, sui miei prototipi; buona parte del codice è scritta con un assistente di programmazione IA (Claude Code), come si vede nella storia dei commit. Nell’app non c’è IA: non genera immagini né testi e non manda i tuoi dati a nessun servizio. L’unica parte legata all’IA è facoltativa: un progetto è fatto di file, quindi puoi farci lavorare un agente IA che usi già, con lo strumento a riga di comando e il file di istruzioni che Stella offre. La skill non è dentro l’app: la finestra Strumenti IA la scarica da GitHub solo se premi il pulsante per salvarla o copiarla.'
     },
     shots: {
       title: 'Uno sguardo',
@@ -272,7 +272,7 @@ export const texts = {
         ]
       ],
       note: 'Stella goes online only to check for updates, to download fonts and icons when you pick them, and to read a Google sheet if you link one.',
-      ai: 'Stella is designed, directed and tested by me, Luca Di Gialleonardo, on my own prototypes; a large part of the code was written with an AI coding assistant (Claude Code), as the commit history shows. There is no AI inside the app: it doesn’t generate images or text and sends none of your data to any service. The only AI-related part is optional: a project is just files, so you can let an AI agent you already use work on it, with the command-line tool and the instruction file Stella provides. If you never open the AI tools window, nothing is installed or runs.'
+      ai: 'Stella is designed, directed and tested by me, Luca Di Gialleonardo, on my own prototypes; a large part of the code was written with an AI coding assistant (Claude Code), as the commit history shows. There is no AI inside the app: it doesn’t generate images or text and sends none of your data to any service. The only AI-related part is optional: a project is just files, so you can let an AI agent you already use work on it, with the command-line tool and the instruction file Stella provides. The skill is not inside the app: the AI tools window downloads it from GitHub only if you press the button to save or copy it.'
     },
     shots: {
       title: 'A look',

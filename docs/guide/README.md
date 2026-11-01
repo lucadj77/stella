@@ -909,7 +909,7 @@ At the end the app lists what it could not convert, for example image masks and 
 
 An AI agent that runs commands on your computer (for example Claude Code, Codex or Cursor) can read and change Stella projects, look for problems and draw the cards to check them. It needs the Stella **skill**, a text of instructions.
 
-**AI tools…**, in the ⚙ menu of every screen (and in the **Help** menu of the desktop app), shows the skill with this computer's `stella` command already filled in:
+**AI tools…**, in the ⚙ menu of every screen (and in the **Help** menu of the desktop app), prepares the skill with this computer's `stella` command already filled in. The skill is not inside the app: **Copy the skill** and **Save as file…** download it from GitHub, in the version that matches the installed app, and only then is the network needed. Offline, the window says so and gives the link to download it by hand.
 
 1. **Copy the skill**.
 2. Paste it into the agent and ask it to install it as a skill (or as project instructions, if it has no skills). Alternatively **Save as file…** writes it into a skills folder; Claude Code reads them from `.claude/skills` in your home folder or in a project.

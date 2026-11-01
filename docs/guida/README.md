@@ -909,7 +909,7 @@ Al termine l'app elenca ciò che non ha potuto convertire, per esempio le masche
 
 Un agente IA che esegue comandi sul computer (per esempio Claude Code, Codex o Cursor) può leggere e modificare i progetti Stella, cercare i problemi e disegnare le carte per controllarle. Gli serve la **skill** di Stella, un testo di istruzioni.
 
-**Strumenti IA…**, nel menu ⚙ di ogni schermata (e nel menu **Aiuto** dell'app per computer), mostra la skill con il comando `stella` di questo computer già inserito:
+**Strumenti IA…**, nel menu ⚙ di ogni schermata (e nel menu **Aiuto** dell'app per computer), prepara la skill con il comando `stella` di questo computer già inserito. La skill non è dentro l'app: **Copia la skill** e **Salva come file…** la scaricano da GitHub, nella versione adatta a quella installata, e solo allora serve la rete. Senza rete la finestra lo dice e dà il link per scaricarla a mano.
 
 1. **Copia la skill**.
 2. Incollala nell'agente e chiedigli di installarla come skill (o come istruzioni del progetto, se non gestisce le skill). In alternativa **Salva come file…** la scrive in una cartella di skill; Claude Code le legge da `.claude/skills` nella cartella utente o in un progetto.

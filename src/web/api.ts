@@ -1,3 +1,4 @@
+import { downloadSkill } from '../shared/skill'
 import { mkdir, onFileChange, readFile, writeFile } from './shims/fs'
 import { basename, dirname, join } from './shims/path'
 import type { Api, BackupSettings, BackupState } from '../shared/api'
@@ -283,6 +284,7 @@ export const webApi: Api = {
   installUpdate: async () => {},
   onUpdateProgress: () => () => {},
   appVersion: async () => __APP_VERSION__,
+  downloadSkill: () => downloadSkill(__APP_VERSION__, (url) => fetch(url)),
   saveSkill: desktopOnly,
   skillsFolder: desktopOnly,
   setAppState: async (f, d) => {

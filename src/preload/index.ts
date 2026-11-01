@@ -89,6 +89,7 @@ const api: Api = {
     return () => ipcRenderer.removeListener('update:progress', listener)
   },
   appVersion: () => ipcRenderer.invoke('app:version'),
+  downloadSkill: () => ipcRenderer.invoke('ai:download-skill'),
   saveSkill: (folder, text) => ipcRenderer.invoke('ai:save-skill', folder, text),
   skillsFolder: () => ipcRenderer.invoke('ai:skills-folder'),
   setAppState: (folder, dirty) => ipcRenderer.invoke('agent:app-state', folder, dirty),
