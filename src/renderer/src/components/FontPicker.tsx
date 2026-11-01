@@ -6,6 +6,15 @@ import type {
   SystemFontFamily
 } from '../../../shared/library'
 import { fuzzyFilter } from '../../../shared/model/fuzzy'
+import {
+  FONT_GENRES,
+  STYLE_GROUPS,
+  filterFonts,
+  similarFonts,
+  tagIndex,
+  tagSlug,
+  type FontGenre
+} from '../../../shared/model/fontSearch'
 import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
@@ -15,11 +24,35 @@ import { APP_FONTS, useProjectFonts } from '../render/fonts'
 import Segmented from './Segmented'
 
 // Scelta del font con anteprima: i font del progetto, quelli di Google, che si scaricano in
-// assets/fonts/, e quelli installati sul computer, che si possono copiare nel progetto. Vedi docs/specifica.md, sezione 10.2.
+// assets/fonts/, e quelli installati sul computer, che si possono copiare nel progetto. I font
+// Google si cercano anche per genere e stile (model/fontSearch.ts), si segnano come preferiti e
+// si trovano simili a uno dato. Vedi docs/specifica.md, sezione 10.2.
 
 const SAMPLE_KEY = 'fontPickerSample'
+const VIEW_KEY = 'fontPickerView'
+const FAVORITES_KEY = 'fontFavorites'
+const RECENT_KEY = 'fontRecent'
+const RECENT_MAX = 12
 const PAGE = 40
 const CATEGORIES = ['serif', 'sans-serif', 'display', 'handwriting', 'monospace'] as const
+const SUBSETS = ['latin-ext', 'greek', 'cyrillic', 'vietnamese'] as const
+
+function loadList(key: string): string[] {
+  try {
+    const v = JSON.parse(localStorage.getItem(key) ?? '[]')
+    return Array.isArray(v) ? v.filter((x) => typeof x === 'string') : []
+  } catch {
+    return []
+  }
+}
+
+function saveList(key: string, list: string[]): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(list))
+  } catch {
+    // preferenza non essenziale
+  }
+}
 
 let catalogPromise: Promise<FontCatalog> | null = null
 
@@ -89,6 +122,23 @@ export default function FontPicker({
   const [sample, setSampleState] = useState(() => loadSample(t('fonts.sample')))
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<string | null>(null)
+  const [genre, setGenre] = useState<FontGenre | null>(null)
+  const [style, setStyle] = useState<string | null>(null)
+  const [boldItalic, setBoldItalic] = useState(false)
+  const [subset, setSubset] = useState<string | null>(null)
+  /** Solo i preferiti o i recenti, invece di tutto il catalogo */
+  const [only, setOnly] = useState<'favorites' | 'recent' | null>(null)
+  /** Font di cui si mostrano i simili */
+  const [similar, setSimilar] = useState<string | null>(null)
+  const [favorites, setFavorites] = useState<string[]>(() => loadList(FAVORITES_KEY))
+  const [recent, setRecent] = useState<string[]>(() => loadList(RECENT_KEY))
+  const [view, setViewState] = useState<'list' | 'grid'>(() => {
+    try {
+      return localStorage.getItem(VIEW_KEY) === 'grid' ? 'grid' : 'list'
+    } catch {
+      return 'list'
+    }
+  })
   const [catalog, setCatalog] = useState<FontCatalog | null>(null)
   const [system, setSystem] = useState<SystemFontFamily[] | null>(null)
   /** Pagine mostrate: si torna alla prima quando cambiano ricerca o filtro */
@@ -115,6 +165,31 @@ export default function FontPicker({
       setError(messageFromError(e))
     }
   }
+
+  const setView = (v: 'list' | 'grid'): void => {
+    setViewState(v)
+    try {
+      localStorage.setItem(VIEW_KEY, v)
+    } catch {
+      // preferenza non essenziale
+    }
+  }
+
+  const toggleFavorite = (family: string): void => {
+    const next = favorites.includes(family)
+      ? favorites.filter((f) => f !== family)
+      : [...favorites, family]
+    setFavorites(next)
+    saveList(FAVORITES_KEY, next)
+  }
+
+  /** Cambiare un filtro chiude l'elenco dei simili */
+  const filtered =
+    <T,>(set: (v: T) => void) =>
+    (v: T) => {
+      set(v)
+      setSimilar(null)
+    }
 
   const setSample = (s: string): void => {
     setSampleState(s)
@@ -144,19 +219,55 @@ export default function FontPicker({
     [project.families]
   )
 
+  const tags = useMemo(() => tagIndex(catalog?.tags), [catalog])
+
   const google = useMemo(() => {
     if (!catalog) return []
-    const list = catalog.families.filter((f) => !category || f[1] === category)
-    return fuzzyFilter(list, query, (f) => f[0])
-  }, [catalog, category, query])
+    if (similar) return similarFonts(catalog, tags, similar)
+    const labels = {
+      tag: (tag: string) => t(`fonts.tag.${tagSlug(tag)}` as MessageKey),
+      genre: (g: FontGenre) => t(`fonts.genre.${g}` as MessageKey)
+    }
+    const filter = { category, genre, style, boldItalic, subset, query: '' }
+    let list = filterFonts(catalog, tags, filter, labels)
+    if (query.trim()) {
+      // prima i nomi, anche scritti male, poi i font che hanno lo stile cercato
+      const byName = fuzzyFilter(list, query, (f) => f[0])
+      const names = new Set(byName.map((f) => f[0]))
+      const byStyle = filterFonts(catalog, tags, { ...filter, query }, labels).filter(
+        (f) => !names.has(f[0])
+      )
+      list = [...byName, ...byStyle]
+    }
+    if (only === 'favorites') list = list.filter((f) => favorites.includes(f[0]))
+    if (only === 'recent') {
+      const pos = new Map(recent.map((f, k) => [f, k]))
+      list = list.filter((f) => pos.has(f[0])).sort((a, b) => pos.get(a[0])! - pos.get(b[0])!)
+    }
+    return list
+  }, [
+    catalog,
+    tags,
+    similar,
+    category,
+    genre,
+    style,
+    boldItalic,
+    subset,
+    query,
+    only,
+    favorites,
+    recent,
+    t
+  ])
 
   const systemList = useMemo(
     () => (system ? fuzzyFilter(system, query, (f) => f.family) : []),
     [system, query]
   )
 
-  const view = `${tab}|${category}|${query}`
-  const limit = more.view === view ? more.limit : PAGE
+  const page = `${tab}|${category}|${genre}|${style}|${boldItalic}|${subset}|${only}|${similar}|${query}`
+  const limit = more.view === page ? more.limit : PAGE
   const visible = google.slice(0, limit)
   useEffect(() => {
     if (tab === 'google' && navigator.onLine) visible.forEach(loadPreview)
@@ -192,6 +303,9 @@ export default function FontPicker({
     try {
       const list = allVariants(f).filter((v) => variants.has(key(v)))
       publishAssetsUpdate(await window.api.downloadFont(f[0], list))
+      const next = [f[0], ...recent.filter((r) => r !== f[0])].slice(0, RECENT_MAX)
+      setRecent(next)
+      saveList(RECENT_KEY, next)
       onPick(f[0])
       onClose()
     } catch (e) {
@@ -243,14 +357,42 @@ export default function FontPicker({
         <div className="asset-picker-bar">
           <span className="muted small">{t('fonts.sampleLabel')}</span>
           <input value={sample} onChange={(e) => setSample(e.target.value)} />
+          <Segmented
+            value={view}
+            options={[
+              ['list', t('fonts.viewList')],
+              ['grid', t('fonts.viewGrid')]
+            ]}
+            onChange={(v) => setView(v as 'list' | 'grid')}
+          />
         </div>
         {tab === 'google' && (
           <div className="asset-picker-folders">
-            <button className={category === null ? 'on' : ''} onClick={() => setCategory(null)}>
+            <button
+              className={only === 'favorites' ? 'on' : ''}
+              onClick={() => filtered(setOnly)(only === 'favorites' ? null : 'favorites')}
+            >
+              {t('fonts.favorites', { n: favorites.length })}
+            </button>
+            <button
+              className={only === 'recent' ? 'on' : ''}
+              onClick={() => filtered(setOnly)(only === 'recent' ? null : 'recent')}
+            >
+              {t('fonts.recent')}
+            </button>
+            <span className="chip-sep" />
+            <button
+              className={category === null ? 'on' : ''}
+              onClick={() => filtered(setCategory)(null)}
+            >
               {t('assetPicker.all')}
             </button>
             {CATEGORIES.map((c) => (
-              <button key={c} className={category === c ? 'on' : ''} onClick={() => setCategory(c)}>
+              <button
+                key={c}
+                className={category === c ? 'on' : ''}
+                onClick={() => filtered(setCategory)(c)}
+              >
                 {t(`fonts.category.${c}` as MessageKey)}
               </button>
             ))}
@@ -268,6 +410,77 @@ export default function FontPicker({
             )}
           </div>
         )}
+        {tab === 'google' && catalog?.tags && (
+          <div className="asset-picker-folders" title={t('fonts.genreHint')}>
+            <span className="muted small chip-label">{t('fonts.genreLabel')}</span>
+            {FONT_GENRES.map((g) => (
+              <button
+                key={g}
+                className={genre === g ? 'on' : ''}
+                onClick={() => filtered(setGenre)(genre === g ? null : g)}
+              >
+                {t(`fonts.genre.${g}` as MessageKey)}
+              </button>
+            ))}
+          </div>
+        )}
+        {tab === 'google' && (
+          <div className="asset-picker-bar font-filters">
+            {catalog?.tags && (
+              <label>
+                <span className="muted small">{t('fonts.styleLabel')}</span>
+                <select
+                  value={style ?? ''}
+                  onChange={(e) => filtered(setStyle)(e.target.value || null)}
+                >
+                  <option value="">{t('fonts.anyStyle')}</option>
+                  {STYLE_GROUPS.map((g) => (
+                    <optgroup key={g.group} label={t(`fonts.styleGroup.${g.group}` as MessageKey)}>
+                      {g.tags.map((tag) => (
+                        <option key={tag} value={tag}>
+                          {t(`fonts.tag.${tagSlug(tag)}` as MessageKey)}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </label>
+            )}
+            <label title={t('fonts.boldItalicHint')}>
+              <input
+                type="checkbox"
+                checked={boldItalic}
+                onChange={(e) => filtered(setBoldItalic)(e.target.checked)}
+              />
+              {t('fonts.boldItalic')}
+            </label>
+            <label>
+              <span className="muted small">{t('fonts.subsetLabel')}</span>
+              <select
+                value={subset ?? ''}
+                onChange={(e) => filtered(setSubset)(e.target.value || null)}
+              >
+                <option value="">{t('fonts.subset.all')}</option>
+                {SUBSETS.map((s) => (
+                  <option key={s} value={s}>
+                    {t(`fonts.subset.${s}` as MessageKey)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {catalog && (
+              <span className="muted small font-count">
+                {t('fonts.count', { n: google.length })}
+              </span>
+            )}
+          </div>
+        )}
+        {tab === 'google' && similar && (
+          <div className="font-similar-banner">
+            <span>{t('fonts.similarTo', { family: similar })}</span>
+            <button onClick={() => setSimilar(null)}>{t('fonts.backToList')}</button>
+          </div>
+        )}
         {tab === 'google' && updating && updating !== 'running' && (
           <p className="muted small">
             {updating.after === updating.before
@@ -275,7 +488,7 @@ export default function FontPicker({
               : t('catalog.updated', { before: updating.before, after: updating.after })}
           </p>
         )}
-        <div className="font-list">
+        <div className={view === 'grid' ? 'font-list grid' : 'font-list'}>
           {tab === 'project' &&
             projectFamilies.map((f) => (
               <button
@@ -350,7 +563,10 @@ export default function FontPicker({
               </div>
             ))}
           {tab === 'system' && systemList.length > limit && (
-            <button className="more-btn" onClick={() => setMore({ view, limit: limit + PAGE })}>
+            <button
+              className="more-btn"
+              onClick={() => setMore({ view: page, limit: limit + PAGE })}
+            >
               {t('icons.more', { n: systemList.length - limit })}
             </button>
           )}
@@ -364,6 +580,17 @@ export default function FontPicker({
           {tab === 'google' &&
             visible.map((f) => (
               <div key={f[0]} className={open?.[0] === f[0] ? 'font-row open' : 'font-row'}>
+                <button
+                  className={favorites.includes(f[0]) ? 'font-star on' : 'font-star'}
+                  title={favorites.includes(f[0]) ? t('fonts.unfavorite') : t('fonts.favorite')}
+                  aria-label={
+                    favorites.includes(f[0]) ? t('fonts.unfavorite') : t('fonts.favorite')
+                  }
+                  aria-pressed={favorites.includes(f[0])}
+                  onClick={() => toggleFavorite(f[0])}
+                >
+                  {favorites.includes(f[0]) ? '★' : '☆'}
+                </button>
                 <button className="font-row-main" onClick={() => choose(f)}>
                   <span className="font-row-head">
                     <b>{f[0]}</b>
@@ -397,6 +624,17 @@ export default function FontPicker({
                     <span className="muted small">
                       {t('fonts.licenseNote', { license: f[5] || '?' })}
                     </span>
+                    {tags.has(f[0]) && (
+                      <button
+                        title={t('fonts.similarHint')}
+                        onClick={() => {
+                          setSimilar(f[0])
+                          setOpen(null)
+                        }}
+                      >
+                        {t('fonts.similar')}
+                      </button>
+                    )}
                     <button
                       className="primary"
                       disabled={!variants.size || busy}
@@ -409,12 +647,21 @@ export default function FontPicker({
               </div>
             ))}
           {tab === 'google' && google.length > limit && (
-            <button className="more-btn" onClick={() => setMore({ view, limit: limit + PAGE })}>
+            <button
+              className="more-btn"
+              onClick={() => setMore({ view: page, limit: limit + PAGE })}
+            >
               {t('icons.more', { n: google.length - limit })}
             </button>
           )}
           {tab === 'google' && catalog && google.length === 0 && (
-            <p className="muted">{t('fonts.noMatch')}</p>
+            <p className="muted">
+              {only === 'favorites'
+                ? t('fonts.noFavorites')
+                : only === 'recent'
+                  ? t('fonts.noRecent')
+                  : t('fonts.noMatch')}
+            </p>
           )}
         </div>
         {error && <p className="field-error">{t(error)}</p>}

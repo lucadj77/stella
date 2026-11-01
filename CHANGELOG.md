@@ -5,6 +5,22 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.8.5-beta.2
+
+### English
+
+- **Finding Google fonts**: the Google Fonts tab of the font window has new ways to find a font without scrolling through all 1900. **Genre** shows the fonts that suit a kind of game (Fantasy, Horror, Western, Sci-fi, Retro and arcade, Military, Kids, Elegant). **Style** picks one of the styles Google gives its fonts, such as medieval, brush, distressed, pixel, calm or vintage. The search finds these styles too, in English and Italian. **Similar fonts**, in an open font, lists the fonts closest in feeling. The ☆ adds a font to the **Favorites**, and **Recent** shows the fonts you downloaded last. **With bold and italic** and **Alphabet** narrow the list, and **Grid** shows more fonts at once.
+- **Notes**: the preview shows Markdown tables. The notes panel can be widened by dragging its edge, or detached into a floating window you can move and resize.
+- **Table setup**: texts are centered in their box by default. The panel on the right can align them left or right (`align=left` or `align=right` in the text).
+- **AI tools**: the skill for AI agents is no longer inside the app. **Copy** and **Save** in the AI tools window download it from GitHub, in the version that matches the installed app; offline, the window gives the link to download it by hand.
+
+### Italiano
+
+- **Trovare i font Google**: la scheda Google Fonts della finestra dei font ha nuovi modi per trovare un font senza scorrerne 1900. **Genere** mostra i font adatti a un tipo di gioco (Fantasy, Horror, Western, Fantascienza, Retrò e arcade, Militare, Bambini, Elegante). **Stile** sceglie uno degli stili che Google dà ai suoi font, come medievale, pennello, consumato, pixel, calmo o vintage. Anche la ricerca trova questi stili, in italiano e in inglese. **Font simili**, in un font aperto, elenca i font più vicini come sensazione. La ☆ aggiunge un font ai **Preferiti**, e **Recenti** mostra gli ultimi font scaricati. **Con grassetto e corsivo** e **Alfabeto** restringono l'elenco, e **Griglia** mostra più font insieme.
+- **Note**: l'anteprima mostra le tabelle Markdown. Il pannello delle note si allarga trascinandone il bordo, oppure si stacca in una finestra mobile da spostare e ridimensionare.
+- **Schema del tavolo**: i testi sono centrati nel loro riquadro. Il pannello a destra li allinea a sinistra o a destra (`align=left` o `align=right` nel testo).
+- **Strumenti IA**: la skill per gli agenti IA non è più dentro l'app. **Copia** e **Salva** nella finestra Strumenti IA la scaricano da GitHub, nella versione adatta a quella installata; senza rete la finestra dà il link per scaricarla a mano.
+
 ## 1.8.5-beta.1
 
 ### English

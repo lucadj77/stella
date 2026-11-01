@@ -6,10 +6,12 @@ import tagsPath from '../../../resources/catalogs/game-icons-tags.json?asset'
 import kenneyIconsPath from '../../../resources/catalogs/kenney-icons.json?asset'
 import kenneyImagesPath from '../../../resources/catalogs/kenney-images.json?asset'
 import fontsPath from '../../../resources/catalogs/google-fonts.json?asset'
-import type { FontCatalog, IconCatalog, IconCollection } from '../../shared/library'
+import fontTagsPath from '../../../resources/catalogs/google-fonts-tags.json?asset'
+import type { FontCatalog, FontTags, IconCatalog, IconCollection } from '../../shared/library'
 
 // Cataloghi inclusi nell'app (resources/catalogs), letti alla prima richiesta. Si rigenerano con
-// scripts/make-icon-catalog.mjs, fetch-icon-tags.mjs, make-kenney-catalogs.mjs e make-font-catalog.mjs.
+// scripts/make-icon-catalog.mjs, fetch-icon-tags.mjs, make-kenney-catalogs.mjs, make-font-catalog.mjs e
+// make-font-tags.mjs.
 // Quelli di game-icons.net e dei font Google si aggiornano anche dall'app (catalogUpdate.ts): la
 // copia aggiornata sta nella cartella dei dati dell'utente e vale finché non ne ha meno voci di
 // quella inclusa, cioè finché una versione nuova dell'app non porta un catalogo più recente.
@@ -56,10 +58,23 @@ export function iconCatalog(collection: IconCollection = 'game-icons'): Promise<
   return p
 }
 
+/** I tag servono solo ai filtri: senza, il catalogo dei font funziona lo stesso */
+async function fontTags(): Promise<FontTags | undefined> {
+  try {
+    const base = await json<FontTags>(fontTagsPath)
+    return await newest(base, 'google-fonts-tags.json', (t) => Object.keys(t.families).length)
+  } catch {
+    return undefined
+  }
+}
+
 export function fontCatalog(): Promise<FontCatalog> {
-  fonts ??= json<FontCatalog>(fontsPath).then((base) =>
-    newest(base, 'google-fonts.json', (c) => c.families.length)
-  )
+  fonts ??= Promise.all([
+    json<FontCatalog>(fontsPath).then((base) =>
+      newest(base, 'google-fonts.json', (c) => c.families.length)
+    ),
+    fontTags()
+  ]).then(([c, tags]) => (tags ? { ...c, tags } : c))
   fonts.catch(() => (fonts = null))
   return fonts
 }

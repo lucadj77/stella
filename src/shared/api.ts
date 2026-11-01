@@ -316,6 +316,8 @@ export interface Api {
   /** Versione dell'app, per esempio 1.2.0-beta.1 */
   appVersion(): Promise<string>
   /** Scrive la skill in <cartella>/stella/SKILL.md e ne restituisce il percorso */
+  /** Scarica da GitHub la skill della versione installata (non è dentro l'app) */
+  downloadSkill(): Promise<string>
   saveSkill(folder: string, text: string): Promise<string>
   /** Cartella proposta per salvare la skill: quella delle skill di Claude Code, se c'è */
   skillsFolder(): Promise<string>

@@ -6,7 +6,7 @@
 //   zone 0,0 280x60 "Giocatore 1"
 //   deck Personaggi/1?side=back 20,10 count=8 "Mazzo"
 //   card Personaggi/nome=Mago 60,10 rotate=90 "Il mago"
-//   text 140,30 width=50 "Pesca **2** carte"
+//   text 140,30 width=50 "Pesca **2** carte"            (align=left o align=right; di base al centro)
 //   arrow 40,50 -> 60,80 "pesca"
 //   image icons/moneta.png 200,20 width=10
 //
@@ -27,12 +27,22 @@ export type SetupItem = { from: number; to: number } & (
       label: string
     }
   | { kind: 'zone'; x: number; y: number; w: number; h: number; label: string }
-  | { kind: 'text'; x: number; y: number; w: number; text: string }
+  | {
+      kind: 'text'
+      x: number
+      y: number
+      w: number
+      text: string
+      /** Allineamento nel riquadro largo w; di base al centro */
+      align?: SetupTextAlign
+    }
   | { kind: 'arrow'; x: number; y: number; x2: number; y2: number; label: string }
   | { kind: 'image'; src: string; x: number; y: number; w: number; rotate: number }
 )
 
 export type SetupKind = SetupItem['kind']
+
+export type SetupTextAlign = 'left' | 'center' | 'right'
 
 export interface Setup {
   /** Misure dell'area in mm; senza, quelle degli elementi */
@@ -130,6 +140,7 @@ function parseItem(line: string, from: number): SetupItem | null {
   let name = ''
   let label: string | null = null
   const opts: Record<string, number> = {}
+  let align: SetupTextAlign | null = null
   for (const p of parts.slice(1)) {
     if (p.quoted) {
       if (label !== null) return null
@@ -139,14 +150,17 @@ function parseItem(line: string, from: number): SetupItem | null {
     const pair = PAIR.exec(p.text)
     const sz = SIZE.exec(p.text)
     const opt = /^(rotate|count|width)=(-?\d+(?:[.,]\d+)?)$/i.exec(p.text)
+    const al = /^align=(left|center|right)$/i.exec(p.text)
     if (p.text === '->') continue
-    if (pair) pairs.push([num(pair[1]), num(pair[2])])
+    if (al && !align) align = al[1].toLowerCase() as SetupTextAlign
+    else if (pair) pairs.push([num(pair[1]), num(pair[2])])
     else if (sz && !size) size = [num(sz[1]), num(sz[2])]
     else if (opt) opts[opt[1].toLowerCase()] = num(opt[2])
     else if (!name) name = p.text
     else return null
   }
   const at = { from, to: from + line.length }
+  if (align && kind !== 'text') return null
   const [x, y] = pairs[0] ?? [NaN, NaN]
   if (!Number.isFinite(x) || !Number.isFinite(y)) return null
   const rotate = ((Math.round(opts.rotate ?? 0) % 360) + 360) % 360
@@ -171,7 +185,15 @@ function parseItem(line: string, from: number): SetupItem | null {
       return { kind, x, y, w: size[0], h: size[1], label: label ?? '', ...at }
     case 'text':
       if (name || size || pairs.length !== 1 || label === null) return null
-      return { kind, x, y, w: opts.width ?? SETUP_TEXT_W, text: label, ...at }
+      return {
+        kind,
+        x,
+        y,
+        w: opts.width ?? SETUP_TEXT_W,
+        text: label,
+        ...(align && align !== 'center' ? { align } : {}),
+        ...at
+      }
     case 'arrow':
       if (name || size || pairs.length !== 2) return null
       return { kind, x, y, x2: pairs[1][0], y2: pairs[1][1], label: label ?? '', ...at }
@@ -221,7 +243,7 @@ export function setupLine(it: SetupItem): string {
     case 'zone':
       return `zone ${r(it.x)},${r(it.y)} ${r(it.w)}x${r(it.h)}${text(it.label)}`
     case 'text':
-      return `text ${r(it.x)},${r(it.y)} width=${r(it.w)} ${quote(it.text.replace(/\n/g, ' '))}`
+      return `text ${r(it.x)},${r(it.y)} width=${r(it.w)}${it.align && it.align !== 'center' ? ` align=${it.align}` : ''} ${quote(it.text.replace(/\n/g, ' '))}`
     case 'arrow':
       return `arrow ${r(it.x)},${r(it.y)} -> ${r(it.x2)},${r(it.y2)}${text(it.label)}`
     case 'image':
