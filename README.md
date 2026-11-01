@@ -18,6 +18,21 @@ Packages are on the [Releases](https://github.com/lucadj77/stella/releases) page
 
 Where nothing can be installed there is the **web version**, for Chrome, Edge or Opera (in Brave enable `brave://flags/#file-system-access-api`): <https://stella.lucadj.eu/app/>. It works on the same projects, with a few features less; see [docs/web.md](docs/web.md) (in Italian).
 
+## AI-assisted development
+
+Stella is designed, directed and tested by me, Luca Di Gialleonardo, on my own board game prototypes. A large part of the code was written with an AI coding assistant (Claude Code): you can see it in the commit history, where those commits carry a `Co-Authored-By: Claude` line.
+
+There is no AI inside the app:
+
+- Stella doesn't generate images, text or anything else for you, and has no AI features.
+- Your art, your text and your data stay yours and stay on your computer. The app sends none of your data to any server: it only connects to the internet to check for updates and, when you open them, to browse Google Fonts and Iconify icons, or to read a Google sheet you link.
+
+The only AI-related part is optional. A project is just files on your disk, so you can let an AI agent you already use (ChatGPT, Codex, Claude Code…) work on it. To help with that, Stella has a command-line tool and a skill file (`skill/stella/SKILL.md`) that explain the project format to the agent.
+
+- The `skill/` folder is not packaged as a file in the exe, AppImage or dmg.
+- The skill text is embedded in the app only to be shown in the optional **AI tools** window, and it's written to disk only if you press the button that saves it for your agent. If you never open that window, nothing AI-related is installed, runs or is sent anywhere.
+- Deleting `skill/stella/SKILL.md` doesn't change how the app works. If you build from source, the build currently needs the file, because the AI tools window imports it.
+
 ## Development
 
 ```bash
