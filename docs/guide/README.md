@@ -677,6 +677,18 @@ The preview shows how many cards will be created and the first rows. **Add at th
 
 ![The random generator: the numbers 1-4 on four columns, 4 from one to three times](img/genera-caso.png)
 
+In the list of values `gold*3` counts gold three times: in random mode gold comes out three times as often as a value without a number. With **Every combination** the number is ignored.
+
+**In sequence.** The third choice of **How** writes the values of each set in the order they are written, one component after the other, and starts over when they run out: `a, b, c` gives a b c a b c… Here repeated values count (`a, a, b` is two a and one b per round) and `wood*3` means wood three times in a row. Several sets go round on their own: `a, b, c` with `1, 2` gives a1, b2, c1, a2, b1, c2. With more **Values per component**, each component takes the next values of the sequence, joined with the separator.
+
+- **How many** chooses between **All components of the set**, which writes the column into the rows already there (**Update the components**), and a number of **Rounds**, that is how many times the sequence is repeated. If the components are not a multiple of the round, the last round is left half done.
+- **Order**: **As written** always repeats the same order; **Shuffle each round** randomly changes the order inside each round (every round still has each value once); **Each round a different order** uses an order not used yet in every round (with a, b, c there are six) and, when they are all used, starts over; **Shuffle everything** shuffles the values of all rounds together like a deck, for example `red*4, blue*4, green*4` on 12 cards gives 4 cards per color in random order.
+- **Seed** and **Shuffle** work as in random mode. There is no filter, because rejecting components would break the sequence.
+
+A sequence shifted by one place against another (a/b, b/c, c/a) can also be made with a formula field: `PICK({card.number}+1; "a"; "b"; "c")`. This only works for the order as written.
+
+![The generator in sequence: three colors on all components of the set, shuffled every round](img/genera-sequenza.png)
+
 ### 10.1 Splitting an image across cards
 
 **Split image…** spreads one big image across the cards of the set: placed side by side in a grid, the cards make it up again (a map, an illustration over several cards). You choose the image layer of the template, the image, how many columns and rows, the card to start from and the order: by rows (left to right, then the row below) or by columns. Missing cards are added.

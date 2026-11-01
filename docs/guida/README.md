@@ -677,6 +677,18 @@ L'anteprima mostra quante carte nasceranno e le prime righe. **Aggiungi in fondo
 
 ![Il generatore a caso: i numeri 1-4 su quattro colonne, il 4 da una a tre volte](img/genera-caso.png)
 
+Nell'elenco dei valori `oro*3` vale oro tre volte: a caso oro esce tre volte più spesso di un valore senza numero. Con **Tutte le combinazioni** il numero non conta.
+
+**In sequenza.** La terza scelta di **Come** scrive i valori di ogni insieme nell'ordine in cui sono scritti, un componente dopo l'altro, e ricomincia quando finiscono: `a, b, c` dà a b c a b c… Qui i valori doppi contano (`a, a, b` sono due a e una b per giro) e `legno*3` vale legno tre volte di seguito. Più insiemi girano ognuno per conto suo: `a, b, c` con `1, 2` dà a1, b2, c1, a2, b1, c2. Con più **Valori per componente**, ogni componente prende i valori successivi della sequenza, uniti con il separatore.
+
+- **Quanti** sceglie tra **Tutti i componenti del set**, che scrive la colonna nelle righe già presenti (**Aggiorna i componenti**), e un numero di **Giri**, cioè quante volte si ripete la sequenza. Se i componenti non sono un multiplo del giro, l'ultimo giro resta a metà.
+- **Ordine**: **Come scritto** ripete sempre lo stesso ordine; **Mescola ogni giro** cambia a caso l'ordine dentro ogni giro (ogni giro ha comunque tutti i valori una volta); **Ogni giro un ordine diverso** usa a ogni giro un ordine non ancora usato (con a, b, c ce ne sono sei) e, finiti tutti, ricomincia; **Mescola tutto** mescola insieme i valori di tutti i giri come un mazzo, per esempio `rosso*4, blu*4, verde*4` su 12 carte dà 4 carte per colore in ordine casuale.
+- Il **Seme** e **Rimescola** funzionano come a caso. Il filtro non c'è, perché scartare componenti romperebbe la sequenza.
+
+Una sequenza spostata di un posto rispetto a un'altra (a/b, b/c, c/a) si ottiene anche con un campo calcolato: `PICK({card.number}+1; "a"; "b"; "c")`. Vale solo per l'ordine come scritto.
+
+![Il generatore in sequenza: tre colori su tutti i componenti del set, mescolati a ogni giro](img/genera-sequenza.png)
+
 ### 10.1 Dividere un'immagine tra le carte
 
 **Dividi immagine…** distribuisce un'immagine grande tra le carte del set: messe in griglia una accanto all'altra, le carte la ricompongono (una mappa, un'illustrazione su più carte). Si scelgono il livello immagine del template, l'immagine, quante colonne e righe, da quale carta cominciare e l'ordine: per righe (da sinistra a destra, poi la riga sotto) o per colonne. Se mancano carte se ne aggiungono.

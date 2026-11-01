@@ -2393,7 +2393,7 @@ export const it: Record<MessageKey, string> = {
   'generate.random': 'A caso',
   'generate.randomHint': 'Quanti componenti vuoi, con valori estratti a caso dagli insiemi',
   'generate.randomIntro':
-    "Ogni insieme può riempire più colonne: in ognuna si estrae un valore a caso dall'elenco (o più, con Valori per colonna). Per esempio i numeri 1-4 su text1, text2, text3 e text4.",
+    "Ogni insieme può riempire più colonne: in ognuna si estrae un valore a caso dall'elenco (o più, con Valori per colonna). Per esempio i numeri 1-4 su text1, text2, text3 e text4. oro*3 esce tre volte più spesso di un valore senza numero.",
   'generate.pickRandom': 'Valori per colonna',
   'generate.addField': '+ Colonna',
   'generate.addFieldHint': "Un'altra colonna riempita dallo stesso insieme, con la sua estrazione",
@@ -2412,6 +2412,32 @@ export const it: Record<MessageKey, string> = {
   'generate.shuffle': 'Rimescola',
   'generate.shuffleHint': 'Estrai altri componenti con un nuovo seme',
   'generate.ofRequested': '(su {n} chieste: il filtro o Tutte diverse ne scartano troppe)',
+  'generate.sequence': 'In sequenza',
+  'generate.sequenceHint':
+    "I valori nell'ordine in cui li scrivi, un componente dopo l'altro, ricominciando quando finiscono",
+  'generate.sequenceIntro':
+    'Ogni insieme scrive i suoi valori in ordine sui componenti e ricomincia quando finiscono: a, b, c dà a b c a b c… I valori doppi contano (a, a, b) e legno*3 vale legno tre volte. Insiemi di lunghezza diversa girano ognuno per conto suo.',
+  'generate.setSequence': '{n} valori per giro',
+  'generate.howMany': 'Quanti',
+  'generate.howManySet': 'Tutti i componenti del set ({n})',
+  'generate.howManySetHint':
+    'Un valore per ogni componente già nel set, dalla prima riga (Aggiorna i componenti)',
+  'generate.howManyRounds': 'Giri',
+  'generate.howManyRoundsHint': 'Quante volte si ripete la sequenza',
+  'generate.roundCards': '{n} componenti per giro',
+  'generate.order': 'Ordine',
+  'generate.orderNone': 'Come scritto',
+  'generate.orderBlock': 'Mescola ogni giro',
+  'generate.orderDistinct': 'Ogni giro un ordine diverso',
+  'generate.orderAll': 'Mescola tutto',
+  'generate.orderNoneHint': 'Lo stesso ordine in ogni giro: a b c a b c…',
+  'generate.orderBlockHint':
+    'Ogni giro ha gli stessi valori in ordine casuale: a b c, b c a, a c b…',
+  'generate.orderDistinctHint':
+    'Ogni giro usa un ordine non ancora usato (con a, b, c: sei ordini diversi); finiti tutti, si ricomincia',
+  'generate.orderAllHint':
+    'I valori di tutti i giri si mescolano insieme come un mazzo: le quantità restano esatte, i giri si perdono (per esempio 4 rossi, 4 blu e 4 verdi su 12 carte)',
+  'generate.orders': '{n} ordini diversi',
   'generate.impossible':
     'I limiti per valore non si possono rispettare con queste colonne: controlla minimi e massimi.',
   'newProject.title': 'Nuovo progetto',

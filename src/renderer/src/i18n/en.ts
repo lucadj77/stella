@@ -2363,7 +2363,7 @@ export const en = {
   'generate.randomHint':
     'As many components as you want, with values drawn at random from the sets',
   'generate.randomIntro':
-    'Each set can fill several columns: each one gets a value drawn at random from the list (or more, with Values per column). For example the numbers 1-4 on text1, text2, text3 and text4.',
+    'Each set can fill several columns: each one gets a value drawn at random from the list (or more, with Values per column). For example the numbers 1-4 on text1, text2, text3 and text4. gold*3 comes out three times as often as a value without a number.',
   'generate.pickRandom': 'Values per column',
   'generate.addField': '+ Column',
   'generate.addFieldHint': 'Another column filled by the same set, with its own draw',
@@ -2382,6 +2382,32 @@ export const en = {
   'generate.shuffle': 'Shuffle',
   'generate.shuffleHint': 'Draw other components with a new seed',
   'generate.ofRequested': '(of {n} requested: the filter or All different rejects too many)',
+  'generate.sequence': 'In sequence',
+  'generate.sequenceHint':
+    'The values in the order you write them, one component after the other, starting over when they run out',
+  'generate.sequenceIntro':
+    'Each set writes its values in order on the components and starts over when they run out: a, b, c gives a b c a b c… Repeated values count (a, a, b) and wood*3 means wood three times. Sets of different lengths go round on their own.',
+  'generate.setSequence': '{n} values per round',
+  'generate.howMany': 'How many',
+  'generate.howManySet': 'All components of the set ({n})',
+  'generate.howManySetHint':
+    'One value per component already in the set, from the first row on (Update the components)',
+  'generate.howManyRounds': 'Rounds',
+  'generate.howManyRoundsHint': 'How many times the sequence is repeated',
+  'generate.roundCards': '{n} components per round',
+  'generate.order': 'Order',
+  'generate.orderNone': 'As written',
+  'generate.orderBlock': 'Shuffle each round',
+  'generate.orderDistinct': 'Each round a different order',
+  'generate.orderAll': 'Shuffle everything',
+  'generate.orderNoneHint': 'The same order in every round: a b c a b c…',
+  'generate.orderBlockHint':
+    'Each round has the same values in a random order: a b c, b c a, a c b…',
+  'generate.orderDistinctHint':
+    'Each round uses an order not used yet (with a, b, c: six different orders); when they are all used it starts over',
+  'generate.orderAllHint':
+    'The values of all rounds are shuffled together like a deck: the amounts stay exact, the rounds are lost (for example 4 red, 4 blue and 4 green on 12 cards)',
+  'generate.orders': '{n} different orders',
   'generate.impossible':
     "The limits per value can't be met with these columns: check minimums and maximums.",
   'newProject.title': 'New project',

@@ -5,7 +5,9 @@ import { evaluateFormula, truthy } from './formula'
 // combinazioni. Ogni colonna sceglie `pick` valori dal suo insieme (con o senza ripetizioni,
 // con o senza ordine) e li scrive uniti nella stessa cella; le colonne si combinano tra loro
 // in tutti i modi possibili. A caso, invece, si generano quante carte si vuole estraendo i valori:
-// un insieme può riempire più colonne, una estrazione per colonna. Vedi docs/specifica.md, 8.3.
+// un insieme può riempire più colonne, una estrazione per colonna. In sequenza i valori si
+// ripetono nell'ordine scritto, una carta dopo l'altra, con o senza mescolarli. Vedi
+// docs/specifica.md, 8.3.
 
 export interface GeneratorColumn {
   /** Intestazione della colonna del foglio */
@@ -28,6 +30,10 @@ export interface GeneratorColumn {
   limits?: Record<string, ValueLimit>
   /** A caso: altre colonne riempite dallo stesso insieme, ognuna con la sua estrazione */
   more?: string[]
+  /** A caso: quanto spesso esce ogni valore rispetto agli altri (oro*3: tre volte più spesso) */
+  weights?: Record<string, number>
+  /** In sequenza: i valori nell'ordine scritto, con i doppi e le quantità (oro*3) già ripetuti */
+  sequence?: string[]
 }
 
 export interface ValueLimit {
@@ -43,6 +49,8 @@ export interface GeneratorSpec {
   copies: number
   /** Carte a caso invece di tutte le combinazioni */
   random?: RandomOptions
+  /** Valori in sequenza invece di tutte le combinazioni */
+  sequence?: SequenceOptions
   /** Nel filtro 2,5 è un numero: vedi model/numberFormat.ts */
   decimalComma?: boolean
 }
@@ -54,6 +62,21 @@ export interface RandomOptions {
   seed: number
   /** Niente carte uguali */
   unique: boolean
+}
+
+/**
+ * Come si mescola la sequenza: "none" la ripete com'è; "block" mescola ogni giro; "distinct"
+ * mescola ogni giro con un ordine non ancora usato, finché ce ne sono; "all" mescola tutti i
+ * valori di tutti i giri insieme, come un mazzo.
+ */
+export type SequenceShuffle = 'none' | 'block' | 'distinct' | 'all'
+
+export interface SequenceOptions {
+  /** Quante carte */
+  count: number
+  shuffle: SequenceShuffle
+  /** Lo stesso seme dà le stesse carte */
+  seed: number
 }
 
 /** Oltre questo numero di carte il generatore si ferma */
@@ -148,6 +171,37 @@ export function parseValues(text: string): string[] {
   return [...new Set(out)]
 }
 
+export interface ParsedValues {
+  /** Valori distinti, nell'ordine in cui compaiono */
+  values: string[]
+  /** Quantità scritte con *N (oro*3), solo per i valori che ne hanno una diversa da 1 */
+  weights: Record<string, number>
+  /** Tutti i valori nell'ordine scritto, con i doppi e le quantità ripetute */
+  sequence: string[]
+}
+
+/**
+ * Come parseValues, ma con le quantità: "oro*3" vale oro tre volte (in sequenza tre presenze
+ * nel giro, a caso tre volte più probabile), "1-3*2" vale ogni numero due volte. In sequenza
+ * contano anche i doppi: "a, a, b" sono due a e una b.
+ */
+export function parseWeighted(text: string): ParsedValues {
+  const sequence: string[] = []
+  const weights: Record<string, number> = {}
+  for (const raw of text.split(/[\n,;]/)) {
+    const m = raw.trim().match(/^(.*?)\s*\*\s*(\d+)$/)
+    const body = m && m[1] ? m[1] : raw
+    const n = m && m[1] ? Math.min(100, Number(m[2])) : 1
+    for (const v of parseValues(body)) {
+      for (let k = 0; k < n && sequence.length < MAX_GENERATED; k++) sequence.push(v)
+      weights[v] = (weights[v] ?? 0) + n
+    }
+  }
+  const values = [...new Set(sequence)]
+  for (const v of Object.keys(weights)) if (weights[v] === 1) delete weights[v]
+  return { values, weights, sequence }
+}
+
 /** I numeri restano numeri anche con "come icona": {3} non è un'icona */
 const cell = (c: GeneratorColumn, pick: string[]): string =>
   pick
@@ -172,6 +226,7 @@ export interface GeneratedCards {
  * {colonna_1}, {colonna_2}... sono i singoli valori scelti, senza graffe.
  */
 export function generateCards(spec: GeneratorSpec): GeneratedCards {
+  if (spec.sequence) return generateSequence(spec, spec.sequence)
   if (spec.random) return generateRandom(spec, spec.random)
   const cols = spec.columns.filter((c) => c.column.trim() && c.values.length)
   const total = cols.reduce(
@@ -258,7 +313,8 @@ function draw(
   n: number,
   repeat: boolean,
   limits: Record<string, ValueLimit>,
-  rnd: () => number
+  rnd: () => number,
+  weights: Record<string, number> = {}
 ): string[] | null {
   const max = values.map((v) => Math.max(0, Math.min(repeat ? n : 1, limits[v]?.max ?? n)))
   const min = values.map((v) => Math.max(0, limits[v]?.min ?? 0))
@@ -270,7 +326,7 @@ function draw(
       .map((_, i) => i)
       .filter((i) => count[i] < max[i] && (needed < left || count[i] < min[i]))
     if (!ok.length) return null
-    const i = ok[Math.floor(rnd() * ok.length)]
+    const i = weightedPick(ok, (j) => weights[values[j]] ?? 1, rnd)
     count[i]++
     out.push(values[i])
   }
@@ -279,6 +335,18 @@ function draw(
     ;[out[i], out[j]] = [out[j], out[i]]
   }
   return out
+}
+
+/** Uno degli indici, con probabilità proporzionale al suo peso */
+function weightedPick(ok: number[], weight: (i: number) => number, rnd: () => number): number {
+  const total = ok.reduce((s, i) => s + Math.max(0, weight(i)), 0)
+  if (total <= 0) return ok[Math.floor(rnd() * ok.length)]
+  let r = rnd() * total
+  for (const i of ok) {
+    r -= Math.max(0, weight(i))
+    if (r < 0) return i
+  }
+  return ok[ok.length - 1]
 }
 
 /** I limiti dell'insieme si possono rispettare con `n` estrazioni? */
@@ -335,7 +403,7 @@ function generateRandom(spec: GeneratorSpec, o: RandomOptions): GeneratedCards {
     let failed = false
     for (const { c, fields: targets } of cols) {
       const k = pick(c)
-      const got = draw(c.values, k * targets.length, c.repeat, c.limits ?? {}, rnd)
+      const got = draw(c.values, k * targets.length, c.repeat, c.limits ?? {}, rnd, c.weights)
       if (!got) {
         failed = true
         break
@@ -369,6 +437,99 @@ function generateRandom(spec: GeneratorSpec, o: RandomOptions): GeneratedCards {
     rows.push([...values, copiesOf(spec)])
   }
   return { headers, rows, total: count, truncated: false, ...(filterError ? { filterError } : {}) }
+}
+
+/** Mescola sul posto (Fisher-Yates) */
+function shuffle<T>(a: T[], rnd: () => number): T[] {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+/** Ordini diversi di una sequenza con doppi: n! / (k1! k2! ...), fermandosi oltre `cap` */
+export function countOrders(seq: string[], cap = 1e9): number {
+  const counts = new Map<string, number>()
+  let r = 1
+  seq.forEach((v, i) => {
+    const k = (counts.get(v) ?? 0) + 1
+    counts.set(v, k)
+    r = (r * (i + 1)) / k
+    if (r > cap) r = cap
+  })
+  return Math.round(r)
+}
+
+/** Quante carte copre un giro di ogni insieme: la sequenza più lunga, in carte */
+export function sequenceRound(columns: GeneratorColumn[]): number {
+  return columns.reduce((n, c) => {
+    const len = (c.sequence ?? c.values).length
+    return c.column.trim() && len ? Math.max(n, Math.ceil(len / Math.max(1, c.pick))) : n
+  }, 0)
+}
+
+/** I valori di un insieme in sequenza, quanti ne servono per `need` posti */
+function sequenceStream(
+  seq: string[],
+  need: number,
+  how: SequenceShuffle,
+  rnd: () => number
+): string[] {
+  const out: string[] = []
+  if (!seq.length) return out
+  if (how === 'all') {
+    while (out.length < need) out.push(...seq)
+    return shuffle(out.slice(0, need), rnd)
+  }
+  const orders = how === 'distinct' ? countOrders(seq) : 0
+  const used = new Set<string>()
+  while (out.length < need) {
+    let round = [...seq]
+    if (how === 'block') shuffle(round, rnd)
+    else if (how === 'distinct') {
+      // un ordine non ancora usato; finiti tutti, si ricomincia da capo
+      if (used.size >= orders) used.clear()
+      for (let t = 0; t < 1000; t++) {
+        round = shuffle([...seq], rnd)
+        if (!used.has(round.join('\u0000'))) break
+      }
+      used.add(round.join('\u0000'))
+    }
+    out.push(...round)
+  }
+  return out.slice(0, need)
+}
+
+/**
+ * Carte in sequenza: ogni insieme scrive i suoi valori nell'ordine dato, `pick` per carta, e
+ * ricomincia quando finiscono; gli insiemi girano ognuno per conto suo. Il filtro non si usa:
+ * scartare carte romperebbe la sequenza.
+ */
+function generateSequence(spec: GeneratorSpec, o: SequenceOptions): GeneratedCards {
+  const cols = spec.columns
+    .map((c) => ({ c, seq: c.sequence ?? c.values }))
+    .filter(({ c, seq }) => c.column.trim() && seq.length)
+  const names = [...new Set(cols.map(({ c }) => c.column.trim()))]
+  const headers = [...names, 'amount']
+  const count = Math.max(0, Math.min(MAX_GENERATED, Math.round(o.count) || 0))
+  if (!cols.length || !count) return { headers, rows: [], total: count, truncated: false }
+  const rnd = seededRandom(o.seed)
+  const streams = cols.map(({ c, seq }) =>
+    sequenceStream(seq, count * Math.max(1, c.pick), o.shuffle, rnd)
+  )
+  const rows: string[][] = []
+  for (let r = 0; r < count; r++) {
+    const cells = cols.map(({ c }, j) => {
+      const k = Math.max(1, c.pick)
+      return cell(c, streams[j].slice(r * k, r * k + k))
+    })
+    const values = names.map((name) =>
+      cells.filter((_, j) => cols[j].c.column.trim() === name).join(' ')
+    )
+    rows.push([...values, copiesOf(spec)])
+  }
+  return { headers, rows, total: count, truncated: false }
 }
 
 /** Come entrano le carte generate nel set */
