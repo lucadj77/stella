@@ -6,7 +6,10 @@ import {
   countChoices,
   emptyColumn,
   generateCards,
+  countOrders,
   parseValues,
+  parseWeighted,
+  sequenceRound,
   type GeneratorColumn,
   type GeneratorSpec
 } from '../generate'
@@ -239,5 +242,91 @@ describe('carte a caso', () => {
       expect(row[0]).toMatch(/^\{\w+\} \{\w+\}$/)
       expect(row[0]).not.toContain('oro')
     }
+  })
+})
+
+describe('generatore in sequenza', () => {
+  const seqCol = (
+    column: string,
+    text: string,
+    extra: Partial<GeneratorColumn> = {}
+  ): GeneratorColumn => {
+    const p = parseWeighted(text)
+    return {
+      ...col(column, p.values, { icons: false, ...extra }),
+      sequence: p.sequence,
+      weights: p.weights
+    }
+  }
+  const run = (
+    columns: GeneratorColumn[],
+    count: number,
+    shuffle: 'none' | 'block' | 'distinct' | 'all',
+    seed = 7
+  ): ReturnType<typeof generateCards> =>
+    generateCards({ columns, filter: '', copies: 1, sequence: { count, shuffle, seed } })
+  const firsts = (r: { rows: string[][] }): string[] => r.rows.map((x) => x[0])
+
+  it('legge doppi e quantità', () => {
+    expect(parseWeighted('a, a, b*3, 1-2*2')).toEqual({
+      values: ['a', 'b', '1', '2'],
+      weights: { a: 2, b: 3, '1': 2, '2': 2 },
+      sequence: ['a', 'a', 'b', 'b', 'b', '1', '1', '2', '2']
+    })
+    expect(countOrders(['a', 'b', 'c'])).toBe(6)
+    expect(countOrders(['a', 'a', 'b'])).toBe(3)
+  })
+
+  it('ripete la sequenza e fa girare gli insiemi ognuno per conto suo', () => {
+    const r = run([seqCol('x', 'a, b, c'), seqCol('y', '1, 2')], 7, 'none')
+    expect(r.headers).toEqual(['x', 'y', 'amount'])
+    expect(r.rows.map((x) => x[0] + x[1])).toEqual(['a1', 'b2', 'c1', 'a2', 'b1', 'c2', 'a1'])
+    expect(sequenceRound([seqCol('x', 'a, b, c'), seqCol('y', '1, 2')])).toBe(3)
+    // più valori per carta: si prendono di seguito
+    expect(firsts(run([seqCol('x', 'a, b, c', { pick: 2, separator: '+' })], 3, 'none'))).toEqual([
+      'a+b',
+      'c+a',
+      'b+c'
+    ])
+  })
+
+  it('mescola dentro ogni giro, con il seme', () => {
+    const r = firsts(run([seqCol('x', 'a, b, c')], 30, 'block'))
+    for (let i = 0; i < 30; i += 3) expect(r.slice(i, i + 3).sort()).toEqual(['a', 'b', 'c'])
+    expect(firsts(run([seqCol('x', 'a, b, c')], 30, 'block'))).toEqual(r)
+    expect(firsts(run([seqCol('x', 'a, b, c')], 30, 'block', 8))).not.toEqual(r)
+  })
+
+  it('senza ripetere un ordine finché ce ne sono', () => {
+    const r = firsts(run([seqCol('x', 'a, b, c')], 18, 'distinct'))
+    const rounds = (from: number): string[] =>
+      [0, 1, 2, 3, 4, 5].map((k) => r.slice(from + k * 3, from + k * 3 + 3).join(''))
+    expect(new Set(rounds(0)).size).toBe(6)
+    // finiti i 6 ordini si ricomincia: altri 6, tutti diversi tra loro
+    const more = firsts(run([seqCol('x', 'a, b, c')], 36, 'distinct'))
+    const second = [0, 1, 2, 3, 4, 5].map((k) => more.slice(18 + k * 3, 21 + k * 3).join(''))
+    expect(new Set(second).size).toBe(6)
+    // con i doppi gli ordini diversi sono meno
+    const d = firsts(run([seqCol('x', 'a, a, b')], 9, 'distinct'))
+    expect(new Set([0, 3, 6].map((i) => d.slice(i, i + 3).join(''))).size).toBe(3)
+  })
+
+  it('mescola tutto il mazzo mantenendo le quantità', () => {
+    const r = firsts(run([seqCol('x', 'rosso*4, blu*4, verde*4')], 12, 'all'))
+    expect(r.filter((v) => v === 'rosso')).toHaveLength(4)
+    expect(r.filter((v) => v === 'blu')).toHaveLength(4)
+    expect(r).not.toEqual(firsts(run([seqCol('x', 'rosso*4, blu*4, verde*4')], 12, 'none')))
+  })
+
+  it('a caso le quantità sono pesi', () => {
+    const r = generateCards({
+      columns: [seqCol('x', 'oro*9, legno')],
+      filter: '',
+      copies: 1,
+      random: { count: 1000, seed: 3, unique: false }
+    })
+    const oro = firsts(r).filter((v) => v === 'oro').length
+    expect(oro).toBeGreaterThan(820)
+    expect(oro).toBeLessThan(980)
   })
 })

@@ -5,6 +5,18 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.8.5-beta.1
+
+### English
+
+- **Generate in sequence**: in **Generate…**, **How** has a third choice, **In sequence**. Each set writes its values in the order you type them, one component after the other, and starts over when they run out: a, b, c gives a b c a b c… You can fill all the components of the set or choose a number of rounds. **Order** keeps the sequence as written, shuffles each round, uses a different order in every round until all orders are used, or shuffles everything like a deck.
+- **Amounts in value lists**: in the generator, `gold*3` counts gold three times. In a sequence it puts gold three times in each round; in random mode gold comes out three times as often.
+
+### Italiano
+
+- **Genera in sequenza**: in **Genera…**, **Come** ha una terza scelta, **In sequenza**. Ogni insieme scrive i suoi valori nell'ordine in cui li scrivi, un componente dopo l'altro, e ricomincia quando finiscono: a, b, c dà a b c a b c… Si possono riempire tutti i componenti del set o scegliere un numero di giri. **Ordine** tiene la sequenza come scritta, mescola ogni giro, usa un ordine diverso a ogni giro finché ce ne sono, oppure mescola tutto come un mazzo.
+- **Quantità negli elenchi di valori**: nel generatore `oro*3` vale oro tre volte. In sequenza mette oro tre volte in ogni giro; a caso oro esce tre volte più spesso.
+
 ## 1.8.4
 
 ### English

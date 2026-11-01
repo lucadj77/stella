@@ -9,11 +9,15 @@ import {
   emptyColumn,
   fieldsOf,
   generateCards,
+  countOrders,
   MAX_GENERATED,
-  parseValues,
+  parseWeighted,
+  sequenceRound,
   type GenerateMode,
   type GeneratorColumn,
-  type RandomOptions
+  type RandomOptions,
+  type SequenceOptions,
+  type SequenceShuffle
 } from '../../../shared/model/generate'
 import { walkLayers } from '../../../shared/model/normalize'
 import { templateColumns } from '../../../shared/model/sheet'
@@ -25,11 +29,13 @@ import MarkupText from '../render/MarkupText'
 import Segmented from './Segmented'
 import FormulaDialog from './FormulaDialog'
 
-// Generatore di carte: insiemi di valori → tutte le combinazioni, o carte estratte a caso, come
-// righe del set.
+// Generatore di carte: insiemi di valori → tutte le combinazioni, carte estratte a caso o valori
+// in sequenza, come righe del set.
 // Vedi docs/specifica.md, sezione 8.3.
 
 const PREVIEW_ROWS = 8
+
+type Kind = 'all' | 'random' | 'sequence'
 
 const newSeed = (): number => Math.floor(Math.random() * 1000000)
 
@@ -95,18 +101,42 @@ export default function GenerateDialog({
   const [copies, setCopies] = useState(1)
   const [assistant, setAssistant] = useState(false)
   const [mode, setMode] = useState<GenerateMode>(sheet.rows.length ? 'append' : 'replace')
-  const [isRandom, setIsRandom] = useState(false)
+  const [kind, setKind] = useState<Kind>('all')
+  const isRandom = kind === 'random'
+  const isSequence = kind === 'sequence'
   const [count, setCount] = useState(Math.max(1, sheet.rows.length || 20))
   const [unique, setUnique] = useState(false)
   const [seed, setSeed] = useState(newSeed)
   const random: RandomOptions | undefined = isRandom ? { count, seed, unique } : undefined
+  // in sequenza: tutti i componenti del set o un numero di giri
+  const [wholeSet, setWholeSet] = useState(sheet.rows.length > 0)
+  const [rounds, setRounds] = useState(2)
+  const [order, setOrder] = useState<SequenceShuffle>('none')
+  const round = sequenceRound(list)
+  const sequence: SequenceOptions | undefined = isSequence
+    ? {
+        count: wholeSet && sheet.rows.length ? sheet.rows.length : rounds * round,
+        shuffle: order,
+        seed
+      }
+    : undefined
+  const chooseKind = (k: Kind): void => {
+    setKind(k)
+    // la sequenza su tutto il set riempie le righe che ci sono
+    if (k === 'sequence' && wholeSet && sheet.rows.length) setMode('update')
+  }
 
   const update = (i: number, patch: Partial<Draft>): void =>
     setList((l) =>
       l.map((c, j) => {
         if (j !== i) return c
         const next = { ...c, ...patch }
-        if (patch.text !== undefined) next.values = parseValues(patch.text)
+        if (patch.text !== undefined) {
+          const parsed = parseWeighted(patch.text)
+          next.values = parsed.values
+          next.weights = parsed.weights
+          next.sequence = parsed.sequence
+        }
         // cambiando colonna si sceglie di nuovo se i valori sono icone nel testo
         if (patch.column !== undefined && patch.icons === undefined)
           next.icons = !imageColumns.has(patch.column.trim())
@@ -124,9 +154,17 @@ export default function GenerateDialog({
 
   const decimalComma = useDecimalComma()
   const result = useMemo(
-    () => generateCards({ columns: list, filter, copies, random, decimalComma }),
+    () =>
+      generateCards({
+        columns: list,
+        filter: isSequence ? '' : filter,
+        copies,
+        random,
+        sequence,
+        decimalComma
+      }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [list, filter, copies, isRandom, count, seed, unique, decimalComma]
+    [list, filter, copies, kind, count, seed, unique, decimalComma, sequence?.count, order]
   )
   const active = list.filter((c) => c.column.trim() && c.values.length)
   /** Una colonna dell'anteprima mostra le icone se uno degli insiemi che la riempiono le usa */
@@ -143,21 +181,35 @@ export default function GenerateDialog({
       <div className="generate-dialog">
         <div className="generate-row">
           <span>{t('generate.kind')}</span>
-          <Segmented<'all' | 'random'>
-            value={isRandom ? 'random' : 'all'}
+          <Segmented<Kind>
+            value={kind}
             options={[
               ['all', t('generate.all'), t('generate.allHint')],
-              ['random', t('generate.random'), t('generate.randomHint')]
+              ['random', t('generate.random'), t('generate.randomHint')],
+              ['sequence', t('generate.sequence'), t('generate.sequenceHint')]
             ]}
-            onChange={(v) => setIsRandom(v === 'random')}
+            onChange={chooseKind}
           />
         </div>
-        <p className="field-note">{t(isRandom ? 'generate.randomIntro' : 'generate.intro')}</p>
+        <p className="field-note">
+          {t(
+            isRandom
+              ? 'generate.randomIntro'
+              : isSequence
+                ? 'generate.sequenceIntro'
+                : 'generate.intro'
+          )}
+        </p>
         {list.map((c, i) => {
           const n = countChoices(c.values.length, c.pick, c.repeat, c.ordered, c.values, c.limits)
           const more = c.more ?? []
           /** A caso: quanti valori si estraggono per carta, in tutte le colonne dell'insieme */
-          const draws = isRandom ? c.pick * Math.max(1, fieldsOf(c, true).length) : c.pick
+          const draws = isSequence
+            ? 1
+            : isRandom
+              ? c.pick * Math.max(1, fieldsOf(c, true).length)
+              : c.pick
+          const seqLength = (c.sequence ?? c.values).length
           const setMore = (next: string[]): void => update(i, { more: next })
           return (
             <fieldset key={i} className="generate-set">
@@ -269,14 +321,16 @@ export default function GenerateDialog({
                 )}
                 {c.pick > 1 && (
                   <>
-                    <label className="check">
-                      <input
-                        type="checkbox"
-                        checked={c.ordered}
-                        onChange={(e) => update(i, { ordered: e.target.checked })}
-                      />
-                      {t('generate.ordered')}
-                    </label>
+                    {!isSequence && (
+                      <label className="check">
+                        <input
+                          type="checkbox"
+                          checked={c.ordered}
+                          onChange={(e) => update(i, { ordered: e.target.checked })}
+                        />
+                        {t('generate.ordered')}
+                      </label>
+                    )}
                     <label>
                       {t('generate.separator')}
                       <input
@@ -290,9 +344,11 @@ export default function GenerateDialog({
                 <span className="muted small spacer-left">
                   {!c.values.length
                     ? t('generate.noValues')
-                    : isRandom
-                      ? t('generate.setDraws', { values: c.values.length, n: draws })
-                      : t('generate.setCount', { values: c.values.length, n })}
+                    : isSequence
+                      ? t('generate.setSequence', { n: seqLength })
+                      : isRandom
+                        ? t('generate.setDraws', { values: c.values.length, n: draws })
+                        : t('generate.setCount', { values: c.values.length, n })}
                 </span>
               </div>
               {draws > 1 && c.values.length > 0 && (
@@ -357,35 +413,137 @@ export default function GenerateDialog({
         <div className="generate-row">
           <button onClick={() => setList((l) => [...l, draft('')])}>{t('generate.addSet')}</button>
         </div>
-        <div className="generate-row">
-          <label className="grow">
-            {t('generate.filter')}
-            <span className="generate-filter">
-              <input
-                value={filter}
-                placeholder={t('generate.filterHint')}
-                onChange={(e) => setFilter(e.target.value)}
+        {!isSequence && (
+          <div className="generate-row">
+            <label className="grow">
+              {t('generate.filter')}
+              <span className="generate-filter">
+                <input
+                  value={filter}
+                  placeholder={t('generate.filterHint')}
+                  onChange={(e) => setFilter(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="pick-btn fx-button"
+                  title={t('fx.open')}
+                  onClick={() => setAssistant(true)}
+                >
+                  fx
+                </button>
+              </span>
+            </label>
+            <label>
+              {t('generate.copies')}
+              <NumInput
+                className="num narrow"
+                min={1}
+                value={copies}
+                onChange={(e) => setCopies(Math.max(1, Number(e.target.value) || 1))}
               />
-              <button
-                type="button"
-                className="pick-btn fx-button"
-                title={t('fx.open')}
-                onClick={() => setAssistant(true)}
-              >
-                fx
-              </button>
-            </span>
-          </label>
-          <label>
-            {t('generate.copies')}
-            <NumInput
-              className="num narrow"
-              min={1}
-              value={copies}
-              onChange={(e) => setCopies(Math.max(1, Number(e.target.value) || 1))}
-            />
-          </label>
-        </div>
+            </label>
+          </div>
+        )}
+        {isSequence && (
+          <>
+            <div className="generate-row">
+              <span>{t('generate.howMany')}</span>
+              {sheet.rows.length > 0 && (
+                <label className="check" title={t('generate.howManySetHint')}>
+                  <input
+                    type="radio"
+                    checked={wholeSet}
+                    onChange={() => {
+                      setWholeSet(true)
+                      setMode('update')
+                    }}
+                  />
+                  {t('generate.howManySet', { n: sheet.rows.length })}
+                </label>
+              )}
+              <label className="check" title={t('generate.howManyRoundsHint')}>
+                {sheet.rows.length > 0 && (
+                  <input
+                    type="radio"
+                    checked={!wholeSet || !sheet.rows.length}
+                    onChange={() => {
+                      setWholeSet(false)
+                      if (mode === 'update') setMode('append')
+                    }}
+                  />
+                )}
+                {t('generate.howManyRounds')}
+                <NumInput
+                  className="num narrow"
+                  min={1}
+                  max={MAX_GENERATED}
+                  value={rounds}
+                  onChange={(e) => {
+                    setRounds(Math.max(1, Math.min(MAX_GENERATED, Number(e.target.value) || 1)))
+                    if (wholeSet && sheet.rows.length) {
+                      setWholeSet(false)
+                      if (mode === 'update') setMode('append')
+                    }
+                  }}
+                />
+              </label>
+              {round > 0 && (
+                <span className="muted small">{t('generate.roundCards', { n: round })}</span>
+              )}
+              <span className="spacer" />
+              {/* aggiornando, le copie del set restano come sono */}
+              {mode !== 'update' && (
+                <label>
+                  {t('generate.copies')}
+                  <NumInput
+                    className="num narrow"
+                    min={1}
+                    value={copies}
+                    onChange={(e) => setCopies(Math.max(1, Number(e.target.value) || 1))}
+                  />
+                </label>
+              )}
+            </div>
+            <div className="generate-row">
+              <span>{t('generate.order')}</span>
+              <Segmented<SequenceShuffle>
+                value={order}
+                options={[
+                  ['none', t('generate.orderNone'), t('generate.orderNoneHint')],
+                  ['block', t('generate.orderBlock'), t('generate.orderBlockHint')],
+                  ['distinct', t('generate.orderDistinct'), t('generate.orderDistinctHint')],
+                  ['all', t('generate.orderAll'), t('generate.orderAllHint')]
+                ]}
+                onChange={setOrder}
+              />
+              {order === 'distinct' && list.length === 1 && (list[0].sequence ?? []).length > 1 && (
+                <span className="muted small">
+                  {t('generate.orders', {
+                    n: countOrders(list[0].sequence ?? [], 1e7).toLocaleString()
+                  })}
+                </span>
+              )}
+              {order !== 'none' && (
+                <>
+                  <label title={t('generate.seedHint')}>
+                    {t('generate.seed')}
+                    <NumInput
+                      className="num"
+                      min={0}
+                      value={seed}
+                      onChange={(e) =>
+                        setSeed(Math.max(0, Math.round(Number(e.target.value)) || 0))
+                      }
+                    />
+                  </label>
+                  <button title={t('generate.shuffleHint')} onClick={() => setSeed(newSeed())}>
+                    🎲 {t('generate.shuffle')}
+                  </button>
+                </>
+              )}
+            </div>
+          </>
+        )}
         {isRandom && (
           <div className="generate-row">
             <label>
