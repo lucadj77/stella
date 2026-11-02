@@ -109,9 +109,15 @@ export function resizeWithHandle(
   start: LayerBase,
   handle: Handle,
   local: Point,
-  opts: { keepRatio?: boolean; step?: number; fromCenter?: boolean } = {}
+  opts: {
+    keepRatio?: boolean
+    /** Passo a cui si agganciano i lati: uno solo, o diverso in orizzontale e in verticale */
+    step?: number | { x: number; y: number }
+    fromCenter?: boolean
+  } = {}
 ): Bounds {
-  const step = opts.step ?? 0
+  const sx = typeof opts.step === 'object' ? opts.step.x : (opts.step ?? 0)
+  const sy = typeof opts.step === 'object' ? opts.step.y : (opts.step ?? 0)
   let left = start.x
   let top = start.y
   let right = start.x + start.w
@@ -121,20 +127,20 @@ export function resizeWithHandle(
   if (opts.fromCenter) {
     // dal centro: il lato opposto si muove in modo simmetrico
     if (handle.includes('w') || handle.includes('e')) {
-      const half = Math.max(Math.abs(snap(local.x, step) - cx), MIN_SIZE / 2)
+      const half = Math.max(Math.abs(snap(local.x, sx) - cx), MIN_SIZE / 2)
       left = cx - half
       right = cx + half
     }
     if (handle.includes('n') || handle.includes('s')) {
-      const half = Math.max(Math.abs(snap(local.y, step) - cy), MIN_SIZE / 2)
+      const half = Math.max(Math.abs(snap(local.y, sy) - cy), MIN_SIZE / 2)
       top = cy - half
       bottom = cy + half
     }
   } else {
-    if (handle.includes('w')) left = Math.min(snap(local.x, step), right - MIN_SIZE)
-    if (handle.includes('e')) right = Math.max(snap(local.x, step), left + MIN_SIZE)
-    if (handle.includes('n')) top = Math.min(snap(local.y, step), bottom - MIN_SIZE)
-    if (handle.includes('s')) bottom = Math.max(snap(local.y, step), top + MIN_SIZE)
+    if (handle.includes('w')) left = Math.min(snap(local.x, sx), right - MIN_SIZE)
+    if (handle.includes('e')) right = Math.max(snap(local.x, sx), left + MIN_SIZE)
+    if (handle.includes('n')) top = Math.min(snap(local.y, sy), bottom - MIN_SIZE)
+    if (handle.includes('s')) bottom = Math.max(snap(local.y, sy), top + MIN_SIZE)
   }
 
   if (opts.keepRatio && handle.length === 2 && start.w > 0 && start.h > 0) {

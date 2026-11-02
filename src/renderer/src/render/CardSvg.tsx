@@ -943,9 +943,21 @@ function TextView({ layer: l, id }: { layer: TextLayer; id: string }): React.JSX
   const showEmpty = useContext(ShowEmptyContext)
   const empty = showEmpty && !l.text.trim()
   const boxRef = useRef<HTMLDivElement>(null)
-  const [fitted, setFitted] = useState<{ key: string; size: number } | null>(null)
-  const fitKey = `${l.text}|${l.size}|${l.w}|${l.h}|${l.font}|${l.weight}|${l.italic}|${l.lineHeight}|${l.fit}|${l.padding}|${l.paddingSides}|${l.indent}|${l.wrap}|${l.letterSpacing}|${l.transform}|${l.align}|${l.stroke?.width ?? ''}`
-  const size = fitted && fitted.key === fitKey ? fitted.size : l.size
+  const [fitted, setFitted] = useState<{
+    key: string
+    size: number
+    /** Con grow: il corpo più grande che sta e il più piccolo che non sta; done a ricerca finita */
+    lo?: number
+    hi?: number
+    done?: boolean
+  } | null>(null)
+  const fitKey = `${l.text}|${l.size}|${l.w}|${l.h}|${l.font}|${l.weight}|${l.italic}|${l.lineHeight}|${l.fit}|${l.minSize}|${l.maxSize}|${l.padding}|${l.paddingSides}|${l.indent}|${l.wrap}|${l.letterSpacing}|${l.transform}|${l.align}|${l.stroke?.width ?? ''}`
+  const growMin = Math.max(0.5, Math.min(l.minSize, l.maxSize))
+  const growMax = Math.max(l.minSize, l.maxSize)
+  const current = fitted && fitted.key === fitKey ? fitted : null
+  // con grow si prova prima il corpo massimo: un titolo corto lo raggiunge subito
+  const size = current ? current.size : l.fit === 'grow' ? growMax : l.size
+  const growDone = l.fit === 'grow' && !!current?.done
 
   // "riduci per stare nel riquadro": si scende di mezzo punto finché il testo non sta
   useLayoutEffect(() => {
@@ -955,6 +967,32 @@ function TextView({ layer: l, id }: { layer: TextLayer; id: string }): React.JSX
       el.scrollHeight > el.clientHeight + 0.5 || el.scrollWidth > el.clientWidth + 0.5
     if (overflows && size - 0.5 >= l.minSize) setFitted({ key: fitKey, size: size - 0.5 })
   }, [fitKey, size, l.fit, l.minSize])
+
+  // "ingrandisci o riduci per riempire il riquadro": ricerca a metà tra il corpo minimo e il
+  // massimo, al mezzo punto; il testo prende il corpo più grande che sta nel riquadro
+  useLayoutEffect(() => {
+    const el = boxRef.current
+    if (!el || l.fit !== 'grow' || current?.done) return
+    const overflows =
+      el.scrollHeight > el.clientHeight + 0.5 || el.scrollWidth > el.clientWidth + 0.5
+    const lo = overflows ? (current?.lo ?? growMin) : size
+    const hi = overflows ? size : (current?.hi ?? growMax + 0.5)
+    if (!overflows && size >= growMax) {
+      setFitted({ key: fitKey, size, lo, hi, done: true })
+      return
+    }
+    if (overflows && size <= growMin) {
+      setFitted({ key: fitKey, size: growMin, lo: growMin, hi: growMin, done: true })
+      return
+    }
+    if (hi - lo <= 0.5) {
+      setFitted({ key: fitKey, size: lo, lo, hi, done: true })
+      return
+    }
+    // il mezzo, al mezzo punto, sempre strettamente tra i due estremi
+    const mid = Math.min(hi - 0.25, Math.max(lo + 0.25, Math.round(lo + hi) / 2))
+    setFitted({ key: fitKey, size: mid, lo, hi })
+  }, [fitKey, size, l.fit, growMin, growMax, current])
 
   // testo che non sta nel riquadro, anche dopo averlo ridotto: lo segnala data-overflow, che
   // la griglia e il controllo dei testi leggono; si rimisura quando cambiano font e immagini
@@ -970,14 +1008,22 @@ function TextView({ layer: l, id }: { layer: TextLayer; id: string }): React.JSX
       const overflows =
         (inner.scrollHeight > h + 1.5 || inner.scrollWidth > w + 1.5) &&
         inkOverflows(el.parentElement as unknown as SVGForeignObjectElement, el, inner)
-      setOver(!empty && overflows && (l.fit !== 'shrink' || size - 0.5 < l.minSize))
+      setOver(
+        !empty &&
+          overflows &&
+          (l.fit === 'shrink'
+            ? size - 0.5 < l.minSize
+            : l.fit === 'grow'
+              ? growDone && size <= growMin
+              : true)
+      )
     }
     measure()
     const ro = new ResizeObserver(measure)
     ro.observe(inner)
     ro.observe(el)
     return () => ro.disconnect()
-  }, [fitKey, size, l.fit, l.minSize, empty])
+  }, [fitKey, size, l.fit, l.minSize, empty, growDone, growMin])
 
   const sizeMm = size * PT_TO_MM
   const s = TEXT_SCALE

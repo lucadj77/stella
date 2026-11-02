@@ -170,3 +170,21 @@ describe('larghezza e testo dei blocchi', () => {
     )
   })
 })
+
+describe('didascalia dello schema', () => {
+  it('si legge e si riscrive, sopra o sotto', () => {
+    const src = setupSource({
+      size: null,
+      items: [],
+      width: null,
+      font: null,
+      caption: 'Preparazione',
+      captionTop: true
+    })
+    expect(src).toBe('```setup\ncaption: Preparazione\ncaption-position: top\n```')
+    const lines = ['caption: Preparazione', 'caption-position: top']
+    const s = parseSetup(lines, [0, 22])
+    expect(s).toMatchObject({ caption: 'Preparazione', captionTop: true, bad: [] })
+    expect(parseSetup(['caption-position: middle'], [0]).bad).toHaveLength(1)
+  })
+})

@@ -844,6 +844,12 @@ export function parseValue(key: string, current: unknown, raw: string): unknown 
   if (key === 'stroke' || key === 'border') return parseStroke(v)
   if (key === 'shadow') return parseShadow(v)
   if (key === 'crop') return parseCrop(v)
+  // spazio tra le righe della griglia: un numero, o none per usare quello tra le colonne
+  if (key === 'rowGap') {
+    if (v.toLowerCase() === 'none') return null
+    const n = Number(v.replace(',', '.'))
+    return Number.isFinite(n) ? n : undefined
+  }
   if (typeof current === 'number') {
     // zoom e opacità si possono scrivere anche in percentuale: 120% = 1.2
     if (PERCENT.has(key) && v.endsWith('%')) {

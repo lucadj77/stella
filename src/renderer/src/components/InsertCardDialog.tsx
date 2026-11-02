@@ -14,6 +14,7 @@ import {
   parseCardRef,
   anatomyCardSource,
   calloutFace,
+  gridContent,
   type Anatomy,
   type CardRef
 } from '../../../shared/model/document'
@@ -24,6 +25,7 @@ import CardSvg from '../render/CardSvg'
 import AnatomyDiagram from '../render/AnatomyDiagram'
 import { useBindContext } from '../render/assets'
 import Segmented from './Segmented'
+import CaptionField from './CaptionField'
 import FormattedField, { TextFormatBar } from './TextFormatBar'
 
 /** Chiave dell'etichetta di un livello: con fronte e retro lo stesso nome può stare su entrambi */
@@ -32,14 +34,17 @@ const labelKey = (face: Side, layer: string): string => `${face}:${layer}`
 /** Carte mostrate al massimo nella griglia: con un set grande si cerca per nome */
 const MAX_SHOWN = 60
 
-/** Nomi dei livelli disegnati, anche dentro i gruppi, con la profondità */
+/** Nomi dei livelli disegnati, anche dentro i gruppi e le griglie, con la profondità */
 function layerNames(layers: Layer[], depth = 0): { name: string; depth: number }[] {
-  return layers
-    .filter(isDrawn)
-    .flatMap((l) => [
+  return layers.filter(isDrawn).flatMap((l) => {
+    const content = l.type === 'grid' ? gridContent(l) : null
+    return [
       { name: l.name, depth },
-      ...(l.type === 'group' ? layerNames(l.children, depth + 1) : [])
-    ])
+      ...(l.type === 'group' ? layerNames(l.children, depth + 1) : []),
+      // il contenuto delle caselle: l'etichetta indica l'elemento nella prima casella
+      ...(content ? layerNames([content], depth + 1) : [])
+    ]
+  })
 }
 
 /**
@@ -127,8 +132,10 @@ export default function InsertCardDialog({
         ]) ?? []
       )
   )
-  const [caption, setCaption] = useState<string | null>(null)
-  useUndo([setName, row, keyChoice, side, both, width, labels, caption], (s) => {
+  const [caption, setCaption] = useState<string | null>(initial ? initial.caption : null)
+  /** Didascalia sopra il disegno invece che sotto */
+  const [captionTop, setCaptionTop] = useState(initial?.captionTop ?? false)
+  useUndo([setName, row, keyChoice, side, both, width, labels, caption, captionTop], (s) => {
     setSetName(s[0])
     setRow(s[1])
     setKey(s[2])
@@ -137,6 +144,7 @@ export default function InsertCardDialog({
     setWidth(s[5])
     setLabels(s[6])
     setCaption(s[7])
+    setCaptionTop(s[8])
   })
   /** L'ultima etichetta dell'anatomia in cui si è scritto: la barra di formattazione agisce lì */
   const labelField = useRef<HTMLTextAreaElement | null>(null)
@@ -158,7 +166,8 @@ export default function InsertCardDialog({
         set: set.name,
         ...(byField ? { field: key, value } : { row: current + 1 }),
         side: anatomy && both ? 'front' : side,
-        ...(Number(width) > 0 ? { width: Number(width) } : {})
+        ...(Number(width) > 0 ? { width: Number(width) } : {}),
+        ...(!anatomy && pick === undefined && captionTop ? { captionTop: true } : {})
       }
     : null
   const alt = caption ?? cards[current]?.label ?? ''
@@ -189,7 +198,9 @@ export default function InsertCardDialog({
             both,
             {
               width: percent(blockWidth, BLOCK_WIDTH),
-              font: percent(blockFont, BLOCK_FONT)
+              font: percent(blockFont, BLOCK_FONT),
+              caption: caption ?? '',
+              captionTop
             }
           )
         : `![${alt.replace(/[[\]]/g, '')}](${cardRefSource(ref)})`
@@ -208,7 +219,7 @@ export default function InsertCardDialog({
             setSetName(e.target.value)
             setRow(0)
             setKey(null)
-            setCaption(null)
+            if (!anatomy) setCaption(null)
           }}
         >
           {usable.map((s) => (
@@ -326,6 +337,14 @@ export default function InsertCardDialog({
           </label>
         </div>
       )}
+      {anatomy && (
+        <CaptionField
+          value={caption ?? ''}
+          top={captionTop}
+          onChange={setCaption}
+          onTop={setCaptionTop}
+        />
+      )}
       {key !== '' && !byField && (
         <p className="muted small">
           {t(repeated ? 'documents.repeatedValue' : 'documents.emptyValue', { field: key })}
@@ -429,10 +448,12 @@ export default function InsertCardDialog({
             {grid}
             {options}
             {pick !== undefined ? null : (
-              <label>
-                {t('documents.caption')}
-                <input value={alt} onChange={(e) => setCaption(e.target.value)} />
-              </label>
+              <CaptionField
+                value={alt}
+                top={captionTop}
+                onChange={setCaption}
+                onTop={setCaptionTop}
+              />
             )}
             <code className="insert-card-code">{text}</code>
           </>

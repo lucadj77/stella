@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import NumInput from './NumInput'
 import { useUndo } from './useUndo'
+import CaptionField from './CaptionField'
 import type { LoadedSet } from '../../../shared/project'
 import type { Template } from '../../../shared/model/template'
 import {
@@ -146,6 +147,8 @@ export default function SetupDialog({
   /** Larghezza massima nel documento e corpo delle didascalie, in frazione (width: e font:) */
   const [blockWidth, setBlockWidth] = useState(initial?.width ?? 1)
   const [blockFont, setBlockFont] = useState(initial?.font ?? 1)
+  const [caption, setCaption] = useState(initial?.caption ?? '')
+  const [captionTop, setCaptionTop] = useState(initial?.captionTop ?? false)
   /** Elementi scelti, per indice; il primo è quello cliccato per primo */
   const [selection, setSelection] = useState<number[]>([])
   /** Scelta della carta: per un elemento nuovo o per quello con questo indice */
@@ -173,12 +176,14 @@ export default function SetupDialog({
   const zoomRef = useRef(zoom)
   const busy = !!pickingCard || !!pickingImage
   useUndo(
-    [items, size, blockWidth, blockFont],
-    ([i, s, w, f]) => {
+    [items, size, blockWidth, blockFont, caption, captionTop],
+    ([i, s, w, f, c, ct]) => {
       setItems(i)
       setSize(s)
       setBlockWidth(w)
       setBlockFont(f)
+      setCaption(c)
+      setCaptionTop(ct)
       setSelection((sel) => sel.filter((k) => k < i.length))
     },
     !busy
@@ -931,6 +936,12 @@ export default function SetupDialog({
                   )}
                 </div>
                 <p className="muted small">{t('documents.blockSizeHint')}</p>
+                <CaptionField
+                  value={caption}
+                  top={captionTop}
+                  onChange={setCaption}
+                  onTop={setCaptionTop}
+                />
                 <p className="muted small">{t('documents.setupHint')}</p>
               </>
             )}
@@ -941,7 +952,18 @@ export default function SetupDialog({
           <button
             className="primary"
             disabled={!items.length}
-            onClick={() => onSave(setupSource({ size, items, width: blockWidth, font: blockFont }))}
+            onClick={() =>
+              onSave(
+                setupSource({
+                  size,
+                  items,
+                  width: blockWidth,
+                  font: blockFont,
+                  caption,
+                  captionTop
+                })
+              )
+            }
           >
             {t(initial ? 'documents.saveAnatomy' : 'documents.insert')}
           </button>

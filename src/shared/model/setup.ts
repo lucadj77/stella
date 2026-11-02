@@ -52,6 +52,10 @@ export interface Setup {
   width?: number | null
   /** Corpo delle didascalie in frazione di quello di base; null = di base */
   font?: number | null
+  /** Didascalia dello schema (`caption: testo`); vuota = nessuna */
+  caption?: string
+  /** Didascalia sopra lo schema (`caption-position: top`); di base sotto */
+  captionTop?: boolean
   /** Righe che non si capiscono */
   bad: { from: number; to: number }[]
 }
@@ -83,6 +87,29 @@ export function blockSizeLines(o: { width?: number | null; font?: number | null 
     ...(o.width && o.width < 1 ? [`width: ${pct(o.width)}`] : []),
     ...(o.font && o.font !== 1 ? [`font: ${pct(o.font)}`] : [])
   ]
+}
+
+/**
+ * Righe della didascalia dell'anatomia e dello schema del tavolo: `caption: testo` e
+ * `caption-position: top` (o bottom); bad se la posizione non si capisce
+ */
+export function blockCaptionLine(
+  line: string
+): { text?: string; top?: boolean; bad?: boolean } | null {
+  const pos = /^\s*caption-position\s*:?\s*(\S*)\s*$/i.exec(line)
+  if (pos) {
+    const v = pos[1].toLowerCase()
+    return v === 'top' || v === 'bottom' ? { top: v === 'top' } : { bad: true }
+  }
+  const text = /^\s*caption\s*:\s*(.*)$/i.exec(line)
+  return text ? { text: text[1].trim() } : null
+}
+
+/** Le righe della didascalia da scrivere nel blocco */
+export function blockCaptionLines(o: { caption?: string; captionTop?: boolean }): string[] {
+  const text = o.caption?.replace(/\n/g, ' ').trim()
+  if (!text) return []
+  return [`caption: ${text}`, ...(o.captionTop ? ['caption-position: top'] : [])]
 }
 
 /** Larghezza di base dei testi e delle immagini, in mm */
@@ -205,7 +232,15 @@ function parseItem(line: string, from: number): SetupItem | null {
 
 /** Legge le righe del blocco; `starts` è la posizione di ogni riga nel documento */
 export function parseSetup(lines: string[], starts: number[]): Setup {
-  const out: Setup = { size: null, items: [], width: null, font: null, bad: [] }
+  const out: Setup = {
+    size: null,
+    items: [],
+    width: null,
+    font: null,
+    caption: '',
+    captionTop: false,
+    bad: []
+  }
   lines.forEach((l, k) => {
     const from = starts[k]
     if (!l.trim() || l.trim().startsWith('#')) return
@@ -213,6 +248,13 @@ export function parseSetup(lines: string[], starts: number[]): Setup {
     if (block) {
       if (block.value === null) out.bad.push({ from, to: from + l.length })
       else out[block.key] = block.value
+      return
+    }
+    const caption = blockCaptionLine(l)
+    if (caption) {
+      if (caption.bad) out.bad.push({ from, to: from + l.length })
+      if (caption.text !== undefined) out.caption = caption.text
+      if (caption.top !== undefined) out.captionTop = caption.top
       return
     }
     const size = /^\s*size\s*:?\s*(\S+)\s*$/i.exec(l)
@@ -252,11 +294,14 @@ export function setupLine(it: SetupItem): string {
 }
 
 /** Il testo del blocco ```setup */
-export function setupSource(s: Pick<Setup, 'size' | 'items' | 'width' | 'font'>): string {
+export function setupSource(
+  s: Pick<Setup, 'size' | 'items' | 'width' | 'font' | 'caption' | 'captionTop'>
+): string {
   return [
     '```' + SETUP_FENCE,
     ...(s.size ? [`size ${r(s.size.w)}x${r(s.size.h)}`] : []),
     ...blockSizeLines(s),
+    ...blockCaptionLines(s),
     ...s.items.map(setupLine),
     '```'
   ].join('\n')

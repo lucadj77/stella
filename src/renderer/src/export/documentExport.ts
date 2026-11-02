@@ -211,7 +211,7 @@ export async function documentMarkdown(
   const figureMd = async (src: string, rawAlt: string, key: number | string): Promise<string> => {
     const alt = rawAlt.replace(/[[\]]/g, '')
     if (isCardSource(src)) {
-      const svg = page.querySelector<SVGSVGElement>(`figure[data-from="${key}"] svg[xmlns]`)
+      const svg = figureSvg(page, key)
       if (!svg) return ''
       cards++
       const file = `${String(cards).padStart(2, '0')}${alt ? ' ' + safeName(alt) : ''}.png`
@@ -223,6 +223,11 @@ export async function documentMarkdown(
     return url ? `![${alt}](${url})` : ''
   }
   const out: string[] = []
+  /** Il disegno con la sua didascalia in corsivo, sopra o sotto */
+  const withCaption = async (md: string, caption = '', top = false): Promise<void> => {
+    const c = caption.trim() ? `*${await inline(caption)}*` : ''
+    out.push(...(c ? (top ? [c, md] : [md, c]) : [md]))
+  }
   for (const b of parseDocument(text)) {
     switch (b.kind) {
       case 'heading':
@@ -285,7 +290,7 @@ export async function documentMarkdown(
       }
       case 'anatomy': {
         // l'anatomia è un disegno solo: un PNG come le carte
-        const svg = page.querySelector<SVGSVGElement>(`figure[data-from="${b.from}"] svg[xmlns]`)
+        const svg = figureSvg(page, b.from)
         if (!svg) break
         cards++
         const file = `${String(cards).padStart(2, '0')} ${safeName(
@@ -295,16 +300,16 @@ export async function documentMarkdown(
             .replace(/\//g, ' ')
         )}.png`
         files.push({ path: `${dir}/${file}`, data: await cardPng(svg, fonts) })
-        out.push(`![](${link(file)})`)
+        await withCaption(`![](${link(file)})`, b.caption, b.captionTop)
         break
       }
       case 'setup': {
-        const svg = page.querySelector<SVGSVGElement>(`figure[data-from="${b.from}"] svg[xmlns]`)
+        const svg = figureSvg(page, b.from)
         if (!svg) break
         cards++
         const file = `${String(cards).padStart(2, '0')} setup.png`
         files.push({ path: `${dir}/${file}`, data: await cardPng(svg, fonts) })
-        out.push(`![](${link(file)})`)
+        await withCaption(`![](${link(file)})`, b.caption, b.captionTop)
         break
       }
       case 'figure': {
@@ -320,6 +325,19 @@ export async function documentMarkdown(
   }
   files.unshift({ path: `${name}.md`, data: out.join('\n\n') + '\n' })
   return files
+}
+
+/**
+ * Il disegno (carta, anatomia, schema) di una figura dell'anatomia: quello fuori dalla
+ * didascalia, che può contenere icone in SVG
+ */
+function figureSvg(page: HTMLElement, key: number | string): SVGSVGElement | null {
+  const fig = page.querySelector(`figure[data-from="${key}"]`)
+  return (
+    fig?.querySelector<SVGSVGElement>(':scope > svg[xmlns]') ??
+    fig?.querySelector<SVGSVGElement>('svg[xmlns]') ??
+    null
+  )
 }
 
 /** Nome di file senza i caratteri che i sistemi non accettano */

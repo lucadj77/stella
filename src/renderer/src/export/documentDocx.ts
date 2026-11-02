@@ -8,6 +8,7 @@ import { imageVariable, palette, resolveColor, resolveFont } from '../../../shar
 import {
   DOC_PAGES,
   documentText,
+  captionOnTop,
   figureAlign,
   isCardSource,
   parseDocument,
@@ -222,10 +223,13 @@ export async function documentDocx(
   const figureRun = async (src: string, key: number | string): Promise<string> => {
     const fig = figureOf(key)
     if (isCardSource(src)) {
-      const svg = fig?.querySelector<SVGSVGElement>('svg[xmlns]')
+      // il disegno fuori dalla didascalia, che può avere icone in SVG
+      const svg =
+        fig?.querySelector<SVGSVGElement>(':scope > svg[xmlns]') ??
+        fig?.querySelector<SVGSVGElement>('svg[xmlns]')
       return svg ? svgPicture(svg) : ''
     }
-    const el = fig?.querySelector('img')
+    const el = fig?.querySelector<HTMLImageElement>(':scope > img') ?? fig?.querySelector('img')
     if (!el?.complete || !el.naturalWidth) return ''
     const r = el.getBoundingClientRect()
     const w = r.width * PX_MM
@@ -411,45 +415,57 @@ export async function documentDocx(
       }
       case 'anatomy':
       case 'setup': {
-        const svg = figureOf(b.from)?.querySelector<SVGSVGElement>('svg[xmlns]')
-        if (svg)
-          body.push(
-            para(
-              await svgPicture(svg),
-              '<w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="center"/>'
+        const svg = figureOf(b.from)?.querySelector<SVGSVGElement>(':scope > svg[xmlns]')
+        if (!svg) break
+        const caption = b.caption?.trim()
+          ? para(
+              await inline(b.caption),
+              `${b.captionTop ? '<w:keepNext/>' : ''}<w:pStyle w:val="Caption"/><w:jc w:val="center"/>`
             )
+          : ''
+        if (caption && b.captionTop) body.push(caption)
+        body.push(
+          para(
+            await svgPicture(svg),
+            `${caption && !b.captionTop ? '<w:keepNext/>' : ''}<w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="center"/>`
           )
+        )
+        if (caption && !b.captionTop) body.push(caption)
         break
       }
       case 'figure': {
         const jc = `<w:jc w:val="${figureAlign(b.images)}"/>`
-        const pics: { run: string; alt: string }[] = []
+        const pics: { run: string; alt: string; top: boolean }[] = []
         for (const img of b.images) {
           const run = await figureRun(img.src, img.from)
-          if (run) pics.push({ run, alt: img.alt })
+          if (run) pics.push({ run, alt: img.alt, top: captionOnTop(img.src) })
         }
         if (!pics.length) break
         if (pics.length === 1) {
+          const [p] = pics
+          if (p.alt && p.top)
+            body.push(para(await inline(p.alt), `<w:keepNext/><w:pStyle w:val="Caption"/>${jc}`))
           body.push(
             para(
-              pics[0].run,
-              `<w:keepNext/><w:spacing w:after="60" w:line="240" w:lineRule="auto"/>${jc}`
+              p.run,
+              `${p.alt && !p.top ? '<w:keepNext/>' : ''}<w:spacing w:after="60" w:line="240" w:lineRule="auto"/>${jc}`
             )
           )
-          if (pics[0].alt)
-            body.push(para(await inline(pics[0].alt), `<w:pStyle w:val="Caption"/>${jc}`))
+          if (p.alt && !p.top)
+            body.push(para(await inline(p.alt), `<w:pStyle w:val="Caption"/>${jc}`))
           break
         }
         // più immagini affiancate: una tabella senza bordi, con la didascalia sotto ciascuna
         const w = Math.floor(textW / pics.length)
         const cells = await Promise.all(
-          pics.map(
-            async (p) =>
-              `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/></w:tcPr>${para(p.run, '<w:spacing w:after="60" w:line="240" w:lineRule="auto"/><w:jc w:val="center"/>')}${para(
-                p.alt ? await inline(p.alt) : '',
-                '<w:pStyle w:val="Caption"/>'
-              )}</w:tc>`
-          )
+          pics.map(async (p) => {
+            const pic = para(
+              p.run,
+              '<w:spacing w:after="60" w:line="240" w:lineRule="auto"/><w:jc w:val="center"/>'
+            )
+            const cap = para(p.alt ? await inline(p.alt) : '', '<w:pStyle w:val="Caption"/>')
+            return `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/></w:tcPr>${p.top ? cap + pic : pic + cap}</w:tc>`
+          })
         )
         body.push(
           `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/>${jc}<w:tblBorders>` +

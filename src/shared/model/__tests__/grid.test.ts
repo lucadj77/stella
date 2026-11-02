@@ -143,3 +143,20 @@ describe('casella a misura fissa', () => {
     expect(fitFixedGrid({ ...base, x: 0, y: 0 })).toMatchObject({ w: 50, h: 40 })
   })
 })
+
+describe('spaziatura diversa per righe e colonne', () => {
+  it('rowGap separa le righe, gap le colonne', () => {
+    const g = gridGeometry({ ...base, w: 1000, h: 1000, zoom: 1, gap: 1, rowGap: 4 })
+    const s = g.cell.h
+    // stessa riga: distanza s + 1; stessa colonna: s + 4
+    expect(g.centers[1].x - g.centers[0].x).toBeCloseTo(s + 1)
+    expect(g.centers[5].y - g.centers[0].y).toBeCloseTo(s + 4)
+  })
+
+  it('senza rowGap vale gap per tutte e due', () => {
+    const a = gridGeometry({ ...base, gap: 2 })
+    const b = gridGeometry({ ...base, gap: 2, rowGap: null })
+    expect(b).toEqual(a)
+    expect(a.centers[5].y - a.centers[0].y).toBeCloseTo(a.centers[1].x - a.centers[0].x)
+  })
+})

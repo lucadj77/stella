@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  captionOnTop,
   documentComments,
   withoutComments,
   cardRefSource,
@@ -322,6 +323,72 @@ describe('anatomia della carta', () => {
     ] as never
     expect(layerBounds(layers, 'nome')).toEqual({ x: 6, y: 4, w: 50, h: 10 })
     expect(layerBounds(layers, 'altro')).toBeNull()
+  })
+
+  it('trova gli elementi dentro una griglia, nella prima casella', () => {
+    const icon = {
+      type: 'image',
+      name: 'icona',
+      x: 12,
+      y: 14,
+      w: 4,
+      h: 4,
+      rotation: 0,
+      anchor: 'center'
+    }
+    const layers = [
+      {
+        type: 'grid',
+        name: 'tabellone',
+        x: 10,
+        y: 10,
+        w: 40,
+        h: 40,
+        rotation: 0,
+        anchor: 'center',
+        content: 'casella',
+        groups: [
+          {
+            type: 'group',
+            name: 'casella',
+            x: 10,
+            y: 10,
+            w: 10,
+            h: 10,
+            rotation: 0,
+            anchor: 'center',
+            layout: 'none',
+            repeat: '1',
+            children: [icon]
+          }
+        ],
+        cellRules: []
+      }
+    ] as never
+    expect(layerBounds(layers, 'icona')).toEqual({ x: 12, y: 14, w: 4, h: 4 })
+    expect(layerBounds(layers, 'casella')).not.toBeNull()
+  })
+
+  it("la didascalia dell'anatomia e la sua posizione", () => {
+    const src = anatomySource('Personaggi/1', [{ layer: 'nome', label: 'Nome' }], false, {
+      caption: 'Una carta',
+      captionTop: true
+    })
+    expect(src).toContain('caption: Una carta\ncaption-position: top')
+    const [b] = parseDocument(src)
+    expect(b).toMatchObject({ kind: 'anatomy', caption: 'Una carta', captionTop: true, bad: [] })
+    const plain = parseDocument('```anatomy\ncard: P/1\ncaption: X\n- nome: Nome\n```')[0]
+    expect(plain).toMatchObject({ caption: 'X', captionTop: false })
+  })
+
+  it('caption=top sulle immagini e sulle carte', () => {
+    expect(captionOnTop('icone/mappa.png?caption=top')).toBe(true)
+    expect(captionOnTop('icone/mappa.png')).toBe(false)
+    expect(captionOnTop('card:Personaggi/1?caption=top')).toBe(true)
+    expect(cardRefSource({ set: 'P', row: 1, side: 'front', captionTop: true })).toBe(
+      'card:P/1?caption=top'
+    )
+    expect(imageSourceWith('a.png', { captionTop: true })).toBe('a.png?caption=top')
   })
 })
 

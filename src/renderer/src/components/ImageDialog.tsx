@@ -8,6 +8,7 @@ import { useI18n } from '../i18n/context'
 import { AssetsContext, VariablesContext, assetUrl } from '../render/assets'
 import AssetPicker from './AssetPicker'
 import Segmented from './Segmented'
+import CaptionField from './CaptionField'
 
 /** Un'immagine del documento come è scritta: ![didascalia](sorgente) */
 export interface DocImageValue {
@@ -36,12 +37,13 @@ export default function ImageDialog({
   const [width, setWidth] = useState(start?.options.width ? String(start.options.width) : '')
   const [align, setAlign] = useState<FigureAlign>(start?.options.align ?? 'center')
   const [alt, setAlt] = useState(initial?.alt ?? '')
+  const [captionTop, setCaptionTop] = useState(!!start?.options.captionTop)
   const [picking, setPicking] = useState(!initial)
 
   const name = path.replace(/^\{(.*)\}$/, '$1')
   const v = imageVariable(name, variables)
   const found = path ? resolveAsset(v ? v.src : name, assets) : null
-  const text = `![${alt.replace(/[[\]]/g, '')}](${imageSourceWith(path, { width: Number(width) > 0 ? Number(width) : undefined, align })})`
+  const text = `![${alt.replace(/[[\]]/g, '')}](${imageSourceWith(path, { width: Number(width) > 0 ? Number(width) : undefined, align, captionTop })})`
 
   return (
     <Dialog title={t(initial ? 'docImage.edit' : 'docImage.insert')} onClose={onClose}>
@@ -87,10 +89,7 @@ export default function ImageDialog({
           </label>
         </div>
         <p className="muted small">{t('docImage.alignHint')}</p>
-        <label>
-          {t('documents.caption')}
-          <input value={alt} onChange={(e) => setAlt(e.target.value)} />
-        </label>
+        <CaptionField value={alt} top={captionTop} onChange={setAlt} onTop={setCaptionTop} />
         <code className="insert-card-code">{text}</code>
         <div className="dialog-buttons">
           <button onClick={onClose}>{t('dialog.cancel')}</button>

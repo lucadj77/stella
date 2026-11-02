@@ -5,11 +5,19 @@ import { substituteFields } from './bind'
 import { imageVariable, variableFields, type Variables } from './variables'
 import { resolveAsset } from './assets'
 import { today } from './system'
-import type { GroupLayer, HAlign, Layer, Side, Template } from './template'
+import type { GridLayer, GroupLayer, HAlign, Layer, Side, Template } from './template'
 import { worldBounds } from './geometry'
 import { arrangeGroup } from './arrange'
 import type { Bounds } from './edit'
-import { blockSizeLine, blockSizeLines, parseSetup, SETUP_FENCE, type Setup } from './setup'
+import {
+  blockCaptionLine,
+  blockCaptionLines,
+  blockSizeLine,
+  blockSizeLines,
+  parseSetup,
+  SETUP_FENCE,
+  type Setup
+} from './setup'
 import {
   cellParts,
   DEFAULT_TABLE_STYLE,
@@ -100,6 +108,10 @@ export interface Anatomy {
   width: number | null
   /** Corpo delle etichette in frazione di quello di base (`font: 90%`); null = di base */
   font: number | null
+  /** Didascalia del disegno (`caption: testo`); vuota = nessuna */
+  caption: string
+  /** Didascalia sopra il disegno (`caption-position: top`); di base sotto */
+  captionTop: boolean
   /** Righe che non si capiscono */
   bad: { from: number; to: number }[]
 }
@@ -117,6 +129,8 @@ function parseAnatomy(lines: string[], starts: number[]): Anatomy {
     callouts: [],
     width: null,
     font: null,
+    caption: '',
+    captionTop: false,
     bad: []
   }
   lines.forEach((l, k) => {
@@ -138,6 +152,13 @@ function parseAnatomy(lines: string[], starts: number[]): Anatomy {
     if (size) {
       if (size.value === null) out.bad.push({ from, to })
       else out[size.key] = size.value
+      return
+    }
+    const caption = blockCaptionLine(l)
+    if (caption) {
+      if (caption.bad) out.bad.push({ from, to })
+      if (caption.text !== undefined) out.caption = caption.text
+      if (caption.top !== undefined) out.captionTop = caption.top
       return
     }
     const m = CALLOUT_LINE.exec(l)
@@ -163,7 +184,12 @@ export function anatomySource(
   card: string,
   callouts: Omit<Callout, 'from' | 'to'>[],
   both = false,
-  size: { width?: number | null; font?: number | null } = {}
+  size: {
+    width?: number | null
+    font?: number | null
+    caption?: string
+    captionTop?: boolean
+  } = {}
 ): string {
   const opts = (c: Omit<Callout, 'from' | 'to'>): string => {
     const list = [both && c.face === 'back' ? 'back' : '', !both && c.side ? c.side : ''].filter(
@@ -176,9 +202,18 @@ export function anatomySource(
     `card: ${card.replace(/^card:/i, '')}`,
     ...(both ? ['sides: both'] : []),
     ...blockSizeLines(size),
+    ...blockCaptionLines(size),
     ...callouts.map((c) => `- ${c.layer}${opts(c)}: ${c.label.replace(/\n/g, ' ')}`),
     '```'
   ].join('\n')
+}
+
+/**
+ * Il gruppo che si ripete nelle caselle della griglia, com'è nella prima casella: sulla carta
+ * disegnata quello della prima casella, nel template quello del contenuto; null se non c'è
+ */
+export function gridContent(l: GridLayer): GroupLayer | null {
+  return l.cells?.[0] ?? l.groups.find((g) => g.name === l.content) ?? null
 }
 
 /**
@@ -186,15 +221,17 @@ export function anatomySource(
  * null. Prima il nome esatto, poi senza badare alle maiuscole.
  */
 export function layerBounds(layers: Layer[], name: string): Bounds | null {
-  const find = (
-    list: Layer[],
-    chain: GroupLayer[],
-    same: (a: string) => boolean
-  ): Bounds | null => {
+  const find = (list: Layer[], chain: Layer[], same: (a: string) => boolean): Bounds | null => {
     for (const l of list) {
       if (same(l.name) && l.type !== 'value') return worldBounds(l, chain)
       if (l.type === 'group') {
         const found = find(arrangeGroup(l).children, [...chain, l], same)
+        if (found) return found
+      }
+      // dentro una griglia: gli elementi del contenuto, nella prima casella dove sono disegnati
+      if (l.type === 'grid') {
+        const content = gridContent(l)
+        const found = content && find([content], [...chain, l], same)
         if (found) return found
       }
     }
@@ -930,6 +967,8 @@ export interface CardRef {
   width?: number
   /** Allineamento della riga di immagini; di base al centro */
   align?: FigureAlign
+  /** Didascalia sopra la carta (caption=top); di base sotto */
+  captionTop?: boolean
 }
 
 export type FigureAlign = 'left' | 'center' | 'right'
@@ -940,6 +979,8 @@ export interface ImageOptions {
   /** Larghezza in mm; di base la misura dell'immagine, ridotta se non ci sta */
   width?: number
   align?: FigureAlign
+  /** Didascalia sopra l'immagine (caption=top); di base sotto */
+  captionTop?: boolean
 }
 
 /**
@@ -961,6 +1002,7 @@ export function splitImageSource(src: string): {
     const [k, v = ''] = part.split('=').map((x) => decode(x).trim())
     if (k === 'width' && Number(v) > 0) options.width = Number(v)
     else if (k === 'align' && ALIGNS.includes(v as FigureAlign)) options.align = v as FigureAlign
+    else if (k === 'caption' && (v === 'top' || v === 'bottom')) options.captionTop = v === 'top'
     else bad.push(part)
   }
   return { path: raw.slice(0, q).trim(), options, bad }
@@ -970,9 +1012,16 @@ export function splitImageSource(src: string): {
 export function imageSourceWith(path: string, options: ImageOptions): string {
   const opts = [
     options.width ? `width=${options.width}` : '',
-    options.align && options.align !== 'center' ? `align=${options.align}` : ''
+    options.align && options.align !== 'center' ? `align=${options.align}` : '',
+    options.captionTop ? 'caption=top' : ''
   ].filter(Boolean)
   return `${path}${opts.length ? `?${opts.join('&')}` : ''}`
+}
+
+/** La didascalia di una carta o di un'immagine va sopra (caption=top)? Di base sta sotto */
+export function captionOnTop(src: string): boolean {
+  const ref = isCardSource(src) ? parseCardRef(src) : splitImageSource(src).options
+  return !isMessage(ref) && !!ref.captionTop
 }
 
 /** Allineamento di una riga di immagini: il primo scritto, di base al centro */
@@ -1024,6 +1073,7 @@ export function parseCardRef(src: string): CardRef | Message {
       if (k === 'side' && (v === 'front' || v === 'back')) ref.side = v
       else if (k === 'width' && Number(v) > 0) ref.width = Number(v)
       else if (k === 'align' && ALIGNS.includes(v as FigureAlign)) ref.align = v as FigureAlign
+      else if (k === 'caption' && (v === 'top' || v === 'bottom')) ref.captionTop = v === 'top'
       else return msg('doc.card.badOption', { option: part, ref: raw })
     }
   return ref
@@ -1038,7 +1088,8 @@ export function cardRefSource(ref: CardRef): string {
   const opts = [
     ref.side === 'back' ? 'side=back' : '',
     ref.width ? `width=${ref.width}` : '',
-    ref.align && ref.align !== 'center' ? `align=${ref.align}` : ''
+    ref.align && ref.align !== 'center' ? `align=${ref.align}` : '',
+    ref.captionTop ? 'caption=top' : ''
   ].filter(Boolean)
   return `${CARD_PREFIX}${enc(ref.set)}/${selector}${opts.length ? `?${opts.join('&')}` : ''}`
 }

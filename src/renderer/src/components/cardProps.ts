@@ -84,7 +84,7 @@ export function propControl(l: Layer, key: string): PropControl {
               'tile'
             ])
           }
-        : { kind: 'select', options: opts('textFit', ['none', 'shrink', 'truncate']) }
+        : { kind: 'select', options: opts('textFit', ['none', 'shrink', 'grow', 'truncate']) }
     case 'align':
       return l.type === 'image'
         ? { kind: 'select', options: opts('anchor', ANCHORS) }
