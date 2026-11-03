@@ -3,7 +3,7 @@ import { isValidNoteName } from '../../../shared/project'
 import { noteParts, type TableBlock } from '../../../shared/model/noteParts'
 import MarkupText from '../render/MarkupText'
 import { useI18n } from '../i18n/context'
-import { TrashIcon } from './icons'
+import { DetachIcon, DockIcon, TrashIcon } from './icons'
 import Resizer from './Resizer'
 import Segmented from './Segmented'
 import { usePanelWidth } from './usePanelWidth'
@@ -275,39 +275,5 @@ function NoteTable({ table }: { table: TableBlock }): React.JSX.Element {
         </tbody>
       </table>
     </div>
-  )
-}
-
-function DetachIcon(): React.JSX.Element {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      aria-hidden
-    >
-      <rect x="1.5" y="4.5" width="10" height="10" rx="1" />
-      <path d="M8 1.5h6.5V8M14.5 1.5 8.5 7.5" />
-    </svg>
-  )
-}
-
-function DockIcon(): React.JSX.Element {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      aria-hidden
-    >
-      <rect x="1.5" y="1.5" width="13" height="13" rx="1" />
-      <path d="M10 1.5v13" />
-    </svg>
   )
 }

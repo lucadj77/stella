@@ -38,6 +38,12 @@ interface Props {
   onSort?(column: string): void
   /** Il pulsante che aggiunge una riga, come lo scrive il set: «+ Carta», «+ Segnalino» */
   addLabel?: string
+  /** Il valore del template che la carta mostra quando la cella è vuota */
+  fallback?(row: number, column: string): string
+  /** Colore della cella secondo i colori del set (vedi setColors) */
+  cellColor?(row: number, column: string): string | undefined
+  /** Colore di tutta la riga, quando un campo solo colora la riga */
+  rowColor?(row: number): string | undefined
 }
 
 interface Cell {
@@ -62,7 +68,10 @@ function DataTable({
   rows: shown,
   sort,
   onSort,
-  addLabel
+  addLabel,
+  fallback,
+  cellColor,
+  rowColor
 }: Props): React.JSX.Element {
   const { t } = useI18n()
   const [active, setActive] = useState<Cell | null>(null)
@@ -223,10 +232,12 @@ function DataTable({
         <tbody>
           {rows.map((r) => {
             const row = sheet.rows[r]
+            const tint = rowColor?.(r)
             return (
               <tr
                 key={r}
                 data-row={r}
+                style={tint ? ({ '--tint': tint } as React.CSSProperties) : undefined}
                 className={[
                   selected.includes(r) && 'selected',
                   dropRow === r && dragRow !== null && (dragRow < r ? 'drop-after' : 'drop-before')
@@ -271,12 +282,21 @@ function DataTable({
                   const isEditing = editing?.cell.row === r && editing.cell.col === h
                   const raw = i >= 0 ? (row[i] ?? '') : ''
                   const bool = !calc && !isEditing && booleans.has(h)
+                  const color = tint ? undefined : cellColor?.(r, h)
+                  const shownDefault =
+                    !calc && !bool && !isEditing && !raw.trim() && fallback ? fallback(r, h) : ''
                   return (
                     <td
                       key={h}
                       data-cell={`${r}:${h}`}
+                      style={color ? ({ '--tint': color } as React.CSSProperties) : undefined}
                       className={
-                        [isActive && 'active-cell', calc && 'calc-cell', bool && 'bool-cell']
+                        [
+                          isActive && 'active-cell',
+                          calc && 'calc-cell',
+                          bool && 'bool-cell',
+                          (tint || color) && 'tinted'
+                        ]
                           .filter(Boolean)
                           .join(' ') || undefined
                       }
@@ -318,6 +338,10 @@ function DataTable({
                             if (how === 'left') move(0, -1)
                           }}
                         />
+                      ) : shownDefault ? (
+                        <span className="tpl-value" title={t('table.templateValue')}>
+                          <CellText text={shownDefault} fields={() => rowFields(r)} />
+                        </span>
                       ) : (
                         <CellText text={raw} fields={() => rowFields(r)} />
                       )}

@@ -62,6 +62,12 @@ function columnLayer(t: Template, column: string): Layer | undefined {
   )
 }
 
+/** Il valore che il template dà a una colonna quando la cella è vuota; '' se non ne dà */
+export function templateValue(t: Template, column: string): string {
+  const l = columnLayer(t, column)
+  return l ? (defaultValue(l) ?? '').trim() : ''
+}
+
 /** I valori che una colonna ha sulle carte, e quali vengono dal template */
 export interface FieldValues {
   values: string[]
@@ -94,8 +100,8 @@ export function fieldValues(
       continue
     }
     const t = cardTemplate(sheet.headers, row, template, templates).template
-    if (i >= 0) {
-      const l = columnLayer(t, column)
+    const l = columnLayer(t, column)
+    if (i >= 0 || l) {
       const v = l ? (defaultValue(l) ?? '').trim() : ''
       values.push(v)
       fromTemplate.push(v !== '')
@@ -120,6 +126,18 @@ export function columnValues(
   numbers?: NumberFormatting
 ): string[] {
   return fieldValues(sheet, column, rows, template, templates, variables, numbers).values
+}
+
+/** I campi di testo del template: le colonne dei livelli di testo e i testi con formula */
+export function textFields(templates: Template[]): string[] {
+  const out: string[] = []
+  for (const t of templates)
+    for (const l of walkLayers([...t.front, ...t.back])) {
+      if (l.type !== 'text') continue
+      const name = l.source.kind === 'column' ? (l.source.column ?? l.name) : l.name
+      if (!out.includes(name)) out.push(name)
+    }
+  return out
 }
 
 /** Copie di ogni riga indicata: la colonna amount, o 1 */
