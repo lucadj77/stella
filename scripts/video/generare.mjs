@@ -278,13 +278,13 @@ await r.focus(
 )
 
 // ---- 2. tutte le combinazioni
-await r.title(t('Tutte le combinazioni', 'All combinations'))
+await r.title(t('Tutte le combinazioni', 'Every combination'))
 await tools('set.generate')
 await r.focus(
   kindButton('generate.all'),
   t(
     'Tutte le combinazioni: un componente per ogni modo di unire i valori degli insiemi',
-    'All combinations: one component for every way of joining the values of the sets'
+    'Every combination: one component for every way of joining the values of the sets'
   ),
   'below',
   { pad: 4 }
@@ -371,7 +371,7 @@ await r.focus(
   [genCheck(2, 'generate.repeat'), genSet(2).locator('.generate-row').last()],
   t(
     'Con ripetizioni: anche due volte la stessa risorsa, come legno legno. Le scelte diventano 6',
-    'With repeats: the same resource twice too, as in wood wood. The choices become 6'
+    'With repetition: the same resource twice too, as in wood wood. The choices become 6'
   ),
   'above',
   { pad: 4 }
@@ -381,7 +381,7 @@ await r.focus(
   [genCheck(2, 'generate.ordered'), genSet(2).locator('.generate-row').last()],
   t(
     'Conta l’ordine: oro legno e legno oro diventano due carte diverse. Qui non serve',
-    'Count order: gold wood and wood gold become two different cards. Not needed here'
+    'Order matters: gold wood and wood gold become two different cards. Not needed here'
   ),
   'above',
   { pad: 4 }
@@ -521,7 +521,7 @@ await r.focus(
   [row('generate.howMany'), preview()],
   t(
     'Tutti i componenti del set: 12 ritratti per 33 reclute, i giri ricominciano finché il set è pieno',
-    'All the components of the set: 12 portraits for 33 recruits, the rounds start over until the set is full'
+    'All components of the set: 12 portraits for 33 recruits, the rounds start over until the set is full'
   ),
   'above',
   { pad: 4 }
@@ -695,7 +695,7 @@ await r.focus(
   [row('generate.order'), preview()],
   t(
     'Ogni giro un ordine diverso: con tre valori ci sono 6 ordini, poi si ricomincia',
-    'A different order each round: with three values there are 6 orders, then it starts over'
+    'Each round a different order: with three values there are 6 orders, then it starts over'
   ),
   'above',
   { pad: 4 }
@@ -705,7 +705,7 @@ await r.focus(
   [row('generate.order'), preview()],
   t(
     'Mescola tutto: le quantità restano 11, 11 e 11, ma l’ordine è libero',
-    'Shuffle all: the amounts stay 11, 11 and 11, but the order is free'
+    'Shuffle everything: the amounts stay 11, 11 and 11, but the order is free'
   ),
   'above',
   { pad: 4 }

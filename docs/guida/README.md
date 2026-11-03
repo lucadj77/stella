@@ -54,6 +54,7 @@ Video tutorial su YouTube, senza voce ([tutta la playlist](https://www.youtube.c
 - 26 · [Approfondimento: impaginare un template](https://www.youtube.com/watch?v=9RCQ24GUg3Q) (16 minuti), con il [progetto «Locanda» da scaricare](https://stella.lucadj.eu/progetti/locanda.zip)
 - 27 · [Approfondimento: immagini e forme](https://www.youtube.com/watch?v=klhDqqy7_iw) (16 minuti), con il [progetto «Spedizione» da scaricare](https://stella.lucadj.eu/progetti/spedizione.zip)
 - 28 · [Approfondimento: le statistiche del set](https://www.youtube.com/watch?v=PodvOU8QTGo) (8 minuti), con il [progetto «Schermaglia» da scaricare](https://stella.lucadj.eu/progetti/schermaglia.zip)
+- 29 · [Approfondimento: generare i componenti](https://www.youtube.com/watch?v=rS9THc4awyM) (10 minuti), con il [progetto «Reclute» da scaricare](https://stella.lucadj.eu/progetti/reclute.zip)
 
 English version: [../guide/README.md](../guide/README.md).
 
