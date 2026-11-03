@@ -95,7 +95,8 @@ const tab = (key) => panel().locator('.stats-tabs button', { hasText: T[key] }).
 const control = (key) =>
   body()
     .locator('.stats-controls label')
-    .filter({ hasText: T[key] })
+    // il testo di un'etichetta comprende le voci del suo menu: si confronta solo l'inizio
+    .filter({ hasText: new RegExp(`^${T[key]}`) })
     .first()
     .locator('select')
     .first()
@@ -320,6 +321,7 @@ await r.clear()
 await openTab('stats.tab.pivot')
 await choose(control('stats.pivotRows'), C.faction)
 await choose(control('stats.pivotCols'), C.cost)
+await choose(control('stats.inCells'), 'count')
 await r.focus(
   body().locator('.stats-pivot').first(),
   t(
