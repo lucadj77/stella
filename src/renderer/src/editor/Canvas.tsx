@@ -353,11 +353,22 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     const g = gesture.current
     if (!g) return
     const q = toFrame(cardPoint(e), g.frame)
-    const grid = gridSteps(guides, tpl)
-    const stepX = e.altKey ? 0 : guides.snapGrid ? grid.x : SNAP
-    const stepY = e.altKey ? 0 : guides.snapGrid ? grid.y : SNAP
+    // la griglia è una calamita come gli oggetti: le sue linee e il centro dei suoi riquadri
+    // attirano lati e centro di ciò che si sposta quando sono vicini; altrove si va a mezzo mm
+    const stepX = e.altKey ? 0 : SNAP
+    const stepY = e.altKey ? 0 : SNAP
     const magnet = !e.altKey && guides.snapObjects
+    const onGrid = !e.altKey && guides.snapGrid
     const threshold = SNAP_PX / scale
+    const none = { x: [], y: [] }
+    const { lines: gl, mids } = onGrid
+      ? gridSnapLines(shownSteps(gridSteps(guides, tpl), scale), stage)
+      : { lines: none, mids: none }
+    /** Le linee che attirano: quelle degli oggetti (se l'aggancio è acceso) e quelle della griglia */
+    const attract = (base: { x: number[]; y: number[] }): { x: number[]; y: number[] } => ({
+      x: [...(magnet ? base.x : []), ...gl.x],
+      y: [...(magnet ? base.y : []), ...gl.y]
+    })
     let next: Template
     if (g.kind === 'end') {
       // l'estremo di una linea: si aggancia a oggetti e griglia, Maiuscolo tiene l'angolo a 15°
@@ -371,8 +382,9 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
         p = { x: fixed.x + len * Math.cos(a), y: fixed.y + len * Math.sin(a) }
         setSnapped({ x: null, y: null })
       } else {
-        const hx = magnet ? nearest([q.x], g.lines.x, threshold) : null
-        const hy = magnet ? nearest([q.y], g.lines.y, threshold) : null
+        const lines = attract(g.lines)
+        const hx = nearest([q.x], lines.x, threshold)
+        const hy = nearest([q.y], lines.y, threshold)
         p = { x: hx ? hx.line : snap(q.x, stepX), y: hy ? hy.line : snap(q.y, stepY) }
         setSnapped({ x: hx?.line ?? null, y: hy?.line ?? null })
       }
@@ -385,7 +397,11 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
       // una guida si aggancia ai lati e al centro della carta e dell'area sicura
       const v = g.axis === 'x' ? q.x : q.y
       const card = linesOf([cardArea(tpl, 'card'), cardArea(tpl, 'safe')])[g.axis]
-      const hit = magnet ? nearest([v], card, threshold) : null
+      const hit = nearest(
+        [v],
+        [...(magnet ? card : []), ...(g.axis === 'x' ? gl.x : gl.y)],
+        threshold
+      )
       const value = hit ? hit.line : snap(v, g.axis === 'x' ? stepX : stepY)
       setSnapped(g.axis === 'x' ? { x: value, y: null } : { x: null, y: value })
       const list = [...(g.start.guides?.[g.axis] ?? [])]
@@ -405,33 +421,33 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
         rx = Math.sign(rx) * d
         ry = Math.sign(ry) * d
       }
-      // un lato o il centro vicino a un altro oggetto ha la precedenza sulla griglia
-      const hit = magnet
-        ? snapBox({ ...g.box, x: g.box.x + rx, y: g.box.y + ry }, g.lines, threshold)
-        : { x: null, y: null }
+      // un lato o il centro vicino a un oggetto o alla griglia si aggancia, il più vicino vince
+      // lati e centro vanno sulle linee; il centro anche al centro dei riquadri della griglia
+      const moved = { ...g.box, x: g.box.x + rx, y: g.box.y + ry }
+      const hit =
+        magnet || onGrid ? snapBox(moved, attract(g.lines), threshold) : { x: null, y: null }
+      const closer = (
+        a: { delta: number; line: number } | null,
+        b: { delta: number; line: number } | null
+      ): { delta: number; line: number } | null =>
+        !a ? b : !b ? a : Math.abs(b.delta) < Math.abs(a.delta) ? b : a
+      hit.x = closer(hit.x, nearest([moved.x + moved.w / 2], mids.x, threshold))
+      hit.y = closer(hit.y, nearest([moved.y + moved.h / 2], mids.y, threshold))
       // l'asse bloccato non si aggancia; in diagonale nessun aggancio, per restare a 45°
       if (axis === 'y' || axis === 'diagonal') hit.x = null
       if (axis === 'x' || axis === 'diagonal') hit.y = null
       const free = axis === 'diagonal'
-      // sulla griglia si aggancia l'angolo del livello preso, gli altri lo seguono; con
-      // l'aggancio alla griglia anche il centro della scelta va sulle linee o al centro delle
-      // caselle, e vince l'aggancio più vicino
-      const onGrid = (ref: number, mid: number, d: number, s: number): number => {
-        const corner = snap(ref + d, s) - ref
-        if (!guides.snapGrid || !(s > 0)) return corner
-        const center = snap(mid + d, s / 2) - mid
-        return Math.abs(center - d) < Math.abs(corner - d) ? center : corner
-      }
+      // senza aggancio l'angolo del livello preso va a mezzo mm, gli altri lo seguono
       const dx = hit.x
         ? rx + hit.x.delta
         : axis === 'y' || free
           ? rx
-          : onGrid(g.ref.x, g.box.x + g.box.w / 2, rx, stepX)
+          : snap(g.ref.x + rx, stepX) - g.ref.x
       const dy = hit.y
         ? ry + hit.y.delta
         : axis === 'x' || free
           ? ry
-          : onGrid(g.ref.y, g.box.y + g.box.h / 2, ry, stepY)
+          : snap(g.ref.y + ry, stepY) - g.ref.y
       setSnapped({ x: hit.x?.line ?? null, y: hit.y?.line ?? null })
       next = updateLayers(g.start, side, (l) =>
         g.ids.includes(l.id) ? translateLayer(l, dx, dy) : l
@@ -439,13 +455,14 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     } else if (g.kind === 'resize') {
       let local = toLocal(g.layer, q)
       let resizeStep: number | { x: number; y: number } = { x: stepX, y: stepY }
-      // il lato trascinato si aggancia agli oggetti solo se il livello non è ruotato
-      if (magnet && !g.layer.rotation) {
+      // il lato trascinato si aggancia a oggetti e griglia solo se il livello non è ruotato
+      if ((magnet || onGrid) && !g.layer.rotation) {
         const h = g.handle
+        const lines = attract(g.lines)
         const hx =
-          h.includes('e') || h.includes('w') ? nearest([local.x], g.lines.x, threshold) : null
+          h.includes('e') || h.includes('w') ? nearest([local.x], lines.x, threshold) : null
         const hy =
-          h.includes('n') || h.includes('s') ? nearest([local.y], g.lines.y, threshold) : null
+          h.includes('n') || h.includes('s') ? nearest([local.y], lines.y, threshold) : null
         local = {
           x: hx ? hx.line : snap(local.x, stepX),
           y: hy ? hy.line : snap(local.y, stepY)
@@ -602,7 +619,9 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
             onPointerUp={onPointerUp}
             onDoubleClick={onDoubleClick}
           >
-            {guides.grid && <GridLines stage={stage} step={gridSteps(guides, tpl)} scale={scale} />}
+            {guides.grid && (
+              <GridLines stage={stage} step={shownSteps(gridSteps(guides, tpl), scale)} />
+            )}
             {guides.safe && (
               <CardOutline
                 template={tpl}
@@ -931,6 +950,27 @@ function gridSteps(g: Guides, tpl: { width: number; height: number }): { x: numb
   return { x, y }
 }
 
+/**
+ * Le linee della griglia che attirano gli oggetti, nell'area della tela, e il centro dei riquadri
+ * tra due linee, che attira solo il centro degli oggetti
+ */
+function gridSnapLines(
+  step: { x: number; y: number },
+  stage: Bounds
+): { lines: { x: number[]; y: number[] }; mids: { x: number[]; y: number[] } } {
+  const along = (s: number, from: number, size: number, shift: number): number[] => {
+    if (!(s > 0)) return []
+    const out: number[] = []
+    for (let k = Math.floor(from / s) - 1; (k + shift) * s <= from + size && out.length < 2000; k++)
+      out.push((k + shift) * s)
+    return out
+  }
+  return {
+    lines: { x: along(step.x, stage.x, stage.w, 0), y: along(step.y, stage.y, stage.h, 0) },
+    mids: { x: along(step.x, stage.x, stage.w, 0.5), y: along(step.y, stage.y, stage.h, 0.5) }
+  }
+}
+
 /** Un passo della griglia: una misura nell'unità scelta, o in quante parti dividere il componente */
 function GridStepField({
   title,
@@ -995,18 +1035,26 @@ function GridStepField({
   )
 }
 
-/** Griglia con origine nell'angolo della carta; se è troppo fitta si disegna una linea ogni tanto */
+/**
+ * Il passo delle linee che si vedono: se la griglia è troppo fitta si disegna una linea ogni
+ * tanto, e l'aggancio usa le stesse linee, così non si aggancia a linee che non si vedono
+ */
+function shownSteps(step: { x: number; y: number }, scale: number): { x: number; y: number } {
+  const shown = (s: number): number =>
+    s > 0 ? s * Math.max(1, Math.ceil(GRID_MIN_PX / (s * scale))) : s
+  return { x: shown(step.x), y: shown(step.y) }
+}
+
+/** Griglia con origine nell'angolo della carta, al passo delle linee che si vedono */
 function GridLines({
   stage,
-  step,
-  scale
+  step
 }: {
   stage: Bounds
   step: { x: number; y: number }
-  scale: number
 }): React.JSX.Element {
-  const sx = step.x * Math.max(1, Math.ceil(GRID_MIN_PX / (step.x * scale)))
-  const sy = step.y * Math.max(1, Math.ceil(GRID_MIN_PX / (step.y * scale)))
+  const sx = step.x
+  const sy = step.y
   const xs: number[] = []
   const ys: number[] = []
   // si conta in passi interi: sommando un passo come 63/7 gli errori di arrotondamento crescono
