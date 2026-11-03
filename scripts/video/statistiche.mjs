@@ -207,6 +207,35 @@ await r.focus(
   'below',
   { pad: 4 }
 )
+// il pannello si può staccare: lo si vede subito, poi si torna al suo posto
+const detach = panel().locator('.stats-head .icon-btn').first()
+await r.click(detach, { after: 1100 })
+{
+  const head = panel().locator('.stats-head h2').first()
+  const b = await head.boundingBox()
+  await r.glide(b.x + 20, b.y + b.height / 2, 600)
+  await win.mouse.move(b.x + 20, b.y + b.height / 2)
+  await win.mouse.down()
+  for (let i = 1; i <= 20; i++) {
+    await win.mouse.move(b.x + 20 - i * 12, b.y + b.height / 2 + i * 6)
+    await r.wait(30)
+  }
+  await win.mouse.up()
+  await r.wait(600)
+}
+await r.focus(
+  panel(),
+  t(
+    'Staccato, il pannello diventa una finestra da spostare e ridimensionare dall’angolo',
+    'Detached, the panel becomes a window you can move and resize from the corner'
+  ),
+  'right',
+  { pad: 4 }
+)
+await r.click(panel().locator('.stats-head .icon-btn').first(), { after: 1000 })
+await r.focus(panel(), t('Un clic e torna al suo posto', 'One click and it docks again'), 'left', {
+  pad: 4
+})
 
 // ---- 2. valori
 await r.title(t('Valori', 'Values'))
@@ -743,40 +772,6 @@ await r.focus(
   { pad: 4 }
 )
 await r.click(saveButton(), { after: 600 })
-
-// ---- 12. finestra mobile
-await r.title(t('Una finestra mobile', 'A floating window'))
-await r.clear()
-await r.click(statsButton(), { after: 1000 })
-await openTab('stats.tab.values')
-const detach = panel().locator('.stats-head .icon-btn').first()
-await r.click(detach, { after: 1100 })
-{
-  const head = panel().locator('.stats-head h2').first()
-  const b = await head.boundingBox()
-  await r.glide(b.x + 20, b.y + b.height / 2, 600)
-  await win.mouse.move(b.x + 20, b.y + b.height / 2)
-  await win.mouse.down()
-  for (let i = 1; i <= 20; i++) {
-    await win.mouse.move(b.x + 20 - i * 12, b.y + b.height / 2 + i * 6)
-    await r.wait(30)
-  }
-  await win.mouse.up()
-  await r.wait(600)
-}
-await r.focus(
-  panel(),
-  t(
-    'Staccato, il pannello diventa una finestra da spostare e ridimensionare dall’angolo',
-    'Detached, the panel becomes a window you can move and resize from the corner'
-  ),
-  'right',
-  { pad: 4 }
-)
-await r.click(panel().locator('.stats-head .icon-btn').first(), { after: 1000 })
-await r.focus(panel(), t('Un clic e torna al suo posto', 'One click and it docks again'), 'left', {
-  pad: 4
-})
 
 // ---- chiusura
 await r.title(
