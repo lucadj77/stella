@@ -788,6 +788,9 @@ export const en = {
   'editor.guideRemove': 'Remove guide',
   'editor.guideAddV': '+ Vertical',
   'editor.guideAddH': '+ Horizontal',
+  'editor.guidesLock': 'Lock guides',
+  'editor.guidesLockHint':
+    'Locked guides cannot be dragged on the canvas, so they do not move by accident; you can still change them here',
   'editor.guidesHint':
     'Layers snap to guides when snapping to objects is on. Drag a guide on the component to move it; drag it off the component to remove it.',
   'editor.guideDragHint': 'Drag to move, off the component to remove',

@@ -639,19 +639,22 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
                 return (
                   <g key={`${axis}${index}`} className={`manual-guide ${axis}`}>
                     <line {...line} vectorEffect="non-scaling-stroke" />
-                    {/* linea larga e invisibile: si prende facilmente col mouse */}
-                    <line
-                      {...line}
-                      className="manual-guide-hit"
-                      style={{ strokeWidth: 8 * px }}
-                      onPointerDown={(e) => {
-                        if (e.button !== 0) return
-                        e.stopPropagation()
-                        begin(e, { kind: 'guide', start: tpl, axis, index, frame: [] })
-                      }}
-                    >
-                      <title>{t('editor.guideDragHint')}</title>
-                    </line>
+                    {/* linea larga e invisibile: si prende facilmente col mouse; le guide
+                        bloccate non si prendono, così non si spostano per sbaglio */}
+                    {!tpl.guides?.locked && (
+                      <line
+                        {...line}
+                        className="manual-guide-hit"
+                        style={{ strokeWidth: 8 * px }}
+                        onPointerDown={(e) => {
+                          if (e.button !== 0) return
+                          e.stopPropagation()
+                          begin(e, { kind: 'guide', start: tpl, axis, index, frame: [] })
+                        }}
+                      >
+                        <title>{t('editor.guideDragHint')}</title>
+                      </line>
+                    )}
                   </g>
                 )
               })

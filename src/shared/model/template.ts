@@ -380,6 +380,8 @@ export const isStandee = (t: Pick<Template, 'kind'> | null | undefined): boolean
 export interface ManualGuides {
   x: number[]
   y: number[]
+  /** Guide bloccate: sulla tela non si trascinano; si spostano solo dalle proprietà */
+  locked?: boolean
 }
 
 export interface Template {

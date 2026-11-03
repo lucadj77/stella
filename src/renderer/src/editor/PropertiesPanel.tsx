@@ -875,6 +875,19 @@ function GuideFields({
         </button>
         <HelpTip text={t('editor.guidesHint')} />
       </div>
+      {guides.x.length + guides.y.length > 0 && (
+        <CheckField
+          label={t('editor.guidesLock')}
+          hint={t('editor.guidesLockHint')}
+          value={!!guides.locked}
+          onChange={(on) => {
+            set(
+              { guides: { x: guides.x, y: guides.y, ...(on ? { locked: true } : {}) } },
+              'guides.locked'
+            )
+          }}
+        />
+      )}
     </>
   )
 }

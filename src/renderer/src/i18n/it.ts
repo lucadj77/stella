@@ -801,6 +801,9 @@ export const it: Record<MessageKey, string> = {
   'editor.guideRemove': 'Togli la guida',
   'editor.guideAddV': '+ Verticale',
   'editor.guideAddH': '+ Orizzontale',
+  'editor.guidesLock': 'Blocca le guide',
+  'editor.guidesLockHint':
+    'Le guide bloccate non si trascinano sulla tela, così non si spostano per sbaglio; qui si possono ancora cambiare',
   'editor.guidesHint':
     "I livelli si agganciano alle guide quando è attivo l'aggancio agli oggetti. Trascina una guida sul componente per spostarla, fuori dal componente per toglierla.",
   'editor.guideDragHint': 'Trascina per spostare, fuori dal componente per togliere',

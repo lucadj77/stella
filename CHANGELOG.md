@@ -15,6 +15,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Documents, anatomy of grids**: the elements inside a grid (the group repeated in the cells and its layers) can be chosen in an anatomy. **Cell** picks the cell the arrow points at, and **+ Another cell** explains the same element in several cells (`(cell 7)` in the text).
 - **Documents, fix**: with the preview zoom other than 100%, clicking in the text now scrolls the preview to the right place.
 - **Text that fills its box**: the new fit **Grow or shrink to fill the box** gives the text the largest size that fits, between **Minimum size** and the new **Maximum size**.
+- **Locked guides**: **Lock guides**, in the template properties, stops the manual guides from being dragged on the canvas.
 - **Grid layer**: **Different gap for rows and columns** sets the gap between rows apart from the gap between columns. The gap can be negative, so the cells overlap.
 - **Canvas grid**: the grid spacing has separate fields across and down, and each can be a size or a number of **parts** of the component (for example 5 columns × 10 rows). Snapping to the grid now works like snapping to objects: sides and center are pulled to the lines when they come close (the center also to the middle of the sections), and elsewhere the object moves freely.
 
@@ -26,6 +27,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Documenti, anatomia delle griglie**: nell'anatomia si possono scegliere gli elementi dentro una griglia (il gruppo che si ripete nelle caselle e i suoi livelli). **Casella** sceglie la casella a cui punta la freccia, e **+ Un'altra casella** spiega lo stesso elemento in più caselle (`(cell 7)` nel testo).
 - **Documenti, correzione**: con lo zoom dell'anteprima diverso dal 100%, un clic nel testo ora porta l'anteprima al punto giusto.
 - **Testo che riempie il riquadro**: il nuovo adattamento **Ingrandisci o riduci per riempire il riquadro** dà al testo la dimensione più grande che ci sta, tra **Dimensione minima** e la nuova **Dimensione massima**.
+- **Guide bloccate**: **Blocca le guide**, nelle proprietà del template, impedisce di trascinare le guide manuali sulla tela.
 - **Livello griglia**: **Spaziatura diversa per righe e colonne** imposta lo spazio tra le righe separato da quello tra le colonne. La spaziatura può essere negativa, e le caselle si sovrappongono.
 - **Griglia della tela**: il passo della griglia ha campi separati in orizzontale e in verticale, e ognuno può essere una misura o un numero di **parti** del componente (per esempio 5 colonne × 10 righe). L'aggancio alla griglia ora funziona come quello agli oggetti: lati e centro vengono attirati dalle linee quando ci arrivano vicino (il centro anche dal centro dei riquadri), altrove l'oggetto si muove libero.
 
