@@ -26,6 +26,7 @@ import CardSvg from '../render/CardSvg'
 import AnatomyDiagram from '../render/AnatomyDiagram'
 import { useBindContext } from '../render/assets'
 import Segmented from './Segmented'
+import WrapField, { type WrapSide } from './WrapField'
 import CaptionField from './CaptionField'
 import FormattedField, { TextFormatBar } from './TextFormatBar'
 
@@ -164,6 +165,13 @@ export default function InsertCardDialog({
   const [caption, setCaption] = useState<string | null>(initial ? initial.caption : null)
   /** Didascalia sopra il disegno invece che sotto */
   const [captionTop, setCaptionTop] = useState(initial?.captionTop ?? false)
+  /** Testo che scorre accanto, con la carta o l'anatomia a sinistra o a destra */
+  const [wrap, setWrapSide] = useState<WrapSide>((initial ? initial.wrap : start?.ref.wrap) ?? null)
+  // un'anatomia a tutta riga non lascia posto al testo: si parte da metà
+  const setWrap = (w: WrapSide): void => {
+    setWrapSide(w)
+    if (w && anatomy && Number(blockWidth) >= 100) setBlockWidth('50')
+  }
   useUndo([setName, row, keyChoice, side, both, width, labels, caption, captionTop], (s) => {
     setSetName(s[0])
     setRow(s[1])
@@ -196,7 +204,8 @@ export default function InsertCardDialog({
         ...(byField ? { field: key, value } : { row: current + 1 }),
         side: anatomy && both ? 'front' : side,
         ...(Number(width) > 0 ? { width: Number(width) } : {}),
-        ...(!anatomy && pick === undefined && captionTop ? { captionTop: true } : {})
+        ...(!anatomy && pick === undefined && captionTop ? { captionTop: true } : {}),
+        ...(!anatomy && pick === undefined && wrap ? { wrap } : {})
       }
     : null
   const alt = caption ?? cards[current]?.label ?? ''
@@ -231,7 +240,8 @@ export default function InsertCardDialog({
               width: percent(blockWidth, BLOCK_WIDTH),
               font: percent(blockFont, BLOCK_FONT),
               caption: caption ?? '',
-              captionTop
+              captionTop,
+              wrap
             }
           )
         : `![${alt.replace(/[[\]]/g, '')}](${cardRefSource(ref)})`
@@ -366,6 +376,7 @@ export default function InsertCardDialog({
               onChange={(e) => setBlockFont(e.target.value)}
             />
           </label>
+          <WrapField value={wrap} onChange={setWrap} />
         </div>
       )}
       {anatomy && (
@@ -536,12 +547,17 @@ export default function InsertCardDialog({
             {grid}
             {options}
             {pick !== undefined ? null : (
-              <CaptionField
-                value={alt}
-                top={captionTop}
-                onChange={setCaption}
-                onTop={setCaptionTop}
-              />
+              <>
+                <CaptionField
+                  value={alt}
+                  top={captionTop}
+                  onChange={setCaption}
+                  onTop={setCaptionTop}
+                />
+                <div className="dialog-row">
+                  <WrapField value={wrap} onChange={setWrap} />
+                </div>
+              </>
             )}
             <code className="insert-card-code">{text}</code>
           </>

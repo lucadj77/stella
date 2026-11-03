@@ -6,6 +6,7 @@ import { ColorField, NumberField } from '../editor/fields'
 import { useI18n } from '../i18n/context'
 import { VariablesContext } from '../render/assets'
 import { useUndo } from './useUndo'
+import WrapField from './WrapField'
 
 /**
  * Aspetto di un riquadro del documento: sfondo, bordo, spazio interno e angoli. Con `onRemove`
@@ -85,6 +86,20 @@ export default function BoxDialog({
           step={0.5}
           unit="mm"
           onChange={(radius) => change({ radius })}
+        />
+        <NumberField
+          label={t('documents.boxWidth')}
+          value={Math.round((style.width ?? (style.wrap ? 0.5 : 1)) * 100)}
+          min={10}
+          max={100}
+          step={5}
+          unit="%"
+          onChange={(n) => change({ width: n >= 100 ? null : Math.max(10, n) / 100 })}
+        />
+        <WrapField
+          value={style.wrap}
+          // un riquadro a tutta riga non lascia posto al testo: si parte da metà
+          onChange={(wrap) => change(wrap && !style.width ? { wrap, width: 0.5 } : { wrap })}
         />
         <p className="muted small">{t('documents.boxHint')}</p>
         <div className="dialog-buttons">

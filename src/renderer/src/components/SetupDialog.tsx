@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import NumInput from './NumInput'
 import { useUndo } from './useUndo'
+import WrapField, { type WrapSide } from './WrapField'
 import CaptionField from './CaptionField'
 import type { LoadedSet } from '../../../shared/project'
 import type { Template } from '../../../shared/model/template'
@@ -149,6 +150,13 @@ export default function SetupDialog({
   const [blockFont, setBlockFont] = useState(initial?.font ?? 1)
   const [caption, setCaption] = useState(initial?.caption ?? '')
   const [captionTop, setCaptionTop] = useState(initial?.captionTop ?? false)
+  /** Testo che scorre accanto, con lo schema a sinistra o a destra */
+  const [wrap, setWrapSide] = useState<WrapSide>(initial?.wrap ?? null)
+  // uno schema a tutta riga non lascia posto al testo: si parte da metà
+  const setWrap = (w: WrapSide): void => {
+    setWrapSide(w)
+    if (w && blockWidth >= 1) setBlockWidth(0.5)
+  }
   /** Elementi scelti, per indice; il primo è quello cliccato per primo */
   const [selection, setSelection] = useState<number[]>([])
   /** Scelta della carta: per un elemento nuovo o per quello con questo indice */
@@ -934,6 +942,7 @@ export default function SetupDialog({
                     (n) => setBlockFont(Math.min(300, Math.max(30, n)) / 100),
                     30
                   )}
+                  <WrapField value={wrap} onChange={setWrap} />
                 </div>
                 <p className="muted small">{t('documents.blockSizeHint')}</p>
                 <CaptionField
@@ -960,7 +969,8 @@ export default function SetupDialog({
                   width: blockWidth,
                   font: blockFont,
                   caption,
-                  captionTop
+                  captionTop,
+                  wrap
                 })
               )
             }

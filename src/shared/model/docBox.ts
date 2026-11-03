@@ -17,6 +17,10 @@ export interface BoxStyle {
   padding: number
   /** Raggio degli angoli in mm */
   radius: number
+  /** Larghezza in frazione della riga (width=40%); null = tutta, o metà se ha il testo accanto */
+  width: number | null
+  /** Il testo che segue scorre accanto, con il riquadro a sinistra o a destra (wrap=left) */
+  wrap: 'left' | 'right' | null
 }
 
 export const DEFAULT_BOX_STYLE: BoxStyle = {
@@ -24,7 +28,9 @@ export const DEFAULT_BOX_STYLE: BoxStyle = {
   border: null,
   borderWidth: 0.3,
   padding: 3,
-  radius: 0
+  radius: 0,
+  width: null,
+  wrap: null
 }
 
 /** Un riquadro nel testo del documento */
@@ -66,6 +72,10 @@ export function parseBoxStyle(line: string): { style: BoxStyle; bad: string[] } 
     else if (k === 'borderWidth' && n >= 0) style.borderWidth = n
     else if (k === 'padding' && n >= 0) style.padding = n
     else if (k === 'radius' && n >= 0) style.radius = n
+    else if (k === 'width' && /^\d+(?:[.,]\d+)?%$/.test(v) && n >= 10 && n <= 100)
+      style.width = parseFloat(v.replace(',', '.')) / 100
+    else if (k === 'wrap' && (v === 'left' || v === 'right' || v === 'none'))
+      style.wrap = v === 'none' ? null : v
     else bad.push(part)
   }
   return { style, bad }
@@ -82,6 +92,8 @@ export function boxStartLine(s: BoxStyle): string {
     opts.push(`borderWidth=${round(s.borderWidth)}`)
   if (s.padding !== d.padding) opts.push(`padding=${round(s.padding)}`)
   if (s.radius !== d.radius) opts.push(`radius=${round(s.radius)}`)
+  if (s.width && s.width < 1) opts.push(`width=${round(s.width * 100)}%`)
+  if (s.wrap) opts.push(`wrap=${s.wrap}`)
   return `<!-- box${opts.map((o) => ' ' + o).join('')} -->`
 }
 

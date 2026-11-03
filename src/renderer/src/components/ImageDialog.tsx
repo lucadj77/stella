@@ -8,6 +8,7 @@ import { useI18n } from '../i18n/context'
 import { AssetsContext, VariablesContext, assetUrl } from '../render/assets'
 import AssetPicker from './AssetPicker'
 import Segmented from './Segmented'
+import WrapField, { type WrapSide } from './WrapField'
 import CaptionField from './CaptionField'
 
 /** Un'immagine del documento come è scritta: ![didascalia](sorgente) */
@@ -38,12 +39,13 @@ export default function ImageDialog({
   const [align, setAlign] = useState<FigureAlign>(start?.options.align ?? 'center')
   const [alt, setAlt] = useState(initial?.alt ?? '')
   const [captionTop, setCaptionTop] = useState(!!start?.options.captionTop)
+  const [wrap, setWrap] = useState<WrapSide>(start?.options.wrap ?? null)
   const [picking, setPicking] = useState(!initial)
 
   const name = path.replace(/^\{(.*)\}$/, '$1')
   const v = imageVariable(name, variables)
   const found = path ? resolveAsset(v ? v.src : name, assets) : null
-  const text = `![${alt.replace(/[[\]]/g, '')}](${imageSourceWith(path, { width: Number(width) > 0 ? Number(width) : undefined, align, captionTop })})`
+  const text = `![${alt.replace(/[[\]]/g, '')}](${imageSourceWith(path, { width: Number(width) > 0 ? Number(width) : undefined, align, captionTop, wrap: wrap ?? undefined })})`
 
   return (
     <Dialog title={t(initial ? 'docImage.edit' : 'docImage.insert')} onClose={onClose}>
@@ -87,6 +89,7 @@ export default function ImageDialog({
               onChange={setAlign}
             />
           </label>
+          <WrapField value={wrap} onChange={setWrap} />
         </div>
         <p className="muted small">{t('docImage.alignHint')}</p>
         <CaptionField value={alt} top={captionTop} onChange={setAlt} onTop={setCaptionTop} />

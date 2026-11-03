@@ -206,3 +206,18 @@ export function changedRange(
   while (b < max - a && before[before.length - 1 - b] === after[after.length - 1 - b]) b++
   return { from: a, to: before.length - b, insert: after.slice(a, after.length - b) }
 }
+
+/**
+ * Mette una riga a sé prima della riga del cursore (o della selezione), con una riga vuota prima e
+ * dopo: per esempio <!-- clear -->. Il cursore resta dov'era.
+ */
+export function insertLineBefore(src: string, from: number, line: string): DocEdit {
+  const start = src.lastIndexOf('\n', from - 1) + 1
+  const before = src.slice(0, start)
+  const after = src.slice(start)
+  const lead = !before || before.endsWith('\n\n') ? '' : '\n'
+  const tail = after.startsWith('\n') ? '\n' : '\n\n'
+  const text = before + lead + line + tail + after
+  const at = from + lead.length + line.length + tail.length
+  return { text, from: at, to: at }
+}

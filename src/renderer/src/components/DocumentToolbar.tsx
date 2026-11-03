@@ -1,4 +1,10 @@
-import { setHeading, toggleLines, toggleWrap } from '../../../shared/model/docEdit'
+import {
+  insertLineBefore,
+  setHeading,
+  toggleLines,
+  toggleWrap
+} from '../../../shared/model/docEdit'
+import { CLEAR_LINE } from '../../../shared/model/document'
 import { useI18n } from '../i18n/context'
 import { runEdit as run } from './editRun'
 import type { FormatControl } from './MarkupTextarea'
@@ -86,6 +92,9 @@ export default function DocumentToolbar({
       )}
       {button(t('documents.table'), t('documents.tableButtonHint'), onTable)}
       {button(t('documents.box'), t('documents.boxButtonHint'), onBox)}
+      {button(t('documents.clear'), t('documents.clearHint'), () =>
+        run(editor.current, (s, a) => insertLineBefore(s, a, CLEAR_LINE))
+      )}
       {button(t('documents.insertCard'), t('documents.insertCardHint'), onCard)}
       {button(t('documents.anatomy'), t('documents.anatomyButtonHint'), onAnatomy)}
       {button(t('documents.setup'), t('documents.setupButtonHint'), onSetup)}
