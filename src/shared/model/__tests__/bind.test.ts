@@ -482,6 +482,9 @@ describe('contenuto della griglia', () => {
         }
       }
     expect([...seen].sort()).toEqual([0, 1, 2])
+    // mai una griglia tutta vuota quando le voci possono comparire
+    for (let card = 1; card <= 200; card++)
+      expect(make('=DEAL("a"; "-1"; "b"; "-1")', card).some((x) => x !== '')).toBe(true)
     // con meno voci che caselle le vuote sono mescolate, non tutte in fondo
     const few = make('=DEAL("a"; 2; "b"; 2)')
     expect(tally(few)).toEqual({ a: 2, b: 2, '': 12 })

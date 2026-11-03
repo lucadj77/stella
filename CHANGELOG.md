@@ -9,11 +9,11 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 
 ### English
 
-- **Deal at random, fix**: a maximum such as `"-2"` in `DEAL` was read as the number −2, so the item never appeared. A range with a maximum (`"-2"`, `"0-2"`, `"3-5"`) now gives a random number of copies between its two ends, different from component to component: with `"0-2"` an item can appear 0, 1 or 2 times, not always 2. Items with no maximum (empty or `"2-"`) fill the cells that are left.
+- **Deal at random, fix**: a maximum such as `"-2"` in `DEAL` was read as the number −2, so the item never appeared. A range with a maximum (`"-2"`, `"0-2"`, `"3-5"`) now gives a random number of copies between its two ends, different from component to component: with `"0-2"` an item can appear 0, 1 or 2 times, not always 2. Items with no maximum (empty or `"2-"`) fill the cells that are left, otherwise those cells stay empty; the grid never ends up with no items at all when at least one can appear.
 
 ### Italiano
 
-- **Distribuisci a caso, correzione**: in `DEAL` un massimo come `"-2"` era letto come il numero −2, e la voce non compariva mai. Un intervallo con un massimo (`"-2"`, `"0-2"`, `"3-5"`) ora dà un numero di copie a caso tra i due estremi, diverso da componente a componente: con `"0-2"` una voce può comparire 0, 1 o 2 volte, non sempre 2. Le voci senza massimo (vuote o `"2-"`) riempiono le caselle che restano.
+- **Distribuisci a caso, correzione**: in `DEAL` un massimo come `"-2"` era letto come il numero −2, e la voce non compariva mai. Un intervallo con un massimo (`"-2"`, `"0-2"`, `"3-5"`) ora dà un numero di copie a caso tra i due estremi, diverso da componente a componente: con `"0-2"` una voce può comparire 0, 1 o 2 volte, non sempre 2. Le voci senza massimo (vuote o `"2-"`) riempiono le caselle che restano, altrimenti quelle caselle restano vuote; la griglia non resta mai senza voci se almeno una può comparire.
 
 ## 1.8.5-beta.3
 

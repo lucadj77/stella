@@ -417,7 +417,8 @@ const FUNCTIONS: Record<string, Fn> = {
    * ognuna: DEAL("spada"; 4; "scudo"; "3-5"; "mano"; ""). La quantità è un numero (esatta), un
    * intervallo ("3-5", "2-" almeno, "-3" al massimo) o vuota (quante servono). Un intervallo con
    * un massimo vale un numero a caso tra minimo e massimo; poi le caselle che restano prendono a
-   * caso le voci senza massimo; le caselle in più restano vuote, in posti a caso. Le posizioni sono mescolate, uguali a ogni disegno della stessa carta
+   * caso le voci senza massimo; le caselle in più restano vuote, in posti a caso. La griglia non
+   * resta mai senza voci se almeno una può comparire. Le posizioni sono mescolate, uguali a ogni disegno della stessa carta
    */
   DEAL: (a, fields) => {
     const index = Number(fields['cell.index'] ?? NaN)
@@ -464,11 +465,19 @@ const FUNCTIONS: Record<string, Fn> = {
     // un intervallo con un massimo ("0-2", "-3", "3-5") vale un numero a caso tra i due estremi;
     // senza massimo ("", "2-") la voce riempie le caselle che restano
     const lo = items.map((x) => Math.max(0, Math.floor(x.min)))
-    const times = items.map((x, k) =>
-      Number.isFinite(x.max) && x.max > lo[k]
-        ? lo[k] + Math.floor(rand() * (Math.floor(x.max) - lo[k] + 1))
-        : lo[k]
-    )
+    const draw = (): number[] =>
+      items.map((x, k) =>
+        Number.isFinite(x.max) && x.max > lo[k]
+          ? lo[k] + Math.floor(rand() * (Math.floor(x.max) - lo[k] + 1))
+          : lo[k]
+      )
+    let times = draw()
+    // la griglia non resta mai tutta vuota quando le voci possono comparire: se il sorteggio dà
+    // zero voci e nessuna riempie le caselle che restano, si sorteggia di nuovo
+    const fills = items.some((x) => !Number.isFinite(x.max))
+    const can = items.some((x) => x.max >= 1)
+    for (let i = 0; i < 100 && total > 0 && !fills && can && times.every((x) => x === 0); i++)
+      times = draw()
     // troppe voci per le caselle: si tolgono a caso da quelle sopra il minimo
     let over = times.reduce((s, x) => s + x, 0) - total
     while (over > 0) {
