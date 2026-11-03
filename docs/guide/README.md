@@ -53,6 +53,7 @@ Video tutorials on YouTube, no voice ([whole playlist](https://www.youtube.com/p
 - 25 · [Deep dive: playing with chance](https://www.youtube.com/watch?v=NcbSnlPjj3o) (12 minutes), with the ["Resources" project to download](https://stella.lucadj.eu/progetti/resources.zip)
 - 26 · [Deep dive: laying out a template](https://www.youtube.com/watch?v=bCB3t14oRGg) (16 minutes), with the ["Tavern" project to download](https://stella.lucadj.eu/progetti/tavern.zip)
 - 27 · [Deep dive: images and shapes](https://www.youtube.com/watch?v=WJUt8pr3BTI) (16 minutes), with the ["Expedition" project to download](https://stella.lucadj.eu/progetti/expedition.zip)
+- 28 · [Deep dive: set statistics](https://www.youtube.com/watch?v=LJ0VJqpbHIk) (8 minutes), with the ["Skirmish" project to download](https://stella.lucadj.eu/progetti/skirmish.zip)
 
 Versione italiana: [../guida/README.md](../guida/README.md).
 

@@ -804,6 +804,24 @@ export const videos = [
       it: 'progetti/spedizione.zip',
       en: 'progetti/expedition.zip'
     }
+  },
+  {
+    n: 28,
+    it: 'Approfondimento: le statistiche del set',
+    en: 'Deep dive: set statistics',
+    about: {
+      it: 'Valori, incrocio, dispersione, probabilità di pesca e dei dadi, testi, copia e colori della tabella, su un gioco di schermaglie.',
+      en: 'Values, cross table, scatter, draw and dice odds, texts, copy and table colors, on a skirmish game.'
+    },
+    minutes: 8,
+    url: {
+      it: 'https://www.youtube.com/watch?v=PodvOU8QTGo',
+      en: 'https://www.youtube.com/watch?v=LJ0VJqpbHIk'
+    },
+    project: {
+      it: 'progetti/schermaglia.zip',
+      en: 'progetti/skirmish.zip'
+    }
   }
 ]
 
@@ -816,7 +834,7 @@ export const videoGroups = {
   data: [10, 12],
   table: [9, 3, 19, 5],
   tools: [6, 17, 18],
-  deep: [20, 21, 22, 23, 24, 25, 26, 27]
+  deep: [20, 21, 22, 23, 24, 25, 26, 27, 28]
 }
 
 export const playlists = {
