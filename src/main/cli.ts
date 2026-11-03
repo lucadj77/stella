@@ -48,7 +48,16 @@ import { renameTemplate } from '../shared/model/renameTemplate'
 import { followInDocuments } from '../shared/model/docRefs'
 import { saveDocument } from './project/notes'
 import { isValidSheetName, setColumns } from '../shared/model/sheet'
-import { columnStats, columnValues, rowAmounts } from '../shared/model/stats'
+import {
+  atLeast,
+  columnStats,
+  drawnAfter,
+  fieldValues,
+  MEASURES,
+  pivot,
+  rowAmounts,
+  type Measure
+} from '../shared/model/stats'
 import { isValidTemplateName, walkLayers } from '../shared/model/normalize'
 import { setProjectFolder } from './protocol'
 import { systemFonts } from './library/systemFonts'
@@ -97,8 +106,15 @@ Commands:
   export <project> --profile NAME [--lang L|all]
                                        Run a named export profile saved in the project
   new <name> <parent folder>           Create an empty project
-  stats <project> <set> [--column C]  How many cards have each value of every column (or one),
-                                       with sum, average, min and max of numeric columns
+  stats <project> <set> [--column C]  How many cards have each value of every field (or one),
+                                       with sum, average, median, mode, min, max and standard
+                                       deviation of numbers; empty cells count with the
+                                       template's value, formula layers count too
+        [--pivot ROW[,COL] [--measure count|sum|mean|median|mode|min|max|sd] [--of F]]
+                                       Cross table of one or two fields (default: count)
+        [--draw F [--hand 5] [--per-turn 1] [--at-least 1] [--turns 3] [--with S2,S3]]
+                                       Odds of having at least N cards of each value of F after
+                                       each turn, without reshuffling; --with mixes other sets in
   notes <project> [<name>]             The project notes (notes/*.md), all or one: the user's
                                        reminders, also for you; write them as Markdown files there
   docs <project> [<name>]              The project documents (docs/*.md: rules, sell sheet,
@@ -759,7 +775,7 @@ async function checkData(p: Parsed): Promise<number> {
   return 0
 }
 
-/** Statistiche delle colonne di un set: carte per valore, somma e media dei numeri */
+/** Statistiche dei campi di un set: carte per valore e numeri; incrocio e probabilità di pesca */
 async function stats(p: Parsed): Promise<number> {
   const project = await open(p.positional[0])
   const set = findSet(project, p.positional[1])
@@ -767,30 +783,142 @@ async function stats(p: Parsed): Promise<number> {
   const tpl = project.templates.find((t) => t.name === set.template) ?? null
   const all = setColumns(sheet, tpl)
     .map((c) => c.header)
-    .filter((h) => h && h !== 'amount' && !h.includes('.'))
-  const only = typeof p.flags.column === 'string' ? p.flags.column : null
-  if (only && !all.includes(only))
-    throw new CliError(`no column "${only}" (columns: ${all.join(', ') || 'none'})`)
+    .filter((h, i, list) => h && h !== 'amount' && !h.includes('.') && list.indexOf(h) === i)
+  const field = (name: string): string => {
+    if (!all.includes(name))
+      throw new CliError(`no field "${name}" (fields: ${all.join(', ') || 'none'})`)
+    return name
+  }
   const rows = sheet.rows.map((_, i) => i)
   const amounts = rowAmounts(sheet, rows)
-  const list = (only ? [only] : all).map((c) =>
-    columnStats(
-      c,
-      columnValues(sheet, c, rows, tpl, project.templates, project.file.variables),
+  const values = (name: string): ReturnType<typeof fieldValues> =>
+    fieldValues(sheet, name, rows, tpl, project.templates, project.file.variables)
+  const int = (flag: string, def: number): number => {
+    const v = p.flags[flag]
+    if (v === undefined) return def
+    const n = Number(v)
+    if (!Number.isInteger(n) || n < 0) throw new CliError(`--${flag} needs a whole number`)
+    return n
+  }
+  const round = (n: number): number => Math.round(n * 100) / 100
+
+  if (typeof p.flags.pivot === 'string') {
+    const [r, c] = p.flags.pivot.split(',').map((x) => field(x.trim()))
+    const kind = (typeof p.flags.measure === 'string' ? p.flags.measure : 'count') as Measure
+    if (!MEASURES.includes(kind))
+      throw new CliError(`--measure must be one of ${MEASURES.join(', ')}`)
+    const of = typeof p.flags.of === 'string' ? field(p.flags.of) : null
+    if (kind !== 'count' && !of) throw new CliError(`--measure ${kind} needs --of FIELD`)
+    const pv = pivot(
+      rows,
+      values(r).values,
+      c ? values(c).values : null,
+      kind === 'count' ? null : values(of!).values,
+      kind,
       amounts
     )
-  )
+    const show = (v: number[] | null): string => (v ? v.map(round).join(', ') : '')
+    if (p.flags.json) {
+      print(
+        JSON.stringify(
+          {
+            rows: pv.rowKeys,
+            columns: pv.colKeys,
+            measure: kind,
+            of,
+            cells: pv.cells.map((line) => line.map((x) => ({ value: x.value, cards: x.cards }))),
+            rowTotals: pv.rowTotals.map((x) => x.value),
+            columnTotals: pv.colTotals.map((x) => x.value),
+            total: pv.total.value
+          },
+          null,
+          2
+        )
+      )
+      return 0
+    }
+    print(`=== ${kind}${of ? ` of ${of}` : ''}: ${r}${c ? ` × ${c}` : ''} ===`)
+    print([`${r}${c ? `\\${c}` : ''}`, ...pv.colKeys, 'total'].join('\t'))
+    pv.rowKeys.forEach((k, i) =>
+      print(
+        [
+          k || '(empty)',
+          ...pv.cells[i].map((x) => show(x.value)),
+          show(pv.rowTotals[i].value)
+        ].join('\t')
+      )
+    )
+    print(['total', ...pv.colTotals.map((x) => show(x.value)), show(pv.total.value)].join('\t'))
+    return 0
+  }
+
+  if (typeof p.flags.draw === 'string') {
+    const f = field(p.flags.draw)
+    const hand = int('hand', 5)
+    const perTurn = int('per-turn', 1)
+    const need = Math.max(1, int('at-least', 1))
+    const turns = Math.max(1, int('turns', 3))
+    const deck = new Map<string, number>()
+    const add = (vs: string[], ns: number[]): void =>
+      vs.forEach((v, k) => deck.set(v, (deck.get(v) ?? 0) + (ns[k] ?? 1)))
+    add(values(f).values, amounts)
+    const mixed = typeof p.flags.with === 'string' ? p.flags.with.split(',') : []
+    for (const name of mixed) {
+      const other = findSet(project, name.trim())
+      if (!other.data) continue
+      const t = project.templates.find((x) => x.name === other.template) ?? null
+      const rs = other.data.rows.map((_, i) => i)
+      add(
+        fieldValues(other.data, f, rs, t, project.templates, project.file.variables).values,
+        rowAmounts(other.data, rs)
+      )
+    }
+    const N = [...deck.values()].reduce((a, b) => a + b, 0)
+    const list = [...deck.entries()].map(([value, cards]) => ({
+      value,
+      cards,
+      odds: Array.from({ length: turns }, (_, i) =>
+        round(atLeast(N, cards, drawnAfter(i + 1, hand, perTurn), need))
+      )
+    }))
+    if (p.flags.json) {
+      print(JSON.stringify({ deck: N, hand, perTurn, atLeast: need, values: list }, null, 2))
+      return 0
+    }
+    print(`=== ${f}: deck of ${N} cards, at least ${need}, hand ${hand}, +${perTurn} per turn ===`)
+    print(
+      ['value', 'cards', ...Array.from({ length: turns }, (_, i) => `turn ${i + 1}`)].join('\t')
+    )
+    for (const x of list)
+      print(
+        [x.value || '(empty)', x.cards, ...x.odds.map((o) => `${Math.round(o * 100)}%`)].join('\t')
+      )
+    return 0
+  }
+
+  const only = typeof p.flags.column === 'string' ? field(p.flags.column) : null
+  const list = (only ? [only] : all).map((c) => {
+    const v = values(c)
+    return columnStats(c, v.values, amounts, v.fromTemplate)
+  })
   if (p.flags.json) {
     print(JSON.stringify(list, null, 2))
     return 0
   }
   for (const s of list) {
-    print(`=== ${s.column}: ${s.groups.length} values, ${s.cards} cards ===`)
-    if (s.numeric)
+    print(
+      `=== ${s.column}: ${s.groups.filter((g) => g.value !== '').length} values, ${s.cards} cards ===`
+    )
+    const n = s.numeric
+    if (n)
       print(
-        `sum ${s.numeric.sum}  average ${+s.numeric.mean.toFixed(2)}  min ${s.numeric.min}  max ${s.numeric.max}`
+        `sum ${round(n.sum)}  average ${round(n.mean)}  median ${round(n.median)}  mode ${n.mode.map(round).join(', ')}  min ${n.min}  max ${n.max}  std dev ${round(n.sd)}`
       )
-    for (const g of s.groups) print(`${g.cards}\t${g.value === '' ? '(empty)' : g.value}`)
+    if (s.gaps?.length) print(`missing: ${s.gaps.join(', ')}`)
+    for (const g of s.groups)
+      print(
+        `${g.cards}\t${g.value === '' ? '(empty)' : g.value}${g.fromTemplate ? `\t(${g.fromTemplate} from the template)` : ''}`
+      )
     print()
   }
   return 0

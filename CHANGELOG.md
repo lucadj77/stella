@@ -5,17 +5,27 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
-## 1.8.5-beta.4
+## 1.9.0-beta.1
 
 ### English
 
+- **Set statistics**: the **Statistics** button opens a panel beside the table or the grid, which can be detached as a floating window. It counts the values each card really shows, also those that come from the template or from formula and fixed layers. Tabs: **Values** (copies per value, mean, median, mode, standard deviation, missing numbers), **Cross table** (a field against another, with count, sum or mean), **Scatter** (two numeric fields, with the cards' thumbnails), **Draw** (odds of drawing a value in the opening hand and turn by turn, also with other sets mixed in, and a sample hand), **Dice** for dice sets (probabilities of the results), **Texts** (icons, variables and bold words in the texts) and **Overview**. A click on a value shows only those cards. **Copy** puts the table in the clipboard for Excel or as Markdown.
+- **Table colors**: the **Colors** menu colors the cells of one or more fields by value (numbers in bands), or the whole row; colors can be changed and are saved with the project.
+- **Template values in the table**: an empty cell shows, in grey italics, the value the card takes from the template.
+- **Command line**: `stats` uses the values the cards show and adds `--pivot` and `--draw`.
 - **Deal at random, fix**: a maximum such as `"-2"` in `DEAL` was read as the number −2, so the item never appeared. A range with a maximum (`"-2"`, `"0-2"`, `"3-5"`) now gives a random number of copies between its two ends, different from component to component: with `"0-2"` an item can appear 0, 1 or 2 times, not always 2. Items with no maximum (empty or `"2-"`) fill the cells that are left, otherwise those cells stay empty.
 - **Deal at random, total**: an extra argument at the end of `DEAL` says how many items the whole grid has: `=DEAL("{wheat}"; "-2"; "{wood}"; "-2"; "{stone}"; "-2"; "2-")` deals at least 2 icons in all, `"0-"` also allows empty grids, `"3-5"` from three to five. In the formula assistant it is **+ Total**.
+- **Generate, more rounds**: in **All combinations**, **How many** repeats the combinations for a number of **Rounds**, or until all the components of the set are filled.
 
 ### Italiano
 
+- **Statistiche del set**: il tasto **Statistiche** apre un pannello accanto alla tabella o alla griglia, che si può staccare come finestra mobile. Conta i valori che ogni carta mostra davvero, anche quelli che vengono dal modello o da livelli con formula e fissi. Schede: **Valori** (copie per valore, media, mediana, moda, deviazione standard, numeri mancanti), **Incrocio** (un campo contro un altro, con conteggio, somma o media), **Dispersione** (due campi numerici, con le miniature delle carte), **Pesca** (probabilità di pescare un valore nella mano iniziale e turno per turno, anche con altri set mescolati, e una mano di prova), **Dadi** per i set di dadi (probabilità dei risultati), **Testi** (icone, variabili e grassetti nei testi) e **Panoramica**. Un clic su un valore mostra solo quelle carte. **Copia** mette la tabella negli appunti per Excel o in Markdown.
+- **Colori della tabella**: il menu **Colori** colora le celle di uno o più campi secondo il valore (i numeri per fasce), o tutta la riga; i colori si cambiano e si salvano con il progetto.
+- **Valori del modello nella tabella**: una cella vuota mostra, in grigio corsivo, il valore che la carta prende dal modello.
+- **Riga di comando**: `stats` usa i valori che le carte mostrano e aggiunge `--pivot` e `--draw`.
 - **Distribuisci a caso, correzione**: in `DEAL` un massimo come `"-2"` era letto come il numero −2, e la voce non compariva mai. Un intervallo con un massimo (`"-2"`, `"0-2"`, `"3-5"`) ora dà un numero di copie a caso tra i due estremi, diverso da componente a componente: con `"0-2"` una voce può comparire 0, 1 o 2 volte, non sempre 2. Le voci senza massimo (vuote o `"2-"`) riempiono le caselle che restano, altrimenti quelle caselle restano vuote.
 - **Distribuisci a caso, totale**: un argomento in più alla fine di `DEAL` dice quante voci ha tutta la griglia: `=DEAL("{grano}"; "-2"; "{legno}"; "-2"; "{pietra}"; "-2"; "2-")` mette almeno 2 icone in tutto, `"0-"` accetta anche griglie vuote, `"3-5"` da tre a cinque. Nell'assistente formule è **+ Totale**.
+- **Genera, più giri**: in **Tutte le combinazioni**, **Quanti** ripete le combinazioni per un numero di **Giri**, o finché tutti i componenti del set sono riempiti.
 
 ## 1.8.5-beta.3
 

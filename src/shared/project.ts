@@ -7,6 +7,7 @@ import type { Sources } from './library'
 import type { Variables } from './model/variables'
 import type { ListOrder } from './model/order'
 import type { NumberStyle } from './model/numberFormat'
+import type { SetColors } from './model/setColors'
 
 export const PROJECT_FILE = 'stella.json'
 /** Nomi del file dei progetti creati quando l'app si chiamava Naibi e, prima, GameCreator */
@@ -29,6 +30,8 @@ export interface SetDefinition {
    * visibili sotto il loro campo anche con i dettagli chiusi
    */
   pinnedProperties?: string[]
+  /** Colori della tabella secondo il valore di uno o più campi: solo una vista */
+  colors?: SetColors
   /** Nome del set nelle altre lingue del progetto, per codice della lingua */
   names?: Record<string, string>
 }

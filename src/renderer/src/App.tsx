@@ -7,7 +7,10 @@ import AgentLockOverlay from './components/AgentLockOverlay'
 import HelpDialog from './components/HelpDialog'
 import BackupDialog from './components/BackupDialog'
 import GenerateDialog from './components/GenerateDialog'
-import StatsDialog from './components/StatsDialog'
+import StatsPanel, { type StatsFilter } from './components/StatsPanel'
+import ColorsMenu from './components/ColorsMenu'
+import { fieldValues, templateValue } from '../../shared/model/stats'
+import { colorKeys, keyColor, keyOf, type ColorKey } from '../../shared/model/setColors'
 import SplitImageDialog from './components/SplitImageDialog'
 import GoogleSheetsDialog, { type SheetImport } from './components/GoogleSheetsDialog'
 import TrashDialog from './components/TrashDialog'
@@ -728,7 +731,7 @@ function App(): React.JSX.Element {
   /** Colonne mostrate nel set: è una preferenza, salvata nel progetto ma fuori dall'annulla */
   const setColumnsView = (
     index: number,
-    view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed' | 'pinnedProperties'>
+    view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed' | 'pinnedProperties' | 'colors'>
   ): void => {
     if (!project) return
     const patch = <T extends SetDefinition>(x: T): T => {
@@ -736,6 +739,7 @@ function App(): React.JSX.Element {
       if (!next.hiddenColumns?.length) delete next.hiddenColumns
       if (!next.showComputed) delete next.showComputed
       if (!next.pinnedProperties?.length) delete next.pinnedProperties
+      if (!next.colors) delete next.colors
       return next
     }
     setProject({
@@ -2730,6 +2734,7 @@ function App(): React.JSX.Element {
                             <SetView
                               key={project.sets.indexOf(current)}
                               set={current}
+                              sets={project.sets}
                               projectName={project.file.name}
                               readOnly={readOnlyData}
                               templates={project.templates}
@@ -3131,6 +3136,7 @@ function App(): React.JSX.Element {
 
 function SetView({
   set,
+  sets,
   projectName,
   readOnly,
   templates,
@@ -3144,6 +3150,8 @@ function SetView({
   onEndCompare
 }: {
   set: LoadedSet
+  /** Tutti i set del progetto: le statistiche possono mescolarne più d'uno in un mazzo */
+  sets: LoadedSet[]
   /** Nome del progetto, per {project.name} */
   projectName: string
   /** File dati in sola lettura: le modifiche ai dati non passano */
@@ -3152,9 +3160,9 @@ function SetView({
   onChange(sheet: Sheet, key?: string): void
   /** Assegna al set un altro template */
   onChangeTemplate(name: string): void
-  /** Colonne nascoste e livelli calcolati mostrati */
+  /** Colonne nascoste, livelli calcolati mostrati, colori della tabella */
   onChangeColumns(
-    view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed' | 'pinnedProperties'>
+    view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed' | 'pinnedProperties' | 'colors'>
   ): void
   /** Apre nell'editor un template: quello del set o quello di una carta */
   /** row: la carta da mostrare nell'editor */
@@ -3167,12 +3175,31 @@ function SetView({
   onCompare(): void
   onEndCompare(): void
 }): React.JSX.Element {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
+  const comma = lang === 'it'
   const [selection, setSelection] = useState<number[]>([0])
   const [side, setSide] = useState<Side>('front')
   const [addingColumn, setAddingColumn] = useState(false)
   const [generating, setGenerating] = useState(false)
-  const [showStats, setShowStats] = useState(false)
+  const [showStats, setShowStatsState] = useState(() => {
+    try {
+      return localStorage.getItem('stats.open') === '1'
+    } catch {
+      return false
+    }
+  })
+  const setShowStats = (open: boolean): void => {
+    setShowStatsState(open)
+    try {
+      localStorage.setItem('stats.open', open ? '1' : '0')
+    } catch {
+      // preferenza non essenziale
+    }
+  }
+  /** Filtro scelto con un clic nelle statistiche: solo quelle carte */
+  const [statsFilter, setStatsFilter] = useState<StatsFilter | null>(null)
+  const [colorsOpen, setColorsOpen] = useState(false)
+  const [colorsFocus, setColorsFocus] = useState<string | null>(null)
   const [splitting, setSplitting] = useState(false)
   const [checkingText, setCheckingText] = useState(false)
   const [focus, setFocus] = useState<{ column: string; seq: number } | null>(null)
@@ -3232,12 +3259,19 @@ function SetView({
   )
 
   const [onlyChanged, setOnlyChanged] = useState(false)
-  const order = useMemo(() => {
+  /** Righe della ricerca e del confronto: quelle che contano le statistiche */
+  const searchedRows = useMemo(() => {
     const rows = set.data ? viewRows(set.data, rowView) : []
     if (!compare || !onlyChanged) return rows
     const marked = new Set(compare.rows)
     return rows.filter((r) => marked.has(r))
   }, [set.data, rowView, compare, onlyChanged])
+  // il filtro delle statistiche si toglie quando si cambiano i dati sotto
+  const order = useMemo(() => {
+    if (!statsFilter) return searchedRows
+    const keep = new Set(statsFilter.rows)
+    return searchedRows.filter((r) => keep.has(r))
+  }, [searchedRows, statsFilter])
 
   // colonne mostrate: tutte quelle modificabili, tranne le nascoste; i livelli fissi e con
   // formula solo a richiesta
@@ -3273,6 +3307,59 @@ function SetView({
   const computed = useCallback(
     (row: number): Record<string, string> => computedRows[row] ?? {},
     [computedRows]
+  )
+  /** Il valore del template che la carta mostra quando la cella è vuota */
+  const fallback = useCallback(
+    (row: number, column: string): string => {
+      const tpl = rowTemplates[row] ?? template
+      return tpl ? templateValue(tpl, column) : ''
+    },
+    [rowTemplates, template]
+  )
+  // colori della tabella: i valori di ogni campo colorato, su tutte le righe del set
+  const colorData = useMemo(() => {
+    const out = new Map<string, { keys: ColorKey[]; values: string[] }>()
+    if (!set.data || !set.colors) return out
+    const rows = set.data.rows.map((_, i) => i)
+    for (const c of set.colors.columns) {
+      const values = fieldValues(
+        set.data,
+        c.column,
+        rows,
+        template,
+        templates,
+        bindCtx.variables,
+        bindCtx.numbers
+      ).values
+      out.set(c.column, { keys: colorKeys(values, comma), values })
+    }
+    return out
+  }, [set.data, set.colors, template, templates, bindCtx, comma])
+  const colorOf = useCallback(
+    (row: number, column: string): string | undefined => {
+      const c = set.colors?.columns.find((x) => x.column === column)
+      const d = c && colorData.get(column)
+      if (!c || !d) return undefined
+      const key = keyOf(d.keys, d.values[row] ?? '')
+      return key === null ? undefined : keyColor(c, d.keys, key)
+    },
+    [set.colors, colorData]
+  )
+  const wholeRow = !!set.colors?.wholeRow && set.colors.columns.length === 1
+  /** Valori o fasce di un campo, anche di uno non ancora colorato */
+  const keysOf = useCallback(
+    (column: string): ColorKey[] => {
+      const known = colorData.get(column)
+      if (known) return known.keys
+      if (!set.data) return []
+      const rows = set.data.rows.map((_, i) => i)
+      return colorKeys(
+        fieldValues(set.data, column, rows, template, templates, bindCtx.variables, bindCtx.numbers)
+          .values,
+        comma
+      )
+    },
+    [colorData, set.data, template, templates, bindCtx, comma]
   )
   // le parole per i componenti del set: carte, segnalini, facce...
   const words = kindWords(t, template)
@@ -3712,7 +3799,6 @@ function SetView({
                   onClick: () => setSplitting(true)
                 },
                 'sep',
-                { label: t('set.stats'), title: t('tip.stats'), onClick: () => setShowStats(true) },
                 { label: t('set.compare'), title: t('tip.compare'), onClick: onCompare },
                 {
                   label: t('set.textCheck'),
@@ -3721,6 +3807,25 @@ function SetView({
                   onClick: () => setCheckingText(true)
                 }
               ]}
+            />
+          </span>
+          <span className="action-group">
+            <button
+              className={showStats ? 'active' : undefined}
+              aria-pressed={showStats}
+              title={t('tip.stats')}
+              onClick={() => setShowStats(!showStats)}
+            >
+              {t('set.stats')}
+            </button>
+            <ColorsMenu
+              columns={allColumns}
+              colors={set.colors}
+              keysOf={keysOf}
+              onChange={(colors) => onChangeColumns({ colors })}
+              open={colorsOpen}
+              onOpen={setColorsOpen}
+              focus={colorsFocus}
             />
           </span>
           <span className="action-group">
@@ -3822,6 +3927,36 @@ function SetView({
             <button onClick={onEndCompare}>{t('compare.end')}</button>
           </div>
         )}
+        {statsFilter && (
+          <div className="stats-filter-bar set-hint">
+            <span>
+              {t('stats.filtered', { label: statsFilter.label })} ({order.length}/
+              {sheet.rows.length})
+            </span>
+            <button onClick={() => setStatsFilter(null)}>{t('stats.clearFilter')}</button>
+          </div>
+        )}
+        {set.colors && (view === 'table' || !template) && (
+          <div className="colors-legend">
+            {set.colors.columns.flatMap((c) => {
+              const keys = colorData.get(c.column)?.keys ?? []
+              return keys.map((k) => (
+                <button
+                  key={`${c.column}|${k.key}`}
+                  className="colors-pill"
+                  title={t('colors.legendHint')}
+                  onClick={() => {
+                    setColorsFocus(c.column)
+                    setColorsOpen(true)
+                  }}
+                >
+                  <span className="colors-dot" style={{ background: keyColor(c, keys, k.key) }} />
+                  {set.colors!.columns.length > 1 ? `${c.column} ${k.label}` : k.label}
+                </button>
+              ))
+            })}
+          </div>
+        )}
         {selection.length > 1 ? (
           <div className="selection-bar set-hint">
             <strong title={t('set.selectedHint')}>
@@ -3865,6 +4000,9 @@ function SetView({
             sort={{ column: rowView.sort, desc: rowView.desc }}
             onSort={sortBy}
             addLabel={words.add}
+            fallback={fallback}
+            cellColor={set.colors && !wholeRow ? colorOf : undefined}
+            rowColor={wholeRow ? (row) => colorOf(row, set.colors!.columns[0].column) : undefined}
           />
         ) : (
           <CardGrid
@@ -3908,6 +4046,34 @@ function SetView({
           />
         )}
       </section>
+      {showStats && (
+        <StatsPanel
+          set={set}
+          sheet={sheet}
+          sets={sets}
+          rows={searchedRows}
+          searched={rowView.filter.trim() !== '' || (!!compare && onlyChanged)}
+          columns={allColumns}
+          template={template}
+          templates={templates}
+          variables={bindCtx.variables}
+          numbers={bindCtx.numbers}
+          cards={cards}
+          bindOther={(other, row) => {
+            const tpl = templates.find((x) => x.name === other.template)
+            if (!tpl || !other.data) return null
+            return bindRow(other.data.headers, other.data.rows[row] ?? [], tpl, templates, {
+              ...bindCtx,
+              system: { ...systemOfSet(projectName, other), number: row + 1 }
+            })
+          }}
+          isDie={kindOf(template) === 'die'}
+          filter={statsFilter}
+          onFilter={setStatsFilter}
+          onShowCard={(row) => setSelection([row])}
+          onClose={() => setShowStats(false)}
+        />
+      )}
       {previewSide === 'right' && (
         <>
           <Resizer
@@ -3984,18 +4150,6 @@ function SetView({
             setSplitting(false)
           }}
           onClose={() => setSplitting(false)}
-        />
-      )}
-      {showStats && (
-        <StatsDialog
-          sheet={sheet}
-          rows={order}
-          columns={allColumns}
-          template={template}
-          templates={templates}
-          variables={bindCtx.variables}
-          filtered={rowView.filter.trim() !== ''}
-          onClose={() => setShowStats(false)}
         />
       )}
       {generating && (

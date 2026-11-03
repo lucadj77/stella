@@ -51,6 +51,13 @@ export interface GeneratorSpec {
   random?: RandomOptions
   /** Valori in sequenza invece di tutte le combinazioni */
   sequence?: SequenceOptions
+  /**
+   * Tutte le combinazioni: quante carte in tutto. Finite le combinazioni si ricomincia dalla
+   * prima, finché le carte non sono tante così (vuoto = un giro solo)
+   */
+  repeatTo?: number
+  /** Tutte le combinazioni: quanti giri, se non c'è repeatTo (vuoto = uno) */
+  rounds?: number
   /** Nel filtro 2,5 è un numero: vedi model/numberFormat.ts */
   decimalComma?: boolean
 }
@@ -219,6 +226,8 @@ export interface GeneratedCards {
   filterError?: string
   /** A caso: i limiti per valore non si possono rispettare */
   impossible?: boolean
+  /** Tutte le combinazioni: le carte di un giro, dopo il filtro */
+  round?: number
 }
 
 /**
@@ -269,11 +278,16 @@ export function generateCards(spec: GeneratorSpec): GeneratedCards {
     return true
   }
   if (cols.length) walk(0, [])
+  // più giri: le combinazioni ricominciano dalla prima, nello stesso ordine
+  const round = rows.length
+  const want = Math.min(MAX_GENERATED, Math.round(spec.repeatTo ?? round * (spec.rounds ?? 1)))
+  for (let i = 0; round && rows.length < want; i++) rows.push([...rows[i % round]])
   return {
     headers,
     rows,
     total,
     truncated: rows.length >= MAX_GENERATED && total > MAX_GENERATED,
+    round,
     ...(filterError ? { filterError } : {})
   }
 }

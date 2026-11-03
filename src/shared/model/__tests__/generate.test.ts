@@ -55,6 +55,23 @@ describe('generatore di carte', () => {
     expect(g.rows[0]).toEqual(['{legno}{legno}{legno}', '1'])
   })
 
+  it('più giri: finite le combinazioni si ricomincia dalla prima', () => {
+    const P = ['orchi', 'golem', 'goblin', 'viverna']
+    const spec = {
+      columns: [col('para', P, { icons: false }), col('bonus', P, { icons: false })],
+      filter: '{para}<>{bonus}',
+      copies: 1
+    }
+    expect(generateCards(spec).rows).toHaveLength(12)
+    const set = generateCards({ ...spec, repeatTo: 24 })
+    expect(set.rows).toHaveLength(24)
+    expect(set.rows[12]).toEqual(set.rows[0])
+    expect(set.total).toBe(16)
+    const odd = generateCards({ ...spec, repeatTo: 14 })
+    expect(odd.rows[13]).toEqual(odd.rows[1])
+    expect(generateCards({ ...spec, rounds: 3 }).rows).toHaveLength(36)
+  })
+
   it('limiti per valore: oro al massimo una volta, legno almeno una', () => {
     const limits = { oro: { max: 1 }, legno: { min: 1 } }
     const list = choices(R, 3, true, false, limits)

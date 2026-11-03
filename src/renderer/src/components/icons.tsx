@@ -338,3 +338,39 @@ export function RevertIcon(): React.JSX.Element {
     </svg>
   )
 }
+
+/** Stacca un pannello e ne fa una finestra mobile */
+export function DetachIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      aria-hidden
+    >
+      <rect x="1.5" y="4.5" width="10" height="10" rx="1" />
+      <path d="M8 1.5h6.5V8M14.5 1.5 8.5 7.5" />
+    </svg>
+  )
+}
+
+/** Riattacca il pannello al lato della finestra */
+export function DockIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      aria-hidden
+    >
+      <rect x="1.5" y="1.5" width="13" height="13" rx="1" />
+      <path d="M10 1.5v13" />
+    </svg>
+  )
+}
