@@ -121,7 +121,20 @@ export default function StatsPanel(props: Props): React.JSX.Element {
       const s = String(r)
       return comma ? s.replace('.', ',') : s
     }
-    const pct = (p: number): string => `${Math.round(p * 100)}%`
+    // le probabilità piccole non diventano 0%: 0% vuol dire impossibile, 100% certo
+    const pct = (p: number): string => {
+      if (p <= 1e-12) return '0%'
+      if (p >= 1 - 1e-9) return '100%'
+      const v = p * 100
+      const dot = (x: string): string => (comma ? x.replace('.', ',') : x)
+      if (v < 0.0001) return dot('<0.0001%')
+      if (v > 99.9999) return dot('>99.9999%')
+      // sotto l'1% due cifre significative (0,049%), poi un decimale fino al 10%
+      if (v < 1) return `${dot(String(Number(v.toPrecision(2))))}%`
+      if (v > 99) return `${dot(String(Math.floor(v * 100) / 100))}%`
+      if (v < 10 || v > 90) return `${num(Math.round(v * 10) / 10)}%`
+      return `${Math.round(v)}%`
+    }
     return {
       sheet,
       rows,
