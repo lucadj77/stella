@@ -15,6 +15,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Command line**: `stats` uses the values the cards show and adds `--pivot` and `--draw`.
 - **Deal at random, fix**: a maximum such as `"-2"` in `DEAL` was read as the number −2, so the item never appeared. A range with a maximum (`"-2"`, `"0-2"`, `"3-5"`) now gives a random number of copies between its two ends, different from component to component: with `"0-2"` an item can appear 0, 1 or 2 times, not always 2. Items with no maximum (empty or `"2-"`) fill the cells that are left, otherwise those cells stay empty.
 - **Deal at random, total**: an extra argument at the end of `DEAL` says how many items the whole grid has: `=DEAL("{wheat}"; "-2"; "{wood}"; "-2"; "{stone}"; "-2"; "2-")` deals at least 2 icons in all, `"0-"` also allows empty grids, `"3-5"` from three to five. In the formula assistant it is **+ Total**.
+- **Generate, more rounds**: in **All combinations**, **How many** repeats the combinations for a number of **Rounds**, or until all the components of the set are filled.
 
 ### Italiano
 
@@ -24,6 +25,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Riga di comando**: `stats` usa i valori che le carte mostrano e aggiunge `--pivot` e `--draw`.
 - **Distribuisci a caso, correzione**: in `DEAL` un massimo come `"-2"` era letto come il numero −2, e la voce non compariva mai. Un intervallo con un massimo (`"-2"`, `"0-2"`, `"3-5"`) ora dà un numero di copie a caso tra i due estremi, diverso da componente a componente: con `"0-2"` una voce può comparire 0, 1 o 2 volte, non sempre 2. Le voci senza massimo (vuote o `"2-"`) riempiono le caselle che restano, altrimenti quelle caselle restano vuote.
 - **Distribuisci a caso, totale**: un argomento in più alla fine di `DEAL` dice quante voci ha tutta la griglia: `=DEAL("{grano}"; "-2"; "{legno}"; "-2"; "{pietra}"; "-2"; "2-")` mette almeno 2 icone in tutto, `"0-"` accetta anche griglie vuote, `"3-5"` da tre a cinque. Nell'assistente formule è **+ Totale**.
+- **Genera, più giri**: in **Tutte le combinazioni**, **Quanti** ripete le combinazioni per un numero di **Giri**, o finché tutti i componenti del set sono riempiti.
 
 ## 1.8.5-beta.3
 

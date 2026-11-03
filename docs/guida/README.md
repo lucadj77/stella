@@ -675,6 +675,7 @@ Su un livello **griglia** la formula vale per tutta la griglia (per esempio il c
 - Con più valori per carta si sceglie se ammettere le ripetizioni e se conta l'ordine. In **Limiti per valore** si fissano minimo e massimo per ciascun valore.
 - **Come icona** scrive ogni valore come `{valore}`, così il testo mostra l'icona con quel nome.
 - **Filtro** tiene solo le carte per cui un'espressione è vera, per esempio `COUNTIN({costo}; "oro") <= 1`.
+- **Quanti** ripete le combinazioni: con **Giri** 2 si fanno due giri uguali, uno dopo l'altro; con **Tutti i componenti del set** si ricomincia dalla prima combinazione finché tutte le righe del set sono riempite (12 combinazioni in un set di 24 righe danno due giri).
 
 L'anteprima mostra quante carte nasceranno e le prime righe. **Aggiungi in fondo** accoda le carte, **Sostituisci le carte** prende il posto di quelle esistenti. **Aggiorna i componenti** scrive solo le colonne generate nelle carte già presenti, una per riga, lasciando le altre colonne come sono: per esempio si generano prima 30 carte da 6 semi e i numeri 1-5, poi con **Da una cartella…** si assegnano 30 ritratti alla colonna del ritratto. Se le carte generate sono di più, quelle in più si aggiungono in fondo. ⌘Z / Ctrl+Z annulla.
 

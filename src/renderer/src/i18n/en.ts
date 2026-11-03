@@ -2674,6 +2674,9 @@ export const en = {
     'One value per component already in the set, from the first row on (Update the components)',
   'generate.howManyRounds': 'Rounds',
   'generate.howManyRoundsHint': 'How many times the sequence is repeated',
+  'generate.allSetHint':
+    'When the combinations run out, start again from the first until every component of the set is filled',
+  'generate.allRoundsHint': 'How many times all the combinations are repeated, in the same order',
   'generate.roundCards': '{n} components per round',
   'generate.order': 'Order',
   'generate.orderNone': 'As written',

@@ -2712,6 +2712,9 @@ export const it: Record<MessageKey, string> = {
     'Un valore per ogni componente già nel set, dalla prima riga (Aggiorna i componenti)',
   'generate.howManyRounds': 'Giri',
   'generate.howManyRoundsHint': 'Quante volte si ripete la sequenza',
+  'generate.allSetHint':
+    'Finite le combinazioni si ricomincia dalla prima, finché tutti i componenti del set sono riempiti',
+  'generate.allRoundsHint': 'Quante volte si ripetono tutte le combinazioni, nello stesso ordine',
   'generate.roundCards': '{n} componenti per giro',
   'generate.order': 'Ordine',
   'generate.orderNone': 'Come scritto',

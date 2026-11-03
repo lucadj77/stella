@@ -112,6 +112,11 @@ export default function GenerateDialog({
   const [wholeSet, setWholeSet] = useState(sheet.rows.length > 0)
   const [rounds, setRounds] = useState(2)
   const [order, setOrder] = useState<SequenceShuffle>('none')
+  // tutte le combinazioni: un giro o più, o tanti giri quanti ne servono per tutto il set
+  const [allSet, setAllSet] = useState(false)
+  const [allRounds, setAllRounds] = useState(1)
+  const isAll = !isRandom && !isSequence
+  const repeatTo = isAll && allSet && sheet.rows.length ? sheet.rows.length : undefined
   const round = sequenceRound(list)
   const sequence: SequenceOptions | undefined = isSequence
     ? {
@@ -161,10 +166,25 @@ export default function GenerateDialog({
         copies,
         random,
         sequence,
+        repeatTo,
+        rounds: isAll ? allRounds : undefined,
         decimalComma
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [list, filter, copies, kind, count, seed, unique, decimalComma, sequence?.count, order]
+    [
+      list,
+      filter,
+      copies,
+      kind,
+      count,
+      seed,
+      unique,
+      decimalComma,
+      sequence?.count,
+      order,
+      repeatTo,
+      allRounds
+    ]
   )
   const active = list.filter((c) => c.column.trim() && c.values.length)
   /** Una colonna dell'anteprima mostra le icone se uno degli insiemi che la riempiono le usa */
@@ -442,6 +462,47 @@ export default function GenerateDialog({
                 onChange={(e) => setCopies(Math.max(1, Number(e.target.value) || 1))}
               />
             </label>
+          </div>
+        )}
+        {isAll && (
+          <div className="generate-row">
+            <span>{t('generate.howMany')}</span>
+            {sheet.rows.length > 0 && (
+              <label className="check" title={t('generate.allSetHint')}>
+                <input
+                  type="radio"
+                  checked={allSet}
+                  onChange={() => {
+                    setAllSet(true)
+                    setMode('update')
+                  }}
+                />
+                {t('generate.howManySet', { n: sheet.rows.length })}
+              </label>
+            )}
+            <label className="check" title={t('generate.allRoundsHint')}>
+              {sheet.rows.length > 0 && (
+                <input
+                  type="radio"
+                  checked={!allSet || !sheet.rows.length}
+                  onChange={() => setAllSet(false)}
+                />
+              )}
+              {t('generate.howManyRounds')}
+              <NumInput
+                className="num narrow"
+                min={1}
+                max={MAX_GENERATED}
+                value={allRounds}
+                onChange={(e) => {
+                  setAllRounds(Math.max(1, Math.min(MAX_GENERATED, Number(e.target.value) || 1)))
+                  setAllSet(false)
+                }}
+              />
+            </label>
+            {(result.round ?? 0) > 0 && (
+              <span className="muted small">{t('generate.roundCards', { n: result.round! })}</span>
+            )}
           </div>
         )}
         {isSequence && (

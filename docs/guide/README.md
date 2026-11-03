@@ -675,6 +675,7 @@ On a **grid** layer the formula applies to the whole grid (for example the cell 
 - With more than one value per card you choose whether repetitions are allowed and whether order matters. Under **Limits per value** you set a minimum and maximum for each value.
 - **As icon** writes each value as `{value}`, so the text shows the icon with that name.
 - **Filter** keeps only the cards for which an expression is true, for example `COUNTIN({cost}; "gold") <= 1`.
+- **How many** repeats the combinations: with **Rounds** 2 you get two identical rounds, one after the other; with **All components of the set** the combinations start again from the first until every row of the set is filled (12 combinations in a set of 24 rows give two rounds).
 
 The preview shows how many cards will be created and the first rows. **Add at the end** appends the cards, **Replace the cards** takes the place of the existing ones. **Update the components** writes only the generated columns into the existing cards, one per row, leaving the other columns as they are: for example, first generate 30 cards from 6 suits and the numbers 1-5, then use **From a folder…** to assign 30 portraits to the portrait column. If more cards are generated, the extra ones are added at the end. ⌘Z / Ctrl+Z undoes.
 
