@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  captionOnTop,
   documentComments,
   withoutComments,
   cardRefSource,
@@ -322,6 +323,132 @@ describe('anatomia della carta', () => {
     ] as never
     expect(layerBounds(layers, 'nome')).toEqual({ x: 6, y: 4, w: 50, h: 10 })
     expect(layerBounds(layers, 'altro')).toBeNull()
+  })
+
+  it('trova gli elementi dentro una griglia, nella prima casella', () => {
+    const icon = {
+      type: 'image',
+      name: 'icona',
+      x: 12,
+      y: 14,
+      w: 4,
+      h: 4,
+      rotation: 0,
+      anchor: 'center'
+    }
+    const layers = [
+      {
+        type: 'grid',
+        name: 'tabellone',
+        x: 10,
+        y: 10,
+        w: 40,
+        h: 40,
+        rotation: 0,
+        anchor: 'center',
+        content: 'casella',
+        groups: [
+          {
+            type: 'group',
+            name: 'casella',
+            x: 10,
+            y: 10,
+            w: 10,
+            h: 10,
+            rotation: 0,
+            anchor: 'center',
+            layout: 'none',
+            repeat: '1',
+            children: [icon]
+          }
+        ],
+        cellRules: []
+      }
+    ] as never
+    expect(layerBounds(layers, 'icona')).toEqual({ x: 12, y: 14, w: 4, h: 4 })
+    expect(layerBounds(layers, 'casella')).not.toBeNull()
+  })
+
+  it('punta a una casella scelta della griglia', () => {
+    const icon = {
+      type: 'shape',
+      name: 'icona',
+      x: 1,
+      y: 1,
+      w: 2,
+      h: 2,
+      rotation: 0,
+      anchor: 'center'
+    }
+    const grid = {
+      type: 'grid',
+      name: 'g',
+      x: 0,
+      y: 0,
+      w: 40,
+      h: 10,
+      rotation: 0,
+      anchor: 'center',
+      cell: 'square',
+      rows: 1,
+      columns: 4,
+      cellRatio: 1,
+      orientation: 'pointy',
+      interlock: false,
+      gap: 0,
+      rowGap: null,
+      padding: 0,
+      zoom: 1,
+      alignX: 'center',
+      alignY: 'center',
+      radius: 0,
+      content: 'c',
+      groups: [
+        {
+          type: 'group',
+          name: 'c',
+          x: 0,
+          y: 0,
+          w: 10,
+          h: 10,
+          rotation: 0,
+          anchor: 'center',
+          layout: 'none',
+          repeat: '1',
+          children: [icon]
+        }
+      ],
+      cellRules: []
+    }
+    // caselle da 10 mm: la terza è 20 mm più a destra della prima
+    expect(layerBounds([grid] as never, 'icona', 3)).toEqual({ x: 21, y: 1, w: 2, h: 2 })
+    expect(layerBounds([grid] as never, 'icona', 9)).toBeNull()
+    const src = anatomySource('P/1', [{ layer: 'icona', label: 'Terza', cell: 3, side: 'left' }])
+    expect(src).toContain('- icona (left, cell 3): Terza')
+    const [b] = parseDocument(src)
+    expect(b).toMatchObject({ callouts: [{ layer: 'icona', cell: 3, side: 'left' }] })
+  })
+
+  it("la didascalia dell'anatomia e la sua posizione", () => {
+    const src = anatomySource('Personaggi/1', [{ layer: 'nome', label: 'Nome' }], false, {
+      caption: 'Una carta',
+      captionTop: true
+    })
+    expect(src).toContain('caption: Una carta\ncaption-position: top')
+    const [b] = parseDocument(src)
+    expect(b).toMatchObject({ kind: 'anatomy', caption: 'Una carta', captionTop: true, bad: [] })
+    const plain = parseDocument('```anatomy\ncard: P/1\ncaption: X\n- nome: Nome\n```')[0]
+    expect(plain).toMatchObject({ caption: 'X', captionTop: false })
+  })
+
+  it('caption=top sulle immagini e sulle carte', () => {
+    expect(captionOnTop('icone/mappa.png?caption=top')).toBe(true)
+    expect(captionOnTop('icone/mappa.png')).toBe(false)
+    expect(captionOnTop('card:Personaggi/1?caption=top')).toBe(true)
+    expect(cardRefSource({ set: 'P', row: 1, side: 'front', captionTop: true })).toBe(
+      'card:P/1?caption=top'
+    )
+    expect(imageSourceWith('a.png', { captionTop: true })).toBe('a.png?caption=top')
   })
 })
 

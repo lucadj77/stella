@@ -122,8 +122,11 @@ export interface TextLayer extends LayerBase {
   paddingSides: [number, number, number, number] | null
   transform: 'none' | 'upper' | 'lower' | 'capitalize'
   stroke: Stroke | null
-  fit: 'none' | 'shrink' | 'truncate'
+  /** grow: il corpo cambia (tra minSize e maxSize) fino a riempire il riquadro */
+  fit: 'none' | 'shrink' | 'grow' | 'truncate'
   minSize: number
+  /** Corpo massimo con fit grow, in pt */
+  maxSize: number
   underline: boolean
   strike: boolean
   /** A capo automatico; senza, ogni paragrafo resta su una riga */
@@ -227,8 +230,10 @@ export interface GridLayer extends LayerBase {
    * alternati, rombi che si toccano sui lati
    */
   interlock: boolean
-  /** Spazio tra le caselle in mm */
+  /** Spazio tra le caselle in mm; con rowGap è solo quello tra le colonne */
   gap: number
+  /** Spazio tra le righe in mm, se diverso da quello tra le colonne; null = gap */
+  rowGap: number | null
   /** Spazio tra le caselle e il bordo della griglia, in mm */
   padding: number
   /** Misura: 1 (100%) riempie il riquadro, meno la rimpicciolisce, di più la ingrandisce */
@@ -375,6 +380,8 @@ export const isStandee = (t: Pick<Template, 'kind'> | null | undefined): boolean
 export interface ManualGuides {
   x: number[]
   y: number[]
+  /** Guide bloccate: sulla tela non si trascinano; si spostano solo dalle proprietà */
+  locked?: boolean
 }
 
 export interface Template {

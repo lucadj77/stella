@@ -48,6 +48,7 @@ import { runEdit } from './editRun'
 import FindBar from './FindBar'
 import Resizer from './Resizer'
 import { usePanelWidth } from './usePanelWidth'
+import { plainText } from '../../../shared/model/markup'
 
 /** I passi dello zoom dell'anteprima, in percento */
 const ZOOM_STEPS = [25, 33, 50, 67, 75, 90, 100, 110, 125, 150, 175, 200, 250, 300, 400]
@@ -79,6 +80,45 @@ interface Props {
   onRename(name: string): void
   onDelete(): void
   onDuplicate(): void
+}
+
+/**
+ * Altezza nel campo dove inizia il carattere `at`, a capo automatico compreso: la misura una
+ * copia nascosta del campo che contiene solo il testo prima
+ */
+function textTop(el: HTMLTextAreaElement, at: number): number {
+  const cs = getComputedStyle(el)
+  const copy = document.createElement('textarea')
+  for (const k of [
+    'width',
+    'fontFamily',
+    'fontSize',
+    'fontWeight',
+    'lineHeight',
+    'letterSpacing',
+    'padding',
+    'border',
+    'boxSizing',
+    'whiteSpace',
+    'overflowWrap',
+    'wordBreak',
+    'tabSize'
+  ] as const)
+    copy.style[k] = cs[k]
+  Object.assign(copy.style, {
+    position: 'fixed',
+    left: '-9999px',
+    top: '0',
+    height: '0',
+    overflowY: 'scroll',
+    visibility: 'hidden'
+  })
+  copy.value = el.value.slice(0, at)
+  document.body.appendChild(copy)
+  const top = copy.scrollHeight - parseFloat(cs.paddingBottom)
+  copy.remove()
+  // il testo copiato finisce con l'a capo prima del titolo: l'ultima riga è quella del titolo
+  return at > 0 ? top - (parseFloat(cs.lineHeight) || 0) : 0
 }
 
 export default function DocumentView({
@@ -122,6 +162,11 @@ export default function DocumentView({
   const [find, setFind] = useState<{ replace: boolean; key: number } | null>(null)
   /** Livello del titolo dove sta il cursore, per la barra */
   const [level, setLevel] = useState(0)
+  /** Posizione del cursore, per segnare nell'indice il capitolo dove si sta scrivendo */
+  const [caretAt, setCaretAt] = useState(0)
+  /** Indice dei titoli aperto a sinistra del testo; si ricorda tra un'apertura e l'altra */
+  const [outlinePref, setOutlinePref] = usePanelWidth('document.outline', 0)
+  const outlineOpen = outlinePref > 0
   const [exporting, setExporting] = useState(false)
   /** La tabella aperta nello strumento: nuova, o quella del testo tra from e to */
   const [boxEdit, setBoxEdit] = useState<{
@@ -173,6 +218,18 @@ export default function DocumentView({
   const shownProject = localization?.project ?? project
 
   const settings = useMemo(() => documentSettings(text).settings, [text])
+  /** I titoli del documento, per l'indice: livello, testo senza markup e posizione */
+  const headings = useMemo(
+    () =>
+      parseDocument(text).flatMap((b) =>
+        b.kind === 'heading'
+          ? [{ level: b.level, text: plainText(b.text).trim() || '…', from: b.from }]
+          : []
+      ),
+    [text]
+  )
+  /** Il titolo del capitolo dove sta il cursore */
+  const currentHeading = headings.filter((h) => h.from <= caretAt).pop()?.from ?? -1
   // la pagina si vede intera: se non ci sta in larghezza si riduce
   const [room, setRoom] = useState(0)
   useEffect(() => {
@@ -213,9 +270,10 @@ export default function DocumentView({
   }, [])
   const [editorWidth, setEditorWidth] = usePanelWidth('document.editor', 0)
   // senza una larghezza scelta il testo prende metà dello spazio che resta alle due colonne
-  const settingsWidth = pageOpen ? 266 : 0
+  const settingsWidth = (pageOpen ? 266 : 0) + (outlineOpen ? 206 : 0)
   const halfWidth = Math.max(260, (bodyWidth - settingsWidth - 17) / 2)
   const columns = [
+    ...(outlineOpen ? ['200px'] : []),
     editorWidth ? `${editorWidth}px` : 'minmax(0, 1fr)',
     'auto',
     'minmax(0, 1fr)',
@@ -359,6 +417,7 @@ export default function DocumentView({
     if (el) {
       lastCaret.current = el.selectionEnd
       setLevel(headingAt(el.value, el.selectionStart))
+      setCaretAt(el.selectionStart)
     }
     if (!el || !box || document.activeElement !== el) return
     const at = el.selectionStart
@@ -366,12 +425,39 @@ export default function DocumentView({
     for (const b of box.querySelectorAll<HTMLElement>('.doc-block'))
       if (Number(b.dataset.from) <= at) target = b
     if (!target) return
-    const top = target.offsetTop - box.offsetTop
+    scrollPreviewTo(target)
+  }
+
+  /**
+   * Porta il blocco dell'anteprima in vista. La pagina è ingrandita con `zoom`: offsetTop dà le
+   * misure senza zoom, quindi si misura sullo schermo, che tiene conto dello zoom.
+   */
+  const scrollPreviewTo = (target: HTMLElement, always = false): void => {
+    const box = preview.current
+    if (!box) return
+    const r = target.getBoundingClientRect()
+    const top = r.top - box.getBoundingClientRect().top + box.scrollTop
     if (
+      always ||
       top < box.scrollTop ||
-      top + Math.min(target.offsetHeight, 80) > box.scrollTop + box.clientHeight
+      top + Math.min(r.height, 80) > box.scrollTop + box.clientHeight
     )
       box.scrollTo({ top: Math.max(0, top - 40) })
+  }
+
+  /** Dall'indice: porta il testo e l'anteprima al titolo, con il titolo in cima */
+  const goToHeading = (from: number): void => {
+    const el = editor.current
+    if (el) {
+      el.focus()
+      el.setSelectionRange(from, from)
+      el.scrollTop = Math.max(0, textTop(el, from) - 8)
+      lastCaret.current = from
+      setCaretAt(from)
+      setLevel(headingAt(el.value, from))
+    }
+    const target = preview.current?.querySelector<HTMLElement>(`.doc-block[data-from="${from}"]`)
+    if (target) scrollPreviewTo(target, true)
   }
 
   /** Inserisce un blocco al posto del cursore, su righe sue */
@@ -448,6 +534,13 @@ export default function DocumentView({
             ]}
           />
           <button
+            className={outlineOpen ? 'active' : ''}
+            onClick={() => setOutlinePref(outlineOpen ? -1 : 1)}
+            title={t('documents.outlineHint')}
+          >
+            {t('documents.outline')}
+          </button>
+          <button
             className={pageOpen ? 'active' : ''}
             onClick={() => setPageOpen((o) => !o)}
             title={t('documents.pageButtonHint')}
@@ -459,6 +552,37 @@ export default function DocumentView({
           </button>
         </div>
         <div className="document-body" ref={body} style={{ gridTemplateColumns: columns }}>
+          {outlineOpen && (
+            <nav className="document-outline" aria-label={t('documents.outline')}>
+              <div className="document-settings-head">
+                <h3>{t('documents.outline')}</h3>
+                <button
+                  className="icon-btn"
+                  title={t('dialog.close')}
+                  onClick={() => setOutlinePref(-1)}
+                >
+                  ×
+                </button>
+              </div>
+              {headings.length === 0 ? (
+                <p className="muted small">{t('documents.outlineEmpty')}</p>
+              ) : (
+                <ul>
+                  {headings.map((h) => (
+                    <li key={h.from} className={`level-${h.level}`}>
+                      <button
+                        className={h.from === currentHeading ? 'active' : ''}
+                        title={h.text}
+                        onClick={() => goToHeading(h.from)}
+                      >
+                        {h.text}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </nav>
+          )}
           <div className="document-editor">
             <DocumentProperties
               text={text}

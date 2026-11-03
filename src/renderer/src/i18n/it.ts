@@ -610,6 +610,11 @@ export const it: Record<MessageKey, string> = {
   'tip.chooseFolder': 'Scegli la cartella sul disco',
   'editor.showGrid': 'Griglia',
   'editor.gridStep': 'Passo della griglia',
+  'editor.gridStepX': 'Passo in orizzontale: una misura, o il numero di colonne',
+  'editor.gridStepY': 'Passo in verticale: una misura, o il numero di righe',
+  'editor.gridParts': 'parti',
+  'editor.gridModeHint':
+    'Misura: una linea ogni tanti mm. Parti: il componente si divide in tante colonne (o righe) uguali',
   'editor.snap': 'Aggancia:',
   'editor.snapGrid': 'Griglia',
   'editor.snapObjects': 'Oggetti',
@@ -796,6 +801,9 @@ export const it: Record<MessageKey, string> = {
   'editor.guideRemove': 'Togli la guida',
   'editor.guideAddV': '+ Verticale',
   'editor.guideAddH': '+ Orizzontale',
+  'editor.guidesLock': 'Blocca le guide',
+  'editor.guidesLockHint':
+    'Le guide bloccate non si trascinano sulla tela, così non si spostano per sbaglio; qui si possono ancora cambiare',
   'editor.guidesHint':
     "I livelli si agganciano alle guide quando è attivo l'aggancio agli oggetti. Trascina una guida sul componente per spostarla, fuori dal componente per toglierla.",
   'editor.guideDragHint': 'Trascina per spostare, fuori dal componente per togliere',
@@ -915,6 +923,7 @@ export const it: Record<MessageKey, string> = {
   'prop.stroke': 'Contorno',
   'prop.fit': 'Adattamento',
   'prop.minSize': 'Dimensione minima',
+  'prop.maxSize': 'Dimensione massima',
   'prop.src': 'Immagine',
   'editor.advanced': 'Avanzate ({n})',
   'editor.moveToAdvanced': 'Sposta in Avanzate',
@@ -962,6 +971,9 @@ export const it: Record<MessageKey, string> = {
     'Quante volte disegnare i figli: un numero o un campo, come {forza}. Le copie seguono la disposizione; senza disposizione vanno in riga.',
   'editor.repeatInvalid': 'Scrivi un numero intero o un campo tra graffe, come {forza}',
   'prop.gap': 'Spaziatura',
+  'prop.columnGap': 'Spaziatura tra le colonne',
+  'prop.rowGap': 'Spaziatura tra le righe',
+  'prop.separateGaps': 'Spaziatura diversa per righe e colonne',
   'prop.columns': 'Colonne',
   'prop.justify': 'Contenuto',
   'prop.alignItems': 'Ogni figlio',
@@ -1005,6 +1017,7 @@ export const it: Record<MessageKey, string> = {
   'transform.capitalize': 'Iniziali Maiuscole',
   'textFit.none': 'Esce dal riquadro',
   'textFit.shrink': 'Riduci per stare nel riquadro',
+  'textFit.grow': 'Ingrandisci o riduci per riempire il riquadro',
   'textFit.truncate': 'Taglia al bordo del riquadro',
   'imageFit.cover': 'Riempi (ritaglia)',
   'imageFit.overflow': 'Riempi (lascia uscire)',
@@ -1637,6 +1650,7 @@ export const it: Record<MessageKey, string> = {
   'notes.nameHint': 'Nome della nota: è anche il nome del suo file',
   'notes.delete': 'Elimina la nota (va nella cartella deleted)',
   'notes.close': 'Chiudi la nota',
+  'notes.move': 'Trascina per spostare la nota',
   'notes.detach': 'Stacca la nota in una finestra mobile',
   'notes.dock': 'Riaggancia la nota al lato della finestra',
   'notes.edit': 'Scrivi',
@@ -1701,6 +1715,11 @@ export const it: Record<MessageKey, string> = {
   'documents.empty': 'Il documento è vuoto.',
   'documents.hint':
     "Si salva mentre scrivi in {file}. Un clic sull'anteprima porta a quel punto del testo.",
+  'documents.outline': 'Indice',
+  'documents.outlineHint':
+    "Elenco dei titoli: un clic porta a quel punto nel testo e nell'anteprima",
+  'documents.outlineEmpty':
+    'Ancora nessun titolo. Qui compaiono le righe che iniziano con #, ## o ###.',
   'documents.page': 'Pagina',
   'documents.pageButtonHint':
     'Formato, margini, caratteri, interlinea e colori di questo documento',
@@ -1871,6 +1890,15 @@ export const it: Record<MessageKey, string> = {
   'documents.emptyValue':
     'Questo componente non ha {field}: si trova per numero di riga, che cambia se le righe si spostano.',
   'documents.caption': 'Didascalia',
+  'documents.anatomyCell': 'Casella',
+  'documents.anatomyCellHint':
+    "La casella della griglia a cui punta l'etichetta, da 1 a {n}, contando riga per riga",
+  'documents.anatomyCellAdd': "+ Un'altra casella",
+  'documents.anatomyCellRemove': 'Togli questa etichetta',
+  'documents.captionPosition': 'Posizione della didascalia',
+  'documents.captionPositionHint': 'Dove si vede la didascalia: sotto il disegno o sopra',
+  'documents.captionBelow': 'Sotto',
+  'documents.captionAbove': 'Sopra',
   'documents.insert': 'Inserisci',
   'sidebar.compact': 'Riduci il pannello a icone',
   'sidebar.expand': 'Mostra il pannello',

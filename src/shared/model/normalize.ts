@@ -59,6 +59,7 @@ const TEXT_DEFAULTS: Omit<TextLayer, keyof LayerBase | 'type'> = {
   stroke: null,
   fit: 'none',
   minSize: 6,
+  maxSize: 72,
   underline: false,
   strike: false,
   wrap: true
@@ -106,6 +107,7 @@ const GRID_DEFAULTS: Omit<GridLayer, keyof LayerBase | 'type'> = {
   cellPath: '',
   interlock: false,
   gap: 1,
+  rowGap: null,
   padding: 0,
   zoom: 1,
   alignX: 'center',

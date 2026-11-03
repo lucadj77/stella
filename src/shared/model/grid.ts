@@ -21,7 +21,7 @@ export type GridSpec = Pick<
   | 'alignY'
   | 'radius'
 > &
-  Partial<Pick<GridLayer, 'cellRotation' | 'cellPath' | 'cellSize'>>
+  Partial<Pick<GridLayer, 'cellRotation' | 'cellPath' | 'cellSize' | 'rowGap'>>
 
 export interface GridGeometry {
   /** Tracciato SVG di ogni casella, riga per riga */
@@ -72,13 +72,17 @@ function cellSize(g: GridSpec, s: number): { w: number; h: number } {
 /** Centri delle caselle per un'altezza s, prima di spostarle nel riquadro */
 function place(g: GridSpec, s: number): Placed[] {
   const { w, h } = cellSize(g, s)
-  const gap = Math.max(0, g.gap)
+  // spazio tra le colonne (gx) e tra le righe (gy): di base lo stesso; negativo, le caselle si
+  // sovrappongono
+  const gx = Number.isFinite(g.gap) ? g.gap : 0
+  const gy =
+    g.rowGap === null || g.rowGap === undefined || !Number.isFinite(g.rowGap) ? gx : g.rowGap
   const { rows, columns: cols } = gridSize(g)
   const out: Placed[] = []
   for (let i = 0; i < rows; i++)
     for (let j = 0; j < cols; j++) {
       if (!g.interlock) {
-        out.push({ cx: j * (w + gap), cy: i * (h + gap) })
+        out.push({ cx: j * (w + gx), cy: i * (h + gy) })
         continue
       }
       const odd = i % 2 === 1
@@ -86,36 +90,36 @@ function place(g: GridSpec, s: number): Placed[] {
         case 'hex':
           if (g.orientation === 'flat')
             out.push({
-              cx: j * (w * 0.75 + (gap * R3) / 2),
-              cy: i * (h + gap) + (j % 2 === 1 ? (h + gap) / 2 : 0)
+              cx: j * (w * 0.75 + (gx * R3) / 2),
+              cy: i * (h + gy) + (j % 2 === 1 ? (h + gy) / 2 : 0)
             })
           else
             out.push({
-              cx: j * (w + gap) + (odd ? (w + gap) / 2 : 0),
-              cy: i * (h * 0.75 + (gap * R3) / 2)
+              cx: j * (w + gx) + (odd ? (w + gx) / 2 : 0),
+              cy: i * (h * 0.75 + (gy * R3) / 2)
             })
           break
         case 'triangle':
           // punte alternate, in su e in giù, che si toccano sui lati obliqui
-          out.push({ cx: j * (w / 2 + (2 * gap) / R3), cy: i * (h + gap), down: (i + j) % 2 === 1 })
+          out.push({ cx: j * (w / 2 + (2 * gx) / R3), cy: i * (h + gy), down: (i + j) % 2 === 1 })
           break
         case 'diamond': {
           // i rombi delle righe dispari stanno negli spazi tra quelli delle righe pari
           const len = Math.hypot(w, h)
-          const dx = w / 2 + (gap * h) / len
-          const dy = h / 2 + (gap * w) / len
+          const dx = w / 2 + (gx * h) / len
+          const dy = h / 2 + (gy * w) / len
           out.push({ cx: j * 2 * dx + (odd ? dx : 0), cy: i * dy })
           break
         }
         case 'circle':
           out.push({
-            cx: j * (w + gap) + (odd ? (w + gap) / 2 : 0),
-            cy: (i * (h + gap) * R3) / 2
+            cx: j * (w + gx) + (odd ? (w + gx) / 2 : 0),
+            cy: (i * (h + gy) * R3) / 2
           })
           break
         default:
           // quadrati a mattoncino
-          out.push({ cx: j * (w + gap) + (odd ? (w + gap) / 2 : 0), cy: i * (h + gap) })
+          out.push({ cx: j * (w + gx) + (odd ? (w + gx) / 2 : 0), cy: i * (h + gy) })
       }
     }
   return out
@@ -326,11 +330,15 @@ export function gridGeometry(spec: GridSpec): GridGeometry {
   const pad = Math.max(0, spec.padding)
   const fixed = fixedCell(spec)
   const g = fixed ? fixed.spec : spec
-  // l'ingombro cresce in modo lineare con s: due misure bastano per trovare la s che ci sta
-  const e1 = extent(g, 1)
-  const e2 = extent(g, 2)
+  // l'ingombro cresce in modo lineare con s: due misure bastano per trovare la s che ci sta.
+  // Si misura con caselle grandi, perché con una spaziatura negativa le caselle piccole si
+  // scavalcherebbero e l'ingombro non sarebbe più lineare
+  const S1 = 1000
+  const S2 = 2000
+  const e1 = extent(g, S1)
+  const e2 = extent(g, S2)
   const fit = (room: number, a: number, b: number): number =>
-    b - a > 0 ? (room - (2 * a - b)) / (b - a) : Infinity
+    b - a > 0 ? S1 + ((room - a) * (S2 - S1)) / (b - a) : Infinity
   const fitted = Math.min(fit(g.w - 2 * pad, e1.w, e2.w), fit(g.h - 2 * pad, e1.h, e2.h))
   const s = fixed
     ? Math.max(0, fixed.s)

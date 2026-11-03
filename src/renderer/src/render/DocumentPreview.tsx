@@ -23,6 +23,7 @@ import {
   documentText,
   figureAlign,
   imageProblem,
+  captionOnTop,
   isCardSource,
   parseDocument,
   splitImageSource,
@@ -219,9 +220,11 @@ function Block({
       const problem = b.card
         ? imageProblem(anatomyCardSource(b.card), ctx)
         : msg('doc.anatomy.noCard')
+      const caption = b.caption && <figcaption>{inline(b.caption)}</figcaption>
       return (
         <div className="doc-figure">
           <figure data-from={b.from}>
+            {b.captionTop && caption}
             {problem ? (
               <span className="doc-missing">{t(problem)}</span>
             ) : (
@@ -238,6 +241,7 @@ function Block({
                 font={settings.size * 0.88 * PT * (b.font ?? 1)}
               />
             )}
+            {!b.captionTop && caption}
           </figure>
         </div>
       )
@@ -247,9 +251,11 @@ function Block({
       // width: e font: restringono lo schema e cambiano il corpo delle didascalie
       const maxWidth = (DOC_PAGES[settings.page][0] - 2 * settings.margin) * (b.width ?? 1)
       const sets = ctx.sets ?? []
+      const caption = b.caption && <figcaption>{inline(b.caption)}</figcaption>
       return (
         <div className="doc-figure">
           <figure data-from={b.from}>
+            {b.captionTop && caption}
             <SetupDiagram
               setup={setup}
               view={setupView(
@@ -265,6 +271,7 @@ function Block({
               unit={DOC_UNIT}
               maxWidth={maxWidth}
             />
+            {!b.captionTop && caption}
           </figure>
         </div>
       )
@@ -399,14 +406,17 @@ const Figure = memo(function Figure({
   ) : (
     <AssetImage src={src} ctx={ctx} />
   )
+  const caption = alt && (
+    <figcaption>
+      <MarkupInline text={documentText(alt, ctx)} unit={DOC_UNIT} />
+    </figcaption>
+  )
+  const top = captionOnTop(src)
   return (
     <figure data-from={from}>
+      {top && caption}
       {content}
-      {alt && (
-        <figcaption>
-          <MarkupInline text={documentText(alt, ctx)} unit={DOC_UNIT} />
-        </figcaption>
-      )}
+      {!top && caption}
     </figure>
   )
 })

@@ -564,7 +564,7 @@ describe('formula con risultato vuoto', () => {
       }
     ]
   })
-  it('un testo e un\'immagine restano vuoti, un colore torna quello del template', () => {
+  it("un testo e un'immagine restano vuoti, un colore torna quello del template", () => {
     const [testo, fondo, icona] = bindCard(tpl, rowToCard(['forza'], ['9'])).template.front
     expect((testo as TextLayer).text).toBe('')
     expect((fondo as ShapeLayer).fill).toBe('#2F5DA8')

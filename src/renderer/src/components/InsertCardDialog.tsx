@@ -14,32 +14,66 @@ import {
   parseCardRef,
   anatomyCardSource,
   calloutFace,
+  gridContent,
   type Anatomy,
   type CardRef
 } from '../../../shared/model/document'
 import { BLOCK_FONT, BLOCK_WIDTH } from '../../../shared/model/setup'
+import { gridSize } from '../../../shared/model/grid'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import CardSvg from '../render/CardSvg'
 import AnatomyDiagram from '../render/AnatomyDiagram'
 import { useBindContext } from '../render/assets'
 import Segmented from './Segmented'
+import CaptionField from './CaptionField'
 import FormattedField, { TextFormatBar } from './TextFormatBar'
 
-/** Chiave dell'etichetta di un livello: con fronte e retro lo stesso nome può stare su entrambi */
-const labelKey = (face: Side, layer: string): string => `${face}:${layer}`
+/**
+ * Chiave dell'etichetta di un livello: con fronte e retro lo stesso nome può stare su entrambi;
+ * un elemento di una griglia ha un'etichetta per ogni casella indicata (oltre la prima, #n)
+ */
+const labelKey = (face: Side, layer: string, cell = 1): string =>
+  `${face}:${layer}${cell > 1 ? `#${cell}` : ''}`
+
+/** Le etichette di un livello, con la casella di ciascuna, nell'ordine in cui sono state scritte */
+function labelsOf(
+  labels: Map<string, string>,
+  face: Side,
+  layer: string
+): { key: string; cell: number }[] {
+  const base = labelKey(face, layer)
+  return [...labels.keys()].flatMap((key) =>
+    key === base
+      ? [{ key, cell: 1 }]
+      : key.startsWith(`${base}#`) && /^\d+$/.test(key.slice(base.length + 1))
+        ? [{ key, cell: Number(key.slice(base.length + 1)) }]
+        : []
+  )
+}
 
 /** Carte mostrate al massimo nella griglia: con un set grande si cerca per nome */
 const MAX_SHOWN = 60
 
-/** Nomi dei livelli disegnati, anche dentro i gruppi, con la profondità */
-function layerNames(layers: Layer[], depth = 0): { name: string; depth: number }[] {
-  return layers
-    .filter(isDrawn)
-    .flatMap((l) => [
-      { name: l.name, depth },
-      ...(l.type === 'group' ? layerNames(l.children, depth + 1) : [])
-    ])
+/**
+ * Nomi dei livelli disegnati, anche dentro i gruppi e le griglie, con la profondità; `cells` è
+ * il numero di caselle per gli elementi del contenuto di una griglia
+ */
+function layerNames(
+  layers: Layer[],
+  depth = 0,
+  cells = 0
+): { name: string; depth: number; cells: number }[] {
+  return layers.filter(isDrawn).flatMap((l) => {
+    const content = l.type === 'grid' ? gridContent(l) : null
+    const size = l.type === 'grid' ? gridSize(l) : null
+    return [
+      { name: l.name, depth, cells },
+      ...(l.type === 'group' ? layerNames(l.children, depth + 1, cells) : []),
+      // il contenuto delle caselle: l'etichetta indica l'elemento in una casella scelta
+      ...(content && size ? layerNames([content], depth + 1, size.rows * size.columns) : [])
+    ]
+  })
 }
 
 /**
@@ -122,13 +156,15 @@ export default function InsertCardDialog({
     () =>
       new Map(
         initial?.callouts.map((c) => [
-          labelKey(calloutFace(initial, c, start?.ref.side ?? 'front'), c.layer),
+          labelKey(calloutFace(initial, c, start?.ref.side ?? 'front'), c.layer, c.cell),
           c.label
         ]) ?? []
       )
   )
-  const [caption, setCaption] = useState<string | null>(null)
-  useUndo([setName, row, keyChoice, side, both, width, labels, caption], (s) => {
+  const [caption, setCaption] = useState<string | null>(initial ? initial.caption : null)
+  /** Didascalia sopra il disegno invece che sotto */
+  const [captionTop, setCaptionTop] = useState(initial?.captionTop ?? false)
+  useUndo([setName, row, keyChoice, side, both, width, labels, caption, captionTop], (s) => {
     setSetName(s[0])
     setRow(s[1])
     setKey(s[2])
@@ -137,6 +173,7 @@ export default function InsertCardDialog({
     setWidth(s[5])
     setLabels(s[6])
     setCaption(s[7])
+    setCaptionTop(s[8])
   })
   /** L'ultima etichetta dell'anatomia in cui si è scritto: la barra di formattazione agisce lì */
   const labelField = useRef<HTMLTextAreaElement | null>(null)
@@ -158,7 +195,8 @@ export default function InsertCardDialog({
         set: set.name,
         ...(byField ? { field: key, value } : { row: current + 1 }),
         side: anatomy && both ? 'front' : side,
-        ...(Number(width) > 0 ? { width: Number(width) } : {})
+        ...(Number(width) > 0 ? { width: Number(width) } : {}),
+        ...(!anatomy && pick === undefined && captionTop ? { captionTop: true } : {})
       }
     : null
   const alt = caption ?? cards[current]?.label ?? ''
@@ -177,19 +215,23 @@ export default function InsertCardDialog({
         ? anatomySource(
             cardRefSource(ref),
             faces.flatMap(({ face, layers }) =>
-              layers
-                .filter((l) => labels.has(labelKey(face, l.name)))
-                .map((l) => ({
+              layers.flatMap((l) =>
+                labelsOf(labels, face, l.name).map(({ key, cell }) => ({
                   layer: l.name,
-                  label: labels.get(labelKey(face, l.name))!.trim() || l.name,
+                  label: labels.get(key)!.trim() || l.name,
                   face,
-                  side: initial?.callouts.find((c) => c.layer === l.name)?.side
+                  side: initial?.callouts.find((c) => c.layer === l.name && (c.cell ?? 1) === cell)
+                    ?.side,
+                  ...(cell > 1 ? { cell } : {})
                 }))
+              )
             ),
             both,
             {
               width: percent(blockWidth, BLOCK_WIDTH),
-              font: percent(blockFont, BLOCK_FONT)
+              font: percent(blockFont, BLOCK_FONT),
+              caption: caption ?? '',
+              captionTop
             }
           )
         : `![${alt.replace(/[[\]]/g, '')}](${cardRefSource(ref)})`
@@ -208,7 +250,7 @@ export default function InsertCardDialog({
             setSetName(e.target.value)
             setRow(0)
             setKey(null)
-            setCaption(null)
+            if (!anatomy) setCaption(null)
           }}
         >
           {usable.map((s) => (
@@ -326,6 +368,14 @@ export default function InsertCardDialog({
           </label>
         </div>
       )}
+      {anatomy && (
+        <CaptionField
+          value={caption ?? ''}
+          top={captionTop}
+          onChange={setCaption}
+          onTop={setCaptionTop}
+        />
+      )}
       {key !== '' && !byField && (
         <p className="muted small">
           {t(repeated ? 'documents.repeatedValue' : 'documents.emptyValue', { field: key })}
@@ -344,31 +394,88 @@ export default function InsertCardDialog({
           )}
           {layers.map((l) => {
             const k = labelKey(face, l.name)
+            const own = labelsOf(labels, face, l.name)
+            const field = (key: string): React.JSX.Element => (
+              <FormattedField
+                singleLine
+                value={labels.get(key) ?? ''}
+                placeholder={t('documents.anatomyLabel')}
+                onFocus={(el) => {
+                  labelField.current = el
+                }}
+                onChange={(v) => setLabels(new Map(labels).set(key, v))}
+              />
+            )
+            /** Sposta l'etichetta su un'altra casella, al suo posto nell'ordine */
+            const moveTo = (key: string, cell: number): void => {
+              const to = labelKey(face, l.name, cell)
+              if (to === key || labels.has(to)) return
+              setLabels(new Map([...labels].map(([k2, v]) => [k2 === key ? to : k2, v])))
+            }
             return (
               <div key={k} className="anatomy-layer" style={{ paddingLeft: l.depth * 14 }}>
                 <label>
                   <input
                     type="checkbox"
-                    checked={labels.has(k)}
+                    checked={own.length > 0}
                     onChange={(e) => {
                       const next = new Map(labels)
                       if (e.target.checked) next.set(k, l.name)
-                      else next.delete(k)
+                      else own.forEach((o) => next.delete(o.key))
                       setLabels(next)
                     }}
                   />
                   {l.name}
                 </label>
-                {labels.has(k) && (
-                  <FormattedField
-                    singleLine
-                    value={labels.get(k) ?? ''}
-                    placeholder={t('documents.anatomyLabel')}
-                    onFocus={(el) => {
-                      labelField.current = el
-                    }}
-                    onChange={(v) => setLabels(new Map(labels).set(k, v))}
-                  />
+                {own.length > 0 && l.cells === 0 && field(k)}
+                {own.length > 0 && l.cells > 0 && (
+                  <div className="anatomy-cells">
+                    {own.map(({ key, cell }) => (
+                      <div key={key} className="anatomy-cell">
+                        <label title={t('documents.anatomyCellHint', { n: l.cells })}>
+                          {t('documents.anatomyCell')}
+                          <NumInput
+                            className="num"
+                            min={1}
+                            max={l.cells}
+                            value={String(cell)}
+                            onChange={(e) => {
+                              const n = Number(e.target.value)
+                              if (Number.isInteger(n) && n >= 1 && n <= l.cells) moveTo(key, n)
+                            }}
+                          />
+                        </label>
+                        {field(key)}
+                        {own.length > 1 && (
+                          <button
+                            type="button"
+                            className="icon-btn"
+                            title={t('documents.anatomyCellRemove')}
+                            onClick={() => {
+                              const next = new Map(labels)
+                              next.delete(key)
+                              setLabels(next)
+                            }}
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    {own.length < l.cells && (
+                      <button
+                        type="button"
+                        className="link"
+                        onClick={() => {
+                          let n = 1
+                          while (own.some((o) => o.cell === n)) n++
+                          setLabels(new Map(labels).set(labelKey(face, l.name, n), l.name))
+                        }}
+                      >
+                        {t('documents.anatomyCellAdd')}
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             )
@@ -429,10 +536,12 @@ export default function InsertCardDialog({
             {grid}
             {options}
             {pick !== undefined ? null : (
-              <label>
-                {t('documents.caption')}
-                <input value={alt} onChange={(e) => setCaption(e.target.value)} />
-              </label>
+              <CaptionField
+                value={alt}
+                top={captionTop}
+                onChange={setCaption}
+                onTop={setCaptionTop}
+              />
             )}
             <code className="insert-card-code">{text}</code>
           </>

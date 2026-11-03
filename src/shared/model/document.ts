@@ -5,11 +5,21 @@ import { substituteFields } from './bind'
 import { imageVariable, variableFields, type Variables } from './variables'
 import { resolveAsset } from './assets'
 import { today } from './system'
-import type { GroupLayer, HAlign, Layer, Side, Template } from './template'
+import type { GridLayer, GroupLayer, HAlign, Layer, Side, Template } from './template'
 import { worldBounds } from './geometry'
+import { gridGeometry } from './grid'
+import { translateLayer } from './edit'
 import { arrangeGroup } from './arrange'
 import type { Bounds } from './edit'
-import { blockSizeLine, blockSizeLines, parseSetup, SETUP_FENCE, type Setup } from './setup'
+import {
+  blockCaptionLine,
+  blockCaptionLines,
+  blockSizeLine,
+  blockSizeLines,
+  parseSetup,
+  SETUP_FENCE,
+  type Setup
+} from './setup'
 import {
   cellParts,
   DEFAULT_TABLE_STYLE,
@@ -84,6 +94,8 @@ export interface Callout {
   side?: 'left' | 'right'
   /** Faccia del livello quando l'anatomia mostra fronte e retro; di base il fronte */
   face?: Side
+  /** Per un elemento dentro una griglia, la casella indicata (da 1, per righe); di base la prima */
+  cell?: number
   /** Posizione della riga nel testo */
   from: number
   to: number
@@ -100,6 +112,10 @@ export interface Anatomy {
   width: number | null
   /** Corpo delle etichette in frazione di quello di base (`font: 90%`); null = di base */
   font: number | null
+  /** Didascalia del disegno (`caption: testo`); vuota = nessuna */
+  caption: string
+  /** Didascalia sopra il disegno (`caption-position: top`); di base sotto */
+  captionTop: boolean
   /** Righe che non si capiscono */
   bad: { from: number; to: number }[]
 }
@@ -107,7 +123,7 @@ export interface Anatomy {
 /** Il blocco ```anatomy: le sue righe sono card: … e - livello: etichetta */
 export const ANATOMY_FENCE = 'anatomy'
 const CALLOUT_LINE =
-  /^\s*[-*]\s*(.+?)(?:\s*\(((?:\s*(?:left|right|front|back)\s*,?)+)\))?\s*:\s*(.*)$/
+  /^\s*[-*]\s*(.+?)(?:\s*\(((?:\s*(?:left|right|front|back|cell\s*\d+)\s*,?)+)\))?\s*:\s*(.*)$/
 
 function parseAnatomy(lines: string[], starts: number[]): Anatomy {
   const out: Anatomy = {
@@ -117,6 +133,8 @@ function parseAnatomy(lines: string[], starts: number[]): Anatomy {
     callouts: [],
     width: null,
     font: null,
+    caption: '',
+    captionTop: false,
     bad: []
   }
   lines.forEach((l, k) => {
@@ -140,16 +158,26 @@ function parseAnatomy(lines: string[], starts: number[]): Anatomy {
       else out[size.key] = size.value
       return
     }
+    const caption = blockCaptionLine(l)
+    if (caption) {
+      if (caption.bad) out.bad.push({ from, to })
+      if (caption.text !== undefined) out.caption = caption.text
+      if (caption.top !== undefined) out.captionTop = caption.top
+      return
+    }
     const m = CALLOUT_LINE.exec(l)
     if (m) {
-      const opts = (m[2] ?? '').split(/[\s,]+/)
+      const cellOpt = /cell\s*(\d+)/.exec(m[2] ?? '')
+      const opts = (m[2] ?? '').replace(/cell\s*\d+/, '').split(/[\s,]+/)
       const side = opts.find((o) => o === 'left' || o === 'right') as 'left' | 'right' | undefined
       const face = opts.find((o) => o === 'front' || o === 'back') as Side | undefined
+      const cell = cellOpt ? Number(cellOpt[1]) : 0
       out.callouts.push({
         layer: m[1].trim(),
         label: m[3].trim(),
         ...(side ? { side } : {}),
         ...(face ? { face } : {}),
+        ...(cell > 1 ? { cell } : {}),
         from,
         to
       })
@@ -163,12 +191,19 @@ export function anatomySource(
   card: string,
   callouts: Omit<Callout, 'from' | 'to'>[],
   both = false,
-  size: { width?: number | null; font?: number | null } = {}
+  size: {
+    width?: number | null
+    font?: number | null
+    caption?: string
+    captionTop?: boolean
+  } = {}
 ): string {
   const opts = (c: Omit<Callout, 'from' | 'to'>): string => {
-    const list = [both && c.face === 'back' ? 'back' : '', !both && c.side ? c.side : ''].filter(
-      Boolean
-    )
+    const list = [
+      both && c.face === 'back' ? 'back' : '',
+      !both && c.side ? c.side : '',
+      c.cell && c.cell > 1 ? `cell ${c.cell}` : ''
+    ].filter(Boolean)
     return list.length ? ` (${list.join(', ')})` : ''
   }
   return [
@@ -176,25 +211,54 @@ export function anatomySource(
     `card: ${card.replace(/^card:/i, '')}`,
     ...(both ? ['sides: both'] : []),
     ...blockSizeLines(size),
+    ...blockCaptionLines(size),
     ...callouts.map((c) => `- ${c.layer}${opts(c)}: ${c.label.replace(/\n/g, ' ')}`),
     '```'
   ].join('\n')
 }
 
 /**
+ * Il gruppo che si ripete nelle caselle della griglia, com'è nella prima casella: sulla carta
+ * disegnata quello della prima casella, nel template quello del contenuto; null se non c'è
+ */
+export function gridContent(l: GridLayer): GroupLayer | null {
+  return l.cells?.[0] ?? l.groups.find((g) => g.name === l.content) ?? null
+}
+
+/**
+ * Il contenuto della casella n (da 1, per righe) di una griglia, spostato dove la casella è
+ * disegnata; null se la casella non c'è
+ */
+export function gridCellContent(l: GridLayer, n: number): GroupLayer | null {
+  const i = Math.max(1, Math.round(n) || 1) - 1
+  if (i === 0) return gridContent(l)
+  const { centers } = gridGeometry(l)
+  if (i >= centers.length) return null
+  const content = l.cells?.[i] ?? (i === 0 || !l.cells ? gridContent(l) : null)
+  if (!content || !centers[0]) return content
+  return translateLayer(
+    content,
+    centers[i].x - centers[0].x,
+    centers[i].y - centers[0].y
+  ) as GroupLayer
+}
+
+/**
  * Riquadro sulla carta del livello con questo nome (anche in un gruppo, dove è disegnato), o
  * null. Prima il nome esatto, poi senza badare alle maiuscole.
  */
-export function layerBounds(layers: Layer[], name: string): Bounds | null {
-  const find = (
-    list: Layer[],
-    chain: GroupLayer[],
-    same: (a: string) => boolean
-  ): Bounds | null => {
+export function layerBounds(layers: Layer[], name: string, cell = 1): Bounds | null {
+  const find = (list: Layer[], chain: Layer[], same: (a: string) => boolean): Bounds | null => {
     for (const l of list) {
       if (same(l.name) && l.type !== 'value') return worldBounds(l, chain)
       if (l.type === 'group') {
         const found = find(arrangeGroup(l).children, [...chain, l], same)
+        if (found) return found
+      }
+      // dentro una griglia: gli elementi del contenuto, nella casella scelta (di base la prima)
+      if (l.type === 'grid') {
+        const content = gridCellContent(l, cell)
+        const found = content && find([content], [...chain, l], same)
         if (found) return found
       }
     }
@@ -930,6 +994,8 @@ export interface CardRef {
   width?: number
   /** Allineamento della riga di immagini; di base al centro */
   align?: FigureAlign
+  /** Didascalia sopra la carta (caption=top); di base sotto */
+  captionTop?: boolean
 }
 
 export type FigureAlign = 'left' | 'center' | 'right'
@@ -940,6 +1006,8 @@ export interface ImageOptions {
   /** Larghezza in mm; di base la misura dell'immagine, ridotta se non ci sta */
   width?: number
   align?: FigureAlign
+  /** Didascalia sopra l'immagine (caption=top); di base sotto */
+  captionTop?: boolean
 }
 
 /**
@@ -961,6 +1029,7 @@ export function splitImageSource(src: string): {
     const [k, v = ''] = part.split('=').map((x) => decode(x).trim())
     if (k === 'width' && Number(v) > 0) options.width = Number(v)
     else if (k === 'align' && ALIGNS.includes(v as FigureAlign)) options.align = v as FigureAlign
+    else if (k === 'caption' && (v === 'top' || v === 'bottom')) options.captionTop = v === 'top'
     else bad.push(part)
   }
   return { path: raw.slice(0, q).trim(), options, bad }
@@ -970,9 +1039,16 @@ export function splitImageSource(src: string): {
 export function imageSourceWith(path: string, options: ImageOptions): string {
   const opts = [
     options.width ? `width=${options.width}` : '',
-    options.align && options.align !== 'center' ? `align=${options.align}` : ''
+    options.align && options.align !== 'center' ? `align=${options.align}` : '',
+    options.captionTop ? 'caption=top' : ''
   ].filter(Boolean)
   return `${path}${opts.length ? `?${opts.join('&')}` : ''}`
+}
+
+/** La didascalia di una carta o di un'immagine va sopra (caption=top)? Di base sta sotto */
+export function captionOnTop(src: string): boolean {
+  const ref = isCardSource(src) ? parseCardRef(src) : splitImageSource(src).options
+  return !isMessage(ref) && !!ref.captionTop
 }
 
 /** Allineamento di una riga di immagini: il primo scritto, di base al centro */
@@ -1024,6 +1100,7 @@ export function parseCardRef(src: string): CardRef | Message {
       if (k === 'side' && (v === 'front' || v === 'back')) ref.side = v
       else if (k === 'width' && Number(v) > 0) ref.width = Number(v)
       else if (k === 'align' && ALIGNS.includes(v as FigureAlign)) ref.align = v as FigureAlign
+      else if (k === 'caption' && (v === 'top' || v === 'bottom')) ref.captionTop = v === 'top'
       else return msg('doc.card.badOption', { option: part, ref: raw })
     }
   return ref
@@ -1038,7 +1115,8 @@ export function cardRefSource(ref: CardRef): string {
   const opts = [
     ref.side === 'back' ? 'side=back' : '',
     ref.width ? `width=${ref.width}` : '',
-    ref.align && ref.align !== 'center' ? `align=${ref.align}` : ''
+    ref.align && ref.align !== 'center' ? `align=${ref.align}` : '',
+    ref.captionTop ? 'caption=top' : ''
   ].filter(Boolean)
   return `${CARD_PREFIX}${enc(ref.set)}/${selector}${opts.length ? `?${opts.join('&')}` : ''}`
 }
@@ -1204,7 +1282,7 @@ function anatomyProblems(b: Anatomy & { from: number }, ctx: DocumentContext): D
     found && !isMessage(found) ? ctx.templates?.find((x) => x.name === found.set.template) : null
   if (!template || isMessage(ref)) return out
   for (const c of b.callouts)
-    if (!layerBounds(template[calloutFace(b, c, ref.side)], c.layer))
+    if (!layerBounds(template[calloutFace(b, c, ref.side)], c.layer, c.cell))
       out.push({
         message: msg('doc.anatomy.noLayer', { layer: c.layer, template: template.name }),
         from: c.from,

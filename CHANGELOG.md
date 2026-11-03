@@ -5,6 +5,32 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.8.5-beta.3
+
+### English
+
+- **Notes**: a detached note can now really be moved: drag the dotted handle at the top of the floating window. Before, the bar was almost all taken by the note name, so there was nowhere to grab it.
+- **Documents, index**: the new **Index** button opens, on the left of the text, the list of the headings. Click one to jump there in the text and in the preview; the chapter you are writing in is highlighted.
+- **Documents, captions above**: images, components, anatomies and table setups can show the caption above the drawing instead of below: **Caption position** in their windows (`caption=top` after the `?` of an image or card, `caption-position: top` in anatomy and setup blocks). Anatomies and table setups now have a caption too (`caption: text`).
+- **Documents, anatomy of grids**: the elements inside a grid (the group repeated in the cells and its layers) can be chosen in an anatomy. **Cell** picks the cell the arrow points at, and **+ Another cell** explains the same element in several cells (`(cell 7)` in the text).
+- **Documents, fix**: with the preview zoom other than 100%, clicking in the text now scrolls the preview to the right place.
+- **Text that fills its box**: the new fit **Grow or shrink to fill the box** gives the text the largest size that fits, between **Minimum size** and the new **Maximum size**.
+- **Locked guides**: **Lock guides**, in the template properties, stops the manual guides from being dragged on the canvas.
+- **Grid layer**: **Different gap for rows and columns** sets the gap between rows apart from the gap between columns. The gap can be negative, so the cells overlap.
+- **Canvas grid**: the grid spacing has separate fields across and down, and each can be a size or a number of **parts** of the component (for example 5 columns × 10 rows). Snapping to the grid now works like snapping to objects: sides and center are pulled to the lines when they come close (the center also to the middle of the sections), and elsewhere the object moves freely.
+
+### Italiano
+
+- **Note**: una nota staccata ora si sposta davvero: si trascina la maniglia puntinata in cima alla finestra mobile. Prima la barra era quasi tutta occupata dal nome della nota e non c'era un punto da afferrare.
+- **Documenti, indice**: il nuovo tasto **Indice** apre, a sinistra del testo, l'elenco dei titoli. Un clic porta a quel titolo nel testo e nell'anteprima; il capitolo in cui si scrive è evidenziato.
+- **Documenti, didascalie sopra**: immagini, componenti, anatomie e schemi del tavolo possono mostrare la didascalia sopra il disegno invece che sotto: **Posizione della didascalia** nelle loro finestre (`caption=top` dopo il `?` di un'immagine o di una carta, `caption-position: top` nei blocchi anatomia e schema). Anatomie e schemi del tavolo ora hanno anche una didascalia (`caption: testo`).
+- **Documenti, anatomia delle griglie**: nell'anatomia si possono scegliere gli elementi dentro una griglia (il gruppo che si ripete nelle caselle e i suoi livelli). **Casella** sceglie la casella a cui punta la freccia, e **+ Un'altra casella** spiega lo stesso elemento in più caselle (`(cell 7)` nel testo).
+- **Documenti, correzione**: con lo zoom dell'anteprima diverso dal 100%, un clic nel testo ora porta l'anteprima al punto giusto.
+- **Testo che riempie il riquadro**: il nuovo adattamento **Ingrandisci o riduci per riempire il riquadro** dà al testo la dimensione più grande che ci sta, tra **Dimensione minima** e la nuova **Dimensione massima**.
+- **Guide bloccate**: **Blocca le guide**, nelle proprietà del template, impedisce di trascinare le guide manuali sulla tela.
+- **Livello griglia**: **Spaziatura diversa per righe e colonne** imposta lo spazio tra le righe separato da quello tra le colonne. La spaziatura può essere negativa, e le caselle si sovrappongono.
+- **Griglia della tela**: il passo della griglia ha campi separati in orizzontale e in verticale, e ognuno può essere una misura o un numero di **parti** del componente (per esempio 5 colonne × 10 righe). L'aggancio alla griglia ora funziona come quello agli oggetti: lati e centro vengono attirati dalle linee quando ci arrivano vicino (il centro anche dal centro dei riquadri), altrove l'oggetto si muove libero.
+
 ## 1.8.5-beta.2
 
 ### English

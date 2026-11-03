@@ -875,6 +875,19 @@ function GuideFields({
         </button>
         <HelpTip text={t('editor.guidesHint')} />
       </div>
+      {guides.x.length + guides.y.length > 0 && (
+        <CheckField
+          label={t('editor.guidesLock')}
+          hint={t('editor.guidesLockHint')}
+          value={!!guides.locked}
+          onChange={(on) => {
+            set(
+              { guides: { x: guides.x, y: guides.y, ...(on ? { locked: true } : {}) } },
+              'guides.locked'
+            )
+          }}
+        />
+      )}
     </>
   )
 }
@@ -1421,11 +1434,11 @@ function TextProperties({
             label={t('prop.fit')}
             hint={col('fit')}
             value={l.fit}
-            options={options(t, 'textFit', ['none', 'shrink', 'truncate'] as const)}
+            options={options(t, 'textFit', ['none', 'shrink', 'grow', 'truncate'] as const)}
             onChange={(fit) => set({ fit })}
           />
         </P>
-        {l.fit === 'shrink' && (
+        {(l.fit === 'shrink' || l.fit === 'grow') && (
           <P id="minSize">
             <NumberField
               label={t('prop.minSize')}
@@ -1434,6 +1447,18 @@ function TextProperties({
               min={1}
               unit="pt"
               onChange={(minSize) => set({ minSize })}
+            />
+          </P>
+        )}
+        {l.fit === 'grow' && (
+          <P id="maxSize">
+            <NumberField
+              label={t('prop.maxSize')}
+              hint={col('maxSize')}
+              value={l.maxSize}
+              min={1}
+              unit="pt"
+              onChange={(maxSize) => set({ maxSize })}
             />
           </P>
         )}
@@ -2026,14 +2051,32 @@ function GridProperties({
         )}
         <P id="gap">
           <NumberField
-            label={t('prop.gap')}
+            label={l.rowGap === null ? t('prop.gap') : t('prop.columnGap')}
             hint={col('gap')}
             value={l.gap}
-            min={0}
+            min={-50}
             step={0.5}
             unit="mm"
             onChange={(gap) => set({ gap })}
           />
+        </P>
+        <P id="rowGap">
+          <CheckField
+            label={t('prop.separateGaps')}
+            value={l.rowGap !== null}
+            onChange={(on) => set({ rowGap: on ? l.gap : null })}
+          />
+          {l.rowGap !== null && (
+            <NumberField
+              label={t('prop.rowGap')}
+              hint={col('rowGap')}
+              value={l.rowGap}
+              min={-50}
+              step={0.5}
+              unit="mm"
+              onChange={(rowGap) => set({ rowGap })}
+            />
+          )}
         </P>
         {!computed && (
           <P id="fill">
