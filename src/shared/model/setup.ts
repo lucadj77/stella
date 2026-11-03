@@ -56,6 +56,8 @@ export interface Setup {
   caption?: string
   /** Didascalia sopra lo schema (`caption-position: top`); di base sotto */
   captionTop?: boolean
+  /** Testo che scorre accanto allo schema, messo a sinistra o a destra (`wrap: left`) */
+  wrap?: BlockWrap | null
   /** Righe che non si capiscono */
   bad: { from: number; to: number }[]
 }
@@ -111,6 +113,29 @@ export function blockCaptionLines(o: { caption?: string; captionTop?: boolean })
   if (!text) return []
   return [`caption: ${text}`, ...(o.captionTop ? ['caption-position: top'] : [])]
 }
+
+/** Lato verso cui va un blocco con il testo che gli scorre accanto (`wrap: left`) */
+export type BlockWrap = 'left' | 'right'
+
+/**
+ * Riga `wrap: left` (o right, o none) dell'anatomia e dello schema del tavolo: il blocco va su
+ * quel lato e il testo che segue gli scorre accanto; bad se il lato non si capisce
+ */
+export function blockWrapLine(line: string): { wrap: BlockWrap | null } | { bad: true } | null {
+  const m = /^\s*wrap\s*:?\s*(\S*)\s*$/i.exec(line)
+  if (!m) return null
+  const v = m[1].toLowerCase()
+  if (v === 'left' || v === 'right') return { wrap: v }
+  return v === 'none' ? { wrap: null } : { bad: true }
+}
+
+/** La riga `wrap:` da scrivere nel blocco */
+export function blockWrapLines(o: { wrap?: BlockWrap | null }): string[] {
+  return o.wrap ? [`wrap: ${o.wrap}`] : []
+}
+
+/** Frazione della riga presa di base da un blocco con il testo accanto, senza `width:` */
+export const WRAP_WIDTH = 0.5
 
 /** Larghezza di base dei testi e delle immagini, in mm */
 export const SETUP_TEXT_W = 50
@@ -239,11 +264,18 @@ export function parseSetup(lines: string[], starts: number[]): Setup {
     font: null,
     caption: '',
     captionTop: false,
+    wrap: null,
     bad: []
   }
   lines.forEach((l, k) => {
     const from = starts[k]
     if (!l.trim() || l.trim().startsWith('#')) return
+    const wrap = blockWrapLine(l)
+    if (wrap) {
+      if ('bad' in wrap) out.bad.push({ from, to: from + l.length })
+      else out.wrap = wrap.wrap
+      return
+    }
     const block = blockSizeLine(l)
     if (block) {
       if (block.value === null) out.bad.push({ from, to: from + l.length })
@@ -295,12 +327,13 @@ export function setupLine(it: SetupItem): string {
 
 /** Il testo del blocco ```setup */
 export function setupSource(
-  s: Pick<Setup, 'size' | 'items' | 'width' | 'font' | 'caption' | 'captionTop'>
+  s: Pick<Setup, 'size' | 'items' | 'width' | 'font' | 'caption' | 'captionTop' | 'wrap'>
 ): string {
   return [
     '```' + SETUP_FENCE,
     ...(s.size ? [`size ${r(s.size.w)}x${r(s.size.h)}`] : []),
     ...blockSizeLines(s),
+    ...blockWrapLines(s),
     ...blockCaptionLines(s),
     ...s.items.map(setupLine),
     '```'

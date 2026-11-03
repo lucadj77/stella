@@ -120,6 +120,8 @@ describe('PDF: set uno dopo l altro', () => {
       Math.max(...big.map((i) => i.y)) + 88
     )
     for (const i of page.items) expect(i.y + i.template.height).toBeLessThanOrEqual(297 - 10)
+    // in alto, non al centro della pagina: il taglio parte sempre dallo stesso bordo
+    expect(Math.min(...big.map((i) => i.y))).toBeLessThan(10 + 5)
   })
 
   it('misure diverse: due set uguali seguiti da uno diverso riempiono la stessa riga', () => {

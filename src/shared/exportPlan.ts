@@ -256,10 +256,8 @@ export function shelfPages(
   const out: { side: Side; page: ScenePage }[] = []
   for (const sheet of sheets) {
     if (!sheet.length) continue
-    const last = sheet[sheet.length - 1]
-    const height =
-      last.y + last.rows.length * last.grid.cellH + (last.rows.length - 1) * last.grid.gap
-    const top = o.margin + Math.max(0, (availH - height) / 2)
+    // in alto, non al centro: le pagine di un taglio partono tutte dallo stesso bordo
+    const top = o.margin
     const sidePage = (side: Side): { side: Side; page: ScenePage } => {
       const items: SceneItem[] = []
       const lines: SceneLine[] = []

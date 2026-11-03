@@ -1740,6 +1740,10 @@ export const en = {
   'documents.boxBorder': 'Border',
   'documents.boxBorderWidth': 'Border thickness',
   'documents.boxPadding': 'Inner space',
+  'documents.boxWidth': 'Width',
+  'documents.clear': 'Start below',
+  'documents.clearHint':
+    'Writes a <!-- clear --> line before this one: from here the text starts again below the images, drawings and boxes placed at the side',
   'documents.boxRadius': 'Rounded corners',
   'documents.boxSample': 'Text in the box',
   'documents.boxRemove': 'Remove box',
@@ -1868,6 +1872,12 @@ export const en = {
   'documents.captionPositionHint': 'Where the caption appears: below the picture or above it',
   'documents.captionBelow': 'Below',
   'documents.captionAbove': 'Above',
+  'documents.wrap': 'Text beside',
+  'documents.wrapHint':
+    'The text that follows flows beside it, with the block on the left or on the right, until a "Start below" line',
+  'documents.wrapNone': 'No',
+  'documents.wrapLeft': 'Block on the left',
+  'documents.wrapRight': 'Block on the right',
   'documents.insert': 'Insert',
   'sidebar.compact': 'Collapse panel to icons',
   'sidebar.expand': 'Expand panel',

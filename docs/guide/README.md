@@ -54,6 +54,7 @@ Video tutorials on YouTube, no voice ([whole playlist](https://www.youtube.com/p
 - 26 · [Deep dive: laying out a template](https://www.youtube.com/watch?v=bCB3t14oRGg) (16 minutes), with the ["Tavern" project to download](https://stella.lucadj.eu/progetti/tavern.zip)
 - 27 · [Deep dive: images and shapes](https://www.youtube.com/watch?v=WJUt8pr3BTI) (16 minutes), with the ["Expedition" project to download](https://stella.lucadj.eu/progetti/expedition.zip)
 - 28 · [Deep dive: set statistics](https://www.youtube.com/watch?v=LJ0VJqpbHIk) (8 minutes), with the ["Skirmish" project to download](https://stella.lucadj.eu/progetti/skirmish.zip)
+- 29 · [Deep dive: generating components](https://www.youtube.com/watch?v=NH1moTH0Y6o) (10 minutes), with the ["Recruits" project to download](https://stella.lucadj.eu/progetti/recruits.zip)
 
 Versione italiana: [../guida/README.md](../guida/README.md).
 
@@ -745,7 +746,7 @@ The PDF is vector, with embedded fonts. The choices that matter are the paper (p
 - **Fold**: front and back side by side, to fold.
 - **Crop marks**: at the corners or as full lines, with length, width and color.
 - **Duplex**: backs on alternate pages, flipping on the long or short edge, with an offset for printers that do not align the two sides. To find the right offset, print a single page first, hold the sheet against the light to measure how far the back is shifted from the front, and type that value in **Back offset**; then print everything. The **Proof sheet** lets you check all the cards small before using up paper.
-- **Pages**: with **One after another on the same page** a set starts right after the previous one instead of on a new page (10 + 8 cards with 9 per page fit on 2 pages instead of 3). A set with cards of another size starts on a new row, if there is room on the page.
+- **Pages**: with **One after another on the same page** a set starts right after the previous one instead of on a new page (10 + 8 cards with 9 per page fit on 2 pages instead of 3). A set with cards of another size starts on a new row, if there is room on the page. The cards start from the top of the page, even when they do not fill it, so cutting always starts from the same edge.
 - **Proof sheet**: a separate PDF with every card small.
 - **Convert to CMYK**: needs Ghostscript installed on the computer.
 
@@ -845,6 +846,8 @@ Cells take the same markup as the text (styles, icons, variables) and also image
 ![The table window, with the look at the bottom](img/doc-tabella.png)
 
 **Box** puts a colored background behind a part of the document: to make a piece of text stand out, or to set white images without a border apart from the page. With some lines selected it puts them in the box; with no selection it inserts a new box with sample text. You choose the background, a border (color and thickness), the inner space and rounded corners; with the cursor inside a box the same button changes it or removes it (**Remove box** keeps what is inside). In the text a box is two lines, `<!-- box fill=#fff3c4 border=#e0b000 -->` at the start and `<!-- /box -->` at the end: everything between them (headings, lists, tables, cards) gets the background. The HTML, PDF and Word exports keep it, the Markdown export does not.
+
+**Text beside** makes the text that follows flow beside an image, a card, an anatomy, a table setup or a box, instead of leaving them the whole line: choose **Block on the left** or **Block on the right** in their window. Everything that comes after, headings included, flows beside it while there is room; the **Start below** button of the toolbar writes a `<!-- clear -->` line that makes the text start again below the block. The end of a box and the end of the document start below too. In the text it is `wrap=left` or `wrap=right` after the `?` of an image or a card (`![Map](icons/map.png?width=40&wrap=right)`), the line `wrap: left` in the anatomy and the table setup, and `wrap=left` in the line that opens the box. An anatomy, a setup or a box without a width takes half the line; the box has its own **Width** as a percentage of the line (`<!-- box width=40% wrap=right -->`), which also works without text beside it. The PDF and HTML exports keep the layout, the Word and Markdown exports put the block on its own line.
 
 ### 12.4 Card anatomy
 

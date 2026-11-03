@@ -1771,6 +1771,10 @@ export const it: Record<MessageKey, string> = {
   'documents.boxBorder': 'Bordo',
   'documents.boxBorderWidth': 'Spessore del bordo',
   'documents.boxPadding': 'Spazio interno',
+  'documents.boxWidth': 'Larghezza',
+  'documents.clear': 'Riparti sotto',
+  'documents.clearHint':
+    'Scrive una riga <!-- clear --> prima di questa: da qui il testo riparte sotto le immagini, i disegni e i riquadri messi a lato',
   'documents.boxRadius': 'Angoli arrotondati',
   'documents.boxSample': 'Testo nel riquadro',
   'documents.boxRemove': 'Togli il riquadro',
@@ -1899,6 +1903,12 @@ export const it: Record<MessageKey, string> = {
   'documents.captionPositionHint': 'Dove si vede la didascalia: sotto il disegno o sopra',
   'documents.captionBelow': 'Sotto',
   'documents.captionAbove': 'Sopra',
+  'documents.wrap': 'Testo accanto',
+  'documents.wrapHint':
+    'Il testo che segue scorre accanto, con il blocco a sinistra o a destra, fino a una riga «Riparti sotto»',
+  'documents.wrapNone': 'No',
+  'documents.wrapLeft': 'Blocco a sinistra',
+  'documents.wrapRight': 'Blocco a destra',
   'documents.insert': 'Inserisci',
   'sidebar.compact': 'Riduci il pannello a icone',
   'sidebar.expand': 'Mostra il pannello',

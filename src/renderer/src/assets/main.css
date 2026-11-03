@@ -6159,6 +6159,43 @@ details.usages button.link {
   margin-top: 0;
 }
 
+/* testo che scorre accanto (wrap=left/right): il blocco va a lato e il resto, titoli compresi, gli
+   scorre accanto fino a una riga <!-- clear -->; la pagina, i riquadri, gli sfondi e le linee non
+   passano sotto un blocco a lato */
+.doc-page,
+.doc-page .doc-box,
+.doc-page blockquote,
+.doc-page pre,
+.doc-page hr {
+  display: flow-root;
+}
+
+.doc-page .doc-block.wrap-left,
+.doc-page .doc-box.wrap-left {
+  float: left;
+  clear: left;
+  margin-right: 5mm;
+  max-width: 100%;
+}
+
+.doc-page .doc-block.wrap-right,
+.doc-page .doc-box.wrap-right {
+  float: right;
+  clear: right;
+  margin-left: 5mm;
+  max-width: 100%;
+}
+
+.doc-page .doc-box.wrap-left,
+.doc-page .doc-box.wrap-right {
+  box-sizing: border-box;
+}
+
+.doc-page .doc-block.clear,
+.doc-page .doc-box.clear {
+  clear: both;
+}
+
 /* riquadro colorato attorno a più blocchi (docBox.ts); sfondo, bordo e spazio dal documento */
 .doc-page .doc-box {
   margin: 0 0 var(--doc-spacing);

@@ -16,8 +16,11 @@ import {
   blockCaptionLines,
   blockSizeLine,
   blockSizeLines,
+  blockWrapLine,
+  blockWrapLines,
   parseSetup,
   SETUP_FENCE,
+  type BlockWrap,
   type Setup
 } from './setup'
 import {
@@ -58,6 +61,8 @@ export type DocBlock = {
   from: number
   /** Riquadro colorato in cui sta il blocco (docBox.ts); lo stesso oggetto per tutti i suoi blocchi */
   box?: DocBox
+  /** Il blocco riparte sotto quelli messi a lato (riga <!-- clear --> prima) */
+  clear?: boolean
 } & (
   | { kind: 'heading'; level: 1 | 2 | 3; text: string }
   | { kind: 'paragraph'; text: string }
@@ -116,6 +121,8 @@ export interface Anatomy {
   caption: string
   /** Didascalia sopra il disegno (`caption-position: top`); di base sotto */
   captionTop: boolean
+  /** Testo che scorre accanto al disegno, messo a sinistra o a destra (`wrap: left`) */
+  wrap: BlockWrap | null
   /** Righe che non si capiscono */
   bad: { from: number; to: number }[]
 }
@@ -135,12 +142,19 @@ function parseAnatomy(lines: string[], starts: number[]): Anatomy {
     font: null,
     caption: '',
     captionTop: false,
+    wrap: null,
     bad: []
   }
   lines.forEach((l, k) => {
     const from = starts[k]
     const to = from + l.length
     if (!l.trim() || l.trim().startsWith('#')) return
+    const wrap = blockWrapLine(l)
+    if (wrap) {
+      if ('bad' in wrap) out.bad.push({ from, to })
+      else out.wrap = wrap.wrap
+      return
+    }
     const card = /^\s*card\s*:\s*(.*)$/i.exec(l)
     if (card) {
       out.card = card[1].trim()
@@ -196,6 +210,7 @@ export function anatomySource(
     font?: number | null
     caption?: string
     captionTop?: boolean
+    wrap?: BlockWrap | null
   } = {}
 ): string {
   const opts = (c: Omit<Callout, 'from' | 'to'>): string => {
@@ -211,6 +226,7 @@ export function anatomySource(
     `card: ${card.replace(/^card:/i, '')}`,
     ...(both ? ['sides: both'] : []),
     ...blockSizeLines(size),
+    ...blockWrapLines(size),
     ...blockCaptionLines(size),
     ...callouts.map((c) => `- ${c.layer}${opts(c)}: ${c.label.replace(/\n/g, ' ')}`),
     '```'
@@ -276,6 +292,11 @@ const LIST_ITEM = /^(\s*)([-*+]|\d+[.)])\s+(.*)$/
 const TABLE_SEPARATOR = /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/
 
 /** Un commento: %% testo %%, anche su più righe; senza la chiusura arriva alla fine */
+/** La riga che fa ripartire il testo sotto le immagini, i disegni e i riquadri messi a lato */
+export const CLEAR_LINE = '<!-- clear -->'
+const CLEAR = /^\s*<!--\s*clear\s*-->\s*$/
+export const isClearLine = (line: string): boolean => CLEAR.test(line)
+
 const COMMENT = /%%[\s\S]*?(?:%%|$)/g
 
 /** Le parti tra %% e %%, che non si vedono nell'anteprima e non si esportano */
@@ -319,11 +340,14 @@ export function parseDocument(source: string): DocBlock[] {
       })
   }
   const blank = (l: string | undefined): boolean => l === undefined || l.trim() === ''
+  /** Dove sono le righe <!-- clear -->: il blocco dopo riparte sotto quelli a lato */
+  const clears: number[] = []
   while (i < lines.length) {
     const line = lines[i]
     const from = starts[i]
     // le righe dei riquadri non sono blocchi: i blocchi tra le due stanno nel riquadro (in fondo)
-    if (blank(line) || isBoxStart(line) || isBoxEnd(line)) {
+    if (blank(line) || isBoxStart(line) || isBoxEnd(line) || isClearLine(line)) {
+      if (isClearLine(line)) clears.push(from)
       i++
       continue
     }
@@ -467,6 +491,10 @@ export function parseDocument(source: string): DocBlock[] {
     const inside = boxes.find((x) => b.from > x.headTo && b.from < x.to)
     if (inside) b.box = inside
   }
+  for (const at of clears) {
+    const next = blocks.find((b) => b.from > at)
+    if (next) next.clear = true
+  }
   return blocks
 }
 
@@ -512,6 +540,7 @@ function startsBlock(l: string): boolean {
     /^\s{0,3}(#{1,6}\s|>|```|~~~)/.test(l) ||
     isBoxStart(l) ||
     isBoxEnd(l) ||
+    isClearLine(l) ||
     LIST_ITEM.test(l) ||
     /^\s{0,3}([-*_])(\s*\1){2,}\s*$/.test(l)
   )
@@ -996,6 +1025,8 @@ export interface CardRef {
   align?: FigureAlign
   /** Didascalia sopra la carta (caption=top); di base sotto */
   captionTop?: boolean
+  /** Il testo che segue scorre accanto, con la carta a sinistra o a destra (wrap=left) */
+  wrap?: BlockWrap
 }
 
 export type FigureAlign = 'left' | 'center' | 'right'
@@ -1008,6 +1039,8 @@ export interface ImageOptions {
   align?: FigureAlign
   /** Didascalia sopra l'immagine (caption=top); di base sotto */
   captionTop?: boolean
+  /** Il testo che segue scorre accanto, con l'immagine a sinistra o a destra (wrap=left) */
+  wrap?: BlockWrap
 }
 
 /**
@@ -1030,6 +1063,7 @@ export function splitImageSource(src: string): {
     if (k === 'width' && Number(v) > 0) options.width = Number(v)
     else if (k === 'align' && ALIGNS.includes(v as FigureAlign)) options.align = v as FigureAlign
     else if (k === 'caption' && (v === 'top' || v === 'bottom')) options.captionTop = v === 'top'
+    else if (k === 'wrap' && (v === 'left' || v === 'right')) options.wrap = v
     else bad.push(part)
   }
   return { path: raw.slice(0, q).trim(), options, bad }
@@ -1040,7 +1074,8 @@ export function imageSourceWith(path: string, options: ImageOptions): string {
   const opts = [
     options.width ? `width=${options.width}` : '',
     options.align && options.align !== 'center' ? `align=${options.align}` : '',
-    options.captionTop ? 'caption=top' : ''
+    options.captionTop ? 'caption=top' : '',
+    options.wrap ? `wrap=${options.wrap}` : ''
   ].filter(Boolean)
   return `${path}${opts.length ? `?${opts.join('&')}` : ''}`
 }
@@ -1058,6 +1093,22 @@ export function figureAlign(images: { src: string }[]): FigureAlign {
     if (!isMessage(ref) && ref.align) return ref.align
   }
   return 'center'
+}
+
+/** Testo accanto a una riga di immagini: il primo wrap= scritto; null se non c'è */
+export function figureWrap(images: { src: string }[]): BlockWrap | null {
+  for (const img of images) {
+    const ref = isCardSource(img.src) ? parseCardRef(img.src) : splitImageSource(img.src).options
+    if (!isMessage(ref) && ref.wrap) return ref.wrap
+  }
+  return null
+}
+
+/** Il lato del blocco quando il testo che segue gli scorre accanto; null se occupa la riga */
+export function blockWrap(b: DocBlock): BlockWrap | null {
+  if (b.kind === 'anatomy' || b.kind === 'setup') return b.wrap ?? null
+  if (b.kind === 'figure') return figureWrap(b.images)
+  return null
 }
 
 export const CARD_PREFIX = 'card:'
@@ -1101,6 +1152,7 @@ export function parseCardRef(src: string): CardRef | Message {
       else if (k === 'width' && Number(v) > 0) ref.width = Number(v)
       else if (k === 'align' && ALIGNS.includes(v as FigureAlign)) ref.align = v as FigureAlign
       else if (k === 'caption' && (v === 'top' || v === 'bottom')) ref.captionTop = v === 'top'
+      else if (k === 'wrap' && (v === 'left' || v === 'right')) ref.wrap = v
       else return msg('doc.card.badOption', { option: part, ref: raw })
     }
   return ref
@@ -1116,7 +1168,8 @@ export function cardRefSource(ref: CardRef): string {
     ref.side === 'back' ? 'side=back' : '',
     ref.width ? `width=${ref.width}` : '',
     ref.align && ref.align !== 'center' ? `align=${ref.align}` : '',
-    ref.captionTop ? 'caption=top' : ''
+    ref.captionTop ? 'caption=top' : '',
+    ref.wrap ? `wrap=${ref.wrap}` : ''
   ].filter(Boolean)
   return `${CARD_PREFIX}${enc(ref.set)}/${selector}${opts.length ? `?${opts.join('&')}` : ''}`
 }

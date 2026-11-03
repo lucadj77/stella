@@ -5,6 +5,20 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.9.0-beta.2
+
+### English
+
+- **Text beside images and boxes in documents**: images, cards, anatomies, table setups and boxes can sit on the left or on the right, with the text that follows (headings included) flowing beside them, instead of taking the whole line. Choose **Text beside** in their window; the **Start below** button writes a `<!-- clear -->` line that makes the text start again below. In the text: `wrap=left` or `wrap=right` after the `?` of an image or a card, a `wrap: left` line in anatomies and setups, `wrap=left` in the box line. PDF and HTML exports keep the layout.
+- **Box width**: a box can be narrower than the line (`<!-- box width=40% -->`).
+- **PDF, one set after another on the same page**: the cards now start from the top of the page instead of being centered, so the cutting lines of the pages are in the same place.
+
+### Italiano
+
+- **Testo accanto a immagini e riquadri nei documenti**: immagini, carte, anatomie, schemi del tavolo e riquadri possono stare a sinistra o a destra, con il testo che segue (titoli compresi) che scorre loro accanto, invece di prendere tutta la riga. Si sceglie **Testo accanto** nella loro finestra; il tasto **Riparti sotto** scrive una riga `<!-- clear -->` che fa ripartire il testo sotto. Nel testo: `wrap=left` o `wrap=right` dopo il `?` di un'immagine o di una carta, una riga `wrap: left` nelle anatomie e negli schemi, `wrap=left` nella riga del riquadro. Le esportazioni PDF e HTML mantengono la disposizione.
+- **Larghezza dei riquadri**: un riquadro può essere più stretto della riga (`<!-- box width=40% -->`).
+- **PDF, set uno dopo l'altro sulla stessa pagina**: le carte ora partono dall'alto della pagina invece di essere centrate, così le linee di taglio delle pagine stanno nello stesso punto.
+
 ## 1.9.0-beta.1
 
 ### English

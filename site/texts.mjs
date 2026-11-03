@@ -822,6 +822,24 @@ export const videos = [
       it: 'progetti/schermaglia.zip',
       en: 'progetti/skirmish.zip'
     }
+  },
+  {
+    n: 29,
+    it: 'Approfondimento: generare i componenti',
+    en: 'Deep dive: generating components',
+    about: {
+      it: 'Genera in tutte le sue parti: combinazioni, filtro, giri, cartelle, estrazioni a caso con i pesi e sequenze, su un set di reclute.',
+      en: 'Generate in all its parts: combinations, filter, rounds, folders, weighted random draws and sequences, on a recruits set.'
+    },
+    minutes: 10,
+    url: {
+      it: 'https://www.youtube.com/watch?v=rS9THc4awyM',
+      en: 'https://www.youtube.com/watch?v=NH1moTH0Y6o'
+    },
+    project: {
+      it: 'progetti/reclute.zip',
+      en: 'progetti/recruits.zip'
+    }
   }
 ]
 
@@ -834,7 +852,7 @@ export const videoGroups = {
   data: [10, 12],
   table: [9, 3, 19, 5],
   tools: [6, 17, 18],
-  deep: [20, 21, 22, 23, 24, 25, 26, 27, 28]
+  deep: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
 }
 
 export const playlists = {

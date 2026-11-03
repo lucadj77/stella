@@ -12,6 +12,7 @@ import {
 import { msg } from '../../../shared/messages'
 import { cellBorders, cellImageKey, cellParts } from '../../../shared/model/docTable'
 import type { BoxStyle, DocBox } from '../../../shared/model/docBox'
+import { WRAP_WIDTH } from '../../../shared/model/setup'
 import AnatomyDiagram from './AnatomyDiagram'
 import SetupDiagram from './SetupDiagram'
 import { setupView, setupWithText } from './setupGeometry'
@@ -22,6 +23,7 @@ import {
   documentSettings,
   documentText,
   figureAlign,
+  blockWrap,
   imageProblem,
   captionOnTop,
   isCardSource,
@@ -121,7 +123,7 @@ export default function DocumentPreview({
           const list = items.map(({ block: b, k }) => (
             <div
               key={`${k}:${b.kind}`}
-              className="doc-block"
+              className={blockClass(b, k === items[0].k)}
               data-from={b.from}
               onClick={(e) => {
                 // un clic su un collegamento o una selezione di testo non sposta il cursore
@@ -136,7 +138,7 @@ export default function DocumentPreview({
           return box ? (
             <div
               key={`box:${items[0].k}`}
-              className="doc-box"
+              className={boxClass(box, items[0].block)}
               style={boxStyle(box.style, variables)}
             >
               {list}
@@ -148,6 +150,20 @@ export default function DocumentPreview({
       </div>
     </LocalizationContext.Provider>
   )
+}
+
+/** Classe del contenitore di un blocco: a lato se il testo gli scorre accanto; sotto quelli a
+ *  lato dopo una riga <!-- clear --> (quella del riquadro la prende il riquadro) */
+function blockClass(b: DocBlock, first: boolean): string {
+  const wrap = blockWrap(b)
+  const clear = b.clear && !(first && b.box) ? ' clear' : ''
+  return `doc-block${wrap ? ` wrap-${wrap}` : ''}${clear}`
+}
+
+/** Classe di un riquadro: a lato con il testo accanto, sotto quelli a lato dopo <!-- clear --> */
+function boxClass(box: DocBox, first: DocBlock): string {
+  const wrap = box.style.wrap ? ` wrap-${box.style.wrap}` : ''
+  return `doc-box${wrap}${first.clear ? ' clear' : ''}`
 }
 
 /** I blocchi in fila, con quelli di uno stesso riquadro messi insieme */
@@ -171,9 +187,15 @@ function boxStyle(s: BoxStyle, variables: Variables): React.CSSProperties {
         ? `${s.borderWidth}mm solid ${resolveColor(s.border, pal)}`
         : undefined,
     padding: `${s.padding}mm`,
-    borderRadius: s.radius ? `${s.radius}mm` : undefined
+    borderRadius: s.radius ? `${s.radius}mm` : undefined,
+    width:
+      s.width && s.width < 1 ? `${s.width * 100}%` : s.wrap ? `${WRAP_WIDTH * 100}%` : undefined
   }
 }
+
+/** Frazione della riga per anatomie e schemi: width:, o metà se il testo scorre accanto */
+const blockWidth = (b: { width?: number | null; wrap?: unknown }): number =>
+  b.width ?? (b.wrap ? WRAP_WIDTH : 1)
 
 function Block({
   block: b,
@@ -237,7 +259,7 @@ function Block({
                 templates={templates}
                 project={ctx.project}
                 unit={DOC_UNIT}
-                maxWidth={(DOC_PAGES[settings.page][0] - 2 * settings.margin) * (b.width ?? 1)}
+                maxWidth={(DOC_PAGES[settings.page][0] - 2 * settings.margin) * blockWidth(b)}
                 font={settings.size * 0.88 * PT * (b.font ?? 1)}
               />
             )}
@@ -249,7 +271,7 @@ function Block({
     case 'setup': {
       const setup = setupWithText(b, (s) => documentText(s, ctx))
       // width: e font: restringono lo schema e cambiano il corpo delle didascalie
-      const maxWidth = (DOC_PAGES[settings.page][0] - 2 * settings.margin) * (b.width ?? 1)
+      const maxWidth = (DOC_PAGES[settings.page][0] - 2 * settings.margin) * blockWidth(b)
       const sets = ctx.sets ?? []
       const caption = b.caption && <figcaption>{inline(b.caption)}</figcaption>
       return (

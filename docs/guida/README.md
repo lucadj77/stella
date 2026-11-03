@@ -54,6 +54,7 @@ Video tutorial su YouTube, senza voce ([tutta la playlist](https://www.youtube.c
 - 26 · [Approfondimento: impaginare un template](https://www.youtube.com/watch?v=9RCQ24GUg3Q) (16 minuti), con il [progetto «Locanda» da scaricare](https://stella.lucadj.eu/progetti/locanda.zip)
 - 27 · [Approfondimento: immagini e forme](https://www.youtube.com/watch?v=klhDqqy7_iw) (16 minuti), con il [progetto «Spedizione» da scaricare](https://stella.lucadj.eu/progetti/spedizione.zip)
 - 28 · [Approfondimento: le statistiche del set](https://www.youtube.com/watch?v=PodvOU8QTGo) (8 minuti), con il [progetto «Schermaglia» da scaricare](https://stella.lucadj.eu/progetti/schermaglia.zip)
+- 29 · [Approfondimento: generare i componenti](https://www.youtube.com/watch?v=rS9THc4awyM) (10 minuti), con il [progetto «Reclute» da scaricare](https://stella.lucadj.eu/progetti/reclute.zip)
 
 English version: [../guide/README.md](../guide/README.md).
 
@@ -745,7 +746,7 @@ Il PDF è vettoriale, con i font incorporati. Tra le scelte che contano ci sono 
 - **Piegatura**: fronte e retro affiancati, da piegare.
 - **Segni di taglio**: agli angoli o a linee intere, con lunghezza, spessore e colore.
 - **Fronte-retro**: retri su pagine alternate, girando il foglio sul lato lungo o corto, con una correzione dello spostamento per le stampanti che non allineano i due lati. Per trovare la correzione giusta stampa prima una pagina sola, misura di quanto il retro è spostato rispetto al fronte guardando il foglio controluce e scrivi quel valore in **Spostamento retri**; poi stampa tutto. Il **Foglio di prova** serve a controllare le carte in piccolo prima di consumare carta.
-- **Pagine**: con **Uno dopo l'altro sulla stessa pagina** un set comincia subito dopo il precedente invece che su una pagina nuova (10 + 8 carte con 9 per pagina stanno in 2 pagine invece di 3). Un set con carte di un'altra misura comincia su una riga nuova, se nella pagina c'è posto.
+- **Pagine**: con **Uno dopo l'altro sulla stessa pagina** un set comincia subito dopo il precedente invece che su una pagina nuova (10 + 8 carte con 9 per pagina stanno in 2 pagine invece di 3). Un set con carte di un'altra misura comincia su una riga nuova, se nella pagina c'è posto. Le carte partono dall'alto della pagina, anche quando non la riempiono, così il taglio comincia sempre dallo stesso bordo.
 - **Foglio di prova**: un PDF a parte con tutte le carte in piccolo.
 - **Converti in CMYK**: richiede Ghostscript installato sul computer.
 
@@ -845,6 +846,8 @@ Nelle celle vale lo stesso markup del testo (stili, icone, variabili) e si posso
 ![La finestra della tabella, con l'aspetto in basso](img/doc-tabella.png)
 
 **Riquadro** mette uno sfondo colorato dietro una parte del documento: serve a dare risalto a un pezzo di testo o a staccare dal foglio immagini bianche senza bordo. Con delle righe selezionate le mette nel riquadro; senza selezione ne inserisce uno nuovo con un testo di prova. Si scelgono lo sfondo, un bordo (colore e spessore), lo spazio interno e gli angoli arrotondati; con il cursore dentro un riquadro lo stesso tasto lo modifica o lo toglie (**Togli il riquadro** lascia il contenuto). Nel testo il riquadro è fatto da due righe, `<!-- box fill=#fff3c4 border=#e0b000 -->` all'inizio e `<!-- /box -->` alla fine: tutto quello che c'è in mezzo (titoli, elenchi, tabelle, carte) prende lo sfondo. Le esportazioni HTML, PDF e Word lo mantengono, quella in Markdown no.
+
+**Testo accanto** fa scorrere il testo che segue accanto a un'immagine, a una carta, a un'anatomia, a uno schema del tavolo o a un riquadro, invece di lasciare loro tutta la riga: si sceglie **Blocco a sinistra** o **Blocco a destra** nella loro finestra. Tutto quello che viene dopo, titoli compresi, scorre accanto finché c'è spazio; il tasto **Riparti sotto** della barra scrive una riga `<!-- clear -->` che fa ripartire il testo sotto il blocco. Anche la fine di un riquadro e la fine del documento ripartono sotto. Nel testo è `wrap=left` o `wrap=right` dopo il `?` di un'immagine o di una carta (`![Mappa](icone/mappa.png?width=40&wrap=right)`), la riga `wrap: left` nell'anatomia e nello schema del tavolo, e `wrap=left` nella riga che apre il riquadro. Un'anatomia, uno schema o un riquadro senza una larghezza prendono metà riga; il riquadro ha una sua **Larghezza** in percentuale della riga (`<!-- box width=40% wrap=right -->`), che vale anche senza testo accanto. L'esportazione in PDF e HTML mantiene la disposizione, quelle in Word e Markdown mettono il blocco sulla sua riga.
 
 ### 12.4 Anatomia della carta
 
