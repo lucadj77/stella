@@ -240,10 +240,12 @@ export function removeArg(root: FormulaNode, path: NodePath): FormulaNode {
 }
 
 /** Aggiunge un argomento vuoto in fondo alla funzione in `path` */
-export function addArg(root: FormulaNode, path: NodePath): FormulaNode {
+export function addArg(root: FormulaNode, path: NodePath, at?: number): FormulaNode {
   const n = nodeAt(root, path)
   if (n?.k !== 'call') return root
-  return replaceAt(root, path, { ...n, args: [...n.args, E] })
+  const args = [...n.args]
+  args.splice(at ?? args.length, 0, E)
+  return replaceAt(root, path, { ...n, args })
 }
 
 export function hasEmpty(n: FormulaNode): boolean {
@@ -461,7 +463,15 @@ export type SentencePart =
       field?: boolean
     }
   /** Aggiunge una voce: un argomento alla funzione in `add`, o una fascia se `band` (con il campo in `field`) */
-  | { add: NodePath; label: string; band?: boolean; field?: NodePath; pair?: boolean }
+  | {
+      add: NodePath
+      label: string
+      band?: boolean
+      field?: NodePath
+      pair?: boolean
+      /** Dove mettere il nuovo argomento (o la coppia): di base alla fine */
+      at?: number
+    }
   /** Aggiunge un confronto alla condizione in `join`, con AND (e anche) o OR (oppure) */
   | { join: NodePath; fn: 'AND' | 'OR'; label: string }
   /** Toglie il confronto in `drop` da un AND o un OR */
@@ -713,15 +723,27 @@ const dealing: SentenceTemplate = {
   cell: true,
   make: (_, d) => call('DEAL', d.yes, str(''), d.no, str('')),
   parts: (n) => {
-    if (!isCall(n, 'DEAL') || !n.args.length || n.args.length % 2) return null
+    if (!isCall(n, 'DEAL') || n.args.length < 2) return null
+    // un argomento dispari alla fine è il totale delle voci nella griglia
+    const pairs = n.args.length - (n.args.length % 2)
+    const total = n.args.length % 2 ? n.args.length - 1 : -1
     return [
       txt('fx.s.deal'),
-      ...n.args.flatMap((_, i) =>
-        i % 2
-          ? [txt('fx.s.dealTimes'), blank([i], 'times', 'fx.b.dealTimes')]
-          : [...(i ? [txt('fx.s.comma')] : []), blank([i], 'result', 'fx.b.item')]
-      ),
-      { add: [], label: 'fx.addItem', pair: true }
+      ...n.args
+        .slice(0, pairs)
+        .flatMap((_, i) =>
+          i % 2
+            ? [txt('fx.s.dealTimes'), blank([i], 'times', 'fx.b.dealTimes')]
+            : [...(i ? [txt('fx.s.comma')] : []), blank([i], 'result', 'fx.b.item')]
+        ),
+      { add: [], label: 'fx.addItem', pair: true, at: pairs },
+      ...(total >= 0
+        ? [
+            txt('fx.s.dealTotal'),
+            blank([total], 'times', 'fx.b.dealTotal'),
+            { drop: [total], label: 'fx.removeTotal' }
+          ]
+        : [{ add: [], label: 'fx.addTotal' }])
     ]
   }
 }

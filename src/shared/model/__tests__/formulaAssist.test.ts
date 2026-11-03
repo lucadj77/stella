@@ -193,6 +193,24 @@ describe('frasi guidate', () => {
   })
 })
 
+describe('DEAL con il totale', () => {
+  it('il totale alla fine è uno spazio a parte, e + Voce aggiunge prima del totale', async () => {
+    const { findSentence, addArg } = await import('../formulaAssist')
+    const n = parseExpression('DEAL("a"; "-2"; "b"; "-2"; "2-")').node!
+    const found = findSentence(n, { inCell: true })
+    expect(found?.template.id).toBe('deal')
+    const parts = found!.parts
+    expect(parts.some((p) => 'text' in p && p.text === 'fx.s.dealTotal')).toBe(true)
+    const add = parts.find((p) => 'add' in p && p.pair)
+    expect(add && 'at' in add ? add.at : null).toBe(4)
+    const two = addArg(addArg(n, [], 4), [], 4)
+    expect(two.k === 'call' && two.args.length).toBe(7)
+    expect(two.k === 'call' && two.args[6]).toEqual(n.k === 'call' && n.args[4])
+    const plain = findSentence(parseExpression('DEAL("a"; 2)').node!, { inCell: true })!.parts
+    expect(plain.some((p) => 'add' in p && p.label === 'fx.addTotal')).toBe(true)
+  })
+})
+
 describe('frasi annidate e condizioni composte', () => {
   const node = (src: string): ReturnType<typeof parseExpression>['node'] & object =>
     parseExpression(src).node!

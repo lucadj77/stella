@@ -467,6 +467,36 @@ describe('contenuto della griglia', () => {
     expect(mixed.b).toBeGreaterThanOrEqual(2)
     expect(mixed.b).toBeLessThanOrEqual(3)
     expect(mixed.a + mixed.b + mixed.c).toBe(16)
+    // "-2" è al massimo 2, non un numero negativo; "0-2" vale un numero a caso tra 0 e 2,
+    // non sempre 2: in tante carte compaiono anche 0 e 1
+    const seen = new Set<number>()
+    for (const f of [
+      '=DEAL("a"; "-2"; "b"; "-2"; "c"; "-2")',
+      '=DEAL("a"; "0-2"; "b"; "0-2"; "c"; "0-2")'
+    ])
+      for (let card = 1; card <= 30; card++) {
+        const n = tally(make(f, card))
+        for (const v of ['a', 'b', 'c']) {
+          expect(n[v] ?? 0).toBeLessThanOrEqual(2)
+          seen.add(n[v] ?? 0)
+        }
+      }
+    expect([...seen].sort()).toEqual([0, 1, 2])
+    // con un totale "1-" la griglia non resta mai vuota
+    for (let card = 1; card <= 200; card++)
+      expect(make('=DEAL("a"; "-1"; "b"; "-1"; "1-")', card).some((x) => x !== '')).toBe(true)
+    // un totale alla fine: almeno 2 voci in tutto, o al massimo 3, o anche nessuna
+    const counts = (f: string): number[] =>
+      Array.from({ length: 60 }, (_, k) => make(f, k + 1).filter((x) => x !== '').length)
+    const base = '=DEAL("a"; "-2"; "b"; "-2"; "c"; "-2"; '
+    expect(Math.min(...counts(base + '"2-")'))).toBeGreaterThanOrEqual(2)
+    expect(Math.max(...counts(base + '"-3")'))).toBeLessThanOrEqual(3)
+    expect(counts(base + '4)').every((n) => n === 4)).toBe(true)
+    expect(counts(base + '"0-")')).toContain(0)
+    // con una voce senza massimo il totale ferma il riempimento
+    const filled = counts('=DEAL("a"; 2; "b"; ""; "5-7")')
+    expect(filled.every((n) => n >= 5 && n <= 7)).toBe(true)
+    expect(new Set(filled).size).toBe(3)
     // con meno voci che caselle le vuote sono mescolate, non tutte in fondo
     const few = make('=DEAL("a"; 2; "b"; 2)')
     expect(tally(few)).toEqual({ a: 2, b: 2, '': 12 })
