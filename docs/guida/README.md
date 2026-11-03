@@ -746,7 +746,7 @@ Il PDF è vettoriale, con i font incorporati. Tra le scelte che contano ci sono 
 - **Piegatura**: fronte e retro affiancati, da piegare.
 - **Segni di taglio**: agli angoli o a linee intere, con lunghezza, spessore e colore.
 - **Fronte-retro**: retri su pagine alternate, girando il foglio sul lato lungo o corto, con una correzione dello spostamento per le stampanti che non allineano i due lati. Per trovare la correzione giusta stampa prima una pagina sola, misura di quanto il retro è spostato rispetto al fronte guardando il foglio controluce e scrivi quel valore in **Spostamento retri**; poi stampa tutto. Il **Foglio di prova** serve a controllare le carte in piccolo prima di consumare carta.
-- **Pagine**: con **Uno dopo l'altro sulla stessa pagina** un set comincia subito dopo il precedente invece che su una pagina nuova (10 + 8 carte con 9 per pagina stanno in 2 pagine invece di 3). Un set con carte di un'altra misura comincia su una riga nuova, se nella pagina c'è posto.
+- **Pagine**: con **Uno dopo l'altro sulla stessa pagina** un set comincia subito dopo il precedente invece che su una pagina nuova (10 + 8 carte con 9 per pagina stanno in 2 pagine invece di 3). Un set con carte di un'altra misura comincia su una riga nuova, se nella pagina c'è posto. Le carte partono dall'alto della pagina, anche quando non la riempiono, così il taglio comincia sempre dallo stesso bordo.
 - **Foglio di prova**: un PDF a parte con tutte le carte in piccolo.
 - **Converti in CMYK**: richiede Ghostscript installato sul computer.
 
