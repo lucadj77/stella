@@ -415,9 +415,9 @@ const FUNCTIONS: Record<string, Fn> = {
   /**
    * Distribuisce a caso le voci nelle caselle visibili di una griglia, con quante volte compare
    * ognuna: DEAL("spada"; 4; "scudo"; "3-5"; "mano"; ""). La quantità è un numero (esatta), un
-   * intervallo ("3-5", "2-" almeno, "-3" al massimo) o vuota (quante servono). Prima si mettono i
-   * minimi, poi le caselle che restano prendono voci a caso fino ai massimi; le caselle in più
-   * restano vuote, in posti a caso. Le posizioni sono mescolate, uguali a ogni disegno della stessa carta
+   * intervallo ("3-5", "2-" almeno, "-3" al massimo) o vuota (quante servono). Un intervallo con
+   * un massimo vale un numero a caso tra minimo e massimo; poi le caselle che restano prendono a
+   * caso le voci senza massimo; le caselle in più restano vuote, in posti a caso. Le posizioni sono mescolate, uguali a ogni disegno della stessa carta
    */
   DEAL: (a, fields) => {
     const index = Number(fields['cell.index'] ?? NaN)
@@ -439,16 +439,17 @@ const FUNCTIONS: Record<string, Fn> = {
       const value = toText(a[i]())
       const q = a[i + 1]()
       const text = toText(q).trim()
+      // "-3" è un massimo, non un numero negativo: gli intervalli si leggono prima dei numeri
+      const range = typeof q === 'number' ? null : /^(\d*)\s*-\s*(\d*)$/.exec(text)
       const n = typeof q === 'number' ? q : readNumber(text)
-      const range = /^(\d*)\s*-\s*(\d*)$/.exec(text)
-      if (n !== null) items.push({ value, min: n, max: n })
-      else if (!text) items.push({ value, min: 0, max: Infinity })
-      else if (range && (range[1] || range[2]))
+      if (range && (range[1] || range[2]))
         items.push({
           value,
           min: range[1] ? Number(range[1]) : 0,
           max: range[2] ? Number(range[2]) : Infinity
         })
+      else if (n !== null) items.push({ value, min: Math.max(0, n), max: Math.max(0, n) })
+      else if (!text) items.push({ value, min: 0, max: Infinity })
       else throw new FormulaError(`DEAL: "${text}" is not a quantity`)
     }
     // mulberry32: numeri a caso ripetibili dalla griglia e dalla carta
@@ -460,10 +461,25 @@ const FUNCTIONS: Record<string, Fn> = {
       t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296
     }
-    const times = items.map((x) => Math.max(0, Math.floor(x.min)))
+    // un intervallo con un massimo ("0-2", "-3", "3-5") vale un numero a caso tra i due estremi;
+    // senza massimo ("", "2-") la voce riempie le caselle che restano
+    const lo = items.map((x) => Math.max(0, Math.floor(x.min)))
+    const times = items.map((x, k) =>
+      Number.isFinite(x.max) && x.max > lo[k]
+        ? lo[k] + Math.floor(rand() * (Math.floor(x.max) - lo[k] + 1))
+        : lo[k]
+    )
+    // troppe voci per le caselle: si tolgono a caso da quelle sopra il minimo
+    let over = times.reduce((s, x) => s + x, 0) - total
+    while (over > 0) {
+      const above = times.flatMap((x, k) => (x > lo[k] ? [k] : []))
+      if (!above.length) break
+      times[above[Math.floor(rand() * above.length)]]--
+      over--
+    }
     let left = total - times.reduce((s, x) => s + x, 0)
     while (left > 0) {
-      const open = items.flatMap((x, k) => (times[k] < x.max ? [k] : []))
+      const open = items.flatMap((x, k) => (!Number.isFinite(x.max) ? [k] : []))
       if (!open.length) break
       times[open[Math.floor(rand() * open.length)]]++
       left--

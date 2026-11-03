@@ -467,6 +467,21 @@ describe('contenuto della griglia', () => {
     expect(mixed.b).toBeGreaterThanOrEqual(2)
     expect(mixed.b).toBeLessThanOrEqual(3)
     expect(mixed.a + mixed.b + mixed.c).toBe(16)
+    // "-2" è al massimo 2, non un numero negativo; "0-2" vale un numero a caso tra 0 e 2,
+    // non sempre 2: in tante carte compaiono anche 0 e 1
+    const seen = new Set<number>()
+    for (const f of [
+      '=DEAL("a"; "-2"; "b"; "-2"; "c"; "-2")',
+      '=DEAL("a"; "0-2"; "b"; "0-2"; "c"; "0-2")'
+    ])
+      for (let card = 1; card <= 30; card++) {
+        const n = tally(make(f, card))
+        for (const v of ['a', 'b', 'c']) {
+          expect(n[v] ?? 0).toBeLessThanOrEqual(2)
+          seen.add(n[v] ?? 0)
+        }
+      }
+    expect([...seen].sort()).toEqual([0, 1, 2])
     // con meno voci che caselle le vuote sono mescolate, non tutte in fondo
     const few = make('=DEAL("a"; 2; "b"; 2)')
     expect(tally(few)).toEqual({ a: 2, b: 2, '': 12 })
