@@ -3081,6 +3081,11 @@ export const en = {
     'Shuffle the items in the cells: each appears exactly, at least or at most N times',
   'fx.s.deal': 'Deal at random in the cells:',
   'fx.s.dealTimes': 'times',
+  'fx.s.dealTotal': 'in all in the grid',
+  'fx.b.dealTotal':
+    'How many items in all? A number, a range such as 2-4, 2- (at least two) or -5 (at most five); 0- also allows empty grids',
+  'fx.addTotal': '+ Total',
+  'fx.removeTotal': 'Remove the total',
   'fx.b.dealTimes':
     'How many? Type a single number or a range such as 3-5 (three to five times), 3- (at least three), -5 (at most 5), or leave it empty to use as many as needed to fill',
   'fx.card.random.hint': 'An item chosen at random for each cell, the same at every export',

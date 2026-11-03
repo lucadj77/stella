@@ -766,9 +766,12 @@ function Sentence({
           const add = (): void => {
             if (!p.band) {
               const target = nodeAt(root, p.add)
-              const one = addArg(root, p.add)
-              const next = p.pair ? addArg(one, p.add) : one
-              onChange(next, target?.k === 'call' ? [...p.add, target.args.length] : undefined)
+              const one = addArg(root, p.add, p.at)
+              const next = p.pair ? addArg(one, p.add, p.at) : one
+              onChange(
+                next,
+                target?.k === 'call' ? [...p.add, p.at ?? target.args.length] : undefined
+              )
               return
             }
             // una fascia in più prima di "altrimenti", con lo stesso campo delle altre
