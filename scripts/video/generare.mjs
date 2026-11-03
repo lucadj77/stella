@@ -81,7 +81,7 @@ const saveButton = () =>
 const props = win.locator('aside.properties')
 const layer = (n) => win.locator('.layers .layer-name', { hasText: new RegExp(`^${n}$`) }).first()
 
-async function zoomTo(locs) {
+async function zoomTo(locs, max = 1.6) {
   for (const l of [].concat(locs)) {
     const ok = await l
       .first()
@@ -89,7 +89,7 @@ async function zoomTo(locs) {
       .catch(() => false)
     if (!ok) return r.unzoom()
   }
-  await r.zoom(locs, { max: 1.6 })
+  await r.zoom(locs, { max })
 }
 /**
  * Più elementi insieme: un solo riquadro che li contiene tutti, così nessuno resta in ombra (il
@@ -129,7 +129,7 @@ const focus0 = r.focus.bind(r)
 /** focus con lo zoom; wide: true lascia la vista intera (per le finestre grandi) */
 r.focus = async (locs, text, sideArg, opts = {}) => {
   if (opts.wide) await r.unzoom()
-  else await zoomTo(locs)
+  else await zoomTo(locs, opts.max)
   const out = await focus0(await union(locs), text, sideArg, opts)
   await snap(text)
   return out
@@ -249,6 +249,15 @@ await r.focus(
   { pad: 6 }
 )
 await r.focus(
+  [layer(C.faction), layer(C.band)],
+  t(
+    'La fazione decide il testo sotto il nome e il colore della banda: la fascia ha una formula sulla fazione',
+    'The faction decides the text under the name and the color of the band: the band has a formula on the faction'
+  ),
+  'right',
+  { pad: 4 }
+)
+await r.focus(
   layer(C.name),
   t(
     'Il nome è una formula con {card.number}: Recluta 1, Recluta 2…',
@@ -305,28 +314,54 @@ await r.focus(
     'Cost from 1 to 3: 3 factions × 3 costs = 9 components'
   ),
   'above',
+  { pad: 4, max: 1.15 }
+)
+const addSet = gen().getByRole('button', { name: T['generate.addSet'], exact: true }).first()
+await r.focus(
+  addSet,
+  t(
+    '+ Insieme aggiunge un terzo insieme, per le risorse che la recluta chiede',
+    '+ Set adds a third set, for the resources the recruit asks for'
+  ),
+  'right',
   { pad: 4 }
 )
-await r.click(gen().getByRole('button', { name: T['generate.addSet'], exact: true }).first(), {
-  after: 600
-})
+await r.click(addSet, { after: 600 })
 await setColumn(2, R.resources)
 await fill(values(2), `${G.gold}, ${G.wood}, ${G.iron}`, { tab: false })
-await fill(pickIn(2), '2')
 await r.focus(
-  genSet(2),
+  [genSet(2), preview()],
   t(
-    'Due risorse per recluta, scelte fra tre: Come icona scrive {oro}, e sulla carta c’è l’icona',
-    'Two resources per recruit, out of three: As icon writes {gold}, and the card shows the icon'
+    'La colonna risorse con oro, legno e ferro. Se spuntiamo Come icona, le tre voci sono scritte tra { } e quindi sono mostrate come icone',
+    'The resources column with gold, wood and iron. If we tick As icon, the three entries are written between { } and so they are shown as icons'
   ),
   'above',
+  { pad: 4, max: 1.15 }
+)
+await r.focus(
+  [genSet(2), preview().locator('p').first()],
+  t(
+    'Con un valore per componente: 9 × 3 = 27 componenti, ognuno con una sola risorsa',
+    'With one value per component: 9 × 3 = 27 components, each with a single resource'
+  ),
+  'above',
+  { pad: 4, max: 1.15 }
+)
+await fill(pickIn(2), '2')
+await r.focus(
+  pickIn(2),
+  t(
+    'Valori per componente 2: ogni recluta chiede due risorse diverse, scelte fra le tre',
+    'Values per component 2: each recruit asks for two different resources, out of the three'
+  ),
+  'below',
   { pad: 4 }
 )
 await r.focus(
   genSet(2).locator('.generate-row').last(),
   t(
-    'Il separatore va tra i due valori nella cella; a destra quante scelte dà l’insieme: 3',
-    'The separator goes between the two values in the cell; on the right, how many choices the set gives: 3'
+    'Il separatore va tra le due risorse nella cella. A destra quante coppie dà l’insieme: 3 (oro legno, oro ferro, legno ferro)',
+    'The separator goes between the two resources in the cell. On the right, how many pairs the set gives: 3 (gold wood, gold iron, wood iron)'
   ),
   'above',
   { pad: 4 }
@@ -387,8 +422,8 @@ await r.wait(700)
 await r.focus(
   gen().locator('.generate-filter').first(),
   t(
-    `Il filtro tiene solo i componenti per cui è vero. {${R.resources}_1} e {${R.resources}_2} sono la prima e la seconda risorsa`,
-    `The filter keeps only the components for which it is true. {${R.resources}_1} and {${R.resources}_2} are the first and the second resource`
+    `Il filtro =OR({${C.cost}}=3; {${R.resources}_1}<>{${R.resources}_2}) tiene solo i componenti per cui è vero. {${R.resources}_1} e {${R.resources}_2} sono la prima e la seconda risorsa`,
+    `The filter =OR({${C.cost}}=3; {${R.resources}_1}<>{${R.resources}_2}) keeps only the components for which it is true. {${R.resources}_1} and {${R.resources}_2} are the first and the second resource`
   ),
   'above',
   { pad: 4 }
@@ -396,8 +431,8 @@ await r.focus(
 await r.focus(
   [gen().locator('.generate-filter').first(), preview()],
   t(
-    'Due risorse uguali solo a costo 3: restano 33 componenti su 45',
-    'Two equal resources only at cost 3: 33 components out of 45 remain'
+    'O costa 3, o le due risorse sono diverse: le coppie uguali restano solo a costo 3. Restano 33 componenti su 45',
+    'Either it costs 3, or the two resources differ: equal pairs stay only at cost 3. 33 components out of 45 remain'
   ),
   'above',
   { pad: 4 }
