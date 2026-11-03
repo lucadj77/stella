@@ -5464,6 +5464,9 @@ details.usages button.link {
   vertical-align: middle;
 }
 
+.stats-hover > svg {
+  flex: none;
+}
 .stats-hover {
   position: absolute;
   top: 6px;

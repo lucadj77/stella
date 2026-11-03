@@ -671,7 +671,16 @@ export function ScatterTab({
           ))}
         </svg>
         {hp && (
-          <div className="stats-hover" style={{ left: `${(X(hp.x) / W) * 100}%` }}>
+          <div
+            className="stats-hover"
+            style={(() => {
+              // vicino ai bordi la scheda si appoggia al bordo invece di uscire dal pannello
+              const at = (X(hp.x) / W) * 100
+              if (at < 30) return { left: `${at}%`, transform: 'none' }
+              if (at > 70) return { left: `${at}%`, transform: 'translateX(-100%)' }
+              return { left: `${at}%` }
+            })()}
+          >
             {card && (
               <CardSvg template={card.template} side="front" scale={110 / card.template.height} />
             )}
