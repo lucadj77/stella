@@ -160,3 +160,19 @@ describe('spaziatura diversa per righe e colonne', () => {
     expect(a.centers[5].y - a.centers[0].y).toBeCloseTo(a.centers[1].x - a.centers[0].x)
   })
 })
+
+describe('spaziatura negativa', () => {
+  it('le caselle si sovrappongono e la griglia riempie ancora il riquadro', () => {
+    const g = gridGeometry({ ...base, gap: -2 })
+    // 5 colonne in 50 mm: 5 s - 4·2 = 50 → s = 11,6; 4 righe in 40: 4 s - 3·2 = 40 → s = 11,5
+    expect(g.cell.h).toBeCloseTo(11.5)
+    expect(g.centers[1].x - g.centers[0].x).toBeCloseTo(11.5 - 2)
+    expect(g.bounds.h).toBeCloseTo(40)
+  })
+
+  it('anche solo tra le righe', () => {
+    const g = gridGeometry({ ...base, gap: 1, rowGap: -1 })
+    expect(g.centers[5].y - g.centers[0].y).toBeCloseTo(g.cell.h - 1)
+    expect(g.centers[1].x - g.centers[0].x).toBeCloseTo(g.cell.w + 1)
+  })
+})

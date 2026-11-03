@@ -72,9 +72,11 @@ function cellSize(g: GridSpec, s: number): { w: number; h: number } {
 /** Centri delle caselle per un'altezza s, prima di spostarle nel riquadro */
 function place(g: GridSpec, s: number): Placed[] {
   const { w, h } = cellSize(g, s)
-  // spazio tra le colonne (gx) e tra le righe (gy): di base lo stesso
-  const gx = Math.max(0, g.gap)
-  const gy = g.rowGap === null || g.rowGap === undefined ? gx : Math.max(0, g.rowGap)
+  // spazio tra le colonne (gx) e tra le righe (gy): di base lo stesso; negativo, le caselle si
+  // sovrappongono
+  const gx = Number.isFinite(g.gap) ? g.gap : 0
+  const gy =
+    g.rowGap === null || g.rowGap === undefined || !Number.isFinite(g.rowGap) ? gx : g.rowGap
   const { rows, columns: cols } = gridSize(g)
   const out: Placed[] = []
   for (let i = 0; i < rows; i++)
@@ -328,11 +330,15 @@ export function gridGeometry(spec: GridSpec): GridGeometry {
   const pad = Math.max(0, spec.padding)
   const fixed = fixedCell(spec)
   const g = fixed ? fixed.spec : spec
-  // l'ingombro cresce in modo lineare con s: due misure bastano per trovare la s che ci sta
-  const e1 = extent(g, 1)
-  const e2 = extent(g, 2)
+  // l'ingombro cresce in modo lineare con s: due misure bastano per trovare la s che ci sta.
+  // Si misura con caselle grandi, perché con una spaziatura negativa le caselle piccole si
+  // scavalcherebbero e l'ingombro non sarebbe più lineare
+  const S1 = 1000
+  const S2 = 2000
+  const e1 = extent(g, S1)
+  const e2 = extent(g, S2)
   const fit = (room: number, a: number, b: number): number =>
-    b - a > 0 ? (room - (2 * a - b)) / (b - a) : Infinity
+    b - a > 0 ? S1 + ((room - a) * (S2 - S1)) / (b - a) : Infinity
   const fitted = Math.min(fit(g.w - 2 * pad, e1.w, e2.w), fit(g.h - 2 * pad, e1.h, e2.h))
   const s = fixed
     ? Math.max(0, fixed.s)

@@ -369,6 +369,66 @@ describe('anatomia della carta', () => {
     expect(layerBounds(layers, 'casella')).not.toBeNull()
   })
 
+  it('punta a una casella scelta della griglia', () => {
+    const icon = {
+      type: 'shape',
+      name: 'icona',
+      x: 1,
+      y: 1,
+      w: 2,
+      h: 2,
+      rotation: 0,
+      anchor: 'center'
+    }
+    const grid = {
+      type: 'grid',
+      name: 'g',
+      x: 0,
+      y: 0,
+      w: 40,
+      h: 10,
+      rotation: 0,
+      anchor: 'center',
+      cell: 'square',
+      rows: 1,
+      columns: 4,
+      cellRatio: 1,
+      orientation: 'pointy',
+      interlock: false,
+      gap: 0,
+      rowGap: null,
+      padding: 0,
+      zoom: 1,
+      alignX: 'center',
+      alignY: 'center',
+      radius: 0,
+      content: 'c',
+      groups: [
+        {
+          type: 'group',
+          name: 'c',
+          x: 0,
+          y: 0,
+          w: 10,
+          h: 10,
+          rotation: 0,
+          anchor: 'center',
+          layout: 'none',
+          repeat: '1',
+          children: [icon]
+        }
+      ],
+      cellRules: []
+    }
+    // caselle da 10 mm: la terza è 20 mm più a destra della prima
+    expect(layerBounds([grid] as never, 'icona', 3)).toEqual({ x: 21, y: 1, w: 2, h: 2 })
+    expect(layerBounds([grid] as never, 'icona', 9)).toBeNull()
+    const src = anatomySource('P/1', [{ layer: 'icona', label: 'Terza', cell: 3, side: 'left' }])
+    expect(src).toContain('- icona (left, cell 3): Terza')
+    const [b] = parseDocument(src)
+    expect(b).toMatchObject({ callouts: [{ layer: 'icona', cell: 3, side: 'left' }] })
+  })
+
   it("la didascalia dell'anatomia e la sua posizione", () => {
     const src = anatomySource('Personaggi/1', [{ layer: 'nome', label: 'Nome' }], false, {
       caption: 'Una carta',

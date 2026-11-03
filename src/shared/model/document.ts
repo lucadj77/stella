@@ -7,6 +7,8 @@ import { resolveAsset } from './assets'
 import { today } from './system'
 import type { GridLayer, GroupLayer, HAlign, Layer, Side, Template } from './template'
 import { worldBounds } from './geometry'
+import { gridGeometry } from './grid'
+import { translateLayer } from './edit'
 import { arrangeGroup } from './arrange'
 import type { Bounds } from './edit'
 import {
@@ -92,6 +94,8 @@ export interface Callout {
   side?: 'left' | 'right'
   /** Faccia del livello quando l'anatomia mostra fronte e retro; di base il fronte */
   face?: Side
+  /** Per un elemento dentro una griglia, la casella indicata (da 1, per righe); di base la prima */
+  cell?: number
   /** Posizione della riga nel testo */
   from: number
   to: number
@@ -119,7 +123,7 @@ export interface Anatomy {
 /** Il blocco ```anatomy: le sue righe sono card: … e - livello: etichetta */
 export const ANATOMY_FENCE = 'anatomy'
 const CALLOUT_LINE =
-  /^\s*[-*]\s*(.+?)(?:\s*\(((?:\s*(?:left|right|front|back)\s*,?)+)\))?\s*:\s*(.*)$/
+  /^\s*[-*]\s*(.+?)(?:\s*\(((?:\s*(?:left|right|front|back|cell\s*\d+)\s*,?)+)\))?\s*:\s*(.*)$/
 
 function parseAnatomy(lines: string[], starts: number[]): Anatomy {
   const out: Anatomy = {
@@ -163,14 +167,17 @@ function parseAnatomy(lines: string[], starts: number[]): Anatomy {
     }
     const m = CALLOUT_LINE.exec(l)
     if (m) {
-      const opts = (m[2] ?? '').split(/[\s,]+/)
+      const cellOpt = /cell\s*(\d+)/.exec(m[2] ?? '')
+      const opts = (m[2] ?? '').replace(/cell\s*\d+/, '').split(/[\s,]+/)
       const side = opts.find((o) => o === 'left' || o === 'right') as 'left' | 'right' | undefined
       const face = opts.find((o) => o === 'front' || o === 'back') as Side | undefined
+      const cell = cellOpt ? Number(cellOpt[1]) : 0
       out.callouts.push({
         layer: m[1].trim(),
         label: m[3].trim(),
         ...(side ? { side } : {}),
         ...(face ? { face } : {}),
+        ...(cell > 1 ? { cell } : {}),
         from,
         to
       })
@@ -192,9 +199,11 @@ export function anatomySource(
   } = {}
 ): string {
   const opts = (c: Omit<Callout, 'from' | 'to'>): string => {
-    const list = [both && c.face === 'back' ? 'back' : '', !both && c.side ? c.side : ''].filter(
-      Boolean
-    )
+    const list = [
+      both && c.face === 'back' ? 'back' : '',
+      !both && c.side ? c.side : '',
+      c.cell && c.cell > 1 ? `cell ${c.cell}` : ''
+    ].filter(Boolean)
     return list.length ? ` (${list.join(', ')})` : ''
   }
   return [
@@ -217,10 +226,28 @@ export function gridContent(l: GridLayer): GroupLayer | null {
 }
 
 /**
+ * Il contenuto della casella n (da 1, per righe) di una griglia, spostato dove la casella è
+ * disegnata; null se la casella non c'è
+ */
+export function gridCellContent(l: GridLayer, n: number): GroupLayer | null {
+  const i = Math.max(1, Math.round(n) || 1) - 1
+  if (i === 0) return gridContent(l)
+  const { centers } = gridGeometry(l)
+  if (i >= centers.length) return null
+  const content = l.cells?.[i] ?? (i === 0 || !l.cells ? gridContent(l) : null)
+  if (!content || !centers[0]) return content
+  return translateLayer(
+    content,
+    centers[i].x - centers[0].x,
+    centers[i].y - centers[0].y
+  ) as GroupLayer
+}
+
+/**
  * Riquadro sulla carta del livello con questo nome (anche in un gruppo, dove è disegnato), o
  * null. Prima il nome esatto, poi senza badare alle maiuscole.
  */
-export function layerBounds(layers: Layer[], name: string): Bounds | null {
+export function layerBounds(layers: Layer[], name: string, cell = 1): Bounds | null {
   const find = (list: Layer[], chain: Layer[], same: (a: string) => boolean): Bounds | null => {
     for (const l of list) {
       if (same(l.name) && l.type !== 'value') return worldBounds(l, chain)
@@ -228,9 +255,9 @@ export function layerBounds(layers: Layer[], name: string): Bounds | null {
         const found = find(arrangeGroup(l).children, [...chain, l], same)
         if (found) return found
       }
-      // dentro una griglia: gli elementi del contenuto, nella prima casella dove sono disegnati
+      // dentro una griglia: gli elementi del contenuto, nella casella scelta (di base la prima)
       if (l.type === 'grid') {
-        const content = gridContent(l)
+        const content = gridCellContent(l, cell)
         const found = content && find([content], [...chain, l], same)
         if (found) return found
       }
@@ -1255,7 +1282,7 @@ function anatomyProblems(b: Anatomy & { from: number }, ctx: DocumentContext): D
     found && !isMessage(found) ? ctx.templates?.find((x) => x.name === found.set.template) : null
   if (!template || isMessage(ref)) return out
   for (const c of b.callouts)
-    if (!layerBounds(template[calloutFace(b, c, ref.side)], c.layer))
+    if (!layerBounds(template[calloutFace(b, c, ref.side)], c.layer, c.cell))
       out.push({
         message: msg('doc.anatomy.noLayer', { layer: c.layer, template: template.name }),
         from: c.from,

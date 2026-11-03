@@ -413,17 +413,25 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
       if (axis === 'y' || axis === 'diagonal') hit.x = null
       if (axis === 'x' || axis === 'diagonal') hit.y = null
       const free = axis === 'diagonal'
-      // sulla griglia si aggancia l'angolo del livello preso, gli altri lo seguono
+      // sulla griglia si aggancia l'angolo del livello preso, gli altri lo seguono; con
+      // l'aggancio alla griglia anche il centro della scelta va sulle linee o al centro delle
+      // caselle, e vince l'aggancio più vicino
+      const onGrid = (ref: number, mid: number, d: number, s: number): number => {
+        const corner = snap(ref + d, s) - ref
+        if (!guides.snapGrid || !(s > 0)) return corner
+        const center = snap(mid + d, s / 2) - mid
+        return Math.abs(center - d) < Math.abs(corner - d) ? center : corner
+      }
       const dx = hit.x
         ? rx + hit.x.delta
         : axis === 'y' || free
           ? rx
-          : snap(g.ref.x + rx, stepX) - g.ref.x
+          : onGrid(g.ref.x, g.box.x + g.box.w / 2, rx, stepX)
       const dy = hit.y
         ? ry + hit.y.delta
         : axis === 'x' || free
           ? ry
-          : snap(g.ref.y + ry, stepY) - g.ref.y
+          : onGrid(g.ref.y, g.box.y + g.box.h / 2, ry, stepY)
       setSnapped({ x: hit.x?.line ?? null, y: hit.y?.line ?? null })
       next = updateLayers(g.start, side, (l) =>
         g.ids.includes(l.id) ? translateLayer(l, dx, dy) : l

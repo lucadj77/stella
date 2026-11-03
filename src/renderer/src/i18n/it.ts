@@ -1887,6 +1887,11 @@ export const it: Record<MessageKey, string> = {
   'documents.emptyValue':
     'Questo componente non ha {field}: si trova per numero di riga, che cambia se le righe si spostano.',
   'documents.caption': 'Didascalia',
+  'documents.anatomyCell': 'Casella',
+  'documents.anatomyCellHint':
+    "La casella della griglia a cui punta l'etichetta, da 1 a {n}, contando riga per riga",
+  'documents.anatomyCellAdd': "+ Un'altra casella",
+  'documents.anatomyCellRemove': 'Togli questa etichetta',
   'documents.captionPosition': 'Posizione della didascalia',
   'documents.captionPositionHint': 'Dove si vede la didascalia: sotto il disegno o sopra',
   'documents.captionBelow': 'Sotto',

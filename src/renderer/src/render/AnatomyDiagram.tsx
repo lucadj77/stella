@@ -107,7 +107,7 @@ export default function AnatomyDiagram({
   const found = anatomy.callouts
     .map((c) => {
       const face = calloutFace(anatomy, c, card.ref.side)
-      return { c, face, b: layerBounds(face === 'front' ? t.front : t.back, c.layer) }
+      return { c, face, b: layerBounds(face === 'front' ? t.front : t.back, c.layer, c.cell) }
     })
     .filter((x) => x.b !== null)
   const sideOf = (c: (typeof found)[number]): 'left' | 'right' =>

@@ -2041,7 +2041,7 @@ function GridProperties({
             label={l.rowGap === null ? t('prop.gap') : t('prop.columnGap')}
             hint={col('gap')}
             value={l.gap}
-            min={0}
+            min={-50}
             step={0.5}
             unit="mm"
             onChange={(gap) => set({ gap })}
@@ -2058,7 +2058,7 @@ function GridProperties({
               label={t('prop.rowGap')}
               hint={col('rowGap')}
               value={l.rowGap}
-              min={0}
+              min={-50}
               step={0.5}
               unit="mm"
               onChange={(rowGap) => set({ rowGap })}

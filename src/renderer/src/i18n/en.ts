@@ -1856,6 +1856,11 @@ export const en = {
   'documents.emptyValue':
     'This component has no {field}: it is found by its row number, which changes if the rows move.',
   'documents.caption': 'Caption',
+  'documents.anatomyCell': 'Cell',
+  'documents.anatomyCellHint':
+    'The grid cell the label points at, from 1 to {n}, counted row by row',
+  'documents.anatomyCellAdd': '+ Another cell',
+  'documents.anatomyCellRemove': 'Remove this label',
   'documents.captionPosition': 'Caption position',
   'documents.captionPositionHint': 'Where the caption appears: below the picture or above it',
   'documents.captionBelow': 'Below',
