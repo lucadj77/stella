@@ -39,7 +39,7 @@ const HALO = '#ffffff'
 function lines(text: string, width: number, font: number): number {
   const char = font * 0.52
   let n = 0
-  for (const para of text.replace(/\{[^}]*\}/g, 'MM').split('\n')) {
+  for (const para of text.replace(/\{[^}]*\}/g, 'MM').split(/\n|<br\s*\/?>/i)) {
     let used = 0
     n++
     for (const word of para.split(/\s+/).filter(Boolean)) {

@@ -355,8 +355,8 @@ async function inlinesMd(
 ): Promise<string> {
   let out = ''
   for (const n of list) {
-    if (n.t === 'text') out += n.text.replace(/([\\`*_[\]])/g, '\\$1')
-    else if (n.t === 'br') out += '\\\n'
+    if (n.t === 'text') out += n.text.replace(/([\\`*_[\]<])/g, '\\$1')
+    else if (n.t === 'br') out += '<br>'
     else if (n.t === 'ref') {
       const url = await imageOf(n.name)
       out += url ? `![${n.name}](${url})`.repeat(n.count) : n.raw

@@ -119,7 +119,7 @@ export function TextFormatBar({
 
 /**
  * Testo breve con il markup. Con `bar` ha sopra la sua barra di formattazione; senza, `onFocus`
- * passa il campo a chi tiene una barra comune a più campi. Con `singleLine` gli a capo non entrano.
+ * passa il campo a chi tiene una barra comune a più campi. Con `singleLine` il testo sta su una riga: Maiusc+Invio o Alt+Invio scrivono <br>, che va a capo.
  */
 export default function FormattedField({
   value,
@@ -155,9 +155,14 @@ export default function FormattedField({
       onFocus={(e) => onFocus?.(e.currentTarget)}
       onPaste={onPaste}
       onKeyDown={(e) => {
-        if (singleLine && e.key === 'Enter') e.preventDefault()
+        if (!singleLine || e.key !== 'Enter') return
+        e.preventDefault()
+        // Maiusc+Invio o Alt+Invio scrivono un a capo, <br>, come Alt+Invio nella tabella dei set
+        if (e.shiftKey || e.altKey) document.execCommand('insertText', false, '<br>')
       }}
-      onChange={(e) => onChange(singleLine ? e.target.value.replace(/\n/g, ' ') : e.target.value)}
+      onChange={(e) =>
+        onChange(singleLine ? e.target.value.replace(/\n/g, '<br>') : e.target.value)
+      }
     />
   )
 }

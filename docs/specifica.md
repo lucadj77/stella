@@ -73,6 +73,7 @@ Il testo si salva, nel progetto e nel foglio, con un unico markup: Markdown per 
 | a capo                       | nuovo paragrafo                                          |
 | riga vuota                   | paragrafo vuoto (spazio verticale)                       |
 | `\` a fine riga              | a capo senza nuovo paragrafo                             |
+| `<br>`                       | a capo dove il testo sta su una riga sola (celle delle tabelle dei documenti, etichette dell'anatomia, testi dello schema del tavolo); è l'unico HTML letto, `\<br>` lo scrive com'è |
 | `_testo_`                    | non va mai a capo, come `[testo]{nowrap}`                |
 
 Gli stili `heading1`, `heading2` e `note` esistono in ogni progetto e si modificano come gli altri.

@@ -248,7 +248,7 @@ Any layer (not `value`) can have `snap`: a Tabletop Simulator snap point exporte
 
 ## Text markup
 
-Markdown for basics plus `[text]{attributes}`. No HTML. Every line break starts a new paragraph (a cell written with Alt+Enter); `\` at the end of a line breaks without a new paragraph. `_4{coin}_` keeps its content on one line (same as `[4{coin}]{nowrap}`; not italic, unlike Markdown); text and icons otherwise wrap freely. An underscore inside a word stays literal; escape a lone one as `\_`.
+Markdown for basics plus `[text]{attributes}`. No HTML. Every line break starts a new paragraph (a cell written with Alt+Enter); `\` at the end of a line breaks without a new paragraph. Where text must stay on one line (document table cells, anatomy labels, setup `text` and labels) write `<br>` for a line break; it is the only HTML read (`\<br>` is literal). `_4{coin}_` keeps its content on one line (same as `[4{coin}]{nowrap}`; not italic, unlike Markdown); text and icons otherwise wrap freely. An underscore inside a word stays literal; escape a lone one as `\_`.
 
 | Write                                                                  | Get                                                                           |
 | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- |

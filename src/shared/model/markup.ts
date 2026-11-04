@@ -279,7 +279,9 @@ export const DEFAULT_HIGHLIGHT = '#FFE58F'
 /** Un _ dentro una parola (nome_file) resta testo */
 const WORD = /[\p{L}\p{N}]/u
 
-const ESCAPABLE = '\\{}[]*~^=+#>-._'
+/** Un a capo scritto <br>, <br/> o <br /> */
+const BR = /^<br\s*\/?>/i
+const ESCAPABLE = '\\{}[]*~^=+#>-._<'
 
 class InlineParser {
   problems: MarkupProblem[] = []
@@ -313,6 +315,17 @@ class InlineParser {
         out.push({ t: 'br' })
         i++
         continue
+      }
+      // <br> va a capo dove il testo sta su una riga sola: celle delle tabelle dei documenti,
+      // etichette delle anatomie, testi degli schemi; è l'unico pezzo di HTML che si legge
+      if (c === '<') {
+        const br = BR.exec(s.slice(i, Math.min(to, i + 8)))
+        if (br) {
+          flush()
+          out.push({ t: 'br' })
+          i += br[0].length
+          continue
+        }
       }
       if (c === '[') {
         const close = this.matching(i, to, '[', ']')
