@@ -48,6 +48,20 @@ export default function ScenePageView({
       ))}
     </svg>
   )
+  // le linguette degli sviluppi dei dadi, sotto le facce
+  const shapes = !!p.shapes?.length && (
+    <svg
+      width={p.width * s.scale}
+      height={p.height * s.scale}
+      viewBox={`0 0 ${p.width} ${p.height}`}
+      style={{ position: 'absolute', left: 0, top: 0 }}
+    >
+      {p.shapes.map((sh, i) => (
+        <polygon key={i} points={sh.points.map((pt) => pt.join(',')).join(' ')} fill={sh.fill} />
+      ))}
+    </svg>
+  )
+  const over = p.linesOver ?? s.linesOver
   // una parte di un poster mostra le carte solo nel suo riquadro
   const c = p.clip ?? { x: 0, y: 0, w: p.width, h: p.height }
   return (
@@ -61,7 +75,8 @@ export default function ScenePageView({
         background: s.background ?? undefined
       }}
     >
-      {!s.linesOver && lines}
+      {shapes}
+      {!over && lines}
       <div
         style={{
           position: 'absolute',
@@ -83,8 +98,11 @@ export default function ScenePageView({
             />
           )
           const crop = it.crop
-          if (crop && (crop.l || crop.r)) {
-            // solo la parte tra i due tagli: nei fogli da piegare l'abbondanza in mezzo non c'è
+          const ct = crop?.t ?? 0
+          const cb = crop?.b ?? 0
+          if (crop && (crop.l || crop.r || ct || cb)) {
+            // solo la parte tra i tagli: nei fogli da piegare e negli sviluppi dei dadi
+            // l'abbondanza dove la carta ne tocca un'altra non c'è
             const b = it.mode === 'bleed' ? it.template.bleed : 0
             return (
               <div
@@ -93,12 +111,14 @@ export default function ScenePageView({
                   position: 'absolute',
                   overflow: 'hidden',
                   left: (it.x + crop.l - c.x) * s.scale,
-                  top: (it.y - c.y) * s.scale,
+                  top: (it.y + ct - c.y) * s.scale,
                   width: (it.template.width + 2 * b - crop.l - crop.r) * s.scale,
-                  height: (it.template.height + 2 * b) * s.scale
+                  height: (it.template.height + 2 * b - ct - cb) * s.scale
                 }}
               >
-                <div style={{ position: 'absolute', left: -crop.l * s.scale, top: 0 }}>{card}</div>
+                <div style={{ position: 'absolute', left: -crop.l * s.scale, top: -ct * s.scale }}>
+                  {card}
+                </div>
               </div>
             )
           }
@@ -117,7 +137,7 @@ export default function ScenePageView({
           )
         })}
       </div>
-      {s.linesOver && lines}
+      {over && lines}
     </div>
   )
 }

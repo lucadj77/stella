@@ -1417,12 +1417,21 @@ export const en = {
   'export.posterHint':
     'Each part is named A1, B1… below it; the short marks in the margin show where the next part starts, to overlap or cut and butt the parts. Backs follow as separate pages.',
   'export.autoRotate': 'Rotate the components when they would not fit or more of them fit',
+  'export.netsPerPage': '{cols} × {rows} = {n} dice per page',
   'export.perPage': '{cols} × {rows} = {n} per page',
   'export.gridTooBig': 'The components do not fit on the page',
   'export.marks': 'Crop marks',
   'export.marksNone': 'None',
   'export.marksCorners': 'At the corners',
   'export.marksLines': 'Full lines',
+  'export.dice': 'Dice',
+  'export.diceFaces': 'Faces',
+  'export.diceFacesNote': 'The faces side by side, like cards.',
+  'export.diceNet': 'To fold',
+  'export.diceNetNote':
+    'The unfolded cube with tabs to glue. Cut and fold lines only with crop marks.',
+  'export.dieNotSquare':
+    'Set “{set}”: the faces are not square, so the dice come out as separate faces.',
   'export.markColor': 'Color of the crop marks',
   'export.markLength': 'Mark length',
   'export.markWidth': 'Mark width',

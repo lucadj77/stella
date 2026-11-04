@@ -1443,12 +1443,21 @@ export const it: Record<MessageKey, string> = {
   'export.posterHint':
     "Sotto ogni parte c'è il suo nome (A1, B1…); i trattini corti nei margini segnano dove inizia la parte accanto, per sovrapporre o tagliare e accostare. I retri seguono come pagine a parte.",
   'export.autoRotate': 'Ruota i componenti se altrimenti non entrano o ne entrano di più',
+  'export.netsPerPage': '{cols} × {rows} = {n} dadi per pagina',
   'export.perPage': '{cols} × {rows} = {n} per pagina',
   'export.gridTooBig': 'I componenti non stanno nella pagina',
   'export.marks': 'Segni di taglio',
   'export.marksNone': 'Nessuno',
   'export.marksCorners': 'Agli angoli',
   'export.marksLines': 'Linee intere',
+  'export.dice': 'Dadi',
+  'export.diceFaces': 'Facce',
+  'export.diceFacesNote': "Le facce una accanto all'altra, come le carte.",
+  'export.diceNet': 'Da piegare',
+  'export.diceNetNote':
+    'Il cubo aperto con le linguette da incollare. Linee di taglio e pieghe solo con i segni di taglio.',
+  'export.dieNotSquare':
+    'Set «{set}»: le facce non sono quadrate, quindi i dadi escono come facce separate.',
   'export.markColor': 'Colore dei segni di taglio',
   'export.markLength': 'Lunghezza segni',
   'export.markWidth': 'Spessore segni',

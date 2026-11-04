@@ -77,7 +77,14 @@ export interface PdfOptions extends CommonOptions {
   cmyk: boolean
   /** Set uno dopo l'altro sulla stessa pagina, invece di cominciare ogni set su una pagina nuova */
   continuous: boolean
+  /**
+   * Set di dadi: le facce una accanto all'altra come le carte (faces), o lo sviluppo del cubo da
+   * ritagliare, piegare e incollare, con le linguette (net)
+   */
+  dice: DiceLayout
 }
+
+export type DiceLayout = 'faces' | 'net'
 
 export interface TtsOptions extends Omit<CommonOptions, 'folder'> {
   grid: 'auto' | 'fixed'
@@ -211,7 +218,8 @@ export const DEFAULT_PDF: PdfOptions = {
   fold: false,
   proof: false,
   cmyk: false,
-  continuous: false
+  continuous: false,
+  dice: 'faces'
 }
 
 export const DEFAULT_TTS: TtsOptions = {
@@ -300,8 +308,11 @@ export interface SceneItem {
   mode: CardMode
   /** Rotazione in senso orario: la posizione è l'angolo in alto a sinistra della carta ruotata */
   rotate?: 0 | 90 | 270
-  /** Parte della carta da non disegnare a sinistra e a destra, in mm (nei fogli da piegare) */
-  crop?: { l: number; r: number }
+  /**
+   * Parte della carta da non disegnare a sinistra, a destra, sopra e sotto, in mm: l'abbondanza
+   * dove la carta tocca un'altra (nei fogli da piegare e negli sviluppi dei dadi)
+   */
+  crop?: { l: number; r: number; t?: number; b?: number }
   /** Ingrandimento della carta: minore di 1 nei fogli di prova */
   zoom?: number
 }
@@ -332,6 +343,19 @@ export interface ScenePage {
   clip?: { x: number; y: number; w: number; h: number }
   /** Scritte sulla pagina, per esempio la posizione della parte di un poster */
   labels?: SceneLabel[]
+  /** Poligoni pieni sotto le carte: le linguette degli sviluppi dei dadi */
+  shapes?: SceneShape[]
+  /**
+   * Linee sopra le carte anche se la scena le vuole sotto: negli sviluppi dei dadi le pieghe
+   * stanno tra le facce e il taglio passa nell'abbondanza
+   */
+  linesOver?: boolean
+}
+
+export interface SceneShape {
+  /** Vertici in mm */
+  points: [number, number][]
+  fill: string
 }
 
 export interface Scene {

@@ -235,10 +235,11 @@ async function exportPdf(
 ): Promise<void> {
   const folder = outputFolder(ctx, o.folder)
   const page = pageSize(o)
-  const { docs, overflow } = planPdf(o, sets, project)
+  const { docs, overflow, notes } = planPdf(o, sets, project)
   let cmykWarned = false
   let printed = false
   for (const set of overflow) ctx.result.warnings.push(msg('export.gridOverflow', { set }))
+  ctx.result.warnings.push(...notes)
   ctx.progress.total = docs.length
   for (const doc of docs) {
     const scene: Scene = {

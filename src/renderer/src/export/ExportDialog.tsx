@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import NumInput from '../components/NumInput'
 import type { LoadedProject } from '../../../shared/project'
+import { netGrid } from '../../../shared/exportPlan'
 import { kindOf } from '../../../shared/model/template'
 import { walkLayers } from '../../../shared/model/normalize'
 import {
@@ -180,6 +181,8 @@ export default function ExportDialog({
     (name) => ttsSetObject(tts, name, componentKind(name)).type === 'card'
   )
 
+  /** Almeno un set scelto è fatto di facce di dado: si sceglie come stamparle */
+  const hasDice = selected.some((name) => componentKind(name) === 'die')
   const firstTemplate = useMemo(() => {
     const set = project.sets.find((s) => selected.includes(s.name))
     return project.templates.find((x) => x.name === set?.template) ?? null
@@ -450,7 +453,12 @@ export default function ExportDialog({
 
   // ——— PDF ———
   let perPage = ''
-  if (kind === 'pdf' && firstTemplate) {
+  if (kind === 'pdf' && firstTemplate && pdf.dice === 'net' && kindOf(firstTemplate) === 'die') {
+    const g = netGrid(pdf, firstTemplate)
+    perPage = g.fits
+      ? t('export.netsPerPage', { cols: g.cols, rows: g.rows, n: g.cols * g.rows })
+      : t('export.gridTooBig')
+  } else if (kind === 'pdf' && firstTemplate) {
     const g = pdfGrid(pdf, firstTemplate)
     perPage =
       g.x0 < 0 || g.y0 < 0
@@ -546,6 +554,27 @@ export default function ExportDialog({
           { value: 'lines', label: t('export.marksLines'), icon: 'marks-lines' }
         ]}
       />
+      {hasDice && (
+        <Choice
+          label={t('export.dice')}
+          value={pdf.dice}
+          onChange={(dice) => patch({ dice })}
+          options={[
+            {
+              value: 'faces',
+              label: t('export.diceFaces'),
+              note: t('export.diceFacesNote'),
+              icon: 'dice-faces'
+            },
+            {
+              value: 'net',
+              label: t('export.diceNet'),
+              note: t('export.diceNetNote'),
+              icon: 'dice-net'
+            }
+          ]}
+        />
+      )}
       <Section
         id="pdf-layout"
         title={t('export.layoutSection')}
