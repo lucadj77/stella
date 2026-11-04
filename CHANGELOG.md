@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.9.0-beta.5
+
+### English
+
+- **Document PDF in the web version, fix**: the print window did not open and the export reported "Blocked a frame … from accessing a cross-origin frame".
+
+### Italiano
+
+- **PDF dei documenti nella versione web, correzione**: la finestra di stampa non si apriva e l'esportazione segnalava "Blocked a frame … from accessing a cross-origin frame".
+
 ## 1.9.0-beta.4
 
 ### English
