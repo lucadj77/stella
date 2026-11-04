@@ -5,6 +5,18 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.9.0-beta.3
+
+### English
+
+- **Table column widths, fix**: a column left without a width in the table window was written as `0` (`<!-- table columns=0,10,10 -->`) and then reported as an option the table does not know. `0`, or an empty value, now means a column that follows its content.
+- **AI skill**: it explains when and how to put a block beside the text, not only how to write it.
+
+### Italiano
+
+- **Larghezza delle colonne delle tabelle, correzione**: una colonna lasciata senza larghezza nella finestra della tabella veniva scritta come `0` (`<!-- table columns=0,10,10 -->`) e poi segnalata come un'opzione che la tabella non conosce. Ora `0`, o un valore vuoto, è una colonna che segue il suo contenuto.
+- **Skill per l'IA**: spiega quando e come mettere un blocco accanto al testo, non solo come scriverlo.
+
 ## 1.9.0-beta.2
 
 ### English

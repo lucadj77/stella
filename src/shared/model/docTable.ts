@@ -60,8 +60,11 @@ export function parseTableStyle(line: string): { style: TableStyle; bad: string[
       else if (n > 0 && n <= 100) style.width = n
       else bad.push(part)
     } else if (k === 'columns') {
-      const list = v.split(',').map((x) => parseFloat(x))
-      if (list.every((x) => x > 0)) style.columns = list
+      // 0 (o vuoto) è una colonna senza larghezza, che segue il contenuto: la scrive anche la
+      // finestra della tabella quando una larghezza resta vuota
+      const list = v.split(',').map((x) => (x.trim() === '' ? 0 : Number(x)))
+      if (list.length && list.every((x) => Number.isFinite(x) && x >= 0 && x <= 100))
+        style.columns = list
       else bad.push(part)
     } else if (k === 'border' && v) style.border = v
     else if (k === 'borderWidth' && n >= 0) style.borderWidth = n
