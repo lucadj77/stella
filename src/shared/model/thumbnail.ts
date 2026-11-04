@@ -1,5 +1,7 @@
-import type { LoadedProject } from '../project'
-import type { Template } from './template'
+import type { LoadedProject, LoadedSet, ProjectCover } from '../project'
+import type { Side, Template } from './template'
+import { resolveAsset } from './assets'
+import { CARD_PREFIX, findCard, isMessage, parseCardRef } from './document'
 import { bindCard, bindRow, rowToCard } from './bind'
 import { normalizeLayer, normalizeTemplate } from './normalize'
 import { projectSystem, systemOfSet } from './system'
@@ -21,20 +23,19 @@ export function thumbnailTemplate(project: LoadedProject, imageRatio?: number): 
     variables: project.file.variables
   }
   const cover = project.file.cover
-  if (cover && 'image' in cover && project.assets.includes(cover.image))
-    return imageTemplate(cover.image, imageRatio ?? 1)
-  if (cover && 'set' in cover) {
-    const s = project.sets.find((x) => x.name === cover.set)
-    const tpl = s && project.templates.find((x) => x.name === s.template)
-    const rows = s?.data?.rows ?? []
-    if (s?.data && tpl && rows.length) {
-      const i = Math.min(Math.max(1, Math.round(cover.row)), rows.length) - 1
-      const bound = bindRow(s.data.headers, rows[i], tpl, project.templates, {
+  const image = cover && 'image' in cover ? resolveAsset(cover.image, project.assets) : null
+  if (image?.ok) return imageTemplate(image.path, imageRatio ?? 1)
+  const picked = cover && !('image' in cover) ? coverCard(cover, project) : null
+  if (picked) {
+    const { set: s, row: i, side } = picked
+    const tpl = project.templates.find((x) => x.name === s.template)
+    if (s.data && tpl) {
+      const bound = bindRow(s.data.headers, s.data.rows[i], tpl, project.templates, {
         ...ctx,
         system: { ...systemOfSet(project.file, s), number: i + 1 }
       }).template
       // la miniatura disegna il fronte: per il retro si scambiano le facce
-      return cover.side === 'back' && bound.back.length
+      return side === 'back' && bound.back.length
         ? { ...bound, front: bound.back, back: bound.front }
         : bound
     }
@@ -51,6 +52,26 @@ export function thumbnailTemplate(project: LoadedProject, imageRatio?: number): 
   return first
     ? bindCard(first, rowToCard([], []), { ...ctx, system: projectSystem(project.file) }).template
     : null
+}
+
+/** Il componente scelto come copertina, se c'è ancora */
+export function coverCard(
+  cover: Exclude<ProjectCover, { image: string }>,
+  project: Pick<LoadedProject, 'sets'>
+): { set: LoadedSet; row: number; side: Side } | null {
+  if ('card' in cover) {
+    const ref = parseCardRef(CARD_PREFIX + cover.card)
+    if (isMessage(ref)) return null
+    const found = findCard(ref, project.sets)
+    return isMessage(found) || !found.set.data?.rows[found.row]
+      ? null
+      : { ...found, side: ref.side }
+  }
+  const set = project.sets.find((x) => x.name === cover.set)
+  const rows = set?.data?.rows.length ?? 0
+  if (!set || !rows) return null
+  const row = Math.min(Math.max(1, Math.round(cover.row)), rows) - 1
+  return { set, row, side: cover.side ?? 'front' }
 }
 
 /** Un componente fatto solo dell'immagine, con la sua proporzione */

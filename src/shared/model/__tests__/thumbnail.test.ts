@@ -43,11 +43,23 @@ describe('copertina del progetto', () => {
     expect(text(thumbnailTemplate(project({ set: 'Altro', row: 1 })))).toBe('Fante')
   })
 
+  it('può essere un componente scritto come nei documenti', () => {
+    expect(text(thumbnailTemplate(project({ card: 'Unità/2' })))).toBe('Arciere')
+    expect(text(thumbnailTemplate(project({ card: 'Unità/nome=Arciere?side=back' })))).toBe(
+      'retro Arciere'
+    )
+    expect(text(thumbnailTemplate(project({ card: 'Unità/nome=Mago' })))).toBe('Fante')
+  })
+
   it("può essere un'immagine, con la sua proporzione", () => {
     const t = thumbnailTemplate(project({ image: 'scatola.png' }), 2)!
     expect([t.width, t.height]).toEqual([100, 50])
     const img = t.front[0] as ImageLayer
     expect([img.src, img.fit, img.w, img.h]).toEqual(['scatola.png', 'contain', 100, 50])
+    // il nome breve, come nei livelli immagine
+    expect((thumbnailTemplate(project({ image: 'scatola' }), 2)!.front[0] as ImageLayer).src).toBe(
+      'scatola.png'
+    )
     // un'immagine tolta dal progetto lascia la copertina di base
     expect(text(thumbnailTemplate(project({ image: 'logo.png' })))).toBe('Fante')
   })

@@ -51,7 +51,7 @@ I progetti creati quando l'app si chiamava Naibi hanno `naibi.json`, quelli anco
 }
 ```
 
-`author` e `version` (facoltativi) sono autore e versione del gioco, per `{project.author}` e `{project.version}`. `cover` (facoltativo) è la copertina del progetto nella schermata di ingresso: `{ "image": "scatola.png" }` (un file sotto `assets/`) oppure `{ "set": "Personaggi", "row": 3, "side": "back" }` (riga da 1, `side` facoltativo, di base il fronte). Senza `cover`, o se ciò che indica non c'è più, la copertina è la prima carta del primo set. Si impostano in **Informazioni progetto…**.
+`author` e `version` (facoltativi) sono autore e versione del gioco, per `{project.author}` e `{project.version}`. `cover` (facoltativo) è la copertina del progetto nella schermata di ingresso: `{ "image": "scatola" }` (un'immagine sotto `assets/`, con il nome come nei livelli immagine) oppure `{ "card": "Personaggi/nome=Strega?side=back" }` (il componente scritto come nei documenti, senza `card:`). Senza `cover`, o se ciò che indica non c'è più, la copertina è la prima carta del primo set. Si impostano in **Informazioni progetto…**.
 
 `sheet` è facoltativo: se manca si usa il foglio con lo stesso nome del set. `hiddenColumns` (facoltativo) elenca le colonne nascoste nella tabella e nei campi della carta; `showComputed: true` mostra anche i livelli fissi e con formula, in sola lettura. `pinnedProperties` (facoltativo) elenca le proprietà fissate nei campi della carta, come colonne `livello.proprietà`. Sono solo preferenze di vista: non cambiano le carte.
 

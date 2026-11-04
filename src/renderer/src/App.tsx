@@ -154,6 +154,7 @@ import {
   useBindContext
 } from './render/assets'
 import { imageSize } from './render/imageSize'
+import { resolveAsset } from '../../shared/model/assets'
 import { useProjectFonts, useRegisterFonts } from './render/fonts'
 import VariableDialog, { VariableSwatch } from './components/VariableDialog'
 import { usedColors, type Variable, type Variables } from '../../shared/model/variables'
@@ -215,7 +216,8 @@ type Selected =
 /** Ridisegna la miniatura per la schermata di ingresso; un errore non disturba il lavoro */
 async function updateThumbnail(project: LoadedProject, onlyIfMissing: boolean): Promise<void> {
   const cover = project.file.cover
-  const size = cover && 'image' in cover ? await imageSize(assetUrl(cover.image)) : null
+  const image = cover && 'image' in cover ? resolveAsset(cover.image, project.assets) : null
+  const size = image?.ok ? await imageSize(assetUrl(image.path)) : null
   const tpl = thumbnailTemplate(project, size ? size.w / size.h : undefined)
   if (!tpl) return
   const context = {

@@ -8288,6 +8288,14 @@ button.wide {
   flex-direction: column;
   gap: 8px;
 }
+.project-info-cover-fields > button {
+  text-align: left;
+}
+.project-info-cover-fields > button.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 600;
+}
 .project-info-cover-preview {
   width: 150px;
   min-height: 80px;
