@@ -3,7 +3,6 @@
 // finestra di stampa, da cui si sceglie "Salva come PDF". Le misure restano in millimetri.
 
 export async function printHtml(html: string, title: string): Promise<void> {
-  const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }))
   const frame = document.createElement('iframe')
   frame.title = title
   Object.assign(frame.style, {
@@ -19,7 +18,9 @@ export async function printHtml(html: string, title: string): Promise<void> {
     frame.onload = () => resolve()
     frame.onerror = () => reject(new Error('print frame'))
   })
-  frame.src = url
+  // srcdoc e non un indirizzo blob: la pagina della web app permette solo cornici 'self'
+  // (frame-src), e una cornice blob: bloccata diventa una pagina di un'altra origine
+  frame.srcdoc = html
   document.body.appendChild(frame)
   try {
     await loaded
@@ -34,7 +35,6 @@ export async function printHtml(html: string, title: string): Promise<void> {
     // print() aspetta che la finestra di stampa si chiuda; un attimo dopo la cornice non serve più
     window.setTimeout(() => {
       frame.remove()
-      URL.revokeObjectURL(url)
     }, 1000)
   }
 }
