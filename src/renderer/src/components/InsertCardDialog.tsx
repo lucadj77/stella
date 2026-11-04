@@ -376,6 +376,10 @@ export default function InsertCardDialog({
               onChange={(e) => setBlockFont(e.target.value)}
             />
           </label>
+        </div>
+      )}
+      {anatomy && (
+        <div className="dialog-row">
           <WrapField value={wrap} onChange={setWrap} />
         </div>
       )}

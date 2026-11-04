@@ -1907,8 +1907,8 @@ export const it: Record<MessageKey, string> = {
   'documents.wrapHint':
     'Il testo che segue scorre accanto, con il blocco a sinistra o a destra, fino a una riga «Riparti sotto»',
   'documents.wrapNone': 'No',
-  'documents.wrapLeft': 'Blocco a sinistra',
-  'documents.wrapRight': 'Blocco a destra',
+  'documents.wrapLeft': 'A sinistra',
+  'documents.wrapRight': 'A destra',
   'documents.insert': 'Inserisci',
   'sidebar.compact': 'Riduci il pannello a icone',
   'sidebar.expand': 'Mostra il pannello',

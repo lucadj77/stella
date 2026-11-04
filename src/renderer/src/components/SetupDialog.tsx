@@ -942,6 +942,8 @@ export default function SetupDialog({
                     (n) => setBlockFont(Math.min(300, Math.max(30, n)) / 100),
                     30
                   )}
+                </div>
+                <div className="dialog-row">
                   <WrapField value={wrap} onChange={setWrap} />
                 </div>
                 <p className="muted small">{t('documents.blockSizeHint')}</p>

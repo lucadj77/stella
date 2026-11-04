@@ -1876,8 +1876,8 @@ export const en = {
   'documents.wrapHint':
     'The text that follows flows beside it, with the block on the left or on the right, until a "Start below" line',
   'documents.wrapNone': 'No',
-  'documents.wrapLeft': 'Block on the left',
-  'documents.wrapRight': 'Block on the right',
+  'documents.wrapLeft': 'On the left',
+  'documents.wrapRight': 'On the right',
   'documents.insert': 'Insert',
   'sidebar.compact': 'Collapse panel to icons',
   'sidebar.expand': 'Expand panel',
