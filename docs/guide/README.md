@@ -238,7 +238,7 @@ On the canvas you move layers by dragging them, resize them with the handles and
 
 In the layer list you drag a layer to change its order, or onto the middle of a group to move it inside. Shift or ⌘ / Ctrl selects several layers; ⌘G / Ctrl+G groups them. With several layers selected the properties panel shows what they have in common (opacity, rotation, visibility, and the type's own properties when they are all of the same type, for example text color and size): a change applies to all of them. The fields show the values of the first selected layer.
 
-Selected layers are copied with ⌘C / Ctrl+C (⌘X / Ctrl+X to cut them) and pasted with ⌘V / Ctrl+V into another template, of another project too, or into the same one. They arrive with all their properties, above the selected layer. If the template already has a layer with the same name, the pasted one gets a new name (for example `nome_2`) but keeps reading the same column. In the same template the copy is moved by 2 mm so it does not cover the original.
+Selected layers are copied with ⌘C / Ctrl+C (⌘X / Ctrl+X to cut them) and pasted with ⌘V / Ctrl+V into another template, of another project too, or into the same one. They arrive with all their properties, above the selected layer. If the template already has a layer with the same name, the pasted one gets a new name (for example `nome_2`) and reads the column with the new name, even when the original named another one: you copy a layer to reuse its look with other data. The same goes for ⌘D / Ctrl+D, which duplicates the selected layers. To read the same column as the original, write its name in the column field, or use a formula. In the same template the copy is moved by 2 mm so it does not cover the original.
 
 ### 4.3 Template properties
 

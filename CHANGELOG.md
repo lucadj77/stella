@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.9.0-beta.11
+
+### English
+
+- **Duplicated and pasted layers read their own column**: a copy of a layer that takes a new name (`image_2`, `image_3`, ...) now reads the column with that name, both with **Duplicate** (⌘D / Ctrl+D) and with copy and paste. Before, a duplicated layer already did this only when the original read the column with its own name, and a pasted one kept reading the original's column. To read the same column as the original, write its name in the column field, or use a formula.
+
+### Italiano
+
+- **I livelli duplicati e incollati leggono la loro colonna**: la copia di un livello che prende un nome nuovo (`immagine_2`, `immagine_3`, ...) ora legge la colonna con quel nome, sia con **Duplica** (⌘D / Ctrl+D) sia con copia e incolla. Prima un livello duplicato lo faceva solo se l'originale leggeva la colonna con il suo nome, e uno incollato continuava a leggere la colonna dell'originale. Per leggere la stessa colonna dell'originale si scrive il suo nome nel campo della colonna, o si usa una formula.
+
 ## 1.9.0-beta.10
 
 ### English
