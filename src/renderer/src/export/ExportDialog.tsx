@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import NumInput from '../components/NumInput'
 import type { LoadedProject } from '../../../shared/project'
-import { netGrid } from '../../../shared/exportPlan'
+import { NET_TAB_MAX, netGrid, netTabDepth } from '../../../shared/exportPlan'
 import { kindOf } from '../../../shared/model/template'
 import { walkLayers } from '../../../shared/model/normalize'
 import {
@@ -183,6 +183,14 @@ export default function ExportDialog({
 
   /** Almeno un set scelto è fatto di facce di dado: si sceglie come stamparle */
   const hasDice = selected.some((name) => componentKind(name) === 'die')
+  /** La faccia del primo set di dadi scelto, per la misura delle linguette */
+  const dieFace = useMemo(() => {
+    const set = project.sets.find(
+      (s) => selected.includes(s.name) && componentKind(s.name) === 'die'
+    )
+    return project.templates.find((x) => x.name === set?.template) ?? null
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project, selected])
   const firstTemplate = useMemo(() => {
     const set = project.sets.find((s) => selected.includes(s.name))
     return project.templates.find((x) => x.name === set?.template) ?? null
@@ -574,6 +582,16 @@ export default function ExportDialog({
             }
           ]}
         />
+      )}
+      {hasDice && pdf.dice === 'net' && (
+        <Row
+          label={t('export.tabDepth')}
+          hint={t('export.tabDepthHint', {
+            v: len(netTabDepth(dieFace?.width ?? 20, pdf.tabDepth))
+          })}
+        >
+          {mm(pdf.tabDepth, (tabDepth) => patch({ tabDepth: Math.min(NET_TAB_MAX, tabDepth) }))}
+        </Row>
       )}
       <Section
         id="pdf-layout"

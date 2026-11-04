@@ -384,12 +384,21 @@ const NET_COLS = 4
 const NET_ROWS = 3
 /** Spazio minimo tra due sviluppi, in mm */
 const NET_GAP = 2
-/** Colore delle linguette */
+/** Colore sotto le linguette, dove la faccia è trasparente */
 export const NET_TAB_FILL = '#E3E3E3'
+/** Quanto la linguetta entra sotto la sua faccia, in mm */
+const NET_TAB_OVERLAP = 0.2
+/** Linguetta più grande che si può chiedere, in mm */
+export const NET_TAB_MAX = 20
 
-/** Profondità delle linguette di un dado con lato s, in mm */
-export function netTabDepth(s: number): number {
-  return Math.round(Math.min(8, Math.max(3, s * 0.2)) * 2) / 2
+/**
+ * Profondità delle linguette di un dado con lato s, in mm: quella chiesta (tab, tra 2 e
+ * NET_TAB_MAX), o un quarto del lato, tra 5 e 10 mm, perché anche un dado piccolo abbia
+ * linguette da tenere tra le dita
+ */
+export function netTabDepth(s: number, tab = 0): number {
+  if (tab > 0) return Math.min(NET_TAB_MAX, Math.max(2, tab))
+  return Math.round(Math.min(10, Math.max(5, s * 0.25)) * 2) / 2
 }
 
 /** Faccia vicina sul lato indicato, se c'è */
@@ -417,6 +426,8 @@ export interface DieNet {
   width: number
   height: number
   items: SceneItem[]
+  /** Le facce specchiate sulle linguette, ritagliate sulla loro forma: da disegnare per prime */
+  tabs: SceneItem[]
   shapes: SceneShape[]
   /** Contorno da tagliare */
   cut: SceneLine[]
@@ -426,11 +437,12 @@ export interface DieNet {
 
 /**
  * Lo sviluppo di un dado a sei facce, con l'angolo in alto a sinistra in (x, y). Con l'abbondanza
- * ogni faccia la tiene solo sui lati esterni, dove continua anche sotto le linguette
+ * ogni faccia la tiene solo sui lati esterni. Ogni linguetta prende il colore della faccia da cui
+ * parte: è la faccia specchiata sul lato della piega, quindi il colore continua oltre lo spigolo
  */
-export function dieNet(faces: Template[], bleed: boolean, x = 0, y = 0): DieNet {
+export function dieNet(faces: Template[], bleed: boolean, tab = 0, x = 0, y = 0): DieNet {
   const s = faces[0].width
-  const d = netTabDepth(s)
+  const d = netTabDepth(s, tab)
   const b = bleed ? Math.max(0, ...faces.map((t) => t.bleed)) : 0
   const pad = Math.max(d, b)
   const inset = Math.min(d, s * 0.3)
@@ -450,6 +462,7 @@ export function dieNet(faces: Template[], bleed: boolean, x = 0, y = 0): DieNet 
     }
   })
   const shapes: SceneShape[] = []
+  const tabs: SceneItem[] = []
   const cut: SceneLine[] = []
   const folds: SceneLine[] = []
   const line = (a: [number, number], z: [number, number], dash?: boolean): SceneLine => ({
@@ -477,7 +490,21 @@ export function dieNet(faces: Template[], bleed: boolean, x = 0, y = 0): DieNet 
       const t: [number, number] = [(q[0] - p[0]) / s, (q[1] - p[1]) / s]
       const p2: [number, number] = [p[0] + n[0] * d + t[0] * inset, p[1] + n[1] * d + t[1] * inset]
       const q2: [number, number] = [q[0] + n[0] * d - t[0] * inset, q[1] + n[1] * d - t[1] * inset]
-      shapes.push({ points: [p, q, q2, p2], fill: NET_TAB_FILL })
+      const points: [number, number][] = [p, q, q2, p2]
+      shapes.push({ points, fill: NET_TAB_FILL })
+      // la faccia specchiata entra un poco sotto la faccia vera: senza, lungo la piega resta
+      // una riga bianca sottile dove i due bordi sfumati si incontrano
+      const o = NET_TAB_OVERLAP
+      const under = (v: [number, number]): [number, number] => [v[0] - n[0] * o, v[1] - n[1] * o]
+      tabs.push({
+        x: fx + n[0] * (s - o),
+        y: fy + n[1] * (s - o),
+        template: faces[k],
+        side: 'front',
+        mode: 'cut',
+        flip: n[0] ? 'x' : 'y',
+        clip: [under(p), under(q), q2, p2]
+      })
       folds.push(line(p, q, true))
       cut.push(line(p, p2), line(p2, q2), line(q2, q))
     }
@@ -486,6 +513,7 @@ export function dieNet(faces: Template[], bleed: boolean, x = 0, y = 0): DieNet 
     width: NET_COLS * s + 2 * pad,
     height: NET_ROWS * s + 2 * pad,
     items,
+    tabs,
     shapes,
     cut,
     folds
@@ -498,7 +526,7 @@ export function netGrid(
   face: Template
 ): { cols: number; rows: number; fits: boolean; gap: number } {
   const page = pageSize(o)
-  const net = dieNet(Array(6).fill(face), o.bleed)
+  const net = dieNet(Array(6).fill(face), o.bleed, o.tabDepth)
   const gap = Math.max(NET_GAP, o.spacing)
   const fit = (avail: number, cell: number): number =>
     Math.floor((avail + gap + 1e-6) / (cell + gap))
@@ -528,7 +556,7 @@ function netPages(
     for (let n = 0; n < count; n++) dice.push(faces)
   }
   if (!dice.length || o.sides === 'back') return { pages: [], overflow: false, padded }
-  const probe = dieNet(dice[0], o.bleed)
+  const probe = dieNet(dice[0], o.bleed, o.tabDepth)
   const { cols, rows, fits, gap } = netGrid(o, dice[0][0])
   const x0 = (page.width - (cols * probe.width + (cols - 1) * gap)) / 2
   const y0 = (page.height - (rows * probe.height + (rows - 1) * gap)) / 2
@@ -541,6 +569,7 @@ function netPages(
         dieNet(
           faces,
           o.bleed,
+          o.tabDepth,
           x0 + (k % cols) * (probe.width + gap),
           y0 + Math.floor(k / cols) * (probe.height + gap)
         )
@@ -550,7 +579,7 @@ function netPages(
       page: {
         width: page.width,
         height: page.height,
-        items: nets.flatMap((n) => n.items),
+        items: nets.flatMap((n) => [...n.tabs, ...n.items]),
         shapes: nets.flatMap((n) => n.shapes),
         lines: marks ? nets.flatMap((n) => [...n.cut, ...n.folds]) : [],
         linesOver: true

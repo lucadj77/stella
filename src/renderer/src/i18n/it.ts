@@ -1456,6 +1456,8 @@ export const it: Record<MessageKey, string> = {
   'export.diceNet': 'Da piegare',
   'export.diceNetNote':
     'Il cubo aperto con le linguette da incollare. Linee di taglio e pieghe solo con i segni di taglio.',
+  'export.tabDepth': 'Linguette',
+  'export.tabDepthHint': 'Profondità delle linguette; 0 la sceglie dal lato del dado. Adesso: {v}.',
   'export.dieNotSquare':
     'Set «{set}»: le facce non sono quadrate, quindi i dadi escono come facce separate.',
   'export.markColor': 'Colore dei segni di taglio',

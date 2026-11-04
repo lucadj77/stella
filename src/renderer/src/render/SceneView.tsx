@@ -97,6 +97,27 @@ export default function ScenePageView({
               guides={false}
             />
           )
+          if (it.clip) {
+            // una linguetta: la faccia specchiata, solo dentro la sua forma
+            const pts = it.clip
+              .map(([x, y]) => `${(x - c.x) * s.scale}px ${(y - c.y) * s.scale}px`)
+              .join(', ')
+            const flip = it.flip === 'x' ? 'scaleX(-1)' : it.flip === 'y' ? 'scaleY(-1)' : undefined
+            return (
+              <div key={i} style={{ position: 'absolute', inset: 0, clipPath: `polygon(${pts})` }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: (it.x - c.x) * s.scale,
+                    top: (it.y - c.y) * s.scale,
+                    transform: flip
+                  }}
+                >
+                  {card}
+                </div>
+              </div>
+            )
+          }
           const crop = it.crop
           const ct = crop?.t ?? 0
           const cb = crop?.b ?? 0

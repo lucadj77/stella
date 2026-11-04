@@ -1430,6 +1430,8 @@ export const en = {
   'export.diceNet': 'To fold',
   'export.diceNetNote':
     'The unfolded cube with tabs to glue. Cut and fold lines only with crop marks.',
+  'export.tabDepth': 'Tabs',
+  'export.tabDepthHint': 'Depth of the glue tabs; 0 picks it from the size of the die. Now: {v}.',
   'export.dieNotSquare':
     'Set “{set}”: the faces are not square, so the dice come out as separate faces.',
   'export.markColor': 'Color of the crop marks',

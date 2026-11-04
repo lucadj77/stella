@@ -82,6 +82,8 @@ export interface PdfOptions extends CommonOptions {
    * ritagliare, piegare e incollare, con le linguette (net)
    */
   dice: DiceLayout
+  /** Profondità delle linguette dei dadi da piegare, in mm; 0 la sceglie dal lato del dado */
+  tabDepth: number
 }
 
 export type DiceLayout = 'faces' | 'net'
@@ -219,7 +221,8 @@ export const DEFAULT_PDF: PdfOptions = {
   proof: false,
   cmyk: false,
   continuous: false,
-  dice: 'faces'
+  dice: 'faces',
+  tabDepth: 0
 }
 
 export const DEFAULT_TTS: TtsOptions = {
@@ -315,6 +318,10 @@ export interface SceneItem {
   crop?: { l: number; r: number; t?: number; b?: number }
   /** Ingrandimento della carta: minore di 1 nei fogli di prova */
   zoom?: number
+  /** Carta specchiata: x scambia destra e sinistra, y alto e basso (le linguette dei dadi) */
+  flip?: 'x' | 'y'
+  /** Solo la parte dentro questo poligono, in mm sulla pagina */
+  clip?: [number, number][]
 }
 
 export interface SceneLine {
