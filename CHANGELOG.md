@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.9.0-beta.9
+
+### English
+
+- **Project cover, choosing it**: **Choose a component…** opens the same card window as the anatomy, with sets, search, thumbnails and side; **Choose an image…** opens the image thumbnails, where you can also add images from your computer or icons from the libraries.
+
+### Italiano
+
+- **Copertina del progetto, la scelta**: **Scegli un componente…** apre la stessa finestra delle carte dell'anatomia, con set, ricerca, miniature e faccia; **Scegli un'immagine…** apre le miniature delle immagini, da cui si aggiungono anche immagini dal computer o icone dalle librerie.
+
 ## 1.9.0-beta.8
 
 ### English

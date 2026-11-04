@@ -91,6 +91,7 @@ export default function InsertCardDialog({
   anatomy,
   initial,
   pick,
+  bare = false,
   onInsert,
   onClose
 }: {
@@ -102,6 +103,8 @@ export default function InsertCardDialog({
   initial?: Anatomy
   /** Sceglie solo la carta: il riferimento scritto ora, o '' per una nuova */
   pick?: string
+  /** Con pick: senza larghezza e senza il riferimento scritto, come per la copertina */
+  bare?: boolean
   /** Il testo da inserire: ![didascalia](card:…) o il blocco ```anatomy */
   onInsert(text: string): void
   onClose(): void
@@ -330,17 +333,19 @@ export default function InsertCardDialog({
             />
           )}
         </label>
-        <label>
-          {t('documents.width')}
-          <NumInput
-            allowEmpty
-            className="num"
-            min={5}
-            value={width}
-            placeholder={template ? String(template.width) : ''}
-            onChange={(e) => setWidth(e.target.value)}
-          />
-        </label>
+        {!bare && (
+          <label>
+            {t('documents.width')}
+            <NumInput
+              allowEmpty
+              className="num"
+              min={5}
+              value={width}
+              placeholder={template ? String(template.width) : ''}
+              onChange={(e) => setWidth(e.target.value)}
+            />
+          </label>
+        )}
         <label className="grow">
           {t('documents.findBy')}
           <select value={key} onChange={(e) => setKey(e.target.value)}>
@@ -564,7 +569,7 @@ export default function InsertCardDialog({
                 </div>
               </>
             )}
-            <code className="insert-card-code">{text}</code>
+            {!bare && <code className="insert-card-code">{text}</code>}
           </>
         )}
         <div className="dialog-buttons">

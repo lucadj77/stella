@@ -37,10 +37,13 @@ export interface SetDefinition {
 }
 
 /**
- * Copertina del progetto nella schermata di ingresso: un'immagine sotto assets/ o un componente,
- * riga `row` (da 1) del set; assente vale la prima carta del primo set
+ * Copertina del progetto nella schermata di ingresso: un'immagine del progetto (il nome con cui
+ * la si richiama, come nei livelli immagine) o un componente, scritto come nei documenti senza
+ * card: (`Personaggi/3?side=back`, `Personaggi/nome=Strega`); assente vale la prima carta del
+ * primo set. `{ set, row, side }` è la forma della 1.9.0-beta.8, che si legge ancora.
  */
-export type ProjectCover = { image: string } | { set: string; row: number; side?: 'front' | 'back' }
+export type ProjectCover =
+  { image: string } | { card: string } | { set: string; row: number; side?: 'front' | 'back' }
 
 export interface ProjectFile {
   formatVersion: number

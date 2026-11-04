@@ -1,12 +1,15 @@
-import { useMemo, useState } from 'react'
-import { IMAGE_EXTENSIONS } from '../../../shared/model/assets'
+import { useContext, useMemo, useState } from 'react'
+import { resolveAsset } from '../../../shared/model/assets'
+import { cardRefSource } from '../../../shared/model/document'
 import { projectFolderName } from '../../../shared/model/projectName'
-import { thumbnailTemplate } from '../../../shared/model/thumbnail'
+import { coverCard, thumbnailTemplate } from '../../../shared/model/thumbnail'
 import type { LoadedProject, ProjectCover } from '../../../shared/project'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
-import { assetUrl } from '../render/assets'
+import { AssetsContext, assetUrl } from '../render/assets'
 import CardSvg from '../render/CardSvg'
+import AssetPicker from './AssetPicker'
+import InsertCardDialog from './InsertCardDialog'
 
 /** Ciò che la finestra cambia in stella.json */
 export interface ProjectInfo {
@@ -15,8 +18,6 @@ export interface ProjectInfo {
   version: string
   cover: ProjectCover | null
 }
-
-type CoverKind = 'first' | 'component' | 'image'
 
 /** Lato maggiore dell'anteprima della copertina, in pixel */
 const PREVIEW = 150
@@ -50,46 +51,40 @@ export default function ProjectInfoDialog({
   const [name, setName] = useState(file.name)
   const [author, setAuthor] = useState(file.author ?? '')
   const [version, setVersion] = useState(file.version ?? '')
-  const startCover = file.cover
-  const [kind, setKind] = useState<CoverKind>(
-    !startCover ? 'first' : 'image' in startCover ? 'image' : 'component'
-  )
-  const withData = project.sets.filter((s) => s.data?.rows.length)
-  const [coverSet, setCoverSet] = useState(
-    startCover && 'set' in startCover ? startCover.set : (withData[0]?.name ?? '')
-  )
-  const [coverRow, setCoverRow] = useState(startCover && 'set' in startCover ? startCover.row : 1)
-  const [coverSide, setCoverSide] = useState<'front' | 'back'>(
-    startCover && 'set' in startCover ? (startCover.side ?? 'front') : 'front'
-  )
-  const images = project.assets.filter((a) =>
-    IMAGE_EXTENSIONS.some((e) => a.toLowerCase().endsWith(e))
-  )
-  const [coverImage, setCoverImage] = useState(
-    startCover && 'image' in startCover ? startCover.image : (images[0] ?? '')
-  )
+  const [cover, setCover] = useState<ProjectCover | null>(file.cover ?? null)
+  const [picking, setPicking] = useState<'card' | 'image' | null>(null)
+  const assets = useContext(AssetsContext)
   const folderName = project.folder.split(/[\\/]/).filter(Boolean).pop() ?? ''
   const [folder, setFolder] = useState(folderName)
 
-  const rows = project.sets.find((s) => s.name === coverSet)?.data?.rows.length ?? 0
-  const cover: ProjectCover | null =
-    kind === 'image' && coverImage
-      ? { image: coverImage }
-      : kind === 'component' && coverSet
-        ? {
-            set: coverSet,
-            row: Math.min(Math.max(1, coverRow || 1), Math.max(1, rows)),
-            ...(coverSide === 'back' ? { side: 'back' as const } : {})
-          }
-        : null
+  // il componente scelto, come riferimento per la finestra di scelta e come descrizione
+  const picked = cover && !('image' in cover) ? coverCard(cover, project) : null
+  const pickedRef = picked
+    ? cardRefSource({ set: picked.set.name, row: picked.row + 1, side: picked.side }).replace(
+        /^card:/i,
+        ''
+      )
+    : ''
+  const image = cover && 'image' in cover ? resolveAsset(cover.image, assets) : null
 
   // l'anteprima di un componente: lo stesso disegno della miniatura
   const coverKey = JSON.stringify(cover)
   const preview = useMemo(() => {
-    if (kind === 'image') return null
     const c = JSON.parse(coverKey) as ProjectCover | null
+    if (c && 'image' in c) return null
     return thumbnailTemplate({ ...project, file: { ...project.file, cover: c ?? undefined } })
-  }, [project, kind, coverKey])
+  }, [project, coverKey])
+  const description = image
+    ? cover && 'image' in cover
+      ? cover.image
+      : ''
+    : picked
+      ? t('projectInfo.coverPicked', {
+          set: picked.set.name,
+          n: picked.row + 1,
+          side: t(picked.side === 'back' ? 'documents.back' : 'documents.front').toLowerCase()
+        })
+      : ''
 
   const newFolder = projectFolderName(folder)
   const canSave = name.trim() !== ''
@@ -128,64 +123,36 @@ export default function ProjectInfoDialog({
         <p className="muted small">{t('projectInfo.coverHint')}</p>
         <div className="project-info-cover">
           <div className="project-info-cover-fields">
-            <select value={kind} onChange={(e) => setKind(e.target.value as CoverKind)}>
-              <option value="first">{t('projectInfo.coverFirst')}</option>
-              <option value="component" disabled={!withData.length}>
-                {t('projectInfo.coverComponent')}
-              </option>
-              <option value="image" disabled={!images.length}>
-                {t('projectInfo.coverImage')}
-              </option>
-            </select>
-            {kind === 'component' && (
-              <>
-                <label>
-                  {t('projectInfo.coverSet')}
-                  <select value={coverSet} onChange={(e) => setCoverSet(e.target.value)}>
-                    {withData.map((s) => (
-                      <option key={s.name} value={s.name}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <div className="dialog-row">
-                  <label>
-                    {t('projectInfo.coverRow')}
-                    <input
-                      type="number"
-                      min={1}
-                      max={Math.max(1, rows)}
-                      value={coverRow}
-                      onChange={(e) => setCoverRow(parseInt(e.target.value, 10) || 1)}
-                    />
-                  </label>
-                  <label>
-                    {t('projectInfo.coverSide')}
-                    <select
-                      value={coverSide}
-                      onChange={(e) => setCoverSide(e.target.value as 'front' | 'back')}
-                    >
-                      <option value="front">{t('documents.front')}</option>
-                      <option value="back">{t('documents.back')}</option>
-                    </select>
-                  </label>
-                </div>
-              </>
-            )}
-            {kind === 'image' && (
-              <select value={coverImage} onChange={(e) => setCoverImage(e.target.value)}>
-                {images.map((a) => (
-                  <option key={a} value={a}>
-                    {a}
-                  </option>
-                ))}
-              </select>
-            )}
+            <button
+              type="button"
+              className={!cover ? 'selected' : ''}
+              aria-pressed={!cover}
+              onClick={() => setCover(null)}
+            >
+              {t('projectInfo.coverFirst')}
+            </button>
+            <button
+              type="button"
+              className={picked ? 'selected' : ''}
+              aria-pressed={!!picked}
+              disabled={!project.sets.some((x) => x.data?.rows.length)}
+              onClick={() => setPicking('card')}
+            >
+              {t('projectInfo.coverComponent')}
+            </button>
+            <button
+              type="button"
+              className={image ? 'selected' : ''}
+              aria-pressed={!!image}
+              onClick={() => setPicking('image')}
+            >
+              {t('projectInfo.coverImage')}
+            </button>
+            <p className="muted small">{description}</p>
           </div>
           <div className="project-info-cover-preview">
-            {kind === 'image' && coverImage ? (
-              <img src={assetUrl(coverImage)} alt="" />
+            {image?.ok ? (
+              <img src={assetUrl(image.path)} alt="" />
             ) : preview ? (
               <CardSvg
                 template={preview}
@@ -252,6 +219,31 @@ export default function ProjectInfoDialog({
           </button>
         </div>
       </div>
+      {picking === 'card' && (
+        <InsertCardDialog
+          pick={pickedRef}
+          bare
+          sets={project.sets}
+          templates={project.templates}
+          project={project.file}
+          onInsert={(card) => {
+            setPicking(null)
+            // la larghezza non conta per la copertina
+            setCover({ card: card.replace(/([?&])width=[^&]*&?/i, '$1').replace(/[?&]$/, '') })
+          }}
+          onClose={() => setPicking(null)}
+        />
+      )}
+      {picking === 'image' && (
+        <AssetPicker
+          value={cover && 'image' in cover ? cover.image : ''}
+          onPick={(name) => {
+            setPicking(null)
+            setCover({ image: name })
+          }}
+          onClose={() => setPicking(null)}
+        />
+      )}
     </Dialog>
   )
 }
