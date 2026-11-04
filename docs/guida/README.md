@@ -753,6 +753,7 @@ Il PDF è vettoriale, con i font incorporati. Tra le scelte che contano ci sono 
 - **Rotazione**: ruota le carte se altrimenti non entrano o ne entrano di più.
 - **Poster**: divide su più pagine le carte più grandi della pagina, con una sovrapposizione.
 - **Piegatura**: fronte e retro affiancati, da piegare.
+- **Dadi**: compare quando si esporta un set di facce di dado. **Facce** le mette una accanto all'altra come le carte; **Da piegare** stampa ogni dado aperto a croce, da ritagliare, piegare e incollare. Ogni sei righe del set fanno un dado, nell'ordine del foglio: la faccia 1 al centro, la 6 in fondo alla fila, la 2 e la 5 ai lati, la 3 sopra e la 4 sotto, così le facce opposte fanno 7. Le linguette stanno sui sette lati da incollare, ognuna del colore della faccia da cui parte (è la faccia vista allo specchio, quindi il colore continua oltre la piega); le facce 3 e 4 non ne hanno e chiudono il dado. Le linguette sono profonde un quarto del lato, tra 5 e 10 mm, così anche un dado piccolo si incolla con le dita; **Linguette** ne sceglie un'altra misura, fino a 20 mm (0 torna a quella automatica). Il dado è grande quanto il template (una faccia di 20 mm fa un dado di 20 mm), e la faccia deve essere quadrata. Le linee di taglio e le pieghe tratteggiate ci sono solo con i segni di taglio, nel loro colore e spessore. Senza segni di taglio la piega tra una faccia e la sua linguetta non si vede: si piega lungo il lato del quadrato. Con l'abbondanza ogni faccia la tiene sui lati esterni. Gli sviluppi non si ruotano: con dadi grandi una pagina orizzontale ne contiene di più.
 - **Segni di taglio**: agli angoli o a linee intere, con lunghezza, spessore e colore.
 - **Fronte-retro**: retri su pagine alternate, girando il foglio sul lato lungo o corto, con una correzione dello spostamento per le stampanti che non allineano i due lati. Per trovare la correzione giusta stampa prima una pagina sola, misura di quanto il retro è spostato rispetto al fronte guardando il foglio controluce e scrivi quel valore in **Spostamento retri**; poi stampa tutto. Il **Foglio di prova** serve a controllare le carte in piccolo prima di consumare carta.
 - **Pagine**: con **Uno dopo l'altro sulla stessa pagina** un set comincia subito dopo il precedente invece che su una pagina nuova (10 + 8 carte con 9 per pagina stanno in 2 pagine invece di 3). Un set con carte di un'altra misura comincia su una riga nuova, se nella pagina c'è posto. Le carte partono dall'alto della pagina, anche quando non la riempiono, così il taglio comincia sempre dallo stesso bordo.
@@ -760,6 +761,8 @@ Il PDF è vettoriale, con i font incorporati. Tra le scelte che contano ci sono 
 - **Converti in CMYK**: richiede Ghostscript installato sul computer.
 
 ![Esportazione in PDF](img/esporta-pdf.png)
+
+![Un dado da piegare, con abbondanza e segni di taglio](img/dadi-da-piegare.png)
 
 ### 11.3 Anteprima
 

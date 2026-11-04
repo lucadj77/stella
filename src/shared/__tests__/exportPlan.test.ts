@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_IMAGE, DEFAULT_PDF, DEFAULT_TTS, type ExportCard } from '../export'
+import { DEFAULT_IMAGE, DEFAULT_PDF, DEFAULT_TTS, type ExportCard, type ExportSet } from '../export'
 import {
+  dieNet,
   diePage,
+  netTabDepth,
   piecePage,
   planImages,
   planPdf,
@@ -278,5 +280,91 @@ describe('casi limite', () => {
     const c = { ...card(1, 2), perCopy: [tpl, t2] }
     const [plan] = planTts({ ...DEFAULT_TTS, copiesIn: 'sheet' }, [{ name: 's', cards: [c] }])
     expect(plan.chunks[0].cards.map((x) => x.template.name)).toEqual(['t', 't2'])
+  })
+
+  describe('sviluppo dei dadi', () => {
+    const face = normalizeTemplate({ name: 'd', kind: 'die', width: 20, height: 20, bleed: 2 })
+    const die = (n: number, amount = 1): ExportCard => ({ ...card(n, amount), template: face })
+    const dice = (cards: ExportCard[]): ExportSet[] => [
+      { name: 'dadi', kind: 'die' as const, cards }
+    ]
+
+    it('croce di sei facce con le opposte che fanno 7, sette linguette e cinque pieghe interne', () => {
+      const net = dieNet(Array(6).fill(face), false)
+      const d = netTabDepth(20)
+      expect(d).toBe(5)
+      // un dado piccolo ha comunque linguette da 5 mm; si possono chiedere più grandi
+      expect(netTabDepth(12)).toBe(5)
+      expect(netTabDepth(12, 8)).toBe(8)
+      expect(netTabDepth(12, 50)).toBe(20)
+      expect([net.width, net.height]).toEqual([80 + 2 * d, 60 + 2 * d])
+      const at = net.items.map((it) => [(it.x - d) / 20, (it.y - d) / 20])
+      // 1 al centro, 6 dall'altra parte della fila; 2 e 5 ai lati; 3 sopra e 4 sotto
+      expect(at).toEqual([
+        [1, 1],
+        [0, 1],
+        [1, 0],
+        [1, 2],
+        [2, 1],
+        [3, 1]
+      ])
+      expect(net.shapes).toHaveLength(7)
+      // le linguette sono la faccia da cui partono, specchiata e ritagliata sulla loro forma
+      expect(net.tabs).toHaveLength(7)
+      expect(net.tabs[0]).toMatchObject({ x: d, flip: 'y', template: face })
+      expect(net.tabs[0].y).toBeCloseTo(d + 0.2)
+      expect(net.tabs[0].clip?.slice(2)).toEqual(net.shapes[0].points.slice(2))
+      const right = net.tabs.find((t) => t.flip === 'x')
+      expect([right?.x, right?.y]).toEqual([d + 80 - 0.2, d + 20])
+      expect(net.folds.filter((l) => l.dash)).toHaveLength(5 + 7)
+      // il contorno: 7 lati senza linguetta e 3 tratti per linguetta
+      expect(net.cut).toHaveLength(7 + 7 * 3)
+      expect(net.items.every((it) => it.mode === 'cut' && !it.crop)).toBe(true)
+    })
+
+    it("con l'abbondanza ogni faccia la perde dove tocca un'altra", () => {
+      const net = dieNet(Array(6).fill(face), true)
+      expect(net.items[0].crop).toEqual({ l: 2, r: 2, t: 2, b: 2 })
+      expect(net.items[1].crop).toEqual({ l: 0, r: 2, t: 0, b: 0 })
+      expect(net.items[2].crop).toEqual({ l: 0, r: 0, t: 0, b: 2 })
+      expect(net.items.every((it) => it.mode === 'bleed')).toBe(true)
+    })
+
+    it('PDF: un dado ogni sei facce, con le copie del primo, linee solo con i segni di taglio', () => {
+      const cards = [die(1, 2), ...Array.from({ length: 5 }, (_, i) => die(i + 2))]
+      const o = { ...DEFAULT_PDF, dice: 'net' as const, copies: true }
+      const plan = planPdf(o, dice(cards), 'gioco')
+      const page = plan.docs[0].pages[0]
+      expect(page.items).toHaveLength(12 + 14)
+      expect(page.shapes).toHaveLength(14)
+      expect(page.lines.length).toBeGreaterThan(0)
+      expect(page.linesOver).toBe(true)
+      const none = planPdf({ ...o, marks: 'none' }, dice(cards), 'gioco')
+      expect(none.docs[0].pages[0].lines).toEqual([])
+      expect(plan.notes).toEqual([])
+    })
+
+    it('PDF: facce non quadrate o set incompleti lo dicono', () => {
+      const wide = normalizeTemplate({ name: 'w', kind: 'die', width: 20, height: 25 })
+      const o = { ...DEFAULT_PDF, dice: 'net' as const }
+      const odd = planPdf(o, dice([{ ...die(1), template: wide }]), 'g')
+      expect(odd.notes[0].key).toBe('export.dieNotSquare')
+      expect(odd.docs[0].pages[0].shapes).toBeUndefined()
+      const short = planPdf(o, dice([die(1), die(2)]), 'g')
+      expect(short.notes[0].key).toBe('export.ttsDicePadded')
+      expect(short.docs[0].pages[0].items).toHaveLength(6 + 7)
+    })
+
+    it('PDF: con il fronte-retro ogni pagina di dadi ha una pagina vuota dietro', () => {
+      const cards = Array.from({ length: 6 }, (_, i) => die(i + 1))
+      const plan = planPdf({ ...DEFAULT_PDF, dice: 'net', duplex: 'long' }, dice(cards), 'g')
+      expect(plan.docs[0].pages.map((p) => p.items.length)).toEqual([6 + 7, 0])
+    })
+
+    it('con le facce separate i dadi restano come prima', () => {
+      const cards = Array.from({ length: 6 }, (_, i) => die(i + 1))
+      const plan = planPdf(DEFAULT_PDF, dice(cards), 'g')
+      expect(plan.docs[0].pages[0].shapes).toBeUndefined()
+    })
   })
 })

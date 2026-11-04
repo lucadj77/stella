@@ -753,6 +753,7 @@ The PDF is vector, with embedded fonts. The choices that matter are the paper (p
 - **Rotation**: rotates cards when they would not fit otherwise or more of them fit.
 - **Poster**: splits cards larger than the page over several pages, with an overlap.
 - **Fold**: front and back side by side, to fold.
+- **Dice**: shows up when you export a set of die faces. **Faces** places them side by side like cards; **To fold** prints each die opened out as a cross, to cut, fold and glue. Every six rows of the set make one die, in sheet order: face 1 in the middle, 6 at the end of the row, 2 and 5 on the sides, 3 above and 4 below, so opposite faces add up to 7. The tabs sit on the seven edges to glue, each in the color of the face it starts from (it is that face seen in a mirror, so the color runs past the fold); faces 3 and 4 have none and close the die. The tabs are a quarter of the side deep, between 5 and 10 mm, so even a small die can be glued with your fingers; **Tabs** sets another depth, up to 20 mm (0 goes back to the automatic one). The die is as large as the template (a 20 mm face makes a 20 mm die), and the face must be square. Cut lines and dashed fold lines are there only with crop marks, in their color and width. Without crop marks the fold between a face and its tab does not show: fold along the side of the square. With bleed each face keeps it on its outer edges. The nets are not rotated: with large dice a landscape page holds more of them.
 - **Crop marks**: at the corners or as full lines, with length, width and color.
 - **Duplex**: backs on alternate pages, flipping on the long or short edge, with an offset for printers that do not align the two sides. To find the right offset, print a single page first, hold the sheet against the light to measure how far the back is shifted from the front, and type that value in **Back offset**; then print everything. The **Proof sheet** lets you check all the cards small before using up paper.
 - **Pages**: with **One after another on the same page** a set starts right after the previous one instead of on a new page (10 + 8 cards with 9 per page fit on 2 pages instead of 3). A set with cards of another size starts on a new row, if there is room on the page. The cards start from the top of the page, even when they do not fill it, so cutting always starts from the same edge.
@@ -760,6 +761,8 @@ The PDF is vector, with embedded fonts. The choices that matter are the paper (p
 - **Convert to CMYK**: needs Ghostscript installed on the computer.
 
 ![Exporting a PDF](img/esporta-pdf.png)
+
+![A die to fold, with bleed and crop marks](img/dice-to-fold.png)
 
 ### 11.3 Preview
 

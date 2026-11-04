@@ -64,7 +64,7 @@ export function previewItems(job: ExportJob): PreviewPlan {
   }
   if (job.kind === 'pdf') {
     const o = job.options
-    const { docs, overflow } = planPdf(o, sets, job.project)
+    const { docs, overflow, notes } = planPdf(o, sets, job.project)
     const scene = {
       background: '#FFFFFF',
       lineColor: o.markColor,
@@ -73,7 +73,10 @@ export function previewItems(job: ExportJob): PreviewPlan {
     }
     return {
       files: docs.length,
-      notes: overflow.map((set) => ({ key: 'export.gridOverflow', params: { set } })),
+      notes: [
+        ...overflow.map((set) => ({ key: 'export.gridOverflow', params: { set } })),
+        ...notes
+      ],
       items: docs.flatMap((d) =>
         d.pages.map((page, i) => ({
           file: `${d.name}.pdf`,

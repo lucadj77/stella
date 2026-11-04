@@ -16,6 +16,8 @@ export type ChoiceIcon =
   | 'dest-project'
   | 'dest-tts'
   | 'dest-both'
+  | 'dice-faces'
+  | 'dice-net'
 
 const line = {
   fill: 'none',
@@ -130,6 +132,35 @@ function choicePicture(name: ChoiceIcon): React.JSX.Element {
           <rect x={9} y={2} width={26} height={32} rx={1} {...accent} />
           <rect {...CARD} {...line} strokeDasharray="2.5 2" />
           <path d="M18 14h8M18 18h8M18 22h5" {...line} strokeOpacity={0.6} />
+        </>
+      )
+    case 'dice-faces':
+      return (
+        <>
+          {[0, 1, 2].map((c) =>
+            [0, 1].map((r) => (
+              <rect
+                key={`${c}${r}`}
+                x={6 + c * 11}
+                y={7 + r * 12}
+                width={9}
+                height={9}
+                rx={1.5}
+                {...line}
+              />
+            ))
+          )}
+        </>
+      )
+    case 'dice-net':
+      return (
+        <>
+          {/* le linguette, poi la croce delle sei facce */}
+          <path
+            d="M26 12l1.5-2.5h5L34 12M26 24l1.5 2.5h5L34 24M34 12l2.5 1.5v9L34 24"
+            {...accent}
+          />
+          <path d="M10 4h8v8h16v12H18v8h-8v-8H2V12h8zM10 12h8v12h-8M18 12v12M26 12v12" {...line} />
         </>
       )
     case 'dest-project':

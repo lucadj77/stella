@@ -39,8 +39,10 @@ import {
   type TtsOptions,
   isTokenLike,
   type TtsPieceKind,
-  type TtsSetObject
+  type TtsSetObject,
+  type SceneShape
 } from './export'
+import type { Message } from './messages'
 import type { Side, Template } from './model/template'
 
 /** Una carta da sola, con o senza abbondanza */
@@ -108,6 +110,8 @@ export interface PdfPlan {
   docs: PdfDocument[]
   /** Set la cui griglia esce dalla pagina */
   overflow: string[]
+  /** Avvisi sugli sviluppi dei dadi */
+  notes: Message[]
 }
 
 export function planPdf(o: PdfOptions, sets: ExportSet[], project: string): PdfPlan {
@@ -125,9 +129,15 @@ export function planPdf(o: PdfOptions, sets: ExportSet[], project: string): PdfP
       }
     }))
   // set dopo set; con continuous i set vicini che non sono poster si uniscono in un gruppo
-  type Entry = { set: ExportSet; grid: Grid; kind: 'grid' | 'fold' | 'poster' }
+  type Entry = { set: ExportSet; grid: Grid; kind: 'grid' | 'fold' | 'poster' | 'net' }
+  const notes: Message[] = []
   const entries: Entry[] = sets.map((set) => {
     const grid = pdfGrid(o, set.cards[0].template)
+    if (o.dice === 'net' && set.kind === 'die') {
+      const t = set.cards[0].template
+      if (Math.abs(t.width - t.height) < 0.01) return { set, grid, kind: 'net' }
+      notes.push({ key: 'export.dieNotSquare', params: { set: set.name } })
+    }
     // margini oltre metà pagina: nessuna area utile, né per la griglia né per un poster
     const noRoom = page.width <= 2 * o.margin || page.height <= 2 * o.margin
     const poster = gridOverflows(grid) && o.poster && !o.fold
@@ -143,6 +153,7 @@ export function planPdf(o: PdfOptions, sets: ExportSet[], project: string): PdfP
       continuous &&
       prev &&
       e.kind !== 'poster' &&
+      e.kind !== 'net' &&
       prev.kind === e.kind &&
       // nella piegatura solo set con la stessa griglia; nella griglia anche misure diverse
       (e.kind === 'grid' || sameGrid(prev.grid, e.grid))
@@ -152,6 +163,12 @@ export function planPdf(o: PdfOptions, sets: ExportSet[], project: string): PdfP
   const bySet = groups.map((group) => {
     const { set, grid, kind } = group[0]
     if (kind === 'poster') return { set, pages: posterPages(o, set) }
+    if (kind === 'net') {
+      const net = netPages(o, set)
+      if (net.overflow) overflow.push(set.name)
+      if (net.padded) notes.push({ key: 'export.ttsDicePadded', params: { set: set.name } })
+      return { set, pages: net.pages }
+    }
     const merged: ExportSet = { name: set.name, cards: group.flatMap((e) => e.set.cards) }
     if (kind === 'fold') return { set, pages: foldPages(o, merged, grid) }
     if (group.every((e) => sameGrid(e.grid, grid)))
@@ -181,7 +198,8 @@ export function planPdf(o: PdfOptions, sets: ExportSet[], project: string): PdfP
   const names = uniqueNames(docs.map((d) => d.name))
   return {
     docs: docs.map((d, i) => ({ ...d, name: names[i] })).filter((d) => d.pages.length),
-    overflow
+    overflow,
+    notes
   }
 }
 
@@ -334,6 +352,247 @@ function foldMarks(o: PdfOptions, g: Grid, cards: PlacedCard[]): SceneLine[] {
       { x1: x, y1: c.y + g.cellH, x2: x, y2: c.y + g.cellH + len, dash: true }
     ]
   })
+}
+
+// ——— Sviluppi dei dadi ———
+
+/**
+ * Celle dello sviluppo a croce, in lati di faccia (colonna, riga), per le facce da 1 a 6: quattro
+ * facce in fila (2, 1, 5, 6) con la 3 sopra la 1 e la 4 sotto. Piegato, le facce opposte fanno 7
+ * come nei dadi di Tabletop Simulator
+ */
+const NET_CELLS: [number, number][] = [
+  [1, 1],
+  [0, 1],
+  [1, 0],
+  [1, 2],
+  [2, 1],
+  [3, 1]
+]
+type Edge = 'top' | 'right' | 'bottom' | 'left'
+/** Lati con la linguetta, uno per ogni coppia di lati che si incollano: le facce 3 e 4 restano pulite */
+const NET_TABS: [number, Edge][] = [
+  [1, 'top'],
+  [1, 'bottom'],
+  [4, 'top'],
+  [4, 'bottom'],
+  [5, 'top'],
+  [5, 'bottom'],
+  [5, 'right']
+]
+const NET_COLS = 4
+const NET_ROWS = 3
+/** Spazio minimo tra due sviluppi, in mm */
+const NET_GAP = 2
+/** Colore sotto le linguette, dove la faccia è trasparente */
+export const NET_TAB_FILL = '#E3E3E3'
+/** Quanto la linguetta entra sotto la sua faccia, in mm */
+const NET_TAB_OVERLAP = 0.2
+/** Linguetta più grande che si può chiedere, in mm */
+export const NET_TAB_MAX = 20
+
+/**
+ * Profondità delle linguette di un dado con lato s, in mm: quella chiesta (tab, tra 2 e
+ * NET_TAB_MAX), o un quarto del lato, tra 5 e 10 mm, perché anche un dado piccolo abbia
+ * linguette da tenere tra le dita
+ */
+export function netTabDepth(s: number, tab = 0): number {
+  if (tab > 0) return Math.min(NET_TAB_MAX, Math.max(2, tab))
+  return Math.round(Math.min(10, Math.max(5, s * 0.25)) * 2) / 2
+}
+
+/** Faccia vicina sul lato indicato, se c'è */
+function netNeighbor(k: number, edge: Edge): number {
+  const [c, r] = NET_CELLS[k]
+  const [dc, dr] = { top: [0, -1], right: [1, 0], bottom: [0, 1], left: [-1, 0] }[edge]
+  return NET_CELLS.findIndex(([x, y]) => x === c + dc && y === r + dr)
+}
+
+/** Estremi di un lato della faccia, in senso orario, e la direzione verso l'esterno */
+function netEdge(
+  x: number,
+  y: number,
+  s: number,
+  edge: Edge
+): { p: [number, number]; q: [number, number]; n: [number, number] } {
+  if (edge === 'top') return { p: [x, y], q: [x + s, y], n: [0, -1] }
+  if (edge === 'right') return { p: [x + s, y], q: [x + s, y + s], n: [1, 0] }
+  if (edge === 'bottom') return { p: [x + s, y + s], q: [x, y + s], n: [0, 1] }
+  return { p: [x, y + s], q: [x, y], n: [-1, 0] }
+}
+
+export interface DieNet {
+  /** Misure del riquadro dello sviluppo, con le linguette e l'abbondanza */
+  width: number
+  height: number
+  items: SceneItem[]
+  /** Le facce specchiate sulle linguette, ritagliate sulla loro forma: da disegnare per prime */
+  tabs: SceneItem[]
+  shapes: SceneShape[]
+  /** Contorno da tagliare */
+  cut: SceneLine[]
+  /** Pieghe, tratteggiate */
+  folds: SceneLine[]
+}
+
+/**
+ * Lo sviluppo di un dado a sei facce, con l'angolo in alto a sinistra in (x, y). Con l'abbondanza
+ * ogni faccia la tiene solo sui lati esterni. Ogni linguetta prende il colore della faccia da cui
+ * parte: è la faccia specchiata sul lato della piega, quindi il colore continua oltre lo spigolo
+ */
+export function dieNet(faces: Template[], bleed: boolean, tab = 0, x = 0, y = 0): DieNet {
+  const s = faces[0].width
+  const d = netTabDepth(s, tab)
+  const b = bleed ? Math.max(0, ...faces.map((t) => t.bleed)) : 0
+  const pad = Math.max(d, b)
+  const inset = Math.min(d, s * 0.3)
+  const items: SceneItem[] = faces.map((t, k) => {
+    const [c, r] = NET_CELLS[k]
+    const tb = bleed ? t.bleed : 0
+    const crop = (edge: Edge): number => (netNeighbor(k, edge) >= 0 ? tb : 0)
+    return {
+      x: x + pad + c * s - tb,
+      y: y + pad + r * s - tb,
+      template: t,
+      side: 'front' as const,
+      mode: bleed ? ('bleed' as const) : ('cut' as const),
+      ...(tb
+        ? { crop: { l: crop('left'), r: crop('right'), t: crop('top'), b: crop('bottom') } }
+        : {})
+    }
+  })
+  const shapes: SceneShape[] = []
+  const tabs: SceneItem[] = []
+  const cut: SceneLine[] = []
+  const folds: SceneLine[] = []
+  const line = (a: [number, number], z: [number, number], dash?: boolean): SceneLine => ({
+    x1: a[0],
+    y1: a[1],
+    x2: z[0],
+    y2: z[1],
+    ...(dash ? { dash: true } : {})
+  })
+  NET_CELLS.forEach(([c, r], k) => {
+    const fx = x + pad + c * s
+    const fy = y + pad + r * s
+    for (const edge of ['top', 'right', 'bottom', 'left'] as const) {
+      const { p, q, n } = netEdge(fx, fy, s, edge)
+      const other = netNeighbor(k, edge)
+      // una piega tra due facce si disegna una volta sola
+      if (other >= 0) {
+        if (other > k) folds.push(line(p, q, true))
+        continue
+      }
+      if (!NET_TABS.some(([f, e]) => f === k && e === edge)) {
+        cut.push(line(p, q))
+        continue
+      }
+      const t: [number, number] = [(q[0] - p[0]) / s, (q[1] - p[1]) / s]
+      const p2: [number, number] = [p[0] + n[0] * d + t[0] * inset, p[1] + n[1] * d + t[1] * inset]
+      const q2: [number, number] = [q[0] + n[0] * d - t[0] * inset, q[1] + n[1] * d - t[1] * inset]
+      const points: [number, number][] = [p, q, q2, p2]
+      shapes.push({ points, fill: NET_TAB_FILL })
+      // la faccia specchiata entra un poco sotto la faccia vera: senza, lungo la piega resta
+      // una riga bianca sottile dove i due bordi sfumati si incontrano
+      const o = NET_TAB_OVERLAP
+      const under = (v: [number, number]): [number, number] => [v[0] - n[0] * o, v[1] - n[1] * o]
+      tabs.push({
+        x: fx + n[0] * (s - o),
+        y: fy + n[1] * (s - o),
+        template: faces[k],
+        side: 'front',
+        mode: 'cut',
+        flip: n[0] ? 'x' : 'y',
+        clip: [under(p), under(q), q2, p2]
+      })
+      folds.push(line(p, q, true))
+      cut.push(line(p, p2), line(p2, q2), line(q2, q))
+    }
+  })
+  return {
+    width: NET_COLS * s + 2 * pad,
+    height: NET_ROWS * s + 2 * pad,
+    items,
+    tabs,
+    shapes,
+    cut,
+    folds
+  }
+}
+
+/** Quanti sviluppi entrano in una pagina, in colonne e righe; fits è falso se non ne entra uno */
+export function netGrid(
+  o: PdfOptions,
+  face: Template
+): { cols: number; rows: number; fits: boolean; gap: number } {
+  const page = pageSize(o)
+  const net = dieNet(Array(6).fill(face), o.bleed, o.tabDepth)
+  const gap = Math.max(NET_GAP, o.spacing)
+  const fit = (avail: number, cell: number): number =>
+    Math.floor((avail + gap + 1e-6) / (cell + gap))
+  const c = fit(page.width - 2 * o.margin, net.width)
+  const r = fit(page.height - 2 * o.margin, net.height)
+  return { cols: Math.max(1, c), rows: Math.max(1, r), fits: c >= 1 && r >= 1, gap }
+}
+
+/**
+ * Pagine degli sviluppi dei dadi di un set: sei carte per dado, nell'ordine del foglio (come in
+ * Tabletop Simulator), con le copie del primo. Le linee di taglio e le pieghe ci sono solo con i
+ * segni di taglio, nel loro colore. Non si ruotano: per metterne di più si gira la pagina
+ */
+function netPages(
+  o: PdfOptions,
+  set: ExportSet
+): { pages: { side: Side; page: ScenePage }[]; overflow: boolean; padded: boolean } {
+  const page = pageSize(o)
+  const kept = set.cards.filter((c) => !o.copies || c.amount > 0)
+  const dice: Template[][] = []
+  let padded = false
+  for (let i = 0; i < kept.length; i += 6) {
+    const group = kept.slice(i, i + 6)
+    if (group.length < 6) padded = true
+    const faces = Array.from({ length: 6 }, (_, j) => group[j % group.length].template)
+    const count = o.copies ? Math.max(1, group[0].amount) : 1
+    for (let n = 0; n < count; n++) dice.push(faces)
+  }
+  if (!dice.length || o.sides === 'back') return { pages: [], overflow: false, padded }
+  const probe = dieNet(dice[0], o.bleed, o.tabDepth)
+  const { cols, rows, fits, gap } = netGrid(o, dice[0][0])
+  const x0 = (page.width - (cols * probe.width + (cols - 1) * gap)) / 2
+  const y0 = (page.height - (rows * probe.height + (rows - 1) * gap)) / 2
+  const marks = o.marks !== 'none'
+  const out: { side: Side; page: ScenePage }[] = []
+  for (let i = 0; i < dice.length; i += cols * rows) {
+    const nets = dice
+      .slice(i, i + cols * rows)
+      .map((faces, k) =>
+        dieNet(
+          faces,
+          o.bleed,
+          o.tabDepth,
+          x0 + (k % cols) * (probe.width + gap),
+          y0 + Math.floor(k / cols) * (probe.height + gap)
+        )
+      )
+    out.push({
+      side: 'front',
+      page: {
+        width: page.width,
+        height: page.height,
+        items: nets.flatMap((n) => [...n.tabs, ...n.items]),
+        shapes: nets.flatMap((n) => n.shapes),
+        lines: marks ? nets.flatMap((n) => [...n.cut, ...n.folds]) : [],
+        linesOver: true
+      }
+    })
+    // con il fronte-retro i dadi non hanno retro: una pagina vuota tiene allineati i set dopo
+    if (o.duplex !== 'none')
+      out.push({
+        side: 'back',
+        page: { width: page.width, height: page.height, items: [], lines: [] }
+      })
+  }
+  return { pages: out, overflow: !fits, padded }
 }
 
 // ——— Fogli di prova ———

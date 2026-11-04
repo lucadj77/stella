@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.9.0-beta.10
+
+### English
+
+- **Dice to fold**: the PDF export has a new **Dice** choice for sets of die faces. **To fold** prints each six-sided die as a cross to cut out, fold and glue, with tabs on the seven edges to glue and opposite faces adding up to 7. Each tab takes the color of the face it starts from, so no white shows along the edges of the die. The tabs are at least 5 mm deep, also on small dice, and **Tabs** sets another depth. The die is as large as the face of the template. Cut and dashed fold lines appear only with crop marks, in their color; with bleed the color of each face also runs past its outer edges.
+
+### Italiano
+
+- **Dadi da piegare**: l'esportazione in PDF ha una scelta nuova, **Dadi**, per i set di facce di dado. **Da piegare** stampa ogni dado a sei facce come una croce da ritagliare, piegare e incollare, con le linguette sui sette lati da incollare e le facce opposte che fanno 7. Ogni linguetta prende il colore della faccia da cui parte, così lungo gli spigoli del dado non si vede il bianco. Le linguette sono profonde almeno 5 mm, anche sui dadi piccoli, e **Linguette** ne sceglie un'altra misura. Il dado è grande quanto la faccia del template. Le linee di taglio e le pieghe tratteggiate compaiono solo con i segni di taglio, nel loro colore; con l'abbondanza il colore di ogni faccia continua anche oltre i lati esterni.
+
 ## 1.9.0-beta.9
 
 ### English
