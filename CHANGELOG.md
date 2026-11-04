@@ -10,19 +10,11 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 ### English
 
 - **Line break with `<br>`**: in the cells of document tables, in anatomy labels and in table setup texts and captions, `<br>` starts a new line. In the window fields, Shift+Enter or Alt+Enter writes it. It is the only piece of HTML Stella reads; `\<br>` writes it as it is. The Markdown export writes line breaks as `<br>` too, so they also work inside tables.
-
-### Italiano
-
-- **A capo con `<br>`**: nelle celle delle tabelle dei documenti, nelle etichette dell'anatomia e nei testi e nelle didascalie dello schema del tavolo, `<br>` va a capo. Nei campi delle finestre lo scrivono Maiusc+Invio o Alt+Invio. È l'unico pezzo di HTML che Stella legge; `\<br>` lo scrive com'è. Anche l'esportazione in Markdown scrive gli a capo come `<br>`, così funzionano anche nelle tabelle.
-
-## 1.9.0-beta.6
-
-### English
-
 - **Text beside, image window**: the choice now has its own row and its buttons stay on one line, so the alignment buttons are no longer cut off.
 
 ### Italiano
 
+- **A capo con `<br>`**: nelle celle delle tabelle dei documenti, nelle etichette dell'anatomia e nei testi e nelle didascalie dello schema del tavolo, `<br>` va a capo. Nei campi delle finestre lo scrivono Maiusc+Invio o Alt+Invio. È l'unico pezzo di HTML che Stella legge; `\<br>` lo scrive com'è. Anche l'esportazione in Markdown scrive gli a capo come `<br>`, così funzionano anche nelle tabelle.
 - **Testo accanto, finestra dell'immagine**: la scelta ha una riga tutta sua e i tasti restano su una riga, così anche quelli dell'allineamento non sono più tagliati.
 
 ## 1.9.0-beta.5
