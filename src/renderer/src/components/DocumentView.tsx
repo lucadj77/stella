@@ -32,6 +32,7 @@ import DocumentSettingsPanel from './DocumentSettingsPanel'
 import DocumentExportDialog, { type DocExportKind } from './DocumentExportDialog'
 import { documentHtml, documentMarkdown } from '../export/documentExport'
 import { documentDocx } from '../export/documentDocx'
+import { printHtml } from '../export/printHtml'
 import InsertCardDialog from './InsertCardDialog'
 import TableDialog, { type TableValue } from './TableDialog'
 import SetupDialog from './SetupDialog'
@@ -403,6 +404,11 @@ export default function DocumentView({
         )
       }
       const html = await documentHtml(page, name, settings, fonts)
+      // nel browser il PDF passa dalla finestra di stampa: il file lo salva chi stampa
+      if (kind === 'pdf' && window.api.isWeb) {
+        await printHtml(html, name)
+        return ''
+      }
       const data = kind === 'pdf' ? await window.api.documentPdf(html) : html
       return await window.api.exportDocumentFiles([{ path: `${name}.${kind}`, data }])
     } finally {

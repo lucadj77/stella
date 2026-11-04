@@ -1713,6 +1713,10 @@ export const en = {
   'documents.exportHint': 'Save the document as PDF, HTML, Word or Markdown in export/docs',
   'documents.export.pdf': 'PDF',
   'documents.export.pdfHint': 'To print or send, with the page size and margins of the document',
+  'documents.export.pdfWebHint':
+    "Opens the browser's print window, with the page size and margins of the document",
+  'documents.printHint':
+    'PDF in the web version: in the print window choose "Save as PDF", keep the scale on "Default" (100%) and turn off "Headers and footers". Sizes stay in millimeters, as in the desktop app.',
   'documents.export.html': 'HTML',
   'documents.export.htmlHint': 'One web page, with components, images and fonts inside the file',
   'documents.export.docx': 'Word',

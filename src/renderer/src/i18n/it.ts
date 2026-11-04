@@ -1743,6 +1743,10 @@ export const it: Record<MessageKey, string> = {
   'documents.exportHint': 'Salva il documento in PDF, HTML, Word o Markdown in export/docs',
   'documents.export.pdf': 'PDF',
   'documents.export.pdfHint': 'Da stampare o inviare, con il formato e i margini del documento',
+  'documents.export.pdfWebHint':
+    'Apre la finestra di stampa del browser, con il formato e i margini del documento',
+  'documents.printHint':
+    'PDF nella versione web: nella finestra di stampa scegli "Salva come PDF", lascia la scala su "Predefinita" (100%) e togli "Intestazioni e piè di pagina". Le misure restano in millimetri, come nell\'app desktop.',
   'documents.export.html': 'HTML',
   'documents.export.htmlHint': 'Una pagina web, con componenti, immagini e font dentro il file',
   'documents.export.docx': 'Word',

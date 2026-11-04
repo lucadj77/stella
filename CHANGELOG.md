@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.9.0-beta.4
+
+### English
+
+- **Document PDF in the web version**: **Export document… → PDF** now works in the browser too. It opens the print window with the page size and margins of the document: choose **Save as PDF**, keep the scale on **Default** (100%) and turn off **Headers and footers**. Sizes stay in millimeters, as in the desktop app.
+
+### Italiano
+
+- **PDF dei documenti nella versione web**: **Esporta documento… → PDF** ora funziona anche nel browser. Apre la finestra di stampa con il formato e i margini del documento: scegli **Salva come PDF**, lascia la scala su **Predefinita** (100%) e togli **Intestazioni e piè di pagina**. Le misure restano in millimetri, come nell'app desktop.
+
 ## 1.9.0-beta.3
 
 ### English

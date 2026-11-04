@@ -41,9 +41,9 @@ export default function DocumentExportDialog({
       .catch((e) => setError(messageFromError(e)))
       .finally(() => setBusy(null))
   }
-  const kinds: DocExportKind[] = window.api.isWeb
-    ? ['html', 'docx', 'md']
-    : ['pdf', 'html', 'docx', 'md']
+  const kinds: DocExportKind[] = ['pdf', 'html', 'docx', 'md']
+  /** Nel browser il PDF non è un file salvato: si apre la finestra di stampa */
+  const printed = (kind: DocExportKind): boolean => window.api.isWeb && kind === 'pdf'
   const file = (kind: DocExportKind): string => (kind === 'md' ? `${name}.md` : `${name}.${kind}`)
   return (
     <Dialog title={t('documents.export')} onClose={onClose}>
@@ -53,12 +53,15 @@ export default function DocumentExportDialog({
           {kinds.map((k) => (
             <button key={k} disabled={busy !== null} onClick={() => run(k)}>
               <strong>{t(`documents.export.${k}`)}</strong>
-              <span className="muted small">{t(`documents.export.${k}Hint`)}</span>
+              <span className="muted small">
+                {t(printed(k) ? 'documents.export.pdfWebHint' : `documents.export.${k}Hint`)}
+              </span>
             </button>
           ))}
         </div>
         {busy && <p className="muted">{t('documents.exporting')}</p>}
-        {done && (
+        {window.api.isWeb && <p className="muted small">{t('documents.printHint')}</p>}
+        {done && !printed(done.kind) && (
           <p>
             {t('documents.exported', { file: `export/docs/${file(done.kind)}` })}{' '}
             {/* nel browser un file che non si può mostrare (Word) si scaricherebbe di nuovo */}
