@@ -21,7 +21,7 @@ L'elenco è anche nell'app, nella voce **Cosa ha in più la versione desktop** i
 schermata iniziale (`src/renderer/src/components/DesktopFeaturesDialog.tsx`): quando una funzione
 arriva nel web va tolta da lì.
 
-- PDF: le pagine vanno alla finestra di stampa del browser, da cui si sceglie "Salva come PDF"
+- PDF (componenti e documenti): le pagine vanno alla finestra di stampa del browser, da cui si sceglie "Salva come PDF"
   (margini nessuno, grafica di sfondo attiva). Niente CMYK.
 - Immagini PNG, JPG e WebP: si ottengono dall'SVG della carta (lo stesso dell'esportazione in SVG)
   disegnato su un canvas, non da una cattura della pagina. Il risultato può differire di poco
