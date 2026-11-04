@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.9.0-beta.6
+
+### English
+
+- **Text beside, image window**: the choice now has its own row and its buttons stay on one line, so the alignment buttons are no longer cut off.
+
+### Italiano
+
+- **Testo accanto, finestra dell'immagine**: la scelta ha una riga tutta sua e i tasti restano su una riga, così anche quelli dell'allineamento non sono più tagliati.
+
 ## 1.9.0-beta.5
 
 ### English

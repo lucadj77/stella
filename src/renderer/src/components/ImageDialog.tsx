@@ -89,6 +89,8 @@ export default function ImageDialog({
               onChange={setAlign}
             />
           </label>
+        </div>
+        <div className="dialog-row">
           <WrapField value={wrap} onChange={setWrap} />
         </div>
         <p className="muted small">{t('docImage.alignHint')}</p>
