@@ -455,9 +455,10 @@ Card text is written with a simple markup, the same in the app and in the sheet 
 | `- item` / `1. item`     | bulleted / numbered list                          |
 | `---`                    | divider line                                      |
 | `\` at the end of a line | line break without a new paragraph                |
+| `<br>`                   | line break where the text is on a single line     |
 | `_4{coin}_`              | never breaks across lines                         |
 
-Every line break starts a new paragraph, as when you type in an Excel cell with Alt+Enter. To keep a piece of text on one line, so that `4` and its icon never end up on different lines, wrap it in underscores: `_4{coin}_`. It is the same as `[4{coin}]{nowrap}`. An underscore inside a word (`file_name`) stays as it is; write `\_` for a lone one.
+Every line break starts a new paragraph, as when you type in an Excel cell with Alt+Enter. To keep a piece of text on one line, so that `4` and its icon never end up on different lines, wrap it in underscores: `_4{coin}_`. It is the same as `[4{coin}]{nowrap}`. An underscore inside a word (`file_name`) stays as it is; write `\_` for a lone one. Where the text is on a single line (cells of document tables, anatomy labels, table setup texts and captions) `<br>` breaks the line; in the window fields Shift+Enter or Alt+Enter writes it. It is the only piece of HTML Stella reads; `\<br>` writes it as it is.
 
 ### 6.2 Attributes
 
@@ -1005,6 +1006,7 @@ Every shortcut is written first with the Mac ⌘ key and then, after the slash, 
 | anywhere     | ⌘+, ⌘−, ⌘0 / Ctrl+, Ctrl−, Ctrl+0                | enlarge, shrink and reset the interface (desktop app)                                         |
 | set          | ⌘A / Ctrl+A, Esc                                 | select all cards, go back to one                                                              |
 | table        | Alt+Enter                                        | new line inside a cell                                                                        |
+| documents    | Shift+Enter / Alt+Enter                          | `<br>`: line break in a table cell, an anatomy label or a table setup text                    |
 | text         | `{`, then ↑ ↓, Enter                             | field and variable suggestions                                                                |
 | editor       | ⌘Z / Ctrl+Z, ⇧⌘Z / Ctrl+Shift+Z (or ⌘Y / Ctrl+Y) | undo and redo                                                                                 |
 | editor       | T, R, E, I, G, V                                 | new text, rectangle, ellipse, image, grid, value                                              |

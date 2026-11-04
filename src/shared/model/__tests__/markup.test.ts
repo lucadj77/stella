@@ -75,6 +75,23 @@ describe('markup: Markdown', () => {
   })
 })
 
+describe('markup: <br>', () => {
+  it('va a capo dove il testo sta su una riga sola', () => {
+    const br = [{ t: 'text', text: 'uno' }, { t: 'br' }, { t: 'text', text: 'due' }]
+    expect(inline('uno<br>due')).toEqual(br)
+    expect(inline('uno<br/>due')).toEqual(br)
+    expect(inline('uno<BR />due')).toEqual(br)
+    expect(plainText('uno<br>due')).toBe('uno due')
+    expect(markupProblems('uno<br>due')).toEqual([])
+  })
+
+  it("il resto dell'HTML resta testo, e \\<br> si scrive com'è", () => {
+    expect(inline('a <b> c')).toEqual([{ t: 'text', text: 'a <b> c' }])
+    expect(inline('1 < 2')).toEqual([{ t: 'text', text: '1 < 2' }])
+    expect(inline('\\<br>')).toEqual([{ t: 'text', text: '<br>' }])
+  })
+})
+
 describe('markup: attributi', () => {
   it('legge stili, colori, dimensioni e contorni', () => {
     expect(parseAttrs('.keyword color=red size=+2 stroke=white/8% weight=800').attrs).toEqual({

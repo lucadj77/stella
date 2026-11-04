@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.9.0-beta.7
+
+### English
+
+- **Line break with `<br>`**: in the cells of document tables, in anatomy labels and in table setup texts and captions, `<br>` starts a new line. In the window fields, Shift+Enter or Alt+Enter writes it. It is the only piece of HTML Stella reads; `\<br>` writes it as it is. The Markdown export writes line breaks as `<br>` too, so they also work inside tables.
+
+### Italiano
+
+- **A capo con `<br>`**: nelle celle delle tabelle dei documenti, nelle etichette dell'anatomia e nei testi e nelle didascalie dello schema del tavolo, `<br>` va a capo. Nei campi delle finestre lo scrivono Maiusc+Invio o Alt+Invio. È l'unico pezzo di HTML che Stella legge; `\<br>` lo scrive com'è. Anche l'esportazione in Markdown scrive gli a capo come `<br>`, così funzionano anche nelle tabelle.
+
 ## 1.9.0-beta.6
 
 ### English

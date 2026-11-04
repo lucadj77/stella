@@ -455,9 +455,10 @@ Il testo delle carte si scrive con un markup semplice, uguale nell'app e nelle c
 | `- voce` / `1. voce`         | elenco puntato / numerato                      |
 | `---`                        | linea separatrice                              |
 | `\` a fine riga              | a capo senza nuovo paragrafo                   |
+| `<br>`                       | a capo dove il testo sta su una riga sola      |
 | `_4{moneta}_`                | non va mai a capo                              |
 
-Ogni a capo inizia un nuovo paragrafo, come quando si scrive in una cella di Excel con Alt+Invio. Per tenere un pezzo di testo sulla stessa riga, così che `4` e la sua icona non finiscano su righe diverse, lo si chiude tra due trattini bassi: `_4{moneta}_`. È lo stesso di `[4{moneta}]{nowrap}`. Un trattino basso dentro una parola (`nome_file`) resta com'è; per scriverne uno isolato si usa `\_`.
+Ogni a capo inizia un nuovo paragrafo, come quando si scrive in una cella di Excel con Alt+Invio. Per tenere un pezzo di testo sulla stessa riga, così che `4` e la sua icona non finiscano su righe diverse, lo si chiude tra due trattini bassi: `_4{moneta}_`. È lo stesso di `[4{moneta}]{nowrap}`. Un trattino basso dentro una parola (`nome_file`) resta com'è; per scriverne uno isolato si usa `\_`. Dove il testo sta su una riga sola (le celle delle tabelle dei documenti, le etichette dell'anatomia, i testi e le didascalie dello schema del tavolo) si va a capo con `<br>`, che nei campi delle finestre si scrive con Maiusc+Invio o Alt+Invio. È l'unico pezzo di HTML che Stella legge; `\<br>` lo scrive com'è.
 
 ### 6.2 Attributi
 
@@ -1005,6 +1006,7 @@ Ogni scorciatoia è scritta prima con il tasto ⌘ del Mac e poi, dopo la barra,
 | ovunque       | ⌘+, ⌘−, ⌘0 / Ctrl+, Ctrl−, Ctrl+0                | ingrandisce, riduce e riporta normale l'interfaccia (app per computer)                                       |
 | set           | ⌘A / Ctrl+A, Esc                                 | seleziona tutte le carte, torna a una sola                                                                   |
 | tabella       | Alt+Invio                                        | a capo dentro una cella                                                                                      |
+| documenti     | Maiusc+Invio / Alt+Invio                         | `<br>`: a capo in una cella di tabella, un'etichetta dell'anatomia o un testo dello schema del tavolo         |
 | testo         | `{`, poi ↑ ↓, Invio                              | suggerimenti di campi e variabili                                                                            |
 | editor        | ⌘Z / Ctrl+Z, ⇧⌘Z / Ctrl+Maiusc+Z (o ⌘Y / Ctrl+Y) | annulla e ripete                                                                                             |
 | editor        | T, R, E, I, G, V                                 | nuovo testo, rettangolo, ellisse, immagine, griglia, valore                                                  |
