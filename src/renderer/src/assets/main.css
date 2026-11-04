@@ -8241,3 +8241,8 @@ button.wide {
 .anatomy-cell input.num {
   width: 48px;
 }
+
+/* testo accanto (WrapField): le tre scelte restano su una riga */
+.wrap-field .segmented button {
+  white-space: nowrap;
+}

@@ -16,7 +16,7 @@ export default function WrapField({
 }): React.JSX.Element {
   const { t } = useI18n()
   return (
-    <label title={t('documents.wrapHint')}>
+    <label className="wrap-field" title={t('documents.wrapHint')}>
       {t('documents.wrap')}
       <Segmented<'none' | 'left' | 'right'>
         value={value ?? 'none'}
