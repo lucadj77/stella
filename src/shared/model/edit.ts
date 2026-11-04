@@ -619,13 +619,28 @@ export function ungroupLayer(
   return { template: { ...t, [side]: un(t[side]) }, childIds: g.children.map((c) => c.id) }
 }
 
+/**
+ * Un livello copiato con un nome nuovo legge la colonna con il nome nuovo, anche se l'originale
+ * ne indicava un'altra: si duplica per avere le stesse caratteristiche con altri dati.
+ */
+function ownColumn(src: Layer, name: string): Record<string, unknown> {
+  return name !== src.name && src.source.kind === 'column'
+    ? { source: { kind: 'column', column: null } }
+    : {}
+}
+
 /** Copia con nuovi id e nomi univoci, sfalsata di 2 mm */
 export function duplicateLayer(t: Template, l: Layer): Layer {
   let current = t
   const copy = (src: Layer): Layer => {
     const name = uniqueName(current, src.name)
     const out = normalizeLayer(
-      { ...(src as unknown as Record<string, unknown>), id: undefined, name },
+      {
+        ...(src as unknown as Record<string, unknown>),
+        id: undefined,
+        name,
+        ...ownColumn(src, name)
+      },
       0
     )
     // il nome appena preso deve risultare occupato per i fratelli successivi
@@ -684,7 +699,7 @@ export function layersFromClipboard(text: string): { template: string; layers: L
 
 /**
  * Incolla livelli copiati: nuovi id, nomi liberi nel template, sopra al livello `aboveId`.
- * Un livello che cambia nome continua a leggere la colonna di prima. Con `offset` si spostano
+ * Un livello che cambia nome legge la colonna con il nome nuovo. Con `offset` si spostano
  * di 2 mm, come una duplicazione, per non coprire gli originali.
  */
 export function pasteLayers(
@@ -697,13 +712,12 @@ export function pasteLayers(
   let current = t
   const copy = (src: Layer): Layer => {
     const name = uniqueName(current, src.name)
-    const keepColumn = name !== src.name && src.source.kind === 'column' && !src.source.column
     const out = normalizeLayer(
       {
         ...(src as unknown as Record<string, unknown>),
         id: undefined,
         name,
-        ...(keepColumn ? { source: { kind: 'column', column: src.name } } : {})
+        ...ownColumn(src, name)
       },
       0
     )

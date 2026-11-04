@@ -120,6 +120,22 @@ describe('modifiche', () => {
     expect([copy.x, copy.y]).toEqual([12, 12])
   })
 
+  it('la copia legge la colonna con il suo nome, anche più volte', () => {
+    let t: Template = {
+      ...base,
+      front: [
+        { ...base.front[0], source: { kind: 'column', column: 'icona' } },
+        ...base.front.slice(1)
+      ]
+    }
+    for (let i = 0; i < 3; i++) t = insertLayer(t, 'front', duplicateLayer(t, t.front[0]), 'a')
+    const copies = t.front.filter((l) => l.id !== 'a' && l.name.startsWith('nome'))
+    expect(copies.map((l) => l.name).sort()).toEqual(['nome_2', 'nome_3', 'nome_4'])
+    for (const c of copies) expect(c.source).toEqual({ kind: 'column', column: null })
+    // l'originale non cambia
+    expect(t.front.find((l) => l.id === 'a')!.source).toEqual({ kind: 'column', column: 'icona' })
+  })
+
   it('duplica un gruppo con figli dai nomi nuovi', () => {
     const { template, groupId } = groupLayers(base, 'front', ['a', 'b'])
     const copy = duplicateLayer(template, findLayer(template.front, groupId!)!)
@@ -246,7 +262,7 @@ describe('copia e incolla tra template', () => {
     expect(layersFromClipboard('{"a":1}')).toBeNull()
   })
 
-  it('incolla in un altro template con nomi liberi e la stessa colonna', () => {
+  it('incolla in un altro template con nomi liberi e la colonna del nome nuovo', () => {
     const data = layersFromClipboard(layersToClipboard(base, 'front', ['a', 'b'])!)!
     const r = pasteLayers(other, 'front', data.layers)
     expect(r.template.front.map((l) => l.name)).toEqual(['nome_2', 'banda', 'nome'])
@@ -255,8 +271,8 @@ describe('copia e incolla tra template', () => {
     const pasted = r.template.front[0]
     // stessa posizione: il template è un altro
     expect([pasted.x, pasted.y]).toEqual([10, 10])
-    // rinominato, continua a leggere la colonna nome
-    expect(pasted.source).toEqual({ kind: 'column', column: 'nome' })
+    // rinominato, legge la colonna nome_2
+    expect(pasted.source).toEqual({ kind: 'column', column: null })
     expect(r.template.front[1].source).toEqual({ kind: 'column', column: null })
   })
 
