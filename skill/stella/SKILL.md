@@ -102,6 +102,7 @@ Older projects have `naibi.json` or `gamecreator.json` instead of `stella.json`;
 }
 ```
 
+- `author` and `version` (optional) are the game's author and version, for `{project.author}` and `{project.version}`. `cover` (optional) is the picture on the start screen: `{ "image": "box.png" }` (a file under `assets/`) or `{ "set": "Heroes", "row": 3, "side": "back" }` (row from 1, `side` optional); missing: the first card of the first set. The user sets them in **Project info…**.
 - `dataReadOnly: true` means the user edits the data only in the data file itself (e.g. in Excel): `set-rows` and `pull-sheets` refuse, and you must not write the data file; change templates instead, or ask the user to edit the spreadsheet.
 - `sets[].sheet` is optional (default: the set's name). Several sets may name the same sheet: they share its rows and each draws them with its own template; `rename-set` then keeps the sheet's name. `sets[].hiddenColumns` (columns hidden in the app's table) and `sets[].showComputed` (also show fixed and formula layers, read only) and `sets[].pinnedProperties` (`layer.property` columns pinned in the card form) and `sets[].colors` (table colors: `{ "columns": [{ "column": "faction", "colors": { "Red": "#fbe0e0" } }], "wholeRow": true }`; number keys are `=n` or bands `b0`-`b2`) are view preferences only; they never change the cards. A set's template is `templates/<template>.json`.
 - `styles`: name → markup attributes. `heading1`, `heading2` and `note` always exist and can be redefined.
@@ -275,7 +276,7 @@ Colours: hex (`#A33A2A`), the 148 CSS colour names, colour variables (`red` or `
 
 ### System variables
 
-Stella fills these by itself; write them like fields, in text and in formulas: `{project.name}`, `{set.name}`, `{template.name}`, `{card.number}` (row in the set, from 1), `{set.rows}`, `{set.cards}` (cards with copies, sum of `amount`), `{card.copies}` (the card's `amount`), `{card.copy}` (copy being drawn, from 1; different per copy only in PDF and image exports with copies, and in TTS exports with `copiesIn: "sheet"`), `{card.side}` (`front` or `back`), `{date}` (today, `YYYY-MM-DD`). A field or project variable with the same name wins. Example footer: `{set.name} {card.number}/{set.rows}`.
+Stella fills these by itself; write them like fields, in text and in formulas: `{project.name}`, `{project.author}`, `{project.version}` (`author` and `version` in stella.json; empty if missing), `{set.name}`, `{template.name}`, `{card.number}` (row in the set, from 1), `{set.rows}`, `{set.cards}` (cards with copies, sum of `amount`), `{card.copies}` (the card's `amount`), `{card.copy}` (copy being drawn, from 1; different per copy only in PDF and image exports with copies, and in TTS exports with `copiesIn: "sheet"`), `{card.side}` (`front` or `back`), `{date}` (today, `YYYY-MM-DD`). A field or project variable with the same name wins. Example footer: `{set.name} {card.number}/{set.rows}`.
 
 ## Documents
 

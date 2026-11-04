@@ -73,7 +73,7 @@ interface Props {
   others: string[]
   project: string
   /** Lingue del progetto e nomi tradotti, per la lingua del documento */
-  file: Pick<ProjectFile, 'languages' | 'names'>
+  file: Pick<ProjectFile, 'languages' | 'names' | 'author' | 'version'>
   sets: LoadedSet[]
   templates: Template[]
   fonts: ProjectFont[]
@@ -200,11 +200,21 @@ export default function DocumentView({
     else onRename(draftName)
   }
 
+  /** Autore e versione, per {project.author} e {project.version} */
+  const docInfo = useMemo(
+    () => ({
+      ...(file.author ? { author: file.author } : {}),
+      ...(file.version ? { version: file.version } : {})
+    }),
+    [file.author, file.version]
+  )
+  const meta = useMemo(() => ({ name: project, ...docInfo }), [project, docInfo])
   // gli errori del markup li elenca già il campo; qui carte, immagini e nomi che non si trovano
   const problems = useMemo(
     () =>
       documentProblems(text, {
         project,
+        ...docInfo,
         sets,
         assets,
         styles,
@@ -212,7 +222,7 @@ export default function DocumentView({
         templates,
         languages: projectLanguages(file)
       }).filter((p) => p.message.key.startsWith('doc.')),
-    [text, project, sets, assets, styles, variables, templates, file]
+    [text, project, docInfo, sets, assets, styles, variables, templates, file]
   )
   const localization = useMemo(() => documentLocalization(file, sets, text), [file, sets, text])
   /** Il nome del progetto nella lingua del documento, per {project.name} */
@@ -380,6 +390,7 @@ export default function DocumentView({
       if (kind === 'md') {
         const ctx = {
           project: shownProject,
+          ...docInfo,
           language: localization?.language,
           sets,
           assets,
@@ -393,6 +404,7 @@ export default function DocumentView({
       if (kind === 'docx') {
         const ctx = {
           project: shownProject,
+          ...docInfo,
           language: localization?.language,
           sets,
           assets,
@@ -680,7 +692,7 @@ export default function DocumentView({
             </div>
             <DocumentPreview
               text={text}
-              project={project}
+              project={meta}
               sets={sets}
               templates={templates}
               zoom={zoom}
@@ -757,7 +769,7 @@ export default function DocumentView({
             initial={tableEdit.value}
             sets={sets}
             templates={templates}
-            project={project}
+            project={meta}
             onClose={() => setTableEdit(null)}
             onSave={(md) => {
               setTableEdit(null)
@@ -770,12 +782,13 @@ export default function DocumentView({
             initial={setupEdit.value}
             sets={sets}
             templates={templates}
-            project={project}
+            project={meta}
             maxWidth={DOC_PAGES[settings.page][0] - 2 * settings.margin}
             font={(settings.size * 0.88 * 25.4) / 72}
             display={(s) =>
               documentText(s, {
                 project: shownProject,
+                ...docInfo,
                 language: localization?.language,
                 sets,
                 assets,
@@ -796,7 +809,7 @@ export default function DocumentView({
             initial={anatomyEdit.value}
             sets={sets}
             templates={templates}
-            project={project}
+            project={meta}
             onInsert={(md) => {
               setAnatomyEdit(null)
               putBlock(md, anatomyEdit.from, anatomyEdit.to)
@@ -808,7 +821,7 @@ export default function DocumentView({
           <InsertCardDialog
             sets={sets}
             templates={templates}
-            project={project}
+            project={meta}
             onInsert={(block) => {
               setInserting(false)
               insertBlock(block)

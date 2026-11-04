@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { useBindContext } from '../render/assets'
 import { bindCard, rowToCard } from '../../../shared/model/bind'
-import { systemOfSet } from '../../../shared/model/system'
+import { projectSystem, systemOfSet, type ProjectMeta } from '../../../shared/model/system'
 import { findLayer, findParent, resizeTemplate } from '../../../shared/model/edit'
 import { useLayerNames } from './layerNames'
 import type { LoadedSet } from '../../../shared/project'
@@ -28,8 +28,8 @@ interface Props {
   template: Template
   /** Set che usano questo template: servono per l'anteprima con i dati */
   sets: LoadedSet[]
-  /** Nome del progetto, per {project.name} */
-  projectName?: string
+  /** Nome, autore e versione del progetto, per {project.name} e simili */
+  projectName?: string | ProjectMeta
   onChange(template: Template): void
   /** Template base già risolto, se questo è derivato; null se il base manca */
   base?: Template | null
@@ -203,7 +203,7 @@ export default function TemplateEditor({
           ...systemOfSet(projectName, previewSet),
           ...(row ? { number: (preview?.row ?? 0) + 1 } : {})
         }
-      : { project: projectName }
+      : projectSystem(projectName)
     return bindCard(state.template, card, { ...bindCtx, system })
   }, [state.template, previewSet, preview?.row, projectName, bindCtx])
 

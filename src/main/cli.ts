@@ -321,7 +321,7 @@ async function check(p: Parsed): Promise<number> {
     if (only && s.name !== only) continue
     const tpl = project.templates.find((t) => t.name === s.template)
     if (!tpl || !s.data) continue
-    const info = systemOfSet(project.file.name, s)
+    const info = systemOfSet(project.file, s)
     s.data.rows.forEach((row, i) => {
       const bound = bindRow(s.data!.headers, row, tpl, project.templates, {
         ...ctx,
@@ -931,6 +931,8 @@ function documentReport(
 ): { document: string; line: number; problem: string }[] {
   const ctx = {
     project: project.file.name,
+    author: project.file.author,
+    version: project.file.version,
     sets: project.sets,
     assets: project.assets,
     styles: project.file.styles,
@@ -1001,6 +1003,8 @@ async function exportDoc(p: Parsed): Promise<number> {
     const localization = documentLocalization(project.file, project.sets, d.text, lang)
     const files = await renderDocument({
       project: localization?.project ?? project.file.name,
+      author: project.file.author,
+      version: project.file.version,
       ...(localization ? { localization } : {}),
       name: d.name,
       text: d.text,

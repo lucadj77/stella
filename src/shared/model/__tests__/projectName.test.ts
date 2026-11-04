@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { projectFolderName } from '../projectName'
 
 describe('projectFolderName', () => {
-  it('keeps ordinary names', () => {
-    expect(projectFolderName('Assedio 2')).toBe('Assedio 2')
+  it('writes _ for the spaces', () => {
+    expect(projectFolderName('Assedio 2')).toBe('Assedio_2')
   })
 
   it('replaces characters not allowed in file names', () => {
-    expect(projectFolderName('Gioco: prova/1')).toBe('Gioco prova 1')
-    expect(projectFolderName('a<b>c|d?e*f"g\\h')).toBe('a b c d e f g h')
+    expect(projectFolderName('Gioco: prova/1')).toBe('Gioco_prova_1')
+    expect(projectFolderName('a<b>c|d?e*f"g\\h')).toBe('a_b_c_d_e_f_g_h')
   })
 
   it('drops trailing dots and spaces, which Windows does not allow', () => {

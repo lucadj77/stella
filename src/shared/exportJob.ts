@@ -31,7 +31,7 @@ export function buildSets(
       const tpl = project.templates.find((x) => x.name === s.template)
       if (!tpl || !s.data) return []
       const { headers, rows } = s.data
-      const info = systemOfSet(project.file.name, s)
+      const info = systemOfSet(project.file, s)
       const cards = rows.map((row, i) => {
         const card = rowToCard(headers, row)
         const own = cardTemplate(headers, row, tpl, project.templates).template

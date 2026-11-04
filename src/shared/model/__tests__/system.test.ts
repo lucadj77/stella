@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { bindCard, rowToCard } from '../bind'
 import { normalizeTemplate } from '../normalize'
-import { systemOfSet, today } from '../system'
+import { projectSystem, systemOfSet, today } from '../system'
 import type { TextLayer } from '../template'
 import { buildSets } from '../../exportJob'
 import { expandCopies } from '../../export'
@@ -74,5 +74,30 @@ describe('variabili di sistema', () => {
     expect(copies.map((c) => text(c.card.template.front, 1))).toEqual(['1/2', '2/2', '1/1'])
     // una carta che non usa {card.copy} non ha template per copia
     expect(s.cards[1].perCopy).toBeUndefined()
+  })
+})
+
+describe('autore e versione del progetto', () => {
+  it('si scrivono con {project.author} e {project.version}', () => {
+    const t = normalizeTemplate({
+      name: 'carta',
+      front: [
+        {
+          type: 'text',
+          name: 'piede',
+          text: '{project.name} v{project.version} · {project.author}',
+          source: { kind: 'fixed' }
+        }
+      ]
+    })
+    const meta = { name: 'Assedio', author: 'Luca', version: '0.3' }
+    const set = { name: 'Unità', data: { name: 'Unità', headers: [], rows: [[]] } }
+    for (const system of [projectSystem(meta), systemOfSet(meta, set as never)]) {
+      const bound = bindCard(t, rowToCard([], []), { system })
+      expect((bound.template.front[0] as TextLayer).text).toBe('Assedio v0.3 · Luca')
+    }
+    // con il solo nome restano vuoti
+    const bound = bindCard(t, rowToCard([], []), { system: projectSystem('Assedio') })
+    expect((bound.template.front[0] as TextLayer).text).toBe('Assedio v · ')
   })
 })

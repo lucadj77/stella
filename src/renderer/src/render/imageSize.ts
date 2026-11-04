@@ -48,6 +48,12 @@ function load(url: string): Promise<ImageSize | null> {
   })
 }
 
+/** Dimensioni naturali di un'immagine, fuori da un componente */
+export function imageSize(url: string): Promise<ImageSize | null> {
+  if (!cache.has(url)) cache.set(url, load(url))
+  return cache.get(url)!
+}
+
 export function useImageSize(url: string | null): ImageSize | null {
   const [state, setState] = useState<{ url: string; size: ImageSize | null } | null>(null)
   useEffect(() => {

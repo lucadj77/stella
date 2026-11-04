@@ -101,6 +101,9 @@ export interface DocExportFile {
 export interface DocRenderInput {
   /** Nome del progetto, per le variabili di sistema */
   project: string
+  /** Autore e versione del progetto, per {project.author} e {project.version} */
+  author?: string
+  version?: string
   name: string
   text: string
   kind: 'pdf' | 'html' | 'md' | 'docx'
@@ -160,6 +163,12 @@ export interface Api {
     /** Testi della finestra di scelta, nella lingua dell'interfaccia */
     text: { title: string; button: string; copy: string }
   ): Promise<string | null>
+  /**
+   * Rinomina la cartella del progetto aperto, accanto a dov'è, con il nome dato (senza spazi e
+   * caratteri vietati: vedi model/projectName.ts). Restituisce la cartella nuova. Solo nell'app
+   * desktop: nel browser restituisce null.
+   */
+  renameProjectFolder(name: string): Promise<string | null>
   /** Progetti aperti di recente, dal più recente */
   recentProjects(): Promise<RecentProject[]>
   /** Toglie un progetto dall'elenco dei recenti; la cartella non si tocca */

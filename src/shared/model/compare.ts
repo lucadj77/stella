@@ -74,7 +74,7 @@ export function cardFingerprints(p: Version, assets: string[]): Record<string, s
   for (const s of p.sets) {
     const tpl = p.templates.find((t) => t.name === s.template)
     if (!tpl || !s.data) continue
-    const info = systemOfSet(p.file.name, s)
+    const info = systemOfSet(p.file, s)
     const { headers, rows } = s.data
     out[s.name] = rows.map((row, i) => {
       const bound = bindRow(headers, row, tpl, p.templates, {

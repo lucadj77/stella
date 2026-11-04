@@ -1,3 +1,4 @@
+import type { ProjectMeta } from '../../../shared/model/system'
 import type { LoadedSet } from '../../../shared/project'
 import type { Side, Template } from '../../../shared/model/template'
 import {
@@ -90,7 +91,7 @@ export default function AnatomyDiagram({
   anatomy: Anatomy
   sets: LoadedSet[]
   templates: Template[]
-  project?: string
+  project?: string | ProjectMeta
   /** Pixel per mm */
   unit: number
   /** Larghezza del testo della pagina in mm: carta ed etichette si riducono per starci */

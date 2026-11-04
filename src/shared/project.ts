@@ -36,9 +36,19 @@ export interface SetDefinition {
   names?: Record<string, string>
 }
 
+/**
+ * Copertina del progetto nella schermata di ingresso: un'immagine sotto assets/ o un componente,
+ * riga `row` (da 1) del set; assente vale la prima carta del primo set
+ */
+export type ProjectCover = { image: string } | { set: string; row: number; side?: 'front' | 'back' }
+
 export interface ProjectFile {
   formatVersion: number
   name: string
+  /** Autore e versione del gioco, per {project.author} e {project.version} */
+  author?: string
+  version?: string
+  cover?: ProjectCover
   /** Percorso relativo del file dati (.xlsx, .ods o .csv) */
   dataFile: string
   sets: SetDefinition[]

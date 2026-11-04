@@ -42,6 +42,7 @@ describe('aiuto alla scrittura del markup', () => {
       ['set.name', 'set.name}'],
       ['set.rows', 'set.rows}'],
       ['set.cards', 'set.cards}'],
+      ['project.version', 'project.version}'],
       ['card.copies', 'card.copies}'],
       ['card.side', 'card.side}']
     ])

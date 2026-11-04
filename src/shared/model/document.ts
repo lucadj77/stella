@@ -962,6 +962,9 @@ export function withDocumentSettings(src: string, change: Partial<DocSettings>):
 /** Ciò che il testo di un documento richiama del progetto */
 export interface DocumentContext {
   project?: string
+  /** Autore e versione del progetto, per {project.author} e {project.version} */
+  author?: string
+  version?: string
   sets?: LoadedSet[]
   assets?: string[]
   styles?: Record<string, string>
@@ -996,6 +999,8 @@ export function documentText(text: string, ctx: DocumentContext): string {
   const fields = {
     ...variableFields(ctx.variables, ctx.language),
     'project.name': ctx.project ?? '',
+    'project.author': ctx.author ?? '',
+    'project.version': ctx.version ?? '',
     date: today()
   }
   return (

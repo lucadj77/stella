@@ -1,3 +1,4 @@
+import { projectMeta, type ProjectMeta } from '../../../shared/model/system'
 import { Fragment, memo, useContext, useMemo } from 'react'
 import type { LoadedSet } from '../../../shared/project'
 import type { Template } from '../../../shared/model/template'
@@ -55,7 +56,7 @@ const PT = 25.4 / 72
 
 interface Props {
   text: string
-  project: string
+  project: string | ProjectMeta
   sets: LoadedSet[]
   templates: Template[]
   /** Riduzione della pagina per farla stare nello spazio, 1 alla misura vera */
@@ -64,6 +65,23 @@ interface Props {
   onPick?(from: number): void
   /** Lingua delle carte del documento (documentLocalization); nessuna per la principale */
   localization?: Localization
+}
+
+/** Autore e versione per il contesto del documento, solo se ci sono */
+function docMeta(m: ProjectMeta): Pick<DocumentContext, 'author' | 'version'> {
+  return { ...(m.author ? { author: m.author } : {}), ...(m.version ? { version: m.version } : {}) }
+}
+
+const cardProjects = new WeakMap<DocumentContext, ProjectMeta>()
+
+/** Il progetto per le carte del documento, sempre lo stesso oggetto per lo stesso contesto */
+function cardProject(ctx: DocumentContext): ProjectMeta {
+  let m = cardProjects.get(ctx)
+  if (!m) {
+    m = { name: ctx.project ?? '', author: ctx.author, version: ctx.version }
+    cardProjects.set(ctx, m)
+  }
+  return m
 }
 
 /** Lo stile della pagina dalle impostazioni in testa al documento */
@@ -102,7 +120,8 @@ export default function DocumentPreview({
   const variables = useContext(VariablesContext)
   const ctx = useMemo<DocumentContext>(
     () => ({
-      project: localization?.project ?? project,
+      ...docMeta(projectMeta(project)),
+      project: localization?.project ?? projectMeta(project).name,
       language: localization?.language,
       sets,
       assets,
@@ -257,7 +276,7 @@ function Block({
                 }}
                 sets={ctx.sets ?? []}
                 templates={templates}
-                project={ctx.project}
+                project={cardProject(ctx)}
                 unit={DOC_UNIT}
                 maxWidth={(DOC_PAGES[settings.page][0] - 2 * settings.margin) * blockWidth(b)}
                 font={settings.size * 0.88 * PT * (b.font ?? 1)}
@@ -289,7 +308,7 @@ function Block({
               )}
               sets={sets}
               templates={templates}
-              project={ctx.project}
+              project={cardProject(ctx)}
               unit={DOC_UNIT}
               maxWidth={maxWidth}
             />
@@ -424,7 +443,7 @@ const Figure = memo(function Figure({
   const content = problem ? (
     <span className="doc-missing">{t(problem)}</span>
   ) : isCardSource(src) ? (
-    <CardImage src={src} sets={ctx.sets ?? []} templates={templates} project={ctx.project} />
+    <CardImage src={src} sets={ctx.sets ?? []} templates={templates} project={cardProject(ctx)} />
   ) : (
     <AssetImage src={src} ctx={ctx} />
   )
@@ -452,7 +471,7 @@ function CardImage({
   src: string
   sets: LoadedSet[]
   templates: Template[]
-  project?: string
+  project?: string | ProjectMeta
 }): React.JSX.Element | null {
   const card = useBoundCard(src, sets, templates, project)
   if (!card) return null

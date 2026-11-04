@@ -7,6 +7,8 @@ import type { Side, Template } from './template'
 
 export const SYSTEM_VARIABLES = [
   'project.name',
+  'project.author',
+  'project.version',
   'set.name',
   'template.name',
   'card.number',
@@ -23,6 +25,9 @@ export type SystemVariable = (typeof SYSTEM_VARIABLES)[number]
 /** Ciò che dipende da dove si disegna la carta; ciò che manca resta vuoto */
 export interface SystemInfo {
   project?: string
+  /** Autore e versione del progetto, da Informazioni progetto */
+  author?: string
+  version?: string
   set?: string
   /** Riga della carta nel set, da 1 */
   number?: number
@@ -41,15 +46,40 @@ export function today(now = new Date()): string {
   return `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}`
 }
 
+/** Nome, autore e versione del progetto, da stella.json */
+export interface ProjectMeta {
+  name: string
+  author?: string
+  version?: string
+}
+
+/** Nome, autore e versione da un nome solo o da stella.json */
+export function projectMeta(project: string | ProjectMeta): ProjectMeta {
+  return typeof project === 'string' ? { name: project } : project
+}
+
+/** Le variabili di sistema del progetto; con solo il nome, autore e versione restano vuoti */
+export function projectSystem(project: string | ProjectMeta): SystemInfo {
+  if (typeof project === 'string') return { project }
+  return {
+    project: project.name,
+    ...(project.author ? { author: project.author } : {}),
+    ...(project.version ? { version: project.version } : {})
+  }
+}
+
 /** Le informazioni di un set per le sue carte; number e copy si aggiungono carta per carta */
-export function systemOfSet(project: string, set: Pick<LoadedSet, 'name' | 'data'>): SystemInfo {
+export function systemOfSet(
+  project: string | ProjectMeta,
+  set: Pick<LoadedSet, 'name' | 'data'>
+): SystemInfo {
   const amount = set.data?.headers.indexOf('amount') ?? -1
   const rows = set.data?.rows ?? []
   const cards = rows.reduce((sum, r) => {
     const n = amount >= 0 ? parseInt(r[amount] ?? '', 10) : NaN
     return sum + (Number.isFinite(n) && n >= 0 ? n : 1)
   }, 0)
-  return { project, set: set.name, rows: rows.length, cards }
+  return { ...projectSystem(project), set: set.name, rows: rows.length, cards }
 }
 
 export function systemFields(
@@ -61,6 +91,8 @@ export function systemFields(
   const s = (v: number | string | undefined): string => (v === undefined ? '' : String(v))
   return {
     'project.name': s(info?.project),
+    'project.author': s(info?.author),
+    'project.version': s(info?.version),
     'set.name': s(info?.set),
     'template.name': template.name,
     'card.number': s(info?.number),
