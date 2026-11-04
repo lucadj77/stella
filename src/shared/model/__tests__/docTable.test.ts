@@ -22,6 +22,17 @@ describe('aspetto delle tabelle', () => {
     expect(tableStyleSource(DEFAULT_TABLE_STYLE)).toBe('')
   })
 
+  it('una larghezza 0 o vuota è una colonna che segue il contenuto', () => {
+    const line = '<!-- table columns=0,10,10,10,10,10 -->'
+    const { style, bad } = parseTableStyle(line)
+    expect(bad).toEqual([])
+    expect(style.columns).toEqual([0, 10, 10, 10, 10, 10])
+    expect(tableStyleSource(style)).toBe(line)
+    expect(parseTableStyle('<!-- table columns=,20 -->').style.columns).toEqual([0, 20])
+    expect(parseTableStyle('<!-- table columns=-5,20 -->').bad).toEqual(['columns=-5,20'])
+    expect(parseTableStyle('<!-- table columns=a,20 -->').bad).toEqual(['columns=a,20'])
+  })
+
   it('segnala le opzioni che non capisce', () => {
     expect(parseTableStyle('<!-- table width=200 colour=red -->').bad).toEqual([
       'width=200',
