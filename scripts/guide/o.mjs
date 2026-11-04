@@ -1,0 +1,20 @@
+// gruppo O: Informazioni progetto (nome, autore, versione, copertina, cartella)
+import { launch, shotEl, OUT } from './lib.mjs'
+import { mkdirSync, rmSync } from 'node:fs'
+const lang = process.argv[2]
+mkdirSync(`${OUT}/${lang}`, { recursive: true })
+rmSync('/tmp/stella-guide/ud-' + lang, { recursive: true, force: true })
+const { app, win, T } = await launch({ lang })
+await win.getByRole('button', { name: `${T['app.projectMenu']} ▾` }).click()
+await win.getByRole('menuitem', { name: T['projectInfo.menu'] }).click()
+await win.waitForTimeout(600)
+const dlg = win.locator('[role="dialog"]').first()
+const inputs = dlg.locator('input')
+await inputs.nth(1).fill('Luca Di Gialleonardo')
+await inputs.nth(2).fill('0.3')
+await dlg.locator('select').first().selectOption('component')
+await win.waitForTimeout(300)
+await dlg.locator('input[type="number"]').fill('3')
+await win.waitForTimeout(600)
+await shotEl(win, `${lang}/informazioni-progetto`, dlg, 24)
+await app.close()

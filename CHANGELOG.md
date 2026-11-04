@@ -5,6 +5,24 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.9.0-beta.8
+
+### English
+
+- **Project info**: a new item at the top of the **Project** menu gathers the name, author and version of the game, each with the variable that writes it on cards and documents: `{project.name}`, and the new `{project.author}` and `{project.version}`. A footer like `{project.name} v{project.version}` tells which print a prototype card comes from.
+- **Project cover**: in the same window you choose the picture of the project on the start screen: the first card of the first set (as before), a component of your choice (set, row and side) or an image of the project, such as the box or the logo.
+- **Rename the project folder**: in the desktop app, Project info shows the folder, opens it and renames it. The project reopens from the new folder, with its backups and its place among the recent projects. The folder name is independent of the project name.
+- **New projects**: the folder uses `_` instead of spaces (`My game` becomes `My_game`); the project name stays as you wrote it.
+- **Backups**: a project whose name changes keeps its backup folder.
+
+### Italiano
+
+- **Informazioni progetto**: una voce nuova in cima al menu **Progetto** raccoglie nome, autore e versione del gioco, ognuno con la variabile che lo scrive su carte e documenti: `{project.name}` e le nuove `{project.author}` e `{project.version}`. Un piè di pagina come `{project.name} v{project.version}` dice da quale stampa viene una carta del prototipo.
+- **Copertina del progetto**: nella stessa finestra si sceglie l'immagine del progetto nella schermata di ingresso: la prima carta del primo set (come prima), un componente a scelta (set, riga e faccia) o un'immagine del progetto, per esempio la scatola o il logo.
+- **Rinominare la cartella del progetto**: nell'app per computer, Informazioni progetto mostra la cartella, la apre e la rinomina. Il progetto si riapre dalla cartella nuova, con i suoi backup e il suo posto tra i recenti. Il nome della cartella è indipendente da quello del progetto.
+- **Progetti nuovi**: la cartella usa `_` al posto degli spazi (`Il mio gioco` diventa `Il_mio_gioco`); il nome del progetto resta quello scritto.
+- **Backup**: un progetto che cambia nome tiene la sua cartella dei backup.
+
 ## 1.9.0-beta.7
 
 ### English

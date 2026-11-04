@@ -29,7 +29,7 @@ import type {
 } from '../../shared/project'
 import { messageFromError, msg, type Message } from '../../shared/messages'
 import { bindRow, computedValues, rowToCard, type BoundCard } from '../../shared/model/bind'
-import { systemOfSet } from '../../shared/model/system'
+import { systemOfSet, type ProjectMeta } from '../../shared/model/system'
 import {
   baseOf,
   cardTemplate,
@@ -149,9 +149,11 @@ import {
   SaveStyleContext,
   StylesContext,
   VariablesContext,
+  assetUrl,
   onAssetsUpdate,
   useBindContext
 } from './render/assets'
+import { imageSize } from './render/imageSize'
 import { useProjectFonts, useRegisterFonts } from './render/fonts'
 import VariableDialog, { VariableSwatch } from './components/VariableDialog'
 import { usedColors, type Variable, type Variables } from '../../shared/model/variables'
@@ -161,6 +163,7 @@ import ExportDialog from './export/ExportDialog'
 import ExportToast, { type ExportRun } from './export/ExportToast'
 import { runExport, savedOptions } from './export/exportRun'
 import LanguagesDialog, { type LanguagesChange } from './components/LanguagesDialog'
+import ProjectInfoDialog, { type ProjectInfo } from './components/ProjectInfoDialog'
 import { languageName } from './i18n/languageName'
 import { localizationOf, projectLanguages } from '../../shared/model/language'
 import ImportTtcDialog from './components/ImportTtcDialog'
@@ -210,8 +213,10 @@ type Selected =
   | { kind: 'document'; name: string }
 
 /** Ridisegna la miniatura per la schermata di ingresso; un errore non disturba il lavoro */
-function updateThumbnail(project: LoadedProject, onlyIfMissing: boolean): void {
-  const tpl = thumbnailTemplate(project)
+async function updateThumbnail(project: LoadedProject, onlyIfMissing: boolean): Promise<void> {
+  const cover = project.file.cover
+  const size = cover && 'image' in cover ? await imageSize(assetUrl(cover.image)) : null
+  const tpl = thumbnailTemplate(project, size ? size.w / size.h : undefined)
   if (!tpl) return
   const context = {
     assets: project.assets,
@@ -320,6 +325,7 @@ function App(): React.JSX.Element {
   const [trashOpen, setTrashOpen] = useState(false)
   const [sheetsOpen, setSheetsOpen] = useState(false)
   const [languagesOpen, setLanguagesOpen] = useState(false)
+  const [infoOpen, setInfoOpen] = useState(false)
   /** Lingua in cui si mostrano le carte, per il progetto aperto; null è la principale */
   const [shownLanguage, setShownLanguage] = useState<{ folder: string; language: string } | null>(
     null
@@ -423,7 +429,7 @@ function App(): React.JSX.Element {
             ? s
             : { kind: 'set', index: 0 }
       )
-      updateThumbnail(loaded, true)
+      updateThumbnail(loaded, true).catch((e) => console.error(e))
     } catch (e) {
       setError(messageFromError(e))
     } finally {
@@ -604,6 +610,45 @@ function App(): React.JSX.Element {
   const open = async (): Promise<void> => {
     const folder = await window.api.chooseProjectFolder()
     if (folder) load(folder)
+  }
+
+  /** Nome, autore, versione e copertina da Informazioni progetto: ⌘Z annulla */
+  const saveProjectInfo = (info: ProjectInfo): void => {
+    if (!project) return
+    const file: ProjectFile = { ...project.file, name: info.name }
+    const put = <K extends 'author' | 'version'>(key: K, v: string): void => {
+      if (v) file[key] = v
+      else delete file[key]
+    }
+    put('author', info.author)
+    put('version', info.version)
+    if (info.cover) file.cover = info.cover
+    else delete file.cover
+    setInfoOpen(false)
+    if (JSON.stringify(file) === JSON.stringify(project.file)) return
+    setHistory((h) => ({
+      past: [...h.past.slice(-99), { sets: project.sets, file: project.file }],
+      future: [],
+      at: 0
+    }))
+    setProject({ ...project, file })
+    setFileDirty(true)
+  }
+
+  /** Rinomina la cartella del progetto e lo riapre da lì: prima si salva */
+  const renameFolder = async (name: string): Promise<void> => {
+    if (!project) return
+    if (anyDirty) {
+      await showNotice(t, t('relocate.saveFirst'))
+      return
+    }
+    try {
+      const to = await window.api.renameProjectFolder(name)
+      setInfoOpen(false)
+      if (to && to !== project.folder) await load(to)
+    } catch (e) {
+      setError(messageFromError(e))
+    }
   }
 
   /** Copia o sposta la cartella del progetto: prima si salva, così la copia è completa */
@@ -1250,7 +1295,7 @@ function App(): React.JSX.Element {
       setDirtySheets(new Set())
       setTrashedSheets(new Set())
       setFileDirty(false)
-      updateThumbnail(project, false)
+      updateThumbnail(project, false).catch((e) => console.error(e))
     } catch (e) {
       setError(messageFromError(e))
     } finally {
@@ -2274,6 +2319,12 @@ function App(): React.JSX.Element {
       : [])
   ]
   const projectMenu: MenuItem[] = [
+    {
+      label: t('projectInfo.menu'),
+      title: t('projectInfo.menuHint'),
+      onClick: () => setInfoOpen(true)
+    },
+    'sep',
     { label: t('findAll.menu'), title: t('findAll.menuHint'), onClick: () => setFindingAll(true) },
     'sep',
     { label: t('app.backup'), title: t('tip.backup'), onClick: () => setBackingUp(true) },
@@ -2319,6 +2370,7 @@ function App(): React.JSX.Element {
     trash: () => setTrashOpen(true),
     sheets: () => setSheetsOpen(true),
     languages: () => setLanguagesOpen(true),
+    projectInfo: () => project && setInfoOpen(true),
     reload: async () => project && (await discardOk()) && load(project.folder),
     close: closeProject,
     copyProject: () => void relocate('copy'),
@@ -2370,6 +2422,8 @@ function App(): React.JSX.Element {
             showOnly: true,
             enabled: hasProject
           },
+          sep,
+          { id: 'projectInfo', label: t('projectInfo.menu'), enabled: hasProject },
           sep,
           { id: 'backup', label: t('app.backup'), enabled: hasProject },
           { id: 'trash', label: t('app.trash'), enabled: hasProject },
@@ -2722,7 +2776,7 @@ function App(): React.JSX.Element {
                               template={editing}
                               sets={editorSets}
                               initialPreview={editorPreview}
-                              projectName={project.file.name}
+                              projectName={project.file}
                               onChange={updateTemplate}
                               base={baseOf(project.templates, editing)}
                               onOpen={(name) => setSelected({ kind: 'template', name })}
@@ -2735,7 +2789,7 @@ function App(): React.JSX.Element {
                               key={project.sets.indexOf(current)}
                               set={current}
                               sets={project.sets}
-                              projectName={project.file.name}
+                              projectName={project.file}
                               readOnly={readOnlyData}
                               templates={project.templates}
                               onChange={(sheet, key) =>
@@ -3023,6 +3077,18 @@ function App(): React.JSX.Element {
                         onClose={() => setComparing(false)}
                       />
                     )}
+                    {infoOpen && project && (
+                      <ProjectInfoDialog
+                        project={project}
+                        onSave={saveProjectInfo}
+                        onRenameFolder={(name) => void renameFolder(name)}
+                        onLanguages={() => {
+                          setInfoOpen(false)
+                          setLanguagesOpen(true)
+                        }}
+                        onClose={() => setInfoOpen(false)}
+                      />
+                    )}
                     {languagesOpen && project && (
                       <LanguagesDialog
                         project={project}
@@ -3152,8 +3218,8 @@ function SetView({
   set: LoadedSet
   /** Tutti i set del progetto: le statistiche possono mescolarne più d'uno in un mazzo */
   sets: LoadedSet[]
-  /** Nome del progetto, per {project.name} */
-  projectName: string
+  /** Nome, autore e versione del progetto, per {project.name} e simili */
+  projectName: ProjectMeta
   /** File dati in sola lettura: le modifiche ai dati non passano */
   readOnly: boolean
   templates: Template[]

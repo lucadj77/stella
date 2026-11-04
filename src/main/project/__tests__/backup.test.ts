@@ -147,4 +147,11 @@ describe('backup', () => {
     // la cartella ora ha un proprietario: a non la prende
     expect(await projectBackupDir(root, 'Assedio', a)).toBe(join(root, 'Assedio'))
   })
+  it('un progetto che cambia nome tiene la sua cartella dei backup', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'stella-backup-root-'))
+    const a = await project()
+    const dir = await projectBackupDir(root, 'Assedio', a)
+    await createBackup(a, 'Assedio', dir, true)
+    expect(await projectBackupDir(root, 'Assedio di Roma', a)).toBe(join(root, 'Assedio'))
+  })
 })

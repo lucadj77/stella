@@ -1,3 +1,4 @@
+import type { ProjectMeta } from '../../../shared/model/system'
 import { useRef, useState } from 'react'
 import NumInput from './NumInput'
 import { useUndo } from './useUndo'
@@ -52,7 +53,7 @@ export default function TableDialog({
   initial?: TableValue
   sets: LoadedSet[]
   templates: Template[]
-  project: string
+  project: string | ProjectMeta
   /** Il Markdown della tabella */
   onSave(text: string): void
   onClose(): void

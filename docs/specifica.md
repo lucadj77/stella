@@ -58,23 +58,23 @@ Il testo si salva, nel progetto e nel foglio, con un unico markup: Markdown per 
 
 #### Markdown
 
-| Scrivi                       | Ottieni                                                  |
-| ---------------------------- | -------------------------------------------------------- |
-| `**testo**`                  | grassetto                                                |
-| `*testo*`                    | corsivo                                                  |
-| `++testo++`                  | sottolineato                                             |
-| `~~testo~~`                  | barrato                                                  |
-| `==testo==`                  | evidenziato con il colore di evidenziazione del progetto |
-| `^testo^` / `~testo~`        | apice / pedice                                           |
-| `# Titolo`, `## Sottotitolo` | paragrafo con lo stile `heading1` / `heading2`           |
-| `> testo`                    | paragrafo con lo stile `note`                            |
-| `- voce` / `1. voce`         | elenco puntato / numerato                                |
-| `---`                        | linea separatrice                                        |
-| a capo                       | nuovo paragrafo                                          |
-| riga vuota                   | paragrafo vuoto (spazio verticale)                       |
-| `\` a fine riga              | a capo senza nuovo paragrafo                             |
+| Scrivi                       | Ottieni                                                                                                                                                                              |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `**testo**`                  | grassetto                                                                                                                                                                            |
+| `*testo*`                    | corsivo                                                                                                                                                                              |
+| `++testo++`                  | sottolineato                                                                                                                                                                         |
+| `~~testo~~`                  | barrato                                                                                                                                                                              |
+| `==testo==`                  | evidenziato con il colore di evidenziazione del progetto                                                                                                                             |
+| `^testo^` / `~testo~`        | apice / pedice                                                                                                                                                                       |
+| `# Titolo`, `## Sottotitolo` | paragrafo con lo stile `heading1` / `heading2`                                                                                                                                       |
+| `> testo`                    | paragrafo con lo stile `note`                                                                                                                                                        |
+| `- voce` / `1. voce`         | elenco puntato / numerato                                                                                                                                                            |
+| `---`                        | linea separatrice                                                                                                                                                                    |
+| a capo                       | nuovo paragrafo                                                                                                                                                                      |
+| riga vuota                   | paragrafo vuoto (spazio verticale)                                                                                                                                                   |
+| `\` a fine riga              | a capo senza nuovo paragrafo                                                                                                                                                         |
 | `<br>`                       | a capo dove il testo sta su una riga sola (celle delle tabelle dei documenti, etichette dell'anatomia, testi dello schema del tavolo); è l'unico HTML letto, `\<br>` lo scrive com'è |
-| `_testo_`                    | non va mai a capo, come `[testo]{nowrap}`                |
+| `_testo_`                    | non va mai a capo, come `[testo]{nowrap}`                                                                                                                                            |
 
 Gli stili `heading1`, `heading2` e `note` esistono in ogni progetto e si modificano come gli altri.
 
@@ -268,18 +268,20 @@ Se il nome è un campo, il suo valore diventa il nome dell'immagine: con `icona`
 
 Valori che Stella conosce da sé, scritti come i campi nei testi e nelle formule. Il punto nel nome li distingue dalle variabili del progetto, che non lo ammettono; un campo o una variabile con lo stesso nome ha comunque la precedenza.
 
-| Variabile         | Valore                                                                                    |
-| ----------------- | ----------------------------------------------------------------------------------------- |
-| `{project.name}`  | nome del progetto (nella lingua delle carte, se tradotto)                                 |
-| `{set.name}`      | nome del set (nella lingua delle carte, se tradotto)                                      |
-| `{template.name}` | nome del template della carta (anche quello scelto nella colonna `template`)              |
-| `{card.number}`   | riga della carta nel set, da 1                                                            |
-| `{set.rows}`      | righe del set                                                                             |
-| `{set.cards}`     | carte del set con le copie: somma di `amount` (vuoto vale 1)                              |
-| `{card.copies}`   | `amount` della carta                                                                      |
-| `{card.copy}`     | copia disegnata, da 1; diversa per ogni copia solo esportando PDF e immagini con le copie |
-| `{card.side}`     | `front` o `back`                                                                          |
-| `{date}`          | data di oggi, AAAA-MM-GG                                                                  |
+| Variabile           | Valore                                                                                    |
+| ------------------- | ----------------------------------------------------------------------------------------- |
+| `{project.name}`    | nome del progetto (nella lingua delle carte, se tradotto)                                 |
+| `{project.author}`  | autore del progetto (`author` in stella.json, da Informazioni progetto)                   |
+| `{project.version}` | versione del progetto (`version` in stella.json)                                          |
+| `{set.name}`        | nome del set (nella lingua delle carte, se tradotto)                                      |
+| `{template.name}`   | nome del template della carta (anche quello scelto nella colonna `template`)              |
+| `{card.number}`     | riga della carta nel set, da 1                                                            |
+| `{set.rows}`        | righe del set                                                                             |
+| `{set.cards}`       | carte del set con le copie: somma di `amount` (vuoto vale 1)                              |
+| `{card.copies}`     | `amount` della carta                                                                      |
+| `{card.copy}`       | copia disegnata, da 1; diversa per ogni copia solo esportando PDF e immagini con le copie |
+| `{card.side}`       | `front` o `back`                                                                          |
+| `{date}`            | data di oggi, AAAA-MM-GG                                                                  |
 
 Dove manca il contesto (l'editor senza carta in anteprima, la miniatura di un template senza set) i valori del set e della carta sono vuoti. In Tabletop Simulator tutte le copie mostrano `{card.copy}` = 1, perché il mazzo ripete la stessa immagine.
 
@@ -541,7 +543,8 @@ Nella finestra di esportazione, **Crediti…** compone il testo da mettere nel r
 
 All'avvio l'app mostra la schermata di ingresso, non l'ultimo progetto aperto. Contiene:
 
-- **Nuovo progetto…**: chiede nome e posizione (predefinita `Documenti/Stella`, poi l'ultima usata) e crea la cartella `<posizione>/<nome>` con `stella.json` e le cartelle `data/`, `templates/` e `assets/`. Il file dati `data/cards.xlsx` si scrive al primo salvataggio di un set. Dal nome della cartella si tolgono i caratteri non validi nei nomi di file; la cartella deve essere nuova o vuota.
+- **Nuovo progetto…**: chiede nome e posizione (predefinita `Documenti/Stella`, poi l'ultima usata) e crea la cartella `<posizione>/<nome>` con `stella.json` e le cartelle `data/`, `templates/` e `assets/`. Il file dati `data/cards.xlsx` si scrive al primo salvataggio di un set. Dal nome della cartella si tolgono i caratteri non validi nei nomi di file e gli spazi diventano `_`; la cartella deve essere nuova o vuota. Il nome del progetto resta quello scritto.
+- **Informazioni progetto…** (menu Progetto): nome, autore e versione (`name`, `author`, `version`), la copertina della schermata di ingresso (`cover`: prima carta, un componente scelto per set, riga e faccia, o un'immagine sotto `assets/`) e, nell'app per computer, la cartella da aprire o rinominare accanto a dov'è. Rinominare la cartella chiede prima di salvare, poi riapre il progetto; i recenti e i backup la seguono. La cartella dei backup resta quella del progetto anche se il nome del progetto cambia (si riconosce dal file di proprietà).
 - **Apri progetto…**: sceglie una cartella che contiene `stella.json` (o `naibi.json` e `gamecreator.json`, nei progetti creati con i nomi precedenti dell'app).
 - **Cosa vuol dire Stella?**: link discreto in basso a destra, apre una finestra che racconta l'origine del nome.
 - **Importa da Tabletop Creator…**: converte un progetto Tabletop Creator in un progetto nuovo, senza modificare l'originale.

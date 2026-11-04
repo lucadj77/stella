@@ -1,6 +1,7 @@
 /**
- * Nome della cartella di un progetto nuovo: il nome scritto dall'utente senza i caratteri che
- * Windows e macOS non accettano nei nomi di file. '' se non resta nulla di usabile.
+ * Nome della cartella di un progetto: il nome scritto dall'utente senza i caratteri che Windows e
+ * macOS non accettano nei nomi di file, con _ al posto degli spazi (più comodo nei comandi e negli
+ * indirizzi). '' se non resta nulla di usabile.
  */
 export function projectFolderName(name: string): string {
   const clean = name
@@ -9,5 +10,6 @@ export function projectFolderName(name: string): string {
     .replace(/\s+/g, ' ')
     .trim()
     .replace(/[. ]+$/, '')
-  return clean === '.' || clean === '..' ? '' : clean
+  if (clean === '.' || clean === '..') return ''
+  return clean.replace(/ /g, '_')
 }

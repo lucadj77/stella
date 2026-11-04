@@ -51,6 +51,8 @@ I progetti creati quando l'app si chiamava Naibi hanno `naibi.json`, quelli anco
 }
 ```
 
+`author` e `version` (facoltativi) sono autore e versione del gioco, per `{project.author}` e `{project.version}`. `cover` (facoltativo) è la copertina del progetto nella schermata di ingresso: `{ "image": "scatola.png" }` (un file sotto `assets/`) oppure `{ "set": "Personaggi", "row": 3, "side": "back" }` (riga da 1, `side` facoltativo, di base il fronte). Senza `cover`, o se ciò che indica non c'è più, la copertina è la prima carta del primo set. Si impostano in **Informazioni progetto…**.
+
 `sheet` è facoltativo: se manca si usa il foglio con lo stesso nome del set. `hiddenColumns` (facoltativo) elenca le colonne nascoste nella tabella e nei campi della carta; `showComputed: true` mostra anche i livelli fissi e con formula, in sola lettura. `pinnedProperties` (facoltativo) elenca le proprietà fissate nei campi della carta, come colonne `livello.proprietà`. Sono solo preferenze di vista: non cambiano le carte.
 
 `styles` (facoltativo) contiene gli stili di testo del progetto, scritti con gli stessi attributi del markup (docs/specifica.md, 2.1). Gli stili `heading1`, `heading2` e `note` esistono sempre e si possono ridefinire qui. Finché non c'è l'editor degli stili si modificano a mano.

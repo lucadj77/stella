@@ -8246,3 +8246,66 @@ button.wide {
 .wrap-field .segmented button {
   white-space: nowrap;
 }
+
+/* Informazioni progetto */
+.dialog:has(.project-info-dialog) {
+  max-width: min(600px, 94vw);
+  width: 600px;
+}
+.project-info-dialog .dialog-row > label {
+  flex: 1;
+  min-width: 0;
+}
+.project-info-label {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.project-info-var {
+  font-size: 0.85em;
+  color: var(--muted);
+  user-select: all;
+}
+.project-info-dialog h4 {
+  margin: 14px 0 2px;
+}
+.project-info-dialog button.link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--accent);
+  cursor: pointer;
+}
+.project-info-cover {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.project-info-cover-fields {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.project-info-cover-preview {
+  width: 150px;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.project-info-cover-preview img {
+  max-width: 150px;
+  max-height: 150px;
+}
+.project-info-path {
+  word-break: break-all;
+}
+.project-info-folder {
+  display: flex;
+  gap: 8px;
+}
+.project-info-folder input {
+  flex: 1;
+}

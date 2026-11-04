@@ -1,3 +1,4 @@
+import type { ProjectMeta } from '../../../shared/model/system'
 import { useContext, useId } from 'react'
 import type { LoadedSet } from '../../../shared/project'
 import type { Template } from '../../../shared/model/template'
@@ -46,7 +47,7 @@ export default function SetupDiagram({
   view: SetupView
   sets: LoadedSet[]
   templates: Template[]
-  project?: string
+  project?: string | ProjectMeta
   /** Pixel per mm */
   unit: number
   /** Larghezza del testo della pagina in mm */
@@ -169,7 +170,7 @@ function CardItem({
   font: number
   sets: LoadedSet[]
   templates: Template[]
-  project?: string
+  project?: string | ProjectMeta
 }): React.JSX.Element {
   const card = useBoundCard(anatomyCardSource(it.card), sets, templates, project)
   const layers = it.kind === 'deck' ? Math.min(it.count, DECK_LAYERS + 1) - 1 : 0

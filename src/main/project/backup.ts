@@ -41,18 +41,25 @@ export async function projectBackupDir(
   folder: string
 ): Promise<string> {
   const mine = resolve(folder)
-  for (let n = 1; ; n++) {
-    const dir = join(root, n === 1 ? name : `${name} ${n}`)
-    const marker = join(dir, OWNER)
-    let owner: string | null = null
-    for (const file of [marker, join(dir, OLD_OWNER)]) {
+  const ownerOf = async (dir: string): Promise<string | null> => {
+    for (const file of [join(dir, OWNER), join(dir, OLD_OWNER)]) {
       try {
-        owner = JSON.parse(await readFile(file, 'utf8')).folder
-        break
+        return JSON.parse(await readFile(file, 'utf8')).folder
       } catch {
         // cartella nuova o senza proprietario
       }
     }
+    return null
+  }
+  // un progetto che ha cambiato nome tiene la sua cartella dei backup, con il nome di prima
+  const own = (await readdir(root, { withFileTypes: true }).catch(() => []))
+    .filter((d) => d.isDirectory())
+    .map((d) => join(root, d.name))
+  for (const dir of own) if ((await ownerOf(dir)) === mine) return dir
+  for (let n = 1; ; n++) {
+    const dir = join(root, n === 1 ? name : `${name} ${n}`)
+    const marker = join(dir, OWNER)
+    const owner = await ownerOf(dir)
     if (owner === mine) return dir
     if (owner === null) {
       // il proprietario si scrive solo se la cartella esiste già (o al primo backup): elencare

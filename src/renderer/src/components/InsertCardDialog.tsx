@@ -1,3 +1,4 @@
+import type { ProjectMeta } from '../../../shared/model/system'
 import { Fragment, useMemo, useRef, useState } from 'react'
 import NumInput from './NumInput'
 import { useUndo } from './useUndo'
@@ -95,7 +96,7 @@ export default function InsertCardDialog({
 }: {
   sets: LoadedSet[]
   templates: Template[]
-  project: string
+  project: string | ProjectMeta
   anatomy?: boolean
   /** L'anatomia da modificare */
   initial?: Anatomy

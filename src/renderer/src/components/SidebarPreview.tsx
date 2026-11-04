@@ -1,6 +1,6 @@
 import type { LoadedProject } from '../../../shared/project'
 import { bindRow } from '../../../shared/model/bind'
-import { systemOfSet } from '../../../shared/model/system'
+import { projectSystem, systemOfSet } from '../../../shared/model/system'
 import type { LoadedSet } from '../../../shared/project'
 import type { Template } from '../../../shared/model/template'
 import { palette, resolveColor, type Variables } from '../../../shared/model/variables'
@@ -39,7 +39,7 @@ export default function SidebarPreview({
 
   const cards = (tpl: Template, set: LoadedSet | undefined, count: number): Template[] => {
     const rows = set?.data?.rows.slice(0, count) ?? []
-    const info = set ? systemOfSet(project.file.name, set) : { project: project.file.name }
+    const info = set ? systemOfSet(project.file, set) : projectSystem(project.file)
     return (rows.length ? rows : [[]]).map(
       (r, i) =>
         bindRow(set?.data?.headers ?? [], r, tpl, project.templates, {

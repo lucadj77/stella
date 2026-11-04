@@ -1,7 +1,7 @@
 import { app, shell, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, net } from 'electron'
 import type { MenuItemConstructorOptions } from 'electron'
 import { existsSync } from 'fs'
-import { mkdir, readFile, writeFile } from 'fs/promises'
+import { mkdir, readFile, rename, writeFile } from 'fs/promises'
 import { basename, dirname, extname, join, resolve } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -37,6 +37,8 @@ import {
 } from './protocol'
 import { downloadSkill } from '../shared/skill'
 import { MessageError, msg } from '../shared/messages'
+import { projectFolderName } from '../shared/model/projectName'
+import { exists } from './fs'
 import type { Template } from '../shared/model/template'
 import type {
   AppMenu,
@@ -237,6 +239,28 @@ function registerIpc(): void {
     return project
   })
 
+  /** Sposta la cartella del progetto aperto: la sorveglianza, i recenti e i backup la seguono */
+  const moveOpenProject = async (from: string, to: string, sameFolder = false): Promise<void> => {
+    // la cartella si libera: niente sorveglianza del file dati e niente file di stato
+    stopWatchingData()
+    if (stateFolder === from) clearAppState(from)
+    if (sameFolder) {
+      // cambiano solo maiuscole e minuscole: un passaggio per un nome provvisorio
+      const tmp = `${to}.${Date.now()}`
+      await rename(from, tmp)
+      await rename(tmp, to)
+    } else await moveProject(from, to)
+    setProjectFolder(to)
+    await removeRecent(from).catch((e) => console.error(e))
+    // i backup restano quelli del progetto
+    try {
+      const { dir } = await backupDirFor(from, projectName)
+      await setBackupOwner(dir, to)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   // copia o sposta la cartella del progetto aperto; il renderer ha già salvato
   ipcMain.handle(
     'project:relocate',
@@ -259,22 +283,26 @@ function registerIpc(): void {
         await copyProject(from, to)
         return to
       }
-      // la cartella si libera: niente sorveglianza del file dati e niente file di stato
-      stopWatchingData()
-      if (stateFolder === from) clearAppState(from)
-      await moveProject(from, to)
-      setProjectFolder(to)
-      await removeRecent(from).catch((e) => console.error(e))
-      // i backup restano quelli del progetto
-      try {
-        const { dir } = await backupDirFor(from, projectName)
-        await setBackupOwner(dir, to)
-      } catch (e) {
-        console.error(e)
-      }
+      await moveOpenProject(from, to)
       return to
     }
   )
+
+  // rinomina la cartella del progetto aperto, accanto a dov'è; il renderer ha già salvato
+  ipcMain.handle('project:rename-folder', async (_, name: string) => {
+    const from = getProjectFolder()
+    if (!from) return null
+    const folderName = projectFolderName(name)
+    if (!folderName) throw new MessageError(msg('newProject.invalidName'))
+    const to = join(dirname(from), folderName)
+    if (to === from) return from
+    // macOS e Windows non distinguono le maiuscole: la cartella "nuova" esiste già, ed è questa
+    const sameFolder = to.toLowerCase() === from.toLowerCase()
+    if (!sameFolder && (await exists(to)))
+      throw new MessageError(msg('projectInfo.folderExists', { folder: to }))
+    await moveOpenProject(from, to, sameFolder)
+    return to
+  })
 
   ipcMain.handle('recent:list', () => listRecent())
   ipcMain.handle('recent:remove', (_, folder: string) => removeRecent(folder))
@@ -373,6 +401,12 @@ function registerIpc(): void {
       return await saveData(folder, changes)
     } finally {
       await markDataWritten()
+      // un nome cambiato in Informazioni progetto si vede subito tra i recenti
+      const name = changes.file?.name
+      if (name && name !== projectName) {
+        projectName = name
+        await addRecent(folder, name).catch((e) => console.error(e))
+      }
     }
   })
 

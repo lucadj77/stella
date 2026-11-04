@@ -1,3 +1,4 @@
+import type { ProjectMeta } from '../../../shared/model/system'
 import { useMemo } from 'react'
 import type { LoadedSet } from '../../../shared/project'
 import type { Template } from '../../../shared/model/template'
@@ -11,7 +12,7 @@ export function useBoundCard(
   src: string,
   sets: LoadedSet[],
   templates: Template[],
-  project?: string
+  project?: string | ProjectMeta
 ): { ref: CardRef; template: Template } | null {
   const bindCtx = useBindContext()
   return useMemo(() => {

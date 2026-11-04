@@ -1,3 +1,4 @@
+import type { ProjectMeta } from '../../../shared/model/system'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import NumInput from './NumInput'
 import { useUndo } from './useUndo'
@@ -132,7 +133,7 @@ export default function SetupDialog({
   initial?: Setup
   sets: LoadedSet[]
   templates: Template[]
-  project: string
+  project: string | ProjectMeta
   /** Larghezza del testo della pagina e corpo delle didascalie, in mm, come nel documento */
   maxWidth: number
   font: number
