@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.9.0-beta.6
+
+### English
+
+- **Image window, fix**: the **Alignment** buttons were cut off and overlapped **Text beside**, which now has a line of its own, as in the box and table setup windows.
+
+### Italiano
+
+- **Finestra dell'immagine, correzione**: i tasti di **Allineamento** erano tagliati e finivano sopra **Testo accanto**, che ora sta su una riga a parte, come nelle finestre dei riquadri e degli schemi del tavolo.
+
 ## 1.9.0-beta.5
 
 ### English
