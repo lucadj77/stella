@@ -90,10 +90,7 @@ export function previewItems(job: ExportJob): PreviewPlan {
   }
   const items: PreviewItem[] = []
   const notes: Message[] = []
-  for (const { set, chunks, pieces, dice, object, uniqueBack, dieLater } of planTts(
-    job.options,
-    sets
-  )) {
+  for (const { set, chunks, pieces, dice, object, uniqueBack } of planTts(job.options, sets)) {
     const stem = safeName(set.name)
     const kind = object.type as TtsPieceKind
     const dieDigits = String(dice.length).length
@@ -110,8 +107,6 @@ export function previewItems(job: ExportJob): PreviewPlan {
         key: 'export.ttsDicePadded',
         params: { set: set.name, n: DIE_ROWS[dieOf(set.cards[0]?.template) ?? 'd6'] }
       })
-    if (dieLater)
-      notes.push({ key: 'export.ttsDieLater', params: { set: set.name, die: dieLater } })
     const digits = String(pieces.length).length
     pieces.forEach((p, i) => {
       const n = String(i + 1).padStart(digits, '0')

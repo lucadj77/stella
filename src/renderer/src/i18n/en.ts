@@ -1105,8 +1105,6 @@ export const en = {
   'format.width26': 'Width 26 mm',
   'export.dieNetLater':
     'Set “{set}”: the {die} to fold comes in a next version; for now its faces come out side by side.',
-  'export.ttsDieLater':
-    'Set “{set}”: the {die} as a die comes in a next version; for now its faces go to the table as tokens.',
   'kind.standee': 'Standee',
   'kind.standee.hint':
     'A figure that stands upright, on a transparent background. The back is the front mirrored: print both faces, cut and glue them.',
@@ -1515,13 +1513,13 @@ export const en = {
   'export.maxSize': 'Max sheet size',
   'export.ttsObjects': 'Objects',
   'export.ttsObjectsHint':
-    'Card: a deck from sheets. Token: one image per card, cut out along the card shape; underneath it shows the front mirrored. Tile: front and back, square, rounded, hexagonal or round like the card, with the edge in the chosen color. Tokens and tiles of a set go into a bag, copies included. Board: like a tile but not stackable, each one on the table next to the other. Die: six cards per d6 (three per d3), in sheet order (card 1 on face 1 and so on, opposite faces add up to 7); use a square template. The other dice come in a next version: for now their faces go to the table as tokens.',
+    'Card: a deck from sheets. Token: one image per card, cut out along the card shape; underneath it shows the front mirrored. Tile: front and back, square, rounded, hexagonal or round like the card, with the edge in the chosen color. Tokens and tiles of a set go into a bag, copies included. Board: like a tile but not stackable, each one on the table next to the other. Die: a real die with rounded edges, one card per face in sheet order (card 1 on face 1 and so on; on the d3 each card goes on two opposite faces), which shows the value of the face on top when rolled; the d2 is a coin to flip. Use a die face template.',
   'export.ttsCard': 'Cards',
   'export.ttsToken': 'Tokens',
   'export.ttsStandee': 'Standees',
   'export.ttsTile': 'Tiles',
   'export.ttsBoard': 'Boards',
-  'export.ttsDie': 'Dice (d6, d3)',
+  'export.ttsDie': 'Dice',
   'export.ttsDicePadded':
     'Set “{set}”: the cards are not a multiple of {n}, the last die repeats its first faces.',
   'export.ttsThickness': 'Thickness',

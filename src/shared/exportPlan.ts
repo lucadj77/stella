@@ -4,8 +4,6 @@
 
 import {
   TTS_MAX_COLS,
-  TTS_DIE_COLS,
-  TTS_DIE_ROWS,
   TTS_MAX_DPI,
   TTS_MAX_ROWS,
   cropMarks,
@@ -43,7 +41,8 @@ import {
   type SceneShape
 } from './export'
 import type { Message } from './messages'
-import { cubeFaces, DIE_ROWS, dieOf, dieOutline, isCubeDie, type DieType } from './model/dice'
+import { cubeFaces, DIE_ROWS, dieOf, dieOutline, isCubeDie } from './model/dice'
+import { dieAtlas } from './model/solids'
 import type { Side, Template } from './model/template'
 
 /** Una carta da sola, con o senza abbondanza */
@@ -905,8 +904,6 @@ export interface TtsSetPlan {
   dice: TtsDiePlan[]
   /** Un foglio dei retri per ogni foglio di fronti, invece di un retro unico */
   uniqueBack: boolean
-  /** Dado che Tabletop Simulator non ha ancora: le facce escono come segnalini */
-  dieLater?: DieType
 }
 
 /** Fogli di ogni set: fino a 69 carte per foglio, l'ultima posizione alla carta nascosta */
@@ -920,24 +917,25 @@ export function planTts(o: TtsOptions, sets: ExportSet[]): TtsSetPlan[] {
     const kept = set.cards.filter((c) => !o.copies || c.amount > 0)
     const object = ttsSetObject(o, set.name, set.kind)
     const die = dieOf(set.cards[0]?.template) ?? 'd6'
-    // i dadi che non sono cubi arrivano in Tabletop Simulator in una prossima versione: per ora
-    // le facce vanno sul tavolo come segnalini
-    const later = object.type === 'die' && !isCubeDie(die)
-    if (later) object.type = 'token'
     if (object.type === 'die') {
+      const { cols: dc, rows: dr } = dieAtlas(die)
       const dice: TtsDiePlan[] = []
       const rows = DIE_ROWS[die]
       for (let i = 0; i < kept.length; i += rows) {
         const group = kept.slice(i, i + rows)
         const t = group[0].template
         dice.push({
-          cards: cubeFaces(group, die),
+          // il cubo ripete le righe sulle sue facce; gli altri hanno una riga per faccia, e un
+          // dado incompleto ripete le prime
+          cards: isCubeDie(die)
+            ? cubeFaces(group, die)
+            : Array.from({ length: rows }, (_, k) => group[k % group.length]),
           count: o.copies ? group[0].amount : 1,
           padded: group.length < rows,
           scale: Math.min(
             TTS_MAX_DPI / 25.4,
-            o.maxSize / (TTS_DIE_COLS * t.width),
-            o.maxSize / (TTS_DIE_ROWS * t.height)
+            o.maxSize / (dc * t.width),
+            o.maxSize / (dr * t.height)
           )
         })
       }
@@ -955,8 +953,7 @@ export function planTts(o: TtsOptions, sets: ExportSet[]): TtsSetPlan[] {
         chunks: [],
         pieces,
         dice: [],
-        uniqueBack: false,
-        ...(later ? { dieLater: die } : {})
+        uniqueBack: false
       }
     }
     // copie nel foglio: ogni copia ha la sua posizione e nel mazzo compare una volta
@@ -1037,12 +1034,13 @@ export function piecePage(t: Template, side: Side, kind: TtsPieceKind): ScenePag
 /** Foglio delle facce di un dado: le sei carte in 3 colonne e 2 righe, senza abbondanza */
 export function diePage(die: TtsDiePlan): ScenePage {
   const t0 = die.cards[0].template
+  const { cols, rows } = dieAtlas(dieOf(t0) ?? 'd6')
   return {
-    width: TTS_DIE_COLS * t0.width,
-    height: TTS_DIE_ROWS * t0.height,
+    width: cols * t0.width,
+    height: rows * t0.height,
     items: die.cards.map((c, k) => ({
-      x: (k % TTS_DIE_COLS) * t0.width,
-      y: Math.floor(k / TTS_DIE_COLS) * t0.height,
+      x: (k % cols) * t0.width,
+      y: Math.floor(k / cols) * t0.height,
       template: c.template,
       side: 'front' as const,
       mode: 'cut' as const

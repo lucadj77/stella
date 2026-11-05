@@ -1,3 +1,4 @@
+import { rotationUp, type Vec } from './model/solids'
 // Esportazione: opzioni, impaginazione del PDF, nomi dei file, griglia e oggetto di Tabletop
 // Simulator. Vedi docs/specifica.md, sezione 9. Tutte le misure sono in mm.
 
@@ -1097,8 +1098,6 @@ function bag(name: string, contained: Record<string, unknown>[]): Record<string,
 // come tutti i file .obj; Tabletop Simulator (Unity) lo carica specchiando l'asse X, quindi nelle
 // rotazioni la faccia +X del file diventa la −X del tavolo.
 
-type Vec = [number, number, number]
-
 /** Faccia di ogni valore nel file .obj: direzione verso fuori e "in alto" dell'immagine */
 const DIE_FACES: { value: number; normal: Vec; up: Vec }[] = [
   { value: 1, normal: [0, 1, 0], up: [0, 0, -1] },
@@ -1184,6 +1183,13 @@ export interface TtsDie {
   nickname: string
   description: string
   count: number
+  /** Rotazioni dei valori; senza, quelle del cubo */
+  rotations?: Record<string, unknown>[]
+}
+
+/** Valore e rotazione che lo porta in alto, per un solido qualsiasi (direzioni del file .obj) */
+export function ttsRotations(values: string[], upFor: Vec[]): Record<string, unknown>[] {
+  return upFor.map((dir, k) => ({ Value: values[k] || String(k + 1), Rotation: rotationUp(dir) }))
 }
 
 /** Per ogni faccia del dado, il valore e la rotazione che la porta in alto */
@@ -1198,7 +1204,9 @@ export function ttsDieRotations(values: string[]): Record<string, unknown>[] {
 export function ttsSavedDice(
   name: string,
   dice: TtsDie[],
-  meshUrl: string
+  meshUrl: string,
+  /** 2: dado; 3: moneta */
+  typeIndex = 2
 ): Record<string, unknown> {
   const dieObject = (d: TtsDie): Record<string, unknown> => ({
     Name: 'Custom_Model',
@@ -1210,7 +1218,7 @@ export function ttsSavedDice(
     Grid: true,
     Snap: true,
     Hands: true,
-    RotationValues: ttsDieRotations(d.values),
+    RotationValues: d.rotations ?? ttsDieRotations(d.values),
     CustomMesh: {
       MeshURL: meshUrl,
       DiffuseURL: d.imageUrl,
@@ -1218,8 +1226,8 @@ export function ttsSavedDice(
       ColliderURL: '',
       Convex: true,
       MaterialIndex: 0,
-      // 2: dado, si tira e mostra il valore della faccia in alto
-      TypeIndex: 2,
+      // 2: dado, si tira e mostra il valore della faccia in alto; 3: moneta
+      TypeIndex: typeIndex,
       CustomShader: {
         SpecularColor: { r: 1, g: 1, b: 1 },
         SpecularIntensity: 0,
