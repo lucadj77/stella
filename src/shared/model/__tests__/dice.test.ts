@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_IMAGE, DEFAULT_PDF, DEFAULT_TTS, type ExportCard } from '../../export'
-import { dieOutlineLines, planImages, planPdf, planTts } from '../../exportPlan'
+import { diePage, dieOutlineLines, planImages, planPdf, planTts } from '../../exportPlan'
 import {
   applyDie,
   cubeFaces,
@@ -218,7 +218,7 @@ describe('dadi: esportazione', () => {
     expect(later.notes).toEqual([{ key: 'export.dieNetLater', params: { set: 'd8', die: 'd8' } }])
   })
 
-  it('Tabletop Simulator: il d3 come cubo, gli altri per ora come segnalini', () => {
+  it('Tabletop Simulator: il d3 come cubo, gli altri come solidi con una faccia per riga', () => {
     const d3 = applyDie(face(), 'd3')
     const [cube] = planTts(DEFAULT_TTS, [
       { name: 'd3', kind: 'die', cards: [1, 2, 3].map((n) => card(d3, n)) }
@@ -226,12 +226,15 @@ describe('dadi: esportazione', () => {
     expect(cube.dice.map((d) => d.cards.map((c) => c.n))).toEqual([[1, 2, 3, 3, 2, 1]])
     expect(cube.dice[0].padded).toBe(false)
     const d8 = applyDie(face(), 'd8')
-    const [later] = planTts(DEFAULT_TTS, [
-      { name: 'd8', kind: 'die', cards: [1, 2].map((n) => card(d8, n)) }
+    const [oct] = planTts(DEFAULT_TTS, [
+      { name: 'd8', kind: 'die', cards: [1, 2, 3, 4, 5, 6, 7].map((n) => card(d8, n)) }
     ])
-    expect(later.dieLater).toBe('d8')
-    expect(later.object.type).toBe('token')
-    expect(later.pieces).toHaveLength(2)
+    expect(oct.object.type).toBe('die')
+    // l'ultimo dado incompleto ripete le prime facce
+    expect(oct.dice.map((d) => d.cards.map((c) => c.n))).toEqual([[1, 2, 3, 4, 5, 6, 7, 1]])
+    expect(oct.dice[0].padded).toBe(true)
+    // il foglio del d8: 3 × 3 celle
+    expect(diePage(oct.dice[0])).toMatchObject({ width: 60, height: 3 * d8.height })
   })
 
   it('le facce di dado non hanno retro, né in PDF né in immagini', () => {

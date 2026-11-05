@@ -1,4 +1,5 @@
-import { DIE_ROWS, dieOf } from '../../shared/model/dice'
+import { DIE_ROWS, dieOf, isCubeDie } from '../../shared/model/dice'
+import { dieColliderObj, dieObj, dieSolid } from '../../shared/model/solids'
 import { mkdir, writeFile } from 'fs/promises'
 import { dirname, join, resolve } from 'path'
 import {
@@ -11,7 +12,7 @@ import {
   ttsSavedObject,
   ttsSavedPieces,
   ttsSavedDice,
-  ttsDieObj,
+  ttsRotations,
   TTS_UNITS_PER_MM,
   ttsTileType,
   type ExportCard,
@@ -312,10 +313,6 @@ async function exportTts(
   // set con nomi che differiscono solo per caratteri non ammessi (a/b e a_b) non si sovrascrivono
   const stems = uniqueNames(plans.map((p) => safeName(p.set.name)))
   for (const [index, plan] of plans.entries()) {
-    if (plan.dieLater)
-      ctx.result.warnings.push(
-        msg('export.ttsDieLater', { set: plan.set.name, die: plan.dieLater })
-      )
     if (plan.pieces.length) {
       await exportPieces(ctx, o, plan, stems[index], targets)
       continue
@@ -517,25 +514,48 @@ async function exportDice(
 
   const env = ctx.env
   const digits = String(plan.dice.length).length
-  const mesh = ttsDieObj(t0.width * TTS_UNITS_PER_MM)
+  // il solido del dado, con gli spigoli arrotondati; la moneta è spessa quanto l'oggetto
+  const die = dieOf(t0) ?? 'd6'
+  const mesh = dieObj(
+    die,
+    { width: t0.width * TTS_UNITS_PER_MM, height: t0.height * TTS_UNITS_PER_MM },
+    { thickness: plan.object.thickness * TTS_UNITS_PER_MM }
+  )
+  const collider = dieColliderObj(
+    die,
+    { width: t0.width * TTS_UNITS_PER_MM, height: t0.height * TTS_UNITS_PER_MM },
+    plan.object.thickness * TTS_UNITS_PER_MM
+  )
+  const upFor = isCubeDie(die) ? null : dieSolid(die, t0).upFor
   for (const target of targets) {
-    const meshFile = join(target, 'models', `${stem}_d6.obj`)
+    const meshFile = join(target, 'models', `${stem}_${die}.obj`)
     await write(ctx, meshFile, Buffer.from(mesh))
+    // per gli urti un solido a spigoli vivi: il modello arrotondato ha troppi triangoli
+    const colliderFile = join(target, 'models', `${stem}_${die}_collider.obj`)
+    await write(ctx, colliderFile, Buffer.from(collider))
     const dice: TtsDie[] = []
     for (const [i, die] of plan.dice.entries()) {
       const n = String(i + 1).padStart(digits, '0')
       const file = join(target, 'images', `${stem}_die_${n}.png`)
       await write(ctx, file, images[i])
       const first = die.cards[0]
+      const values = plan.dice[i].cards.map((c, k) => fieldText(c, o.nickname) || String(k + 1))
       dice.push({
         imageUrl: imageUrl(env, file),
-        values: die.cards.map((c, k) => fieldText(c, o.nickname) || String(k + 1)),
+        values,
+        ...(upFor ? { rotations: ttsRotations(values, upFor) } : {}),
         nickname: plan.dice.length === 1 ? plan.set.name : `${plan.set.name} ${i + 1}`,
         description: fieldText(first, o.description),
         count: die.count
       })
     }
-    const object = ttsSavedDice(plan.set.name, dice, imageUrl(env, meshFile))
+    const object = ttsSavedDice(
+      plan.set.name,
+      dice,
+      imageUrl(env, meshFile),
+      die === 'd2' ? 3 : 2,
+      imageUrl(env, colliderFile)
+    )
     await write(ctx, join(target, `${stem}.json`), JSON.stringify(object, null, 2) + '\n')
     await write(ctx, join(target, `${stem}.png`), thumb)
   }

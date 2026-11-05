@@ -1122,8 +1122,6 @@ export const it: Record<MessageKey, string> = {
   'format.width26': 'Larghezza 26 mm',
   'export.dieNetLater':
     "Set «{set}»: il {die} da piegare arriva in una prossima versione; per ora le facce escono una accanto all'altra.",
-  'export.ttsDieLater':
-    'Set «{set}»: il {die} come dado arriva in una prossima versione; per ora le facce vanno sul tavolo come segnalini.',
   'kind.standee': 'Pedina',
   'kind.standee.hint':
     'Una figura che sta in piedi, su fondo trasparente. Il retro è il fronte specchiato: stampi le due facce, le ritagli e le incolli.',
@@ -1543,13 +1541,13 @@ export const it: Record<MessageKey, string> = {
   'export.maxSize': 'Dimensione massima',
   'export.ttsObjects': 'Oggetti',
   'export.ttsObjectsHint':
-    "Carte: un mazzo dai fogli. Segnalini: un'immagine per carta, ritagliata sulla forma della carta; sotto mostra il fronte specchiato. Tessere: fronte e retro, quadrate, arrotondate, esagonali o rotonde come la carta, con il bordo del colore scelto. Segnalini e tessere di un set vanno in un sacchetto, copie comprese. Plancia: come una tessera ma non impilabile, ognuna sul tavolo accanto all'altra. Dado: sei carte per d6 (tre per d3), nell'ordine del foglio (la carta 1 sulla faccia 1 e così via, le facce opposte fanno 7); usa un template quadrato. Gli altri dadi arrivano in una prossima versione: per ora le facce vanno sul tavolo come segnalini.",
+    "Carte: un mazzo dai fogli. Segnalini: un'immagine per carta, ritagliata sulla forma della carta; sotto mostra il fronte specchiato. Tessere: fronte e retro, quadrate, arrotondate, esagonali o rotonde come la carta, con il bordo del colore scelto. Segnalini e tessere di un set vanno in un sacchetto, copie comprese. Plancia: come una tessera ma non impilabile, ognuna sul tavolo accanto all'altra. Dado: un dado vero con gli spigoli arrotondati, una carta per faccia nell'ordine del foglio (la carta 1 sulla faccia 1 e così via; sul d3 ogni carta va su due facce opposte), che lanciato mostra il valore della faccia in alto; il d2 è una moneta da lanciare. Usa un template di faccia di dado.",
   'export.ttsCard': 'Carte',
   'export.ttsToken': 'Segnalini',
   'export.ttsStandee': 'Pedine',
   'export.ttsTile': 'Tessere',
   'export.ttsBoard': 'Plance',
-  'export.ttsDie': 'Dadi (d6, d3)',
+  'export.ttsDie': 'Dadi',
   'export.ttsDicePadded':
     "Set «{set}»: le carte non sono un multiplo di {n}, l'ultimo dado ripete le sue prime facce.",
   'export.ttsThickness': 'Spessore',
