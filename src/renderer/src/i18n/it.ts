@@ -1120,8 +1120,8 @@ export const it: Record<MessageKey, string> = {
   'format.width18': 'Larghezza 18 mm',
   'format.width22': 'Larghezza 22 mm',
   'format.width26': 'Larghezza 26 mm',
-  'export.dieNetLater':
-    "Set «{set}»: il {die} da piegare arriva in una prossima versione; per ora le facce escono una accanto all'altra.",
+  'export.dieNetCoin':
+    'Set «{set}»: la moneta non si piega. Ritaglia le due facce e incollale schiena contro schiena, se vuoi su un cartoncino.',
   'kind.standee': 'Pedina',
   'kind.standee.hint':
     'Una figura che sta in piedi, su fondo trasparente. Il retro è il fronte specchiato: stampi le due facce, le ritagli e le incolli.',
@@ -1505,10 +1505,11 @@ export const it: Record<MessageKey, string> = {
   'export.marksLines': 'Linee intere',
   'export.dice': 'Dadi',
   'export.diceFaces': 'Facce',
-  'export.diceFacesNote': "Le facce una accanto all'altra, come le carte.",
+  'export.diceFacesNote':
+    "Le facce una accanto all'altra, come le carte; i triangoli si incastrano.",
   'export.diceNet': 'Da piegare',
   'export.diceNetNote':
-    'Il cubo aperto con le linguette da incollare. Linee di taglio e pieghe solo con i segni di taglio.',
+    'Il dado aperto con le linguette da incollare. Linee di taglio e pieghe solo con i segni di taglio.',
   'export.tabDepth': 'Linguette',
   'export.tabDepthHint': 'Profondità delle linguette; 0 la sceglie dal lato del dado. Adesso: {v}.',
   'export.dieNotSquare':

@@ -14,6 +14,8 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Token backs same as the front**: new tokens have their back the same as the front, with the same layers (not mirrored), in print too. **Back** in the template properties shows a closed lock; open it to draw the back on its own.
 - **d4 drawn as a wedge**: the d4 template is now the wedge of the top corner (dashed outline), with width and height of the whole face. Each face puts three wedges together, the bottom ones turned and with the data of the rows that share those corners, so every column of a row (images, colors, texts) goes to its corner. `{die.corner1..3}` from beta 1 are gone.
 - **d3 in print**: with **Dice → Faces** each row of a d3 is printed twice, since it goes on two faces of the cube.
+- **Every die to fold**: with **Dice → To fold** the d4, d8, d10, d12 and d20 come out as flat nets, face joined to face, with a tab on every edge to glue (the neighbouring face seen in a mirror, as on the cube). Stella picks the most compact net; the d2 coin comes out as faces to glue back to back.
+- **Triangles interlock**: with **Dice → Faces** the faces of the d4, d8 and d20 alternate one up and one down, using half the paper, with room for the bleed between them.
 
 ### Italiano
 
@@ -22,6 +24,8 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Retro dei segnalini uguale al fronte**: i segnalini nuovi hanno il retro uguale al fronte, con gli stessi livelli (non specchiati), anche in stampa. **Retro** nelle proprietà del template mostra il lucchetto chiuso; aprendolo il retro si disegna a parte.
 - **d4 disegnato come spicchio**: il template del d4 ora è lo spicchio del vertice in alto (il contorno tratteggiato), con larghezza e altezza della faccia intera. Ogni faccia mette insieme tre spicchi, quelli in basso girati e con i dati delle righe che hanno quei vertici, così ogni colonna di una riga (immagini, colori, testi) va al suo vertice. `{die.corner1..3}` della beta 1 non ci sono più.
 - **d3 in stampa**: con **Dadi → Facce** ogni riga di un d3 si stampa due volte, perché va su due facce del cubo.
+- **Ogni dado da piegare**: con **Dadi → Da piegare** il d4, il d8, il d10, il d12 e il d20 escono aperti su un piano, faccia attaccata a faccia, con una linguetta su ogni lato da incollare (la faccia vicina vista allo specchio, come nel cubo). Stella sceglie lo sviluppo più compatto; il d2, la moneta, esce come facce da incollare schiena contro schiena.
+- **Triangoli incastrati**: con **Dadi → Facce** le facce del d4, del d8 e del d20 si alternano una in su e una in giù, con metà della carta e lo spazio per l'abbondanza tra l'una e l'altra.
 
 ## 1.10.0-beta.1
 

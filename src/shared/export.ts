@@ -323,6 +323,11 @@ export interface SceneItem {
   flip?: 'x' | 'y'
   /** Solo la parte dentro questo poligono, in mm sulla pagina */
   clip?: [number, number][]
+  /**
+   * Carta girata liberamente: la matrice affine [a, b, c, d, e, f] porta i mm del template
+   * (l'angolo del taglio in 0, 0) sulla pagina. Le facce degli sviluppi dei dadi
+   */
+  matrix?: [number, number, number, number, number, number]
 }
 
 export interface SceneLine {

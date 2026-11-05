@@ -97,6 +97,38 @@ export default function ScenePageView({
               guides={false}
             />
           )
+          if (it.matrix) {
+            // una faccia girata liberamente, eventualmente solo dentro la sua forma
+            const [a, b, cc, d, e, f] = it.matrix
+            const bl = it.mode === 'bleed' ? it.template.bleed : 0
+            const tx = s.scale * (e - a * bl - cc * bl - c.x)
+            const ty = s.scale * (f - b * bl - d * bl - c.y)
+            const pts = it.clip
+              ?.map(([x, y]) => `${(x - c.x) * s.scale}px ${(y - c.y) * s.scale}px`)
+              .join(', ')
+            return (
+              <div
+                key={i}
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  clipPath: pts ? `polygon(${pts})` : undefined
+                }}
+              >
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    transformOrigin: '0 0',
+                    transform: `matrix(${a}, ${b}, ${cc}, ${d}, ${tx}, ${ty})`
+                  }}
+                >
+                  {card}
+                </div>
+              </div>
+            )
+          }
           if (it.clip) {
             // una linguetta: la faccia specchiata, solo dentro la sua forma
             const pts = it.clip

@@ -185,22 +185,28 @@ describe('dadi: esportazione', () => {
     template: t
   })
 
-  it('PDF: il contorno dei triangoli come linea di taglio', () => {
-    const t = applyDie(face(), 'd8', 20, 20)
+  it('PDF: il contorno delle facce come linea di taglio', () => {
+    const tri = planPdf(
+      { ...DEFAULT_PDF, bleed: false },
+      [{ name: 'd8', kind: 'die', cards: [card(applyDie(face(), 'd8', 20, 20), 1)] }],
+      'p'
+    )
+    expect(tri.docs[0].pages[0].lines).toHaveLength(3)
+    const t = applyDie(face(), 'd12', 20, 20)
     const plan = planPdf(
       { ...DEFAULT_PDF, bleed: false },
-      [{ name: 'd8', kind: 'die', cards: [card(t, 1)] }],
+      [{ name: 'd12', kind: 'die', cards: [card(t, 1)] }],
       'p'
     )
     const page = plan.docs[0].pages[0]
     const it0 = page.items[0]
     const own = dieOutlineLines(page)
-    expect(own).toHaveLength(3)
+    expect(own).toHaveLength(5)
     expect(own[0]).toMatchObject({ x1: it0.x + 10, y1: it0.y })
     expect(page.lines).toEqual(expect.arrayContaining(own))
   })
 
-  it('PDF da piegare: il d3 esce come cubo, gli altri con un avviso', () => {
+  it('PDF da piegare: il d3 esce come cubo, il d8 come sviluppo, il d2 con un avviso', () => {
     const d3 = applyDie(face(), 'd3')
     const plan = planPdf(
       { ...DEFAULT_PDF, dice: 'net' },
@@ -210,12 +216,24 @@ describe('dadi: esportazione', () => {
     expect(plan.notes).toEqual([])
     expect(plan.docs[0].pages[0].items.length).toBeGreaterThan(6)
     const d8 = applyDie(face(), 'd8')
-    const later = planPdf(
-      { ...DEFAULT_PDF, dice: 'net' },
-      [{ name: 'd8', kind: 'die', cards: [card(d8, 1)] }],
+    const oct = planPdf(
+      { ...DEFAULT_PDF, dice: 'net', marks: 'lines' },
+      [{ name: 'd8', kind: 'die', cards: [1, 2, 3, 4, 5, 6, 7, 8].map((n) => card(d8, n)) }],
       'p'
     )
-    expect(later.notes).toEqual([{ key: 'export.dieNetLater', params: { set: 'd8', die: 'd8' } }])
+    expect(oct.notes).toEqual([])
+    const page = oct.docs[0].pages[0]
+    // 8 facce e 5 linguette (12 spigoli, 7 pieghe), tutte girate liberamente
+    expect(page.items).toHaveLength(13)
+    expect(page.items.every((it) => it.matrix && it.clip)).toBe(true)
+    expect(page.lines.filter((l) => l.dash)).toHaveLength(7 + 5)
+    const d2 = applyDie(face(), 'd2')
+    const coin = planPdf(
+      { ...DEFAULT_PDF, dice: 'net' },
+      [{ name: 'd2', kind: 'die', cards: [card(d2, 1), card(d2, 2)] }],
+      'p'
+    )
+    expect(coin.notes).toEqual([{ key: 'export.dieNetCoin', params: { set: 'd2' } }])
   })
 
   it('Tabletop Simulator: il d3 come cubo, gli altri come solidi con una faccia per riga', () => {
