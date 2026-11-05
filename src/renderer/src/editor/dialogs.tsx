@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { guideSectionUrl, type GuideSection } from '../../../shared/donate'
 import { KIND_PRESETS, type KindPreset } from '../../../shared/model/kinds'
+import {
+  DIE_TYPES,
+  dieHeight,
+  diePresets,
+  dieRatio,
+  type DieType
+} from '../../../shared/model/dice'
 import { COMPONENT_KINDS, type CardShape, type ComponentKind } from '../../../shared/model/template'
 import type { MessageKey } from '../i18n/en'
 import { isValidTemplateName } from '../../../shared/model/normalize'
@@ -8,7 +15,7 @@ import { useI18n } from '../i18n/context'
 import { useLengthUnit } from '../units'
 import { UNIT_LABEL, formatLength, fromUnit, toUnit } from '../../../shared/model/units'
 import { RatioLock } from './fields'
-import { KindIcon } from '../export/exportIcons'
+import { DieIcon, KindIcon } from '../export/exportIcons'
 import { useRatioLock } from './ratioLock'
 
 export function Dialog({
@@ -66,6 +73,8 @@ export interface NewTemplate {
   height: number
   kind: ComponentKind
   shape?: CardShape
+  /** Tipo di dado, per le facce di dado */
+  die?: DieType
 }
 
 export function NewTemplateDialog({
@@ -85,6 +94,7 @@ export function NewTemplateDialog({
   const [width, setWidth] = useState(() => String(toUnit(63, unit)))
   const [height, setHeight] = useState(() => String(toUnit(88, unit)))
   const [shape, setShape] = useState<CardShape | undefined>(undefined)
+  const [die, setDie] = useState<DieType>('d6')
   const wu = Number(width.replace(',', '.'))
   const hu = Number(height.replace(',', '.'))
   const w = Math.round(fromUnit(wu, unit) * 100) / 100
@@ -109,7 +119,9 @@ export function NewTemplateDialog({
         ? t('newTemplate.exists')
         : null
   const valid = name && !error && w >= 5 && h >= 5
-  const presets = KIND_PRESETS[kind]
+  const presets = kind === 'die' ? diePresets(die) : KIND_PRESETS[kind]
+  // triangoli, pentagoni e quadrati hanno la proporzione fissa: l'altezza segue la larghezza
+  const fixed = kind === 'die' ? dieRatio(die) : null
   const near = (a: number, b: number): boolean => Math.abs(a - b) < 0.05
   const preset =
     presets.find((p) => near(p.width, w) && near(p.height, h) && p.shape === shape)?.key ?? 'custom'
@@ -125,7 +137,9 @@ export function NewTemplateDialog({
         className="dialog-form"
         onSubmit={(e) => {
           e.preventDefault()
-          if (valid) onCreate({ name, width: w, height: h, kind, ...(shape ? { shape } : {}) })
+          if (!valid) return
+          if (kind === 'die') onCreate({ name, width: w, height: dieHeight(die, w, h), kind, die })
+          else onCreate({ name, width: w, height: h, kind, ...(shape ? { shape } : {}) })
         }}
       >
         <div className="kind-choice" role="radiogroup" aria-label={t('newTemplate.kind')}>
@@ -141,7 +155,7 @@ export function NewTemplateDialog({
                 title={t(`kind.${k}.hint`)}
                 onClick={() => {
                   setKind(k)
-                  applyPreset(KIND_PRESETS[k][0])
+                  applyPreset(k === 'die' ? diePresets(die)[0] : KIND_PRESETS[k][0])
                 }}
               >
                 <KindIcon kind={k} size={22} />
@@ -151,6 +165,32 @@ export function NewTemplateDialog({
           </div>
           <p className="muted kind-choice-hint">{t(`kind.${kind}.hint`)}</p>
         </div>
+        {kind === 'die' && (
+          <div className="kind-choice die-choice" role="radiogroup" aria-label={t('prop.die')}>
+            <span className="kind-choice-label">{t('prop.die')}</span>
+            <div className="kind-choice-buttons">
+              {DIE_TYPES.map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  role="radio"
+                  aria-checked={die === d}
+                  className={die === d ? 'active' : ''}
+                  title={t(`die.${d}.hint`)}
+                  onClick={() => {
+                    setDie(d)
+                    applyPreset(diePresets(d)[0])
+                  }}
+                >
+                  <DieIcon die={d} size={22} />
+                  <span className="die-choice-name">{d}</span>
+                  <span className="die-choice-faces">{t(`die.${d}.faces`)}</span>
+                </button>
+              ))}
+            </div>
+            <p className="muted kind-choice-hint">{t(`die.${die}.hint`)}</p>
+          </div>
+        )}
         <label>
           {t('prop.name')}
           <input autoFocus value={name} onChange={(e) => setName(e.target.value)} />
@@ -182,16 +222,24 @@ export function NewTemplateDialog({
               value={width}
               onChange={(e) => {
                 setWidth(e.target.value)
-                follow(e.target.value, wu, hu, setHeight)
+                const v = Number(e.target.value.replace(',', '.'))
+                if (fixed !== null) {
+                  if (v > 0) setHeight(String(toUnit(dieHeight(die, fromUnit(v, unit), 0), unit)))
+                } else follow(e.target.value, wu, hu, setHeight)
               }}
             />{' '}
             {UNIT_LABEL[unit]}
           </label>
-          <RatioLock locked={locked} onChange={setLocked} />
+          <RatioLock
+            locked={fixed !== null || locked}
+            onChange={(v) => fixed === null && setLocked(v)}
+          />
           <label>
             {t('prop.height')}
             <input
               className="num"
+              readOnly={fixed !== null}
+              title={fixed !== null ? t('die.fixedRatio') : undefined}
               value={height}
               onChange={(e) => {
                 setHeight(e.target.value)

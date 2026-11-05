@@ -1,6 +1,8 @@
 // Modello dei template: vedi docs/specifica.md, sezioni 1-5 e 8.1.
 // Unità: millimetri per posizioni e dimensioni, punti per il testo, gradi per la rotazione.
 
+import type { DieType } from './dice'
+
 export type Side = 'front' | 'back'
 
 export type HAlign = 'left' | 'center' | 'right' | 'justify'
@@ -392,6 +394,11 @@ export interface Template {
   origin?: string
   /** Tipo di componente; assente vale carta */
   kind?: ComponentKind
+  /**
+   * Tipo di dado, solo per kind = 'die': decide la forma della faccia e quante righe fanno un dado.
+   * Assente vale d6. Un derivato lo prende sempre dal base, come le misure
+   */
+  die?: DieType
   width: number
   height: number
   bleed: number

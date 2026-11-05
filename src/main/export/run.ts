@@ -1,3 +1,4 @@
+import { DIE_ROWS, dieOf } from '../../shared/model/dice'
 import { mkdir, writeFile } from 'fs/promises'
 import { dirname, join, resolve } from 'path'
 import {
@@ -311,6 +312,10 @@ async function exportTts(
   // set con nomi che differiscono solo per caratteri non ammessi (a/b e a_b) non si sovrascrivono
   const stems = uniqueNames(plans.map((p) => safeName(p.set.name)))
   for (const [index, plan] of plans.entries()) {
+    if (plan.dieLater)
+      ctx.result.warnings.push(
+        msg('export.ttsDieLater', { set: plan.set.name, die: plan.dieLater })
+      )
     if (plan.pieces.length) {
       await exportPieces(ctx, o, plan, stems[index], targets)
       continue
@@ -494,7 +499,12 @@ async function exportDice(
     step(ctx)
   }
   if (plan.dice.some((d) => d.padded))
-    ctx.result.warnings.push(msg('export.ttsDicePadded', { set: plan.set.name }))
+    ctx.result.warnings.push(
+      msg('export.ttsDicePadded', {
+        set: plan.set.name,
+        n: DIE_ROWS[dieOf(plan.dice[0].cards[0].template) ?? 'd6']
+      })
+    )
   const t0 = plan.dice[0].cards[0].template
   const thumb = (
     await renderCard(ctx, t0, 'front', 256 / Math.max(t0.width, t0.height), {

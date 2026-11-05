@@ -1,3 +1,4 @@
+import { DIE_ROWS, dieOf } from '../../../shared/model/dice'
 import { useEffect, useMemo, useState } from 'react'
 import type { LoadedSet, Sheet } from '../../../shared/project'
 import { cardFields, rowToCard, type BoundCard } from '../../../shared/model/bind'
@@ -933,12 +934,14 @@ type DiceCount =
 
 export function DiceTab({ ctx, onTable }: TabProps): React.JSX.Element {
   const { t } = useI18n()
-  // ogni dado sono sei righe, una per faccia; le copie del dado sono quelle della prima faccia
+  // ogni dado sono N righe, una per faccia (sei per il d6); le copie del dado sono quelle della
+  // prima faccia. Il d3 ha tre righe, ognuna su due facce: le probabilità non cambiano
+  const per = DIE_ROWS[dieOf(ctx.template) ?? 'd6']
   const dice = useMemo(() => {
     const out: { label: string; rows: number[]; ks: number[]; amount: number }[] = []
     const amounts = rowAmounts(ctx.sheet, ctx.rows)
-    for (let i = 0; i < ctx.rows.length; i += 6) {
-      const ks = ctx.rows.slice(i, i + 6).map((_, j) => i + j)
+    for (let i = 0; i < ctx.rows.length; i += per) {
+      const ks = ctx.rows.slice(i, i + per).map((_, j) => i + j)
       out.push({
         label: t('stats.dieName', {
           n: out.length + 1,
@@ -951,7 +954,7 @@ export function DiceTab({ ctx, onTable }: TabProps): React.JSX.Element {
       })
     }
     return out
-  }, [ctx, t])
+  }, [ctx, t, per])
   const images = useMemo(
     () =>
       new Set(

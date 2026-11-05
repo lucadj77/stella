@@ -72,6 +72,7 @@ import { arrangeGroup } from '../../shared/model/arrange'
 import {
   denormalizeTemplate,
   isValidTemplateName,
+  normalizeLayer,
   normalizeTemplate,
   walkLayers
 } from '../../shared/model/normalize'
@@ -115,6 +116,7 @@ import {
 import TemplateEditor, { EDITOR_UNDO } from './editor/TemplateEditor'
 import { Dialog, NewTemplateDialog, type NewTemplate } from './editor/dialogs'
 import { KIND_CORNER } from '../../shared/model/kinds'
+import { applyDie, dieSheet, dieStarterLayers } from '../../shared/model/dice'
 import CardGrid from './components/CardGrid'
 import CardForm from './components/CardForm'
 import ColumnsMenu from './components/ColumnsMenu'
@@ -1319,7 +1321,7 @@ function App(): React.JSX.Element {
       ? (project.sets.find((x) => x.data?.name === sheetName)?.data ??
         project.unusedData?.find((x) => x.name === sheetName) ??
         newSheet(sheetName, tpl))
-      : newSheet(name, tpl)
+      : dieSheet(newSheet(name, tpl), tpl)
     const def = { name, template, ...(data.name !== name ? { sheet: data.name } : {}) }
     setHistory((h) => ({
       past: [...h.past, { sets: project.sets, file: project.file }],
@@ -1689,11 +1691,11 @@ function App(): React.JSX.Element {
     return () => window.removeEventListener('keydown', onKey)
   })
 
-  const createTemplate = ({ name, width, height, kind, shape }: NewTemplate): void => {
+  const createTemplate = ({ name, width, height, kind, shape, die }: NewTemplate): void => {
     // la pedina è una figura su fondo trasparente, con il retro specchiato dal fronte: niente
     // sfondi e niente abbondanza, il bordo è la figura stessa
     const standee = kind === 'standee'
-    const tpl = normalizeTemplate({
+    const plain = normalizeTemplate({
       name,
       kind,
       width,
@@ -1730,6 +1732,19 @@ function App(): React.JSX.Element {
             }
           ]
     })
+    // una faccia di dado nasce con la sua forma e il numero (i tre ai vertici per il d4)
+    const tpl =
+      kind === 'die'
+        ? {
+            ...applyDie(plain, die ?? 'd6'),
+            labelField: 'value',
+            // il primo livello è quello in cima: i numeri sopra lo sfondo
+            front: [
+              ...dieStarterLayers(die ?? 'd6', width, height).map((l, i) => normalizeLayer(l, i)),
+              ...plain.front
+            ]
+          }
+        : plain
     setProject((p) => p && { ...p, templates: [...p.templates, tpl] })
     setDirty((d) => new Set(d).add(name))
     setSelected({ kind: 'template', name })

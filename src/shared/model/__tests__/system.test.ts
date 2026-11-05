@@ -43,7 +43,13 @@ describe('variabili di sistema', () => {
   }
 
   it('conta righe e carte del set', () => {
-    expect(systemOfSet('Gioco', set)).toEqual({ project: 'Gioco', set: 'Eroi', rows: 3, cards: 3 })
+    expect(systemOfSet('Gioco', set)).toEqual({
+      project: 'Gioco',
+      set: 'Eroi',
+      rows: 3,
+      cards: 3,
+      sheet: set.data
+    })
   })
 
   it('valgono nei testi e nelle formule, con il lato giusto sul retro', () => {
