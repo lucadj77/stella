@@ -1103,8 +1103,8 @@ export const en = {
   'format.width18': 'Width 18 mm',
   'format.width22': 'Width 22 mm',
   'format.width26': 'Width 26 mm',
-  'export.dieNetLater':
-    'Set “{set}”: the {die} to fold comes in a next version; for now its faces come out side by side.',
+  'export.dieNetCoin':
+    'Set “{set}”: a coin does not fold. Cut out its two faces and glue them back to back, on cardboard if you like.',
   'kind.standee': 'Standee',
   'kind.standee.hint':
     'A figure that stands upright, on a transparent background. The back is the front mirrored: print both faces, cut and glue them.',
@@ -1477,10 +1477,10 @@ export const en = {
   'export.marksLines': 'Full lines',
   'export.dice': 'Dice',
   'export.diceFaces': 'Faces',
-  'export.diceFacesNote': 'The faces side by side, like cards.',
+  'export.diceFacesNote': 'The faces side by side, like cards; triangles interlock.',
   'export.diceNet': 'To fold',
   'export.diceNetNote':
-    'The unfolded cube with tabs to glue. Cut and fold lines only with crop marks.',
+    'The unfolded die with tabs to glue. Cut and fold lines only with crop marks.',
   'export.tabDepth': 'Tabs',
   'export.tabDepthHint': 'Depth of the glue tabs; 0 picks it from the size of the die. Now: {v}.',
   'export.dieNotSquare':
