@@ -77,7 +77,12 @@ export function emptyVariable(type: VariableType): Variable {
 }
 
 /** Nome valido: lettere, cifre, _ e -, senza spazi né caratteri del markup */
-export const isValidVariableName = (name: string): boolean => /^[\p{L}\p{N}_-]+$/u.test(name)
+/** Il testo di una variabile aspetta parametri: contiene {1}, {2}... */
+export const hasParameters = (text: string): boolean => /(?<!\\)\{\d+\}/.test(text)
+
+/** Un nome di sole cifre si confonderebbe con i parametri {1}, {2} delle variabili di testo */
+export const isValidVariableName = (name: string): boolean =>
+  /^[\p{L}\p{N}_-]+$/u.test(name) && !/^\d+$/.test(name)
 
 const MAX_DEPTH = 5
 
@@ -101,7 +106,8 @@ export function variableFields(
     for (const name of Object.keys(out)) {
       const next = out[name].replace(/(?<!\\)\{([^{}*]+)\}/g, (m, ref: string) => {
         const r = ref.trim()
-        return r !== name && r in out ? out[r] : m
+        // {1}, {2} nel testo di una variabile sono parametri, anche se c'è una variabile 1
+        return r !== name && r in out && !/^\d+$/.test(r) ? out[r] : m
       })
       if (next !== out[name]) {
         out[name] = next

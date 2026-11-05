@@ -12,6 +12,8 @@ export interface ImageSize {
 }
 
 const cache = new Map<string, Promise<ImageSize | null>>()
+/** Immagini che non si sono caricate: per quelle collegate da internet, un link rotto */
+const failed = new Set<string>()
 
 function parseSvgSize(text: string): ImageSize | null {
   const root = new DOMParser().parseFromString(text, 'image/svg+xml').documentElement
@@ -33,7 +35,10 @@ function load(url: string): Promise<ImageSize | null> {
     return fetch(url)
       .then((r) => (r.ok ? r.text() : Promise.reject()))
       .then(parseSvgSize)
-      .catch(() => null)
+      .catch(() => {
+        failed.add(url)
+        return null
+      })
   }
   return new Promise((resolve) => {
     const img = new Image()
@@ -43,7 +48,10 @@ function load(url: string): Promise<ImageSize | null> {
           ? { w: img.naturalWidth, h: img.naturalHeight, mmPerUnit: 25.4 / 300 }
           : null
       )
-    img.onerror = () => resolve(null)
+    img.onerror = () => {
+      failed.add(url)
+      resolve(null)
+    }
     img.src = url
   })
 }
@@ -52,6 +60,11 @@ function load(url: string): Promise<ImageSize | null> {
 export function imageSize(url: string): Promise<ImageSize | null> {
   if (!cache.has(url)) cache.set(url, load(url))
   return cache.get(url)!
+}
+
+/** Dopo il tentativo: l'immagine non si è caricata */
+export function imageFailed(url: string): boolean {
+  return failed.has(url)
 }
 
 export function useImageSize(url: string | null): ImageSize | null {

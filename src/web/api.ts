@@ -19,6 +19,7 @@ import { saveExportProfiles } from '../main/project/exportProfiles'
 import { runExport } from '../main/export/run'
 import { fontCatalog, iconCatalog } from '../main/library/catalogs'
 import { importIcons } from '../main/library/icons'
+import { downloadImage, redownloadImage } from '../main/library/urlImages'
 import {
   iconifyCollection,
   iconifyCollections,
@@ -227,6 +228,11 @@ export const webApi: Api = {
   systemFonts: () => systemFonts(),
   copySystemFont: (family) => copySystemFont(projectFolder(), family),
   addImages: () => addImages(projectFolder()),
+  // nel browser l'immagine si scarica solo dai siti che lo permettono (CORS)
+  downloadImage: (url, name) => downloadImage(projectFolder(), url, name),
+  redownloadImage: (path) => redownloadImage(projectFolder(), path),
+  // le immagini collegate le tiene la cache del browser
+  forgetRemoteImages: async () => {},
   dropImages: (files) => dropImages(projectFolder(), files),
   saveCredits: async (text) => {
     const dir = join(projectFolder(), 'export')

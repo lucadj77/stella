@@ -65,6 +65,9 @@ const api: Api = {
   addImages: () => ipcRenderer.invoke('library:add-images'),
   dropImages: (files: { name: string; data: Uint8Array }[]) =>
     ipcRenderer.invoke('library:drop-images', files),
+  downloadImage: (url, name) => ipcRenderer.invoke('library:download-image', url, name),
+  redownloadImage: (path) => ipcRenderer.invoke('library:redownload-image', path),
+  forgetRemoteImages: (urls) => ipcRenderer.invoke('library:forget-remote-images', urls),
   saveCredits: (text) => ipcRenderer.invoke('library:save-credits', text),
   chooseFolder: (current) => ipcRenderer.invoke('folder:choose', current),
   backups: () => ipcRenderer.invoke('backup:list'),

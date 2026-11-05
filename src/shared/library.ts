@@ -5,7 +5,8 @@ import type { ProjectFont } from './project'
 
 /** Una voce di assets/sources.json: da dove viene un file e con quale licenza */
 export interface SourceEntry {
-  kind: 'icon' | 'font'
+  /** image: un'immagine scaricata da un indirizzo (url), da poter riscaricare */
+  kind: 'icon' | 'font' | 'image'
   /** Nome della fonte, per esempio "game-icons.net" o "Google Fonts" */
   source: string
   /** Identificativo nella fonte: "lorc/broadsword", "Cinzel" */

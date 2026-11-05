@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { LoadedProject } from '../../../shared/project'
-import { resolveAsset } from '../../../shared/model/assets'
+import { isRemoteImage, resolveAsset } from '../../../shared/model/assets'
 import { bindRow } from '../../../shared/model/bind'
 import { creditsText } from '../../../shared/model/credits'
 import { markupFonts } from '../../../shared/model/fonts'
@@ -66,13 +66,15 @@ export default function CreditsDialog({
         {
           icons: (source, license) => t('credits.icons', { source, license }),
           font: (family, license) => t('credits.font', { family, license }),
+          images: () => t('credits.images'),
           licenseName: (spdx) => {
             const k = `license.${spdx}` as MessageKey
             const name = t(k)
             return name === k ? spdx : name
           }
         },
-        onlyUsed ? used : undefined
+        onlyUsed ? used : undefined,
+        [...used.assets].filter(isRemoteImage)
       ),
     [project.sources, onlyUsed, used, t]
   )

@@ -341,7 +341,9 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
             // il font può essere una variabile o un campo: {titoli}
             out = {
               ...out,
-              text: substituteFields(out.text, written, images),
+              text: substituteFields(out.text, written, images, (name, n) =>
+                say(msg('bind.missingParameter', { layer: layer.name, name, n: String(n) }))
+              ),
               font: substituteFields(out.font, fields).trim()
             }
             if (out.visible) {
@@ -726,6 +728,65 @@ export function imageFields(
   return out
 }
 
+/** {raccogli:2} · {scambio:3:1} · {raccogli:{forza}}: nome, poi i parametri divisi da : */
+const PARAMETRIC = /(?<!\\)\{([^{}:*\s]+)(?::((?:[^{}]|\{[^{}]*\})*))?\}/g
+const PLACEHOLDER = /(?<!\\)\{(\d+)\}/g
+
+/**
+ * Variabili di testo (e campi) con parametri: {raccogli:2} scrive il testo di raccogli con {1}
+ * al posto di 2. Un parametro può essere un campo ({raccogli:{forza}}); \: è un due punti
+ * scritto. Un parametro che manca resta vuoto, e `missing` lo segnala. Il testo che ne risulta
+ * può richiamare altre variabili con parametri, fino a cinque livelli.
+ */
+function withParameters(
+  text: string,
+  fields: Record<string, string>,
+  images: Record<string, string>,
+  missing?: (name: string, n: number) => void
+): string {
+  const has = (name: string): boolean => Object.prototype.hasOwnProperty.call(fields, name)
+  let out = text
+  for (let depth = 0; depth < 5; depth++) {
+    const next = out.replace(PARAMETRIC, (m, name: string, rest?: string) => {
+      // {raccogli} senza parametri: solo se il testo ne aspetta, per segnalarli
+      if (!has(name) || (rest === undefined && !fields[name].match(PLACEHOLDER))) return m
+      const args =
+        rest === undefined ? [] : splitParameters(substituteFields(rest, fields, images, missing))
+      return fields[name].replace(PLACEHOLDER, (_, n: string) => {
+        const arg = args[Number(n) - 1]
+        if (arg === undefined) missing?.(name, Number(n))
+        return arg ?? ''
+      })
+    })
+    if (next === out) break
+    out = next
+  }
+  return out
+}
+
+/** Parametri divisi dai : che non sono scritti \: e non stanno dentro graffe */
+function splitParameters(s: string): string[] {
+  const out: string[] = []
+  let cur = ''
+  let depth = 0
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i]
+    if (c === '\\' && s[i + 1] === ':') {
+      cur += ':'
+      i++
+    } else if (c === ':' && depth === 0) {
+      out.push(cur)
+      cur = ''
+    } else {
+      if (c === '{') depth++
+      else if (c === '}') depth = Math.max(0, depth - 1)
+      cur += c
+    }
+  }
+  out.push(cur)
+  return out.map((a) => a.trim())
+}
+
 /**
  * Sostituisce {campo} con il valore della riga e, in {icona*campo}, il campo con il suo valore;
  * le altre graffe restano per le variabili e le immagini. Con `images` (vedi imageFields) i
@@ -734,13 +795,14 @@ export function imageFields(
 export function substituteFields(
   text: string,
   fields: Record<string, string>,
-  images: Record<string, string> = {}
+  images: Record<string, string> = {},
+  missing?: (name: string, n: number) => void
 ): string {
   const has = (name: string): boolean => Object.prototype.hasOwnProperty.call(fields, name.trim())
   const image = (name: string): string | undefined =>
     Object.prototype.hasOwnProperty.call(images, name.trim()) ? images[name.trim()] : undefined
   return (
-    text
+    withParameters(text, fields, images, missing)
       // font={titoli}: nel markup gli spazi del nome diventano _ (font=Open_Sans)
       .replace(/\bfont=\{([^{}*\s]+)\}/g, (m, name: string) =>
         has(name) ? `font=${fields[name.trim()].trim().replace(/\s+/g, '_')}` : m

@@ -502,6 +502,7 @@ Le forme `circle`, `square`, `rounded`, `hexagon` e `diamond` sono sempre dispon
 | `{spada*3}` · `{spada*forza}` | l'icona ripetuta tre volte, o tante volte quanto vale il campo  |
 | `{legno}`                     | un'immagine di `assets/` con quel nome, alta quanto la riga     |
 | `{spada tint=red size=150%}`  | l'icona con attributi validi solo per questo uso                |
+| `{pesca:2}` · `{scambia:3:1}` | una variabile di testo con parametri (sezione 7.1)              |
 | `\{`, `\*`, `\[`              | il carattere letterale                                          |
 
 Stella conosce da sé alcuni valori, le **variabili di sistema**, che si scrivono come i campi, anche nelle formule: `{project.name}` (il gioco), `{project.author}` e `{project.version}` (da **Informazioni progetto…**), `{set.name}`, `{template.name}`, `{card.number}` (la riga della carta nel set), `{set.rows}`, `{set.cards}` (le carte con le copie), `{card.copies}`, `{card.copy}` (la copia stampata, per scrivere per esempio `{card.copy}/{card.copies}`), `{card.side}` (`front` o `back`) e `{date}`. Un piè di pagina come `{set.name} {card.number}/{set.rows}` numera le carte da solo.
@@ -541,7 +542,7 @@ Il pulsante **Aa Formatta…** sotto un campo di testo apre l'editor visuale: si
 Le variabili si creano con il + accanto a **Variabili** e si modificano con un clic. Ce ne sono quattro tipi:
 
 - **Icona**: un'immagine di `assets/` con tinta, dimensione rispetto alla riga, spostamento verticale, rotazione, ribaltamento e opacità. Con **Colore del testo in cui è inserita** l'icona prende il colore del testo. **Sfondo** mette dietro l'immagine una forma (circle, square, rounded, hexagon, diamond), un'immagine o un'altra variabile immagine, con **Colore dello sfondo** e **Spazio attorno** (lo spazio tra l'immagine e il bordo dello sfondo). Lo sfondo vale ovunque si usi la variabile: nei testi, nei livelli immagine, nei documenti e nello schema del tavolo. Per esempio una variabile `acqua` con l'icona di una goccia, tinta bianca e sfondo `circle` rosso mostra la goccia bianca in un cerchio rosso.
-- **Testo**: un testo, anche formattato, che sostituisce `{nome}`. Può richiamare altre variabili.
+- **Testo**: un testo, anche formattato, che sostituisce `{nome}`. Può richiamare altre variabili. Può avere **parametri**: `{1}`, `{2}` nel testo prendono i valori scritti dopo il nome, divisi da due punti. Con `pesca` = `[Pesca {1}]{.keyword}: prendi {1} carte`, `{pesca:2}` scrive «Pesca 2: prendi 2 carte»; con `scambia` = `Dai {1}, ricevi {2}`, `{scambia:3:1}` scrive «Dai 3, ricevi 1». Un parametro può essere un campo (`{pesca:{forza}}`) e la stessa variabile si può usare più volte nello stesso testo. Per un'icona con un numero sopra basta una variabile di testo come `moneta` = `[{1}]{bg=oro color=white}`, usata come `{moneta:3}`. Un parametro che manca resta vuoto ed è segnalato tra i problemi della carta; un due punti dentro un parametro si scrive `\:`. Nella finestra della variabile, **Prova con** sceglie i parametri della frase di prova.
 - **Colore**: un colore con un nome, utilizzabile in ogni proprietà colore e negli attributi del markup. Una variabile con il nome di un colore predefinito (per esempio `red`) lo ridefinisce in tutto il progetto.
 - **Valore**: un testo o un numero, utilizzabile nei testi e nelle formule (per esempio il numero massimo di carte in mano).
 
@@ -575,6 +576,13 @@ Il quadratino accanto a ogni campo colore apre il selettore: l'area grande scegl
 Le immagini stanno in `assets/`, anche in sottocartelle, nei formati SVG, PNG, WebP e JPG. Ovunque si indichi un'immagine basta il nome del file, senza cartella né estensione. Se due file hanno lo stesso nome (per esempio `spada.png` e `spada.svg`) l'app lo segnala e chiede di aggiungere l'estensione o la cartella.
 
 Il pulsante con l'immagine accanto ai campi apre le miniature degli asset, con ricerca e filtro per cartella. **Aggiungi immagini…** copia file dal computer in `assets/images` del progetto (un file con lo stesso nome non viene sovrascritto: la copia prende un numero). **Sfondo scuro** mostra le miniature su fondo scuro, per vedere le icone bianche; la scelta viene ricordata.
+
+**Da internet…** prende un'immagine da un indirizzo (PNG, JPG, WebP o SVG) in due modi:
+
+- **Scarica nel progetto** salva il file in `assets/images` con il nome scelto. L'immagine fa parte del progetto e funziona anche senza rete; l'indirizzo resta nei crediti, e con il file selezionato nella scelta delle immagini **Riscarica** lo aggiorna dal sito.
+- **Usa il collegamento** scrive l'indirizzo `https://...` al posto del nome del file. Lo stesso si può scrivere a mano nel campo dell'immagine, in una colonna o in una variabile icona. Ogni computer scarica l'immagine la prima volta e ne tiene una copia, che usa anche senza rete; **Riscarica**, nella scelta delle immagini, la aggiorna. Un collegamento che non funziona si vede come un'immagine mancante ed è segnalato quando si esporta.
+
+Nell'app web si scaricano solo le immagini dei siti che lo permettono; per gli altri conviene salvare l'immagine sul computer e usare **Aggiungi immagini…**.
 
 ![La scelta di un'immagine](img/scegli-immagine.png)
 

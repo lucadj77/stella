@@ -379,6 +379,8 @@ class InlineParser {
   private ref(open: number, close: number): Inline {
     const raw = this.s.slice(open, close + 1)
     let inner = this.s.slice(open + 1, close).trim()
+    // variabile con parametri, {raccogli:2}: si compila prima del disegno, qui resta com'è
+    if (/^[^{}:*\s]+:/.test(inner)) return { t: 'ref', name: inner, count: 1, raw }
     // attributi dell'immagine dopo il nome: {spada*2 tint=red}
     let image: ImageSettings | undefined
     const space = inner.search(/\s/)

@@ -65,6 +65,7 @@ import {
   importIconifyIcons
 } from './library/iconify'
 import { importIcons } from './library/icons'
+import { downloadImage, forgetRemoteImages, redownloadImage } from './library/urlImages'
 import { copyImages, writeImages } from './library/images'
 import { assetsUpdate } from './library/sources'
 import { IMAGE_EXTENSIONS } from '../shared/model/assets'
@@ -517,6 +518,18 @@ function registerIpc(): void {
     if (!folder) throw new MessageError(msg('template.noProject'))
     return copySystemFont(folder, family)
   })
+
+  ipcMain.handle('library:download-image', async (_, url: string, name: string) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    return downloadImage(folder, url, name)
+  })
+  ipcMain.handle('library:redownload-image', async (_, path: string) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    return redownloadImage(folder, path)
+  })
+  ipcMain.handle('library:forget-remote-images', (_, urls: string[]) => forgetRemoteImages(urls))
 
   ipcMain.handle('library:add-images', async () => {
     const folder = getProjectFolder()

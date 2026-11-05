@@ -267,6 +267,7 @@ export const en = {
   'preview.selectRow': 'Select a row to preview its component.',
   'preview.problems': 'Problems on this component',
 
+  'asset.unreachable': 'unreachable: {name}',
   'asset.missing': 'missing: {name}',
   'asset.ambiguous': 'ambiguous: {name}',
 
@@ -306,6 +307,7 @@ export const en = {
   'credits.onlyUsed': 'Only what the components use',
   'credits.empty': 'Nothing to credit: no imported icon or font is used.',
   'credits.icons': 'Icons from {source}, license {license}',
+  'credits.images': 'Images from the internet:',
   'credits.font': 'Font {family}, license {license}',
   'credits.copy': 'Copy',
   'credits.copied': 'Copied',
@@ -538,6 +540,35 @@ export const en = {
   'assetPicker.addImages': 'Add images…',
   'assetPicker.addImagesHint': 'Copy images from the computer into assets/images of the project',
   'assetPicker.importIcons': 'Import icons…',
+  'assetPicker.fromUrl': 'From the internet…',
+  'assetPicker.fromUrlHint': 'Download an image from an address, or link it',
+  'assetPicker.link': 'Linked image',
+  'assetPicker.refreshLink': 'Download again',
+  'assetPicker.refreshLinkHint':
+    'This computer keeps a copy of linked images: download this one again from the internet',
+  'assetPicker.redownload': 'Download "{name}" again',
+  'assetPicker.redownloadHint': 'Download again from {url}',
+  'urlImage.title': 'Image from the internet',
+  'urlImage.url': 'Address',
+  'urlImage.urlHint': 'https://… of a PNG, JPG, WebP or SVG image',
+  'urlImage.name': 'Name in the project',
+  'urlImage.nameHint': 'The file goes into assets/images with this name',
+  'urlImage.download': 'Download into the project',
+  'urlImage.downloadHint':
+    'The file becomes part of the project and works offline; the address is kept for credits and to download it again',
+  'urlImage.link': 'Use the link',
+  'urlImage.linkHint':
+    'The address is written in place of the file name; each computer downloads the image and keeps a copy',
+  'urlImage.webNote':
+    'In the browser only sites that allow it can be downloaded. Otherwise save the image on the computer and use Add images.',
+  'urlImage.badUrl': 'Not a web address: {url}',
+  'urlImage.unreachable': 'Cannot reach {url}: {error}',
+  'urlImage.http': 'The site answered {status} for {url}',
+  'urlImage.notImage': 'The address does not give a PNG, JPG, WebP or SVG image: {url}',
+  'urlImage.tooBig': 'The image is larger than 50 MB: {url}',
+  'urlImage.exists': 'assets/{name} already exists: choose another name',
+  'urlImage.noSource': 'assets/{name} was not downloaded from an address',
+  'urlImage.typeChanged': 'The address now gives a {ext} image, not like assets/{name}',
   'assetPicker.title': 'Choose an image',
   'assetPicker.search': 'Search by name or folder',
   'assetPicker.size': 'Thumbnail size',
@@ -1245,6 +1276,7 @@ export const en = {
   'bind.cellRuleLayer': 'Grid {layer}, cell rule {rule}: the cell content has no layer "{name}"',
   'bind.cellRuleError': 'Grid {layer}, cell rule {rule}: formula error: {error}',
   'bind.markup': 'Layer {layer}: {problem}',
+  'bind.missingParameter': 'Layer {layer}: {{name}} needs parameter {n}, written as {{name}:…}',
   'bind.unknownRef': 'Layer {layer}: {{name}} is not a field or an image in assets',
   'bind.missingVariableImage':
     'Layer {layer}: the image of variable {name} ({src}) is not in assets',
@@ -1560,7 +1592,8 @@ export const en = {
   'export.openFolder': 'Open {folder}',
   'export.missingFonts':
     'Fonts not found in assets/fonts nor on this computer, replaced by a default font: {fonts}',
-  'export.missingImages': 'Images not found in assets, exported as placeholders: {cards}',
+  'export.missingImages':
+    'Images not found in assets (or links that cannot be reached), exported as placeholders: {cards}',
   'export.livePreview': 'Preview',
   'export.enlarge': 'Enlarge',
   'export.enlargeHint': 'Open the preview in a large window, with every page and image',
@@ -1951,7 +1984,7 @@ export const en = {
   'variable.title': 'Variable',
   'variable.name': 'Name',
   'variable.nameHint': 'Write {name} in any text to use it',
-  'variable.invalidName': 'Use letters, digits, - and _, without spaces',
+  'variable.invalidName': 'Use letters, digits, - and _, without spaces and not only digits',
   'variable.fieldName':
     'A layer or a column is already called "{name}": on the components that have it, {{name}} will show the field, not the variable. Choose another name',
   'variable.exists': 'A variable with this name already exists',
@@ -1990,7 +2023,10 @@ export const en = {
   'variable.attrsHint':
     'In text these can be changed for a single use: {spada tint=red size=150% rotate=90 flip=h opacity=50%}',
   'variable.text': 'Text',
-  'variable.textHint': 'Replaces {name}; it can use formatting and other variables',
+  'variable.textHint':
+    'Replaces {name}; it can use formatting and other variables. {1}, {2} are parameters: {name:3:1}',
+  'variable.tryWith': 'Try with',
+  'variable.tryWithHint': 'Parameters for the preview, separated by : as in {name:3:1}',
   'variable.color': 'Color',
   'variable.value': 'Value',
   'variable.valueHint': 'Text or number, usable in texts and formulas',
@@ -2223,6 +2259,9 @@ export const en = {
     'A project variable (icon, text, color or value), or an image in assets/ with that name',
   'help.field.repeat': 'The icon repeated three times, or as many times as the field says',
   'help.field.attrs': 'The icon with attributes valid only here',
+  'help.field.params':
+    'Text variable with parameters: in its text {1} and {2} become 2 and 1. A parameter can be a field: {draw:{strength}}',
+  'help.field.paramsExample': '{draw:2}  {trade:2:1}',
   'help.field.escape': 'The character itself',
   'help.imageAttributes': 'Icon attributes',
   'help.system': 'System variables',

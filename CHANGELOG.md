@@ -5,6 +5,20 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.10.0-beta.3
+
+### English
+
+- **Text variables with parameters**: `{1}`, `{2}` in the text of a variable take the values written after its name, separated by colons. With `draw` = `[Draw {1}]{.keyword}: take {1} cards`, `{draw:2}` writes "Draw 2: take 2 cards"; `{trade:3:1}` passes two values. A parameter can be a field (`{draw:{strength}}`), the same variable can be used many times in a text, and a variable like `coin` = `[{1}]{bg=gold}` puts a number on an icon. Suggestions, colours in the field, renaming and the variable window (**Try with**) know them; a missing parameter is reported on the card.
+- **Images from the internet**: **From the internet…** in the image chooser downloads an image into the project (the address goes into the credits, and **Download again** refreshes it) or uses the link: an `https://...` address in place of the file name, also in columns and icon variables. Each computer keeps a copy of linked images, used offline too; a link that does not work shows as a missing image and is reported on export.
+- **Inline backgrounds stay centred**: a `bg=` box larger than its text layer now grows evenly on every side instead of spilling to the right and down.
+
+### Italiano
+
+- **Variabili di testo con parametri**: `{1}`, `{2}` nel testo di una variabile prendono i valori scritti dopo il nome, divisi da due punti. Con `pesca` = `[Pesca {1}]{.keyword}: prendi {1} carte`, `{pesca:2}` scrive «Pesca 2: prendi 2 carte»; `{scambia:3:1}` passa due valori. Un parametro può essere un campo (`{pesca:{forza}}`), la stessa variabile si può usare più volte in un testo, e una variabile come `moneta` = `[{1}]{bg=oro}` mette un numero su un'icona. Suggerimenti, colori del campo, rinomina e finestra della variabile (**Prova con**) le conoscono; un parametro mancante è segnalato sulla carta.
+- **Immagini da internet**: **Da internet…** nella scelta delle immagini scarica un'immagine nel progetto (l'indirizzo va nei crediti e **Riscarica** la aggiorna) oppure usa il collegamento: un indirizzo `https://...` al posto del nome del file, anche nelle colonne e nelle variabili icona. Ogni computer tiene una copia delle immagini collegate, che usa anche senza rete; un collegamento che non funziona si vede come un'immagine mancante ed è segnalato all'esportazione.
+- **Sfondi nel testo centrati**: un riquadro `bg=` più grande del suo livello di testo ora cresce in ugual misura su tutti i lati invece di uscire a destra e in basso.
+
 ## 1.10.0-beta.2
 
 ### English

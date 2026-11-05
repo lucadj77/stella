@@ -1,6 +1,8 @@
 import { net, protocol } from 'electron'
 import { resolve, sep } from 'path'
 import { pathToFileURL } from 'url'
+import { remoteImage } from './library/urlImages'
+import { decodeRemotePath } from '../shared/model/remoteUrl'
 
 // Le immagini del progetto si caricano come gc-asset://project/<percorso sotto assets/>
 
@@ -27,6 +29,16 @@ export function registerAssetScheme(): void {
 
 export function handleAssetProtocol(): void {
   protocol.handle(ASSET_SCHEME, async (request) => {
+    const url = new URL(request.url)
+    // gc-asset://remote/...: un'immagine collegata da internet, passando dalla cache
+    if (url.host === 'remote') {
+      const remote = decodeRemotePath(url.pathname)
+      const image = remote ? await remoteImage(remote) : null
+      if (!image) return new Response('Not found', { status: 404 })
+      return new Response(image.data as BodyInit, {
+        headers: { 'Content-Type': image.type, 'Access-Control-Allow-Origin': '*' }
+      })
+    }
     if (!projectFolder) return new Response('No project', { status: 404 })
     const root = resolve(projectFolder, 'assets')
     const rel = decodeURIComponent(new URL(request.url).pathname).replace(/^\/+/, '')

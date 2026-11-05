@@ -8395,3 +8395,52 @@ button.wide {
   stroke-width: 1;
   stroke-dasharray: 3 3;
 }
+
+/* Immagine da internet: indirizzo, nome e le due scelte con la loro spiegazione */
+.url-image-dialog {
+  width: min(520px, 90vw);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.url-image-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.url-image-field > span:first-child {
+  font-weight: 600;
+}
+
+.url-image-choices {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px 12px;
+  align-items: center;
+}
+
+.url-image-choices button {
+  padding: 8px 14px;
+}
+
+.asset-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.asset-link img {
+  height: 48px;
+  max-width: 96px;
+  object-fit: contain;
+}
+
+.asset-link code {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

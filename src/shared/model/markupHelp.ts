@@ -1,5 +1,5 @@
 import { NAMED_COLORS } from './colors'
-import { IMAGE_ATTRIBUTES, type Variables } from './variables'
+import { IMAGE_ATTRIBUTES, hasParameters, type Variables } from './variables'
 import { SYSTEM_VARIABLES } from './system'
 import { ATTRIBUTES, BUILTIN_SHAPES, BUILTIN_STYLES, type AttributeName } from './markup'
 
@@ -143,11 +143,13 @@ function refs(
   const vars = Object.entries(ctx.variables ?? {})
     .filter(([n, v]) => v.type !== 'color' && !fieldSet.has(n))
     .map(([n]) => n)
-  const varItems = unique(vars).map((n): Suggestion => ({
-    kind: 'variable',
-    label: n,
-    insert: n + close
-  }))
+  // una variabile di testo con {1}, {2} chiede i parametri: si scrive {raccogli:2}
+  const varItems = unique(vars).map((n): Suggestion => {
+    const v = ctx.variables?.[n]
+    return v?.type === 'text' && hasParameters(v.text)
+      ? { kind: 'variable', label: `${n}:…`, insert: `${n}:` }
+      : { kind: 'variable', label: n, insert: n + close }
+  })
   // le variabili di sistema solo dopo il primo carattere: altrimenti coprono campi e variabili
   const system = typed.trim()
     ? SYSTEM_VARIABLES.filter((n) => !fieldSet.has(n)).map((n): Suggestion => ({

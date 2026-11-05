@@ -263,6 +263,7 @@ export default function HelpDialog({
                   [`{${icon}}`, t('help.field.variable')],
                   [`{${icon}*3}  {${icon}*${field}}`, t('help.field.repeat')],
                   [`{${icon} tint=red size=150%}`, t('help.field.attrs')],
+                  [t('help.field.paramsExample'), t('help.field.params')],
                   ['\\{  \\*  \\[', t('help.field.escape')]
                 ]}
               />

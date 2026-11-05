@@ -1,6 +1,7 @@
 import { join } from './shims/path'
 import { getFile } from './shims/fs'
 import { listAssets } from '../main/project/assets'
+import { isRemoteImage } from '../shared/model/assets'
 
 // Immagini e font del progetto aperto come URL blob:, al posto del protocollo gc-asset:// dell'app
 // desktop. Un URL blob di un File non copia i dati: il browser legge il file quando serve.
@@ -39,5 +40,7 @@ export async function assetChanged(path: string): Promise<void> {
 }
 
 export function assetUrl(path: string): string {
+  // un'immagine collegata si carica dal suo indirizzo
+  if (isRemoteImage(path)) return path.trim()
   return urls.get(path) ?? ''
 }
