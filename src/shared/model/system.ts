@@ -1,5 +1,4 @@
 import type { LoadedSet } from '../project'
-import { d4Corners, dieOf } from './dice'
 import type { Side, Template } from './template'
 
 // Variabili di sistema: valori che Stella conosce da sé (progetto, set, posizione della carta, data)
@@ -18,10 +17,7 @@ export const SYSTEM_VARIABLES = [
   'card.copies',
   'card.copy',
   'card.side',
-  'date',
-  'die.corner1',
-  'die.corner2',
-  'die.corner3'
+  'date'
 ] as const
 
 export type SystemVariable = (typeof SYSTEM_VARIABLES)[number]
@@ -94,26 +90,6 @@ export function systemOfSet(
   }
 }
 
-/**
- * I vertici di una faccia di d4: il valore di ogni riga è quello del campo che dà il nome alle
- * carte se è una colonna, altrimenti della prima colonna. Senza foglio (l'editor senza dati) le
- * righe valgono 1, 2, 3, 4
- */
-function cornersOf(info: SystemInfo | undefined, template: Template): [string, string, string] {
-  if (dieOf(template) !== 'd4') return ['', '', '']
-  const sheet = info?.sheet
-  let values = ['1', '2', '3', '4']
-  if (sheet) {
-    const h = sheet.headers
-    const col =
-      template.labelField && h.includes(template.labelField)
-        ? h.indexOf(template.labelField)
-        : h.findIndex((x) => x !== 'amount' && !x.includes('.'))
-    values = col >= 0 ? sheet.rows.map((r) => r[col] ?? '') : []
-  }
-  return d4Corners(values, info?.number ?? 1)
-}
-
 export function systemFields(
   info: SystemInfo | undefined,
   template: Template,
@@ -133,11 +109,7 @@ export function systemFields(
     'card.copies': String(amount),
     'card.copy': String(info?.copy ?? 1),
     'card.side': side,
-    date: info?.date ?? today(),
-    ...(() => {
-      const [c1, c2, c3] = cornersOf(info, template)
-      return { 'die.corner1': c1, 'die.corner2': c2, 'die.corner3': c3 }
-    })()
+    date: info?.date ?? today()
   }
 }
 

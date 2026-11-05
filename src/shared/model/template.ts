@@ -411,6 +411,11 @@ export interface Template {
    * livelli del retro restano da parte. I segnalini nuovi nascono così, con il lucchetto chiuso
    */
   backFromFront?: boolean
+  /**
+   * Solo in memoria, nelle facce di d4 legate ai dati: i livelli del fronte già legati alle righe
+   * dello spicchio in basso a sinistra e di quello in basso a destra. Non si salva
+   */
+  wedges?: [Layer[], Layer[]]
   width: number
   height: number
   bleed: number

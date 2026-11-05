@@ -2642,6 +2642,9 @@ function DieField({
         <div className="die-explain">
           <svg viewBox="0 0 100 92" aria-hidden="true">
             <path d="M50 8L92 82H8z" className="die-explain-face" />
+            {/* lo spicchio del template, e gli altri due che Stella ricava dalle righe vicine */}
+            <path d="M50 8L71 45L50 57.3L29 45z" className="die-explain-wedge" />
+            <path d="M50 57.3L50 82M50 57.3L29 45M50 57.3L71 45" className="die-explain-cut" />
             {(
               [
                 [50, 8],

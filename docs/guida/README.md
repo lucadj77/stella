@@ -221,7 +221,7 @@ Un segnalino nuovo ha il retro uguale al fronte: **Retro** nelle proprietà del 
 
 Il tipo si cambia anche dopo, con **Componente** nelle proprietà del template, e il dado con **Dado**, che rifà la forma e l'altezza.
 
-Il d4 è diverso dagli altri: ogni faccia mostra tre numeri, uno per vertice, e il risultato è quello in alto. Nel set ogni riga scrive solo il numero del suo vertice alto; i due in basso li riempie Stella, prendendoli dalle facce che condividono quei vertici. Il template del d4 nasce con tre livelli di testo già girati verso i vertici, con `{die.corner1}` (in alto), `{die.corner2}` (in basso a sinistra) e `{die.corner3}` (in basso a destra); la grafica di un vertice si disegna una volta e compare su tutte le facce. Le proprietà del template lo spiegano con un disegno.
+Il d4 è diverso dagli altri: ogni faccia mostra tre vertici, e il risultato è quello in alto. Il template del d4 è lo spicchio del vertice in alto, l'aquilone che va dal vertice ai punti medi dei due lati e al centro del triangolo, segnato da un contorno tratteggiato. Si disegna come si vuole, con numeri, immagini e colori; larghezza e altezza restano quelle della faccia intera. Per ogni faccia Stella mette tre spicchi: il suo in alto e gli altri due girati di 120°, con i dati delle righe che condividono quei vertici, così a dado chiuso i vertici combaciano. Ogni spicchio legge tutte le colonne della sua riga, e ciò che esce dallo spicchio viene tagliato. Nell'editor gli spicchi in basso sono più chiari; le proprietà del template lo spiegano con un disegno.
 
 In questa versione i dadi diversi dal cubo si esportano come facce, in PDF e in immagini; in Tabletop Simulator diventano per ora segnalini, uno per faccia, e l'esportazione lo segnala. Nell'esportazione per Tabletop Simulator ogni set parte dall'oggetto del suo tipo: segnalini, pedine, tessere, plance o dadi.
 
@@ -1024,7 +1024,7 @@ Ogni scorciatoia è scritta prima con il tasto ⌘ del Mac e poi, dopo la barra,
 | ovunque       | ⌘+, ⌘−, ⌘0 / Ctrl+, Ctrl−, Ctrl+0                | ingrandisce, riduce e riporta normale l'interfaccia (app per computer)                                       |
 | set           | ⌘A / Ctrl+A, Esc                                 | seleziona tutte le carte, torna a una sola                                                                   |
 | tabella       | Alt+Invio                                        | a capo dentro una cella                                                                                      |
-| documenti     | Maiusc+Invio / Alt+Invio                         | `<br>`: a capo in una cella di tabella, un'etichetta dell'anatomia o un testo dello schema del tavolo         |
+| documenti     | Maiusc+Invio / Alt+Invio                         | `<br>`: a capo in una cella di tabella, un'etichetta dell'anatomia o un testo dello schema del tavolo        |
 | testo         | `{`, poi ↑ ↓, Invio                              | suggerimenti di campi e variabili                                                                            |
 | editor        | ⌘Z / Ctrl+Z, ⇧⌘Z / Ctrl+Maiusc+Z (o ⌘Y / Ctrl+Y) | annulla e ripete                                                                                             |
 | editor        | T, R, E, I, G, V                                 | nuovo testo, rettangolo, ellisse, immagine, griglia, valore                                                  |

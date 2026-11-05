@@ -1103,7 +1103,7 @@ export const it: Record<MessageKey, string> = {
   'die.d20.hint': 'Venti triangoli: venti righe del set, le facce opposte fanno 21.',
   'die.d4.explainTitle': 'Il numero in alto è il risultato.',
   'die.d4.explain':
-    'Ogni faccia mostra tre vertici: 1 in alto, 2 in basso a sinistra, 3 in basso a destra. In ogni riga del set scrivi solo il valore del vertice in alto ({field}): Stella riempie gli altri due con i valori delle facce che li condividono, così sul dado chiuso i numeri combaciano.',
+    'Il template è lo spicchio del vertice in alto (il contorno tratteggiato): disegnalo come vuoi, con numeri, immagini e colori. Ogni faccia mostra tre spicchi: il suo in alto e gli altri due girati, con i dati delle righe che hanno quei vertici, così sul dado chiuso i vertici combaciano. Ogni spicchio legge tutte le colonne della sua riga ({field} è il risultato); ciò che esce dallo spicchio viene tagliato. Larghezza e altezza sono quelle della faccia intera, il triangolo.',
   'die.fixedRatio':
     "La forma di questo dado ha la proporzione fissa: l'altezza segue la larghezza.",
   'format.coin20': 'Moneta 20 mm',
@@ -1120,9 +1120,6 @@ export const it: Record<MessageKey, string> = {
   'format.width18': 'Larghezza 18 mm',
   'format.width22': 'Larghezza 22 mm',
   'format.width26': 'Larghezza 26 mm',
-  'system.die.corner1': 'd4: valore del vertice in alto della faccia (il valore della sua riga)',
-  'system.die.corner2': 'd4: valore del vertice in basso a sinistra, dalla faccia che lo condivide',
-  'system.die.corner3': 'd4: valore del vertice in basso a destra, dalla faccia che lo condivide',
   'export.dieNetLater':
     "Set «{set}»: il {die} da piegare arriva in una prossima versione; per ora le facce escono una accanto all'altra.",
   'export.ttsDieLater':

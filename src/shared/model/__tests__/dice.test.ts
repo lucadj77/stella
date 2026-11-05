@@ -5,7 +5,7 @@ import {
   applyDie,
   cubeFaces,
   D4_CORNERS,
-  d4Corners,
+  d4WedgeRows,
   dieHeight,
   dieOf,
   dieSheet,
@@ -18,7 +18,7 @@ import {
   pathPolygon
 } from '../dice'
 import { denormalizeTemplate, normalizeTemplate } from '../normalize'
-import { systemFields } from '../system'
+import { bindCard, rowToCard } from '../bind'
 
 const face = (die?: string, w = 20, h = 20): ReturnType<typeof normalizeTemplate> =>
   normalizeTemplate({
@@ -130,12 +130,18 @@ describe('dadi: facce e righe', () => {
         expect(D4_CORNERS[a].filter((k) => D4_CORNERS[b].includes(k))).toHaveLength(2)
     // ogni faccia ha il suo valore in alto
     D4_CORNERS.forEach((f, i) => expect(f[0]).toBe(i))
-    expect(d4Corners(['1', '2', '3', '4', '5'], 1)).toEqual(['1', '3', '4'])
-    expect(d4Corners(['1', '2', '3', '4', '5'], 5)).toEqual(['5', '', ''])
   })
 
-  it('d4: le variabili dei vertici leggono la colonna del nome delle righe', () => {
-    const t = { ...face('d4', 25, 21.65), labelField: 'value' }
+  it('d4: gli spicchi in basso vengono dalle righe che condividono i vertici', () => {
+    const t = normalizeTemplate({
+      name: 'f',
+      kind: 'die',
+      die: 'd4',
+      width: 25,
+      height: 21.65,
+      front: [{ type: 'text', name: 'value', text: '', source: { kind: 'column' } }],
+      back: []
+    })
     const sheet = {
       headers: ['amount', 'value'],
       rows: [
@@ -145,12 +151,13 @@ describe('dadi: facce e righe', () => {
         ['1', 'D']
       ]
     }
-    const f = systemFields({ number: 2, sheet }, t, 1, 'front')
-    expect([f['die.corner1'], f['die.corner2'], f['die.corner3']]).toEqual(['B', 'D', 'C'])
-    // senza dati: le righe valgono 1, 2, 3, 4
-    const none = systemFields({}, t, 1, 'front')
-    expect([none['die.corner1'], none['die.corner2'], none['die.corner3']]).toEqual(['1', '3', '4'])
-    expect(systemFields({ number: 1, sheet }, face('d8'), 1, 'front')['die.corner1']).toBe('')
+    const text = (ls: unknown[]): string => (ls[0] as { text: string }).text
+    const b = bindCard(t, rowToCard(sheet.headers, sheet.rows[1]), { system: { number: 2, sheet } })
+    expect(text(b.template.front)).toBe('B')
+    expect(b.template.wedges!.map(text)).toEqual(['D', 'C'])
+    expect(d4WedgeRows(5, 4)).toBeNull()
+    // senza dati niente spicchi: si ripete lo spicchio della carta
+    expect(bindCard(t, rowToCard([], []), {}).template.wedges).toBeUndefined()
   })
 
   it('un set nuovo di dadi nasce con un dado, valori da 1 a N', () => {
@@ -161,15 +168,11 @@ describe('dadi: facce e righe', () => {
     expect(dieSheet({ name: 's', headers: ['amount', 'value'], rows: [] }, card).rows).toEqual([])
   })
 
-  it('livelli di partenza: il numero, o i tre vertici ruotati del d4', () => {
+  it('livelli di partenza: il numero, sul d4 vicino al vertice in alto', () => {
     expect(dieStarterLayers('d8', 20, 17.32).map((l) => l.name)).toEqual(['value'])
-    const d4 = dieStarterLayers('d4', 25, 21.65)
-    expect(d4.map((l) => [l.name, l.rotation])).toEqual([
-      ['value', undefined],
-      ['corner1', 0],
-      ['corner2', -120],
-      ['corner3', 120]
-    ])
+    const [d4] = dieStarterLayers('d4', 25, 21.65)
+    expect(d4.name).toBe('value')
+    expect((d4.y as number) + (d4.h as number)).toBeLessThan((2 * 21.65) / 3)
   })
 })
 
