@@ -8373,3 +8373,9 @@ button.wide {
 .project-info-folder input {
   flex: 1;
 }
+
+.back-from-front {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

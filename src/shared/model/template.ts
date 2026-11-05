@@ -381,6 +381,10 @@ export const isStandee = (t: Pick<Template, 'kind'> | null | undefined): boolean
 /** Faccia di dado: ha solo il fronte, il retro non si disegna e non si stampa */
 export const hasNoBack = (t: Pick<Template, 'kind'> | null | undefined): boolean =>
   kindOf(t) === 'die'
+/** Il retro si disegna con i livelli del fronte: retro uguale al fronte, non per pedine e dadi */
+export const backIsFront = (
+  t: Pick<Template, 'kind' | 'backFromFront'> | null | undefined
+): boolean => !!t?.backFromFront && !isStandee(t) && !hasNoBack(t)
 
 export interface ManualGuides {
   x: number[]
@@ -402,6 +406,11 @@ export interface Template {
    * Assente vale d6. Un derivato lo prende sempre dal base, come le misure
    */
   die?: DieType
+  /**
+   * Retro uguale al fronte (non specchiato): il retro si disegna con i livelli del fronte e i
+   * livelli del retro restano da parte. I segnalini nuovi nascono così, con il lucchetto chiuso
+   */
+  backFromFront?: boolean
   width: number
   height: number
   bleed: number
@@ -450,7 +459,8 @@ export const INHERITABLE_TEMPLATE_KEYS = [
   'shapeFlipV',
   'guides',
   'labelField',
-  'ttsTags'
+  'ttsTags',
+  'backFromFront'
 ] as const
 export type InheritableTemplateKey = (typeof INHERITABLE_TEMPLATE_KEYS)[number]
 

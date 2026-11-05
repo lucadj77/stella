@@ -771,6 +771,15 @@ export const en = {
   'editor.shapeFlipV': 'Mirror the shape top to bottom',
   'editor.shapeFlippedH': 'mirrored ⇆',
   'editor.shapeFlippedV': 'mirrored ⇅',
+  'prop.backFromFront': 'Back',
+  'prop.backFromFrontHint':
+    'Locked, the back is the front, the same layers (not mirrored): what you change on the front is on the back too. Open the lock to draw a different back.',
+  'prop.backSame': 'Same as the front',
+  'prop.backOwn': 'Drawn on its own',
+  'tip.backLocked': 'The back is the front: click to draw a different back',
+  'tip.backUnlocked': 'The back is drawn on its own: click to make it the same as the front',
+  'editor.tokenBack':
+    'The back is the same as the front: edit the front, or open the lock of Back in the template properties to draw a different one.',
   'editor.standeeBack': "A standee's back is its front mirrored, drawn by Stella: edit the front.",
   'editor.hexagonFit': 'Fit the component to the hexagon ({w} × {h})',
   'editor.hexagonFitHint':

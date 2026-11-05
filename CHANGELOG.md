@@ -10,10 +10,14 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 ### English
 
 - **Dice have no back**: a die face has only a front. The editor and the set preview no longer show **Back** for die templates, new die templates have no back layers, and PDF and image exports do not print the back of dice (with duplex, a blank page keeps the following sets aligned).
+- **Token backs same as the front**: new tokens have their back the same as the front, with the same layers (not mirrored), in print too. **Back** in the template properties shows a closed lock; open it to draw the back on its own.
+- **d3 in print**: with **Dice → Faces** each row of a d3 is printed twice, since it goes on two faces of the cube.
 
 ### Italiano
 
 - **I dadi non hanno retro**: una faccia di dado ha solo il fronte. L'editor e l'anteprima del set non mostrano più **Retro** per i template di dado, i template di dado nuovi nascono senza livelli sul retro, e le esportazioni PDF e immagini non stampano il retro dei dadi (in fronte-retro una pagina vuota tiene allineati i set che seguono).
+- **Retro dei segnalini uguale al fronte**: i segnalini nuovi hanno il retro uguale al fronte, con gli stessi livelli (non specchiati), anche in stampa. **Retro** nelle proprietà del template mostra il lucchetto chiuso; aprendolo il retro si disegna a parte.
+- **d3 in stampa**: con **Dadi → Facce** ogni riga di un d3 si stampa due volte, perché va su due facce del cubo.
 
 ## 1.10.0-beta.1
 

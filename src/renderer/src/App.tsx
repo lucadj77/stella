@@ -1702,6 +1702,8 @@ function App(): React.JSX.Element {
       height,
       cornerRadius: KIND_CORNER[kind],
       ...(standee ? { bleed: 0, safeMargin: 0 } : {}),
+      // il segnalino nasce con il retro uguale al fronte, bloccato: si sblocca nelle proprietà
+      ...(kind === 'token' ? { backFromFront: true } : {}),
       ...(shape ? { shape } : {}),
       front: standee
         ? []

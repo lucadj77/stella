@@ -39,7 +39,7 @@ import type {
   Template,
   TextLayer
 } from '../../../shared/model/template'
-import { isStandee } from '../../../shared/model/template'
+import { backIsFront, isStandee } from '../../../shared/model/template'
 
 // Disegna una carta in SVG, in millimetri. È lo stesso disegno che userà l'esportazione PDF.
 
@@ -82,7 +82,8 @@ export default function CardSvg({
   // la pedina non ha fondo, e il suo retro è il fronte specchiato (contorno compreso)
   const standee = isStandee(t)
   const mirror = standee && side === 'back'
-  const layers = side === 'front' || standee ? t.front : t.back
+  // retro uguale al fronte: gli stessi livelli, non specchiati
+  const layers = side === 'front' || standee || backIsFront(t) ? t.front : t.back
   const flip = mirror ? `translate(${t.width} 0) scale(-1 1)` : undefined
   const outline = mirror ? { ...t, shapeFlipH: !t.shapeFlipH } : t
   const vw = t.width + 2 * b

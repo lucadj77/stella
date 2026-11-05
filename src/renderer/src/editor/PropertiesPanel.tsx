@@ -21,7 +21,13 @@ import {
 import { useLayerNames } from './layerNames'
 import { assetRefName, isImageAsset, resolveAsset } from '../../../shared/model/assets'
 import { numberFormatting } from '../../../shared/model/numberFormat'
-import { COMPONENT_KINDS, kindOf, type ComponentKind } from '../../../shared/model/template'
+import {
+  COMPONENT_KINDS,
+  hasNoBack,
+  isStandee,
+  kindOf,
+  type ComponentKind
+} from '../../../shared/model/template'
 import {
   applyDie,
   DIE_TYPES,
@@ -348,6 +354,14 @@ function TemplateProperties({
             else set(patch, 'die')
           }}
         />
+      )}
+      {(kindOf(tpl) === 'token' || tpl.backFromFront) && !isStandee(tpl) && !hasNoBack(tpl) && (
+        <Inherit keys={['backFromFront']}>
+          <BackFromFrontField
+            locked={!!tpl.backFromFront}
+            onChange={(on) => set({ backFromFront: on || undefined }, 'backFromFront')}
+          />
+        </Inherit>
       )}
       <Inherit keys={['ttsTags']}>
         <TextField
@@ -2563,6 +2577,45 @@ function ShapeOrientation({
 }
 
 /** Il dado della faccia; per il d4 lo schema dei vertici e come si compila il set */
+/** Retro uguale al fronte, con il lucchetto: chiuso il retro copia il fronte, aperto si disegna */
+function BackFromFrontField({
+  locked,
+  onChange
+}: {
+  locked: boolean
+  onChange(locked: boolean): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  return (
+    <div className="field">
+      <span className="field-label">
+        {t('prop.backFromFront')} <HelpTip text={t('prop.backFromFrontHint')} />
+      </span>
+      <span className="field-control back-from-front">
+        <button
+          type="button"
+          className={locked ? 'ratio-lock on' : 'ratio-lock'}
+          aria-pressed={locked}
+          title={locked ? t('tip.backLocked') : t('tip.backUnlocked')}
+          onClick={() => onChange(!locked)}
+        >
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden>
+            <rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor" />
+            <path
+              d={locked ? 'M5.5 7V5a2.5 2.5 0 0 1 5 0v2' : 'M5.5 7V5a2.5 2.5 0 0 1 5 0'}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              transform={locked ? undefined : 'translate(2.5 -1.5)'}
+            />
+          </svg>
+        </button>
+        <span>{t(locked ? 'prop.backSame' : 'prop.backOwn')}</span>
+      </span>
+    </div>
+  )
+}
+
 function DieField({
   template: tpl,
   die,

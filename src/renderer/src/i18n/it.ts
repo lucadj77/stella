@@ -783,6 +783,15 @@ export const it: Record<MessageKey, string> = {
   'editor.shapeFlipV': "Specchia la forma dall'alto in basso",
   'editor.shapeFlippedH': 'specchiata ⇆',
   'editor.shapeFlippedV': 'specchiata ⇅',
+  'prop.backFromFront': 'Retro',
+  'prop.backFromFrontHint':
+    'Con il lucchetto chiuso il retro è il fronte, con gli stessi livelli (non specchiati): ciò che cambi sul fronte è anche sul retro. Apri il lucchetto per disegnare un retro diverso.',
+  'prop.backSame': 'Uguale al fronte',
+  'prop.backOwn': 'Disegnato a parte',
+  'tip.backLocked': 'Il retro è il fronte: clic per disegnare un retro diverso',
+  'tip.backUnlocked': 'Il retro si disegna a parte: clic per renderlo uguale al fronte',
+  'editor.tokenBack':
+    'Il retro è uguale al fronte: modifica il fronte, oppure apri il lucchetto di Retro nelle proprietà del template per disegnarne uno diverso.',
   'editor.standeeBack':
     'Il retro della pedina è il fronte specchiato, e lo disegna Stella: modifica il fronte.',
   'editor.hexagonFit': "Adatta il componente all'esagono ({w} × {h})",

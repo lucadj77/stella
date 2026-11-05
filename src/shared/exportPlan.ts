@@ -190,7 +190,10 @@ export function planPdf(o: PdfOptions, sets: ExportSet[], project: string): PdfP
     }
     if (kind === 'faces') {
       if (o.sides === 'back') return { set, pages: [] }
-      const fronts = gridPages(grid, expandCopies(set.cards, o.copies), {
+      // sul d3 ogni riga va su due facce opposte del cubo: si stampa due volte
+      const instances = expandCopies(set.cards, o.copies)
+      const twice = dieOf(set.cards[0]?.template) === 'd3'
+      const fronts = gridPages(grid, twice ? instances.flatMap((i) => [i, i]) : instances, {
         ...o,
         duplex: 'none',
         sides: 'front'

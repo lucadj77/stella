@@ -244,4 +244,12 @@ describe('dadi: esportazione', () => {
     const files = planImages({ ...DEFAULT_IMAGE, sides: 'both' }, sets)
     expect(files.map((f) => f.side)).toEqual(['front', 'front'])
   })
+
+  it('d3: in PDF ogni riga si stampa su due facce', () => {
+    const t = applyDie(face(), 'd3')
+    const sets = [{ name: 'd3', kind: 'die' as const, cards: [1, 2, 3].map((n) => card(t, n)) }]
+    const plan = planPdf(DEFAULT_PDF, sets, 'p')
+    const items = plan.docs[0].pages.flatMap((p) => p.items)
+    expect(items).toHaveLength(6)
+  })
 })

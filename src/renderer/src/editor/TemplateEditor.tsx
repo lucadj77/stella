@@ -6,6 +6,7 @@ import { findLayer, findParent, resizeTemplate } from '../../../shared/model/edi
 import { useLayerNames } from './layerNames'
 import type { LoadedSet } from '../../../shared/project'
 import {
+  backIsFront,
   hasNoBack,
   isStandee,
   type ShapeKind,
@@ -155,7 +156,8 @@ export default function TemplateEditor({
       cmd.nudge(dx, dy)
     } else if (!mod && !e.altKey && TOOL_KEYS.includes(k)) {
       // il retro della pedina è il fronte specchiato: non ha livelli suoi
-      if (isStandee(state.template) && state.side === 'back') return
+      if ((isStandee(state.template) || backIsFront(state.template)) && state.side === 'back')
+        return
       if (k === 't') cmd.add('text')
       else if (k === 'r') cmd.add('shape', 'rect')
       else if (k === 'e') cmd.add('shape', 'ellipse')
@@ -239,7 +241,8 @@ export default function TemplateEditor({
     label: t(`tool.${s}` as Parameters<typeof t>[0]),
     onClick: () => cmd.add('shape', s)
   }))
-  const mirroredBack = isStandee(state.template) && state.side === 'back'
+  const sameBack = backIsFront(state.template) && state.side === 'back'
+  const mirroredBack = (isStandee(state.template) || sameBack) && state.side === 'back'
   // una faccia di dado non ha retro: l'editor resta sul fronte
   const frontOnly = hasNoBack(state.template)
   useEffect(() => {
@@ -419,7 +422,7 @@ export default function TemplateEditor({
           <Canvas state={state} display={display.template} dispatch={dispatch} />
           {mirroredBack && (
             <div className="canvas-problems standee-note">
-              <div>{t('editor.standeeBack')}</div>
+              <div>{t(sameBack ? 'editor.tokenBack' : 'editor.standeeBack')}</div>
             </div>
           )}
           {(display.problems.length > 0 ||
