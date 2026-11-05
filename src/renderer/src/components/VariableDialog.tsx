@@ -5,6 +5,7 @@ import { substituteFields } from '../../../shared/model/bind'
 import {
   VARIABLE_TYPES,
   emptyVariable,
+  hasParameters,
   isValidVariableName,
   palette,
   resolveColor,
@@ -62,6 +63,8 @@ export default function VariableDialog({
   const [group, setGroup] = useState(initialGroup)
   const [v, setV] = useState<Variable>(variables[initialName] ?? emptyVariable('image'))
   // si tiene il contenuto di ogni tipo, così cambiare tipo per prova non lo perde
+  // parametri per l'anteprima di una variabile di testo con {1}, {2}: {raccogli:2}
+  const [tryWith, setTryWith] = useState('2')
   const [byType, setByType] = useState<Partial<Record<VariableType, Variable>>>({})
   const [picking, setPicking] = useState(false)
   const [pickingBg, setPickingBg] = useState(false)
@@ -93,7 +96,8 @@ export default function VariableDialog({
     out[name || '_'] = v
     return out
   }, [variables, initialName, name, v])
-  const ref = `{${name || '_'}}`
+  const parametric = v.type === 'text' && hasParameters(v.text)
+  const ref = parametric ? `{${name || '_'}:${tryWith}}` : `{${name || '_'}}`
   const sample =
     v.type === 'color'
       ? `[${t('variable.sampleText')}]{color=${name || '_'}} [ 7 ]{bg=circle bg-color=${name || '_'} color=white}`
@@ -293,6 +297,14 @@ export default function VariableDialog({
               multiline
               markupFields={[]}
               onChange={(text) => setV({ ...v, text })}
+            />
+          )}
+          {parametric && (
+            <TextField
+              label={t('variable.tryWith')}
+              hint={t('variable.tryWithHint')}
+              value={tryWith}
+              onChange={setTryWith}
             />
           )}
           {v.type === 'text' && (

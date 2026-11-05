@@ -1267,6 +1267,8 @@ export const it: Record<MessageKey, string> = {
   'bind.cellRuleError':
     'Griglia {layer}, regola delle caselle {rule}: errore nella formula: {error}',
   'bind.markup': 'Livello {layer}: {problem}',
+  'bind.missingParameter':
+    'Livello {layer}: a {{name}} manca il parametro {n}, da scrivere come {{name}:…}',
   'bind.unknownRef': "Livello {layer}: {{name}} non è un campo né un'immagine degli asset",
   'bind.missingVariableImage':
     "Livello {layer}: l'immagine della variabile {name} ({src}) non è negli asset",
@@ -1985,7 +1987,7 @@ export const it: Record<MessageKey, string> = {
   'variable.title': 'Variabile',
   'variable.name': 'Nome',
   'variable.nameHint': 'Scrivi {nome} in qualsiasi testo per usarla',
-  'variable.invalidName': 'Usa lettere, cifre, - e _, senza spazi',
+  'variable.invalidName': 'Usa lettere, cifre, - e _, senza spazi e non solo cifre',
   'variable.fieldName':
     'Un livello o una colonna si chiama già "{name}": nei componenti che lo hanno, {{name}} mostrerà il campo e non la variabile. Scegli un altro nome',
   'variable.exists': 'Esiste già una variabile con questo nome',
@@ -2024,7 +2026,10 @@ export const it: Record<MessageKey, string> = {
   'variable.attrsHint':
     'Nel testo si possono cambiare per un singolo uso: {spada tint=red size=150% rotate=90 flip=h opacity=50%}',
   'variable.text': 'Testo',
-  'variable.textHint': 'Sostituisce {nome}; può avere formattazione e altre variabili',
+  'variable.textHint':
+    'Sostituisce {nome}; può avere formattazione e altre variabili. {1}, {2} sono parametri: {nome:3:1}',
+  'variable.tryWith': 'Prova con',
+  'variable.tryWithHint': "Parametri per l'anteprima, divisi da : come in {nome:3:1}",
   'variable.color': 'Colore',
   'variable.value': 'Valore',
   'variable.valueHint': 'Testo o numero, usabile nei testi e nelle formule',
@@ -2262,6 +2267,9 @@ export const it: Record<MessageKey, string> = {
     "Una variabile del progetto (icona, testo, colore o valore), o un'immagine di assets/ con quel nome",
   'help.field.repeat': "L'icona ripetuta tre volte, o tante volte quanto vale il campo",
   'help.field.attrs': "L'icona con attributi validi solo qui",
+  'help.field.params':
+    'Variabile di testo con parametri: nel suo testo {1} e {2} diventano 2 e 1. Un parametro può essere un campo: {pesca:{forza}}',
+  'help.field.paramsExample': '{pesca:2}  {scambia:2:1}',
   'help.field.escape': 'Il carattere letterale',
   'help.imageAttributes': 'Attributi delle icone',
   'help.system': 'Variabili di sistema',

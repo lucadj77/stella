@@ -1245,6 +1245,7 @@ export const en = {
   'bind.cellRuleLayer': 'Grid {layer}, cell rule {rule}: the cell content has no layer "{name}"',
   'bind.cellRuleError': 'Grid {layer}, cell rule {rule}: formula error: {error}',
   'bind.markup': 'Layer {layer}: {problem}',
+  'bind.missingParameter': 'Layer {layer}: {{name}} needs parameter {n}, written as {{name}:…}',
   'bind.unknownRef': 'Layer {layer}: {{name}} is not a field or an image in assets',
   'bind.missingVariableImage':
     'Layer {layer}: the image of variable {name} ({src}) is not in assets',
@@ -1951,7 +1952,7 @@ export const en = {
   'variable.title': 'Variable',
   'variable.name': 'Name',
   'variable.nameHint': 'Write {name} in any text to use it',
-  'variable.invalidName': 'Use letters, digits, - and _, without spaces',
+  'variable.invalidName': 'Use letters, digits, - and _, without spaces and not only digits',
   'variable.fieldName':
     'A layer or a column is already called "{name}": on the components that have it, {{name}} will show the field, not the variable. Choose another name',
   'variable.exists': 'A variable with this name already exists',
@@ -1990,7 +1991,10 @@ export const en = {
   'variable.attrsHint':
     'In text these can be changed for a single use: {spada tint=red size=150% rotate=90 flip=h opacity=50%}',
   'variable.text': 'Text',
-  'variable.textHint': 'Replaces {name}; it can use formatting and other variables',
+  'variable.textHint':
+    'Replaces {name}; it can use formatting and other variables. {1}, {2} are parameters: {name:3:1}',
+  'variable.tryWith': 'Try with',
+  'variable.tryWithHint': 'Parameters for the preview, separated by : as in {name:3:1}',
   'variable.color': 'Color',
   'variable.value': 'Value',
   'variable.valueHint': 'Text or number, usable in texts and formulas',
@@ -2223,6 +2227,9 @@ export const en = {
     'A project variable (icon, text, color or value), or an image in assets/ with that name',
   'help.field.repeat': 'The icon repeated three times, or as many times as the field says',
   'help.field.attrs': 'The icon with attributes valid only here',
+  'help.field.params':
+    'Text variable with parameters: in its text {1} and {2} become 2 and 1. A parameter can be a field: {draw:{strength}}',
+  'help.field.paramsExample': '{draw:2}  {trade:2:1}',
   'help.field.escape': 'The character itself',
   'help.imageAttributes': 'Icon attributes',
   'help.system': 'System variables',

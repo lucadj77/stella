@@ -49,6 +49,19 @@ function highlightPlain(src: string): HighlightPiece[] {
   /** Contenuto di una coppia di graffe, da `from` (dopo {) a `to` (prima di }) */
   const braces = (from: number, to: number, attrsOnly: boolean): void => {
     const inner = src.slice(from, to)
+    // {raccogli:2:3}: il nome, poi i parametri divisi da :
+    const param = attrsOnly ? null : /^\s*([^{}:*\s]+):/.exec(inner)
+    if (param) {
+      const start = from + inner.indexOf(param[1])
+      push(start, start + param[1].length, 'ref')
+      for (let i = start + param[1].length + 1, last = i - 1; i <= to; i++) {
+        if (i < to && (src[i] !== ':' || src[i - 1] === '\\')) continue
+        push(last, last + 1, 'punct')
+        push(last + 1, i, 'value')
+        last = i
+      }
+      return
+    }
     // in mezzo alla riga e senza quadre prima, la prima parola è sempre un nome
     let first = !attrsOnly
     const re = /\S+/g

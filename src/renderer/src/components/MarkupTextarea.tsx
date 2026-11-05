@@ -250,8 +250,11 @@ export default function MarkupTextarea({
               </li>
             ))}
           </ul>
-          {current?.kind === 'variable' && variables[current.label] && (
-            <VariablePreview name={current.label} v={variables[current.label]} />
+          {current?.kind === 'variable' && variables[current.label.replace(/:…$/, '')] && (
+            <VariablePreview
+              name={current.label.replace(/:…$/, '')}
+              v={variables[current.label.replace(/:…$/, '')]}
+            />
           )}
           {current?.attribute && (
             <p className="markup-help-detail">
@@ -326,7 +329,7 @@ function VariablePreview({ name, v }: { name: string; v: Variable }): React.JSX.
         <span className="markup-help-sample">
           {/* il testo di una variabile si sostituisce prima del disegno: qui si disegna il suo */}
           <MarkupText
-            text={v.type === 'text' ? v.text : `{${name}}`}
+            text={v.type === 'text' ? v.text.replace(/(?<!\\)\{(\d+)\}/g, '‹$1›') : `{${name}}`}
             unit={4}
             ratio={1}
             paragraphSpacing={0}

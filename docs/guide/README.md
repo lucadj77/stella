@@ -500,6 +500,7 @@ The shapes `circle`, `square`, `rounded`, `hexagon` and `diamond` are always ava
 | `{strength}`                     | the value of the card's `strength` field                          |
 | `{sword}`                        | the `sword` variable: an icon, a text, a color or a value         |
 | `{sword*3}` · `{sword*strength}` | the icon repeated three times, or as many times as the field says |
+| `{draw:2}` · `{trade:3:1}`       | a text variable with parameters (section 7.1)                     |
 | `{wood}`                         | an image from `assets/` with that name, as tall as the line       |
 | `{sword tint=red size=150%}`     | the icon with attributes for this use only                        |
 | `\{`, `\*`, `\[`                 | the literal character                                             |
@@ -541,7 +542,7 @@ The **Aa Format…** button under a text field opens the visual editor: select p
 Variables are created with the + next to **Variables** and edited with a click. There are four types:
 
 - **Icon**: an image from `assets/` with tint, size relative to the line, vertical shift, rotation, flip and opacity. With **Color of the surrounding text** the icon takes the color of the text. **Background** puts a shape (circle, square, rounded, hexagon, diamond), an image or another image variable behind the image, with **Background color** and **Space around** (the space between the image and the edge of the background). The background applies wherever the variable is used: in texts, image layers, documents and table setups. For example a `water` variable with a drop icon, white tint and a red `circle` background shows the white drop in a red circle.
-- **Text**: a text, formatted if you like, that replaces `{name}`. It can call other variables.
+- **Text**: a text, formatted if you like, that replaces `{name}`. It can call other variables. It can have **parameters**: `{1}`, `{2}` in the text take the values written after the name, separated by colons. With `draw` = `[Draw {1}]{.keyword}: take {1} cards`, `{draw:2}` writes "Draw 2: take 2 cards"; with `trade` = `Give {1}, get {2}`, `{trade:3:1}` writes "Give 3, get 1". A parameter can be a field (`{draw:{strength}}`) and the same variable can be used several times in one text. For an icon with a number on top, a text variable such as `coin` = `[{1}]{bg=gold color=white}` used as `{coin:3}` is enough. A missing parameter stays empty and is listed among the card's problems; a colon inside a parameter is written `\:`. In the variable's window, **Try with** sets the parameters of the sample sentence.
 - **Color**: a named color, usable in every color property and in markup attributes. A variable named like a built-in color (for example `red`) redefines it in the whole project.
 - **Value**: a text or a number, usable in texts and formulas (for example the maximum hand size).
 

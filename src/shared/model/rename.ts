@@ -41,8 +41,9 @@ function renameInBraces(
       first = false
       if (kind === 'style') return tok === `.${from}` ? `.${to}` : tok
       // {spada}, {spada*3}, {spada*forza}: il nome è all'inizio
+      // {raccogli:2}: il nome arriva ai due punti
       if (isFirst) {
-        const star = tok.indexOf('*')
+        const star = tok.search(/[*:]/)
         const name = star < 0 ? tok : tok.slice(0, star)
         if (name === from) return to + (star < 0 ? '' : tok.slice(star))
       }
@@ -64,6 +65,11 @@ function renameInBraces(
 /** Rinomina i riferimenti dentro un testo con markup o una formula; `\{` resta letterale */
 export function renameInText(text: string, kind: RefKind, from: string, to: string): string {
   if (!text.includes(from)) return text
+  // {raccogli:{forza}}: le graffe dei parametri nascondono quelle esterne all'espressione sotto
+  if (kind !== 'style')
+    text = text.replace(/(?<!\\)\{([^{}:*\s]+):/g, (all, name: string) =>
+      name === from ? `{${to}:` : all
+    )
   return text.replace(/(\\?)\{([^{}]*)\}/g, (all, esc: string, inner: string) =>
     esc ? all : `{${renameInBraces(inner, kind, from, to)}}`
   )
