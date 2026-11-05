@@ -88,11 +88,6 @@ jobs:
         with:
           path: dist
           merge-multiple: true
-      # sul Mac le versioni installate quando l'app si chiamava Naibi scaricano l'aggiornamento
-      # con il vecchio nome: se ne pubblica una copia anche così
-      - run: |
-          cd dist
-          for f in Stella-*-mac-*.zip; do cp "$f" "Naibi${f#Stella}"; done
       - uses: softprops/action-gh-release@v2
         with:
           draft: false
