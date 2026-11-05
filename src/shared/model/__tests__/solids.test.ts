@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { D4_CORNERS, DIE_TYPES, dieHeight, type DieType } from '../dice'
-import { dieAtlas, dieObj, dieSolid, rotationUp, solidFaceCount, type Vec } from '../solids'
+import {
+  dieAtlas,
+  dieColliderObj,
+  dieObj,
+  dieSolid,
+  rotationUp,
+  solidFaceCount,
+  type Vec
+} from '../solids'
 
 const dot = (a: Vec, b: Vec): number => a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 const size = (d: DieType, w = 20): { width: number; height: number } => ({
@@ -95,5 +103,14 @@ describe('solidi dei dadi', () => {
     expect(count(obj)).toBeGreaterThan(20)
     // la moneta: due facce e il bordo
     expect(count(dieObj('d2', size('d2'), { thickness: 2 }))).toBeGreaterThan(2 * 46)
+  })
+
+  it('collisore: spigoli vivi e meno di 255 triangoli per ogni dado', () => {
+    for (const d of DIE_TYPES) {
+      const o = dieColliderObj(d, size(d), 2)
+      const tris = o.split('\n').filter((l) => l.startsWith('f ')).length
+      expect(tris).toBeGreaterThan(3)
+      expect(tris).toBeLessThan(255)
+    }
   })
 })

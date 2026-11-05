@@ -1,5 +1,5 @@
 import { DIE_ROWS, dieOf, isCubeDie } from '../../shared/model/dice'
-import { dieObj, dieSolid } from '../../shared/model/solids'
+import { dieColliderObj, dieObj, dieSolid } from '../../shared/model/solids'
 import { mkdir, writeFile } from 'fs/promises'
 import { dirname, join, resolve } from 'path'
 import {
@@ -521,10 +521,18 @@ async function exportDice(
     { width: t0.width * TTS_UNITS_PER_MM, height: t0.height * TTS_UNITS_PER_MM },
     { thickness: plan.object.thickness * TTS_UNITS_PER_MM }
   )
+  const collider = dieColliderObj(
+    die,
+    { width: t0.width * TTS_UNITS_PER_MM, height: t0.height * TTS_UNITS_PER_MM },
+    plan.object.thickness * TTS_UNITS_PER_MM
+  )
   const upFor = isCubeDie(die) ? null : dieSolid(die, t0).upFor
   for (const target of targets) {
     const meshFile = join(target, 'models', `${stem}_${die}.obj`)
     await write(ctx, meshFile, Buffer.from(mesh))
+    // per gli urti un solido a spigoli vivi: il modello arrotondato ha troppi triangoli
+    const colliderFile = join(target, 'models', `${stem}_${die}_collider.obj`)
+    await write(ctx, colliderFile, Buffer.from(collider))
     const dice: TtsDie[] = []
     for (const [i, die] of plan.dice.entries()) {
       const n = String(i + 1).padStart(digits, '0')
@@ -541,7 +549,13 @@ async function exportDice(
         count: die.count
       })
     }
-    const object = ttsSavedDice(plan.set.name, dice, imageUrl(env, meshFile), die === 'd2' ? 3 : 2)
+    const object = ttsSavedDice(
+      plan.set.name,
+      dice,
+      imageUrl(env, meshFile),
+      die === 'd2' ? 3 : 2,
+      imageUrl(env, colliderFile)
+    )
     await write(ctx, join(target, `${stem}.json`), JSON.stringify(object, null, 2) + '\n')
     await write(ctx, join(target, `${stem}.png`), thumb)
   }

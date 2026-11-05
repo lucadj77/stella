@@ -290,11 +290,12 @@ function coin(sides: number, thickness: number): Solid {
 export function dieSolid(
   d: DieType,
   size: { width: number; height: number },
-  thickness = 2
+  thickness = 2,
+  coinSides = 48
 ): Solid {
   const raw =
     d === 'd2'
-      ? coin(48, thickness / size.width)
+      ? coin(coinSides, thickness / size.width)
       : d === 'd4'
         ? tetra()
         : d === 'd8'
@@ -512,4 +513,37 @@ export function dieObj(
 
 function finish(d: DieType, vs: string[], vts: string[], vns: string[], fs: string[]): string {
   return [`# Stella: dado ${d}`, 'o die', ...vs, ...vts, ...vns, ...fs].join('\n') + '\n'
+}
+
+/**
+ * Il solido per gli urti: spigoli vivi e pochi triangoli. Unity accetta collisori convessi fino a
+ * 255 triangoli: oltre semplifica il modello e il dado si posa male (su uno spigolo o una punta)
+ */
+export function dieColliderObj(
+  d: DieType,
+  size: { width: number; height: number },
+  thickness = 2
+): string {
+  const { points, faces } = dieSolid(d, size, thickness, 24)
+  const f = (n: number): string => String(Math.round(n * 1e5) / 1e5 || 0)
+  const fs: string[] = []
+  for (const face of faces)
+    for (let j = 1; j + 1 < face.verts.length; j++)
+      fs.push(`f ${face.verts[0] + 1} ${face.verts[j] + 1} ${face.verts[j + 1] + 1}`)
+  if (d === 'd2') {
+    // il bordo della moneta
+    const n = points.length / 2
+    for (let i = 0; i < n; i++) {
+      const j = (i + 1) % n
+      fs.push(`f ${i + 1} ${n + j + 1} ${j + 1}`, `f ${i + 1} ${n + i + 1} ${n + j + 1}`)
+    }
+  }
+  return (
+    [
+      `# Stella: urti del dado ${d}`,
+      'o collider',
+      ...points.map((p) => `v ${p.map(f).join(' ')}`),
+      ...fs
+    ].join('\n') + '\n'
+  )
 }

@@ -1206,7 +1206,9 @@ export function ttsSavedDice(
   dice: TtsDie[],
   meshUrl: string,
   /** 2: dado; 3: moneta */
-  typeIndex = 2
+  typeIndex = 2,
+  /** Modello semplice per gli urti; vuoto: quello del dado */
+  colliderUrl = ''
 ): Record<string, unknown> {
   const dieObject = (d: TtsDie): Record<string, unknown> => ({
     Name: 'Custom_Model',
@@ -1223,7 +1225,7 @@ export function ttsSavedDice(
       MeshURL: meshUrl,
       DiffuseURL: d.imageUrl,
       NormalURL: '',
-      ColliderURL: '',
+      ColliderURL: colliderUrl,
       Convex: true,
       MaterialIndex: 0,
       // 2: dado, si tira e mostra il valore della faccia in alto; 3: moneta
