@@ -41,7 +41,7 @@ import {
   syncDerived
 } from '../../shared/model/inherit'
 import type { GroupLayer, Layer, Side, Template } from '../../shared/model/template'
-import { kindOf } from '../../shared/model/template'
+import { hasNoBack, kindOf } from '../../shared/model/template'
 import { KindIcon } from './export/exportIcons'
 import type { Bounds } from '../../shared/model/edit'
 import {
@@ -1717,20 +1717,21 @@ function App(): React.JSX.Element {
               locked: true
             }
           ],
-      back: standee
-        ? []
-        : [
-            {
-              type: 'shape',
-              name: 'back_background',
-              x: -3,
-              y: -3,
-              w: width + 6,
-              h: height + 6,
-              fill: '#5E4421',
-              locked: true
-            }
-          ]
+      back:
+        standee || kind === 'die'
+          ? []
+          : [
+              {
+                type: 'shape',
+                name: 'back_background',
+                x: -3,
+                y: -3,
+                w: width + 6,
+                h: height + 6,
+                fill: '#5E4421',
+                locked: true
+              }
+            ]
     })
     // una faccia di dado nasce con la sua forma e il numero (i tre ai vertici per il d4)
     const tpl =
@@ -3261,7 +3262,7 @@ function SetView({
   const { t, lang } = useI18n()
   const comma = lang === 'it'
   const [selection, setSelection] = useState<number[]>([0])
-  const [side, setSide] = useState<Side>('front')
+  const [chosenSide, setSide] = useState<Side>('front')
   const [addingColumn, setAddingColumn] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [showStats, setShowStatsState] = useState(() => {
@@ -3323,6 +3324,9 @@ function SetView({
   const [view, setView] = useState<View>('grid')
 
   const template = templates.find((tpl) => tpl.name === set.template) ?? null
+  // le facce di dado hanno solo il fronte
+  const frontOnly = hasNoBack(template)
+  const side: Side = frontOnly ? 'front' : chosenSide
   const bindCtx = useBindContext()
   const cards = useMemo<BoundCard[]>(() => {
     if (!template || !set.data) return []
@@ -3714,14 +3718,16 @@ function SetView({
           {t('preview.title')}
           <PanelSideButton side={previewSide} onToggle={togglePreviewSide} />
         </h2>
-        <Segmented<Side>
-          value={side}
-          options={[
-            ['front', t('preview.front'), t('tip.front')],
-            ['back', t('preview.back'), t('tip.back')]
-          ]}
-          onChange={setSide}
-        />
+        {!frontOnly && (
+          <Segmented<Side>
+            value={side}
+            options={[
+              ['front', t('preview.front'), t('tip.front')],
+              ['back', t('preview.back'), t('tip.back')]
+            ]}
+            onChange={setSide}
+          />
+        )}
       </div>
       {!template ? (
         <p className="muted">{t('preview.noTemplate', { name: set.template })}</p>
@@ -4183,14 +4189,16 @@ function SetView({
               >
                 ←
               </button>
-              <Segmented<Side>
-                value={side}
-                options={[
-                  ['front', t('preview.front'), t('tip.front')],
-                  ['back', t('preview.back'), t('tip.back')]
-                ]}
-                onChange={setSide}
-              />
+              {!frontOnly && (
+                <Segmented<Side>
+                  value={side}
+                  options={[
+                    ['front', t('preview.front'), t('tip.front')],
+                    ['back', t('preview.back'), t('tip.back')]
+                  ]}
+                  onChange={setSide}
+                />
+              )}
               <button
                 disabled={order.indexOf(current) >= order.length - 1}
                 title={t('preview.nextCard')}

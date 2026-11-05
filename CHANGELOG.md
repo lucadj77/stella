@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.10.0-beta.2
+
+### English
+
+- **Dice have no back**: a die face has only a front. The editor and the set preview no longer show **Back** for die templates, new die templates have no back layers, and PDF and image exports do not print the back of dice (with duplex, a blank page keeps the following sets aligned).
+
+### Italiano
+
+- **I dadi non hanno retro**: una faccia di dado ha solo il fronte. L'editor e l'anteprima del set non mostrano più **Retro** per i template di dado, i template di dado nuovi nascono senza livelli sul retro, e le esportazioni PDF e immagini non stampano il retro dei dadi (in fronte-retro una pagina vuota tiene allineati i set che seguono).
+
 ## 1.10.0-beta.1
 
 ### English

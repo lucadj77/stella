@@ -378,6 +378,9 @@ export const kindOf = (t: Pick<Template, 'kind'> | null | undefined): ComponentK
  */
 export const isStandee = (t: Pick<Template, 'kind'> | null | undefined): boolean =>
   kindOf(t) === 'standee'
+/** Faccia di dado: ha solo il fronte, il retro non si disegna e non si stampa */
+export const hasNoBack = (t: Pick<Template, 'kind'> | null | undefined): boolean =>
+  kindOf(t) === 'die'
 
 export interface ManualGuides {
   x: number[]

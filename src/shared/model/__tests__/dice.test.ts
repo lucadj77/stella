@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_PDF, DEFAULT_TTS, type ExportCard } from '../../export'
-import { dieOutlineLines, planPdf, planTts } from '../../exportPlan'
+import { DEFAULT_IMAGE, DEFAULT_PDF, DEFAULT_TTS, type ExportCard } from '../../export'
+import { dieOutlineLines, planImages, planPdf, planTts } from '../../exportPlan'
 import {
   applyDie,
   cubeFaces,
@@ -229,5 +229,19 @@ describe('dadi: esportazione', () => {
     expect(later.dieLater).toBe('d8')
     expect(later.object.type).toBe('token')
     expect(later.pieces).toHaveLength(2)
+  })
+
+  it('le facce di dado non hanno retro, né in PDF né in immagini', () => {
+    const t = applyDie(face(), 'd8', 20, 20)
+    const sets = [{ name: 'd8', kind: 'die' as const, cards: [card(t, 1), card(t, 2)] }]
+    const both = planPdf({ ...DEFAULT_PDF, sides: 'both' }, sets, 'p')
+    const items = both.docs.flatMap((d) => d.pages.flatMap((p) => p.items))
+    expect(items.map((i) => i.side)).toEqual(['front', 'front'])
+    expect(planPdf({ ...DEFAULT_PDF, sides: 'back' }, sets, 'p').docs).toEqual([])
+    // in fronte-retro una pagina vuota dietro le facce
+    const duplex = planPdf({ ...DEFAULT_PDF, duplex: 'long' }, sets, 'p')
+    expect(duplex.docs[0].pages.map((p) => p.items.length)).toEqual([2, 0])
+    const files = planImages({ ...DEFAULT_IMAGE, sides: 'both' }, sets)
+    expect(files.map((f) => f.side)).toEqual(['front', 'front'])
   })
 })

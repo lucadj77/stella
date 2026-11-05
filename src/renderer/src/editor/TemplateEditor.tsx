@@ -5,7 +5,13 @@ import { projectSystem, systemOfSet, type ProjectMeta } from '../../../shared/mo
 import { findLayer, findParent, resizeTemplate } from '../../../shared/model/edit'
 import { useLayerNames } from './layerNames'
 import type { LoadedSet } from '../../../shared/project'
-import { isStandee, type ShapeKind, type Side, type Template } from '../../../shared/model/template'
+import {
+  hasNoBack,
+  isStandee,
+  type ShapeKind,
+  type Side,
+  type Template
+} from '../../../shared/model/template'
 import { rebase, resolveTemplate } from '../../../shared/model/inherit'
 import { walkLayers } from '../../../shared/model/normalize'
 import { useI18n } from '../i18n/context'
@@ -234,6 +240,11 @@ export default function TemplateEditor({
     onClick: () => cmd.add('shape', s)
   }))
   const mirroredBack = isStandee(state.template) && state.side === 'back'
+  // una faccia di dado non ha retro: l'editor resta sul fronte
+  const frontOnly = hasNoBack(state.template)
+  useEffect(() => {
+    if (frontOnly && state.side === 'back') dispatch({ type: 'side', side: 'front' })
+  }, [frontOnly, state.side, dispatch])
   const toolButtons = (
     <>
       {tool('T', t('tool.short.text'), t('tool.text'), () => cmd.add('text'))}
@@ -345,14 +356,16 @@ export default function TemplateEditor({
         >
           {toolButtons}
         </div>
-        <Segmented<Side>
-          value={state.side}
-          options={[
-            ['front', t('preview.front'), t('tip.front')],
-            ['back', t('preview.back'), t('tip.back')]
-          ]}
-          onChange={(side) => dispatch({ type: 'side', side })}
-        />
+        {!frontOnly && (
+          <Segmented<Side>
+            value={state.side}
+            options={[
+              ['front', t('preview.front'), t('tip.front')],
+              ['back', t('preview.back'), t('tip.back')]
+            ]}
+            onChange={(side) => dispatch({ type: 'side', side })}
+          />
+        )}
         <span className="spacer" />
         <label className="muted preview-data">
           {t('editor.previewData')}{' '}
