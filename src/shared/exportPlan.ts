@@ -43,6 +43,7 @@ import {
   type SceneShape
 } from './export'
 import type { Message } from './messages'
+import { cubeFaces, DIE_ROWS, dieOf, dieOutline, isCubeDie, type DieType } from './model/dice'
 import type { Side, Template } from './model/template'
 
 /** Una carta da sola, con o senza abbondanza */
@@ -135,8 +136,10 @@ export function planPdf(o: PdfOptions, sets: ExportSet[], project: string): PdfP
     const grid = pdfGrid(o, set.cards[0].template)
     if (o.dice === 'net' && set.kind === 'die') {
       const t = set.cards[0].template
-      if (Math.abs(t.width - t.height) < 0.01) return { set, grid, kind: 'net' }
-      notes.push({ key: 'export.dieNotSquare', params: { set: set.name } })
+      const die = dieOf(t) ?? 'd6'
+      if (!isCubeDie(die)) notes.push({ key: 'export.dieNetLater', params: { set: set.name, die } })
+      else if (Math.abs(t.width - t.height) < 0.01) return { set, grid, kind: 'net' }
+      else notes.push({ key: 'export.dieNotSquare', params: { set: set.name } })
     }
     // margini oltre metà pagina: nessuna area utile, né per la griglia né per un poster
     const noRoom = page.width <= 2 * o.margin || page.height <= 2 * o.margin
@@ -166,7 +169,11 @@ export function planPdf(o: PdfOptions, sets: ExportSet[], project: string): PdfP
     if (kind === 'net') {
       const net = netPages(o, set)
       if (net.overflow) overflow.push(set.name)
-      if (net.padded) notes.push({ key: 'export.ttsDicePadded', params: { set: set.name } })
+      if (net.padded)
+        notes.push({
+          key: 'export.ttsDicePadded',
+          params: { set: set.name, n: DIE_ROWS[dieOf(set.cards[0]?.template) ?? 'd6'] }
+        })
       return { set, pages: net.pages }
     }
     const merged: ExportSet = { name: set.name, cards: group.flatMap((e) => e.set.cards) }
@@ -183,6 +190,9 @@ export function planPdf(o: PdfOptions, sets: ExportSet[], project: string): PdfP
     }
     return { set, pages: shelfPages(o, runs, mode) }
   })
+  // le facce dei dadi che non sono quadrate: il taglio segue il loro contorno
+  if (o.marks !== 'none')
+    for (const s of bySet) for (const p of s.pages) p.page.lines.push(...dieOutlineLines(p.page))
   const docs: PdfDocument[] = []
   const base = safeName(project || 'cards')
   if (o.split === 'set') {
@@ -548,10 +558,15 @@ function netPages(
   const kept = set.cards.filter((c) => !o.copies || c.amount > 0)
   const dice: Template[][] = []
   let padded = false
-  for (let i = 0; i < kept.length; i += 6) {
-    const group = kept.slice(i, i + 6)
-    if (group.length < 6) padded = true
-    const faces = Array.from({ length: 6 }, (_, j) => group[j % group.length].template)
+  const die = dieOf(set.cards[0]?.template) ?? 'd6'
+  const per = DIE_ROWS[die]
+  for (let i = 0; i < kept.length; i += per) {
+    const group = kept.slice(i, i + per)
+    if (group.length < per) padded = true
+    const faces = cubeFaces(
+      group.map((c) => c.template),
+      die
+    )
     const count = o.copies ? Math.max(1, group[0].amount) : 1
     for (let n = 0; n < count; n++) dice.push(faces)
   }
@@ -849,6 +864,8 @@ export interface TtsSetPlan {
   dice: TtsDiePlan[]
   /** Un foglio dei retri per ogni foglio di fronti, invece di un retro unico */
   uniqueBack: boolean
+  /** Dado che Tabletop Simulator non ha ancora: le facce escono come segnalini */
+  dieLater?: DieType
 }
 
 /** Fogli di ogni set: fino a 69 carte per foglio, l'ultima posizione alla carta nascosta */
@@ -861,15 +878,21 @@ export function planTts(o: TtsOptions, sets: ExportSet[]): TtsSetPlan[] {
     // senza copie ogni riga è una carta; con le copie le righe a 0 non entrano nel mazzo
     const kept = set.cards.filter((c) => !o.copies || c.amount > 0)
     const object = ttsSetObject(o, set.name, set.kind)
+    const die = dieOf(set.cards[0]?.template) ?? 'd6'
+    // i dadi che non sono cubi arrivano in Tabletop Simulator in una prossima versione: per ora
+    // le facce vanno sul tavolo come segnalini
+    const later = object.type === 'die' && !isCubeDie(die)
+    if (later) object.type = 'token'
     if (object.type === 'die') {
       const dice: TtsDiePlan[] = []
-      for (let i = 0; i < kept.length; i += 6) {
-        const group = kept.slice(i, i + 6)
+      const rows = DIE_ROWS[die]
+      for (let i = 0; i < kept.length; i += rows) {
+        const group = kept.slice(i, i + rows)
         const t = group[0].template
         dice.push({
-          cards: Array.from({ length: 6 }, (_, j) => group[j % group.length]),
+          cards: cubeFaces(group, die),
           count: o.copies ? group[0].amount : 1,
-          padded: group.length < 6,
+          padded: group.length < rows,
           scale: Math.min(
             TTS_MAX_DPI / 25.4,
             o.maxSize / (TTS_DIE_COLS * t.width),
@@ -885,7 +908,15 @@ export function planTts(o: TtsOptions, sets: ExportSet[]): TtsSetPlan[] {
         count: o.copies ? card.amount : 1,
         scale: pieceScale(card.template, o.maxSize)
       }))
-      return { set, object, chunks: [], pieces, dice: [], uniqueBack: false }
+      return {
+        set,
+        object,
+        chunks: [],
+        pieces,
+        dice: [],
+        uniqueBack: false,
+        ...(later ? { dieLater: die } : {})
+      }
     }
     // copie nel foglio: ogni copia ha la sua posizione e nel mazzo compare una volta
     const inSheet = o.copies && o.copiesIn === 'sheet'
@@ -977,4 +1008,33 @@ export function diePage(die: TtsDiePlan): ScenePage {
     })),
     lines: []
   }
+}
+
+/**
+ * Linee di taglio lungo il contorno delle facce di dado non quadrate (triangoli, pentagoni,
+ * aquiloni) di una pagina: i segni agli angoli del riquadro non servono a ritagliarle
+ */
+export function dieOutlineLines(page: ScenePage): SceneLine[] {
+  const out: SceneLine[] = []
+  for (const it of page.items) {
+    if (it.clip || it.zoom) continue
+    const poly = dieOutline(it.template)
+    if (!poly) continue
+    const b = it.mode === 'bleed' ? it.template.bleed : 0
+    const W = it.template.width + 2 * b
+    const H = it.template.height + 2 * b
+    const at = ([px, py]: [number, number]): [number, number] => {
+      const x = px + b
+      const y = py + b
+      if (it.rotate === 90) return [it.x + H - y, it.y + x]
+      if (it.rotate === 270) return [it.x + y, it.y + W - x]
+      return [it.x + x, it.y + y]
+    }
+    const pts = poly.map(at)
+    pts.forEach((p, i) => {
+      const q = pts[(i + 1) % pts.length]
+      out.push({ x1: p[0], y1: p[1], x2: q[0], y2: q[1] })
+    })
+  }
+  return out
 }

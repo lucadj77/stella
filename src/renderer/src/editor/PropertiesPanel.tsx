@@ -22,6 +22,15 @@ import { useLayerNames } from './layerNames'
 import { assetRefName, isImageAsset, resolveAsset } from '../../../shared/model/assets'
 import { numberFormatting } from '../../../shared/model/numberFormat'
 import { COMPONENT_KINDS, kindOf, type ComponentKind } from '../../../shared/model/template'
+import {
+  applyDie,
+  DIE_TYPES,
+  dieHeight,
+  dieOf,
+  dieOwnsShape,
+  isCubeDie,
+  type DieType
+} from '../../../shared/model/dice'
 import type {
   Anchor,
   CardShape,
@@ -283,6 +292,7 @@ function TemplateProperties({
   const { t, lang } = useI18n()
   const lengthUnit = useLengthUnit()
   const [locked, setLocked] = useRatioLock('template')
+  const die = dieOf(tpl)
   const set = (p: Partial<Template>, key: string): void =>
     dispatch({ type: 'change', template: { ...tpl, ...p }, key: `template.${key}` })
   // in un derivato ogni proprietà mostra se viene dal base o è cambiata
@@ -318,6 +328,27 @@ function TemplateProperties({
           onChange={(kind) => set({ kind: kind === 'card' ? undefined : kind }, 'kind')}
         />
       </Inherit>
+      {die && (
+        <DieField
+          template={tpl}
+          die={die}
+          // in un derivato il dado è quello del base, come le misure
+          disabled={!!base}
+          onChange={(d) => {
+            const next = applyDie(tpl, d)
+            const patch: Partial<Template> = {
+              die: next.die,
+              shape: next.shape,
+              shapePath: next.shapePath,
+              shapeRotation: next.shapeRotation,
+              shapeFlipH: next.shapeFlipH,
+              shapeFlipV: next.shapeFlipV
+            }
+            if (next.height !== tpl.height) onResize(next.width, next.height, patch)
+            else set(patch, 'die')
+          }}
+        />
+      )}
       <Inherit keys={['ttsTags']}>
         <TextField
           label={t('prop.ttsTags')}
@@ -347,9 +378,16 @@ function TemplateProperties({
           locked={locked}
           onLock={setLocked}
           // con il lucchetto l'altra misura si arrotonda al decimo di millimetro
-          onChange={(w, h) =>
-            locked ? onResize(Math.round(w * 10) / 10, Math.round(h * 10) / 10) : onResize(w, h)
-          }
+          onChange={(w, h) => {
+            // le facce di dado hanno la loro proporzione: l'altezza segue la larghezza
+            if (die && !isCubeDie(die)) {
+              const next = applyDie(tpl, die, w, w === tpl.width ? h : dieHeight(die, w, h))
+              return onResize(next.width, next.height, { shapePath: next.shapePath })
+            }
+            return locked
+              ? onResize(Math.round(w * 10) / 10, Math.round(h * 10) / 10)
+              : onResize(w, h)
+          }}
         />
       )}
       <Inherit keys={['bleed']}>
@@ -372,80 +410,84 @@ function TemplateProperties({
           onChange={(safeMargin) => set({ safeMargin }, 'safeMargin')}
         />
       </Inherit>
-      <Inherit keys={['shape']}>
-        <SelectField<CardShape>
-          label={t('prop.cardShape')}
-          help={t('editor.cardShapeHint')}
-          value={tpl.shape ?? 'rect'}
-          options={options(t, 'cardShape', ['rect', 'ellipse', 'hexagon', 'path'] as const)}
-          onChange={(shape) => set({ shape }, 'shape')}
-        />
-      </Inherit>
-      {(tpl.shape ?? 'rect') === 'rect' && (
-        <Inherit keys={['cornerRadius']}>
-          <NumberField
-            label={t('prop.cornerRadius')}
-            value={tpl.cornerRadius}
-            min={0}
-            unit="mm"
-            onChange={(cornerRadius) => set({ cornerRadius }, 'cornerRadius')}
-          />
-        </Inherit>
+      {!dieOwnsShape(die) && (
+        <>
+          <Inherit keys={['shape']}>
+            <SelectField<CardShape>
+              label={t('prop.cardShape')}
+              help={t('editor.cardShapeHint')}
+              value={tpl.shape ?? 'rect'}
+              options={options(t, 'cardShape', ['rect', 'ellipse', 'hexagon', 'path'] as const)}
+              onChange={(shape) => set({ shape }, 'shape')}
+            />
+          </Inherit>
+          {(tpl.shape ?? 'rect') === 'rect' && (
+            <Inherit keys={['cornerRadius']}>
+              <NumberField
+                label={t('prop.cornerRadius')}
+                value={tpl.cornerRadius}
+                min={0}
+                unit="mm"
+                onChange={(cornerRadius) => set({ cornerRadius }, 'cornerRadius')}
+              />
+            </Inherit>
+          )}
+          {tpl.shape === 'hexagon' &&
+            !base &&
+            (() => {
+              const fit = hexagonFit(tpl.width, tpl.height)
+              if (fit.w === tpl.width && fit.h === tpl.height) return null
+              return (
+                <div className="field">
+                  <span className="field-label" />
+                  <div className="field-control">
+                    <button type="button" onClick={() => onResize(fit.w, fit.h)}>
+                      {t('editor.hexagonFit', {
+                        w: toUnit(fit.w, lengthUnit).toLocaleString(lang),
+                        h: formatLength(fit.h, lengthUnit, lang)
+                      })}
+                    </button>
+                  </div>
+                  <p className="field-note">{t('editor.hexagonFitHint')}</p>
+                </div>
+              )
+            })()}
+          {tpl.shape === 'path' && (
+            <Inherit keys={['shapePath']}>
+              <OutlineField
+                hint={t('editor.cardOutlineHint')}
+                empty={!tpl.shapePath?.trim()}
+                onTraced={({ path }) => set({ shapePath: path }, 'shapePath')}
+              />
+            </Inherit>
+          )}
+          <Inherit keys={['shapeRotation', 'shapeFlipH', 'shapeFlipV']}>
+            <ShapeOrientation
+              template={tpl}
+              // in un derivato le misure sono quelle del base: niente quarti di giro
+              canTurn={!base}
+              onTurn={(by) => {
+                const shapeRotation = (((tpl.shapeRotation ?? 0) + by + 360) % 360) as ShapeRotation
+                // un quarto di giro scambia larghezza e altezza: il contenuto resta com'è, come quando
+                // si cambiano le misure
+                if (tpl.width === tpl.height)
+                  set({ shapeRotation: shapeRotation || undefined }, 'shapeRotation')
+                else onResize(tpl.height, tpl.width, { shapeRotation: shapeRotation || undefined })
+              }}
+              onHalfTurn={() =>
+                set(
+                  {
+                    shapeRotation:
+                      ((((tpl.shapeRotation ?? 0) + 180) % 360) as ShapeRotation) || undefined
+                  },
+                  'shapeRotation'
+                )
+              }
+              onFlip={(key) => set({ [key]: tpl[key] ? undefined : true }, key)}
+            />
+          </Inherit>
+        </>
       )}
-      {tpl.shape === 'hexagon' &&
-        !base &&
-        (() => {
-          const fit = hexagonFit(tpl.width, tpl.height)
-          if (fit.w === tpl.width && fit.h === tpl.height) return null
-          return (
-            <div className="field">
-              <span className="field-label" />
-              <div className="field-control">
-                <button type="button" onClick={() => onResize(fit.w, fit.h)}>
-                  {t('editor.hexagonFit', {
-                    w: toUnit(fit.w, lengthUnit).toLocaleString(lang),
-                    h: formatLength(fit.h, lengthUnit, lang)
-                  })}
-                </button>
-              </div>
-              <p className="field-note">{t('editor.hexagonFitHint')}</p>
-            </div>
-          )
-        })()}
-      {tpl.shape === 'path' && (
-        <Inherit keys={['shapePath']}>
-          <OutlineField
-            hint={t('editor.cardOutlineHint')}
-            empty={!tpl.shapePath?.trim()}
-            onTraced={({ path }) => set({ shapePath: path }, 'shapePath')}
-          />
-        </Inherit>
-      )}
-      <Inherit keys={['shapeRotation', 'shapeFlipH', 'shapeFlipV']}>
-        <ShapeOrientation
-          template={tpl}
-          // in un derivato le misure sono quelle del base: niente quarti di giro
-          canTurn={!base}
-          onTurn={(by) => {
-            const shapeRotation = (((tpl.shapeRotation ?? 0) + by + 360) % 360) as ShapeRotation
-            // un quarto di giro scambia larghezza e altezza: il contenuto resta com'è, come quando
-            // si cambiano le misure
-            if (tpl.width === tpl.height)
-              set({ shapeRotation: shapeRotation || undefined }, 'shapeRotation')
-            else onResize(tpl.height, tpl.width, { shapeRotation: shapeRotation || undefined })
-          }}
-          onHalfTurn={() =>
-            set(
-              {
-                shapeRotation:
-                  ((((tpl.shapeRotation ?? 0) + 180) % 360) as ShapeRotation) || undefined
-              },
-              'shapeRotation'
-            )
-          }
-          onFlip={(key) => set({ [key]: tpl[key] ? undefined : true }, key)}
-        />
-      </Inherit>
       <Inherit keys={['guides']}>
         <GuideFields template={tpl} set={set} />
       </Inherit>
@@ -2517,5 +2559,63 @@ function ShapeOrientation({
         {state && <span className="muted small">{state}</span>}
       </div>
     </div>
+  )
+}
+
+/** Il dado della faccia; per il d4 lo schema dei vertici e come si compila il set */
+function DieField({
+  template: tpl,
+  die,
+  disabled,
+  onChange
+}: {
+  template: Template
+  die: DieType
+  disabled: boolean
+  onChange(d: DieType): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  return (
+    <>
+      <SelectField<DieType>
+        label={t('prop.die')}
+        help={t('prop.dieHint')}
+        disabled={disabled}
+        value={die}
+        options={DIE_TYPES.map((d) => [d, `${d} · ${t(`die.${d}.faces`)}`] as [DieType, string])}
+        onChange={onChange}
+      />
+      {die === 'd4' && (
+        <div className="die-explain">
+          <svg viewBox="0 0 100 92" aria-hidden="true">
+            <path d="M50 8L92 82H8z" className="die-explain-face" />
+            {(
+              [
+                [50, 8],
+                [8, 82],
+                [92, 82]
+              ] as const
+            ).map(([x, y], i) => (
+              <g key={i}>
+                <circle cx={x} cy={y} r={8} className="die-explain-dot" />
+                <text
+                  x={x}
+                  y={y}
+                  className="die-explain-n"
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                >
+                  {i + 1}
+                </text>
+              </g>
+            ))}
+          </svg>
+          <p>
+            <b>{t('die.d4.explainTitle')}</b>{' '}
+            {t('die.d4.explain', { field: tpl.labelField || 'value' })}
+          </p>
+        </div>
+      )}
+    </>
   )
 }

@@ -16,6 +16,7 @@ import type {
   ValueLayer
 } from './template'
 import { fitFixedGrid, gridGeometry } from './grid'
+import { isDieType } from './dice'
 import { innerLayers, isComponentKind, isDrawn, isShapeRotation } from './template'
 
 // Nei file i livelli riportano solo le proprietà diverse dai default; qui si completano.
@@ -295,9 +296,10 @@ export function normalizeTemplate(raw: RawTemplate): Template {
     }
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { changes: _ignored, kind, shapeRotation, ...plain } = raw
+  const { changes: _ignored, kind, shapeRotation, die, ...plain } = raw
   return {
     ...(isComponentKind(kind) && kind !== 'card' ? { kind } : {}),
+    ...(kind === 'die' && isDieType(die) && die !== 'd6' ? { die } : {}),
     width: 63,
     height: 88,
     bleed: 3,
@@ -439,6 +441,7 @@ export function denormalizeTemplate(t: Template): RawTemplate {
   return {
     name: t.name,
     ...(t.kind && t.kind !== 'card' ? { kind: t.kind } : {}),
+    ...(t.kind === 'die' && t.die && t.die !== 'd6' ? { die: t.die } : {}),
     width: t.width,
     height: t.height,
     bleed: t.bleed,

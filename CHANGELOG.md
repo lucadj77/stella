@@ -5,6 +5,22 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.10.0-beta.1
+
+### English
+
+- **Dice of every shape**: a die face template now chooses its die: **d2** (a coin), **d3** (a cube with each face twice), **d4**, **d6**, **d8**, **d10**, **d12** and **d20**. The template takes the shape of the face (triangle, kite, regular pentagon, circle or square) with the right proportions, starts with a centered value layer, and a new set starts with one row per face, numbered from 1. **Die** in the template properties changes it later.
+- **d4**: each face shows three numbers, one per corner. Each row holds only its top number; Stella fills the two bottom ones from the faces that share those corners, through `{die.corner1}`, `{die.corner2}` and `{die.corner3}`. The d4 template starts with the three numbers already turned towards the corners, and the template properties explain it with a drawing.
+- **Exports**: in the PDF, triangle, pentagon and kite faces get their outline as a cut line; the d3 folds as a cube. The d3 also goes to Tabletop Simulator as a cube; the other new dice go there as tokens for now, one per face, with a notice. Real dice for Tabletop Simulator and nets to fold for every die will come in the next betas.
+- The safe area and the outlines of triangles, pentagons and hexagons keep the same distance from every side.
+
+### Italiano
+
+- **Dadi di ogni forma**: un template di faccia di dado ora sceglie il suo dado: **d2** (una moneta), **d3** (un cubo con ogni faccia in due copie), **d4**, **d6**, **d8**, **d10**, **d12** e **d20**. Il template prende la forma della faccia (triangolo, aquilone, pentagono regolare, cerchio o quadrato) con le proporzioni giuste, nasce con un livello del valore al centro, e un set nuovo nasce con una riga per faccia, numerate da 1. **Dado** nelle proprietà del template lo cambia dopo.
+- **d4**: ogni faccia mostra tre numeri, uno per vertice. Ogni riga scrive solo il suo numero in alto; i due in basso li riempie Stella, dalle facce che condividono quei vertici, con `{die.corner1}`, `{die.corner2}` e `{die.corner3}`. Il template del d4 nasce con i tre numeri già girati verso i vertici, e le proprietà del template lo spiegano con un disegno.
+- **Esportazioni**: nel PDF le facce a triangolo, pentagono e aquilone hanno il loro contorno come linea di taglio; il d3 si piega come un cubo. Anche in Tabletop Simulator il d3 va come cubo; gli altri dadi nuovi per ora diventano segnalini, uno per faccia, con un avviso. I dadi veri per Tabletop Simulator e gli sviluppi da piegare per ogni dado arriveranno nelle prossime beta.
+- L'area sicura e i contorni di triangoli, pentagoni ed esagoni restano alla stessa distanza da ogni lato.
+
 ## 1.9.0
 
 ### English

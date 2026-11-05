@@ -1,3 +1,4 @@
+import { DIE_FACE_SHAPE, type DieType } from '../../../shared/model/dice'
 import type { ComponentKind } from '../../../shared/model/template'
 
 // I disegni delle scelte di esportazione e dei tipi di componente: SVG in linea, a un colore
@@ -264,6 +265,49 @@ export function KindIcon({
   return (
     <svg className="kind-icon" width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
       {kindPicture(kind)}
+    </svg>
+  )
+}
+
+/** L'icona di un dado: la forma della sua faccia, 24 × 24 */
+export function DieIcon({ die, size = 20 }: { die: DieType; size?: number }): React.JSX.Element {
+  const dots = (pts: number[][]): React.JSX.Element[] =>
+    pts.map(([cx, cy]) => (
+      <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={1.4} fill="currentColor" />
+    ))
+  const shape = ((): React.JSX.Element => {
+    switch (DIE_FACE_SHAPE[die]) {
+      case 'circle':
+        return <circle cx={12} cy={12} r={8.5} {...line} fill="var(--accent-soft)" />
+      case 'triangle':
+        return <path d="M12 3.5L21 19.5H3z" {...line} fill="var(--accent-soft)" />
+      case 'kite':
+        return <path d="M12 2.5L18.5 10L12 21.5L5.5 10z" {...line} fill="var(--accent-soft)" />
+      case 'pentagon':
+        return (
+          <path d="M12 3L20.6 9.2L17.3 19.3H6.7L3.4 9.2z" {...line} fill="var(--accent-soft)" />
+        )
+      default:
+        return <rect x={4} y={4} width={16} height={16} rx={3.5} {...line} />
+    }
+  })()
+  return (
+    <svg className="kind-icon" width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      {shape}
+      {die === 'd6' &&
+        dots([
+          [8, 8],
+          [16, 8],
+          [12, 12],
+          [8, 16],
+          [16, 16]
+        ])}
+      {die === 'd3' &&
+        dots([
+          [8, 8],
+          [12, 12],
+          [16, 16]
+        ])}
     </svg>
   )
 }

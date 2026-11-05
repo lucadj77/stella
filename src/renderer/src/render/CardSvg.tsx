@@ -1,3 +1,4 @@
+import { insetPolygon, pathPolygon } from '../../../shared/model/dice'
 import { Fragment, useContext, useId, useLayoutEffect, useRef, useState } from 'react'
 import { arrangeGroup } from '../../../shared/model/arrange'
 import { smoothStops } from './smoothGradient'
@@ -188,6 +189,27 @@ export function CardOutline({
     Math.max(0, t.height - 2 * inset)
   )
   const { x, y, w, h, transform } = frame
+  // un poligono (esagono, faccia di dado, tracciato di soli segmenti) rientra della stessa
+  // distanza su ogni lato: rimpicciolito, un triangolo avrebbe margini diversi tra base e punta
+  if (inset) {
+    const full = shapeFrame(t, 0, 0, t.width, t.height)
+    const unit =
+      t.shape === 'hexagon' ? null : t.shape === 'path' ? pathPolygon(t.shapePath) : undefined
+    const poly =
+      t.shape === 'hexagon'
+        ? hexagonPoints(full.x, full.y, full.w, full.h).map((p): [number, number] => [p.x, p.y])
+        : unit?.map(([px, py]): [number, number] => [full.x + px * full.w, full.y + py * full.h])
+    if (poly)
+      return (
+        <path
+          d={`M${insetPolygon(poly, inset)
+            .map(([px, py]) => `${px} ${py}`)
+            .join('L')}Z`}
+          transform={full.transform}
+          {...paint}
+        />
+      )
+  }
   switch (t.shape ?? 'rect') {
     case 'ellipse':
       return (
