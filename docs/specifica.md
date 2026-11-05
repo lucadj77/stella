@@ -209,6 +209,9 @@ Ovunque si indichi un'immagine (livello, campo, formula, variabile, `bg=`) basta
 3. Senza estensione si accettano `.svg`, `.png`, `.webp`, `.jpg`, `.jpeg`.
 4. Se il nome corrisponde a più file (`spada.png` e `spada.svg`, oppure `spada.png` in due sottocartelle) l'app non sceglie da sola: segnala l'ambiguità sulla carta e in tabella, e chiede di aggiungere estensione o percorso.
 5. Una variabile immagine con lo stesso nome di un file prevale sul file.
+6. Un indirizzo `https://...` (o `http://`) vale come immagine collegata: nel livello, nella colonna, nella formula, nella variabile immagine e in `bg=`; non nel testo tra graffe.
+
+Immagini da internet: nella scelta delle immagini **Da internet…** chiede un indirizzo e propone due modi. **Scarica nel progetto** salva il file in `assets/images/<nome>` (PNG, JPG, WebP o SVG, al massimo 50 MB; il nome si propone dall'indirizzo) e lo registra in `assets/sources.json` con `kind: "image"`, il sito e l'indirizzo: i crediti lo citano e la scelta delle immagini, con quel file selezionato, offre **Riscarica**. **Usa il collegamento** scrive l'indirizzo al posto del nome: l'app desktop scarica l'immagine la prima volta e ne tiene una copia nella cartella dell'app su quel computer (non nel progetto), che poi usa anche senza rete; con un collegamento scritto nel campo, la scelta delle immagini mostra **Riscarica** per aggiornarla. Un collegamento che non si raggiunge e non è nella copia si disegna come un'immagine mancante («non raggiungibile») ed è segnalato all'esportazione. I crediti citano anche le immagini collegate usate dalle carte. Nell'app web le immagini collegate si caricano dal sito e restano nella cache del browser; scaricarle nel progetto, ed esportarle, funziona solo con i siti che lo permettono (CORS). Per Tabletop Simulator non cambia nulla: le immagini finiscono nei fogli esportati.
 
 ## 4. Forma
 

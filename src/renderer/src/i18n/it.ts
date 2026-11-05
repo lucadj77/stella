@@ -268,6 +268,7 @@ export const it: Record<MessageKey, string> = {
   'preview.selectRow': 'Seleziona una riga per vedere il componente.',
   'preview.problems': 'Problemi su questo componente',
 
+  'asset.unreachable': 'non raggiungibile: {name}',
   'asset.missing': 'manca: {name}',
   'asset.ambiguous': 'ambiguo: {name}',
 
@@ -307,6 +308,7 @@ export const it: Record<MessageKey, string> = {
   'credits.onlyUsed': 'Solo quello che usano i componenti',
   'credits.empty': 'Niente da citare: nessuna icona o font importato è in uso.',
   'credits.icons': 'Icone da {source}, licenza {license}',
+  'credits.images': 'Immagini da internet:',
   'credits.font': 'Font {family}, licenza {license}',
   'credits.copy': 'Copia',
   'credits.copied': 'Copiato',
@@ -545,6 +547,35 @@ export const it: Record<MessageKey, string> = {
   'assetPicker.addImages': 'Aggiungi immagini…',
   'assetPicker.addImagesHint': 'Copia immagini dal computer in assets/images del progetto',
   'assetPicker.importIcons': 'Importa icone…',
+  'assetPicker.fromUrl': 'Da internet…',
+  'assetPicker.fromUrlHint': "Scarica un'immagine da un indirizzo, o collegala",
+  'assetPicker.link': 'Immagine collegata',
+  'assetPicker.refreshLink': 'Riscarica',
+  'assetPicker.refreshLinkHint':
+    'Questo computer tiene una copia delle immagini collegate: riscarica questa da internet',
+  'assetPicker.redownload': 'Riscarica «{name}»',
+  'assetPicker.redownloadHint': 'Scarica di nuovo da {url}',
+  'urlImage.title': 'Immagine da internet',
+  'urlImage.url': 'Indirizzo',
+  'urlImage.urlHint': "https://… di un'immagine PNG, JPG, WebP o SVG",
+  'urlImage.name': 'Nome nel progetto',
+  'urlImage.nameHint': 'Il file va in assets/images con questo nome',
+  'urlImage.download': 'Scarica nel progetto',
+  'urlImage.downloadHint':
+    "Il file entra nel progetto e funziona anche senza rete; l'indirizzo resta per i crediti e per riscaricarlo",
+  'urlImage.link': 'Usa il collegamento',
+  'urlImage.linkHint':
+    "Si scrive l'indirizzo al posto del nome del file; ogni computer scarica l'immagine e ne tiene una copia",
+  'urlImage.webNote':
+    "Nel browser si scaricano solo le immagini dei siti che lo permettono. Altrimenti salva l'immagine sul computer e usa Aggiungi immagini.",
+  'urlImage.badUrl': 'Non è un indirizzo web: {url}',
+  'urlImage.unreachable': 'Non si raggiunge {url}: {error}',
+  'urlImage.http': 'Il sito ha risposto {status} per {url}',
+  'urlImage.notImage': "L'indirizzo non dà un'immagine PNG, JPG, WebP o SVG: {url}",
+  'urlImage.tooBig': "L'immagine supera 50 MB: {url}",
+  'urlImage.exists': 'assets/{name} esiste già: scegli un altro nome',
+  'urlImage.noSource': 'assets/{name} non è stata scaricata da un indirizzo',
+  'urlImage.typeChanged': "L'indirizzo ora dà un'immagine {ext}, diversa da assets/{name}",
   'assetPicker.title': "Scegli un'immagine",
   'assetPicker.search': 'Cerca per nome o cartella',
   'assetPicker.size': 'Dimensione delle miniature',
@@ -1591,7 +1622,8 @@ export const it: Record<MessageKey, string> = {
   'export.openFolder': 'Apri {folder}',
   'export.missingFonts':
     'Font non trovati in assets/fonts né sul computer, sostituiti da un font predefinito: {fonts}',
-  'export.missingImages': 'Immagini non trovate in assets, esportate come segnaposto: {cards}',
+  'export.missingImages':
+    'Immagini non trovate in assets (o collegamenti non raggiungibili), esportate come segnaposto: {cards}',
   'export.livePreview': 'Anteprima',
   'export.enlarge': 'Ingrandisci',
   'export.enlargeHint':

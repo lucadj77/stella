@@ -577,6 +577,13 @@ Le immagini stanno in `assets/`, anche in sottocartelle, nei formati SVG, PNG, W
 
 Il pulsante con l'immagine accanto ai campi apre le miniature degli asset, con ricerca e filtro per cartella. **Aggiungi immagini…** copia file dal computer in `assets/images` del progetto (un file con lo stesso nome non viene sovrascritto: la copia prende un numero). **Sfondo scuro** mostra le miniature su fondo scuro, per vedere le icone bianche; la scelta viene ricordata.
 
+**Da internet…** prende un'immagine da un indirizzo (PNG, JPG, WebP o SVG) in due modi:
+
+- **Scarica nel progetto** salva il file in `assets/images` con il nome scelto. L'immagine fa parte del progetto e funziona anche senza rete; l'indirizzo resta nei crediti, e con il file selezionato nella scelta delle immagini **Riscarica** lo aggiorna dal sito.
+- **Usa il collegamento** scrive l'indirizzo `https://...` al posto del nome del file. Lo stesso si può scrivere a mano nel campo dell'immagine, in una colonna o in una variabile icona. Ogni computer scarica l'immagine la prima volta e ne tiene una copia, che usa anche senza rete; **Riscarica**, nella scelta delle immagini, la aggiorna. Un collegamento che non funziona si vede come un'immagine mancante ed è segnalato quando si esporta.
+
+Nell'app web si scaricano solo le immagini dei siti che lo permettono; per gli altri conviene salvare l'immagine sul computer e usare **Aggiungi immagini…**.
+
 ![La scelta di un'immagine](img/scegli-immagine.png)
 
 Le icone a un colore (SVG nere su fondo trasparente) si ricolorano con la proprietà **Colorazione** del livello o con la tinta della variabile. La colorazione si stende sopra l'immagine: un colore pieno la ricolora del tutto, un colore semitrasparente la tinge solo in parte. Per esempio nero al 20% (`#00000033`) scurisce un bosco, e l'immagine resta opaca.

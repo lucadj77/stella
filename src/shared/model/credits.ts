@@ -9,6 +9,8 @@ export interface CreditsLabels {
   /** "Font {family}, licenza {license}" */
   font(family: string, license: string, author?: string): string
   licenseName(spdx: string): string
+  /** "Immagini da internet" */
+  images?(): string
 }
 
 const LICENSE_URLS: Record<string, string> = {
@@ -26,7 +28,9 @@ const LICENSE_URLS: Record<string, string> = {
 export function creditsText(
   sources: Sources,
   labels: CreditsLabels,
-  used?: { assets: Set<string>; fonts: Set<string> }
+  used?: { assets: Set<string>; fonts: Set<string> },
+  /** Immagini collegate con https://... dalle carte */
+  links: string[] = []
 ): string {
   const entries = Object.entries(sources).filter(([path, e]) =>
     !used ? true : e.kind === 'font' ? used.fonts.has(e.id.toLowerCase()) : used.assets.has(path)
@@ -55,6 +59,16 @@ export function creditsText(
   for (const [, e] of entries) if (e.kind === 'font' && !fonts.has(e.id)) fonts.set(e.id, e)
   for (const e of [...fonts.values()].sort((a, b) => a.id.localeCompare(b.id)))
     lines.push(`${labels.font(e.id, labels.licenseName(e.license), e.author)}${urlOf(e.license)}`)
+
+  // immagini scaricate da un indirizzo e immagini collegate: si cita da dove vengono
+  const images = new Set<string>()
+  for (const [, e] of entries) if (e.kind === 'image' && e.url) images.add(`${e.title}: ${e.url}`)
+  for (const url of links) images.add(url)
+  if (images.size && labels.images) {
+    if (lines.length && lines[lines.length - 1] !== '') lines.push('')
+    lines.push(labels.images())
+    for (const line of [...images].sort()) lines.push(`- ${line}`)
+  }
 
   return lines.join('\n').trim() + '\n'
 }

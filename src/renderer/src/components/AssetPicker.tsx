@@ -1,13 +1,26 @@
 import { useContext, useMemo, useState } from 'react'
-import { assetRefName, isImageAsset, resolveAsset } from '../../../shared/model/assets'
+import {
+  assetRefName,
+  isImageAsset,
+  isRemoteImage,
+  resolveAsset
+} from '../../../shared/model/assets'
 import { fuzzyFilter } from '../../../shared/model/fuzzy'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import { BUILTIN_SHAPES } from '../../../shared/model/markup'
 import { messageFromError, type Message } from '../../../shared/messages'
-import { AssetsContext, assetUrl, publishAssetsUpdate, VariablesContext } from '../render/assets'
+import {
+  AssetsContext,
+  assetUrl,
+  publishAssetsUpdate,
+  refreshRemoteImages,
+  SourcesContext,
+  VariablesContext
+} from '../render/assets'
 import MarkupText from '../render/MarkupText'
 import IconBrowser from './IconBrowser'
+import UrlImageDialog from './UrlImageDialog'
 
 const SIZE_KEY = 'assetPickerSize'
 const DARK_KEY = 'assetPickerDark'
@@ -49,6 +62,9 @@ export default function AssetPicker({
   const [folder, setFolder] = useState<string | null>(null)
   const [size, setSizeState] = useState(loadSize)
   const [importing, setImporting] = useState(false)
+  const [fromUrl, setFromUrl] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const sources = useContext(SourcesContext)
   const [error, setError] = useState<Message | null>(null)
   // le icone bianche su sfondo chiaro non si vedono
   const [dark, setDarkState] = useState(() => {
@@ -152,6 +168,22 @@ export default function AssetPicker({
     }
   }
 
+  /** Riscarica da internet: il collegamento scritto nel campo, o il file scaricato scelto */
+  const redownload = async (): Promise<void> => {
+    setError(null)
+    setBusy(true)
+    try {
+      if (link) await refreshRemoteImages([link])
+      else if (current) publishAssetsUpdate(await window.api.redownloadImage(current))
+    } catch (e) {
+      setError(messageFromError(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+  const link = isRemoteImage(value) ? value.trim() : null
+  const downloaded = current && sources[current]?.kind === 'image' ? sources[current] : null
+
   const pick = (path: string): void => {
     onPick(assetRefName(path, assets))
     onClose()
@@ -185,8 +217,21 @@ export default function AssetPicker({
             {t('assetPicker.addImages')}
           </button>
           <button onClick={() => setImporting(true)}>{t('assetPicker.importIcons')}</button>
+          <button onClick={() => setFromUrl(true)} title={t('assetPicker.fromUrlHint')}>
+            {t('assetPicker.fromUrl')}
+          </button>
         </div>
         {error && <div className="banner error">{t(error)}</div>}
+        {link && (
+          <div className="asset-link">
+            <img src={assetUrl(link)} alt="" draggable={false} />
+            <span className="muted small">{t('assetPicker.link')}</span>
+            <code title={link}>{link}</code>
+            <button disabled={busy} onClick={redownload} title={t('assetPicker.refreshLinkHint')}>
+              {t('assetPicker.refreshLink')}
+            </button>
+          </div>
+        )}
         {folders.length > 0 && (
           <div className="asset-picker-folders">
             <button className={folder === null ? 'on' : ''} onClick={() => setFolder(null)}>
@@ -241,6 +286,15 @@ export default function AssetPicker({
           <span className="muted small spacer-right">
             {t('assetPicker.count', { n: shown.length, total: images.length })}
           </span>
+          {downloaded && current && (
+            <button
+              disabled={busy}
+              onClick={redownload}
+              title={t('assetPicker.redownloadHint', { url: downloaded.url ?? '' })}
+            >
+              {t('assetPicker.redownload', { name: current.slice(current.lastIndexOf('/') + 1) })}
+            </button>
+          )}
           {onSkip && (
             <button onClick={onSkip} title={t('assetPicker.skipHint')}>
               {t('assetPicker.skip')}
@@ -249,6 +303,15 @@ export default function AssetPicker({
           <button onClick={onClose}>{t('dialog.cancel')}</button>
         </div>
       </div>
+      {fromUrl && (
+        <UrlImageDialog
+          onPick={(name) => {
+            onPick(name)
+            onClose()
+          }}
+          onClose={() => setFromUrl(false)}
+        />
+      )}
       {importing && (
         <IconBrowser
           // con una sola icona importata la si sceglie subito

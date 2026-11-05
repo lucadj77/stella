@@ -577,6 +577,13 @@ Images live in `assets/`, subfolders included, as SVG, PNG, WebP or JPG. Whereve
 
 The image button next to the fields opens thumbnails of the assets, with search and a folder filter. **Add images…** copies files from the computer into the project's `assets/images` (a file with the same name is not overwritten: the copy gets a number). **Dark background** shows the thumbnails on a dark background, to see white icons; the choice is remembered.
 
+**From the internet…** takes an image from an address (PNG, JPG, WebP or SVG) in two ways:
+
+- **Download into the project** saves the file in `assets/images` with the chosen name. The image is part of the project and works offline; the address stays in the credits, and with the file selected in the image chooser **Download again** updates it from the site.
+- **Use the link** writes the `https://...` address in place of the file name. You can also type it in the image field, in a column or in an icon variable. Each computer downloads the image the first time and keeps a copy, used offline too; **Download again**, in the image chooser, refreshes it. A link that does not work shows as a missing image and is reported when you export.
+
+In the web app only images from sites that allow it can be downloaded; for the others, save the image on the computer and use **Add images…**.
+
 ![Choosing an image](img/scegli-immagine.png)
 
 Single-color icons (black SVGs on a transparent background) are recolored with the layer's **Tint** property or with the variable's tint. The tint is laid over the image: a solid color recolors it completely, a semi-transparent one tints it only partly. For example black at 20% (`#00000033`) darkens a forest, and the image stays opaque.

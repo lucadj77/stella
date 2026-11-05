@@ -283,6 +283,12 @@ export interface Api {
   dropImages(
     files: { name: string; data: Uint8Array }[]
   ): Promise<{ update: AssetsUpdate; paths: string[] }>
+  /** Scarica un'immagine da internet in assets/images/<name> e ne ricorda l'indirizzo */
+  downloadImage(url: string, name: string): Promise<{ update: AssetsUpdate; path: string }>
+  /** Riscarica dallo stesso indirizzo un'immagine scaricata con downloadImage */
+  redownloadImage(path: string): Promise<AssetsUpdate>
+  /** Toglie dalla cache le immagini collegate (https://...), che si riscaricano al bisogno */
+  forgetRemoteImages(urls: string[]): Promise<void>
   /** Scrive i crediti in export/credits.txt e restituisce il percorso */
   saveCredits(text: string): Promise<string>
   /** Sceglie una cartella qualsiasi, partendo da current */

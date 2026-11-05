@@ -6,6 +6,11 @@ export type AssetResolution =
   | { ok: true; path: string }
   | { ok: false; reason: 'empty' | 'missing' | 'ambiguous'; candidates: string[] }
 
+/** Immagine collegata da internet: https://... al posto del nome di un file (vedi 3.1) */
+export function isRemoteImage(name: string): boolean {
+  return /^https?:\/\/[^\s{}]+$/i.test(name.trim())
+}
+
 /**
  * @param name nome scritto dall'utente: "spada", "spada.png", "icone/spada"
  * @param assets percorsi relativi a assets/, con "/" come separatore
@@ -16,6 +21,8 @@ export function resolveAsset(name: string, assets: string[]): AssetResolution {
     .replace(/\\/g, '/')
     .replace(/^assets\//, '')
   if (!wanted) return { ok: false, reason: 'empty', candidates: [] }
+  // un indirizzo vale così com'è: se non si raggiunge, lo dice il disegno (e l'esportazione)
+  if (isRemoteImage(wanted)) return { ok: true, path: wanted }
   const lower = wanted.toLowerCase()
   const hasExt = IMAGE_EXTENSIONS.some((e) => lower.endsWith(e))
   const hasDir = wanted.includes('/')

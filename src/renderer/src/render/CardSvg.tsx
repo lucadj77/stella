@@ -2,7 +2,7 @@ import { D4_TURNS, d4Wedge, dieOf, insetPolygon, pathPolygon } from '../../../sh
 import { Fragment, useContext, useId, useLayoutEffect, useRef, useState } from 'react'
 import { arrangeGroup } from '../../../shared/model/arrange'
 import { smoothStops } from './smoothGradient'
-import { resolveAsset } from '../../../shared/model/assets'
+import { isRemoteImage, resolveAsset } from '../../../shared/model/assets'
 import {
   anchorPoint,
   hexagonPoints,
@@ -12,7 +12,7 @@ import {
 } from '../../../shared/model/geometry'
 import { useI18n } from '../i18n/context'
 import { AssetsContext, ShowEmptyContext, assetUrl } from './assets'
-import { fitRect, useImageSize } from './imageSize'
+import { fitRect, imageFailed, useImageSize } from './imageSize'
 import { SvgBackdrop } from './backdrop'
 import { convertForeignObject } from '../export/toSvg'
 import { backdropInner } from '../../../shared/model/shapes'
@@ -712,7 +712,8 @@ function ImageBody({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
   const { t } = useI18n()
   const showEmpty = useContext(ShowEmptyContext)
   const res = resolveAsset(l.src, assets)
-  const natural = useImageSize(res.ok ? assetUrl(res.path) : null)
+  const url = res.ok ? assetUrl(res.path) : null
+  const natural = useImageSize(url)
   // il ritaglio prende una parte dell'immagine, che poi si adatta come se fosse l'immagine intera
   const crop = natural ? cropRect(l.crop) : null
   const size =
@@ -724,6 +725,23 @@ function ImageBody({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
     if (/\{[^}]+\}/.test(l.src)) return <Placeholder layer={l} label={l.src} />
     const key = res.reason === 'ambiguous' ? 'asset.ambiguous' : 'asset.missing'
     return <Placeholder layer={l} label={t(key, { name: l.src })} />
+  }
+  // un'immagine collegata da internet che non si scarica: come un file che manca
+  if (!natural && url && isRemoteImage(l.src) && imageFailed(url)) {
+    if (l.missing === 'hide') return null
+    return (
+      <Placeholder
+        layer={l}
+        label={t('asset.unreachable', {
+          name:
+            l.src
+              .trim()
+              .replace(/[?#].*$/, '')
+              .split('/')
+              .pop() ?? ''
+        })}
+      />
+    )
   }
   // senza le dimensioni il ritaglio non si può applicare: meglio niente che l'immagine intera
   if (l.crop && !natural) return null

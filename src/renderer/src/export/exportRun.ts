@@ -1,7 +1,8 @@
 import type { LoadedProject } from '../../../shared/project'
 import type { Side } from '../../../shared/model/template'
 import { walkLayers } from '../../../shared/model/normalize'
-import { resolveAsset } from '../../../shared/model/assets'
+import { isRemoteImage, resolveAsset } from '../../../shared/model/assets'
+import { assetUrl } from '../render/assets'
 import { isGenericFont, markupFonts } from '../../../shared/model/fonts'
 import { cardFingerprints } from '../../../shared/model/compare'
 import { buildSets } from '../../../shared/exportJob'
@@ -118,7 +119,7 @@ export async function runExport(
       : what.kind === 'pdf' && what.options.duplex === 'none'
         ? sidesOf(what.options.sides)
         : ['front', 'back']
-  const missing = missingImages(project, sets, sides)
+  const missing = await missingImages(project, sets, sides)
   if (missing.length)
     r.warnings.push({ key: 'export.missingImages', params: { cards: missing.join('; ') } })
   const fonts = missingFonts(project, sets, hasFont)
@@ -150,8 +151,25 @@ async function recordPrinted(project: LoadedProject, sets: ExportJob['sets']): P
  * Immagini che mancano in assets/ nei lati esportati, ognuna con le carte che la usano:
  * nell'esportazione restano i segnaposto
  */
-function missingImages(project: LoadedProject, sets: ExportSet[], sides: Side[]): string[] {
+async function missingImages(
+  project: LoadedProject,
+  sets: ExportSet[],
+  sides: Side[]
+): Promise<string[]> {
   const byImage = new Map<string, string[]>()
+  // le immagini collegate da internet mancano se non si scaricano (né sono nella cache)
+  const reachable = new Map<string, Promise<boolean>>()
+  const check = (url: string): Promise<boolean> => {
+    if (!reachable.has(url))
+      reachable.set(
+        url,
+        fetch(assetUrl(url)).then(
+          (r) => r.ok,
+          () => false
+        )
+      )
+    return reachable.get(url)!
+  }
   for (const set of sets)
     for (const c of set.cards) {
       const layers = walkLayers(sides.flatMap((side) => c.template[side]))
@@ -167,6 +185,9 @@ function missingImages(project: LoadedProject, sets: ExportSet[], sides: Side[])
           )
           .map((l) => (l.type === 'image' ? l.src.trim() : ''))
       )
+      for (const l of layers)
+        if (l.type === 'image' && l.visible && l.missing !== 'hide' && isRemoteImage(l.src))
+          if (!(await check(l.src.trim()))) names.add(l.src.trim())
       const card = `${set.name} ${c.n}${c.label ? ` (${c.label})` : ''}`
       for (const name of names) byImage.set(name, [...(byImage.get(name) ?? []), card])
     }

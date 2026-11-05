@@ -1,16 +1,34 @@
-import type { AssetsUpdate } from '../../../shared/library'
+import type { AssetsUpdate, Sources } from '../../../shared/library'
 import { createContext, useContext, useMemo } from 'react'
 import type { BindContext } from '../../../shared/model/bind'
 import type { Variables } from '../../../shared/model/variables'
 import type { Localization } from '../../../shared/model/language'
 import { numberFormatting, type NumberSettings } from '../../../shared/model/numberFormat'
 import { useProjectFonts } from './fonts'
+import { isRemoteImage } from '../../../shared/model/assets'
+import { encodeRemotePath } from '../../../shared/model/remoteUrl'
+
+/** Provenienza dei file importati o scaricati (assets/sources.json) */
+export const SourcesContext = createContext<Sources>({})
 
 /** File sotto assets/ del progetto aperto, per risolvere i nomi delle immagini */
 export const AssetsContext = createContext<string[]>([])
 
+let remoteVersion = 0
+
+/**
+ * Le immagini collegate si rileggono da internet: si tolgono dalla cache, cambia il loro
+ * indirizzo interno e il progetto si ridisegna
+ */
+export async function refreshRemoteImages(urls: string[]): Promise<void> {
+  await window.api.forgetRemoteImages(urls)
+  remoteVersion++
+  publishAssetsUpdate({})
+}
+
 export function assetUrl(path: string): string {
   if (window.api.assetUrl) return window.api.assetUrl(path)
+  if (isRemoteImage(path)) return `gc-asset://remote${encodeRemotePath(path, remoteVersion)}`
   return `gc-asset://project/${path.split('/').map(encodeURIComponent).join('/')}`
 }
 
@@ -25,14 +43,14 @@ export const SaveStyleContext = createContext<
 /** Nell'editor i livelli vuoti si mostrano comunque, per poterli vedere e prendere */
 export const ShowEmptyContext = createContext(false)
 
-const assetListeners = new Set<(u: AssetsUpdate) => void>()
+const assetListeners = new Set<(u: Partial<AssetsUpdate>) => void>()
 
 /** Avvisa il progetto aperto che gli asset sono cambiati, per esempio dopo un'importazione */
-export function publishAssetsUpdate(u: AssetsUpdate): void {
+export function publishAssetsUpdate(u: Partial<AssetsUpdate>): void {
   assetListeners.forEach((l) => l(u))
 }
 
-export function onAssetsUpdate(cb: (u: AssetsUpdate) => void): () => void {
+export function onAssetsUpdate(cb: (u: Partial<AssetsUpdate>) => void): () => void {
   assetListeners.add(cb)
   return () => assetListeners.delete(cb)
 }
