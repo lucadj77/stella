@@ -457,6 +457,7 @@ export function denormalizeTemplate(t: Template): RawTemplate {
       : {}),
     ...(t.labelField ? { labelField: t.labelField } : {}),
     ...(t.ttsTags?.trim() ? { ttsTags: t.ttsTags } : {}),
+    ...(t.backFromFront ? { backFromFront: true } : {}),
     front: t.front.map(denormalizeLayer),
     back: t.back.map(denormalizeLayer)
   }

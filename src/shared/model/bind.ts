@@ -16,6 +16,7 @@ import { walkLayers } from './normalize'
 import { imageBackdrop } from './shapes'
 import { splitLanguage, translatedCells, translation, type Localization } from './language'
 import { cardTemplate } from './inherit'
+import { d4WedgeRows, dieOf } from './dice'
 import { systemFields, usesSide, type SystemInfo } from './system'
 import {
   combineFlip,
@@ -91,6 +92,8 @@ export interface BindContext {
   localization?: Localization
   /** Come si leggono i numeri nelle formule e si scrivono sulla carta: vedi model/numberFormat.ts */
   numbers?: NumberFormatting
+  /** Si sta legando uno spicchio di un d4: niente spicchi dentro gli spicchi */
+  wedge?: boolean
 }
 
 /** Le opzioni dei numeri per leggere le formule, e per scrivere il risultato se `shown` */
@@ -472,12 +475,32 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
         ? { ttsTags: substituteFields(template.ttsTags, front.main) }
         : {}),
       front: bindSide(template.front, front),
-      back: bindSide(template.back, back)
+      back: bindSide(template.back, back),
+      ...d4Wedges(template, ctx)
     },
     amount: card.amount,
     problems,
     label: cardLabel(template, cells, front.shown)
   }
+}
+
+/**
+ * d4: gli spicchi in basso della faccia vengono dalle righe che condividono quei vertici, legati
+ * ognuno ai dati della sua riga
+ */
+function d4Wedges(template: Template, ctx: BindContext): Pick<Template, 'wedges'> {
+  const sheet = ctx.system?.sheet
+  const number = ctx.system?.number
+  if (ctx.wedge || dieOf(template) !== 'd4' || !sheet || !number) return {}
+  const rows = d4WedgeRows(number, sheet.rows.length)
+  if (!rows) return {}
+  const wedge = (r: number): Layer[] =>
+    bindCard(template, rowToCard(sheet.headers, sheet.rows[r]), {
+      ...ctx,
+      wedge: true,
+      system: { ...ctx.system, number: r + 1 }
+    }).template.front
+  return { wedges: [wedge(rows[0]), wedge(rows[1])] }
 }
 
 /** Errori del markup di un testo, e {nome} che non è né un campo né un'immagine */

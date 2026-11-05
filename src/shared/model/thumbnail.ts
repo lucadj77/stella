@@ -1,6 +1,7 @@
 import type { LoadedProject, LoadedSet, ProjectCover } from '../project'
 import type { Side, Template } from './template'
 import { resolveAsset } from './assets'
+import { backIsFront } from './template'
 import { CARD_PREFIX, findCard, isMessage, parseCardRef } from './document'
 import { bindCard, bindRow, rowToCard } from './bind'
 import { normalizeLayer, normalizeTemplate } from './normalize'
@@ -35,7 +36,7 @@ export function thumbnailTemplate(project: LoadedProject, imageRatio?: number): 
         system: { ...systemOfSet(project.file, s), number: i + 1 }
       }).template
       // la miniatura disegna il fronte: per il retro si scambiano le facce
-      return side === 'back' && bound.back.length
+      return side === 'back' && bound.back.length && !backIsFront(bound)
         ? { ...bound, front: bound.back, back: bound.front }
         : bound
     }

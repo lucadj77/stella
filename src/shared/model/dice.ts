@@ -268,14 +268,33 @@ export const D4_CORNERS: [number, number, number][] = [
 ]
 
 /**
- * I valori dei tre vertici della faccia della riga `number` (da 1) di un set di d4, presi dai
- * valori delle righe. Righe che mancano all'ultimo dado danno un vertice vuoto
+ * d4: le righe (da 0) che danno lo spicchio in basso a sinistra e quello in basso a destra della
+ * faccia della riga `number` (da 1); null se il dado non ha quelle righe
  */
-export function d4Corners(values: string[], number: number): [string, string, string] {
+export function d4WedgeRows(number: number, rows: number): [number, number] | null {
   const i = number - 1
   const base = i - (i % 4)
-  const local = i % 4
-  return D4_CORNERS[local].map((k) => values[base + k] ?? '') as [string, string, string]
+  const [, left, right] = D4_CORNERS[i % 4]
+  const out: [number, number] = [base + left, base + right]
+  return out.every((r) => r < rows) ? out : null
+}
+
+/** Rotazione degli spicchi del d4, in gradi in senso orario: in alto, in basso a sinistra, a destra */
+export const D4_TURNS = [0, -120, 120] as const
+
+/**
+ * Lo spicchio del vertice in alto del d4, in mm: dal vertice ai punti medi dei due lati e al
+ * centro del triangolo. Le tre copie girate attorno al centro coprono la faccia
+ */
+export function d4Wedge(
+  w: number,
+  h: number
+): { points: [number, number][]; center: [number, number] } {
+  const center: [number, number] = [w / 2, (2 * h) / 3]
+  return {
+    points: [[w / 2, 0], [(3 * w) / 4, h / 2], center, [w / 4, h / 2]],
+    center
+  }
 }
 
 /** Raggruppa le righe di un set in dadi del tipo indicato */
@@ -377,8 +396,7 @@ function faceCenter(d: DieType, w: number, h: number): [number, number] {
 
 /**
  * Livelli con cui nasce una faccia di dado, sopra lo sfondo: il numero al centro, letto dalla
- * colonna `value`. Il d4 ha invece un livello Valore `value` e i tre numeri ai vertici, già
- * ruotati verso il centro, che leggono {die.corner1}, {die.corner2} e {die.corner3}
+ * colonna `value`. Sul d4 il numero sta vicino al vertice in alto, dentro lo spicchio
  */
 export function dieStarterLayers(d: DieType, w: number, h: number): Record<string, unknown>[] {
   const text = {
@@ -390,32 +408,20 @@ export function dieStarterLayers(d: DieType, w: number, h: number): Record<strin
     fit: 'shrink'
   }
   if (d === 'd4') {
-    const pts: [number, number][] = [
-      [w / 2, 0],
-      [0, h],
-      [w, h]
-    ]
-    const g: [number, number] = [w / 2, (2 * h) / 3]
+    // il template del d4 è lo spicchio del vertice in alto: il numero vicino al vertice
     const box = Math.round(w * 0.3 * 10) / 10
-    const size = Math.max(6, Math.round(w * 0.55))
+    const cy = ((2 * h) / 3) * 0.42
     return [
-      { type: 'value', name: 'value', x: 0, y: 0, w: 5, h: 5, value: '1' },
-      ...pts.map(([px, py], i) => {
-        const cx = px + (g[0] - px) * 0.42
-        const cy = py + (g[1] - py) * 0.42
-        return {
-          ...text,
-          name: `corner${i + 1}`,
-          text: `{die.corner${i + 1}}`,
-          source: { kind: 'fixed' },
-          size,
-          x: Math.round((cx - box / 2) * 100) / 100,
-          y: Math.round((cy - box / 2) * 100) / 100,
-          w: box,
-          h: box,
-          rotation: [0, -120, 120][i]
-        }
-      })
+      {
+        ...text,
+        name: 'value',
+        text: '1',
+        size: Math.max(6, Math.round(w * 0.55)),
+        x: Math.round((w / 2 - box / 2) * 100) / 100,
+        y: Math.round((cy - box / 2) * 100) / 100,
+        w: box,
+        h: box
+      }
     ]
   }
   const [cx, cy] = faceCenter(d, w, h)

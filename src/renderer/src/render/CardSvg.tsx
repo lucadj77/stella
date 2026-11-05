@@ -1,4 +1,4 @@
-import { insetPolygon, pathPolygon } from '../../../shared/model/dice'
+import { D4_TURNS, d4Wedge, dieOf, insetPolygon, pathPolygon } from '../../../shared/model/dice'
 import { Fragment, useContext, useId, useLayoutEffect, useRef, useState } from 'react'
 import { arrangeGroup } from '../../../shared/model/arrange'
 import { smoothStops } from './smoothGradient'
@@ -39,7 +39,7 @@ import type {
   Template,
   TextLayer
 } from '../../../shared/model/template'
-import { isStandee } from '../../../shared/model/template'
+import { backIsFront, isStandee } from '../../../shared/model/template'
 
 // Disegna una carta in SVG, in millimetri. È lo stesso disegno che userà l'esportazione PDF.
 
@@ -82,7 +82,8 @@ export default function CardSvg({
   // la pedina non ha fondo, e il suo retro è il fronte specchiato (contorno compreso)
   const standee = isStandee(t)
   const mirror = standee && side === 'back'
-  const layers = side === 'front' || standee ? t.front : t.back
+  // retro uguale al fronte: gli stessi livelli, non specchiati
+  const layers = side === 'front' || standee || backIsFront(t) ? t.front : t.back
   const flip = mirror ? `translate(${t.width} 0) scale(-1 1)` : undefined
   const outline = mirror ? { ...t, shapeFlipH: !t.shapeFlipH } : t
   const vw = t.width + 2 * b
@@ -148,7 +149,11 @@ export default function CardSvg({
       <g clipPath={`url(#${uid}-card)`}>
         {!standee && <rect x={-b} y={-b} width={vw} height={vh} fill="#FFFFFF" />}
         <g transform={flip}>
-          <LayerList layers={layers} uid={uid} />
+          {dieOf(t) === 'd4' && side === 'front' ? (
+            <D4Face template={t} uid={uid} editing={!!pasteboard} />
+          ) : (
+            <LayerList layers={layers} uid={uid} />
+          )}
         </g>
       </g>
       {mode === 'bleed' && guides && (
@@ -162,6 +167,57 @@ export default function CardSvg({
         />
       )}
     </svg>
+  )
+}
+
+/**
+ * Faccia di d4: il template è lo spicchio del vertice in alto, e la faccia ne mette tre girati
+ * attorno al centro, ognuno con i dati della riga che ha quel vertice. Nell'editor gli spicchi
+ * in basso sono più chiari e lo spicchio in alto ha il suo contorno
+ */
+function D4Face({
+  template: t,
+  uid,
+  editing
+}: {
+  template: Template
+  uid: string
+  editing: boolean
+}): React.JSX.Element {
+  const { points, center } = d4Wedge(t.width, t.height)
+  const [cx, cy] = center
+  // lo spicchio si allarga dal centro quanto basta a coprire l'abbondanza
+  const k = 1 + (t.bleed + 1) / (t.height / 3)
+  const wide = points.map(([x, y]) => `${cx + (x - cx) * k},${cy + (y - cy) * k}`).join(' ')
+  const lists = [t.front, t.wedges?.[0] ?? t.front, t.wedges?.[1] ?? t.front]
+  return (
+    <>
+      <defs>
+        <clipPath id={`${uid}-wedge`}>
+          <polygon points={wide} />
+        </clipPath>
+      </defs>
+      {lists.map((layers, i) => (
+        <g
+          key={i}
+          transform={i ? `rotate(${D4_TURNS[i]} ${cx} ${cy})` : undefined}
+          opacity={editing && i ? 0.45 : undefined}
+        >
+          <g clipPath={`url(#${uid}-wedge)`}>
+            <LayerList layers={layers} uid={`${uid}w${i}`} />
+          </g>
+        </g>
+      ))}
+      {editing && (
+        <polygon
+          points={points.map((p) => p.join(',')).join(' ')}
+          fill="none"
+          stroke="#3E63DD"
+          strokeWidth={0.2}
+          strokeDasharray="0.8 0.6"
+        />
+      )}
+    </>
   )
 }
 

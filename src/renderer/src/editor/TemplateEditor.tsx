@@ -5,7 +5,14 @@ import { projectSystem, systemOfSet, type ProjectMeta } from '../../../shared/mo
 import { findLayer, findParent, resizeTemplate } from '../../../shared/model/edit'
 import { useLayerNames } from './layerNames'
 import type { LoadedSet } from '../../../shared/project'
-import { isStandee, type ShapeKind, type Side, type Template } from '../../../shared/model/template'
+import {
+  backIsFront,
+  hasNoBack,
+  isStandee,
+  type ShapeKind,
+  type Side,
+  type Template
+} from '../../../shared/model/template'
 import { rebase, resolveTemplate } from '../../../shared/model/inherit'
 import { walkLayers } from '../../../shared/model/normalize'
 import { useI18n } from '../i18n/context'
@@ -149,7 +156,8 @@ export default function TemplateEditor({
       cmd.nudge(dx, dy)
     } else if (!mod && !e.altKey && TOOL_KEYS.includes(k)) {
       // il retro della pedina è il fronte specchiato: non ha livelli suoi
-      if (isStandee(state.template) && state.side === 'back') return
+      if ((isStandee(state.template) || backIsFront(state.template)) && state.side === 'back')
+        return
       if (k === 't') cmd.add('text')
       else if (k === 'r') cmd.add('shape', 'rect')
       else if (k === 'e') cmd.add('shape', 'ellipse')
@@ -233,7 +241,13 @@ export default function TemplateEditor({
     label: t(`tool.${s}` as Parameters<typeof t>[0]),
     onClick: () => cmd.add('shape', s)
   }))
-  const mirroredBack = isStandee(state.template) && state.side === 'back'
+  const sameBack = backIsFront(state.template) && state.side === 'back'
+  const mirroredBack = (isStandee(state.template) || sameBack) && state.side === 'back'
+  // una faccia di dado non ha retro: l'editor resta sul fronte
+  const frontOnly = hasNoBack(state.template)
+  useEffect(() => {
+    if (frontOnly && state.side === 'back') dispatch({ type: 'side', side: 'front' })
+  }, [frontOnly, state.side, dispatch])
   const toolButtons = (
     <>
       {tool('T', t('tool.short.text'), t('tool.text'), () => cmd.add('text'))}
@@ -345,14 +359,16 @@ export default function TemplateEditor({
         >
           {toolButtons}
         </div>
-        <Segmented<Side>
-          value={state.side}
-          options={[
-            ['front', t('preview.front'), t('tip.front')],
-            ['back', t('preview.back'), t('tip.back')]
-          ]}
-          onChange={(side) => dispatch({ type: 'side', side })}
-        />
+        {!frontOnly && (
+          <Segmented<Side>
+            value={state.side}
+            options={[
+              ['front', t('preview.front'), t('tip.front')],
+              ['back', t('preview.back'), t('tip.back')]
+            ]}
+            onChange={(side) => dispatch({ type: 'side', side })}
+          />
+        )}
         <span className="spacer" />
         <label className="muted preview-data">
           {t('editor.previewData')}{' '}
@@ -406,7 +422,7 @@ export default function TemplateEditor({
           <Canvas state={state} display={display.template} dispatch={dispatch} />
           {mirroredBack && (
             <div className="canvas-problems standee-note">
-              <div>{t('editor.standeeBack')}</div>
+              <div>{t(sameBack ? 'editor.tokenBack' : 'editor.standeeBack')}</div>
             </div>
           )}
           {(display.problems.length > 0 ||

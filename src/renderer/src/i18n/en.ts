@@ -771,6 +771,15 @@ export const en = {
   'editor.shapeFlipV': 'Mirror the shape top to bottom',
   'editor.shapeFlippedH': 'mirrored ⇆',
   'editor.shapeFlippedV': 'mirrored ⇅',
+  'prop.backFromFront': 'Back',
+  'prop.backFromFrontHint':
+    'Locked, the back is the front, the same layers (not mirrored): what you change on the front is on the back too. Open the lock to draw a different back.',
+  'prop.backSame': 'Same as the front',
+  'prop.backOwn': 'Drawn on its own',
+  'tip.backLocked': 'The back is the front: click to draw a different back',
+  'tip.backUnlocked': 'The back is drawn on its own: click to make it the same as the front',
+  'editor.tokenBack':
+    'The back is the same as the front: edit the front, or open the lock of Back in the template properties to draw a different one.',
   'editor.standeeBack': "A standee's back is its front mirrored, drawn by Stella: edit the front.",
   'editor.hexagonFit': 'Fit the component to the hexagon ({w} × {h})',
   'editor.hexagonFitHint':
@@ -1078,7 +1087,7 @@ export const en = {
   'die.d20.hint': 'Twenty triangles: twenty rows of the set, opposite faces add up to 21.',
   'die.d4.explainTitle': 'The number on top is the result.',
   'die.d4.explain':
-    'Each face shows three corners: 1 on top, 2 bottom left, 3 bottom right. In each row of the set write only the value of the top corner ({field}): Stella fills the other two with the values of the faces that share them, so the numbers match on the closed die.',
+    'The template is the wedge of the top corner (dashed outline): draw it as you like, with numbers, images and colors. Each face shows three wedges: its own on top, and the other two turned, with the data of the rows that share those corners, so the corners match on the closed die. Each wedge reads every column of its row ({field} is the result); what goes outside the wedge is cut. Width and height are those of the whole face, the triangle.',
   'die.fixedRatio': 'The shape of this die has a fixed ratio: the height follows the width.',
   'format.coin20': 'Coin 20 mm',
   'format.coin25': 'Coin 25 mm',
@@ -1094,9 +1103,6 @@ export const en = {
   'format.width18': 'Width 18 mm',
   'format.width22': 'Width 22 mm',
   'format.width26': 'Width 26 mm',
-  'system.die.corner1': 'd4: value of the top corner of the face (the value of its row)',
-  'system.die.corner2': 'd4: value of the bottom left corner, from the face that shares it',
-  'system.die.corner3': 'd4: value of the bottom right corner, from the face that shares it',
   'export.dieNetLater':
     'Set “{set}”: the {die} to fold comes in a next version; for now its faces come out side by side.',
   'export.ttsDieLater':

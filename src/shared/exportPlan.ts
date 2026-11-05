@@ -79,8 +79,10 @@ export function planImages(o: ImageOptions, sets: ExportSet[]): ImageFile[] {
   const all: string[] = []
   for (const set of sets) {
     const digits = String(set.cards.length).length
+    // le facce di dado hanno solo il fronte
+    const own = set.kind === 'die' ? sides.filter((s) => s === 'front') : sides
     for (const card of set.cards)
-      for (const side of sides) {
+      for (const side of own) {
         const copies = expandCopies([card], o.copies)
         const names = copies.map(({ copy }) =>
           fileName(pattern, { set: set.name, n: card.n, digits, copy, side, fields: card.fields })
@@ -119,8 +121,12 @@ export function planPdf(o: PdfOptions, sets: ExportSet[], project: string): PdfP
   const page = pageSize(o)
   const overflow: string[] = []
   const mode = o.bleed ? ('bleed' as const) : o.rounded ? ('trim' as const) : ('cut' as const)
-  const gridPages = (grid: Grid, instances: Instance[]): { side: Side; page: ScenePage }[] =>
-    planPdfPages(o, grid, instances).map((plan) => ({
+  const gridPages = (
+    grid: Grid,
+    instances: Instance[],
+    opts: PdfOptions = o
+  ): { side: Side; page: ScenePage }[] =>
+    planPdfPages(opts, grid, instances).map((plan) => ({
       side: plan.side,
       page: {
         width: page.width,
@@ -130,7 +136,7 @@ export function planPdf(o: PdfOptions, sets: ExportSet[], project: string): PdfP
       }
     }))
   // set dopo set; con continuous i set vicini che non sono poster si uniscono in un gruppo
-  type Entry = { set: ExportSet; grid: Grid; kind: 'grid' | 'fold' | 'poster' | 'net' }
+  type Entry = { set: ExportSet; grid: Grid; kind: 'grid' | 'fold' | 'poster' | 'net' | 'faces' }
   const notes: Message[] = []
   const entries: Entry[] = sets.map((set) => {
     const grid = pdfGrid(o, set.cards[0].template)
@@ -143,6 +149,11 @@ export function planPdf(o: PdfOptions, sets: ExportSet[], project: string): PdfP
     }
     // margini oltre metà pagina: nessuna area utile, né per la griglia né per un poster
     const noRoom = page.width <= 2 * o.margin || page.height <= 2 * o.margin
+    // le facce di dado hanno solo il fronte: niente retri, niente piegatura
+    if (set.kind === 'die') {
+      if (noRoom || gridOverflows(grid)) overflow.push(set.name)
+      return { set, grid, kind: 'faces' }
+    }
     const poster = gridOverflows(grid) && o.poster && !o.fold
     if (noRoom || (gridOverflows(grid) && !poster)) overflow.push(set.name)
     return { set, grid, kind: poster ? 'poster' : o.fold ? 'fold' : 'grid' }
@@ -157,6 +168,7 @@ export function planPdf(o: PdfOptions, sets: ExportSet[], project: string): PdfP
       prev &&
       e.kind !== 'poster' &&
       e.kind !== 'net' &&
+      e.kind !== 'faces' &&
       prev.kind === e.kind &&
       // nella piegatura solo set con la stessa griglia; nella griglia anche misure diverse
       (e.kind === 'grid' || sameGrid(prev.grid, e.grid))
@@ -175,6 +187,29 @@ export function planPdf(o: PdfOptions, sets: ExportSet[], project: string): PdfP
           params: { set: set.name, n: DIE_ROWS[dieOf(set.cards[0]?.template) ?? 'd6'] }
         })
       return { set, pages: net.pages }
+    }
+    if (kind === 'faces') {
+      if (o.sides === 'back') return { set, pages: [] }
+      // sul d3 ogni riga va su due facce opposte del cubo: si stampa due volte
+      const instances = expandCopies(set.cards, o.copies)
+      const twice = dieOf(set.cards[0]?.template) === 'd3'
+      const fronts = gridPages(grid, twice ? instances.flatMap((i) => [i, i]) : instances, {
+        ...o,
+        duplex: 'none',
+        sides: 'front'
+      })
+      // in fronte-retro una pagina vuota dietro ogni fronte tiene in fase i set che seguono
+      const blank = (): ScenePage => ({
+        width: page.width,
+        height: page.height,
+        items: [],
+        lines: []
+      })
+      const pages =
+        o.duplex === 'none'
+          ? fronts
+          : fronts.flatMap((f) => [f, { side: 'back' as const, page: blank() }])
+      return { set, pages }
     }
     const merged: ExportSet = { name: set.name, cards: group.flatMap((e) => e.set.cards) }
     if (kind === 'fold') return { set, pages: foldPages(o, merged, grid) }
@@ -633,7 +668,13 @@ export function proofPages(o: PdfOptions, sets: ExportSet[]): ScenePage[] {
   const rows = Math.max(1, Math.floor((availH + PROOF_GAP) / rowH))
   const sides = o.duplex !== 'none' ? (['front', 'back'] as const) : sidesOf(o.sides)
   const cells = sets.flatMap((set) =>
-    set.cards.flatMap((card) => sides.map((side) => ({ set, card, side })))
+    set.cards.flatMap((card) =>
+      (set.kind === 'die' ? sides.filter((s) => s === 'front') : sides).map((side) => ({
+        set,
+        card,
+        side
+      }))
+    )
   )
   const pages: ScenePage[] = []
   for (let i = 0; i < cells.length; i += cols * rows) {
