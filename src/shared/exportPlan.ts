@@ -169,11 +169,11 @@ export function planPdf(o: PdfOptions, sets: ExportSet[], project: string): PdfP
       continuous &&
       prev &&
       e.kind !== 'poster' &&
-      e.kind !== 'net' &&
       e.kind !== 'faces' &&
       prev.kind === e.kind &&
-      // nella piegatura solo set con la stessa griglia; nella griglia anche misure diverse
-      (e.kind === 'grid' || sameGrid(prev.grid, e.grid))
+      // nella piegatura solo set con la stessa griglia; nella griglia e negli sviluppi dei dadi
+      // anche misure diverse
+      (e.kind === 'grid' || e.kind === 'net' || sameGrid(prev.grid, e.grid))
     if (joins) last.push(e)
     else groups.push([e])
   }
@@ -181,13 +181,15 @@ export function planPdf(o: PdfOptions, sets: ExportSet[], project: string): PdfP
     const { set, grid, kind } = group[0]
     if (kind === 'poster') return { set, pages: posterPages(o, set) }
     if (kind === 'net') {
-      const net = netPages(o, set)
-      if (net.overflow) overflow.push(set.name)
-      if (net.padded)
-        notes.push({
-          key: 'export.ttsDicePadded',
-          params: { set: set.name, n: DIE_ROWS[dieOf(set.cards[0]?.template) ?? 'd6'] }
-        })
+      const sets = group.map((e) => e.set)
+      const net = netPages(o, sets)
+      overflow.push(...net.overflow)
+      for (const s of sets)
+        if (net.padded.includes(s.name))
+          notes.push({
+            key: 'export.ttsDicePadded',
+            params: { set: s.name, n: DIE_ROWS[dieOf(s.cards[0]?.template) ?? 'd6'] }
+          })
       return { set, pages: net.pages }
     }
     if (kind === 'faces') {
@@ -608,16 +610,8 @@ export function netGrid(
   }
 }
 
-/**
- * Pagine degli sviluppi dei dadi di un set: le carte di ogni dado nell'ordine del foglio (come in
- * Tabletop Simulator), con le copie del primo. Le linee di taglio e le pieghe ci sono solo con i
- * segni di taglio, nel loro colore. Non si ruotano: per metterne di più si gira la pagina
- */
-function netPages(
-  o: PdfOptions,
-  set: ExportSet
-): { pages: { side: Side; page: ScenePage }[]; overflow: boolean; padded: boolean } {
-  const page = pageSize(o)
+/** I dadi di un set, ognuno con le sue carte nell'ordine delle facce, con le copie */
+function setDice(o: PdfOptions, set: ExportSet): { dice: Template[][]; padded: boolean } {
   const kept = set.cards.filter((c) => !o.copies || c.amount > 0)
   const dice: Template[][] = []
   let padded = false
@@ -634,31 +628,98 @@ function netPages(
     const count = o.copies ? Math.max(1, group[0].amount) : 1
     for (let n = 0; n < count; n++) dice.push(faces)
   }
-  if (!dice.length || o.sides === 'back') return { pages: [], overflow: false, padded }
-  const { cols, rows, fits, gap, width, height } = netGrid(o, dice[0][0])
-  const x0 = (page.width - (cols * width + (cols - 1) * gap)) / 2
-  const y0 = (page.height - (rows * height + (rows - 1) * gap)) / 2
+  return { dice, padded }
+}
+
+/**
+ * Pagine degli sviluppi dei dadi di uno o più set: le carte di ogni dado nell'ordine del foglio
+ * (come in Tabletop Simulator), con le copie del primo. Un set solo sta in una griglia centrata;
+ * più set uno dopo l'altro vanno a file dall'alto, ogni set su una fila nuova se nella pagina c'è
+ * posto. Le linee di taglio e le pieghe ci sono solo con i segni di taglio, nel loro colore. Non
+ * si ruotano: per metterne di più si gira la pagina
+ */
+function netPages(
+  o: PdfOptions,
+  sets: ExportSet[]
+): { pages: { side: Side; page: ScenePage }[]; overflow: string[]; padded: string[] } {
+  const page = pageSize(o)
+  const padded: string[] = []
+  const overflow: string[] = []
+  // ogni sviluppo con la sua posizione: pagina, x, y
+  const placed: { page: number; x: number; y: number; faces: Template[] }[] = []
+  const all = sets.map((set) => ({ set, ...setDice(o, set) }))
+  for (const a of all) if (a.padded) padded.push(a.set.name)
+  const used = all.filter((a) => a.dice.length)
+  if (!used.length || o.sides === 'back') return { pages: [], overflow, padded }
+  if (used.length === 1) {
+    const { set, dice } = used[0]
+    const { cols, rows, fits, gap, width, height } = netGrid(o, dice[0][0])
+    if (!fits) overflow.push(set.name)
+    const x0 = (page.width - (cols * width + (cols - 1) * gap)) / 2
+    const y0 = (page.height - (rows * height + (rows - 1) * gap)) / 2
+    dice.forEach((faces, i) => {
+      const k = i % (cols * rows)
+      placed.push({
+        page: Math.floor(i / (cols * rows)),
+        x: x0 + (k % cols) * (width + gap),
+        y: y0 + Math.floor(k / cols) * (height + gap),
+        faces
+      })
+    })
+  } else {
+    const availW = page.width - 2 * o.margin
+    const availH = page.height - 2 * o.margin
+    // file: ogni fila tiene gli sviluppi, poi si centra in orizzontale
+    type Row = { page: number; y: number; h: number; w: number; items: number[] }
+    const rowsOut: Row[] = []
+    let pageNo = 0
+    let y = 0
+    let row: Row | null = null
+    for (const { set, dice } of used) {
+      const { fits, gap, width, height } = netGrid(o, dice[0][0])
+      if (!fits) overflow.push(set.name)
+      row = null
+      for (const faces of dice) {
+        if (row && row.w + gap + width <= availW + 1e-6) {
+          row.items.push(placed.length)
+          placed.push({ page: row.page, x: row.w + gap, y: row.y, faces })
+          row.w += gap + width
+          row.h = Math.max(row.h, height)
+          continue
+        }
+        // fila nuova, sotto la precedente o in una pagina nuova
+        const last = rowsOut[rowsOut.length - 1]
+        if (last) y = last.page === pageNo ? last.y + last.h + gap : 0
+        if (y > 0 && y + height > availH + 1e-6) {
+          pageNo++
+          y = 0
+        }
+        row = { page: pageNo, y, h: height, w: width, items: [placed.length] }
+        rowsOut.push(row)
+        placed.push({ page: pageNo, x: 0, y, faces })
+      }
+    }
+    for (const r of rowsOut) {
+      const dx = (page.width - r.w) / 2
+      for (const i of r.items) {
+        placed[i].x += dx
+        placed[i].y += o.margin
+      }
+    }
+  }
   const marks = o.marks !== 'none'
   const out: { side: Side; page: ScenePage }[] = []
-  for (let i = 0; i < dice.length; i += cols * rows) {
-    const nets = dice
-      .slice(i, i + cols * rows)
-      .map((faces, k) =>
-        anyNet(
-          o,
-          faces,
-          x0 + (k % cols) * (width + gap),
-          y0 + Math.floor(k / cols) * (height + gap)
-        )
-      )
+  const pages = Math.max(...placed.map((p) => p.page)) + 1
+  for (let n = 0; n < pages; n++) {
+    const nets = placed.filter((p) => p.page === n).map((p) => anyNet(o, p.faces, p.x, p.y))
     out.push({
       side: 'front',
       page: {
         width: page.width,
         height: page.height,
-        items: nets.flatMap((n) => [...n.tabs, ...n.items]),
-        shapes: nets.flatMap((n) => n.shapes),
-        lines: marks ? nets.flatMap((n) => [...n.cut, ...n.folds]) : [],
+        items: nets.flatMap((net) => [...net.tabs, ...net.items]),
+        shapes: nets.flatMap((net) => net.shapes),
+        lines: marks ? nets.flatMap((net) => [...net.cut, ...net.folds]) : [],
         linesOver: true
       }
     })
@@ -669,7 +730,7 @@ function netPages(
         page: { width: page.width, height: page.height, items: [], lines: [] }
       })
   }
-  return { pages: out, overflow: !fits, padded }
+  return { pages: out, overflow, padded }
 }
 
 // ——— Facce triangolari incastrate ———

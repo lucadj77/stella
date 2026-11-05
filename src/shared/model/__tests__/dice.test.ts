@@ -227,6 +227,20 @@ describe('dadi: esportazione', () => {
     expect(page.items).toHaveLength(13)
     expect(page.items.every((it) => it.matrix && it.clip)).toBe(true)
     expect(page.lines.filter((l) => l.dash)).toHaveLength(7 + 5)
+    // uno dopo l'altro: il d8 e il d3 sulla stessa pagina
+    const d3s = { name: 'd3', kind: 'die' as const, cards: [1, 2, 3].map((n) => card(d3, n)) }
+    const d8s = {
+      name: 'd8',
+      kind: 'die' as const,
+      cards: [1, 2, 3, 4, 5, 6, 7, 8].map((n) => card(d8, n))
+    }
+    const apart = planPdf({ ...DEFAULT_PDF, dice: 'net' }, [d8s, d3s], 'p')
+    expect(apart.docs[0].pages).toHaveLength(2)
+    const together = planPdf({ ...DEFAULT_PDF, dice: 'net', continuous: true }, [d8s, d3s], 'p')
+    expect(together.docs[0].pages).toHaveLength(1)
+    expect(together.docs[0].pages[0].items.length).toBe(
+      apart.docs[0].pages[0].items.length + apart.docs[0].pages[1].items.length
+    )
     const d2 = applyDie(face(), 'd2')
     const coin = planPdf(
       { ...DEFAULT_PDF, dice: 'net' },
