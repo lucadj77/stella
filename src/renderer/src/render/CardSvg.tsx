@@ -1149,6 +1149,8 @@ function TextView({ layer: l, id }: { layer: TextLayer; id: string }): React.JSX
             display: 'flex',
             flexDirection: 'column',
             justifyContent: VALIGN[l.valign],
+            // misura per i riquadri del markup più grandi del livello (MarkupText, bg=)
+            containerType: 'size',
             // "esce dal riquadro" lascia vedere il testo in eccesso, le altre modalità lo tagliano
             overflow: l.fit === 'none' ? 'visible' : 'hidden',
             fontFamily: `'${l.font}', sans-serif`,

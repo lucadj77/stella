@@ -225,6 +225,11 @@ function SpanView({
         position: 'relative',
         minWidth: size,
         height: size,
+        // più grande del livello di testo: i margini negativi gli lasciano lo stesso posto del
+        // livello, così cresce in ugual misura dai due lati invece di uscire a destra e in basso.
+        // 100cq* è il riquadro del livello (container-type in CardSvg); altrove non c'è un
+        // contenitore e vale la finestra, quindi il margine resta 0
+        margin: `min(0px, (100cqh - ${size}) / 2) min(0px, (100cqw - ${size}) / 2)`,
         padding: `${pv * k.unit}px ${ph * k.unit}px`,
         boxSizing: 'border-box',
         verticalAlign: 'middle',
