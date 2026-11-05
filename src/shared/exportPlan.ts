@@ -674,11 +674,11 @@ function netPages(
     const rowsOut: Row[] = []
     let pageNo = 0
     let y = 0
-    let row: Row | null = null
     for (const { set, dice } of used) {
       const { fits, gap, width, height } = netGrid(o, dice[0][0])
       if (!fits) overflow.push(set.name)
-      row = null
+      // ogni set comincia su una fila nuova
+      let row: Row | null = null
       for (const faces of dice) {
         if (row && row.w + gap + width <= availW + 1e-6) {
           row.items.push(placed.length)
