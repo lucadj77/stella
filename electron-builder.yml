@@ -56,7 +56,13 @@ mac:
 dmg:
   artifactName: ${productName}-${version}-mac-${arch}.${ext}
 linux:
-  executableName: stella
+  # non "stella": è già il nome dell'emulatore Atari 2600 nei pacchetti di Debian e Ubuntu
+  # (stesso pacchetto, /usr/bin/stella, stella.desktop e icona: apt upgrade lo sostituiva)
+  executableName: stella-gc
+  # nel menu delle applicazioni si distingue dall'emulatore, che si chiama anche lui Stella
+  desktop:
+    entry:
+      Name: Stella Game Center
   target:
     - target: AppImage
       arch: x64
@@ -69,6 +75,12 @@ appImage:
   artifactName: ${productName}-${version}-linux-${arch}.${ext}
 deb:
   artifactName: ${productName}-${version}-linux-${arch}.${ext}
+  packageName: stella-game-center
+  # il vecchio pacchetto "stella" di Stella (fino alla 1.10.0-beta.3) ha gli stessi file in /opt/Stella:
+  # Replaces lascia che il nuovo li prenda. Niente Breaks/Conflicts: apt li risolverebbe installando
+  # l'emulatore Atari al posto del vecchio pacchetto. Il vecchio lo toglie l'utente (docs/guida)
+  fpm:
+    - '--replaces=stella (<< 2)'
 npmRebuild: false
 # electron-updater (Windows setup e AppImage) legge latest.yml / beta.yml dalle release di GitHub;
 # la build non pubblica nulla (--publish never), i file li carica il job release di build.yml

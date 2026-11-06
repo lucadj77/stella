@@ -5,6 +5,18 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.10.0-beta.4
+
+### English
+
+- **Linux .deb package renamed**: the package is now `stella-game-center` and the command `stella-gc`, because `stella` is the Atari 2600 emulator in Debian and Ubuntu. With the old name, installing Stella clashed with the emulator, and `apt upgrade` offered the emulator as a newer version of Stella. In the applications menu it is called Stella Game Center. If you installed an earlier .deb, remove it first with `sudo apt remove stella`. The AppImage is unchanged.
+- **Command line**: the `stella` command no longer shows an error window when the program reading its output closes early.
+
+### Italiano
+
+- **Pacchetto .deb per Linux rinominato**: il pacchetto ora è `stella-game-center` e il comando `stella-gc`, perché `stella` è l'emulatore Atari 2600 di Debian e Ubuntu. Con il vecchio nome l'installazione di Stella andava in conflitto con l'emulatore, e `apt upgrade` proponeva l'emulatore come versione nuova di Stella. Nel menu delle applicazioni si chiama Stella Game Center. Chi ha installato un .deb precedente prima lo toglie con `sudo apt remove stella`. L'AppImage non cambia.
+- **Riga di comando**: il comando `stella` non mostra più una finestra di errore quando il programma che legge il suo risultato si chiude prima.
+
 ## 1.10.0-beta.3
 
 ### English
