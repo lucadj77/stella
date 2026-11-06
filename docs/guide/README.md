@@ -126,7 +126,7 @@ On work computers the administrator may block unsigned programs entirely. In tha
 
   The AppImage needs libfuse2: on Ubuntu 24.04 and later `sudo apt install libfuse2t64`, on earlier versions `sudo apt install libfuse2`. It updates itself.
 
-- **.deb package** (`Stella-<version>-linux-amd64.deb`), for Debian, Ubuntu and derivatives: `sudo apt install ./Stella-<version>-linux-amd64.deb`. Stella appears among the applications and also starts with the `stella` command. It doesn't update itself: for a new version, install the new .deb the same way.
+- **.deb package** (`Stella-<version>-linux-amd64.deb`), for Debian, Ubuntu and derivatives: `sudo apt install ./Stella-<version>-linux-amd64.deb`. Stella appears among the applications and also starts with the `stella-gc` command (`stella` is the name of the Atari 2600 emulator in Debian and Ubuntu, which can stay installed alongside Stella). If you installed the .deb up to 1.10.0-beta.3, which was called `stella` like the emulator, first remove it with `sudo apt remove stella`: otherwise a system update replaces it with the emulator. It doesn't update itself: for a new version, install the new .deb the same way.
 
 ### Uninstalling
 

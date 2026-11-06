@@ -126,7 +126,7 @@ Sui computer di lavoro l'amministratore può impedire del tutto i programmi non 
 
   L'AppImage richiede libfuse2: su Ubuntu 24.04 e successive `sudo apt install libfuse2t64`, sulle versioni precedenti `sudo apt install libfuse2`. Si aggiorna da sola.
 
-- **Pacchetto .deb** (`Stella-<versione>-linux-amd64.deb`), per Debian, Ubuntu e derivate: `sudo apt install ./Stella-<versione>-linux-amd64.deb`. Stella compare tra le applicazioni e si avvia anche con il comando `stella`. Non si aggiorna da sola: per una versione nuova si installa il .deb nuovo allo stesso modo.
+- **Pacchetto .deb** (`Stella-<versione>-linux-amd64.deb`), per Debian, Ubuntu e derivate: `sudo apt install ./Stella-<versione>-linux-amd64.deb`. Stella compare tra le applicazioni e si avvia anche con il comando `stella-gc` (`stella` è il nome dell'emulatore Atari 2600 di Debian e Ubuntu, che può stare installato insieme a Stella). Chi ha installato il .deb fino alla 1.10.0-beta.3, che si chiamava `stella` come l'emulatore, prima lo toglie con `sudo apt remove stella`: altrimenti un aggiornamento del sistema lo sostituisce con l'emulatore. Non si aggiorna da sola: per una versione nuova si installa il .deb nuovo allo stesso modo.
 
 ### Disinstallare
 
