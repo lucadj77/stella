@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.10.1-beta.1
+
+### English
+
+- **PDF, sets one after another**: a set of rotated cards and a set of upright cards that take the same space on the page (for example 88×63 turned and 63×88) now continue on the same row, without a new row and without the extra space for cut marks. Each card keeps its own rotation, also on the backs.
+
+### Italiano
+
+- **PDF, set uno dopo l'altro**: un set di carte ruotate e uno di carte dritte che sulla pagina occupano lo stesso spazio (per esempio 88×63 girate e 63×88) ora continuano sulla stessa riga, senza andare a capo e senza lo spazio in più per i segni di taglio. Ogni carta mantiene la sua rotazione, anche sui retri.
+
 ## 1.10.0-beta.4
 
 ### English
