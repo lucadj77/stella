@@ -138,6 +138,26 @@ describe('PDF: set uno dopo l altro', () => {
     expect(new Set(big.map((i) => i.y)).size).toBe(1)
   })
 
+  it('carte ruotate e carte dritte con la stessa cella continuano sulla stessa riga', () => {
+    const wide = normalizeTemplate({ name: 'w', width: 88, height: 63, front: [], back: [] })
+    const sets = [
+      { name: 'a', cards: cards(5, wide) },
+      { name: 'b', cards: cards(4) }
+    ]
+    const opts = { ...o, autoRotate: true, continuous: true }
+    const [page] = planPdf(opts, sets, 'g').docs[0].pages
+    expect(page.items).toHaveLength(9)
+    const turned = page.items.filter((i) => i.template.width === 88)
+    const upright = page.items.filter((i) => i.template.width === 63)
+    expect(turned.every((i) => i.rotate === 90)).toBe(true)
+    expect(upright.every((i) => i.rotate === 0)).toBe(true)
+    // la prima carta dritta prende il posto libero della seconda riga, senza spazio in più
+    const rows = [...new Set(page.items.map((i) => i.y))].sort((x, y) => x - y)
+    expect(rows).toHaveLength(3)
+    expect(upright.filter((i) => i.y === rows[1])).toHaveLength(1)
+    expect(rows[2] - rows[1]).toBeCloseTo(rows[1] - rows[0])
+  })
+
   it('misure diverse con fronte e retro: ogni pagina di fronti seguita dai suoi retri', () => {
     const small = normalizeTemplate({ name: 's', width: 40, height: 40, front: [], back: [] })
     const sets = [
