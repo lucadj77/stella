@@ -5,6 +5,18 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.10.1-beta.2
+
+### English
+
+- **Text that fits its box, first card**: the first card drawn after opening a project, rendering or exporting could get a text set to **Grow or shrink to fill the box** or **Shrink to fit** at the wrong size, when the text has inline icons: the size was measured before the icons and the font had loaded, so the icons counted as zero width. Now the text waits for icons and fonts, and the first card comes out like the others.
+- **Export**: before capturing a card, the export also waits until image layers have their size, so an image set to **Fit inside** or **Fill (crop)** is never captured before it is placed.
+
+### Italiano
+
+- **Testo adattato al riquadro, prima carta**: la prima carta disegnata dopo aver aperto un progetto, in un render o in un'esportazione poteva avere un testo con **Ingrandisci o riduci per riempire il riquadro** o **Riduci per stare nel riquadro** del corpo sbagliato, se il testo contiene icone: il corpo veniva misurato prima che icone e font fossero caricati, e le icone valevano larghezza zero. Ora il testo aspetta icone e font, e la prima carta esce come le altre.
+- **Esportazione**: prima di catturare una carta, l'esportazione aspetta anche che i livelli immagine abbiano le loro dimensioni, così un'immagine **Adatta dentro** o **Riempi (ritaglia)** non viene mai catturata prima di essere sistemata.
+
 ## 1.10.1-beta.1
 
 ### English
