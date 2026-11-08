@@ -1,5 +1,5 @@
 import { D4_TURNS, d4Wedge, dieOf, insetPolygon, pathPolygon } from '../../../shared/model/dice'
-import { Fragment, useContext, useId, useLayoutEffect, useRef, useState } from 'react'
+import { Fragment, useCallback, useContext, useId, useLayoutEffect, useRef, useState } from 'react'
 import { arrangeGroup } from '../../../shared/model/arrange'
 import { smoothStops } from './smoothGradient'
 import { isRemoteImage, resolveAsset } from '../../../shared/model/assets'
@@ -11,7 +11,7 @@ import {
   roundedPolygonPath
 } from '../../../shared/model/geometry'
 import { useI18n } from '../i18n/context'
-import { AssetsContext, ShowEmptyContext, assetUrl } from './assets'
+import { AssetsContext, InlineImageReadyContext, ShowEmptyContext, assetUrl } from './assets'
 import { fitRect, imageFailed, useImageSize } from './imageSize'
 import { SvgBackdrop } from './backdrop'
 import { convertForeignObject } from '../export/toSvg'
@@ -1035,6 +1035,18 @@ function TextOutline({
   )
 }
 
+/**
+ * Il testo non si può ancora misurare: un'immagine nel riquadro si sta caricando (fino ad allora
+ * è larga zero), un'icona colorata non conosce ancora le proporzioni, o un font si sta caricando
+ * (fino ad allora il testo usa quello di riserva). Va chiamata dopo aver letto le misure del
+ * riquadro: è l'impaginazione a chiedere al browser i font che servono.
+ */
+function measurePending(el: HTMLElement): boolean {
+  for (const img of el.querySelectorAll('img')) if (!img.complete) return true
+  if (el.querySelector('[data-gc-pending]')) return true
+  return document.fonts.status === 'loading'
+}
+
 function TextView({ layer: l, id }: { layer: TextLayer; id: string }): React.JSX.Element {
   const showEmpty = useContext(ShowEmptyContext)
   const empty = showEmpty && !l.text.trim()
@@ -1047,7 +1059,36 @@ function TextView({ layer: l, id }: { layer: TextLayer; id: string }): React.JSX
     hi?: number
     done?: boolean
   } | null>(null)
-  const fitKey = `${l.text}|${l.size}|${l.w}|${l.h}|${l.font}|${l.weight}|${l.italic}|${l.lineHeight}|${l.fit}|${l.minSize}|${l.maxSize}|${l.padding}|${l.paddingSides}|${l.indent}|${l.wrap}|${l.letterSpacing}|${l.transform}|${l.align}|${l.stroke?.width ?? ''}`
+  // Immagini nel testo e font, finché non sono caricati, danno misure sbagliate: le immagini sono
+  // larghe zero e il font di riserva ha un'altra larghezza. Misurare prima darebbe un corpo
+  // troppo grande (grow) o troppo poco ridotto (shrink), e succedeva alla prima carta disegnata.
+  // L'adattamento aspetta che sia tutto caricato e riparte a ogni immagine o font che arriva.
+  const [arrivals, setArrivals] = useState(0)
+  const waiting = useRef(false)
+  const arrived = useCallback((): void => {
+    if (!waiting.current) return
+    waiting.current = false
+    setArrivals((n) => n + 1)
+  }, [])
+  useLayoutEffect(() => {
+    const el = boxRef.current
+    if (!el) return
+    const image = (e: Event): void => {
+      if (e.target instanceof HTMLImageElement) arrived()
+    }
+    // load ed error non risalgono: si ascoltano nella fase di cattura
+    el.addEventListener('load', image, true)
+    el.addEventListener('error', image, true)
+    document.fonts.addEventListener('loadingdone', arrived)
+    document.fonts.addEventListener('loadingerror', arrived)
+    return () => {
+      el.removeEventListener('load', image, true)
+      el.removeEventListener('error', image, true)
+      document.fonts.removeEventListener('loadingdone', arrived)
+      document.fonts.removeEventListener('loadingerror', arrived)
+    }
+  }, [arrived])
+  const fitKey = `${arrivals}|${l.text}|${l.size}|${l.w}|${l.h}|${l.font}|${l.weight}|${l.italic}|${l.lineHeight}|${l.fit}|${l.minSize}|${l.maxSize}|${l.padding}|${l.paddingSides}|${l.indent}|${l.wrap}|${l.letterSpacing}|${l.transform}|${l.align}|${l.stroke?.width ?? ''}`
   const growMin = Math.max(0.5, Math.min(l.minSize, l.maxSize))
   const growMax = Math.max(l.minSize, l.maxSize)
   const current = fitted && fitted.key === fitKey ? fitted : null
@@ -1061,6 +1102,10 @@ function TextView({ layer: l, id }: { layer: TextLayer; id: string }): React.JSX
     if (!el || l.fit !== 'shrink') return
     const overflows =
       el.scrollHeight > el.clientHeight + 0.5 || el.scrollWidth > el.clientWidth + 0.5
+    if (measurePending(el)) {
+      waiting.current = true
+      return
+    }
     if (overflows && size - 0.5 >= l.minSize) setFitted({ key: fitKey, size: size - 0.5 })
   }, [fitKey, size, l.fit, l.minSize])
 
@@ -1071,6 +1116,10 @@ function TextView({ layer: l, id }: { layer: TextLayer; id: string }): React.JSX
     if (!el || l.fit !== 'grow' || current?.done) return
     const overflows =
       el.scrollHeight > el.clientHeight + 0.5 || el.scrollWidth > el.clientWidth + 0.5
+    if (measurePending(el)) {
+      waiting.current = true
+      return
+    }
     const lo = overflows ? (current?.lo ?? growMin) : size
     const hi = overflows ? size : (current?.hi ?? growMax + 0.5)
     if (!overflows && size >= growMax) {
@@ -1199,12 +1248,14 @@ function TextView({ layer: l, id }: { layer: TextLayer; id: string }): React.JSX
             {empty ? (
               <p style={{ margin: 0 }}>{l.name}</p>
             ) : (
-              <MarkupText
-                text={l.text}
-                unit={s}
-                ratio={size / l.size}
-                paragraphSpacing={l.paragraphSpacing}
-              />
+              <InlineImageReadyContext.Provider value={arrived}>
+                <MarkupText
+                  text={l.text}
+                  unit={s}
+                  ratio={size / l.size}
+                  paragraphSpacing={l.paragraphSpacing}
+                />
+              </InlineImageReadyContext.Provider>
             )}
           </div>
         </div>

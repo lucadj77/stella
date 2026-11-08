@@ -1,4 +1,5 @@
 import { waitForAll, within, type Pending } from '../../../shared/exportWait'
+import { imageSize } from '../render/imageSize'
 
 // Attesa che una pagina disegnata per l'esportazione sia completa: immagini e font caricati,
 // testi adattati. La usano la finestra nascosta delle carte e quella dei documenti.
@@ -28,6 +29,10 @@ function load(src: string): Promise<void> {
       const img = new Image()
       img.onload = () => {
         within(img.decode(), DECODE_WAIT, 'decode')
+          .catch(() => undefined)
+          // anche le dimensioni lette dai livelli immagine (adatta, riempi, ritaglio) e dalle
+          // icone colorate: senza, la carta si cattura con l'immagine non ancora sistemata
+          .then(() => imageSize(src))
           .catch(() => undefined)
           .then(() => resolve())
       }

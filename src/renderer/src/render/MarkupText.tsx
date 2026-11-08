@@ -1,4 +1,4 @@
-import { useContext, useMemo, type CSSProperties } from 'react'
+import { useContext, useLayoutEffect, useMemo, type CSSProperties } from 'react'
 import { resolveAsset } from '../../../shared/model/assets'
 import {
   BLOCK_STYLE,
@@ -20,7 +20,13 @@ import {
   type ImageSettings,
   type Variables
 } from '../../../shared/model/variables'
-import { AssetsContext, StylesContext, VariablesContext, assetUrl } from './assets'
+import {
+  AssetsContext,
+  InlineImageReadyContext,
+  StylesContext,
+  VariablesContext,
+  assetUrl
+} from './assets'
 import { useImageSize } from './imageSize'
 import { imageBackdrop, shapePath } from '../../../shared/model/shapes'
 
@@ -328,6 +334,12 @@ function Ref({
   const res = name ? resolveAsset(v?.src ?? name, assets) : null
   const set = mergeImageSettings(v, image)
   const size = useImageSize(res?.ok && set.tint ? assetUrl(res.path) : null)
+  const ready = useContext(InlineImageReadyContext)
+  const sized = !!size
+  useLayoutEffect(() => {
+    if (sized) ready()
+  }, [sized, ready])
+  const pending = res?.ok && set.tint && !size ? true : undefined
   const scale = set.scale ?? 1
   const height = 1.15 * scale
   if (!res?.ok)
@@ -394,6 +406,7 @@ function Ref({
             />
             {tint ? (
               <span
+                data-gc-pending={pending}
                 style={{
                   ...icon,
                   display: 'inline-block',
@@ -417,6 +430,7 @@ function Ref({
           // la tinta usa l'immagine come maschera: serve la larghezza, presa dalle proporzioni
           <span
             key={i}
+            data-gc-pending={pending}
             style={{
               ...style,
               display: 'inline-block',
