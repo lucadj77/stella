@@ -117,6 +117,8 @@ On work computers the administrator may block unsigned programs entirely. In tha
 
 ### Linux
 
+There are two versions: `x86_64` / `amd64` for PCs with an Intel or AMD processor, `arm64` for those with an ARM processor (for example many Chromebooks and the Raspberry Pi). The names below are the Intel/AMD ones; for ARM, pick the file with `arm64` in its name.
+
 - **AppImage** (`Stella-<version>-linux-x86_64.AppImage`), for any distribution: make it executable and start it. From the file manager: right-click → Properties → Permissions → "Allow executing file as program"; or from the terminal:
 
   ```bash
@@ -127,6 +129,13 @@ On work computers the administrator may block unsigned programs entirely. In tha
   The AppImage needs libfuse2: on Ubuntu 24.04 and later `sudo apt install libfuse2t64`, on earlier versions `sudo apt install libfuse2`. It updates itself.
 
 - **.deb package** (`Stella-<version>-linux-amd64.deb`), for Debian, Ubuntu and derivatives: `sudo apt install ./Stella-<version>-linux-amd64.deb`. Stella appears among the applications and also starts with the `stella-gc` command (`stella` is the name of the Atari 2600 emulator in Debian and Ubuntu, which can stay installed alongside Stella). If you installed the .deb up to 1.10.0-beta.3, which was called `stella` like the emulator, first remove it with `sudo apt remove stella`: otherwise a system update replaces it with the emulator. It doesn't update itself: for a new version, install the new .deb the same way.
+
+### Chromebook
+
+On a Chromebook there are two ways, neither tried on a real Chromebook yet:
+
+- the [web version](#16-the-web-version), which runs in Chrome as on any computer, with the limits of the web version;
+- the Linux version, after turning on the Chromebook's Linux environment: **Settings → About ChromeOS → Linux development environment → Set up** (on Chromebooks managed by a school or a company it may be turned off). To know which file to download, look at the processor in **Settings → About ChromeOS → Additional details**: Intel or AMD means `amd64`, ARM or MediaTek means `arm64`. Then open the downloaded .deb from the **Files** app with a double click, or move it to **Linux files** and in the terminal run `sudo apt install ./Stella-<version>-linux-amd64.deb` (or `-arm64.deb`). Stella appears among the Chromebook's apps. Project folders must be in **Linux files**, or shared with Linux (right-click the folder → **Share with Linux**), otherwise Stella can't see them.
 
 ### Uninstalling
 

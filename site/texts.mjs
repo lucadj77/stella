@@ -105,6 +105,7 @@ export const texts = {
       linuxAppImage: 'AppImage',
       linuxDeb: 'Pacchetto .deb (Debian, Ubuntu)',
       linuxNote: 'L’AppImage va reso eseguibile (chmod +x) e richiede libfuse2.',
+      linuxArm: 'Processore ARM (anche Chromebook):',
       install: 'Come si installa e come si supera l’avviso di macOS e Windows, passo per passo',
       all: 'Tutte le versioni su GitHub',
       beta: 'Le versioni beta si attivano dall’app, in ⚙ Aggiornamenti.',
@@ -113,7 +114,7 @@ export const texts = {
     },
     web: {
       title: 'Provare Stella nel browser',
-      text: 'La versione web serve a provare Stella senza installare nulla, o a usarla sui computer dove non si può installare: funziona in Chrome, Edge o Opera e lavora sugli stessi progetti del tuo computer.',
+      text: 'La versione web serve a provare Stella senza installare nulla, o a usarla sui computer dove non si può installare: funziona in Chrome (anche sui Chromebook), Edge o Opera e lavora sugli stessi progetti del tuo computer.',
       limits:
         'Ha però dei limiti rispetto all’app: il PDF passa dalla finestra di stampa del browser e non c’è la conversione in CMYK, l’esportazione per Tabletop Simulator chiede qualche passaggio in più, i font di Google hanno solo l’alfabeto latino, mancano il comando stella e gli aggiornamenti dei cataloghi di icone e font. Per usare al meglio tutte le funzioni ti consiglio la versione desktop.',
       download: 'Scarica la versione desktop',
@@ -299,6 +300,7 @@ export const texts = {
       linuxAppImage: 'AppImage',
       linuxDeb: '.deb package (Debian, Ubuntu)',
       linuxNote: 'Make the AppImage executable (chmod +x); it needs libfuse2.',
+      linuxArm: 'ARM processor (Chromebooks too):',
       install: 'How to install and get past the macOS and Windows warning, step by step',
       all: 'All versions on GitHub',
       beta: 'Beta versions are enabled in the app, under ⚙ Updates.',
@@ -307,7 +309,7 @@ export const texts = {
     },
     web: {
       title: 'Try Stella in the browser',
-      text: 'The web version lets you try Stella without installing anything, or use it on computers where nothing can be installed: it runs in Chrome, Edge or Opera and works on the same projects on your computer.',
+      text: 'The web version lets you try Stella without installing anything, or use it on computers where nothing can be installed: it runs in Chrome (Chromebooks too), Edge or Opera and works on the same projects on your computer.',
       limits:
         'It does have limits compared with the app: PDFs go through the browser print dialog with no CMYK conversion, the Tabletop Simulator export needs a few extra steps, Google fonts come with the Latin alphabet only, and there is no stella command and no catalog updates for icons and fonts. To get the most out of every feature, I recommend the desktop version.',
       download: 'Download the desktop version',

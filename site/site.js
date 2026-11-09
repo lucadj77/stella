@@ -53,8 +53,10 @@
     macIntel: /-mac-x64\.dmg$/,
     winSetup: /-windows-setup\.exe$/,
     winPortable: /-windows-portable\.exe$/,
-    linuxAppImage: /\.AppImage$/,
-    linuxDeb: /\.deb$/
+    linuxAppImage: /-x86_64\.AppImage$/,
+    linuxDeb: /-amd64\.deb$/,
+    linuxArmAppImage: /-arm64\.AppImage$/,
+    linuxArmDeb: /-arm64\.deb$/
   }
   function platform() {
     var p = (
