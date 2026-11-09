@@ -63,11 +63,12 @@ linux:
   desktop:
     entry:
       Name: Stella Game Center
+  # arm64 anche per i Chromebook con processore ARM (ambiente Linux) e i PC Linux ARM
   target:
     - target: AppImage
-      arch: x64
+      arch: [x64, arm64]
     - target: deb
-      arch: x64
+      arch: [x64, arm64]
   maintainer: Luca
   category: Graphics
   synopsis: Create cards and other game components
