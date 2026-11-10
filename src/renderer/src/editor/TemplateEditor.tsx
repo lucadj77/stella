@@ -37,7 +37,8 @@ interface Props {
   sets: LoadedSet[]
   /** Nome, autore e versione del progetto, per {project.name} e simili */
   projectName?: string | ProjectMeta
-  onChange(template: Template): void
+  /** Ogni modifica, con i dati per la cronologia del progetto (vedi EditorChange) */
+  onChange(template: Template, change?: EditorChange): void
   /** Template base già risolto, se questo è derivato; null se il base manca */
   base?: Template | null
   /** Apre un altro template nell'editor */
@@ -46,16 +47,25 @@ interface Props {
   onDetach?(): void
   /** Rinomina, duplica, deriva, elimina: il menu ⋯ accanto al nome */
   menu?: MenuItem[]
-  /** Dice se ci sono passi da annullare o ripetere: i pulsanti stanno nella barra dell'app */
-  onHistory?(h: { undo: boolean; redo: boolean }): void
+  /** Lato e selezione da rimettere dopo un annulla dell'app; onRestored dice che è fatto */
+  restore?: { side?: Side; selection?: string[] } | null
+  onRestored?(): void
   /** Set (indice in `sets`) e riga da mostrare all'apertura, invece di nessun dato */
   initialPreview?: { set: number; row: number } | null
   /** Apre un set (indice in `sets`); row: la carta mostrata nell'anteprima, se è di quel set */
   onOpenSet?(set: number, row?: number): void
 }
 
-/** Evento della barra dell'app per annullare o ripetere nell'editor */
-export const EDITOR_UNDO = 'stella-editor-undo'
+/** Una modifica dell'editor, per la cronologia del progetto */
+export interface EditorChange {
+  /** Le modifiche ravvicinate con la stessa chiave diventano un solo passo */
+  key?: string
+  /** Parte di un trascinamento: tutto il gesto è un passo, anche se dura a lungo */
+  gesture?: boolean
+  /** Lato e selezione prima della modifica: annullandola l'editor torna lì */
+  side: Side
+  selection: string[]
+}
 
 const NUDGE = 0.5
 
@@ -68,14 +78,15 @@ export default function TemplateEditor({
   onOpen,
   onDetach,
   menu,
-  onHistory,
+  restore = null,
+  onRestored,
   initialPreview = null,
   onOpenSet
 }: Props): React.JSX.Element {
   const { t } = useI18n()
   // in un derivato ogni modifica passa per le sue regole: si salvano solo le differenze
   const normalize = useMemo(() => (base ? (x: Template) => rebase(base, x) : undefined), [base])
-  const [state, dispatch] = useEditor(template, normalize)
+  const [state, dispatch] = useEditor(template, normalize, restore)
   /** Misure nuove della carta, con le altre proprietà che cambiano insieme (forma ruotata) */
   const [resizing, setResizing] = useState<[number, number, Partial<Template>?] | null>(null)
   // un livello immagine nuovo nasce dalla scelta dell'immagine
@@ -104,20 +115,25 @@ export default function TemplateEditor({
   useEffect(() => {
     if (state.template === sent.current) return
     sent.current = state.template
-    onChange(state.template)
+    onChange(state.template, {
+      key: state.gesture ? `gesture:${state.gestureId}` : (state.lastKey ?? undefined),
+      gesture: !!state.gesture,
+      side: state.before.side,
+      selection: state.before.selection
+    })
+    // conta solo il template: gli altri campi cambiano insieme a lui
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.template, onChange])
-
-  const canUndo = state.past.length > 0
-  const canRedo = state.future.length > 0
+  // il template cambiato dall'app (annulla, ripristina) entra nell'editor senza essere un passo
   useEffect(() => {
-    onHistory?.({ undo: canUndo, redo: canRedo })
-  }, [canUndo, canRedo, onHistory])
+    if (template === sent.current) return
+    sent.current = template
+    dispatch({ type: 'load', template, side: restore?.side, selection: restore?.selection })
+  }, [template, dispatch, restore])
+  // lato e selezione rimessi (all'apertura o con il template annullato): non servono più
   useEffect(() => {
-    const run = (e: Event): void =>
-      dispatch({ type: (e as CustomEvent<{ redo: boolean }>).detail.redo ? 'redo' : 'undo' })
-    window.addEventListener(EDITOR_UNDO, run)
-    return () => window.removeEventListener(EDITOR_UNDO, run)
-  }, [dispatch])
+    if (restore) onRestored?.()
+  }, [restore, onRestored])
 
   // la tastiera: le scorciatoie usano Cmd su macOS e Ctrl altrove. Le lettere senza modificatori
   // aggiungono un livello: testo, rettangolo, ellisse, immagine, griglia, valore
@@ -130,8 +146,8 @@ export default function TemplateEditor({
     const target = e.target as HTMLElement
     if (target.closest('input, textarea, select, [role="dialog"]')) return
     const layers = state.template[state.side]
-    if (mod && k === 'z') dispatch({ type: e.shiftKey ? 'redo' : 'undo' })
-    else if (mod && k === 'y') dispatch({ type: 'redo' })
+    // ⌘Z e ⌘Y li gestisce l'app: la cronologia è una sola per tutto il progetto
+    if (mod && (k === 'z' || k === 'y')) return
     else if (mod && k === 'd') cmd.duplicate()
     else if (mod && k === 'f')
       document.querySelector<HTMLInputElement>('.prop-search input')?.select()

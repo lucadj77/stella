@@ -374,3 +374,23 @@ export function DockIcon(): React.JSX.Element {
     </svg>
   )
 }
+
+/** Cronologia delle modifiche: un orologio */
+export function HistoryIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="1em"
+      height="1em"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      aria-hidden="true"
+      style={{ verticalAlign: '-0.125em' }}
+    >
+      <circle cx="8" cy="8" r="6.2" />
+      <path d="M8 4.4V8l2.6 1.6" />
+    </svg>
+  )
+}
