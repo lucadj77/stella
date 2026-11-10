@@ -5,6 +5,34 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.10.0
+
+### English
+
+- **Dice of every shape**: a die face template now chooses its die: **d2** (a coin), **d3** (a cube with each face twice), **d4**, **d6**, **d8**, **d10**, **d12** and **d20**. The template takes the shape of the face (triangle, kite, regular pentagon, circle or square) with the right proportions, and a new set starts with one row per face, numbered from 1. The d4 template is the wedge of the top corner: each face puts three wedges together, with the data of the rows that share those corners. Dice have no back.
+- **Real dice in Tabletop Simulator**: every die goes to Tabletop Simulator as a real die with rounded edges, which you roll and which shows the value of the face on top; the d2 is a coin to flip. A simpler model with sharp edges is used for collisions, so dice land flat on a face.
+- **Every die to fold**: in the PDF, **Dice → To fold** prints the d4, d8, d10, d12 and d20 as flat nets with mirrored glue tabs, picking the most compact net; with **Dice → Faces** triangle faces interlock, one up and one down, using half the paper.
+- **Text variables with parameters**: `{1}`, `{2}` in the text of a variable take the values written after its name, separated by colons. With `draw` = `[Draw {1}]{.keyword}: take {1} cards`, `{draw:2}` writes "Draw 2: take 2 cards"; `{trade:3:1}` passes two values, a parameter can be a field (`{draw:{strength}}`), and a variable like `coin` = `[{1}]{bg=gold}` puts a number on an icon.
+- **Images from the internet**: **From the internet…** in the image chooser downloads an image into the project (the address goes into the credits, and **Download again** refreshes it) or uses the link, an `https://...` address in place of the file name. Each computer keeps a copy of linked images, used offline too.
+- **Open set from the template editor**: next to the **Data** menu, **Open set** opens the set that uses the template, to see a change on all its cards. If more than one set uses the template, it asks which one.
+- **Token backs same as the front**: new tokens have their back the same as the front; open the lock next to **Back** in the template properties to draw the back on its own.
+- **Linux**: the .deb package is now `stella-game-center` and the command `stella-gc`, because `stella` is the Atari 2600 emulator in Debian and Ubuntu (remove an earlier .deb first with `sudo apt remove stella`). AppImage and .deb are also available for arm64, for ARM Chromebooks and ARM Linux PCs.
+- **PDF**: a set of rotated cards and a set of upright cards that take the same space on the page continue on the same row.
+- Fixes: a text set to **Grow or shrink to fill the box** or **Shrink to fit** with inline icons could get the wrong size on the first card drawn; exports wait for images to be placed before capturing a card; an inline `bg=` box larger than its text layer stays centred; the `stella` command no longer shows an error window when the program reading its output closes early; safe areas and outlines of triangles, pentagons and hexagons keep the same distance from every side.
+
+### Italiano
+
+- **Dadi di ogni forma**: un template di faccia di dado ora sceglie il suo dado: **d2** (una moneta), **d3** (un cubo con ogni faccia due volte), **d4**, **d6**, **d8**, **d10**, **d12** e **d20**. Il template prende la forma della faccia (triangolo, aquilone, pentagono regolare, cerchio o quadrato) con le proporzioni giuste, e un set nuovo parte con una riga per faccia, numerata da 1. Il template del d4 è lo spicchio del vertice in alto: ogni faccia mette insieme tre spicchi, con i dati delle righe che hanno quei vertici. I dadi non hanno retro.
+- **Dadi veri in Tabletop Simulator**: ogni dado va in Tabletop Simulator come un dado vero con gli spigoli arrotondati, che si lancia e mostra il valore della faccia in alto; il d2 è una moneta da lanciare. Per gli urti si usa un modello più semplice a spigoli vivi, così i dadi si fermano su una faccia.
+- **Ogni dado da piegare**: nel PDF, **Dadi → Da piegare** stampa d4, d8, d10, d12 e d20 come sviluppi piani con le linguette da incollare specchiate, scegliendo lo sviluppo più compatto; con **Dadi → Facce** le facce triangolari si incastrano, una in su e una in giù, usando metà carta.
+- **Variabili di testo con parametri**: `{1}`, `{2}` nel testo di una variabile prendono i valori scritti dopo il suo nome, separati da due punti. Con `raccogli` = `[Raccogli {1}]{.keyword}: pesca {1} carte`, `{raccogli:2}` scrive "Raccogli 2: pesca 2 carte"; `{scambio:3:1}` passa due valori, un parametro può essere un campo (`{raccogli:{forza}}`), e una variabile come `moneta` = `[{1}]{bg=oro}` mette un numero su un'icona.
+- **Immagini da internet**: **Da internet…** nella scelta delle immagini scarica un'immagine nel progetto (l'indirizzo va nei crediti, e **Riscarica** la aggiorna) oppure usa il collegamento, un indirizzo `https://...` al posto del nome del file. Ogni computer tiene una copia delle immagini collegate, usata anche senza rete.
+- **Aprire il set dall'editor del template**: accanto al menu **Dati**, **Apri set** apre il set che usa il template, per vedere una modifica su tutte le sue carte. Se il template è usato da più set, chiede quale.
+- **Retro delle pedine uguale al fronte**: le pedine nuove hanno il retro uguale al fronte; si apre il lucchetto accanto a **Retro** nelle proprietà del template per disegnare il retro a parte.
+- **Linux**: il pacchetto .deb ora si chiama `stella-game-center` e il comando `stella-gc`, perché `stella` è l'emulatore Atari 2600 in Debian e Ubuntu (un .deb precedente va rimosso prima con `sudo apt remove stella`). AppImage e .deb ci sono anche per arm64, per i Chromebook ARM e i PC Linux ARM.
+- **PDF**: un set di carte ruotate e uno di carte dritte che sulla pagina occupano lo stesso spazio continuano sulla stessa riga.
+- Correzioni: un testo con **Ingrandisci o riduci per riempire il riquadro** o **Riduci per stare nel riquadro** e icone nel testo poteva avere il corpo sbagliato nella prima carta disegnata; le esportazioni aspettano che le immagini siano sistemate prima di catturare una carta; un riquadro `bg=` più grande del suo livello di testo resta centrato; il comando `stella` non mostra più una finestra di errore quando il programma che legge la sua uscita si chiude prima; area sicura e contorni di triangoli, pentagoni ed esagoni restano alla stessa distanza da ogni lato.
+
 ## 1.10.1-beta.3
 
 ### English
