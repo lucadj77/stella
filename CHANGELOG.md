@@ -5,6 +5,20 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.11.0-beta.1
+
+### English
+
+- **One undo for the whole project**: undo and redo now cover every change of the project in a single history: cards, sets, styles, variables and templates. A change made in the template editor can be undone after opening a set or another template, and undoing takes you back to the screen where the change was made, with the editor on the same side and the same layers selected.
+- **History of changes**: the clock button next to undo and redo lists the changes of the project, newest first, with what changed, where and when. Above **Now** are the undone changes, which can be redone. A click on an entry undoes or redoes everything up to it in one go.
+- **Text check**: in **Check text…**, layers with the **Spill out of the box** fit are marked _fixed size_, with an explanation: their text is not shrunk, and the check measures the whole line, padding included, so a large number can look whole and still be reported. Before, the window said every text did not fit "even shrunk to the minimum size".
+
+### Italiano
+
+- **Un solo annulla per tutto il progetto**: annulla e ripristina ora valgono per tutte le modifiche del progetto, in un'unica cronologia: carte, set, stili, variabili e template. Una modifica fatta nell'editor del template si può annullare anche dopo aver aperto un set o un altro template, e annullando si torna nella schermata in cui era stata fatta, con l'editor sullo stesso lato e gli stessi livelli selezionati.
+- **Cronologia delle modifiche**: il tasto con l'orologio accanto ad annulla e ripristina elenca le modifiche del progetto, le più recenti in alto, con cosa è cambiato, dove e quando. Sopra **Adesso** ci sono quelle annullate, che si possono ripristinare. Un clic su una voce annulla o ripristina tutto fino a quella in un colpo solo.
+- **Controllo dei testi**: in **Controlla testi…** i livelli con l'adattamento **Esce dal riquadro** hanno accanto _corpo fisso_, con una spiegazione: il loro testo non viene ridotto, e il controllo misura l'intera riga, margine interno compreso, quindi un numero grande può sembrare intero e venire segnalato lo stesso. Prima la finestra diceva per ogni testo che non stava "anche ridotto alla dimensione minima".
+
 ## 1.10.0
 
 ### English

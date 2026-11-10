@@ -113,7 +113,7 @@ import {
   NotesIcon,
   DocumentsIcon
 } from './components/icons'
-import TemplateEditor, { EDITOR_UNDO } from './editor/TemplateEditor'
+import TemplateEditor from './editor/TemplateEditor'
 import { Dialog, NewTemplateDialog, type NewTemplate } from './editor/dialogs'
 import { KIND_CORNER } from '../../shared/model/kinds'
 import { applyDie, dieSheet, dieStarterLayers } from '../../shared/model/dice'
@@ -186,6 +186,9 @@ import { BUILTIN_STYLES, parseAttrs, serializeAttrs } from '../../shared/model/m
 import { LANGUAGES, useI18n, type Language } from './i18n/context'
 import { THEMES, applyTheme, loadTheme } from './theme/theme'
 import { setLengthUnit, useLengthUnit } from './units'
+import type { HistoryEntry, Place } from './history'
+import HistoryMenu from './components/HistoryMenu'
+import type { EditorChange } from './editor/TemplateEditor'
 import { LENGTH_UNITS, toUnit, type LengthUnit } from '../../shared/model/units'
 import type { AgentLock, Theme } from '../../shared/api'
 
@@ -209,13 +212,17 @@ function loadUiZoom(): number {
 
 type View = 'table' | 'grid'
 /** Stato dei dati per annulla/ripristina */
-/** Stato dei dati per ⌘Z; i template solo quando li ha cambiati una rinomina */
-type DataSnapshot = { sets: LoadedSet[]; file: ProjectFile; templates?: Template[] }
+/** Stato del progetto per ⌘Z: vedi history.ts */
+type DataSnapshot = HistoryEntry
 const COALESCE_MS = 1200
-type Selected =
-  | { kind: 'set'; index: number }
-  | { kind: 'template'; name: string }
-  | { kind: 'document'; name: string }
+type Selected = Place
+interface UndoStack {
+  past: DataSnapshot[]
+  future: DataSnapshot[]
+  /** Chiave dell'ultimo passo: le modifiche ravvicinate con la stessa chiave si uniscono */
+  key?: string
+  at: number
+}
 
 /** Ridisegna la miniatura per la schermata di ingresso; un errore non disturba il lavoro */
 async function updateThumbnail(project: LoadedProject, onlyIfMissing: boolean): Promise<void> {
@@ -383,12 +390,37 @@ function App(): React.JSX.Element {
   const [checkingData, setCheckingData] = useState(false)
   /** Finestra per importare un foglio da un altro file aperta */
   const [importingSheet, setImportingSheet] = useState(false)
-  const [history, setHistory] = useState<{
-    past: DataSnapshot[]
-    future: DataSnapshot[]
-    key?: string
-    at: number
-  }>({ past: [], future: [], at: 0 })
+  const [history, setHistoryRaw] = useState<UndoStack>({ past: [], future: [], at: 0 })
+  // il passo nuovo ricorda dove è avvenuto e i template di quel momento (per descriverlo)
+  const projectRef = useRef(project)
+  useEffect(() => {
+    projectRef.current = project
+  })
+  // il passo nuovo ricorda dove è avvenuto e i template di quel momento (per descriverlo)
+  const templatesNow = project?.templates
+  const setHistory = useCallback(
+    (u: React.SetStateAction<UndoStack>): void => {
+      const where = selected
+      const view = templatesNow
+      setHistoryRaw((h) => {
+        const time = Date.now()
+        const n = typeof u === 'function' ? u(h) : u
+        const last = n.past[n.past.length - 1]
+        if (!last || last.where || n.past === h.past) return n
+        return {
+          ...n,
+          past: [...n.past.slice(0, -1), { ...last, where, view: last.view ?? view, time }]
+        }
+      })
+    },
+    [selected, templatesNow]
+  )
+  /** Lato e selezione da rimettere nell'editor dopo aver annullato una sua modifica */
+  const [editorRestore, setEditorRestore] = useState<{
+    side?: Side
+    selection?: string[]
+  } | null>(null)
+  const clearEditorRestore = useCallback(() => setEditorRestore(null), [])
   const [saving, setSaving] = useState(false)
   const readOnlyData = !!project?.file.dataReadOnly
   // in sola lettura i fogli non si salvano: una modifica rifiutata non chiede di salvare
@@ -425,7 +457,7 @@ function App(): React.JSX.Element {
       setRestored([])
       setCompareBase(null)
       setFileDirty(false)
-      setHistory({ past: [], future: [], at: 0 })
+      setHistoryRaw({ past: [], future: [], at: 0 })
       // l'editor del template aperto riparte dal disco (Ricarica, o un agente che ha finito)
       setEditorRev((r) => r + 1)
       setSelected((s) =>
@@ -467,7 +499,7 @@ function App(): React.JSX.Element {
             }
       )
       // i passi da annullare hanno i dati di prima
-      setHistory({ past: [], future: [], at: 0 })
+      setHistoryRaw({ past: [], future: [], at: 0 })
       setDirtySheets(new Set())
     } catch (e) {
       setError(messageFromError(e))
@@ -698,7 +730,36 @@ function App(): React.JSX.Element {
   }
 
   const updateTemplate = useCallback(
-    (tpl: Template) => {
+    (tpl: Template, change?: EditorChange) => {
+      // ogni modifica dell'editor è un passo della cronologia del progetto; quelle ravvicinate
+      // con la stessa chiave (e un trascinamento intero) diventano un solo passo
+      const p0 = projectRef.current
+      if (p0 && change) {
+        const now = Date.now()
+        setHistoryRaw((h) => {
+          const last = h.past[h.past.length - 1]
+          const same =
+            change.key !== undefined &&
+            change.key === h.key &&
+            last?.tplOnly &&
+            last.where?.kind === 'template' &&
+            last.where.name === tpl.name &&
+            (change.gesture || now - h.at < COALESCE_MS)
+          if (same) return { ...h, at: now }
+          const entry: HistoryEntry = {
+            sets: p0.sets,
+            file: p0.file,
+            templates: p0.templates,
+            tplOnly: true,
+            where: { kind: 'template', name: tpl.name },
+            side: change.side,
+            selection: change.selection,
+            view: p0.templates,
+            time: now
+          }
+          return { past: [...h.past.slice(-99), entry], future: [], key: change.key, at: now }
+        })
+      }
       setProject((p) => {
         if (!p) return p
         // i derivati seguono subito il base; quelli che cambiano per una rinomina vanno salvati
@@ -722,14 +783,6 @@ function App(): React.JSX.Element {
     setProject((p) => p && { ...p, templates: [...p.templates, tpl] })
     setDirty((d) => new Set(d).add(name))
     setSelected({ kind: 'template', name })
-  }
-
-  /** Cronologia dell'editor aperto, per i pulsanti annulla e ripeti della barra */
-  const [editorHistory, setEditorHistory] = useState({ undo: false, redo: false })
-  const undoAny = (redo: boolean): void => {
-    if (selected.kind === 'template')
-      window.dispatchEvent(new CustomEvent(EDITOR_UNDO, { detail: { redo } }))
-    else undoData(redo)
   }
 
   /** Il derivato diventa un template normale, con i valori che ha ora */
@@ -870,49 +923,103 @@ function App(): React.JSX.Element {
     setFileDirty(true)
   }
 
-  const undoData = (redo: boolean): void => {
+  /**
+   * Annulla (o ripristina) `steps` passi della cronologia del progetto, qualunque schermata sia
+   * aperta: poi torna dove è avvenuto l'ultimo passo annullato, con l'editor sul lato di allora.
+   */
+  const undoData = (redo: boolean, steps = 1): void => {
     if (!project) return
-    const from = redo ? history.future : history.past
-    const snap = from[from.length - 1]
-    if (!snap) return
-    const current: DataSnapshot = {
-      sets: project.sets,
-      file: project.file,
-      templates: snap.templates && project.templates
-    }
-    setHistory((h) =>
-      redo
-        ? { past: [...h.past, current], future: h.future.slice(0, -1), at: 0 }
-        : { past: h.past.slice(0, -1), future: [...h.future, current], at: 0 }
-    )
-    // un set eliminato che torna riprende il suo foglio, che non è più tra quelli non collegati
-    const linked = new Set(snap.sets.flatMap((x) => (x.data ? [x.data.name] : [])))
-    // un set eliminato che torna non deve più perdere il suo foglio sul disco
-    setTrashedSheets((t) => {
-      const next = new Set(t)
-      for (const x of snap.sets) if (x.data) next.delete(x.data.origin ?? x.data.name)
-      return next
-    })
-    setProject({
-      ...project,
-      ...snap,
-      templates: snap.templates ?? project.templates,
-      unusedSheets: project.unusedSheets.filter((x) => !linked.has(x)),
-      unusedData: project.unusedData?.filter((x) => !linked.has(x.name))
-    })
-    // ciò che cambia tornando indietro va comunque salvato
-    setDirtySheets((d) => {
-      const next = new Set(d)
-      for (const x of [...snap.sets, ...project.sets]) {
-        const before = project.sets.find((y) => y.name === x.name)?.data
-        const after = snap.sets.find((y) => y.name === x.name)?.data
-        if (x.data && before !== after) next.add(x.data.name)
+    let p = project
+    let past = history.past
+    let future = history.future
+    let last: DataSnapshot | null = null
+    for (let i = 0; i < steps; i++) {
+      const from = redo ? future : past
+      const snap = from[from.length - 1]
+      if (!snap) break
+      last = snap
+      const current: DataSnapshot = {
+        sets: p.sets,
+        file: p.file,
+        templates: snap.templates && p.templates,
+        tplOnly: snap.tplOnly,
+        where: snap.where,
+        side: snap.side,
+        selection: snap.selection,
+        view: p.templates,
+        time: snap.time
       }
-      return next
-    })
-    if (snap.file !== project.file) setFileDirty(true)
-    if (snap.templates)
-      markRenamed(project, { ...project, templates: snap.templates, sets: snap.sets })
+      if (redo) {
+        past = [...past, current]
+        future = future.slice(0, -1)
+      } else {
+        past = past.slice(0, -1)
+        future = [...future, current]
+      }
+      const before = p
+      if (snap.tplOnly) {
+        // modifica dell'editor: tornano solo i template, dati e file del progetto restano
+        const templates = snap.templates ?? p.templates
+        const changed = new Set<string>()
+        for (const x of templates) {
+          const y = p.templates.find((o) => o.name === x.name)
+          if (y !== x) changed.add(x.name)
+        }
+        if (changed.size) setDirty((d) => new Set([...d, ...changed]))
+        p = { ...p, templates }
+        continue
+      }
+      // un set eliminato che torna riprende il suo foglio, che non è più tra quelli non collegati
+      const linked = new Set(snap.sets.flatMap((x) => (x.data ? [x.data.name] : [])))
+      // un set eliminato che torna non deve più perdere il suo foglio sul disco
+      setTrashedSheets((t) => {
+        const next = new Set(t)
+        for (const x of snap.sets) if (x.data) next.delete(x.data.origin ?? x.data.name)
+        return next
+      })
+      p = {
+        ...p,
+        sets: snap.sets,
+        file: snap.file,
+        templates: snap.templates ?? p.templates,
+        unusedSheets: p.unusedSheets.filter((x) => !linked.has(x)),
+        unusedData: p.unusedData?.filter((x) => !linked.has(x.name))
+      }
+      // ciò che cambia tornando indietro va comunque salvato
+      setDirtySheets((d) => {
+        const next = new Set(d)
+        for (const x of [...snap.sets, ...before.sets]) {
+          const was = before.sets.find((y) => y.name === x.name)?.data
+          const now = snap.sets.find((y) => y.name === x.name)?.data
+          if (x.data && was !== now) next.add(x.data.name)
+        }
+        return next
+      })
+      if (snap.file !== before.file) setFileDirty(true)
+      if (snap.templates) markRenamed(before, p)
+    }
+    if (!last) return
+    setHistoryRaw({ past, future, at: 0 })
+    setProject(p)
+    // si torna dove è avvenuta la modifica, se c'è ancora
+    const where = last.where
+    const exists =
+      !!where &&
+      (where.kind === 'set'
+        ? where.index < p.sets.length
+        : where.kind === 'template'
+          ? p.templates.some((x) => x.name === where.name)
+          : (p.documents ?? []).some((x) => x.name === where.name))
+    if (where && exists) {
+      if (where.kind === 'template')
+        setEditorRestore({ side: last.side, selection: last.selection })
+      const same =
+        where.kind === selected.kind &&
+        (where.kind === 'set'
+          ? selected.kind === 'set' && selected.index === where.index
+          : 'name' in selected && selected.name === where.name)
+      if (!same) setSelected(where)
+    }
   }
 
   /** Dopo una rinomina: template e fogli cambiati vanno salvati, l'editor riparte dal template nuovo */
@@ -957,7 +1064,7 @@ function App(): React.JSX.Element {
       })
       setFileDirty(true)
     },
-    [setProject]
+    [setProject, setHistory]
   )
 
   // Note del progetto: si scrivono subito su disco, poco dopo l'ultima modifica, senza passare dal
@@ -1420,7 +1527,7 @@ function App(): React.JSX.Element {
     const { file, sets } = renameSet(project.file, project.sets, index, name, csv, keepSheet)
     // come per i template: la cronologia riparte, perché i passi precedenti hanno il nome
     // vecchio e, dopo un salvataggio, annullare ricreerebbe il foglio da capo
-    setHistory({ past: [], future: [], at: 0 })
+    setHistoryRaw({ past: [], future: [], at: 0 })
     setProject({ ...project, file, sets })
     const after = sets[index].data
     if (before && after && before.name !== after.name)
@@ -1485,7 +1592,7 @@ function App(): React.JSX.Element {
     if (!project) return
     const after = { ...project, ...renameTemplate(project, from, to) }
     setProject(after)
-    setHistory({ past: [], future: [], at: 0 })
+    setHistoryRaw({ past: [], future: [], at: 0 })
     setDirty((d) => {
       const next = new Set(d)
       next.delete(from)
@@ -1682,9 +1789,9 @@ function App(): React.JSX.Element {
       setFindingAll(true)
       return
     }
-    if (selected.kind !== 'set') return
+    // annulla vale in ogni schermata: dentro un campo di testo annulla la scrittura
     const target = e.target as HTMLElement
-    if (target.closest('input, textarea, select, [role="dialog"]')) return
+    if (target.closest('input, textarea, select, [contenteditable="true"], [role="dialog"]')) return
     if (k === 'z') undoData(e.shiftKey)
     else if (k === 'y') undoData(true)
     else return
@@ -2648,24 +2755,33 @@ function App(): React.JSX.Element {
                             <span className="project-name" title={project.folder}>
                               {project.file.name}
                             </span>
-                            {/* annulla e ripeti valgono per ciò che è aperto: l'editor o i dati */}
+                            {/* annulla e ripristina valgono per tutto il progetto, in ogni schermata */}
                             <span className="tool-group">
                               <button
                                 className="tool"
                                 title={t('editor.undo')}
-                                disabled={editing ? !editorHistory.undo : !history.past.length}
-                                onClick={() => undoAny(false)}
+                                disabled={!history.past.length}
+                                onClick={() => undoData(false)}
                               >
                                 ↶
                               </button>
                               <button
                                 className="tool"
                                 title={t('editor.redo')}
-                                disabled={editing ? !editorHistory.redo : !history.future.length}
-                                onClick={() => undoAny(true)}
+                                disabled={!history.future.length}
+                                onClick={() => undoData(true)}
                               >
                                 ↷
                               </button>
+                              <HistoryMenu
+                                past={history.past}
+                                future={history.future}
+                                current={project}
+                                placeName={(w) =>
+                                  w.kind === 'set' ? (project.sets[w.index]?.name ?? '') : w.name
+                                }
+                                onTravel={undoData}
+                              />
                             </span>
                             {languages.length > 0 && (
                               <select
@@ -2811,7 +2927,8 @@ function App(): React.JSX.Element {
                                 onOpen={(name) => setSelected({ kind: 'template', name })}
                                 onDetach={() => detachTemplate(editing.name)}
                                 menu={templateMenu(editing.name)}
-                                onHistory={setEditorHistory}
+                                restore={editorRestore}
+                                onRestored={clearEditorRestore}
                                 onOpenSet={(i, row) => {
                                   const index = project.sets.indexOf(editorSets[i])
                                   if (index < 0) return
