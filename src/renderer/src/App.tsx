@@ -305,6 +305,8 @@ function App(): React.JSX.Element {
     set: string
     row: number
   } | null>(null)
+  /** Carta da selezionare quando si apre un set con "Apri set" dall'editor; vale solo per quella scelta */
+  const [openRow, setOpenRow] = useState<{ for: Selected; row: number } | null>(null)
   /** Nota aperta nel pannello accanto alla schermata */
   const [openNote, setOpenNote] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -2810,12 +2812,20 @@ function App(): React.JSX.Element {
                                 onDetach={() => detachTemplate(editing.name)}
                                 menu={templateMenu(editing.name)}
                                 onHistory={setEditorHistory}
+                                onOpenSet={(i, row) => {
+                                  const index = project.sets.indexOf(editorSets[i])
+                                  if (index < 0) return
+                                  const sel: Selected = { kind: 'set', index }
+                                  setOpenRow(row === undefined ? null : { for: sel, row })
+                                  setSelected(sel)
+                                }}
                               />
                             ) : current ? (
                               <SetView
                                 key={project.sets.indexOf(current)}
                                 set={current}
                                 sets={project.sets}
+                                initialRow={openRow?.for === selected ? openRow.row : undefined}
                                 projectName={project.file}
                                 readOnly={readOnlyData}
                                 templates={project.templates}
@@ -3252,9 +3262,12 @@ function SetView({
   onChangeColumns,
   compare,
   onCompare,
-  onEndCompare
+  onEndCompare,
+  initialRow
 }: {
   set: LoadedSet
+  /** Carta da selezionare all'apertura (dall'editor del template), invece della prima */
+  initialRow?: number
   /** Tutti i set del progetto: le statistiche possono mescolarne più d'uno in un mazzo */
   sets: LoadedSet[]
   /** Nome, autore e versione del progetto, per {project.name} e simili */
@@ -3282,7 +3295,9 @@ function SetView({
 }): React.JSX.Element {
   const { t, lang } = useI18n()
   const comma = lang === 'it'
-  const [selection, setSelection] = useState<number[]>([0])
+  const [selection, setSelection] = useState<number[]>(() =>
+    initialRow !== undefined && initialRow < (set.data?.rows.length ?? 0) ? [initialRow] : [0]
+  )
   const [chosenSide, setSide] = useState<Side>('front')
   const [addingColumn, setAddingColumn] = useState(false)
   const [generating, setGenerating] = useState(false)

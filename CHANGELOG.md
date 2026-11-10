@@ -5,6 +5,18 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.11.0-beta.1
+
+### English
+
+- **Open set from the template editor**: next to the **Data** menu, **Open set** opens the set that uses the template, to see a change on all its cards. If more than one set uses the template, it asks which one. The set shown in **Data** opens with the same card selected.
+- **Linux on ARM**: AppImage and .deb packages also for arm64, for ARM Chromebooks (through the Linux environment) and ARM Linux PCs.
+
+### Italiano
+
+- **Aprire il set dall'editor del template**: accanto al menu **Dati**, **Apri set** apre il set che usa il template, per vedere una modifica su tutte le sue carte. Se il template è usato da più set, chiede quale. Il set mostrato in **Dati** si apre con la stessa carta selezionata.
+- **Linux su ARM**: pacchetti AppImage e .deb anche per arm64, per i Chromebook ARM (attraverso l'ambiente Linux) e i PC Linux ARM.
+
 ## 1.10.1-beta.2
 
 ### English

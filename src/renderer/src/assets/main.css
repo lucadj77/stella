@@ -639,6 +639,20 @@ textarea.invalid {
   align-items: center;
 }
 
+.preview-data-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* "Apri set" accanto alla scelta della carta di anteprima */
+.open-set {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
 .editor-body {
   flex: 1;
   display: flex;
