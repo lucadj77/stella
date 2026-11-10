@@ -4,7 +4,14 @@ import type { Template } from '../../../shared/model/template'
 import { describeStep, futureAfter, futureBefore, stateAfter, type HistoryEntry } from '../history'
 
 const tpl = (layers: object[], extra: object = {}): Template =>
-  ({ name: 'carta', width: 63, height: 88, front: layers, back: [], ...extra }) as Template
+  ({
+    name: 'carta',
+    width: 63,
+    height: 88,
+    front: layers,
+    back: [],
+    ...extra
+  }) as unknown as Template
 const text = (id: string, name: string, more: object = {}): object => ({
   id,
   type: 'text',
