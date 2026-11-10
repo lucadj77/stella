@@ -69,9 +69,9 @@ describe('cronologia', () => {
     expect(
       describeStep({ sets: [before], file }, { sets: [rows], file, templates: [] })
     ).toMatchObject({ key: 'history.rowsAdded', params: { n: 1 } })
-    expect(
-      describeStep({ sets: [], file }, { sets: [before], file, templates: [] })
-    ).toMatchObject({ key: 'history.setAdded', params: { set: 'eroi' } })
+    expect(describeStep({ sets: [], file }, { sets: [before], file, templates: [] })).toMatchObject(
+      { key: 'history.setAdded', params: { set: 'eroi' } }
+    )
   })
 
   it('confronta ogni passo con quello dopo, e l’ultimo con lo stato attuale', () => {

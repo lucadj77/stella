@@ -2411,7 +2411,8 @@ export const it: Record<MessageKey, string> = {
   'help.keys.save': 'Salva template, dati e impostazioni',
   'help.keys.project': 'Apri e chiudi il progetto (app desktop)',
   'help.keys.export': "Esporta; con ⇧ ripete l'ultima esportazione",
-  'help.keys.undo': 'Annulla e ripristina, per tutto il progetto: si torna nella schermata della modifica',
+  'help.keys.undo':
+    'Annulla e ripristina, per tutto il progetto: si torna nella schermata della modifica',
   'help.keys.selectCards': 'Set: seleziona tutti i componenti, torna a uno solo',
   'help.keys.cellBreak': 'Tabella: a capo dentro una cella',
   'help.keys.suggest': 'Testo: suggerimenti di campi, variabili e attributi',
@@ -2617,7 +2618,7 @@ export const it: Record<MessageKey, string> = {
   'textCheck.found':
     '{n} facce con testo che non sta nel riquadro (i testi che si riducono non stanno neanche al corpo minimo). Un clic seleziona il componente. Nella griglia questi componenti hanno un segno arancione.',
   'textCheck.fixed':
-    'I testi con corpo fisso usano l\'adattamento «Esce dal riquadro»: non vengono ridotti. Il controllo misura l\'intera riga, compreso lo spazio sotto la riga per lettere come «g», e il margine interno toglie spazio al testo. Rimpicciolisci il testo, allarga il riquadro, togli margine interno o scegli «Riduci per stare nel riquadro».',
+    "I testi con corpo fisso usano l'adattamento «Esce dal riquadro»: non vengono ridotti. Il controllo misura l'intera riga, compreso lo spazio sotto la riga per lettere come «g», e il margine interno toglie spazio al testo. Rimpicciolisci il testo, allarga il riquadro, togli margine interno o scegli «Riduci per stare nel riquadro».",
   'textCheck.fixedTag': 'corpo fisso',
   'textCheck.pick': 'Seleziona questo componente',
   'history.button': 'Cronologia delle modifiche',
