@@ -5,7 +5,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
-## 1.11.0-beta.1
+## 1.10.1-beta.3
 
 ### English
 
