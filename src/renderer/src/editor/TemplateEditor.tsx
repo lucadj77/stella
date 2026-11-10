@@ -19,7 +19,7 @@ import { useI18n } from '../i18n/context'
 import Segmented from '../components/Segmented'
 import Resizer from '../components/Resizer'
 import { usePanelSide, usePanelWidth } from '../components/usePanelWidth'
-import { GridIcon, ImageIcon, SnapIcon } from '../components/icons'
+import { GridIcon, ImageIcon, SetsIcon, SnapIcon } from '../components/icons'
 import Menu, { type MenuItem } from '../components/Menu'
 import AssetPicker from '../components/AssetPicker'
 import { dragHasFiles, importDropped } from '../components/dropImages'
@@ -50,6 +50,8 @@ interface Props {
   onHistory?(h: { undo: boolean; redo: boolean }): void
   /** Set (indice in `sets`) e riga da mostrare all'apertura, invece di nessun dato */
   initialPreview?: { set: number; row: number } | null
+  /** Apre un set (indice in `sets`); row: la carta mostrata nell'anteprima, se è di quel set */
+  onOpenSet?(set: number, row?: number): void
 }
 
 /** Evento della barra dell'app per annullare o ripetere nell'editor */
@@ -67,7 +69,8 @@ export default function TemplateEditor({
   onDetach,
   menu,
   onHistory,
-  initialPreview = null
+  initialPreview = null,
+  onOpenSet
 }: Props): React.JSX.Element {
   const { t } = useI18n()
   // in un derivato ogni modifica passa per le sue regole: si salvano solo le differenze
@@ -269,6 +272,36 @@ export default function TemplateEditor({
     </>
   )
 
+  // apre il set per vedere la modifica su tutte le carte: con più set si sceglie quale.
+  // Il set dell'anteprima si apre sulla carta mostrata
+  const openSet = (i: number): void =>
+    onOpenSet?.(i, preview?.set === i && previewSet?.data ? preview.row : undefined)
+  const openSetLabel = (
+    <>
+      <SetsIcon /> {t('editor.openSet')}
+    </>
+  )
+  const openSetButton =
+    sets.length > 1 ? (
+      <Menu
+        className="open-set"
+        title={t('editor.openSetChoose')}
+        label={<>{openSetLabel} ▾</>}
+        items={sets.map((s, i) => ({ label: s.name, onClick: () => openSet(i) }))}
+      />
+    ) : (
+      <button
+        className="open-set"
+        disabled={!sets.length}
+        title={
+          sets.length ? t('editor.openSetHint', { name: sets[0].name }) : t('editor.openSetNone')
+        }
+        onClick={() => openSet(0)}
+      >
+        {openSetLabel}
+      </button>
+    )
+
   // i pannelli stanno a sinistra o a destra della tela, anche entrambi sullo stesso lato
   const layersPanel = (
     <LayersPanel
@@ -370,34 +403,38 @@ export default function TemplateEditor({
           />
         )}
         <span className="spacer" />
-        <label className="muted preview-data">
-          {t('editor.previewData')}{' '}
-          <select
-            value={preview ? String(preview.set) : ''}
-            onChange={(e) =>
-              setPreview(e.target.value === '' ? null : { set: Number(e.target.value), row: 0 })
-            }
-          >
-            <option value="">{t('editor.previewNone')}</option>
-            {sets.map((s, i) => (
-              <option key={s.name} value={i} disabled={!s.data?.rows.length}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-          {preview && previewSet?.data && (
+        {/* la scelta della carta e "Apri set" vanno a capo insieme */}
+        <span className="preview-data-group">
+          <label className="muted preview-data">
+            {t('editor.previewData')}{' '}
             <select
-              value={preview.row}
-              onChange={(e) => setPreview({ ...preview, row: Number(e.target.value) })}
+              value={preview ? String(preview.set) : ''}
+              onChange={(e) =>
+                setPreview(e.target.value === '' ? null : { set: Number(e.target.value), row: 0 })
+              }
             >
-              {previewSet.data.rows.map((r, i) => (
-                <option key={i} value={i}>
-                  {rowLabel(previewSet.data!.headers, r, i)}
+              <option value="">{t('editor.previewNone')}</option>
+              {sets.map((s, i) => (
+                <option key={s.name} value={i} disabled={!s.data?.rows.length}>
+                  {s.name}
                 </option>
               ))}
             </select>
-          )}
-        </label>
+            {preview && previewSet?.data && (
+              <select
+                value={preview.row}
+                onChange={(e) => setPreview({ ...preview, row: Number(e.target.value) })}
+              >
+                {previewSet.data.rows.map((r, i) => (
+                  <option key={i} value={i}>
+                    {rowLabel(previewSet.data!.headers, r, i)}
+                  </option>
+                ))}
+              </select>
+            )}
+          </label>
+          {onOpenSet && openSetButton}
+        </span>
       </div>
       <div className="editor-body">
         {left}
