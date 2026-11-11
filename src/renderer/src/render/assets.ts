@@ -96,3 +96,9 @@ export function useBindContext(): BindContext {
     [assets, styles, variables, hasFont, localization, settings]
   )
 }
+
+/**
+ * Avvisa chi adatta il corpo del testo che un'icona colorata ha preso la sua larghezza: finché
+ * non si conoscono le proporzioni dell'immagine l'icona è quadrata, e porta data-gc-pending.
+ */
+export const InlineImageReadyContext = createContext<() => void>(() => undefined)

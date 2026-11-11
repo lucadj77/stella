@@ -2,11 +2,8 @@ import { useCallback, useReducer } from 'react'
 import { findLayer } from '../../../shared/model/edit'
 import type { Side, Template } from '../../../shared/model/template'
 
-// Stato dell'editor con la cronologia per annulla/ripeti.
-
-const HISTORY_LIMIT = 100
-/** Modifiche con la stessa chiave entro questo intervallo diventano un solo passo */
-const COALESCE_MS = 1200
+// Stato dell'editor. Annulla e ripristina non stanno qui: ogni modifica risale all'app, che la
+// mette nella cronologia unica del progetto (history.ts) e, annullando, rimanda il template.
 
 interface Snapshot {
   template: Template
@@ -19,12 +16,14 @@ export interface EditorState {
   selection: string[]
   /** Gruppo in cui si è entrati con il doppio clic: la tela seleziona i suoi figli */
   scope: string | null
-  past: Snapshot[]
-  future: Snapshot[]
+  /** Chiave dell'ultima modifica: l'app unisce in un passo quelle ravvicinate con la stessa */
   lastKey: string | null
-  lastTime: number
   /** Stato all'inizio di un trascinamento, finché il gesto non finisce */
   gesture: Snapshot | null
+  /** Numero del trascinamento in corso: tutto il gesto è un solo passo */
+  gestureId: number
+  /** Lato e selezione prima dell'ultima modifica: annullandola si torna lì */
+  before: { side: Side; selection: string[] }
 }
 
 export type EditorAction =
@@ -34,15 +33,11 @@ export type EditorAction =
   | { type: 'gestureEnd' }
   | { type: 'select'; ids: string[]; scope?: string | null }
   | { type: 'side'; side: Side }
-  | { type: 'undo' }
-  | { type: 'redo' }
+  /** Template cambiato fuori dall'editor (annulla, ripristina): nessun passo nuovo */
+  | { type: 'load'; template: Template; side?: Side; selection?: string[] }
 
 function snapshot(s: EditorState): Snapshot {
   return { template: s.template, selection: s.selection }
-}
-
-function push(past: Snapshot[], snap: Snapshot): Snapshot[] {
-  return [...past, snap].slice(-HISTORY_LIMIT)
 }
 
 /** Tiene solo gli id ancora presenti sul lato visibile */
@@ -52,33 +47,26 @@ function existing(t: Template, side: Side, ids: string[]): string[] {
 
 function reducer(s: EditorState, a: EditorAction): EditorState {
   switch (a.type) {
-    case 'change': {
-      const now = Date.now()
-      const coalesce = a.key !== undefined && a.key === s.lastKey && now - s.lastTime < COALESCE_MS
+    case 'change':
       return {
         ...s,
         template: a.template,
         selection: existing(a.template, s.side, a.selection ?? s.selection),
-        past: coalesce ? s.past : push(s.past, snapshot(s)),
-        future: [],
         lastKey: a.key ?? null,
-        lastTime: now
+        before: { side: s.side, selection: s.selection }
       }
-    }
     case 'gestureStart':
-      return { ...s, gesture: snapshot(s), lastKey: null }
-    case 'gestureUpdate':
-      return { ...s, template: a.template }
-    case 'gestureEnd': {
-      if (!s.gesture) return s
-      const changed = s.gesture.template !== s.template
       return {
         ...s,
-        gesture: null,
-        past: changed ? push(s.past, s.gesture) : s.past,
-        future: changed ? [] : s.future
+        gesture: snapshot(s),
+        gestureId: s.gestureId + 1,
+        lastKey: null,
+        before: { side: s.side, selection: s.selection }
       }
-    }
+    case 'gestureUpdate':
+      return { ...s, template: a.template }
+    case 'gestureEnd':
+      return s.gesture ? { ...s, gesture: null } : s
     case 'select':
       return {
         ...s,
@@ -88,27 +76,14 @@ function reducer(s: EditorState, a: EditorAction): EditorState {
       }
     case 'side':
       return { ...s, side: a.side, selection: [], scope: null }
-    case 'undo': {
-      const prev = s.past[s.past.length - 1]
-      if (!prev) return s
+    case 'load': {
+      const side = a.side ?? s.side
       return {
         ...s,
-        template: prev.template,
-        selection: existing(prev.template, s.side, prev.selection),
-        past: s.past.slice(0, -1),
-        future: [snapshot(s), ...s.future],
-        lastKey: null
-      }
-    }
-    case 'redo': {
-      const next = s.future[0]
-      if (!next) return s
-      return {
-        ...s,
-        template: next.template,
-        selection: existing(next.template, s.side, next.selection),
-        past: push(s.past, snapshot(s)),
-        future: s.future.slice(1),
+        template: a.template,
+        side,
+        scope: side === s.side ? s.scope : null,
+        selection: existing(a.template, side, a.selection ?? s.selection),
         lastKey: null
       }
     }
@@ -121,7 +96,9 @@ function reducer(s: EditorState, a: EditorAction): EditorState {
  */
 export function useEditor(
   initial: Template,
-  normalize?: (t: Template) => Template
+  normalize?: (t: Template) => Template,
+  /** Lato e selezione all'apertura: dopo un annulla che ha riaperto l'editor */
+  start?: { side?: Side; selection?: string[] } | null
 ): [EditorState, React.Dispatch<EditorAction>] {
   const run = useCallback(
     (s: EditorState, a: EditorAction): EditorState =>
@@ -130,15 +107,17 @@ export function useEditor(
         : reducer(s, a),
     [normalize]
   )
-  return useReducer(run, initial, (template) => ({
-    template,
-    side: 'front' as Side,
-    selection: [],
-    scope: null,
-    past: [],
-    future: [],
-    lastKey: null,
-    lastTime: 0,
-    gesture: null
-  }))
+  return useReducer(run, initial, (template) => {
+    const side: Side = start?.side ?? 'front'
+    return {
+      template,
+      side,
+      selection: existing(template, side, start?.selection ?? []),
+      scope: null,
+      lastKey: null,
+      gesture: null,
+      gestureId: 0,
+      before: { side, selection: [] }
+    }
+  })
 }

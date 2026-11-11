@@ -5,6 +5,94 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.10.1-beta.4
+
+### English
+
+- **One undo for the whole project**: undo and redo now cover every change of the project in a single history: cards, sets, styles, variables and templates. A change made in the template editor can be undone after opening a set or another template, and undoing takes you back to the screen where the change was made, with the editor on the same side and the same layers selected.
+- **History of changes**: the clock button next to undo and redo lists the changes of the project, newest first, with what changed, where and when. Above **Now** are the undone changes, which can be redone. A click on an entry undoes or redoes everything up to it in one go.
+- **Text check**: in **Check text…**, layers with the **Spill out of the box** fit are marked _fixed size_, with an explanation: their text is not shrunk, and the check measures the whole line, padding included, so a large number can look whole and still be reported. Before, the window said every text did not fit "even shrunk to the minimum size".
+
+### Italiano
+
+- **Un solo annulla per tutto il progetto**: annulla e ripristina ora valgono per tutte le modifiche del progetto, in un'unica cronologia: carte, set, stili, variabili e template. Una modifica fatta nell'editor del template si può annullare anche dopo aver aperto un set o un altro template, e annullando si torna nella schermata in cui era stata fatta, con l'editor sullo stesso lato e gli stessi livelli selezionati.
+- **Cronologia delle modifiche**: il tasto con l'orologio accanto ad annulla e ripristina elenca le modifiche del progetto, le più recenti in alto, con cosa è cambiato, dove e quando. Sopra **Adesso** ci sono quelle annullate, che si possono ripristinare. Un clic su una voce annulla o ripristina tutto fino a quella in un colpo solo.
+- **Controllo dei testi**: in **Controlla testi…** i livelli con l'adattamento **Esce dal riquadro** hanno accanto _corpo fisso_, con una spiegazione: il loro testo non viene ridotto, e il controllo misura l'intera riga, margine interno compreso, quindi un numero grande può sembrare intero e venire segnalato lo stesso. Prima la finestra diceva per ogni testo che non stava "anche ridotto alla dimensione minima".
+
+## 1.10.0
+
+### English
+
+- **Dice of every shape**: a die face template now chooses its die: **d2** (a coin), **d3** (a cube with each face twice), **d4**, **d6**, **d8**, **d10**, **d12** and **d20**. The template takes the shape of the face (triangle, kite, regular pentagon, circle or square) with the right proportions, and a new set starts with one row per face, numbered from 1. The d4 template is the wedge of the top corner: each face puts three wedges together, with the data of the rows that share those corners. Dice have no back.
+- **Real dice in Tabletop Simulator**: every die goes to Tabletop Simulator as a real die with rounded edges, which you roll and which shows the value of the face on top; the d2 is a coin to flip. A simpler model with sharp edges is used for collisions, so dice land flat on a face.
+- **Every die to fold**: in the PDF, **Dice → To fold** prints the d4, d8, d10, d12 and d20 as flat nets with mirrored glue tabs, picking the most compact net; with **Dice → Faces** triangle faces interlock, one up and one down, using half the paper.
+- **Text variables with parameters**: `{1}`, `{2}` in the text of a variable take the values written after its name, separated by colons. With `draw` = `[Draw {1}]{.keyword}: take {1} cards`, `{draw:2}` writes "Draw 2: take 2 cards"; `{trade:3:1}` passes two values, a parameter can be a field (`{draw:{strength}}`), and a variable like `coin` = `[{1}]{bg=gold}` puts a number on an icon.
+- **Images from the internet**: **From the internet…** in the image chooser downloads an image into the project (the address goes into the credits, and **Download again** refreshes it) or uses the link, an `https://...` address in place of the file name. Each computer keeps a copy of linked images, used offline too.
+- **Open set from the template editor**: next to the **Data** menu, **Open set** opens the set that uses the template, to see a change on all its cards. If more than one set uses the template, it asks which one.
+- **Token backs same as the front**: new tokens have their back the same as the front; open the lock next to **Back** in the template properties to draw the back on its own.
+- **Linux**: the .deb package is now `stella-game-center` and the command `stella-gc`, because `stella` is the Atari 2600 emulator in Debian and Ubuntu (remove an earlier .deb first with `sudo apt remove stella`). AppImage and .deb are also available for arm64, for ARM Chromebooks and ARM Linux PCs.
+- **PDF**: a set of rotated cards and a set of upright cards that take the same space on the page continue on the same row.
+- Fixes: a text set to **Grow or shrink to fill the box** or **Shrink to fit** with inline icons could get the wrong size on the first card drawn; exports wait for images to be placed before capturing a card; an inline `bg=` box larger than its text layer stays centred; the `stella` command no longer shows an error window when the program reading its output closes early; safe areas and outlines of triangles, pentagons and hexagons keep the same distance from every side.
+
+### Italiano
+
+- **Dadi di ogni forma**: un template di faccia di dado ora sceglie il suo dado: **d2** (una moneta), **d3** (un cubo con ogni faccia due volte), **d4**, **d6**, **d8**, **d10**, **d12** e **d20**. Il template prende la forma della faccia (triangolo, aquilone, pentagono regolare, cerchio o quadrato) con le proporzioni giuste, e un set nuovo parte con una riga per faccia, numerata da 1. Il template del d4 è lo spicchio del vertice in alto: ogni faccia mette insieme tre spicchi, con i dati delle righe che hanno quei vertici. I dadi non hanno retro.
+- **Dadi veri in Tabletop Simulator**: ogni dado va in Tabletop Simulator come un dado vero con gli spigoli arrotondati, che si lancia e mostra il valore della faccia in alto; il d2 è una moneta da lanciare. Per gli urti si usa un modello più semplice a spigoli vivi, così i dadi si fermano su una faccia.
+- **Ogni dado da piegare**: nel PDF, **Dadi → Da piegare** stampa d4, d8, d10, d12 e d20 come sviluppi piani con le linguette da incollare specchiate, scegliendo lo sviluppo più compatto; con **Dadi → Facce** le facce triangolari si incastrano, una in su e una in giù, usando metà carta.
+- **Variabili di testo con parametri**: `{1}`, `{2}` nel testo di una variabile prendono i valori scritti dopo il suo nome, separati da due punti. Con `raccogli` = `[Raccogli {1}]{.keyword}: pesca {1} carte`, `{raccogli:2}` scrive "Raccogli 2: pesca 2 carte"; `{scambio:3:1}` passa due valori, un parametro può essere un campo (`{raccogli:{forza}}`), e una variabile come `moneta` = `[{1}]{bg=oro}` mette un numero su un'icona.
+- **Immagini da internet**: **Da internet…** nella scelta delle immagini scarica un'immagine nel progetto (l'indirizzo va nei crediti, e **Riscarica** la aggiorna) oppure usa il collegamento, un indirizzo `https://...` al posto del nome del file. Ogni computer tiene una copia delle immagini collegate, usata anche senza rete.
+- **Aprire il set dall'editor del template**: accanto al menu **Dati**, **Apri set** apre il set che usa il template, per vedere una modifica su tutte le sue carte. Se il template è usato da più set, chiede quale.
+- **Retro delle pedine uguale al fronte**: le pedine nuove hanno il retro uguale al fronte; si apre il lucchetto accanto a **Retro** nelle proprietà del template per disegnare il retro a parte.
+- **Linux**: il pacchetto .deb ora si chiama `stella-game-center` e il comando `stella-gc`, perché `stella` è l'emulatore Atari 2600 in Debian e Ubuntu (un .deb precedente va rimosso prima con `sudo apt remove stella`). AppImage e .deb ci sono anche per arm64, per i Chromebook ARM e i PC Linux ARM.
+- **PDF**: un set di carte ruotate e uno di carte dritte che sulla pagina occupano lo stesso spazio continuano sulla stessa riga.
+- Correzioni: un testo con **Ingrandisci o riduci per riempire il riquadro** o **Riduci per stare nel riquadro** e icone nel testo poteva avere il corpo sbagliato nella prima carta disegnata; le esportazioni aspettano che le immagini siano sistemate prima di catturare una carta; un riquadro `bg=` più grande del suo livello di testo resta centrato; il comando `stella` non mostra più una finestra di errore quando il programma che legge la sua uscita si chiude prima; area sicura e contorni di triangoli, pentagoni ed esagoni restano alla stessa distanza da ogni lato.
+
+## 1.10.1-beta.3
+
+### English
+
+- **Open set from the template editor**: next to the **Data** menu, **Open set** opens the set that uses the template, to see a change on all its cards. If more than one set uses the template, it asks which one. The set shown in **Data** opens with the same card selected.
+- **Linux on ARM**: AppImage and .deb packages also for arm64, for ARM Chromebooks (through the Linux environment) and ARM Linux PCs.
+
+### Italiano
+
+- **Aprire il set dall'editor del template**: accanto al menu **Dati**, **Apri set** apre il set che usa il template, per vedere una modifica su tutte le sue carte. Se il template è usato da più set, chiede quale. Il set mostrato in **Dati** si apre con la stessa carta selezionata.
+- **Linux su ARM**: pacchetti AppImage e .deb anche per arm64, per i Chromebook ARM (attraverso l'ambiente Linux) e i PC Linux ARM.
+
+## 1.10.1-beta.2
+
+### English
+
+- **Text that fits its box, first card**: the first card drawn after opening a project, rendering or exporting could get a text set to **Grow or shrink to fill the box** or **Shrink to fit** at the wrong size, when the text has inline icons: the size was measured before the icons and the font had loaded, so the icons counted as zero width. Now the text waits for icons and fonts, and the first card comes out like the others.
+- **Export**: before capturing a card, the export also waits until image layers have their size, so an image set to **Fit inside** or **Fill (crop)** is never captured before it is placed.
+
+### Italiano
+
+- **Testo adattato al riquadro, prima carta**: la prima carta disegnata dopo aver aperto un progetto, in un render o in un'esportazione poteva avere un testo con **Ingrandisci o riduci per riempire il riquadro** o **Riduci per stare nel riquadro** del corpo sbagliato, se il testo contiene icone: il corpo veniva misurato prima che icone e font fossero caricati, e le icone valevano larghezza zero. Ora il testo aspetta icone e font, e la prima carta esce come le altre.
+- **Esportazione**: prima di catturare una carta, l'esportazione aspetta anche che i livelli immagine abbiano le loro dimensioni, così un'immagine **Adatta dentro** o **Riempi (ritaglia)** non viene mai catturata prima di essere sistemata.
+
+## 1.10.1-beta.1
+
+### English
+
+- **PDF, sets one after another**: a set of rotated cards and a set of upright cards that take the same space on the page (for example 88×63 turned and 63×88) now continue on the same row, without a new row and without the extra space for cut marks. Each card keeps its own rotation, also on the backs.
+
+### Italiano
+
+- **PDF, set uno dopo l'altro**: un set di carte ruotate e uno di carte dritte che sulla pagina occupano lo stesso spazio (per esempio 88×63 girate e 63×88) ora continuano sulla stessa riga, senza andare a capo e senza lo spazio in più per i segni di taglio. Ogni carta mantiene la sua rotazione, anche sui retri.
+
+## 1.10.0-beta.4
+
+### English
+
+- **Linux .deb package renamed**: the package is now `stella-game-center` and the command `stella-gc`, because `stella` is the Atari 2600 emulator in Debian and Ubuntu. With the old name, installing Stella clashed with the emulator, and `apt upgrade` offered the emulator as a newer version of Stella. In the applications menu it is called Stella Game Center. If you installed an earlier .deb, remove it first with `sudo apt remove stella`. The AppImage is unchanged.
+- **Command line**: the `stella` command no longer shows an error window when the program reading its output closes early.
+
+### Italiano
+
+- **Pacchetto .deb per Linux rinominato**: il pacchetto ora è `stella-game-center` e il comando `stella-gc`, perché `stella` è l'emulatore Atari 2600 di Debian e Ubuntu. Con il vecchio nome l'installazione di Stella andava in conflitto con l'emulatore, e `apt upgrade` proponeva l'emulatore come versione nuova di Stella. Nel menu delle applicazioni si chiama Stella Game Center. Chi ha installato un .deb precedente prima lo toglie con `sudo apt remove stella`. L'AppImage non cambia.
+- **Riga di comando**: il comando `stella` non mostra più una finestra di errore quando il programma che legge il suo risultato si chiude prima.
+
 ## 1.10.0-beta.3
 
 ### English

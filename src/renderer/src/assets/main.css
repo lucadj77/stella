@@ -639,6 +639,20 @@ textarea.invalid {
   align-items: center;
 }
 
+.preview-data-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* "Apri set" accanto alla scelta della carta di anteprima */
+.open-set {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
 .editor-body {
   flex: 1;
   display: flex;
@@ -8443,4 +8457,54 @@ button.wide {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* cronologia delle modifiche, accanto ad annulla e ripristina */
+.history-panel {
+  width: 380px;
+  max-width: min(380px, 90vw);
+}
+
+.history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 60vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.history-step {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  padding: 5px 8px;
+  font-size: 13px;
+}
+
+.history-step:hover {
+  background: var(--accent-soft);
+}
+
+.history-step.undone .history-text {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.history-now {
+  margin: 4px 0;
+  padding: 4px 8px;
+  border-top: 1px solid var(--accent);
+  border-bottom: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
 }

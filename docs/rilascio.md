@@ -25,7 +25,7 @@ Nel menu ⚙ dell'app, **Aggiornamenti** sceglie il canale:
 
 La scelta sta in `update.json` nella cartella dei dati dell'app. Alla prima apertura di una versione che ha il canale, se la versione installata è una beta si salva Beta: così chi prova le beta resta in beta anche dopo aver ricevuto la versione ufficiale. Passando da Beta a Stabile non si torna indietro di versione: si aspetta la prima ufficiale più recente di quella installata.
 
-L'installazione automatica (setup di Windows e AppImage di Linux) usa electron-updater puntato sui file `latest.yml` / `latest-linux.yml` della release scelta dal controllo, non sulla più recente del feed di GitHub; il Mac scarica lo zip della stessa release. La versione web stabile sta all'indirizzo principale, la beta in `beta/` (vedi [web.md](web.md)). La skill e il pacchetto `stella-cli` seguono la stabile, salvo chi ha già una beta.
+L'installazione automatica (setup di Windows e AppImage di Linux) usa electron-updater puntato sui file `latest.yml` / `latest-linux.yml` (`latest-linux-arm64.yml` sui PC ARM) della release scelta dal controllo, non sulla più recente del feed di GitHub; il Mac scarica lo zip della stessa release. La versione web stabile sta all'indirizzo principale, la beta in `beta/` (vedi [web.md](web.md)). La skill e il pacchetto `stella-cli` seguono la stabile, salvo chi ha già una beta.
 
 ## Rami
 

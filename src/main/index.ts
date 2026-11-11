@@ -143,6 +143,24 @@ if (cliArgs) {
   app.dock?.hide()
   // solo gli errori gravi di Chromium: l'output è per chi ha lanciato il comando
   app.commandLine.appendSwitch('log-level', '3')
+  // chi legge l'output può chiudere prima della fine (stella info … | head, uno strumento IA
+  // che smette di leggere): la scrittura fallisce con EPIPE. Non è un errore del comando:
+  // si esce in silenzio invece di mostrare la finestra "A JavaScript error occurred"
+  const quietPipe = (e: NodeJS.ErrnoException): void => {
+    if (e.code === 'EPIPE' || e.code === 'ERR_STREAM_DESTROYED') app.exit(0)
+    else throw e
+  }
+  process.stdout.on('error', quietPipe)
+  process.stderr.on('error', quietPipe)
+  // in modalità comando nessun errore deve aprire una finestra: va su stderr e si esce con 2
+  process.on('uncaughtException', (e) => {
+    try {
+      process.stderr.write(`stella: ${e instanceof Error ? e.message : String(e)}\n`)
+    } catch {
+      /* stderr chiuso */
+    }
+    app.exit(2)
+  })
   app.whenReady().then(async () => {
     handleAssetProtocol()
     const code = await runCli(cliArgs)

@@ -257,12 +257,15 @@ export function planPdf(o: PdfOptions, sets: ExportSet[], project: string): PdfP
   }
 }
 
+/**
+ * Stessa cella sulla pagina. La rotazione non conta: una carta 88×63 ruotata e una 63×88 dritta
+ * occupano la stessa cella e possono stare sulla stessa riga; ogni carta si ruota da sé.
+ */
 function sameGrid(a: Grid, b: Grid): boolean {
   const eq = (x: number, y: number): boolean => Math.abs(x - y) < 1e-6
   return (
     a.cols === b.cols &&
     a.rows === b.rows &&
-    a.rotated === b.rotated &&
     eq(a.cellW, b.cellW) &&
     eq(a.cellH, b.cellH) &&
     eq(a.bleed, b.bleed)
@@ -271,6 +274,13 @@ function sameGrid(a: Grid, b: Grid): boolean {
 
 /** Una carta della griglia come elemento della pagina */
 function placedItem(o: PdfOptions, grid: Grid, c: PlacedCard, mode: CardMode): SceneItem {
+  const t = c.instance.card.template
+  // la carta è ruotata quando la sua larghezza non è quella della cella (le quadrate seguono la
+  // griglia): in una cella possono finire carte ruotate e carte dritte di set diversi
+  const turned =
+    Math.abs(t.width - t.height) < 1e-6
+      ? grid.rotated
+      : Math.abs(t.width + 2 * grid.bleed - grid.cellW) > 1e-6
   return {
     x: c.x,
     y: c.y,
@@ -278,7 +288,7 @@ function placedItem(o: PdfOptions, grid: Grid, c: PlacedCard, mode: CardMode): S
     side: c.side,
     mode,
     // girando il foglio sul lato verticale la carta si capovolge: il retro ruota al contrario
-    rotate: !grid.rotated ? 0 : c.side === 'back' && o.duplex !== 'none' && mirrorsX(o) ? 270 : 90
+    rotate: !turned ? 0 : c.side === 'back' && o.duplex !== 'none' && mirrorsX(o) ? 270 : 90
   }
 }
 
