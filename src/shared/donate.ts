@@ -34,9 +34,9 @@ export const videoUrl = (v: keyof typeof FIRST_VIDEOS, lang: string): string =>
 const GUIDE_SECTIONS = {
   concepts: { it: '1-concetti-di-base', en: '1-basic-concepts' },
   template: { it: '4-disegnare-un-template', en: '4-designing-a-template' },
-  set: { it: '5-inserire-e-modificare-le-carte', en: '5-entering-and-editing-cards' },
+  set: { it: '5-inserire-e-modificare-i-componenti', en: '5-entering-and-editing-components' },
   formulaAssistant: { it: '91-lassistente-formule', en: '91-the-formula-assistant' },
-  generate: { it: '10-generare-le-carte', en: '10-generating-cards' },
+  generate: { it: '10-generare-i-componenti', en: '10-generating-components' },
   export: { it: '11-esportare', en: '11-exporting' }
 } as const
 export type GuideSection = keyof typeof GUIDE_SECTIONS

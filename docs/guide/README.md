@@ -1,8 +1,8 @@
 # Stella user guide
 
-Stella is an app for making cards and other printed game components from a spreadsheet. You design the card layout once, the **template**, and every row of the spreadsheet becomes a card. Cards are exported as images, as print-ready PDFs or as Tabletop Simulator objects: decks, tokens, standees, tiles, boards and dice, ready to load into the game.
+Stella is an app for making the components of a board game from a spreadsheet: cards, tokens, tiles, boards, die faces and standees. You design the component once, the **template**, and every row of the spreadsheet becomes a component, for example a card of a deck. Components are exported as images, as print-ready PDFs or as Tabletop Simulator objects: decks, tokens, standees, tiles, boards and dice, ready to load into the game.
 
-This guide follows the usual order of work: create a project, design a template, enter the cards, refine texts and images, export. The examples come from a small project with three sets: characters, items and market cards.
+This guide follows the usual order of work: create a project, design a template, enter the components, refine texts and images, export. The examples often talk about cards, the most common component, but almost everything works the same way for the others. The examples come from a small project with three sets: characters, items and market cards.
 
 Video tutorials on YouTube, no voice ([whole playlist](https://www.youtube.com/playlist?list=PLC6t-d7-3DO0)):
 
@@ -69,12 +69,12 @@ Questions, help and ideas, in English and Italian: the [Stella Game Center Disco
 2. [Start screen](#2-start-screen)
 3. [The project window](#3-the-project-window)
 4. [Designing a template](#4-designing-a-template)
-5. [Entering and editing cards](#5-entering-and-editing-cards)
+5. [Entering and editing components](#5-entering-and-editing-components)
 6. [Text and markup](#6-text-and-markup)
 7. [Variables and styles](#7-variables-and-styles)
 8. [Images, icons and fonts](#8-images-icons-and-fonts)
 9. [Formulas and calculated fields](#9-formulas-and-calculated-fields)
-10. [Generating cards](#10-generating-cards)
+10. [Generating components](#10-generating-components)
 11. [Exporting](#11-exporting)
 12. [Documents](#12-documents)
 13. [Backup](#13-backup)
@@ -144,17 +144,18 @@ On the Mac, drag Stella from the Applications folder to the Trash; on Windows, u
 
 ## 1. Basic concepts
 
-| Term         | What it is                                                                                                                    |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| **project**  | a folder on disk with the `stella.json` file, the data file, the templates and the assets                                     |
-| **template** | the design of a card: format, bleed and a stack of **layers** (texts, images, shapes, groups), for the front and for the back |
-| **set**      | a group of cards that use the same template; it matches a sheet of the data file (`data/cards.xlsx`)                          |
-| **layer**    | an element of the template. The layer name is also the name of the sheet column it takes its value from                       |
-| **asset**    | the project's images, icons and fonts, in the `assets/` folder                                                                |
-| **variable** | a name you call in texts with `{name}`: an icon, a formatted text, a color or a value                                         |
-| **style**    | a named set of text attributes, applied to a paragraph or a word                                                              |
+| Term          | What it is                                                                                                                         |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **project**   | a folder on disk with the `stella.json` file, the data file, the templates and the assets                                          |
+| **component** | a game piece: a card, a token, a tile, a board, a die face or a standee. Each row of a set is a component                          |
+| **template**  | the design of a component: format, bleed and a stack of **layers** (texts, images, shapes, groups), for the front and for the back |
+| **set**       | a group of components that use the same template; it matches a sheet of the data file (`data/cards.xlsx`)                          |
+| **layer**     | an element of the template. The layer name is also the name of the sheet column it takes its value from                            |
+| **asset**     | the project's images, icons and fonts, in the `assets/` folder                                                                     |
+| **variable**  | a name you call in texts with `{name}`: an icon, a formatted text, a color or a value                                              |
+| **style**     | a named set of text attributes, applied to a paragraph or a word                                                                   |
 
-Data and design are always linked the same way: in the template, the text layer `name` shows on each card the content of the `name` column of its row.
+Data and design are always linked the same way: in the template, the text layer `name` shows on each component the content of the `name` column of its row.
 
 Sizes are in millimeters, text sizes in points. Markup and formula keywords are in English and do not change with the interface language.
 
@@ -172,7 +173,7 @@ The first time, when there are no recent projects yet, the screen welcomes you w
 - **Open project…** opens a folder that contains `stella.json`. Projects created when the app was called Naibi (`naibi.json`) or GameCreator (`gamecreator.json`) open too.
 - **Import from Tabletop Creator…** converts a Tabletop Creator project ([chapter 14](#14-importing-from-tabletop-creator)).
 - **Open the example project** opens the project used in this guide and in the videos: three sets (Characters, Items, Market), icons, variables and styles. The first time it is copied into Documents/Stella/Example, where it can be changed freely; after that the copy is opened. In the web version the copy lives in the storage the browser keeps for the site: you change and save it without choosing a folder, but it stays in that browser only.
-- **Recent projects** shows up to 24 projects, with their first card as thumbnail, or the cover chosen in **Project info…** ([chapter 3](#3-the-project-window)). The × removes a project from the list without deleting the folder.
+- **Recent projects** shows up to 24 projects, with their first component as thumbnail, or the cover chosen in **Project info…** ([chapter 3](#3-the-project-window)). The × removes a project from the list without deleting the folder.
 
 The ⚙ button at the top right, on every screen, opens the settings: the interface size, the **units** (millimeters, centimeters or inches) for positions, sizes and margins across the app (text stays in points, line widths in mm), the theme (light, dark or the system's), the language (English or Italian) and **AI tools…**, which prepares an AI agent to work on projects ([chapter 15](#15-working-with-an-ai-agent)).
 
@@ -204,24 +205,39 @@ If a screen fails, a message with **Try again** and **Copy the details** (to sen
 
 ![The project window, with numbered parts](img/progetto.png)
 
-1. **Top bar.** Project name (hover it to see the folder), undo and redo (they apply to the whole project: cards, sets, styles, variables and templates; undoing takes you back to the screen where the change was made, even if you have opened another one since), the clock button for the history of changes (see below), the card language menu (only in projects with several languages), **Save** (⌘S / Ctrl+S), **Export…**, the **Project** menu, **Help** (F1, [chapter 6](#6-text-and-markup)) and ⚙ for the settings. The **Project** menu holds the commands used less often: **Project info…** (see below), **Backup…**, **Trash…**, **Google Sheets…**, **Languages…** ([5.7](#57-cards-in-several-languages)), **Save a copy…** (copies the project folder to a new or empty folder; the open project stays the same, and at the end you can open the copy), **Move…** (moves the folder and reopens the project from the new place, with its backups), **Reload from disk** (reads the project again, losing unsaved changes) and **Close project**. Copy and move ask you to save your changes first, and exist only in the desktop app.
-2. **Sets.** A click opens the cards of the set; the number is the total of cards, copies included.
+1. **Top bar.** Project name (hover it to see the folder), undo and redo, the clock button for the history of changes (see below), the component language menu (only in projects with several languages), **Save** (⌘S / Ctrl+S), **Export…**, the **Project** menu, **Help** (F1, [chapter 6](#6-text-and-markup)) and ⚙ for the settings. Undo and redo apply to the whole project (components, sets, styles, variables and templates): undoing takes you back to the screen where the change was made, even if you have opened another one since.
+
+   The **Project** menu holds the commands used less often: **Project info…** (see below), **Backup…**, **Trash…**, **Google Sheets…**, **Languages…** ([5.7](#57-components-in-several-languages)), **Save a copy…** (copies the project folder to a new or empty folder; the open project stays the same, and at the end you can open the copy), **Move…** (moves the folder and reopens the project from the new place, with its backups), **Reload from disk** (reads the project again, losing unsaved changes) and **Close project**. Copy and move ask you to save your changes first, and exist only in the desktop app.
+
+2. **Sets.** A click opens the components of the set; the number is their total, copies included.
 3. **Templates.** A click opens the template in the editor; next to it is the format in millimeters.
 4. Project text **styles** ([chapter 7](#7-variables-and-styles)).
 5. Project **variables**, with a preview.
 6. **Components of the set**, in a table or a grid.
-7. **Preview** of the selected card, front or back. **Edit template** opens the card's template, that is the set's or the one chosen for the card, with this card already loaded in the editor's preview (the **Data** menu at the top right shows the set and the card number); **Enlarge** opens the card large with the form next to it.
+7. **Preview** of the selected component, front or back. **Edit template** opens the component's template, that is the set's or the one chosen for the component, with it already loaded in the editor's preview (the **Data** menu at the top right shows the set and the component number); **Enlarge** opens the component large with the form next to it.
 8. **Fields of the selected component**, editable like the table cells.
 
 **Project info…**, at the top of the **Project** menu, gathers the project details:
 
-- **Name**, **Author** and **Version** of the game. Next to each one is the variable that writes it on cards and documents: `{project.name}`, `{project.author}` and `{project.version}`. For example a footer `{project.name} v{project.version}` tells which print a prototype card comes from. **Translated names…** opens the languages ([5.7](#57-cards-in-several-languages)).
-- **Cover**, the picture of the project among the recent projects: **First card of the first set** (the default), **Choose a component…**, which opens the same card window as the anatomy (set, search, thumbnails and side), or **Choose an image…**, which opens the thumbnails of the project images, where you can also add images from your computer or icons from the libraries: for example the box or the logo. The preview beside it shows the result; the thumbnail updates when you save.
+- **Name**, **Author** and **Version** of the game. Next to each one is the variable that writes it on components and documents: `{project.name}`, `{project.author}` and `{project.version}`. For example a footer `{project.name} v{project.version}` tells which print a prototype component comes from. **Translated names…** opens the languages ([5.7](#57-components-in-several-languages)).
+- **Cover**, the picture of the project among the recent projects: **First card of the first set** (the default), **Choose a component…**, which opens the same window as the anatomy (set, search, thumbnails and side), or **Choose an image…**, which opens the thumbnails of the project images, where you can also add images from your computer or icons from the libraries: for example the box or the logo. The preview beside it shows the result; the thumbnail updates when you save.
 - **Folder**, in the desktop app: the path, **Open** to see it in Finder or File Explorer and **Rename** to change its name. The folder name is independent of the project name (spaces become `_`); **Use the project name** suggests it. As with **Move…**, you save your changes first; the project reopens from the new folder, with its backups and its place among the recent projects.
 
 ![Project info, with a card chosen as cover](img/informazioni-progetto.png)
 
-The ⋯ button next to the name of the open set or template opens a menu to rename it, duplicate it, delete it and, for a template, create a derived one (**Derive**). The same menu opens from the ⋯ that appears when you hover an item in the sidebar, or with a right click on the item. Renaming a set also renames its sheet in the data file (if the sheet is already in the file Stella asks first, because formulas in other sheets that refer to it would break); renaming a template renames its file, and the new name goes into the sets, derived templates and `template` column of the cards that use it. Files are renamed when you save. A deleted template goes to the project's `deleted` folder. The sheet of a deleted set also leaves the data file when you save and goes to `deleted` as a file of its own, so its name is free again. **Trash…**, in the **Project** menu, lists what is in `deleted` (templates, sets, notes and documents, newest first) and **Restore** puts an item back in the project: a set gets the template you choose (Stella proposes the one with most columns in common), a name already taken gets a number. Restored templates and sets leave the trash when you save. Sidebar items are reordered by dragging them; the + next to each heading creates a new item. The headings of **Styles** and **Variables** show how many items they hold: with more than six items the section starts closed, and Stella remembers for each project whether you opened or closed it. Until there are documents or notes, their sections show a **+ Document** and a **+ Note** button. Styles and variables can be split into groups with the **Group** field of their window: the items of a group sit under its heading, which closes and opens with a click, after the items without a group. An item dragged onto a group heading joins that group; dragged onto another item, it takes that item's group (or none). With more than 12 items, a field above the list filters them by name. In the window of a style or variable, **Where it is used** lists the templates (with their layers), the sets (with card numbers) and the other variables and styles that refer to it; clicking a template or set opens it. Hovering over an item shows a preview: the first cards of a set, the front and back of a template, a sentence in a style, the icon or color of a variable. The **Notes** section holds notes about the project: the + creates a note, a click opens it in a panel beside any screen, where you write in Markdown (**Preview** shows it formatted, tables included) and rename it from its title. Drag the panel's left edge to widen it; the button next to the title detaches it into a floating window, which you move by dragging the dotted handle at the top and resize from the bottom right corner, and the same button docks it again. Stella remembers the width and position. A note already written opens in **Preview**, a new one ready for writing. Notes save themselves as you type, as `notes/<name>.md` files of the project; the bin moves them to `deleted`. An AI working on the project reads them with `stella notes`. The button at the top left collapses the sidebar to icons, and the arrows next to panel headings move panels to the other side of the window.
+**The sidebar.** Items are reordered by dragging them; the + next to each heading creates a new item. The button at the top left collapses the sidebar to icons, and the arrows next to panel headings move panels to the other side of the window. Hovering over an item shows a preview: the first components of a set, the front and back of a template, a sentence in a style, the icon or color of a variable.
+
+The ⋯ button next to the name of the open set or template opens a menu to rename it, duplicate it, delete it and, for a template, create a derived one (**Derive**). The same menu opens from the ⋯ that appears when you hover an item in the sidebar, or with a right click on the item.
+
+Renaming a set also renames its sheet in the data file. If the sheet is already in the file, Stella asks first, because formulas in other sheets that refer to it would break. Renaming a template renames its file, and the new name goes into the sets, derived templates and `template` column of the components that use it. Files are renamed when you save.
+
+**Deleting and restoring.** A deleted template goes to the project's `deleted` folder. The sheet of a deleted set also leaves the data file when you save and goes to `deleted` as a file of its own, so its name is free again. **Trash…**, in the **Project** menu, lists what is in `deleted` (templates, sets, notes and documents, newest first). **Restore** puts an item back in the project: a set gets the template you choose (Stella proposes the one with most columns in common), a name already taken gets a number. Restored templates and sets leave the trash when you save.
+
+**Styles and variables.** Their headings show how many items they hold: with more than six items the section starts closed, and Stella remembers for each project whether you opened or closed it. They can be split into groups with the **Group** field of their window: the items of a group sit under its heading, which closes and opens with a click, after the items without a group. An item dragged onto a group heading joins that group; dragged onto another item, it takes that item's group (or none). With more than 12 items, a field above the list filters them by name. In the window of a style or variable, **Where it is used** lists the templates (with their layers), the sets (with component numbers) and the other variables and styles that refer to it; clicking a template or set opens it.
+
+**Notes.** The **Notes** section holds notes about the project. Until there are documents or notes, their sections show a **+ Document** and a **+ Note** button. The + creates a note, a click opens it in a panel beside any screen, where you write in Markdown (**Preview** shows it formatted, tables included) and rename it from its title. A note already written opens in **Preview**, a new one ready for writing.
+
+Drag the notes panel's left edge to widen it. The button next to the title detaches it into a floating window, which you move by dragging the dotted handle at the top and resize from the bottom right corner; the same button docks it again. Stella remembers the width and position. Notes save themselves as you type, as `notes/<name>.md` files of the project; the bin moves them to `deleted`. An AI working on the project reads them with `stella notes`.
 
 **History of changes.** The clock button, next to undo and redo, opens the list of the project's changes, newest at the top: for each one it says what changed (for example "character: name (X, Y)" or "Characters: row 3, strength"), in which set, template or document, and at what time. Above **Now** are the undone changes, struck through, which can be redone; below are the ones made. A click on an entry undoes, or redoes, every change up to it in one go and takes you to the screen of the change. The history lasts while the project stays open and is cleared when it is reloaded from disk; it keeps the last 100 changes.
 
@@ -233,9 +249,11 @@ In the desktop app the same commands are also in the app menu (on the Mac in the
 
 ### 4.1 Creating a template
 
-The + next to **Templates** opens the new template window. At the top, **What are you making?** picks the kind of component: **Card**, **Token**, **Tile**, **Board**, **Die face** or **Standee**. The kind suggests suitable formats (20, 25 and 38 mm rounds for a token, squares and hexagons for a tile, 30 cm, A3 and A4 for a board) and changes the words of the app: in the set the button becomes **+ Token** or **+ Face**, and counts say "6 faces". For a die each row of the set is a face. With **Die face** you also choose the die: **d2** (a coin, heads and tails), **d3** (a cube with each face twice), **d4**, **d6**, **d8**, **d10**, **d12** and **d20**. The template takes the shape of the face: a triangle for d4, d8 and d20, a kite for the d10, a regular pentagon for the d12, a circle for the coin and a square for d3 and d6. Triangles and pentagons have fixed proportions, so you only choose the width and the height follows; the d10 kite can be one to two widths tall (1.25 by default). A die face has only a front: the editor does not show the back and exports do not print it. The template starts with a `value` layer in the middle, and a new set with one row per face, values from 1 to the number of faces. Then you write the name, the format and the size; the lock between width and height keeps the proportions.
+The + next to **Templates** opens the new template window. At the top, **What are you making?** picks the kind of component: **Card**, **Token**, **Tile**, **Board**, **Die face** or **Standee**. The kind suggests suitable formats (20, 25 and 38 mm rounds for a token, squares and hexagons for a tile, 30 cm, A3 and A4 for a board) and changes the words of the app: in the set the button becomes **+ Token** or **+ Face**, and counts say "6 faces". Then you write the name, the format and the size; the lock between width and height keeps the proportions.
 
-**Starting layout**, at the bottom of the window, chooses what the template starts from. By default it is **Empty**: only the background. The other choices already place a few layers to edit, with a thumbnail showing how they will look. For a card: **Title, art, text**, **Title and text** or **Full art** (the art up to the cut line and the title at the bottom). For a token **Icon** or **Number** in the middle, for a tile and a board **Title and art**, for a standee **Figure**. The layers are called `title`, `art`, `text` (or `number`) and read the columns with the same name; the sample text ("Title", "Rules text") is the template value, shown while the card's cell is empty. Die faces do not have this choice: they already start with their number.
+**Die faces.** For a die each row of the set is a face. With **Die face** you also choose the die: **d2** (a coin, heads and tails), **d3** (a cube with each face twice), **d4**, **d6**, **d8**, **d10**, **d12** and **d20**. The template takes the shape of the face: a triangle for d4, d8 and d20, a kite for the d10, a regular pentagon for the d12, a circle for the coin and a square for d3 and d6. Triangles and pentagons have fixed proportions, so you only choose the width and the height follows; the d10 kite can be one to two widths tall (1.25 by default). A die face has only a front: the editor does not show the back and exports do not print it. The template starts with a `value` layer in the middle, and a new set with one row per face, values from 1 to the number of faces.
+
+**Starting layout**, at the bottom of the window, chooses what the template starts from. By default it is **Empty**: only the background. The other choices already place a few layers to edit, with a thumbnail showing how they will look. For a card: **Title, art, text**, **Title and text** or **Full art** (the art up to the cut line and the title at the bottom). For a token **Icon** or **Number** in the middle, for a tile and a board **Title and art**, for a standee **Figure**. The layers are called `title`, `art`, `text` (or `number`) and read the columns with the same name; the sample text ("Title", "Rules text") is the template value, shown while the component's cell is empty. Die faces do not have this choice: they already start with their number.
 
 A new token has its back the same as the front: **Back** in the template properties shows a closed lock, and the back uses the same layers as the front, in print too. Opening the lock lets you draw the back on its own, for tokens with two different faces.
 
@@ -253,14 +271,22 @@ A **standee** is a figure that stands upright, for example a character drawn on 
 
 ![The template editor, with numbered parts](img/editor.png)
 
-1. **Tools** to add a layer, each with its name: **Text** (T), **Image**, **Shapes** (a menu with rectangle (R), ellipse (E), polygon, star and line), **Grid**, **Value** and **Snap** (a Tabletop Simulator snap point, P). **Image** opens the image picker right away; **No image for now** creates the layer empty, for example when the image comes from a column. An image dragged from the computer onto the canvas becomes an image layer and is copied into `assets/images`. **Front** and **Back** switch between the sides of the card. Undo and redo are the ones in the top bar, shared by the whole project.
-2. **Layers**, top to bottom as they overlap on the card. Next to each layer are the source of its value (sheet column, or _fx_ for a formula), the lock and the eye to hide it. At the bottom of the list the ↑ and ↓ arrows move the selected layer, and **Group**, **Ungroup**, **Duplicate** and **Delete** do what they say; when the panel is narrow only the icons are left.
-3. **Canvas** with the card. The red dashed line is the trim edge, the area outside it is the bleed, the light blue dashed line is the safe area.
+1. **Tools** to add a layer, each with its name: **Text** (T), **Image**, **Shapes** (a menu with rectangle (R), ellipse (E), polygon, star and line), **Grid**, **Value** and **Snap** (a Tabletop Simulator snap point, P). **Image** opens the image picker right away; **No image for now** creates the layer empty, for example when the image comes from a column. An image dragged from the computer onto the canvas becomes an image layer and is copied into `assets/images`. **Front** and **Back** switch between the sides of the component. Undo and redo are the ones in the top bar, shared by the whole project.
+2. **Layers**, top to bottom as they overlap on the component. Next to each layer are the source of its value (sheet column, or _fx_ for a formula), the lock and the eye to hide it. At the bottom of the list the ↑ and ↓ arrows move the selected layer, and **Group**, **Ungroup**, **Duplicate** and **Delete** do what they say; when the panel is narrow only the icons are left.
+3. **Canvas** with the component. The red dashed line is the trim edge, the area outside it is the bleed, the light blue dashed line is the safe area.
 4. **Properties** of the selected layer, or of the template when nothing is selected. In a narrow window the layers and properties panels shrink by themselves to leave room for the canvas, and go back to their width when the window gets wider; if you drag their edge, the width you choose wins.
-5. **Canvas bar**: shows or hides bleed, safe area and grid, chooses what to snap to (grid, objects) and sets the zoom. The grid spacing has two fields, across and down: each is a size (mm, or the unit chosen in the settings) or, choosing **parts** in the menu next to it, the number of columns or rows the component is split into. For example 5 parts × 10 parts splits the card into 5 columns and 10 rows of the same size. Snapping to the grid works like snapping to objects: when a side or the center of what you move comes close to a grid line it snaps to it, and the center also snaps to the middle of the sections; away from the lines the object moves freely, by half a millimetre. The line it snaps to lights up. So a canvas grid splits the component into sections and centers the objects in each one. When the grid is very dense only some lines are drawn, and snapping uses only the lines you can see.
-6. **Data**: draws the canvas with the values of a card from a set, instead of the template values. **Open set**, next to it, opens the set that uses the template, to see the change on all its cards; if more than one set uses the template, it asks which. The set chosen in **Data** opens on the card shown. Stella remembers the **Data** choice for each template: opening it again shows the same card, or no data if you chose **none**.
+5. **Canvas bar**: shows or hides bleed, safe area and grid, chooses what to snap to (grid, objects) and sets the zoom.
+6. **Data**: draws the canvas with the values of a component from a set, instead of the template values. **Open set**, next to it, opens the set that uses the template, to see the change on all its components; if more than one set uses the template, it asks which. The set chosen in **Data** opens on the component shown. Stella remembers the **Data** choice for each template: opening it again shows the same component, or no data if you chose **none**.
 
-On the canvas you move layers by dragging them, resize them with the handles and rotate them with the round handle at the top (Shift for 15° steps). Holding Shift while moving, the layer moves only horizontally, vertically or at 45°, whichever direction is closest; this also works when Shift is pressed before you start dragging a layer that is already selected. Shift+click without dragging adds a layer to the selection or removes it. While resizing, Shift switches the proportion lock (keeps proportions when they are free, frees them when they are locked) and ⌘ / Ctrl resizes from the center; the two can be combined. While dragging, edges snap to the grid, to other layers and to guides; holding Alt drags freely. Alt+click selects the layer underneath the selected one at the same spot: useful when a larger layer covers others. A layer that is already selected, also when chosen this way or in the layer list, can be dragged even where another layer covers it; a click without dragging selects the one on top instead. The arrow keys move the layer by 0.5 mm, with Shift by 5 mm.
+**The canvas grid.** The grid spacing has two fields, across and down: each is a size (mm, or the unit chosen in the settings) or, choosing **parts** in the menu next to it, the number of columns or rows the component is split into. For example 5 parts × 10 parts splits a card into 5 columns and 10 rows of the same size. When the grid is very dense only some lines are drawn.
+
+Snapping to the grid works like snapping to objects: when a side or the center of what you move comes close to a grid line it snaps to it, and the center also snaps to the middle of the sections; away from the lines the object moves freely, by half a millimetre. The line it snaps to lights up, and snapping uses only the lines you can see. So a canvas grid splits the component into sections and centers the objects in each one.
+
+On the canvas you move layers by dragging them, resize them with the handles and rotate them with the round handle at the top (Shift for 15° steps). Holding Shift while moving, the layer moves only horizontally, vertically or at 45°, whichever direction is closest; this also works when Shift is pressed before you start dragging a layer that is already selected. Shift+click without dragging adds a layer to the selection or removes it.
+
+While resizing, Shift switches the proportion lock (keeps proportions when they are free, frees them when they are locked) and ⌘ / Ctrl resizes from the center; the two can be combined. While dragging, edges snap to the grid, to other layers and to guides; holding Alt drags freely.
+
+Alt+click selects the layer underneath the selected one at the same spot: useful when a larger layer covers others. A layer that is already selected, also when chosen this way or in the layer list, can be dragged even where another layer covers it; a click without dragging selects the one on top instead. The arrow keys move the layer by 0.5 mm, with Shift by 5 mm.
 
 In the layer list you drag a layer to change its order, or onto the middle of a group to move it inside. Shift or ⌘ / Ctrl selects several layers; ⌘G / Ctrl+G groups them. With several layers selected the properties panel shows what they have in common (opacity, rotation, visibility, and the type's own properties when they are all of the same type, for example text color and size): a change applies to all of them. The fields show the values of the first selected layer.
 
@@ -268,17 +294,21 @@ Selected layers are copied with ⌘C / Ctrl+C (⌘X / Ctrl+X to cut them) and pa
 
 ### 4.3 Template properties
 
-With no layer selected, the panel shows the template properties: the kind of component, size, bleed (3 mm by default), safe margin, card shape (rectangle with rounded corners, circle or ellipse, hexagon, outline taken from an image), shape orientation, manual guides and **Component name**, the field shown under each card in the grid. **Shape orientation** turns or mirrors only the outline, not the content: ⟲ and ⟳ make a quarter turn and swap width and height (a hexagon with a flat top gets a point on top), **180°** turns the shape upside down (a shield taken from an image ends up point up), ⇆ and ⇅ mirror it. With a quarter turn the layers adjust as when you change the size. The hexagon is always regular, the largest that fits in the card: to fill it, the short side must be the long side × 0.866, and the **Fit the component to the hexagon** button changes the short side that way. In polygon and star shapes, **Make regular** turns the frame into a square around the same center, so all sides and angles are equal. **Lock guides**, below the manual guides, stops them from being dragged on the canvas, so they do not move by accident; you can still change their positions in the panel.
+With no layer selected, the panel shows the template properties: the kind of component, size, bleed (3 mm by default), safe margin, component shape (rectangle with rounded corners, circle or ellipse, hexagon, outline taken from an image), shape orientation, manual guides and **Component name**, the field shown under each component in the grid.
 
-When you change the size of a template that already has layers, the app asks whether to scale the layers in proportion or leave them where they are. In the second case each layer follows its **constraints**: two menus in the position section, one horizontal and one vertical, that say what the layer stays attached to when the card changes size.
+**Shape orientation** turns or mirrors only the outline, not the content: ⟲ and ⟳ make a quarter turn and swap width and height (a hexagon with a flat top gets a point on top), **180°** turns the shape upside down (a shield taken from an image ends up point up), ⇆ and ⇅ mirror it. With a quarter turn the layers adjust as when you change the size.
 
-| constraint                                     | what it does when the card changes size                                                              |
-| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| **Stay left** / **Stay at top**                | keeps the distance from the left or top edge                                                         |
-| **Follow right edge** / **Follow bottom edge** | keeps the distance from the right or bottom edge: a footer stays at the bottom even on a taller card |
-| **Stay centered**                              | keeps the distance from the center of the card                                                       |
-| **Stretch with component**                     | keeps the distance from both edges, so it widens or narrows: a background or a full-width band       |
-| **Scale**                                      | position and size change in proportion to the card                                                   |
+The hexagon is always regular, the largest that fits in the component: to fill it, the short side must be the long side × 0.866, and the **Fit the component to the hexagon** button changes the short side that way. In polygon and star shapes, **Make regular** turns the frame into a square around the same center, so all sides and angles are equal. **Lock guides**, below the manual guides, stops them from being dragged on the canvas, so they do not move by accident; you can still change their positions in the panel.
+
+When you change the size of a template that already has layers, the app asks whether to scale the layers in proportion or leave them where they are. In the second case each layer follows its **constraints**: two menus in the position section, one horizontal and one vertical, that say what the layer stays attached to when the component changes size.
+
+| constraint                                     | what it does when the component changes size                                                              |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **Stay left** / **Stay at top**                | keeps the distance from the left or top edge                                                              |
+| **Follow right edge** / **Follow bottom edge** | keeps the distance from the right or bottom edge: a footer stays at the bottom even on a taller component |
+| **Stay centered**                              | keeps the distance from the center of the component                                                       |
+| **Stretch with component**                     | keeps the distance from both edges, so it widens or narrows: a background or a full-width band            |
+| **Scale**                                      | position and size change in proportion to the component                                                   |
 
 Constraints are useful when the same design must fit two sizes, for example a poker card and a tarot card, or when you change the size after designing: set them once and the size change arranges the layers by itself.
 
@@ -306,32 +336,37 @@ In number fields you can drag the label right or left to change the value like a
 At the top of every layer are its **name**, which is also the name of the sheet column, and its **value on components**, with the **fx** button of the formula assistant next to the heading and three choices below across the whole panel:
 
 - **Column**: the sheet column, by default the one with the same name as the layer. An empty cell keeps the value written in the template.
-- **Fixed**: the same value on every card.
-- **Formula**: the value is calculated from the other fields of the card ([chapter 9](#9-formulas-and-calculated-fields)).
+- **Fixed**: the same value on every component.
+- **Formula**: the value is calculated from the other fields of the component ([chapter 9](#9-formulas-and-calculated-fields)).
 
 The main properties by layer type:
 
 - **Text**: content, style, font, weight, size, color, horizontal and vertical alignment, line height, fit (shrink to fit the box, cut off at the box, spill out). Under Advanced: spacing, indent, padding, case, underline, strikethrough, wrapping and letter outline.
-- **Image**: file or variable name, fit (fill by cropping, fill letting the part outside the frame show, fit inside, stretch, original size, tile), alignment, zoom, rotation of the image inside its frame, shift, tint and crop. **Crop…** shows the whole image with a rectangle to move and resize: the layer uses only that part, and the file is not changed. The rectangle can keep the proportions of the layer's frame; × removes the crop. When the image name comes from a column, the crop is tried on the image of the card shown and applies to all cards. Under Advanced: flips, adjustments (grayscale, brightness, contrast, saturation), radius, outline and what to do when the image is missing. The stroke follows the silhouette of what you see: around the drawing of a PNG or SVG with transparency, around the whole picture (a box) when it has no transparency, such as a JPG photo.
+- **Image**: file or variable name, fit (fill by cropping, fill letting the part outside the frame show, fit inside, stretch, original size, tile), alignment, zoom, rotation of the image inside its frame, shift, tint and crop.
+
+  **Crop…** shows the whole image with a rectangle to move and resize: the layer uses only that part, and the file is not changed. The rectangle can keep the proportions of the layer's frame; × removes the crop. When the image name comes from a column, the crop is tried on the image of the component shown and applies to all components.
+
+  Under Advanced: flips, adjustments (grayscale, brightness, contrast, saturation), radius, outline and what to do when the image is missing. The stroke follows the silhouette of what you see: around the drawing of a PNG or SVG with transparency, around the whole picture (a box) when it has no transparency, such as a JPG photo.
+
 - **Shape**: type, fill (none, color, or linear or radial gradient), stroke (solid, dashed, dotted) and corner radius. Polygons and stars have the number of sides or points; a line goes from point A to point B; the "from an image" shape takes the outline of a PNG with transparency or of an SVG.
 - **Grid**: equal cells inside the layer's frame, for boards, tracks and maps ([4.8](#48-the-grid)).
 - **Group**: holds other layers, which move, rotate and hide together. **Arrange children** puts them in a row, a column or a grid with a fixed gap, with no aligning by hand: three icons in a row keep the same distance even when one is hidden. **Repeat** draws the group a fixed number of times or as many as a field says: with `{strength}`, one sword for each point of strength. With the mask, the bottom layer of the group is the shape for the others: a portrait inside a circle is a group with an ellipse at the bottom and the image above it. When the bottom layer is an image with transparent parts (PNG or SVG) or a text, the shape is what you see of the layer, not its box: with a dog silhouette in PNG the rest of the group shows only inside the dog, and with a text inside the letters.
 
 Every layer has position, size, rotation and, in the **Appearance** section, opacity, visibility, blend mode, fade, shadow and lock.
 
-For text, **Fit** decides what happens when the text does not fit the box: **Shrink to fit** lowers the size down to the **Minimum size**, **Grow or shrink to fill the box** gives the text the largest size that fits the box, between the **Minimum size** and the **Maximum size** (handy for titles and big numbers: a short name becomes big, a long one shrinks), **Cut off at the box** hides what goes outside, **Spill out of the box** draws it beyond the edge. For rules text, shrinking is the usual choice, with a minimum size that is still readable; **Check texts…** ([5.3](#53-sorting-and-filtering)) finds the cards where even the minimum size is not enough.
+For text, **Fit** decides what happens when the text does not fit the box: **Shrink to fit** lowers the size down to the **Minimum size**, **Grow or shrink to fill the box** gives the text the largest size that fits the box, between the **Minimum size** and the **Maximum size** (handy for titles and big numbers: a short name becomes big, a long one shrinks), **Cut off at the box** hides what goes outside, **Spill out of the box** draws it beyond the edge. For rules text, shrinking is the usual choice, with a minimum size that is still readable; **Check texts…** ([5.3](#53-sorting-and-filtering)) finds the components where even the minimum size is not enough.
 
 In the **Appearance** section, **opacity** makes the layer transparent; the **blend** mode says how it combines with what is below (**Multiply** darkens a background with a texture, **Screen** lightens it); the **fade** blends the opacity from one side of the layer to the other, or from the center to the edges, to let a background image vanish towards the text; the **shadow** has a color, a blur and an offset, and a light shadow under a title lifts it from a pale background. **Locked** stops the layer from being selected and moved on the canvas, handy for the background.
 
 ### 4.5 Aligning and distributing
 
-With two or more layers selected, the buttons at the top of the panel align them to each other, to the card or to the safe area, and distribute them with equal spacing. **Arrange in a grid** places them in rows and columns.
+With two or more layers selected, the buttons at the top of the panel align them to each other, to the component or to the safe area, and distribute them with equal spacing. **Arrange in a grid** places them in rows and columns.
 
 ![Aligning two selected layers](img/allinea.png)
 
 ### 4.6 The back
 
-**Back** in the editor bar shows the layers of the back, which work like those of the front: they can be the same for every card or take values from the sheet. For standees the back is the front mirrored: you can see it but not edit it. In the set grid, **Back** shows the back of every card.
+**Back** in the editor bar shows the layers of the back, which work like those of the front: they can be the same for every component or take values from the sheet. For standees the back is the front mirrored: you can see it but not edit it. In the set grid, **Back** shows the back of every component.
 
 ![The backs of the cards in the grid](img/griglia-retro.png)
 
@@ -346,23 +381,51 @@ You work as on a normal template, with a few differences:
 - In the properties panel, next to each value, the chain means it comes from the base; the arrow means the derived template changed it, and clicking the arrow goes back to the base value.
 - In the layers panel, the chain marks the base layers, the arrow the ones with changes (a click reverts them to the base), the + the ones that exist only in the derived template.
 - Base layers cannot be deleted (Delete hides them), moved in the list or renamed: their name is also the sheet column, the same as in the base. Added layers work as usual.
-- The card size is the base's.
+- The component size is the base's.
 
 **Make independent**, in the header, turns the derived template into a normal one with the values it has at that moment. A template that is the base of another cannot be deleted until its derived templates are made independent or deleted.
 
 ### 4.8 The grid
 
-The **grid** layer (the tool with the cells) draws equal cells inside its frame: for boards, score tracks, maps, tables to fill in by hand. Cells are square, round, hexagonal, triangular, diamond-shaped or take their shape from an image (the outline of its non-transparent part, with its proportions), in rows and columns with a gap between them. The gap is the same for rows and columns; with **Different gap for rows and columns** you set the gap between columns and the gap between rows separately. A negative gap makes the cells overlap by that many millimetres. **Cell rotation** turns the shape of each cell around its center, for any shape: the cells stay in place and their content does not turn. **Interlocking** arranges hexagons as a honeycomb (point up or side up), triangles alternating up and down, diamonds and circles in the spaces between the others, and squares like bricks. Cells have a fill, an outline and a corner radius (not circles); the **grid background** fills the space behind and between the cells up to the **grid border**, which has its own outline. With **Automatic size** (under Advanced, on by default) the cell size comes from the frame: Advanced has the cell proportions, the zoom (100% is the largest grid that fits the frame without stretching the cells) and the position in the frame. Turned off, you type the cell size (width and height; one size for hexagons and triangles) and the grid takes the size that results: the layer width and height can no longer be changed by hand, and the top-left corner stays put when rows, columns or cells change. Advanced also has the padding between cells and border, the background corner radius and cutting what goes outside. The cell fill is the layer's value, so it can change from card to card; for other properties use columns such as `grid.rows`.
+The **grid** layer (the tool with the cells) draws equal cells inside its frame: for boards, score tracks, maps, tables to fill in by hand. Cells are square, round, hexagonal, triangular, diamond-shaped or take their shape from an image (the outline of its non-transparent part, with its proportions), in rows and columns with a gap between them. The gap is the same for rows and columns; with **Different gap for rows and columns** you set the gap between columns and the gap between rows separately. A negative gap makes the cells overlap by that many millimetres.
+
+**Cell rotation** turns the shape of each cell around its center, for any shape: the cells stay in place and their content does not turn. **Interlocking** arranges hexagons as a honeycomb (point up or side up), triangles alternating up and down, diamonds and circles in the spaces between the others, and squares like bricks.
+
+Cells have a fill, an outline and a corner radius (not circles); the **grid background** fills the space behind and between the cells up to the **grid border**, which has its own outline.
+
+With **Automatic size** (under Advanced, on by default) the cell size comes from the frame: Advanced has the cell proportions, the zoom (100% is the largest grid that fits the frame without stretching the cells) and the position in the frame. Turned off, you type the cell size (width and height; one size for hexagons and triangles) and the grid takes the size that results: the layer width and height can no longer be changed by hand, and the top-left corner stays put when rows, columns or cells change. Advanced also has the padding between cells and border, the background corner radius and cutting what goes outside. The cell fill is the layer's value, so it can change from component to component; for other properties use columns such as `grid.rows`.
 
 ![A grid layer with interlocking hexagonal cells](img/griglia-livello.png)
 
-**Insert content in all cells** opens a window with three choices: **Value** (a text that changes from cell to cell; the formula assistant opens), **Shape or image** (rectangle, ellipse, polygon, star, an image to choose or an image variable) or **Group** (a group you already have in the layer list). The content is a group that lives inside the grid: the layer list shows it under the grid, indented, labelled “content”, and it moves with the grid. Draw it in the first cell and the other cells get a copy moved to their place; a new layer added to the group takes the size of the cell. With **Centered on the cells** (on by default) the group stays at the center of the first cell even when the grid changes; turned off, it moves freely. **Cut at the cell edge** does not draw what goes outside each cell (also for the content of the rules); **Cut what goes outside the frame**, under Advanced, cuts at the frame of the whole grid instead. In the content box **Select** selects the group, **Change…** opens the window again and **Remove** puts the group back in the layer list, above the grid. Files made with earlier versions, where the group was in the list, open with the group already moved into the grid. Inside the group the fields `{cell.index}` (1, 2, 3… by rows), `{cell.row}`, `{cell.column}`, `{cell.count}` (number of cells), `{cell.rows}` and `{cell.columns}` (rows and columns of the grid) and `{cell.random}` (a number from 1 to 999999, fixed for each card and cell) change from cell to cell: a text with the formula `=IF(MOD({cell.index}; 10) = 0; "[" & {cell.index} & "]{color=red}"; {cell.index})` numbers a score track with multiples of 10 in red, an icon with `=PICK({cell.index}; {icons})` shows the icons of an `icons` column in sequence. To number the cells in another order, use the **Running number** card of the assistant (the first one with a cell content): choose ascending or descending, by row or by column, in sequence, snaking (1 2 3 4 / 8 7 6 5: each row starts again from the side closest to where the previous one ended) or along a path (the number always steps to the next uncounted cell, straight if it can, otherwise turning: it goes around a ring of border cells, spirals on a full grid or follows a road drawn by hiding cells), all cells or only the visible ones, and the starting number; it writes a formula with `CELLNUMBER` (section 9). To place items at random but a set number of times, use the **Deal at random, with quantities** card: for each item write how many times it appears, exactly (`4`), a range (`3-5`), a minimum (`2-`), a maximum (`-3`) or nothing (as many as needed to fill). With a maximum the number of times is random between the minimum and the maximum (`0-2`: 0, 1 or 2 times); items with no maximum fill the cells that are left, otherwise they stay empty. **+ Total** adds at the end how many items the whole grid must have, written the same way: `=DEAL("{wheat}"; "-2"; "{wood}"; "-2"; "{stone}"; "-2"; "2-")` deals up to 2 icons of each kind but at least 2 in all; with no total there is no check, and the grid can even stay empty. A 4×4 grid with four icons, each 4 times: `=DEAL("sword"; 4; "shield"; 4; "hand"; 4; "helmet"; 4)`. Only the position changes, different for each component and the same at every export; hidden cells are left out. In the editor the group stays selectable where it is; on the cards it only shows in the cells.
+**Insert content in all cells** opens a window with three choices: **Value** (a text that changes from cell to cell; the formula assistant opens), **Shape or image** (rectangle, ellipse, polygon, star, an image to choose or an image variable) or **Group** (a group you already have in the layer list). The content is a group that lives inside the grid: the layer list shows it under the grid, indented, labelled “content”, and it moves with the grid.
 
-**Cell rules**, below the content, changes the look of some cells without adding layers. Each rule has a condition (**When**) and what changes where the condition is true: **Change the fill**, **Change the outline**, **Change the corner radius**, **Hide the cell** (which also removes the content and the snap point of that cell) and, when the grid has a content, **Change “…”** for each layer of the content: the text of a text, the image of an image, the color of a shape. So “put the sword icon in cells 3, 8 and 11, the text xyz in 5, 6 and 13” is two rules, with no formulas in the content; the value can use `{fields}` and `{cell.index}`, or be a formula starting with `=`. **Choose the cells…** opens the grid drawn large: click the cells (or drag over several) and the condition becomes `=INLIST({cell.index}; "3, 8, 11")`. The rule remembers the cell numbers: if you change the rows or columns of the grid, check it again. You can also write the condition: it is a formula with the fields `{cell.index}`, `{cell.row}`, `{cell.column}`, `{cell.count}` and the component fields. `=MOD({cell.index}; 5) = 0` colors one cell in five, `={cell.row} = {row}` highlights the row written in the sheet, `=INLIST({cell.index}; "1, 2, 9-11")` applies to cells 1, 2, 9, 10 and 11. The condition also reads the content layers that have a formula, by their name: if the text `grid_text` numbers the cells with `CELLNUMBER`, `=MOD({grid_text}; 10) = 0` applies every ten written numbers and not every ten positions (the value is the one before the rules). The **fx** button opens the formula assistant, with the **Component & cell** tab, the **The cells I list**, **Every N cells** (with **counting**, to choose between the position in the grid and a content layer) and **Checkerboard** sentences and the result of the first cells; under the condition you read how many cells it applies to in the first component. Rules apply in order and a later rule wins; the arrows change the order. Each rule is a box that opens and closes with a click on its header; closed, it shows the colour it sets, whether it hides the cells, whether it has its own content and how many cells it applies to. **Custom content** gives the rule its own content, chosen with the same window: in the cells of the rule it takes the place of the content of all cells (for example a star instead of the number in the special cells of a track). In the layer list the rule group sits under the grid labelled “rule 1”, “rule 2”…, and in the editor you draw it in the first cell where the rule applies.
+Draw it in the first cell and the other cells get a copy moved to their place; a new layer added to the group takes the size of the cell. With **Centered on the cells** (on by default) the group stays at the center of the first cell even when the grid changes; turned off, it moves freely. **Cut at the cell edge** does not draw what goes outside each cell (also for the content of the rules); **Cut what goes outside the frame**, under Advanced, cuts at the frame of the whole grid instead.
+
+In the content box **Select** selects the group, **Change…** opens the window again and **Remove** puts the group back in the layer list, above the grid. Files made with earlier versions, where the group was in the list, open with the group already moved into the grid.
+
+**Cell fields.** Inside the group the fields `{cell.index}` (1, 2, 3… by rows), `{cell.row}`, `{cell.column}`, `{cell.count}` (number of cells), `{cell.rows}` and `{cell.columns}` (rows and columns of the grid) and `{cell.random}` (a number from 1 to 999999, fixed for each component and cell) change from cell to cell: a text with the formula `=IF(MOD({cell.index}; 10) = 0; "[" & {cell.index} & "]{color=red}"; {cell.index})` numbers a score track with multiples of 10 in red, an icon with `=PICK({cell.index}; {icons})` shows the icons of an `icons` column in sequence.
+
+**Numbering the cells.** To number the cells in another order, use the **Running number** card of the assistant (the first one with a cell content): choose ascending or descending, by row or by column, in sequence, snaking (1 2 3 4 / 8 7 6 5: each row starts again from the side closest to where the previous one ended) or along a path (the number always steps to the next uncounted cell, straight if it can, otherwise turning: it goes around a ring of border cells, spirals on a full grid or follows a road drawn by hiding cells), all cells or only the visible ones, and the starting number; it writes a formula with `CELLNUMBER` (section 9).
+
+**Dealing at random.** To place items at random but a set number of times, use the **Deal at random, with quantities** card: for each item write how many times it appears, exactly (`4`), a range (`3-5`), a minimum (`2-`), a maximum (`-3`) or nothing (as many as needed to fill). With a maximum the number of times is random between the minimum and the maximum (`0-2`: 0, 1 or 2 times); items with no maximum fill the cells that are left, otherwise they stay empty.
+
+**+ Total** adds at the end how many items the whole grid must have, written the same way: `=DEAL("{wheat}"; "-2"; "{wood}"; "-2"; "{stone}"; "-2"; "2-")` deals up to 2 icons of each kind but at least 2 in all; with no total there is no check, and the grid can even stay empty. A 4×4 grid with four icons, each 4 times: `=DEAL("sword"; 4; "shield"; 4; "hand"; 4; "helmet"; 4)`. Only the position changes, different for each component and the same at every export; hidden cells are left out. In the editor the group stays selectable where it is; on the components it only shows in the cells.
+
+**Cell rules**, below the content, changes the look of some cells without adding layers. Each rule has a condition (**When**) and what changes where the condition is true: **Change the fill**, **Change the outline**, **Change the corner radius**, **Hide the cell** (which also removes the content and the snap point of that cell) and, when the grid has a content, **Change “…”** for each layer of the content: the text of a text, the image of an image, the color of a shape.
+
+So “put the sword icon in cells 3, 8 and 11, the text xyz in 5, 6 and 13” is two rules, with no formulas in the content; the value can use `{fields}` and `{cell.index}`, or be a formula starting with `=`. **Choose the cells…** opens the grid drawn large: click the cells (or drag over several) and the condition becomes `=INLIST({cell.index}; "3, 8, 11")`. The rule remembers the cell numbers: if you change the rows or columns of the grid, check it again.
+
+You can also write the condition: it is a formula with the fields `{cell.index}`, `{cell.row}`, `{cell.column}`, `{cell.count}` and the component fields. `=MOD({cell.index}; 5) = 0` colors one cell in five, `={cell.row} = {row}` highlights the row written in the sheet, `=INLIST({cell.index}; "1, 2, 9-11")` applies to cells 1, 2, 9, 10 and 11. The condition also reads the content layers that have a formula, by their name: if the text `grid_text` numbers the cells with `CELLNUMBER`, `=MOD({grid_text}; 10) = 0` applies every ten written numbers and not every ten positions (the value is the one before the rules).
+
+The **fx** button opens the formula assistant, with the **Component & cell** tab, the **The cells I list**, **Every N cells** (with **counting**, to choose between the position in the grid and a content layer) and **Checkerboard** sentences and the result of the first cells; under the condition you read how many cells it applies to in the first component.
+
+Rules apply in order and a later rule wins; the arrows change the order. Each rule is a box that opens and closes with a click on its header; closed, it shows the colour it sets, whether it hides the cells, whether it has its own content and how many cells it applies to.
+
+**Custom content** gives the rule its own content, chosen with the same window: in the cells of the rule it takes the place of the content of all cells (for example a star instead of the number in the special cells of a track). In the layer list the rule group sits under the grid labelled “rule 1”, “rule 2”…, and in the editor you draw it in the first cell where the rule applies.
 
 ![A score track: the group of the first cell repeated in all of them, with multiples of 10 in red](img/griglia-caselle.png)
 
-## 5. Entering and editing cards
+## 5. Entering and editing components
 
 ### 5.1 Creating a set
 
@@ -374,11 +437,13 @@ The sheet can also be one already used by another set: the two sets share the ro
 
 ### 5.2 Table and grid
 
-A set opens in the **grid**, with the cards drawn; **Table** shows it as a spreadsheet.
+A set opens in the **grid**, with the components drawn; **Table** shows it as a spreadsheet.
 
-The **table** shows the text of the cells as it looks on the card: bold, colors, icons and variables, with repeated icons (`{sword*strength}`) following the value of the row. The written text, with its markup, shows when you hover over the cell and while you edit it. Otherwise it works like a spreadsheet: double-click or type to edit a cell, Alt+Enter for a new line inside the cell, drag the row number to move a card. **+ Card**, **Duplicate** and **Delete** (at the right end of the button row, red only when cards are selected) act on the selected rows (Shift or ⌘ / Ctrl to select more than one, in the grid too). With several cards selected the form on the right edits them in bulk: what you type in a field goes into all of them, while fields with different values stay empty and do not change until you touch them.
+The **table** shows the text of the cells as it looks on the component: bold, colors, icons and variables, with repeated icons (`{sword*strength}`) following the value of the row. The written text, with its markup, shows when you hover over the cell and while you edit it. Otherwise it works like a spreadsheet: double-click or type to edit a cell, Alt+Enter for a new line inside the cell, drag the row number to move a component.
 
-The **Copies** field (the `amount` column of the sheet, headed **Copies amount** in the table) says how many copies of each card to print; empty means 1.
+**+ Card** (or **+ Token**, **+ Tile**… depending on the kind), **Duplicate** and **Delete** act on the selected rows (Shift or ⌘ / Ctrl to select more than one, in the grid too). **Delete** sits at the right end of the button row and is red only when components are selected. With several components selected the form on the right edits them in bulk: what you type in a field goes into all of them, while fields with different values stay empty and do not change until you touch them.
+
+The **Copies** field (the `amount` column of the sheet, headed **Copies amount** in the table) says how many copies of each component to print; empty means 1.
 
 An image file dragged from the computer onto a cell of the table, or onto an image field of the form, is copied into `assets/images` and its name goes into the cell.
 
@@ -386,23 +451,29 @@ The short explanations of the set, the editor and the template properties are be
 
 A set with no components shows the **+ Add the first component** button instead of the table.
 
-The table and the form show every column you can edit: the sheet's columns and the ones the template reads but the sheet does not have yet (with an italic heading), which are created when you type a value. The **Fields** button chooses which columns to hide; **Reset** goes back to the basic view, with only the columns read by layers linked to a column (columns left in the sheet without a layer, for example from an imported TTC project, are hidden) and the field details closed. In the card form the eye next to a layer's field shows or hides that layer on the card. The icons next to the fields appear on the row you are typing in or under the mouse; they stay in view when they tell something: a hidden layer, properties changed for the card, details open. The sliders icon opens the layer's properties for the card (color, italic, shape, position...), with menus for fixed sets of values, number fields and a color picker: a value typed there applies to that card only and creates the `layer.property` column, while an empty field shows the template value in grey. The number on the icon tells how many properties the card changes. The pin next to a property pins it: it stays under its field even with the properties closed and when you change card, until you unpin it with the same pin. Pinned properties belong to the set and are saved in the project. Columns of fixed or formula layers do not reach the card and stay hidden; **Show fixed and formula layers** adds them read only, with the ƒ sign and the value they have on each card.
+The table and the form show every column you can edit: the sheet's columns and the ones the template reads but the sheet does not have yet (with an italic heading), which are created when you type a value. The **Fields** button chooses which columns to hide; **Reset** goes back to the basic view, with only the columns read by layers linked to a column (columns left in the sheet without a layer, for example from an imported TTC project, are hidden) and the field details closed. Columns of fixed or formula layers do not reach the component and stay hidden; **Show fixed and formula layers** adds them read only, with the ƒ sign and the value they have on each component.
+
+**The form icons.** In the component form the eye next to a layer's field shows or hides that layer on the component. The icons next to the fields appear on the row you are typing in or under the mouse; they stay in view when they tell something: a hidden layer, properties changed for the component, details open.
+
+The sliders icon opens the layer's properties for the component (color, italic, shape, position...), with menus for fixed sets of values, number fields and a color picker. A value typed there applies to that component only and creates the `layer.property` column, while an empty field shows the template value in grey. The number on the icon tells how many properties the component changes. The pin next to a property pins it: it stays under its field even with the properties closed and when you change component, until you unpin it with the same pin. Pinned properties belong to the set and are saved in the project.
 
 True/false columns (properties such as `crest.visible` or `name.italic`, and columns where every cell is `true` or `false`) have a checkbox: a click, or the space bar on the cell, ticks or clears it. A faded checkbox means an empty cell: the template value applies.
 
-The **grid** shows the cards as they will be printed. The slider at the top changes the thumbnail size (also with ⌘ / Ctrl and the mouse wheel); dragging a card moves it.
+The **grid** shows the components as they will be printed. The slider at the top changes the thumbnail size (also with ⌘ / Ctrl and the mouse wheel); dragging a component moves it.
 
-![The card grid](img/griglia.png)
+![The grid of a set of cards](img/griglia.png)
 
-To select several cards in the grid, drag on the empty space around the cards: the rectangle selects the cards it touches, and with Shift or ⌘ / Ctrl adds them to the ones already selected. ⌘A / Ctrl+A selects all the cards shown (with a filter, only the ones that pass it), Esc goes back to the card in the preview. Above the grid a bar shows how many cards are selected, with **Select all** and **Keep only one**. Dragging one of the selected cards moves all of them.
+To select several components in the grid, drag on the empty space around them: the rectangle selects the ones it touches, and with Shift or ⌘ / Ctrl adds them to the ones already selected. ⌘A / Ctrl+A selects all the components shown (with a filter, only the ones that pass it), Esc goes back to the component in the preview. Above the grid a bar shows how many components are selected, with **Select all** and **Keep only one**. Dragging one of the selected components moves all of them.
 
 ![Several cards selected in the grid](img/griglia-selezione.png)
 
-In both views, on the right, the form of the selected card has a field for every column. Clicking a layer in the preview takes you to its field; Alt+click on the same spot moves to the layer underneath, useful when a layer covers another. Double-clicking edits the layer right on the card: a box over the layer for text, the thumbnails for an image, the color picker for a shape. Esc cancels the edit, clicking outside or Ctrl+Enter closes it. Double-clicking a fixed or formula layer tells where its value comes from, with a button to open the template. The ⤢ button at the top of the preview opens the card large in a window, with the card form next to it, the same clicks and arrows to move from card to card. Page Up and Page Down move to the previous or next card, even while typing in a field of the form, which stays the same.
+In both views, on the right, the form of the selected component has a field for every column. Clicking a layer in the preview takes you to its field; Alt+click on the same spot moves to the layer underneath, useful when a layer covers another. Page Up and Page Down move to the previous or next component, even while typing in a field of the form, which stays the same.
+
+Double-clicking edits the layer right on the component: a box over the layer for text, the thumbnails for an image, the color picker for a shape. Esc cancels the edit, clicking outside or Ctrl+Enter closes it. Double-clicking a fixed or formula layer tells where its value comes from, with a button to open the template. The ⤢ button at the top of the preview opens the component large in a window, with the form next to it, the same clicks and arrows to move from one component to the next.
 
 ### 5.3 Sorting and filtering
 
-Clicking a column heading sorts the cards (ascending, then descending, then the sheet order); in the grid you pick the column from the menu. The **Filter…** field shows only the rows that contain some text, in all columns or in one.
+Clicking a column heading sorts the components (ascending, then descending, then the sheet order); in the grid you pick the column from the menu. The **Filter…** field shows only the rows that contain some text, in all columns or in one.
 
 Sorting and filtering change only the view: the sheet and the export stay as they are. **Apply this order** reorders the sheet as you see it; **Show all** clears sorting and filter.
 
@@ -410,37 +481,49 @@ Sorting and filtering change only the view: the sheet and the export stay as the
 
 The checks on the set are in the **Tools** menu of the button row, together with **Generate…** and **Split image…**.
 
-**Statistics** (in the row of buttons, next to **Colors**) opens the statistics panel on the right of the table or of the grid: the cards stay in sight and you keep working. The button next to **×** detaches the panel into a floating window, which you move by its dotted handle and resize from the corner, like the notes. The statistics count what the card really shows: an empty cell counts as the template's value (the table shows it in grey italics), and formula layers count too (marked with ƒ). Copies from the `amount` column count, unless you untick **Count the copies**; with a search filter only the cards found count. The tabs:
+**Statistics** (in the row of buttons, next to **Colors**) opens the statistics panel on the right of the table or of the grid: the components stay in sight and you keep working. The button next to **×** detaches the panel into a floating window, which you move by its dotted handle and resize from the corner, like the notes.
 
-- **Values**: how many cards have each value of a field, with the percentage and, for numbers, the **≤ value** column (how many cards have that value or less). For numbers it gives sum, average, median, mode (all the values tied for first), minimum, maximum, standard deviation and the values missing between the minimum and the maximum; hover over each number for a tip on what it means. Click **Value** or **Components** to sort the table.
-- **Cross table**: two fields against each other (rows and columns) and in each cell how many cards, or the sum, average, median, mode, minimum, maximum or standard deviation of a third number field. For example the average strength by faction and cost.
-- **Scatter**: two number fields on a chart, one dot per card, with the trend line. Dots far from the line, in orange, are the cards out of line with the others; hover over a dot to see the card, click it to show it in the preview.
+The statistics count what the component really shows: an empty cell counts as the template's value (the table shows it in grey italics), and formula layers count too (marked with ƒ). Copies from the `amount` column count, unless you untick **Count the copies**; with a search filter only the components found count. The tabs:
+
+- **Values**: how many components have each value of a field, with the percentage and, for numbers, the **≤ value** column (how many have that value or less). For numbers it gives sum, average, median, mode (all the values tied for first), minimum, maximum, standard deviation and the values missing between the minimum and the maximum; hover over each number for a tip on what it means. Click **Value** or **Components** to sort the table.
+- **Cross table**: two fields against each other (rows and columns) and in each cell how many components, or the sum, average, median, mode, minimum, maximum or standard deviation of a third number field. For example the average strength by faction and cost.
+- **Scatter**: two number fields on a chart, one dot per component, with the trend line. Dots far from the line, in orange, are the components out of line with the others; hover over a dot to see the component, click it to show it in the preview.
 - **Draw**: the odds of having at least N cards of each value of a field in the starting hand and in the following turns, choosing the cards in the starting hand and the cards drawn each turn (all the cards drawn, even if you then play or discard them). The deck is never reshuffled; **Shuffled together with** adds the cards of other sets to the deck. **Sample hand** shows a hand shuffled at random: **Shuffle again** makes another, **Draw one more** adds the next card.
 - **Dice** (instead of **Draw** in a set of dice): each die has one row per face (six for the d6, twenty for the d20, three for the d3). Choose how many dice of each kind you roll and what to count (the sum of a number field, the icons or the faces with a value); the table gives the exact odds of each total and of rolling at least that total.
-- **Texts**: the icons (with repeats, `{sword*2}` counts 2), the text variables and the bold words in the chosen text fields, formula texts included; **Look for a word** tells on how many cards it appears.
-- **Overview**: a small chart for every field; click one to open it in **Values**. Fields with a different value on almost every card, like the name, are only listed.
+- **Texts**: the icons (with repeats, `{sword*2}` counts 2), the text variables and the bold words in the chosen text fields, formula texts included; **Look for a word** tells on how many components it appears.
+- **Overview**: a small chart for every field; click one to open it in **Values**. Fields with a different value on almost every component, like the name, are only listed.
 
-Clicking a value, a cell of the cross table or an entry of the texts shows only those cards in the table and in the grid; the bar above the table says which filter is on and **Show all** removes it. **Copy** copies the table of the tab, for a spreadsheet or as a Markdown table for notes and documents.
+Clicking a value, a cell of the cross table or an entry of the texts shows only those components in the table and in the grid; the bar above the table says which filter is on and **Show all** removes it. **Copy** copies the table of the tab, for a spreadsheet or as a Markdown table for notes and documents.
 
-**Colors** colors the cells of the table by the value of one or more fields, formula ones too: tick the fields, and each colors its own column, one color per value or, for numbers with many values, per band (low, middle, high). Click a color to change it; with one field only you can color **the whole row**. Above the table a legend shows the colors; click it to open them again. Colors are only a view: they are saved in the project but do not change the cards.
+**Colors** colors the cells of the table by the value of one or more fields, formula ones too: tick the fields, and each colors its own column, one color per value or, for numbers with many values, per band (low, middle, high). Click a color to change it; with one field only you can color **the whole row**. Above the table a legend shows the colors; click it to open them again. Colors are only a view: they are saved in the project but do not change the components.
 
-**Check text…** looks, on every card of the set, front and back, for texts that do not fit in their box: those that spill out, those cut off and those that do not fit even shrunk to the minimum size. The list gives card, side and layers; a click selects the card. A layer with the **Spill out of the box** fit is marked _fixed size_: its text is not shrunk, and the check measures the whole line, including the room below it for letters like "g" and the padding. A large number can therefore look whole and still be reported: make the text smaller, enlarge the box, remove padding or choose **Shrink to fit**. In the grid, cards with text that does not fit have an orange mark next to their name.
+**Check text…** looks, on every component of the set, front and back, for texts that do not fit in their box: those that spill out, those cut off and those that do not fit even shrunk to the minimum size. The list gives component, side and layers; a click selects the component. In the grid, components with text that does not fit have an orange mark next to their name.
 
-**Compare…** marks the cards that are new or changed since the last export or a backup, so you can reprint only those. Pick the version, and in the sets the different cards get a blue dot; **Show only these** hides the others. While comparing, the **Export…** window offers **Changed components**. The comparison looks at what the cards show (data, template, and the variables and styles they use), not at the content of image and font files; a card that only moved does not count as changed, unless it shows its number. Every export made in the app remembers the exported cards in the project's hidden file `.stella-printed.json`.
+A layer with the **Spill out of the box** fit is marked _fixed size_: its text is not shrunk, and the check measures the whole line, including the room below it for letters like "g" and the padding. A large number can therefore look whole and still be reported: make the text smaller, enlarge the box, remove padding or choose **Shrink to fit**.
+
+**Compare…** marks the components that are new or changed since the last export or a backup, so you can reprint only those. Pick the version, and in the sets the different components get a blue dot; **Show only these** hides the others. While comparing, the **Export…** window offers **Changed components**. The comparison looks at what the components show (data, template, and the variables and styles they use), not at the content of image and font files; a component that only moved does not count as changed, unless it shows its number. Every export made in the app remembers the exported components in the project's hidden file `.stella-printed.json`.
 
 ### 5.4 Property columns
 
-Besides the main value, every property of a layer can change card by card with a `layer.property` column: for example `name.color` for the title color, or `icon.tint` for the tint of an icon. **+ Field** suggests the columns the template reads and the sheet lacks, the properties of a layer of your choice, or a free column.
+Besides the main value, every property of a layer can change from one component to another with a `layer.property` column: for example `name.color` for the title color, or `icon.tint` for the tint of an icon. **+ Field** suggests the columns the template reads and the sheet lacks, the properties of a layer of your choice, or a free column.
 
 ![The window to add a column](img/aggiungi-colonna.png)
 
-In cells, colors are written as names (`red`, or the name of a color variable) or in hex (`#A33A2A`); a stroke as `color/width/dash`, for example `red/0.3/dashed`; a crop as `x y width height` in percent of the image, for example `10 0 50 50` (`none` for the whole image). In the card form the **Crop…** button next to the crop field writes these numbers for you.
+In cells, colors are written as names (`red`, or the name of a color variable) or in hex (`#A33A2A`); a stroke as `color/width/dash`, for example `red/0.3/dashed`; a crop as `x y width height` in percent of the image, for example `10 0 50 50` (`none` for the whole image). In the component form the **Crop…** button next to the crop field writes these numbers for you.
 
-The **Template** field, at the top of the card form, picks the template of a single card among those with the set's size: empty means the set's, and the choice goes into the sheet's `template` column. It is useful, for example, to give a few cards of a set a derived template. In the card form the field becomes a menu with the templates that have the same size as the set's.
+The **Template** field, at the top of the component form, picks the template of a single component: it is a menu with the templates that have the same size as the set's. Empty means the set's, and the choice goes into the sheet's `template` column. It is useful, for example, to give a few cards of a set a derived template.
 
 ### 5.5 Editing the file in Excel
 
-The data file is an ordinary spreadsheet and can also be edited with Excel, LibreOffice or Numbers, even with the project open: when you save the file, Stella reads it again by itself. If Stella has unsaved changes to the data, a notice with **Reload** and **Ignore** appears instead. To edit the data only outside Stella, tick **read-only** next to the file name at the bottom of the sidebar and save: Stella no longer writes to the data file, changes to the data in the grid and in the card panel are refused and _read-only_ appears next to the card count. Templates, previews and exports work as usual. **Check data file…**, under the checkbox, shows how Stella reads each sheet: the sets that use it, the columns their templates read and the sheet lacks, and problems (titles above the headings, merged cells, Excel errors, formulas without a saved result, empty rows); it does not change the file. From the same window, **Import a sheet from another file…** puts the rows of a sheet of another file (.xlsx, .ods, .csv) in place of those of a set: first it shows the new, removed and changed rows (matched by a column with all different values, such as the name) and lets you keep the columns the file does not have; then it makes a backup of the project. The change can be undone with ⌘Z / Ctrl+Z. When saving, Stella rewrites only the columns that have a heading: cell formatting, other sheets and columns without a heading stay as they are. A cell with an Excel formula stays a formula as long as its result does not change. If you start from an Excel file you already have, with formulas and analysis sheets, read [Using an Excel file you already have](existing-excel.md).
+The data file is an ordinary spreadsheet and can also be edited with Excel, LibreOffice or Numbers, even with the project open: when you save the file, Stella reads it again by itself. If Stella has unsaved changes to the data, a notice with **Reload** and **Ignore** appears instead.
+
+To edit the data only outside Stella, tick **read-only** next to the file name at the bottom of the sidebar and save. Stella no longer writes to the data file, changes to the data in the grid and in the component form are refused and _read-only_ appears next to the component count. Templates, previews and exports work as usual.
+
+**Check data file…**, under the checkbox, shows how Stella reads each sheet: the sets that use it, the columns their templates read and the sheet lacks, and problems (titles above the headings, merged cells, Excel errors, formulas without a saved result, empty rows); it does not change the file.
+
+From the same window, **Import a sheet from another file…** puts the rows of a sheet of another file (.xlsx, .ods, .csv) in place of those of a set: first it shows the new, removed and changed rows (matched by a column with all different values, such as the name) and lets you keep the columns the file does not have; then it makes a backup of the project. The change can be undone with ⌘Z / Ctrl+Z.
+
+When saving, Stella rewrites only the columns that have a heading: cell formatting, other sheets and columns without a heading stay as they are. A cell with an Excel formula stays a formula as long as its result does not change. If you start from an Excel file you already have, with formulas and analysis sheets, read [Using an Excel file you already have](existing-excel.md).
 
 ### 5.6 Data from Google Sheets
 
@@ -448,31 +531,31 @@ If you keep the data in a Google sheet, **Google Sheets…**, in the **Project**
 
 The link stays in the project: next time just open the window and press **Download**. A sheet not shared by link cannot be downloaded, and Stella says so. An AI can do the same with `stella pull-sheets`.
 
-### 5.7 Cards in several languages
+### 5.7 Components in several languages
 
-A project can print the same cards in several languages. **Languages…**, in the **Project** menu, opens the languages window: the first one is the main language, the one the usual columns are written in. With **Add language** you type the language code (en for English, fr for French, de for German…). Below, **Translated names** gives the name of the project and of the sets in the other languages: `{project.name}` and `{set.name}` use it. With the box at the bottom ticked, **Save** adds the columns to translate to the sheets.
+A project can print the same components in several languages. **Languages…**, in the **Project** menu, opens the languages window: the first one is the main language, the one the usual columns are written in. With **Add language** you type the language code (en for English, fr for French, de for German…). Below, **Translated names** gives the name of the project and of the sets in the other languages: `{project.name}` and `{set.name}` use it. With the box at the bottom ticked, **Save** adds the columns to translate to the sheets.
 
 ![The languages window](img/lingue.png)
 
 The translation of a column goes in a column with the same name followed by @ and the language code: `name@en` next to `name`, `text@en` next to `text`. Columns with only numbers do not need one. An empty translated cell uses the text of the main language, so you can translate a little at a time.
 
-The menu next to the project name, at the top, picks the language the cards are shown in: grid, preview, editor and documents change at once. Double-clicking the card edits the translated text, if the column exists.
+The menu next to the project name, at the top, picks the language the components are shown in: grid, preview, editor and documents change at once. Double-clicking the component edits the translated text, if the column exists.
 
 ![The cards shown in English, with the nome@en column in the card form](img/lingua-carte.png)
 
-Only what is read on the card is translated. Image names, colours and formulas starting with `=` always use the values of the main language: a formula such as `=IF({type}="Attack"; ...)` works in every language without changing it. To have a different image in one language, add its translated column, for example `icon@en`.
+Only what is read on the component is translated. Image names, colours and formulas starting with `=` always use the values of the main language: a formula such as `=IF({type}="Attack"; ...)` works in every language without changing it. To have a different image in one language, add its translated column, for example `icon@en`.
 
-Each language also has its own way of writing numbers, chosen in the **Languages** window with the **Numbers** menu on its row: for English, by default, 1,234.5. Cards in English write numbers this way even when the main language uses the decimal comma (see chapter 9).
+Each language also has its own way of writing numbers, chosen in the **Languages** window with the **Numbers** menu on its row: for English, by default, 1,234.5. Components in English write numbers this way even when the main language uses the decimal comma (see chapter 9).
 
-Texts that do not come from the sheet are translated where you write them. A text layer whose **Value on components** is **Fixed** has, under its text, a field for each other language; the same goes for fixed value layers and, in their window, for text and value variables. A field left empty uses the text of the main language. If a formula with `=` must write a translated text, make it return a variable: `=IF({type}="Attack";"{attack}";"{defence}")` compares the main-language value and writes the `attack` variable in the language of the card.
+Texts that do not come from the sheet are translated where you write them. A text layer whose **Value on components** is **Fixed** has, under its text, a field for each other language; the same goes for fixed value layers and, in their window, for text and value variables. A field left empty uses the text of the main language. If a formula with `=` must write a translated text, make it return a variable: `=IF({type}="Attack";"{attack}";"{defence}")` compares the main-language value and writes the `attack` variable in the language of the component.
 
-A document always uses the main language, even when another language is chosen at the top. For an English rulebook write `language: en` at the top of the document, or choose it in **Page**, under **Component language**: the document's cards and variables will be in English. The **Languages** window says how many texts are left to translate in each language, and `stella check` lists them one by one.
+A document always uses the main language, even when another language is chosen at the top. For an English rulebook write `language: en` at the top of the document, or choose it in **Page**, under **Component language**: the document's components and variables will be in English. The **Languages** window says how many texts are left to translate in each language, and `stella check` lists them one by one.
 
 In **Export…** choose the language, or **All languages**. The main language goes to the usual folder, the others to a subfolder named after their code, for example `export/en`; file names stay the same. An AI does the same with `stella render --lang en` and `stella export --profile NAME --lang all`.
 
 ## 6. Text and markup
 
-Card text is written with a simple markup, the same in the app and in the sheet cells. No HTML is needed.
+Component text is written with a simple markup, the same in the app and in the sheet cells. No HTML is needed.
 
 ### 6.1 Markdown
 
@@ -492,7 +575,9 @@ Card text is written with a simple markup, the same in the app and in the sheet 
 | `<br>`                   | line break where the text is on a single line     |
 | `_4{coin}_`              | never breaks across lines                         |
 
-Every line break starts a new paragraph, as when you type in an Excel cell with Alt+Enter. To keep a piece of text on one line, so that `4` and its icon never end up on different lines, wrap it in underscores: `_4{coin}_`. It is the same as `[4{coin}]{nowrap}`. An underscore inside a word (`file_name`) stays as it is; write `\_` for a lone one. Where the text is on a single line (cells of document tables, anatomy labels, table setup texts and captions) `<br>` breaks the line; in the window fields Shift+Enter or Alt+Enter writes it. It is the only piece of HTML Stella reads; `\<br>` writes it as it is.
+Every line break starts a new paragraph, as when you type in an Excel cell with Alt+Enter. To keep a piece of text on one line, so that `4` and its icon never end up on different lines, wrap it in underscores: `_4{coin}_`. It is the same as `[4{coin}]{nowrap}`. An underscore inside a word (`file_name`) stays as it is; write `\_` for a lone one.
+
+Where the text is on a single line (cells of document tables, anatomy labels, table setup texts and captions) `<br>` breaks the line; in the window fields Shift+Enter or Alt+Enter writes it. It is the only piece of HTML Stella reads; `\<br>` writes it as it is.
 
 ### 6.2 Attributes
 
@@ -517,7 +602,7 @@ The shapes `circle`, `square`, `rounded`, `hexagon` and `diamond` are always ava
 
 | Write                            | You get                                                           |
 | -------------------------------- | ----------------------------------------------------------------- |
-| `{strength}`                     | the value of the card's `strength` field                          |
+| `{strength}`                     | the value of the component's `strength` field                     |
 | `{sword}`                        | the `sword` variable: an icon, a text, a color or a value         |
 | `{sword*3}` · `{sword*strength}` | the icon repeated three times, or as many times as the field says |
 | `{draw:2}` · `{trade:3:1}`       | a text variable with parameters (section 7.1)                     |
@@ -525,7 +610,7 @@ The shapes `circle`, `square`, `rounded`, `hexagon` and `diamond` are always ava
 | `{sword tint=red size=150%}`     | the icon with attributes for this use only                        |
 | `\{`, `\*`, `\[`                 | the literal character                                             |
 
-Stella knows some values by itself, the **system variables**, written like fields, also in formulas: `{project.name}` (the game), `{project.author}` and `{project.version}` (from **Project info…**), `{set.name}`, `{template.name}`, `{card.number}` (the card's row in the set), `{set.rows}`, `{set.cards}` (cards with copies), `{card.copies}`, `{card.copy}` (the printed copy, for example to write `{card.copy}/{card.copies}`), `{card.side}` (`front` or `back`) and `{date}`. A footer like `{set.name} {card.number}/{set.rows}` numbers the cards by itself.
+Stella knows some values by itself, the **system variables**, written like fields, also in formulas: `{project.name}` (the game), `{project.author}` and `{project.version}` (from **Project info…**), `{set.name}`, `{template.name}`, `{card.number}` (the component's row in the set), `{set.rows}`, `{set.cards}` (components with copies), `{card.copies}`, `{card.copy}` (the printed copy, for example to write `{card.copy}/{card.copies}`), `{card.side}` (`front` or `back`) and `{date}`. A footer like `{set.name} {card.number}/{set.rows}` numbers the components by itself. The names start with `card.` for tokens, tiles and the other components too.
 
 The **Help** button in the top bar and on the start screen, or the F1 key, opens a summary of markup, fields and variables, system variables, formulas and shortcuts. The first tab, **First steps**, sums up the four steps from an empty project to printed components, with a link to the guide section for each, the first videos and the words to know (component, template, set, layer, bleed...). It opens there when the project has no components yet; otherwise on the tab used last. Shortcuts appear in the form of the system in use: ⌘ on the Mac, Ctrl on Windows and Linux.
 
@@ -538,7 +623,7 @@ The **Help** button in the top bar and on the start screen, or the F1 key, opens
 
 ### 6.4 Writing help
 
-In the text fields of the editor and of the card form, and in table cells, typing `{` shows fields and variables, with a preview of the icon, text or color. ↑ and ↓ choose, Enter or Tab insert, Esc closes. Inside braces, attributes, styles and colors are suggested the same way.
+In the text fields of the editor and of the component form, and in table cells, typing `{` shows fields and variables, with a preview of the icon, text or color. ↑ and ↓ choose, Enter or Tab insert, Esc closes. Inside braces, attributes, styles and colors are suggested the same way.
 
 Markup is colored as you type. Errors, such as a variable that does not exist, are underlined in red and listed under the preview in **Problems on this component**.
 
@@ -562,7 +647,10 @@ The **Aa Format…** button under a text field opens the visual editor: select p
 Variables are created with the + next to **Variables** and edited with a click. There are four types:
 
 - **Icon**: an image from `assets/` with tint, size relative to the line, vertical shift, rotation, flip and opacity. With **Color of the surrounding text** the icon takes the color of the text. **Background** puts a shape (circle, square, rounded, hexagon, diamond), an image or another image variable behind the image, with **Background color** and **Space around** (the space between the image and the edge of the background). The background applies wherever the variable is used: in texts, image layers, documents and table setups. For example a `water` variable with a drop icon, white tint and a red `circle` background shows the white drop in a red circle.
-- **Text**: a text, formatted if you like, that replaces `{name}`. It can call other variables. It can have **parameters**: `{1}`, `{2}` in the text take the values written after the name, separated by colons. With `draw` = `[Draw {1}]{.keyword}: take {1} cards`, `{draw:2}` writes "Draw 2: take 2 cards"; with `trade` = `Give {1}, get {2}`, `{trade:3:1}` writes "Give 3, get 1". A parameter can be a field (`{draw:{strength}}`) and the same variable can be used several times in one text. For an icon with a number on top, a text variable such as `coin` = `[{1}]{bg=gold color=white}` used as `{coin:3}` is enough. For singular and plural, `{1|card|cards}` writes the first word when parameter 1 is 1, otherwise the second: with `draw` = `take {1} {1|card|cards}`, `{draw:1}` writes "take 1 card" and `{draw:3}` "take 3 cards"; an optional third word is used for zero (`{1|card|cards|no cards}`), and a parameter that is not a number takes the plural. A missing parameter stays empty and is listed among the card's problems; a colon inside a parameter is written `\:`. In the variable's window, **Try with** sets the parameters of the sample sentence.
+- **Text**: a text, formatted if you like, that replaces `{name}`. It can call other variables. It can have **parameters**: `{1}`, `{2}` in the text take the values written after the name, separated by colons. With `draw` = `[Draw {1}]{.keyword}: take {1} cards`, `{draw:2}` writes "Draw 2: take 2 cards"; with `trade` = `Give {1}, get {2}`, `{trade:3:1}` writes "Give 3, get 1". A parameter can be a field (`{draw:{strength}}`) and the same variable can be used several times in one text. For an icon with a number on top, a text variable such as `coin` = `[{1}]{bg=gold color=white}` used as `{coin:3}` is enough.
+
+  For singular and plural, `{1|card|cards}` writes the first word when parameter 1 is 1, otherwise the second: with `draw` = `take {1} {1|card|cards}`, `{draw:1}` writes "take 1 card" and `{draw:3}` "take 3 cards"; an optional third word is used for zero (`{1|card|cards|no cards}`), and a parameter that is not a number takes the plural. A missing parameter stays empty and is listed among the component's problems; a colon inside a parameter is written `\:`. In the variable's window, **Try with** sets the parameters of the sample sentence.
+
 - **Color**: a named color, usable in every color property and in markup attributes. A variable named like a built-in color (for example `red`) redefines it in the whole project.
 - **Value**: a text or a number, usable in texts and formulas (for example the maximum hand size).
 
@@ -573,11 +661,11 @@ Variables are created with the + next to **Variables** and edited with a click. 
 </tr>
 </table>
 
-A sample sentence at the top of the window shows the result. Renaming a variable updates the references in templates, cells, other variables, styles and documents. A variable should not have the name of a layer or a column: `{name}` would show the field, not the variable. The window points it out while you type the name, and the card lists it among its problems.
+A sample sentence at the top of the window shows the result. Renaming a variable updates the references in templates, cells, other variables, styles and documents. A variable should not have the name of a layer or a column: `{name}` would show the field, not the variable. The window points it out while you type the name, and the component lists it among its problems.
 
 ### 7.2 Text styles
 
-A style groups text attributes under a name: it applies to a paragraph (`{.name}` at the start of a line) or to a portion of text (`[text]{.name}`). Changing a style changes every card that uses it. A style can be based on another and inherit its attributes.
+A style groups text attributes under a name: it applies to a paragraph (`{.name}` at the start of a line) or to a portion of text (`[text]{.name}`). Changing a style changes every component that uses it. A style can be based on another and inherit its attributes.
 
 `heading1`, `heading2` and `note` exist in every project and match `#`, `##` and `>`; they can be redefined.
 
@@ -585,7 +673,9 @@ A style groups text attributes under a name: it applies to a paragraph (`{.name}
 
 ### 7.3 Choosing a color
 
-The small square next to every color field opens the color picker: the large area chooses saturation and brightness, the two bars below it hue and transparency. The hex code goes in the field next to the preview; **RGB** and **HSL** switch the three number fields (the up and down arrows change them by 1, with Shift by 10). The eyedropper picks a color from anywhere on the screen, even another window. Below are the project colors: first the color variables, marked by a dot in the corner, which are written by name and show the variable's name when you hover over them; then the codes used in the project (templates, styles, variables and sheets), most used first, leaving out those equal to a variable. At the bottom, the last colors chosen, shared by all projects. Esc or a click outside closes the picker. **None** writes `none`, that is no color: a transparent fill or no outline.
+The small square next to every color field opens the color picker: the large area chooses saturation and brightness, the two bars below it hue and transparency. The hex code goes in the field next to the preview; **RGB** and **HSL** switch the three number fields (the up and down arrows change them by 1, with Shift by 10). The eyedropper picks a color from anywhere on the screen, even another window.
+
+Below are the project colors: first the color variables, marked by a dot in the corner, which are written by name and show the variable's name when you hover over them; then the codes used in the project (templates, styles, variables and sheets), most used first, leaving out those equal to a variable. At the bottom, the last colors chosen, shared by all projects. Esc or a click outside closes the picker. **None** writes `none`, that is no color: a transparent fill or no outline.
 
 ![The color picker](img/colore.png)
 
@@ -630,7 +720,14 @@ Each Iconify collection has its own license, shown by a dot: green for free lice
 The **Aa** button next to the font field opens the font chooser, with three tabs:
 
 - **In the project**: the fonts in `assets/fonts/` and Nunito, the font included in the app.
-- **Google Fonts**: the Google Fonts catalog (about 1900 families). Besides searching by name and the categories, there are other ways to find a font. **Genre** shows the fonts that suit a kind of game: Fantasy, Horror, Western, Sci-fi, Retro and arcade, Military, Kids, Elegant. **Style** picks one of the styles Google gives its fonts: themes (medieval, blackletter, brush, distressed, pixel…), holidays, feelings (calm, playful, vintage…) and classification (geometric sans, old style serif, formal script…). With a genre or a style, the best matches come first. The search finds styles too, in English and Italian: "brush" or "horror" give the fonts with that style, after those with the word in their name. **With bold and italic** keeps only the fonts that have both, useful for card text with `**` and `*`; **Alphabet** keeps those with Greek, Cyrillic, Vietnamese or extended Latin letters. The ☆ next to a font adds it to the **Favorites**, which are the same in every project; **Recent** shows the fonts you downloaded last. In an open font, **Similar fonts** lists the ones that give a similar feeling, closest first. **List** and **Grid**, next to the preview text, change the layout: the grid shows more fonts at once. Choose the styles and **Download** saves the files in `assets/fonts/`, with the license. Previews need the network; once downloaded, the font works offline. **Update catalog** downloads the latest list, with the fonts published after this version of the app.
+- **Google Fonts**: the Google Fonts catalog (about 1900 families). Besides searching by name and the categories, there are other ways to find a font.
+
+  **Genre** shows the fonts that suit a kind of game: Fantasy, Horror, Western, Sci-fi, Retro and arcade, Military, Kids, Elegant. **Style** picks one of the styles Google gives its fonts: themes (medieval, blackletter, brush, distressed, pixel…), holidays, feelings (calm, playful, vintage…) and classification (geometric sans, old style serif, formal script…). With a genre or a style, the best matches come first. The search finds styles too, in English and Italian: "brush" or "horror" give the fonts with that style, after those with the word in their name.
+
+  **With bold and italic** keeps only the fonts that have both, useful for texts with `**` and `*`; **Alphabet** keeps those with Greek, Cyrillic, Vietnamese or extended Latin letters. The ☆ next to a font adds it to the **Favorites**, which are the same in every project; **Recent** shows the fonts you downloaded last. In an open font, **Similar fonts** lists the ones that give a similar feeling, closest first. **List** and **Grid**, next to the preview text, change the layout: the grid shows more fonts at once.
+
+  Choose the styles and **Download** saves the files in `assets/fonts/`, with the license. Previews need the network; once downloaded, the font works offline. **Update catalog** downloads the latest list, with the fonts published after this version of the app.
+
 - **On this computer**: installed fonts. **Copy to project** copies the files to `assets/fonts/`, if the license allows it; otherwise the project looks the same only where that font is installed.
 
 <table>
@@ -640,11 +737,11 @@ The **Aa** button next to the font field opens the font chooser, with three tabs
 </tr>
 </table>
 
-A font that cannot be found is reported under the card and at the end of the export; meanwhile the text uses a default font. Instead of a font name you can write a text variable, for example `{titles}`: changing the variable changes the font of every layer that uses it.
+A font that cannot be found is reported under the component and at the end of the export; meanwhile the text uses a default font. Instead of a font name you can write a text variable, for example `{titles}`: changing the variable changes the font of every layer that uses it.
 
 ## 9. Formulas and calculated fields
 
-A layer with **Value on components: Formula** calculates its value from the other fields of the card.
+A layer with **Value on components: Formula** calculates its value from the other fields of the component.
 
 - **Text composition**: `{name}.png`, `Strength {strength}`.
 - **Calculation**: if the formula contains `+ - * /` and the result is a number, it is calculated: `{strength}+2`.
@@ -670,21 +767,23 @@ The functions, with an example on the cards of this guide (Dragon, strength 4, c
 | `CELLNUMBER(direction; order; path; cells; start)` | the running number of the cell: `"up"`/`"down"`, `"rows"`/`"columns"`, `"straight"`/`"snake"`/`"path"`, `"all"`/`"visible"` | `=CELLNUMBER("up"; "rows"; "snake"; "all"; 1)` → 1 2 3 4 / 8 7 6 5 |
 | `DEAL(item; times; item; times; …)`                | deals the items at random in the visible cells, each as many times as you say: `4`, `3-5`, `2-`, `-3` or empty              | `=DEAL("sword"; 4; "shield"; "")` → 4 swords, the rest shields     |
 
-The **Help** window (F1), **Formulas** tab, has the same table with the result computed on the cards of the open project.
+The **Help** window (F1), **Formulas** tab, has the same table with the result computed on the components of the open project.
 
-**Numbers with a decimal comma.** By default Stella writes numbers with a point: `=ROUND(7/3; 2)` gives 2.33. For a comma, open **Project › Languages…** and, on the main language's row, choose **Numbers: 1.234,5**. From then on the numbers on the cards are written with a comma, both those from the sheet and the results of formulas, and in formulas you write `2,5`: this is why arguments are separated with `;`. The thousands separator appears only where the sheet cell has a format with thousands (in Excel, _Use 1000 separator_); formula results don't have one, so a year stays 2026. Calculated file names, colours and sizes do not change. Without the comma, `=MIN(2,5; 3)` gives the error _write 2.5 with a dot_: you write `2.5`.
+**Numbers with a decimal comma.** By default Stella writes numbers with a point: `=ROUND(7/3; 2)` gives 2.33. For a comma, open **Project › Languages…** and, on the main language's row, choose **Numbers: 1.234,5**. From then on the numbers on the components are written with a comma, both those from the sheet and the results of formulas, and in formulas you write `2,5`: this is why arguments are separated with `;`.
 
-In the example the `rank` layer shows "Hero" or "Follower" depending on strength. Below the formula is its result for the first card of the set.
+The thousands separator appears only where the sheet cell has a format with thousands (in Excel, _Use 1000 separator_); formula results don't have one, so a year stays 2026. Calculated file names, colours and sizes do not change. Without the comma, `=MIN(2,5; 3)` gives the error _write 2.5 with a dot_: you write `2.5`.
+
+In the example the `rank` layer shows "Hero" or "Follower" depending on strength. Below the formula is its result for the first component of the set.
 
 ![A formula on a text layer](img/formula.png)
 
-The **Value** layer (# tool) is not drawn: it holds a card value to use in formulas and in the texts of other layers as `{name}`. In the example, the `points` layer of the market cards counts the resources with `COUNTIN` and the `points_text` layer shows it.
+The **Value** layer (# tool) is not drawn: it holds a component value to use in formulas and in the texts of other layers as `{name}`. In the example, the `points` layer of the market cards counts the resources with `COUNTIN` and the `points_text` layer shows it.
 
 ![A value layer with a formula](img/livello-valore.png)
 
 A value layer can also provide a colour: in colour fields (fill, text colour, stroke, shadow, tint) write the layer's `{name}`, which the field's menu suggests. The calculated value can be a code such as `#A33A2A`, a colour name or a colour variable, for example `=IF({strength}>3; "red"; "blue")`. An empty value gives a transparent colour.
 
-A field's value is, in order of precedence: the calculated value layer, the non-empty cell of the row, the value written in the template. Formula errors are shown under the card and in the properties panel.
+A field's value is, in order of precedence: the calculated value layer, the non-empty cell of the row, the value written in the template. Formula errors are shown under the component and in the properties panel.
 
 ### 9.1 The formula assistant
 
@@ -694,44 +793,52 @@ With an empty formula the assistant asks **What do you want to do?** and offers 
 
 ![The start screen of the assistant](img/assistente-formule-inizio.png)
 
-Once you pick a card, the formula appears as a sentence to complete, already filled with sensible values: for example **Every 10 cells, show "Yes" otherwise "No"**. Each blank is a button: the selected one has the picker below. For a text blank (**What to show**, **Otherwise**…) the picker shows the list to choose from first; when the blank holds a single field or a plain text, the text is summed up in a line **Text: {strength} · edit**. **edit** opens the text field, which opens by itself when the blank already holds a mixed text (like “Strength {strength}”) or a formatted one. You type in the field and the **Field**, **Component & cell** and **Variable** tabs insert the chosen value where the cursor is, as `{strength}` or `{cell.index}`; **Format…** gives colour, weight and the other attributes to the whole text, for example the cell number in red every six cells. **More…** shows the remaining tabs (**Number**, **Color**, **Formula** to nest a function…), which replace the content of the blank. Under the sentence the result on the first card and, inside a grid, the result of the first cells; **Show formula** opens the formula text, which you can also write by hand. When you open an existing formula that matches one of the sentences, the assistant shows it as that sentence.
+Once you pick a card, the formula appears as a sentence to complete, already filled with sensible values: for example **Every 10 cells, show "Yes" otherwise "No"**. Each blank is a button: the selected one has the picker below.
+
+For a text blank (**What to show**, **Otherwise**…) the picker shows the list to choose from first; when the blank holds a single field or a plain text, the text is summed up in a line **Text: {strength} · edit**. **edit** opens the text field, which opens by itself when the blank already holds a mixed text (like “Strength {strength}”) or a formatted one. You type in the field and the **Field**, **Component & cell** and **Variable** tabs insert the chosen value where the cursor is, as `{strength}` or `{cell.index}`; **Format…** gives colour, weight and the other attributes to the whole text, for example the cell number in red every six cells. **More…** shows the remaining tabs (**Number**, **Color**, **Formula** to nest a function…), which replace the content of the blank.
+
+Under the sentence the result on the first component and, inside a grid, the result of the first cells; **Show formula** opens the formula text, which you can also write by hand. When you open an existing formula that matches one of the sentences, the assistant shows it as that sentence.
 
 ![The formula assistant on the number of the score track](img/assistente-formule.png)
 
 ![The “show” blank: the text field and the tabs that insert fields and variables into it](img/assistente-formule-testo.png)
 
-**Nested functions.** A blank can hold another function: the **Formula** tab of the picker offers **What do you want to put here?** at the top, with the same cases as the start screen (conditions in a condition blank, calculations in a number blank), and **All functions** below. The chosen case appears as a smaller sentence inside the sentence, in a dashed box with the name of the blank at the top: for example "If strength is greater than 3 show [Every 10 cells, show… otherwise…] otherwise…". Clicking the name of the box selects it to change or empty it. A condition with **If** has **+ and also** and **+ or**, which add a comparison (`AND`, `OR`): "If strength is at least 3 and cost is less than 2"; the **×** next to a comparison removes it. If a blank holds a function that has no sentence (for example `UPPER`), the formula opens in **Advanced**.
+**Nested functions.** A blank can hold another function: the **Formula** tab of the picker offers **What do you want to put here?** at the top, with the same cases as the start screen (conditions in a condition blank, calculations in a number blank), and **All functions** below. The chosen case appears as a smaller sentence inside the sentence, in a dashed box with the name of the blank at the top: for example "If strength is greater than 3 show [Every 10 cells, show… otherwise…] otherwise…". Clicking the name of the box selects it to change or empty it.
+
+A condition with **If** has **+ and also** and **+ or**, which add a comparison (`AND`, `OR`): "If strength is at least 3 and cost is less than 2"; the **×** next to a comparison removes it. If a blank holds a function that has no sentence (for example `UPPER`), the formula opens in **Advanced**.
 
 ![A nested formula: two comparisons joined by "and also" and a sentence inside the "show" blank](img/assistente-formule-annidata.png)
 
-**Advanced** shows the formula as nested blocks: each function has its boxes with a name (for `IF`: **Condition**, **If true**, **If false**) and under each box the value it gives on the first card; **Formula** in the picker groups the functions by category (**Condition**, **Selection**, **Math**, **Text**, **Recipes**) and **Several cases** shows a chain of `IF` as a list of **When… Then…** rows with **Otherwise** at the end. Nested functions that are already complete fold into one line with their formula and the result below; a click opens them again. **⤢** next to the name of a nested function opens it on its own, with the path at the top (for example **Formula › If true**) to go back. **Guided** goes back to the sentence while the formula still has that shape; **Start over** returns to **What do you want to do?**. **Use formula** writes the formula in the field; a formula opened and not changed stays as it was.
+**Advanced** shows the formula as nested blocks: each function has its boxes with a name (for `IF`: **Condition**, **If true**, **If false**) and under each box the value it gives on the first component. **Formula** in the picker groups the functions by category (**Condition**, **Selection**, **Math**, **Text**, **Recipes**) and **Several cases** shows a chain of `IF` as a list of **When… Then…** rows with **Otherwise** at the end.
+
+Nested functions that are already complete fold into one line with their formula and the result below; a click opens them again. **⤢** next to the name of a nested function opens it on its own, with the path at the top (for example **Formula › If true**) to go back. **Guided** goes back to the sentence while the formula still has that shape; **Start over** returns to **What do you want to do?**. **Use formula** writes the formula in the field; a formula opened and not changed stays as it was.
 
 ![Advanced: the nested function opened on its own, with the path at the top](img/assistente-formule-avanzato.png)
 
-On a **grid** layer the formula applies to the whole grid (for example the cell colour of a card): to change the colour, outline or visibility of some cells use the **cell rules**, to change texts and drawings cell by cell the formula goes on a layer of the **cell content** (section 4.8). That is why, on a grid without content, the **Cell content** section has **Insert content in all cells**: **Value** creates a text in the first cell, inside a group of the grid, and opens the assistant right away. The same window opens from the start screen of the assistant with **Vary cell by cell**.
+On a **grid** layer the formula applies to the whole grid (for example the cell colour of a board): to change the colour, outline or visibility of some cells use the **cell rules**, to change texts and drawings cell by cell the formula goes on a layer of the **cell content** (section 4.8). That is why, on a grid without content, the **Cell content** section has **Insert content in all cells**: **Value** creates a text in the first cell, inside a group of the grid, and opens the assistant right away. The same window opens from the start screen of the assistant with **Vary cell by cell**.
 
 ![The buttons that create the cell content](img/griglia-contenuto-crea.png)
 
-## 10. Generating cards
+## 10. Generating components
 
-**Generate…**, in the set's **Tools** menu, creates rows by combining sets of values. Each value set has a target column, a list of values (one per line or comma separated; `1-5` becomes 1, 2, 3, 4, 5) and how many values to put on each card. The column is chosen from a list with the template's and the sheet's columns; **Other column…** lets you type a new one.
+**Generate…**, in the set's **Tools** menu, creates rows by combining sets of values. Each value set has a target column, a list of values (one per line or comma separated; `1-5` becomes 1, 2, 3, 4, 5) and how many values to put on each component. The column is chosen from a list with the template's and the sheet's columns; **Other column…** lets you type a new one.
 
 - Several value sets are combined in every possible way: 6 suits and the numbers 1-5 give 30 cards.
-- With more than one value per card you choose whether repetitions are allowed and whether order matters. Under **Limits per value** you set a minimum and maximum for each value.
+- With more than one value per component you choose whether repetitions are allowed and whether order matters. Under **Limits per value** you set a minimum and maximum for each value.
 - **As icon** writes each value as `{value}`, so the text shows the icon with that name.
-- **Filter** keeps only the cards for which an expression is true, for example `COUNTIN({cost}; "gold") <= 1`.
+- **Filter** keeps only the components for which an expression is true, for example `COUNTIN({cost}; "gold") <= 1`.
 - **How many** repeats the combinations: with **Rounds** 2 you get two identical rounds, one after the other; with **All components of the set** the combinations start again from the first until every row of the set is filled (12 combinations in a set of 24 rows give two rounds).
 
-The preview shows how many cards will be created and the first rows. **Add at the end** appends the cards, **Replace the cards** takes the place of the existing ones. **Update the components** writes only the generated columns into the existing cards, one per row, leaving the other columns as they are: for example, first generate 30 cards from 6 suits and the numbers 1-5, then use **From a folder…** to assign 30 portraits to the portrait column. If more cards are generated, the extra ones are added at the end. ⌘Z / Ctrl+Z undoes.
+The preview shows how many components will be created and the first rows. **Add at the end** appends them, **Replace the components** takes the place of the existing ones. **Update the components** writes only the generated columns into the existing components, one per row, leaving the other columns as they are: for example, first generate 30 cards from 6 suits and the numbers 1-5, then use **From a folder…** to assign 30 portraits to the portrait column. If more components are generated, the extra ones are added at the end. ⌘Z / Ctrl+Z undoes.
 
-![The generator: three resources, two per card, with repetition](img/genera.png)
+![The generator: three resources, two per component, with repetition](img/genera.png)
 
-**Random.** At the top of the window, **How** switches from **Every combination** to **Random**: instead of every combination you get as many components as you want (**How many**), with values drawn at random. A value set can fill several columns with **+ Column**, and each column gets one value drawn (or more, with **Values per column**): for example the numbers `1-4` on text1, text2, text3 and text4 give each card four random numbers from 1 to 4.
+**Random.** At the top of the window, **How** switches from **Every combination** to **Random**: instead of every combination you get as many components as you want (**How many**), with values drawn at random. A value set can fill several columns with **+ Column**, and each column gets one value drawn (or more, with **Values per column**): for example the numbers `1-4` on text1, text2, text3 and text4 give each component four random numbers from 1 to 4.
 
 - **With repetition** on is like rolling a die for each column; off is like dealing cards from a deck: the same value never comes back in any column of the set.
-- **Limits per value** counts across all the set's columns: with 4 from 1 to 3, every card has at least one 4 and at most three.
-- **Filter** works as before: the cards it rejects are drawn again. **All different** rejects cards already drawn. If the filter or **All different** leave fewer cards than requested, the preview says so.
-- **Seed** is the number the draw starts from: the same seed gives the same cards, **Shuffle** picks another one.
+- **Limits per value** counts across all the set's columns: with 4 from 1 to 3, every component has at least one 4 and at most three.
+- **Filter** works as before: the components it rejects are drawn again. **All different** rejects components already drawn. If the filter or **All different** leave fewer components than requested, the preview says so.
+- **Seed** is the number the draw starts from: the same seed gives the same components, **Shuffle** picks another one.
 
 ![The random generator: the numbers 1-4 on four columns, 4 from one to three times](img/genera-caso.png)
 
@@ -747,15 +854,17 @@ A sequence shifted by one place against another (a/b, b/c, c/a) can also be made
 
 ![The generator in sequence: three colors on all components of the set, shuffled every round](img/genera-sequenza.png)
 
-### 10.1 Splitting an image across cards
+### 10.1 Splitting an image across components
 
-**Split image…** spreads one big image across the cards of the set: placed side by side in a grid, the cards make it up again (a map, an illustration over several cards). You choose the image layer of the template, the image, how many columns and rows, the card to start from and the order: by rows (left to right, then the row below) or by columns. Missing cards are added.
+**Split image…** spreads one big image across the components of the set: placed side by side in a grid, they make it up again (a map split into tiles, an illustration over several cards). You choose the image layer of the template, the image, how many columns and rows, the component to start from and the order: by rows (left to right, then the row below) or by columns. Missing components are added.
 
-Each card shows the part of the image under its layer, as if the image covered the whole grid of trimmed cards. Stella writes in the card's columns the image (`layer.src`), the crop (`layer.crop`) and the **Stretch** fit; it removes the tint, so a template icon does not turn into a silhouette. The bleed of inner cards shows the image of the neighbouring cards. For cards on the edge there are two options: if the image also includes the bleed around the whole grid (tick the box), it is used; otherwise the layer stops at the edge of the image and the outer bleed shows what is underneath. The right proportions of the image are columns × card width by rows × card height (plus the bleed, if included): if the image differs, the window says so, because the pieces would be slightly stretched. Image layers that are not rotated and not inside groups can be split.
+Each component shows the part of the image under its layer, as if the image covered the whole grid of trimmed components. Stella writes in its columns the image (`layer.src`), the crop (`layer.crop`) and the **Stretch** fit; it removes the tint, so a template icon does not turn into a silhouette.
+
+The bleed of inner components shows the image of the neighbouring ones. For components on the edge there are two options: if the image also includes the bleed around the whole grid (tick the box), it is used; otherwise the layer stops at the edge of the image and the outer bleed shows what is underneath. The right proportions of the image are columns × component width by rows × component height (plus the bleed, if included): if the image differs, the window says so, because the pieces would be slightly stretched. Image layers that are not rotated and not inside groups can be split.
 
 ## 11. Exporting
 
-**Export…** (⌘E / Ctrl+E) opens a window that starts from what you want to do: **Print at home** (a PDF with the components side by side, front and back), **Print shop** (a PDF with bleed and crop marks), **Tabletop Simulator** or **Images**. Below you choose the sets (the number next to the name says how many rows they have) and whether to repeat cards as the `amount` column says. Cards are drawn by the same engine as the preview, including unsaved changes.
+**Export…** (⌘E / Ctrl+E) opens a window that starts from what you want to do: **Print at home** (a PDF with the components side by side, front and back), **Print shop** (a PDF with bleed and crop marks), **Tabletop Simulator** or **Images**. Below you choose the sets (the number next to the name says how many rows they have) and whether to repeat components as the `amount` column says. Components are drawn by the same engine as the preview, including unsaved changes.
 
 The window has the options on the left and the preview on the right. The options come in three levels:
 
@@ -773,7 +882,7 @@ When the export is done, the number of files written, any warnings and the links
 
 ### 11.1 Images
 
-PNG, JPG, WebP or SVG format, resolution (150, 300, 600 DPI or custom), bleed included or not, front, back or both, transparent background outside rounded corners. File names follow a pattern with `%set`, `%n` (card number), `%copy`, `%side` and `{field}`; a `/` creates subfolders.
+PNG, JPG, WebP or SVG format, resolution (150, 300, 600 DPI or custom), bleed included or not, front, back or both, transparent background outside rounded corners. File names follow a pattern with `%set`, `%n` (component number), `%copy`, `%side` and `{field}`; a `/` creates subfolders.
 
 SVG is vector and has no resolution: it scales without losing quality and opens in graphics programs (Inkscape, Illustrator, Affinity). Project images and fonts are inside the file; fonts installed on the computer are not, and whoever opens the file needs them. Texts become SVG text, one element per line, so they can be edited but no longer wrap by themselves.
 
@@ -781,18 +890,28 @@ SVG is vector and has no resolution: it scales without losing quality and opens 
 
 ### 11.2 Print PDF
 
-The PDF is vector, with embedded fonts. The choices that matter are the paper (page size and orientation), bleed (print shop only), duplex and crop marks; with **Backs on separate pages** you also choose which sides to print. The **Layout**, **Cutting and corners** and **Pages and files** sections hold the rest: margins, spacing and layout (as many cards as fit, or columns × rows), and the options below.
+The PDF is vector, with embedded fonts. The choices that matter are the paper (page size and orientation), bleed (print shop only), duplex and crop marks; with **Backs on separate pages** you also choose which sides to print. The **Layout**, **Cutting and corners** and **Pages and files** sections hold the rest: margins, spacing and layout (as many components as fit, or columns × rows), and the options below.
 
-- **Bleed**: with bleed the cards touch and crop marks are outside.
-- **Rotation**: rotates cards when they would not fit otherwise or more of them fit.
-- **Poster**: splits cards larger than the page over several pages, with an overlap.
+- **Bleed**: with bleed the components touch and crop marks are outside.
+- **Rotation**: rotates components when they would not fit otherwise or more of them fit.
+- **Poster**: splits components larger than the page (a board, for example) over several pages, with an overlap.
 - **Fold**: front and back side by side, to fold.
-- **Dice**: shows up when you export a set of die faces. **Faces** places them side by side like cards; **To fold** prints each die opened out as a cross, to cut, fold and glue. With **Faces** each row of a d3 is printed twice, once for each of its faces, and triangle faces (d4, d8, d20) interlock, one up and one down, so they take half the paper: without bleed two neighbouring faces share the same cut, with bleed there is room for both between the edges. Every die folds except the d2, the coin, which comes out as faces to cut out and glue back to back. The d4, d8, d10, d12 and d20 come out opened flat, face joined to face, with a tab on every edge to glue: Stella picks the most compact net, always the same for the same die, and the tab is the neighbouring face seen in a mirror, as on the cube; where there is no room for a whole tab, it is narrower or shorter. Every N rows of the set make one die (4 for the d4, 8 for the d8...), row 1 on face 1. Triangle, pentagon and kite faces have their outline as a cut line, together with the crop marks. Every six rows of the set make one die, in sheet order: face 1 in the middle, 6 at the end of the row, 2 and 5 on the sides, 3 above and 4 below, so opposite faces add up to 7. The tabs sit on the seven edges to glue, each in the color of the face it starts from (it is that face seen in a mirror, so the color runs past the fold); faces 3 and 4 have none and close the die. The tabs are a quarter of the side deep, between 5 and 10 mm, so even a small die can be glued with your fingers; **Tabs** sets another depth, up to 20 mm (0 goes back to the automatic one). The die is as large as the template (a 20 mm face makes a 20 mm die); for the d6 and d3 the face must be square. Cut lines and dashed fold lines are there only with crop marks, in their color and width. Without crop marks the fold between a face and its tab does not show: fold along the side of the square. With bleed each face keeps it on its outer edges. With **One after another on the same page** the nets of the following sets continue on the same page, each set on a new row. The nets are not rotated: with large dice a landscape page holds more of them.
+- **Dice**: shows up when you export a set of die faces. **Faces** places them side by side like cards; **To fold** prints each die opened out, to cut, fold and glue (see below). With **Faces** each row of a d3 is printed twice, once for each of its faces, and triangle faces (d4, d8, d20) interlock, one up and one down, so they take half the space: without bleed two neighbouring faces share the same cut, with bleed there is room for both between the edges.
 - **Crop marks**: at the corners or as full lines, with length, width and color.
-- **Duplex**: backs on alternate pages, flipping on the long or short edge, with an offset for printers that do not align the two sides. To find the right offset, print a single page first, hold the sheet against the light to measure how far the back is shifted from the front, and type that value in **Back offset**; then print everything. The **Proof sheet** lets you check all the cards small before using up paper.
-- **Pages**: with **One after another on the same page** a set starts right after the previous one instead of on a new page (10 + 8 cards with 9 per page fit on 2 pages instead of 3). A set with cards of another size starts on a new row, if there is room on the page. The cards start from the top of the page, even when they do not fill it, so cutting always starts from the same edge.
-- **Proof sheet**: a separate PDF with every card small.
+- **Duplex**: backs on alternate pages, flipping on the long or short edge, with an offset for printers that do not align the two sides. To find the right offset, print a single page first, hold the sheet against the light to measure how far the back is shifted from the front, and type that value in **Back offset**; then print everything. The **Proof sheet** lets you check all the components small before using up paper.
+- **Pages**: with **One after another on the same page** a set starts right after the previous one instead of on a new page (10 + 8 cards with 9 per page fit on 2 pages instead of 3). A set with components of another size starts on a new row, if there is room on the page. The components start from the top of the page, even when they do not fill it, so cutting always starts from the same edge.
+- **Proof sheet**: a separate PDF with every component small.
 - **Convert to CMYK**: needs Ghostscript installed on the computer.
+
+**Folding dice.** With **To fold** every N rows of the set make one die, in sheet order: 4 rows for the d4, 6 for the d6, 8 for the d8 and so on, with row 1 on face 1. The die is as large as the template (a 20 mm face makes a 20 mm die); for the d6 and d3 the face must be square. Every die folds except the d2, the coin, which comes out as faces to cut out and glue back to back.
+
+The d6 opens out as a cross: face 1 in the middle, 6 at the end of the row, 2 and 5 on the sides, 3 above and 4 below, so opposite faces add up to 7. The tabs sit on the seven edges to glue, each in the color of the face it starts from: it is that face seen in a mirror, so the color runs past the fold. Faces 3 and 4 have no tabs and close the die.
+
+The d4, d8, d10, d12 and d20 come out opened flat, face joined to face, with a tab on every edge to glue. Stella picks the most compact net, always the same for the same die, and the tab is the neighbouring face seen in a mirror, as on the cube; where there is no room for a whole tab, it is narrower or shorter. Triangle, pentagon and kite faces have their outline as a cut line, together with the crop marks.
+
+The tabs are a quarter of the side deep, between 5 and 10 mm, so even a small die can be glued with your fingers; **Tabs** sets another depth, up to 20 mm (0 goes back to the automatic one). Cut lines and dashed fold lines are there only with crop marks, in their color and width; without them the fold between a face and its tab does not show, and you fold along the side of the face. With bleed each face keeps it on its outer edges.
+
+With **One after another on the same page** the nets of the following sets continue on the same page, each set on a new row. The nets are not rotated: with large dice a landscape page holds more of them.
 
 ![Exporting a PDF](img/esporta-pdf.png)
 
@@ -806,27 +925,33 @@ The preview next to the options shows, small, the files the export will write, w
 
 ### 11.4 Tabletop Simulator
 
-For each set it creates the card sheets (up to 10 × 7, with the grid chosen automatically to reduce empty slots) and the deck file to load in Tabletop Simulator. **Save to** chooses whether files go to the project folder, to Tabletop Simulator's saved objects folder, or both (the default). In the **Name and description** section, card nickname and description can come from a field; by default they are empty.
+For each set it creates the image sheets (up to 10 × 7, with the grid chosen automatically to reduce empty slots) and the deck file to load in Tabletop Simulator. **Save to** chooses whether files go to the project folder, to Tabletop Simulator's saved objects folder, or both (the default). In the **Name and description** section, the components' nickname and description can come from a field; by default they are empty.
 
-With **Copies** on, **Copies on the sheet** decides where a card's copies go: once on the sheet, with the deck file multiplying it (the default, which keeps sheets small), or repeated on the sheet as many times as `amount` says. The second is for loading the sheets into Tabletop Simulator by hand, without the deck file: each slot of the sheet is one card.
+With **Copies** on, **Copies on the sheet** decides where a component's copies go: once on the sheet, with the deck file multiplying it (the default, which keeps sheets small), or repeated on the sheet as many times as `amount` says. The second is for loading the sheets into Tabletop Simulator by hand, without the deck file: each slot of the sheet is one component.
 
 The table of sets chooses, for each set, what to create in Tabletop Simulator, in the **Object in TTS** column (the menu shows each type's icon):
 
 - **Cards**: the deck from the sheets, as above.
-- **Tokens**: one image per card, cut out along the card shape (rectangle, rounded corners, circle, hexagon or silhouette). Tabletop Simulator turns it into a thick piece whose edge takes the image color; underneath it shows the front mirrored, so the card back is not used.
+- **Tokens**: one image per component, cut out along its shape (rectangle, rounded corners, circle, hexagon or silhouette). Tabletop Simulator turns it into a thick piece whose edge takes the image color; underneath it shows the front mirrored, so the template's back is not used.
 - **Standees**: like tokens, but standing upright on the table. Only the front is uploaded; the transparent part stays outside the silhouette.
-- **Tiles**: front and back of the card. The shape (square, rounded, hexagonal or round) comes from the card shape; a silhouette becomes a square. **Edge** is the color of the thickness.
+- **Tiles**: front and back of the component. The shape (square, rounded, hexagonal or round) comes from the template shape; a silhouette becomes a square. **Edge** is the color of the thickness.
 - **Boards**: like tiles (front, back, edge and thickness), but they do not stack and do not go into a bag: each board, copies included, lands on the table next to the others. They always have rounded corners.
-- **Dice**: each die becomes a real die, with rounded edges, that you roll and that shows the value of the face on top. Each die has one row per face, in sheet order: the first card goes on face 1, the second on face 2 and so on, and opposite faces add up to N + 1 as on real dice (7 on the d6, 21 on the d20). The d3 is a cube with faces 1-2-3-3-2-1; on the d4 the value is that of the top corner; the d2 is a coin, which you flip and shows heads or tails. If the cards are not enough for the last die, it repeats its first faces and the export warns about it. The die's copies are those (`amount`) of its first card. The value Tabletop Simulator shows when you roll it is the field chosen in **Name** for the card, or the face number. The die is as large as the template (the width of the face), and the coin is 2 mm thick. Stella also writes the die model (`models/<set>_<die>.obj`) next to the image of the faces.
+- **Dice**: each die becomes a real die, with rounded edges, that you roll and that shows the value of the face on top. Each die has one row per face, in sheet order: the first row goes on face 1, the second on face 2 and so on, and opposite faces add up to N + 1 as on real dice (7 on the d6, 21 on the d20).
 
-Tokens, standees and tiles have a **Thickness**. The pieces of a set go into a bag, copies included; a set with a single piece becomes that piece. Cards, tokens, standees and tiles reach Tabletop Simulator in their true proportions: a 63 mm card has Tabletop Simulator's default size, and everything else is larger or smaller in proportion. Landscape cards, such as a board as wide as two cards, are placed sideways.
+  The d3 is a cube with faces 1-2-3-3-2-1; on the d4 the value is that of the top corner; the d2 is a coin, which you flip and shows heads or tails. If the rows are not enough for the last die, it repeats its first faces and the export warns about it. The die's copies are those (`amount`) of its first row. The value Tabletop Simulator shows when you roll it is the field chosen in **Name**, or the face number. The die is as large as the template (the width of the face), and the coin is 2 mm thick. Stella also writes the die model (`models/<set>_<die>.obj`) next to the image of the faces.
 
-**Tags and snap points.** In the template properties, under **Component**, **TTS tags** gives every component its Tabletop Simulator tags, separated by commas. `{fields}` are allowed, for example `{type}, card`, and a deck takes the tags of all its cards. Two sets with the same template can have different tags: in the table of sets, next to each set, the **TTS tags** field starts with the template's tags and, if you change it, gives the set the tags written there instead of the template's. A **snap point** is a spot on a board (or on a tile, token or card) where objects snap when dropped close to it. There are two ways to add one:
+Tokens, standees and tiles have a **Thickness**. The pieces of a set go into a bag, copies included; a set with a single piece becomes that piece. Cards, tokens, standees and tiles reach Tabletop Simulator in their true proportions: a 63 mm card has Tabletop Simulator's default size, and everything else is larger or smaller in proportion. Landscape components, such as a board as wide as two cards, are placed sideways.
+
+**Tags and snap points.** In the template properties, under **Component**, **TTS tags** gives every component its Tabletop Simulator tags, separated by commas. `{fields}` are allowed, for example `{type}, card`, and a deck takes the tags of all its cards. Two sets with the same template can have different tags: in the table of sets, next to each set, the **TTS tags** field starts with the template's tags and, if you change it, gives the set the tags written there instead of the template's.
+
+A **snap point** is a spot on a board (or on a tile, token or card) where objects snap when dropped close to it. There are two ways to add one:
 
 - the **Snap** tool (P) adds a layer that is only a snap point: a blue crosshair in the editor, invisible in prints and images, with the point at the centre of its box;
 - every other layer has, at the bottom of its properties, the **Tabletop Simulator** section with **Snap point**: the point goes at the centre of the layer. For a grid the option is **Snap point in each cell**, handy for the spaces of a board. A snap point on a layer of the **cell content** repeats in every cell, moved like the content.
 
-In both cases **Snap tags** makes the point attract only objects with one of those tags (empty: all of them), and **Rotated** also gives the object a rotation: the layer's own by default, or a chosen **Snap angle**. On the canvas the crosshair has a small arrow showing where the top side of the object goes. Snap points come from the front. The **Snap** button at the bottom of the canvas hides the crosshairs without removing the snap points from the export; the eye in the layers panel instead turns the layer off, and its snap point with it.
+In both cases **Snap tags** makes the point attract only objects with one of those tags (empty: all of them), and **Rotated** also gives the object a rotation: the layer's own by default, or a chosen **Snap angle**.
+
+On the canvas the crosshair has a small arrow showing where the top side of the object goes. Snap points come from the front. The **Snap** button at the bottom of the canvas hides the crosshairs without removing the snap points from the export; the eye in the layers panel instead turns the layer off, and its snap point with it.
 
 Sheets are referenced by local addresses, so the deck works on the computer that exported it. To play online, upload the images to a web service and change the addresses in Tabletop Simulator.
 
@@ -840,19 +965,25 @@ The **Profile ▾** menu at the bottom stores the current options as a named pro
 
 ### 11.6 Credits
 
-**Credits…** composes the text for the rulebook or the box, with the icons and fonts imported from the app grouped by source, license and author. By default it lists only what the cards use. The text can be copied or saved to `export/credits.txt`. Images copied into `assets/` by hand are not listed.
+**Credits…** composes the text for the rulebook or the box, with the icons and fonts imported from the app grouped by source, license and author. By default it lists only what the components use. The text can be copied or saved to `export/credits.txt`. Images copied into `assets/` by hand are not listed.
 
 ![Credits of the icons used](img/crediti.png)
 
 ## 12. Documents
 
-The **Documents** section of the sidebar holds the texts that go with the game: the rules, a sell sheet, an appendix, a FAQ. The + creates a document, a click opens it in place of the open set or template. You write on the left; on the right the preview shows the page as you type and follows the cursor, and a click on a point of the preview moves the cursor to that point of the text. In the text a coloured band marks the line the cursor is on (the whole paragraph, even when it wraps), so after a click on the preview you see at once where you landed. Drag the border between text and preview to give more room to either; at the top right of the preview − and + change the zoom (also ⌘ / Ctrl with the scroll wheel) and the percentage goes back to the whole page. The name changes from the title; the ⋯ next to the title, and a right click on the document in the sidebar, have **Rename**, **Duplicate** (a copy whose name ends with a number) and **Delete**, which moves the document to `deleted`. Documents save themselves as you type, as `docs/<name>.md` files in the project, so another editor or an AI agent can write them too.
+The **Documents** section of the sidebar holds the texts that go with the game: the rules, a sell sheet, an appendix, a FAQ. The + creates a document, a click opens it in place of the open set or template.
+
+You write on the left; on the right the preview shows the page as you type and follows the cursor, and a click on a point of the preview moves the cursor to that point of the text. In the text a coloured band marks the line the cursor is on (the whole paragraph, even when it wraps), so after a click on the preview you see at once where you landed. Drag the border between text and preview to give more room to either; at the top right of the preview − and + change the zoom (also ⌘ / Ctrl with the scroll wheel) and the percentage goes back to the whole page.
+
+The name changes from the title; the ⋯ next to the title, and a right click on the document in the sidebar, have **Rename**, **Duplicate** (a copy whose name ends with a number) and **Delete**, which moves the document to `deleted`. Documents save themselves as you type, as `docs/<name>.md` files in the project, so another editor or an AI agent can write them too.
 
 ![A document with the page preview beside it](img/documento.png)
 
 ### 12.1 Writing and formatting
 
-Above the text is the formatting bar: the **Text** menu turns the line into a first, second or third level heading, or back into a paragraph; **B**, _I_, U and S add or remove bold, italic, underline and strikethrough on the selected text (with no selection they leave the cursor between the two marks); the next three buttons turn the chosen lines into a bulleted list, a numbered list or a quote, and a second click removes them; **%%** (or ⌘/ / Ctrl+/) turns the selected text into a comment. **Style** applies a style of the project to the selected text and ends with **Aa Format…**, the advanced formatting of [chapter 6](#6-text-and-markup). The last buttons insert an image of the assets, a table, a card, an anatomy or a table setup. The bar writes in the text the markup you would write by hand, and ⌘Z / Ctrl+Z undoes it.
+Above the text is the formatting bar: the **Text** menu turns the line into a first, second or third level heading, or back into a paragraph; **B**, _I_, U and S add or remove bold, italic, underline and strikethrough on the selected text (with no selection they leave the cursor between the two marks); the next three buttons turn the chosen lines into a bulleted list, a numbered list or a quote, and a second click removes them; **%%** (or ⌘/ / Ctrl+/) turns the selected text into a comment.
+
+**Style** applies a style of the project to the selected text and ends with **Aa Format…**, the advanced formatting of [chapter 6](#6-text-and-markup). The last buttons insert an image of the assets, a table, a component, an anatomy or a table setup. The bar writes in the text the markup you would write by hand, and ⌘Z / Ctrl+Z undoes it.
 
 The text is Markdown, with Stella's markup from [chapter 6](#6-text-and-markup) inside the lines:
 
@@ -865,42 +996,50 @@ The text is Markdown, with Stella's markup from [chapter 6](#6-text-and-markup) 
 | `\| a \| b \|` with `\|---\|---\|` below     | a table; `:--`, `:-:` and `--:` align the column                 |
 | `---`                                        | a line                                                           |
 | `%%note%%`                                   | a comment: it stays in the file but is not shown or exported     |
-| `{sword}`, `[text]{.keyword}`                | icons, variables and styles, as on the cards                     |
+| `{sword}`, `[text]{.keyword}`                | icons, variables and styles, as on the components                |
 | `{project.name}`, `{date}`                   | the project name and today's date                                |
 | `{project.author}`, `{project.version}`      | author and version, from **Project info…**                       |
-| `![The wizard](card:Characters/name=Wizard)` | a card of the game, with the caption "The wizard"                |
+| `![The wizard](card:Characters/name=Wizard)` | a component of the game, with the caption "The wizard"           |
 | `![](icons/map.png)`                         | an image from assets                                             |
 | `![](icons/map.png?width=40&align=right)`    | an image 40 mm wide, on the right                                |
 
-### 12.2 Cards and images
+### 12.2 Components and images
 
-Cards are not copied into the document: Stella draws them from the project, so a change to the data or the template shows in the document at once. **Insert component** opens a window where you choose the set and the card (search by name), the side, the width in millimetres (empty for the real size) and the caption, and writes the reference at the cursor. By hand you write `card:Set/3` for the card on row 3, or `card:Set/column=value` for the card with that value in a column; after a `?` add `side=back` for the back and `width=40` for the width, joined by `&`, as in `card:Characters/name=Wizard?side=back&width=40`. A column value, like the name, is safer than the number, which changes when the rows are reordered. Several images on the same line of text sit side by side.
+Components are not copied into the document: Stella draws them from the project, so a change to the data or the template shows in the document at once. **Insert component** opens a window where you choose the set and the component (search by name), the side, the width in millimetres (empty for the real size) and the caption, and writes the reference at the cursor.
 
-References follow renames. If you change the name of a set, of a column, or the value that identifies a card (for example the name `BARRACKS` becomes `BARRACKS2`), Stella updates the cards called in the documents by itself: in images, tables, table setups and anatomies. A bar at the top says how many references changed. A card's value is followed only if no other card in the set still has the old one. In the same way a layer renamed in the template changes in the anatomy labels, and a renamed variable or style changes in the text of the documents. Notes are left as they are.
+By hand you write `card:Set/3` for the component on row 3, or `card:Set/column=value` for the one with that value in a column (`card:` works for every kind of component); after a `?` add `side=back` for the back and `width=40` for the width, joined by `&`, as in `card:Characters/name=Wizard?side=back&width=40`. A column value, like the name, is safer than the number, which changes when the rows are reordered. Several images on the same line of text sit side by side.
+
+References follow renames. If you change the name of a set, of a column, or the value that identifies a component (for example the name `BARRACKS` becomes `BARRACKS2`), Stella updates the components called in the documents by itself: in images, tables, table setups and anatomies. A bar at the top says how many references changed. A component's value is followed only if no other component in the set still has the old one. In the same way a layer renamed in the template changes in the anatomy labels, and a renamed variable or style changes in the text of the documents. Notes are left as they are.
 
 ![The Insert component window](img/inserisci-carta.png)
 
-**Image** opens a window where you choose the file from the assets (with a preview), the width in millimetres (empty for the image's own size, reduced if it does not fit the page), the alignment (left, center, right) and the caption. With the cursor on an image already written, the same button opens it for editing. In the text the options go after a `?`, as for cards: `![Map](icons/map.png?width=40&align=right)`. Cards accept `align=left` or `align=right` too. The alignment applies to the whole line: with several images side by side, the first one that sets it counts.
+**Image** opens a window where you choose the file from the assets (with a preview), the width in millimetres (empty for the image's own size, reduced if it does not fit the page), the alignment (left, center, right) and the caption. With the cursor on an image already written, the same button opens it for editing. In the text the options go after a `?`, as for components: `![Map](icons/map.png?width=40&align=right)`. Components accept `align=left` or `align=right` too. The alignment applies to the whole line: with several images side by side, the first one that sets it counts.
 
-The caption sits below the picture by default. **Caption position** (**Below** or **Above**), in the image, component, anatomy and table setup windows, moves it above. In the text it is `caption=top` after the `?` of an image or a card (`![Map](icons/map.png?caption=top)`) and, in the anatomy and the table setup, the line `caption: text` with `caption-position: top`.
+The caption sits below the picture by default. **Caption position** (**Below** or **Above**), in the image, component, anatomy and table setup windows, moves it above. In the text it is `caption=top` after the `?` of an image or a component (`![Map](icons/map.png?caption=top)`) and, in the anatomy and the table setup, the line `caption: text` with `caption-position: top`.
 
 ### 12.3 Tables and boxes
 
 **Table** opens a grid to fill in: the first row is the heading, each column has its own alignment, **+ Row** and **+ Column** make it bigger and × removes a row or a column. You can paste cells copied from Excel or another spreadsheet. With the cursor inside a table already written, the same button opens it for editing. In the text the table becomes Markdown with aligned columns.
 
-Cells take the same markup as the text (styles, icons, variables) and also images and cards: click a cell, then use the bar above the grid for bold, italic, styles and **Format…**, **Image** for an image from the assets and **Insert component** for a card of the project; in the text they are written as `![](icons/sword.svg?width=8)` and `![](card:Characters/1?width=20)`. Under the grid, **Look** sets the table width (as % of the text, 0 for as wide as the content), the width of each column (the % field above it), which lines to draw (all, between rows only, outline only, none) with their color and thickness, and the backgrounds of the heading, of the rows and of every other row. The look is written in a comment under the table, `<!-- table width=90% columns=25,55,20 lines=rows header=#dde6f5 -->`, which other Markdown programs do not show. The HTML, PDF and Word exports keep it; the Markdown export keeps text and images only.
+Cells take the same markup as the text (styles, icons, variables) and also images and components: click a cell, then use the bar above the grid for bold, italic, styles and **Format…**, **Image** for an image from the assets and **Insert component** for a component of the project; in the text they are written as `![](icons/sword.svg?width=8)` and `![](card:Characters/1?width=20)`.
+
+Under the grid, **Look** sets the table width (as % of the text, 0 for as wide as the content), the width of each column (the % field above it), which lines to draw (all, between rows only, outline only, none) with their color and thickness, and the backgrounds of the heading, of the rows and of every other row. The look is written in a comment under the table, `<!-- table width=90% columns=25,55,20 lines=rows header=#dde6f5 -->`, which other Markdown programs do not show. The HTML, PDF and Word exports keep it; the Markdown export keeps text and images only.
 
 ![The table window, with the look at the bottom](img/doc-tabella.png)
 
-**Box** puts a colored background behind a part of the document: to make a piece of text stand out, or to set white images without a border apart from the page. With some lines selected it puts them in the box; with no selection it inserts a new box with sample text. You choose the background, a border (color and thickness), the inner space and rounded corners; with the cursor inside a box the same button changes it or removes it (**Remove box** keeps what is inside). In the text a box is two lines, `<!-- box fill=#fff3c4 border=#e0b000 -->` at the start and `<!-- /box -->` at the end: everything between them (headings, lists, tables, cards) gets the background. The HTML, PDF and Word exports keep it, the Markdown export does not.
+**Box** puts a colored background behind a part of the document: to make a piece of text stand out, or to set white images without a border apart from the page. With some lines selected it puts them in the box; with no selection it inserts a new box with sample text. You choose the background, a border (color and thickness), the inner space and rounded corners; with the cursor inside a box the same button changes it or removes it (**Remove box** keeps what is inside). In the text a box is two lines, `<!-- box fill=#fff3c4 border=#e0b000 -->` at the start and `<!-- /box -->` at the end: everything between them (headings, lists, tables, components) gets the background. The HTML, PDF and Word exports keep it, the Markdown export does not.
 
-**Text beside** makes the text that follows flow beside an image, a card, an anatomy, a table setup or a box, instead of leaving them the whole line: choose **On the left** or **On the right** under **Text beside**, in their window. Everything that comes after, headings included, flows beside it while there is room; the **Start below** button of the toolbar writes a `<!-- clear -->` line that makes the text start again below the block. The end of a box and the end of the document start below too. In the text it is `wrap=left` or `wrap=right` after the `?` of an image or a card (`![Map](icons/map.png?width=40&wrap=right)`), the line `wrap: left` in the anatomy and the table setup, and `wrap=left` in the line that opens the box. An anatomy, a setup or a box without a width takes half the line; the box has its own **Width** as a percentage of the line (`<!-- box width=40% wrap=right -->`), which also works without text beside it. The PDF and HTML exports keep the layout, the Word and Markdown exports put the block on its own line.
+**Text beside** makes the text that follows flow beside an image, a component, an anatomy, a table setup or a box, instead of leaving them the whole line: choose **On the left** or **On the right** under **Text beside**, in their window. Everything that comes after, headings included, flows beside it while there is room; the **Start below** button of the toolbar writes a `<!-- clear -->` line that makes the text start again below the block. The end of a box and the end of the document start below too.
 
-### 12.4 Card anatomy
+In the text it is `wrap=left` or `wrap=right` after the `?` of an image or a component (`![Map](icons/map.png?width=40&wrap=right)`), the line `wrap: left` in the anatomy and the table setup, and `wrap=left` in the line that opens the box. An anatomy, a setup or a box without a width takes half the line; the box has its own **Width** as a percentage of the line (`<!-- box width=40% wrap=right -->`), which also works without text beside it. The PDF and HTML exports keep the layout, the Word and Markdown exports put the block on its own line.
 
-**Anatomy** draws a component with labels that explain its parts, joined by a line to the layers of the template. The window has two columns: on the left you choose the card as in **Insert component**, on the right you see the anatomy as it will look in the document, and below it you tick the layers to explain and write a label for each. Above the labels a small bar applies bold, italic, underline, strikethrough or a project style to the selected text of the label you are writing in. Each label goes on the side of the card nearest to its layer; card and labels shrink to fit the page. With the cursor inside an anatomy, the same button opens it for editing. In the text the anatomy is a block like this, which you can also write by hand:
+### 12.4 Anatomy of a component
 
-![The card anatomy window](img/anatomia.png)
+**Anatomy** draws a component with labels that explain its parts, joined by a line to the layers of the template. The window has two columns: on the left you choose the component as in **Insert component**, on the right you see the anatomy as it will look in the document, and below it you tick the layers to explain and write a label for each.
+
+Above the labels a small bar applies bold, italic, underline, strikethrough or a project style to the selected text of the label you are writing in. Each label goes on the side of the component nearest to its layer; component and labels shrink to fit the page. With the cursor inside an anatomy, the same button opens it for editing. In the text the anatomy is a block like this, which you can also write by hand:
+
+![The anatomy window, with a card](img/anatomia.png)
 
 ````
 ```anatomy
@@ -911,15 +1050,25 @@ card: Characters/name=Wizard?width=50
 ```
 ````
 
-`card:` is the card, written as in card references (also with `side=back` and `width`). Each `- layer: label` line explains a layer; `(left)` or `(right)` after the name chooses the side. With **Front and back** in the window (the `sides: both` line in the text) the two faces stand side by side, with the front labels on the left and the back labels on the right; back layers are written with `(back)`, for example `- logo (back): The game logo`. Labels can use markup. A layer the template does not have is reported under the text and by `stella check`.
+`card:` is the component, written as in component references (also with `side=back` and `width`). Each `- layer: label` line explains a layer; `(left)` or `(right)` after the name chooses the side. With **Front and back** in the window (the `sides: both` line in the text) the two faces stand side by side, with the front labels on the left and the back labels on the right; back layers are written with `(back)`, for example `- logo (back): The game logo`. Labels can use markup. A layer the template does not have is reported under the text and by `stella check`.
 
-**Width (% of line)** and **Captions (%)**, below the card choice (the `width: 60%` and `font: 90%` lines in the text), make the anatomy take at most that share of the line width and change the size of the labels relative to the base size. When the anatomy gets narrower the labels shrink first, then the card, unless it has a width written with `width=`.
+**Width (% of line)** and **Captions (%)**, below the component choice (the `width: 60%` and `font: 90%` lines in the text), make the anatomy take at most that share of the line width and change the size of the labels relative to the base size. When the anatomy gets narrower the labels shrink first, then the component, unless it has a width written with `width=`.
 
 Elements inside a grid can be explained too: in the list of layers they appear under the grid, with the group repeated in the cells. Next to the label, **Cell** chooses the cell the arrow points at (from 1, counting row by row), and **+ Another cell** adds a label for another cell of the same element. In the text it is `(cell 7)` after the name, as in `- token (cell 7): the treasure`; without it, the first cell. **Caption**, below the sizes, gives the anatomy a title below or above the drawing (`caption:` and `caption-position: top` lines).
 
 ### 12.5 Table setup
 
-**Table setup** draws how to set up the table, with the real cards of the project. In the window the buttons **Zone**, **Component**, **Deck**, **Text**, **Arrow** and **Image** add an element; cards and decks are chosen as in **Insert component**, images from assets. The drawing takes almost the whole window; **Full screen** gives it the whole app window. Zoom with − and +, with ⌘/Ctrl + mouse wheel, by pinching the trackpad or with ⌘+ and ⌘− / Ctrl++ and Ctrl+−; **Fit** (⌘0 / Ctrl+0) shows the whole drawing again. When zoomed in, move the drawing with the scroll bars, the wheel, or by dragging while holding the space bar. Click an element to select it and drag it to move it, or use the arrow keys (1 mm, 5 with Shift); Shift or ⌘/Ctrl + click adds an element to the selection or removes it, a box dragged on an empty spot selects the elements it touches and ⌘A / Ctrl+A selects them all. ⌘C, ⌘X and ⌘V / Ctrl+C, Ctrl+X and Ctrl+V copy, cut and paste the selected elements, also into another table setup (pasted elements appear 5 mm lower and to the right), and ⌘D / Ctrl+D duplicates them. With several elements selected, dragging one moves them all, and the panel on the right aligns them (sides, centers) and distributes them with equal gaps horizontally or vertically; the handle at the bottom right resizes zones, texts and images, the handles at the two ends move the ends of an arrow. Cards, decks and images have a round handle above them that rotates them around their center (with Shift in 15° steps); in the panel on the right **Rotation** takes the exact degrees and **+90°** turns by a quarter. On the right you change position and sizes in millimetres, the label (or the text, with the same formatting bar as the anatomy; texts are centered in their box, and below you can align them left or right), the number of cards in a deck and the rotation in steps of 90°; **Order** brings the element to the front, forward, backward or to the back among the elements of the same kind: zones always stay below cards, decks and images, and texts and arrows above. **Duplicate** and **Delete** do what they say. **Image** and **Change image…** also offer the image variables, which in the drawing keep their tint, rotation, flip, opacity and background. With nothing selected, **Fixed table size** gives the drawing a size in millimetres; without it, the drawing fits its elements. In the document the drawing shrinks to fit the page, and the labels stay readable; **Width (% of line)** narrows it further, down to that share of the line width, and **Captions (%)** changes the size of the captions. With the cursor inside a table setup, the same button opens it for editing. In the text it is a block like this, which you can also write by hand:
+**Table setup** draws how to set up the table, with the real components of the project. In the window the buttons **Zone**, **Component**, **Deck**, **Text**, **Arrow** and **Image** add an element; components and decks are chosen as in **Insert component**, images from assets.
+
+The drawing takes almost the whole window; **Full screen** gives it the whole app window. Zoom with − and +, with ⌘/Ctrl + mouse wheel, by pinching the trackpad or with ⌘+ and ⌘− / Ctrl++ and Ctrl+−; **Fit** (⌘0 / Ctrl+0) shows the whole drawing again. When zoomed in, move the drawing with the scroll bars, the wheel, or by dragging while holding the space bar.
+
+Click an element to select it and drag it to move it, or use the arrow keys (1 mm, 5 with Shift); Shift or ⌘/Ctrl + click adds an element to the selection or removes it, a box dragged on an empty spot selects the elements it touches and ⌘A / Ctrl+A selects them all. ⌘C, ⌘X and ⌘V / Ctrl+C, Ctrl+X and Ctrl+V copy, cut and paste the selected elements, also into another table setup (pasted elements appear 5 mm lower and to the right), and ⌘D / Ctrl+D duplicates them.
+
+With several elements selected, dragging one moves them all, and the panel on the right aligns them (sides, centers) and distributes them with equal gaps horizontally or vertically; the handle at the bottom right resizes zones, texts and images, the handles at the two ends move the ends of an arrow. Components, decks and images have a round handle above them that rotates them around their center (with Shift in 15° steps); in the panel on the right **Rotation** takes the exact degrees and **+90°** turns by a quarter.
+
+On the right you change position and sizes in millimetres, the label (or the text, with the same formatting bar as the anatomy; texts are centered in their box, and below you can align them left or right), the number of cards in a deck and the rotation in steps of 90°; **Order** brings the element to the front, forward, backward or to the back among the elements of the same kind: zones always stay below components, decks and images, and texts and arrows above. **Duplicate** and **Delete** do what they say. **Image** and **Change image…** also offer the image variables, which in the drawing keep their tint, rotation, flip, opacity and background.
+
+With nothing selected, **Fixed table size** gives the drawing a size in millimetres; without it, the drawing fits its elements. In the document the drawing shrinks to fit the page, and the labels stay readable; **Width (% of line)** narrows it further, down to that share of the line width, and **Captions (%)** changes the size of the captions. With the cursor inside a table setup, the same button opens it for editing. In the text it is a block like this, which you can also write by hand:
 
 ![The table setup window](img/schema-tavolo.png)
 
@@ -935,7 +1084,9 @@ image icons/coin.png 270,75 width=12
 ```
 ````
 
-Each line is an element, with sizes in millimetres from the top left corner: `zone x,y WxH "label"`, `card <card> x,y`, `deck <card> x,y count=N`, `text x,y width=W "text"` (centered; `align=left` or `align=right` aligns it to one side), `arrow x,y -> x2,y2 "label"`, `image <file> x,y width=W`. Cards, decks and images take `rotate=` with the degrees, clockwise (for example `rotate=90` or `rotate=30`), and cards and decks and a label in quotes; the card is written as in card references, with `%20` for spaces. `size WxH` fixes the size of the table, `width 60%` makes the drawing take at most 60% of the line and `font 90%` gives the captions 90% of the base size. Instead of an image file you can write an image variable, such as `image {coin} 270,75 width=12`. Texts and labels can use markup. Lines that are not understood and cards that are not found are reported under the text and by `stella check`.
+Each line is an element, with sizes in millimetres from the top left corner: `zone x,y WxH "label"`, `card <component> x,y`, `deck <component> x,y count=N`, `text x,y width=W "text"` (centered; `align=left` or `align=right` aligns it to one side), `arrow x,y -> x2,y2 "label"`, `image <file> x,y width=W`. Components, decks and images take `rotate=` with the degrees, clockwise (for example `rotate=90` or `rotate=30`), and components and decks a label in quotes; the component is written as in component references, with `%20` for spaces.
+
+`size WxH` fixes the size of the table, `width 60%` makes the drawing take at most 60% of the line and `font 90%` gives the captions 90% of the base size. Instead of an image file you can write an image variable, such as `image {coin} 270,75 width=12`. Texts and labels can use markup. Lines that are not understood and components that are not found are reported under the text and by `stella check`.
 
 ### 12.6 Properties and page
 
@@ -947,15 +1098,21 @@ Each line is an element, with sizes in millimetres from the top left corner: `zo
 
 ### 12.7 Exporting a document
 
-**Export document…** saves the document in the project's `export/docs/` in four forms: **PDF**, to print or send, with the page size and margins of the document; **HTML**, one web page in a single file, with cards, images and fonts inside; **Word**, a `.docx` file to edit in Word or LibreOffice, with headings, lists, tables and quotes as Word styles, the page size, margins and fonts of the document, and cards, diagrams and images as PNG; **Markdown**, plain text for other programs, with the cards as 300 dpi PNG files and the images in a folder beside it (`<name> images`). Markdown keeps bold, italic and strikethrough; other styles are lost. Cards and images that are not found are left out, and the window reminds you when the document has problems. When the export is done, **Open file** opens the file with its default program and **Open folder** the folder that holds it. In the web version the PDF goes through the browser's print window: choose **Save as PDF**, keep the scale on **Default** (100%) and turn off **Headers and footers**; sizes stay in millimeters, as in the desktop app, but you save the file wherever you like. Also in the web version **Open file** shows HTML and Markdown in a new browser tab; for Word it is not shown, since the file is already in the project folder.
+**Export document…** saves the document in the project's `export/docs/` in four forms: **PDF**, to print or send, with the page size and margins of the document; **HTML**, one web page in a single file, with components, images and fonts inside; **Word**, a `.docx` file to edit in Word or LibreOffice, with headings, lists, tables and quotes as Word styles, the page size, margins and fonts of the document, and components, diagrams and images as PNG; **Markdown**, plain text for other programs, with the components as 300 dpi PNG files and the images in a folder beside it (`<name> images`).
 
-Below the text the problems are listed: cards that are not found, images not in assets, unknown names in braces; a click goes to that point of the text. `stella check` reports them with those of the cards, `stella docs` shows the documents to an AI agent and `stella export-doc` exports them without opening the app (see [cli.md](../cli.md)).
+Markdown keeps bold, italic and strikethrough; other styles are lost. Components and images that are not found are left out, and the window reminds you when the document has problems. When the export is done, **Open file** opens the file with its default program and **Open folder** the folder that holds it.
+
+In the web version the PDF goes through the browser's print window: choose **Save as PDF**, keep the scale on **Default** (100%) and turn off **Headers and footers**; sizes stay in millimeters, as in the desktop app, but you save the file wherever you like. Also in the web version **Open file** shows HTML and Markdown in a new browser tab; for Word it is not shown, since the file is already in the project folder.
+
+Below the text the problems are listed: components that are not found, images not in assets, unknown names in braces; a click goes to that point of the text. `stella check` reports them with those of the components, `stella docs` shows the documents to an AI agent and `stella export-doc` exports them without opening the app (see [cli.md](../cli.md)).
 
 ### 12.8 Find and replace
 
 ⌘F / Ctrl+F, with the cursor in the document text, opens the find bar above the text. Enter goes to the next match, ⇧Enter / Shift+Enter to the previous one, and next to it you can read which one you are looking at (for example "3 of 12"). **Match case** tells upper and lower case apart; **Whole word** finds whole words only, so "use" does not find "user". ⌥⌘F / Ctrl+H, or the arrow on the left of the bar, also shows the replace field: **Replace** changes the selected match and moves to the next, **Replace all** changes them all. ⌘Z / Ctrl+Z undoes the replacement in one step; Esc closes the bar.
 
-**Find and replace…**, in the **Project** menu (⇧⌘F / Ctrl+Shift+F), searches the whole project: documents, notes, sheet cells, template texts, values and formulas, and text and value variables. Results are grouped by kind, with the place where they are (for example "Buildings, card 3, name" or "building › title (text)") and the text around them; a click on the place opens it. Each result has a checkbox: **Replace in N places** changes only the checked ones, and **All** and **None** check or uncheck them all. Before replacing Stella makes a backup named "Before replacing …", which you find in **Project › Backup**. Documents and notes are saved at once; changes to data, templates and variables are saved with ⌘S / Ctrl+S and ⌘Z / Ctrl+Z undoes them. The names of sets, templates, layers, columns and variables do not change: use **Rename** for those, which also updates the references.
+**Find and replace…**, in the **Project** menu (⇧⌘F / Ctrl+Shift+F), searches the whole project: documents, notes, sheet cells, template texts, values and formulas, and text and value variables. Results are grouped by kind, with the place where they are (for example "Buildings, component 3, name" or "building › title (text)") and the text around them; a click on the place opens it.
+
+Each result has a checkbox: **Replace in N places** changes only the checked ones, and **All** and **None** check or uncheck them all. Before replacing Stella makes a backup named "Before replacing …", which you find in **Project › Backup**. Documents and notes are saved at once; changes to data, templates and variables are saved with ⌘S / Ctrl+S and ⌘Z / Ctrl+Z undoes them. The names of sets, templates, layers, columns and variables do not change: use **Rename** for those, which also updates the references.
 
 ## 13. Backup
 
@@ -977,7 +1134,7 @@ At the end the app lists what it could not convert, for example image masks and 
 
 ## 15. Working with an AI agent
 
-An AI agent that runs commands on your computer (for example Claude Code, Codex or Cursor) can read and change Stella projects, look for problems and draw the cards to check them. It needs the Stella **skill**, a text of instructions.
+An AI agent that runs commands on your computer (for example Claude Code, Codex or Cursor) can read and change Stella projects, look for problems and draw the components to check them. It needs the Stella **skill**, a text of instructions.
 
 **AI tools…**, in the ⚙ menu of every screen (and in the **Help** menu of the desktop app), prepares the skill with this computer's `stella` command already filled in. The skill is not inside the app: **Copy the skill** and **Save as file…** download it from GitHub, in the version that matches the installed app, and only then is the network needed. Offline, the window says so and gives the link to download it by hand.
 
@@ -991,19 +1148,19 @@ The project can stay open in Stella while the agent works. Before changing it, t
 
 The `stella` command can also be used directly, for example in a script. The main commands:
 
-| command                                                        | what it does                                                                                                           |
-| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `info <project>`                                               | sets, templates and layers, variables, styles, assets, export profiles                                                 |
-| `check <project> [--set S] [--lang L]`                         | the problems of cards and documents (missing images or fonts, unknown variables, formula errors, missing translations) |
-| `check-data <project>`                                         | how the data file is read, like **Check data file…**                                                                   |
-| `rows <project> <set>`, `set-rows <project> <set> <file>`      | read and write the rows of a set (with a backup first)                                                                 |
-| `stats <project> <set>`                                        | how many cards have each value, like **Statistics**; `--pivot` crosses two fields, `--draw` gives draw odds            |
-| `render <project> [--set S] [--card 1,3,5-7] [--lang L]`       | draws the cards as PNG                                                                                                 |
-| `export <project> --profile NAME [--lang L\|all]`              | runs a saved export profile                                                                                            |
-| `export-doc <project> [<name>] [--format pdf\|html\|docx\|md]` | exports the documents                                                                                                  |
-| `notes`, `docs`                                                | read the project's notes and documents                                                                                 |
-| `rename-set`, `rename-template`, `pull-sheets`, `new`          | rename, download from Google Sheets, create a project                                                                  |
-| `begin`, `end`                                                 | open and close an agent's work on the project                                                                          |
+| command                                                        | what it does                                                                                                                |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `info <project>`                                               | sets, templates and layers, variables, styles, assets, export profiles                                                      |
+| `check <project> [--set S] [--lang L]`                         | the problems of components and documents (missing images or fonts, unknown variables, formula errors, missing translations) |
+| `check-data <project>`                                         | how the data file is read, like **Check data file…**                                                                        |
+| `rows <project> <set>`, `set-rows <project> <set> <file>`      | read and write the rows of a set (with a backup first)                                                                      |
+| `stats <project> <set>`                                        | how many components have each value, like **Statistics**; `--pivot` crosses two fields, `--draw` gives draw odds            |
+| `render <project> [--set S] [--card 1,3,5-7] [--lang L]`       | draws the components as PNG                                                                                                 |
+| `export <project> --profile NAME [--lang L\|all]`              | runs a saved export profile                                                                                                 |
+| `export-doc <project> [<name>] [--format pdf\|html\|docx\|md]` | exports the documents                                                                                                       |
+| `notes`, `docs`                                                | read the project's notes and documents                                                                                      |
+| `rename-set`, `rename-template`, `pull-sheets`, `new`          | rename, download from Google Sheets, create a project                                                                       |
+| `begin`, `end`                                                 | open and close an agent's work on the project                                                                               |
 
 All the details, the options and how to launch the command on each system are in [docs/cli.md](../cli.md) (in Italian).
 
@@ -1044,30 +1201,30 @@ A project is self-contained: copying the folder to another computer gives the sa
 
 Every shortcut is written first with the Mac ⌘ key and then, after the slash, with Ctrl for Windows and Linux.
 
-| Where        | Keys                                             | Action                                                                                        |
-| ------------ | ------------------------------------------------ | --------------------------------------------------------------------------------------------- |
-| anywhere     | ⌘S / Ctrl+S                                      | save templates, data and settings                                                             |
-| anywhere     | ⌘O / Ctrl+O, ⌘W / Ctrl+W                         | open and close the project (desktop app)                                                      |
-| set          | ⌘Z / Ctrl+Z, ⇧⌘Z / Ctrl+Shift+Z                  | undo and redo the project's changes, also those made on another screen                        |
-| anywhere     | ⌘+, ⌘−, ⌘0 / Ctrl+, Ctrl−, Ctrl+0                | enlarge, shrink and reset the interface (desktop app)                                         |
-| set          | ⌘A / Ctrl+A, Esc                                 | select all cards, go back to one                                                              |
-| table        | Alt+Enter                                        | new line inside a cell                                                                        |
-| documents    | Shift+Enter / Alt+Enter                          | `<br>`: line break in a table cell, an anatomy label or a table setup text                    |
-| text         | `{`, then ↑ ↓, Enter                             | field and variable suggestions                                                                |
-| editor       | ⌘Z / Ctrl+Z, ⇧⌘Z / Ctrl+Shift+Z (or ⌘Y / Ctrl+Y) | undo and redo                                                                                 |
-| editor       | T, R, E, I, G, V                                 | new text, rectangle, ellipse, image, grid, value                                              |
-| editor       | ⌘F / Ctrl+F                                      | search the properties panel                                                                   |
-| editor       | ⌘D / Ctrl+D                                      | duplicate the selected layers                                                                 |
-| editor       | ⌘C / Ctrl+C, ⌘X / Ctrl+X, ⌘V / Ctrl+V            | copy, cut and paste layers                                                                    |
-| editor       | ⌘G / Ctrl+G, ⇧⌘G / Ctrl+Shift+G                  | group and ungroup                                                                             |
-| editor       | ⌘A / Ctrl+A                                      | select all layers                                                                             |
-| editor       | Delete                                           | delete the selected layers                                                                    |
-| editor       | arrows, ⇧ + arrows                               | move by 0.5 mm or 5 mm                                                                        |
-| editor       | Esc                                              | clear the selection or leave the group                                                        |
-| canvas       | Shift while dragging                             | move only horizontally, vertically or at 45°; switch the proportion lock; rotate in 15° steps |
-| canvas       | ⌘ / Ctrl while resizing                          | resize from the center                                                                        |
-| canvas       | Alt while dragging                               | move without snapping                                                                         |
-| canvas, grid | ⌘ / Ctrl + mouse wheel                           | zoom                                                                                          |
-| set          | PgUp, PgDn                                       | previous or next card, even while typing in the form                                          |
-| card         | double click, Ctrl+Enter, Esc                    | edit a layer on the card, close the edit, cancel it                                           |
-| card, editor | Alt+click                                        | selects the layer underneath                                                                  |
+| Where           | Keys                                             | Action                                                                                        |
+| --------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| anywhere        | ⌘S / Ctrl+S                                      | save templates, data and settings                                                             |
+| anywhere        | ⌘O / Ctrl+O, ⌘W / Ctrl+W                         | open and close the project (desktop app)                                                      |
+| set             | ⌘Z / Ctrl+Z, ⇧⌘Z / Ctrl+Shift+Z                  | undo and redo the project's changes, also those made on another screen                        |
+| anywhere        | ⌘+, ⌘−, ⌘0 / Ctrl+, Ctrl−, Ctrl+0                | enlarge, shrink and reset the interface (desktop app)                                         |
+| set             | ⌘A / Ctrl+A, Esc                                 | select all components, go back to one                                                         |
+| table           | Alt+Enter                                        | new line inside a cell                                                                        |
+| documents       | Shift+Enter / Alt+Enter                          | `<br>`: line break in a table cell, an anatomy label or a table setup text                    |
+| text            | `{`, then ↑ ↓, Enter                             | field and variable suggestions                                                                |
+| editor          | ⌘Z / Ctrl+Z, ⇧⌘Z / Ctrl+Shift+Z (or ⌘Y / Ctrl+Y) | undo and redo                                                                                 |
+| editor          | T, R, E, I, G, V                                 | new text, rectangle, ellipse, image, grid, value                                              |
+| editor          | ⌘F / Ctrl+F                                      | search the properties panel                                                                   |
+| editor          | ⌘D / Ctrl+D                                      | duplicate the selected layers                                                                 |
+| editor          | ⌘C / Ctrl+C, ⌘X / Ctrl+X, ⌘V / Ctrl+V            | copy, cut and paste layers                                                                    |
+| editor          | ⌘G / Ctrl+G, ⇧⌘G / Ctrl+Shift+G                  | group and ungroup                                                                             |
+| editor          | ⌘A / Ctrl+A                                      | select all layers                                                                             |
+| editor          | Delete                                           | delete the selected layers                                                                    |
+| editor          | arrows, ⇧ + arrows                               | move by 0.5 mm or 5 mm                                                                        |
+| editor          | Esc                                              | clear the selection or leave the group                                                        |
+| canvas          | Shift while dragging                             | move only horizontally, vertically or at 45°; switch the proportion lock; rotate in 15° steps |
+| canvas          | ⌘ / Ctrl while resizing                          | resize from the center                                                                        |
+| canvas          | Alt while dragging                               | move without snapping                                                                         |
+| canvas, grid    | ⌘ / Ctrl + mouse wheel                           | zoom                                                                                          |
+| set             | PgUp, PgDn                                       | previous or next component, even while typing in the form                                     |
+| preview         | double click, Ctrl+Enter, Esc                    | edit a layer on the component, close the edit, cancel it                                      |
+| preview, editor | Alt+click                                        | selects the layer underneath                                                                  |
