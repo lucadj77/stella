@@ -842,6 +842,24 @@ export const videos = [
       it: 'progetti/reclute.zip',
       en: 'progetti/recruits.zip'
     }
+  },
+  {
+    n: 30,
+    it: 'Approfondimento: variabili con parametri',
+    en: 'Deep dive: variables with parameters',
+    about: {
+      it: 'Una frase che si ripete con un numero diverso, scritta una volta: {pesca:2}, singolare e plurale, un numero su un’icona, parametri dai campi e nel regolamento.',
+      en: 'A sentence repeated with a different number, written once: {draw:2}, singular and plural, a number on an icon, parameters from fields and in the rulebook.'
+    },
+    minutes: 10,
+    url: {
+      it: 'https://www.youtube.com/watch?v=vm97xLxhHEw',
+      en: 'https://www.youtube.com/watch?v=IeybeY3G3_o'
+    },
+    project: {
+      it: 'progetti/gilda.zip',
+      en: 'progetti/guild.zip'
+    }
   }
 ]
 
@@ -854,7 +872,7 @@ export const videoGroups = {
   data: [10, 12],
   table: [9, 3, 19, 5],
   tools: [6, 17, 18],
-  deep: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
+  deep: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
 }
 
 export const playlists = {
