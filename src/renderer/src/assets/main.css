@@ -5012,6 +5012,77 @@ select.from-template {
   font-size: 13px;
 }
 
+.help-search {
+  width: 100%;
+  margin: 0 0 12px;
+}
+
+.guide-hits {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.guide-hits li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.guide-hit-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.guide-hit-title {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.guide-hit-chapter {
+  font-size: 12px;
+}
+
+.guide-hit-open {
+  margin-left: auto;
+  font-size: 13px;
+}
+
+.guide-hit-snippet,
+.guide-hit-text p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.guide-hit-text p + p {
+  margin-top: 8px;
+}
+
+.guide-hit-text p.guide-hit-item {
+  position: relative;
+  padding-left: 16px;
+}
+
+.guide-hit-text p.guide-hit-item::before {
+  content: '•';
+  position: absolute;
+  left: 4px;
+}
+
+.guide-hits mark {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: inherit;
+  border-radius: 2px;
+}
+
 .help-body {
   max-height: 62vh;
   overflow-y: auto;

@@ -614,6 +614,8 @@ Stella knows some values by itself, the **system variables**, written like field
 
 The **Help** button in the top bar and on the start screen, or the F1 key, opens a summary of markup, fields and variables, system variables, formulas and shortcuts. The first tab, **First steps**, sums up the four steps from an empty project to printed components, with a link to the guide section for each, the first videos and the words to know (component, template, set, layer, bleed...). It opens there when the project has no components yet; otherwise on the tab used last. Shortcuts appear in the form of the system in use: ⌘ on the Mac, Ctrl on Windows and Linux.
 
+**Searching the guide.** The **Search the guide…** field, above the tabs, searches this whole guide. The sections that contain all the words you type are listed, those with the words in the title first, with a piece of the text and the words highlighted; case and accents do not matter. A click on the title opens the whole section in the window, **Open in the guide** opens it in the browser. Esc clears the search and goes back to the tabs. The guide is inside the app, so searching works offline too.
+
 ![The Help window, First steps tab](img/aiuto-primi-passi.png)
 
 <table><tr>
