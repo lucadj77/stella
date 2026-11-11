@@ -5,6 +5,24 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.10.1
+
+### English
+
+- **One undo for the whole project**: undo and redo now cover every change of the project in a single history: cards, sets, styles, variables and templates. A change made in the template editor can be undone after opening a set or another template, and undoing takes you back to the screen where the change was made.
+- **History of changes**: the clock button next to undo and redo lists the changes of the project, newest first, with what changed, where and when. A click on an entry undoes or redoes everything up to it in one go.
+- **Singular and plural in variables with parameters**: in the text of a variable, `{1|card|cards}` writes the first word when parameter 1 is 1 and the second otherwise: `{draw:1}` writes "take 1 card" and `{draw:3}` "take 3 cards". An optional third word is used for zero, and a parameter that is not a number takes the plural.
+- **Clearer variable preview**: in the variable window, text and value variables are previewed on their own, exactly as they write; the sample sentence "Gain 2 … this turn." is kept for icons.
+- **Text check**: in **Check text…**, layers with the **Spill out of the box** fit are marked _fixed size_, with an explanation of why a number can still be reported.
+
+### Italiano
+
+- **Un solo annulla per tutto il progetto**: annulla e ripristina ora valgono per tutte le modifiche del progetto, in un'unica cronologia: carte, set, stili, variabili e template. Una modifica fatta nell'editor del template si può annullare anche dopo aver aperto un set o un altro template, e annullando si torna nella schermata in cui era stata fatta.
+- **Cronologia delle modifiche**: il tasto con l'orologio accanto ad annulla e ripristina elenca le modifiche del progetto, le più recenti in alto, con cosa è cambiato, dove e quando. Un clic su una voce annulla o ripristina tutto fino a quella in un colpo solo.
+- **Singolare e plurale nelle variabili con parametri**: nel testo di una variabile, `{1|carta|carte}` scrive la prima parola se il parametro 1 vale 1, altrimenti la seconda: `{pesca:1}` scrive «prendi 1 carta» e `{pesca:3}` «prendi 3 carte». Una terza parola, facoltativa, vale per lo zero, e un parametro che non è un numero prende il plurale.
+- **Anteprima delle variabili più chiara**: nella finestra della variabile, le variabili di testo e valore si vedono da sole, così come scrivono; la frase di prova «Guadagna 2 … in questo turno.» resta per le icone.
+- **Controllo dei testi**: in **Controlla testi…** i livelli con l'adattamento **Esce dal riquadro** hanno accanto _corpo fisso_, con la spiegazione del perché un numero può venire segnalato lo stesso.
+
 ## 1.10.1-beta.5
 
 ### English
