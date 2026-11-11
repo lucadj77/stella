@@ -1561,6 +1561,23 @@ export const en = {
   'export.duplexShort': 'Flip on short edge',
   'export.offset': 'Back offset',
   'export.offsetHint': 'Moves the backs to make up for a printer that does not align the two sides',
+  'export.duplexTest': 'Test page',
+  'export.duplexTestHint':
+    'A two-page PDF with crosses on the front and scales on the back: printed double-sided, it tells how much to move the backs',
+  'duplexTest.front': 'Duplex test: front',
+  'duplexTest.back': 'Duplex test: back',
+  'duplexTest.frontHint':
+    'Print this PDF double-sided at actual size. The scales to read are on the back of this sheet.',
+  'duplexTest.step1':
+    '1. Print at actual size (100%, no Fit to page), double-sided, flipping on the edge chosen in the export.',
+  'duplexTest.step2':
+    '2. Hold the sheet against a light with this side towards you: the crosses of the front show through.',
+  'duplexTest.step3':
+    '3. On each numbered scale read where the cross falls: x on the horizontal scale, y on the vertical one (positive numbers are right and down, looking at this side).',
+  'duplexTest.step4':
+    '4. Add the readings of scale 1 to Back offset x and y in the export, then print this test again: the crosses should fall on 0.',
+  'duplexTest.step5':
+    'If the scales give different readings, the printer is resizing the page: check that it prints at 100%. If a cross is far from its scale, try flipping on the other edge.',
   'export.files': 'Files',
   'export.splitSingle': 'One file',
   'export.splitSet': 'One per set',

@@ -2,6 +2,7 @@ import { rotationUp, type Vec } from './model/solids'
 // Esportazione: opzioni, impaginazione del PDF, nomi dei file, griglia e oggetto di Tabletop
 // Simulator. Vedi docs/specifica.md, sezione 9. Tutte le misure sono in mm.
 
+import type { DuplexTestText } from './duplexTest'
 import type { Side, Template } from './model/template'
 import type { Message } from './messages'
 import type { ProjectFont } from './project'
@@ -270,7 +271,12 @@ interface JobBase {
 
 export type ExportJob =
   | (JobBase & { kind: 'images'; options: ImageOptions })
-  | (JobBase & { kind: 'pdf'; options: PdfOptions })
+  | (JobBase & {
+      kind: 'pdf'
+      options: PdfOptions
+      /** Solo la pagina di prova del fronte-retro, con questi testi: le carte non servono */
+      duplexTest?: DuplexTestText
+    })
   | (JobBase & { kind: 'tts'; options: TtsOptions })
 
 /** Contesto del disegno: immagini e stili del progetto aperto */

@@ -308,6 +308,36 @@ export default function ExportDialog({
     }
   }
 
+  /** La pagina di prova del fronte-retro, con le opzioni del PDF di ora */
+  const runDuplexTest = async (): Promise<void> => {
+    setError(null)
+    setResult(null)
+    setProgress({ done: 0, total: 0 })
+    try {
+      setResult(
+        await window.api.runExport(
+          {
+            kind: 'pdf',
+            options: pdf,
+            project: project.file.name,
+            sets: [],
+            duplexTest: {
+              front: t('duplexTest.front'),
+              back: t('duplexTest.back'),
+              frontHint: t('duplexTest.frontHint'),
+              steps: [1, 2, 3, 4, 5].map((n) => t(`duplexTest.step${n}` as MessageKey))
+            }
+          },
+          { assets: [], fonts: [], styles: {} }
+        )
+      )
+    } catch (e) {
+      setError(messageFromError(e))
+    } finally {
+      setProgress(null)
+    }
+  }
+
   const chooseFolder = async (current: string, key: 'folder' | 'ttsFolder'): Promise<void> => {
     const f = await window.api.chooseExportFolder(current)
     if (!f) return
@@ -780,6 +810,13 @@ export default function ExportDialog({
           {mm(pdf.offsetX, (offsetX) => patch({ offsetX }))}
           <span className="unit">y</span>
           {mm(pdf.offsetY, (offsetY) => patch({ offsetY }))}
+          <button
+            title={t('export.duplexTestHint')}
+            disabled={pdf.fold || pdf.duplex === 'none' || !!progress}
+            onClick={() => void runDuplexTest()}
+          >
+            {t('export.duplexTest')}
+          </button>
         </Row>
         <Row
           label={t('export.extras')}

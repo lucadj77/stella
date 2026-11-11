@@ -1590,6 +1590,23 @@ export const it: Record<MessageKey, string> = {
   'export.duplexShort': 'Rilegatura lato corto',
   'export.offset': 'Spostamento retri',
   'export.offsetHint': 'Sposta i retri per compensare una stampante che non allinea i due lati',
+  'export.duplexTest': 'Pagina di prova',
+  'export.duplexTestHint':
+    'Un PDF di due pagine con croci sul fronte e scale sul retro: stampato fronte-retro, dice di quanto spostare i retri',
+  'duplexTest.front': 'Prova del fronte-retro: fronte',
+  'duplexTest.back': 'Prova del fronte-retro: retro',
+  'duplexTest.frontHint':
+    'Stampa questo PDF fronte-retro a grandezza reale. Le scale da leggere sono sul retro di questo foglio.',
+  'duplexTest.step1':
+    "1. Stampa a grandezza reale (100%, senza Adatta alla pagina), fronte-retro, con la rilegatura scelta nell'esportazione.",
+  'duplexTest.step2':
+    '2. Guarda il foglio controluce con questo lato verso di te: le croci del fronte si vedono in trasparenza.',
+  'duplexTest.step3':
+    '3. Su ogni scala numerata leggi dove cade la croce: x sulla scala orizzontale, y su quella verticale (i numeri positivi sono a destra e in basso, guardando questo lato).',
+  'duplexTest.step4':
+    "4. Somma i numeri letti sulla scala 1 a Spostamento retri x e y nell'esportazione, poi stampa di nuovo questa prova: le croci dovrebbero cadere sullo 0.",
+  'duplexTest.step5':
+    "Se le scale danno numeri diversi, la stampante ridimensiona la pagina: controlla che stampi al 100%. Se una croce è lontana dalla sua scala, prova l'altra rilegatura.",
   'export.files': 'File',
   'export.splitSingle': 'Un file',
   'export.splitSet': 'Uno per set',

@@ -50,6 +50,7 @@ import { plainText } from '../../shared/model/markup'
 import { substituteFields } from '../../shared/model/bind'
 import { palette, resolveColor } from '../../shared/model/variables'
 import { msg } from '../../shared/messages'
+import { duplexTestPages, type DuplexTestText } from '../../shared/duplexTest'
 import type { Side, Template } from '../../shared/model/template'
 import { isLanguageCode } from '../../shared/model/language'
 
@@ -108,7 +109,7 @@ interface Ctx {
 export async function runExport(job: ExportJob, env: RunEnv): Promise<ExportResult> {
   const result: ExportResult = { files: 0, folders: [], warnings: [], cancelled: false }
   const sets = job.sets.filter((s) => s.cards.length)
-  if (!sets.length) return result
+  if (!sets.length && !(job.kind === 'pdf' && job.duplexTest)) return result
   const win = await env.openWindow(env.context)
   const ctx: Ctx = {
     env,
@@ -120,6 +121,8 @@ export async function runExport(job: ExportJob, env: RunEnv): Promise<ExportResu
   }
   try {
     if (job.kind === 'images') await exportImages(ctx, job.options, sets)
+    else if (job.kind === 'pdf' && job.duplexTest)
+      await exportDuplexTest(ctx, job.options, job.duplexTest)
     else if (job.kind === 'pdf') await exportPdf(ctx, job.options, sets, job.project)
     else await exportTts(ctx, job.options, sets, job.project)
   } catch (e) {
@@ -271,6 +274,28 @@ async function exportPdf(
     step(ctx)
   }
   if (printed) ctx.result.warnings.push(msg('export.printed'))
+}
+
+/** La pagina di prova del fronte-retro, nella cartella dei PDF */
+async function exportDuplexTest(ctx: Ctx, o: PdfOptions, text: DuplexTestText): Promise<void> {
+  const page = pageSize(o)
+  ctx.progress.total = 1
+  await ctx.win.show(
+    {
+      pages: duplexTestPages(o, text),
+      scale: PDF_SCALE,
+      background: '#FFFFFF',
+      lineColor: '#000000',
+      lineWidth: 0.12,
+      linesOver: true
+    },
+    page.width * PDF_SCALE,
+    page.height * PDF_SCALE
+  )
+  const pdf = await ctx.win.printToPdf()
+  if (pdf) await write(ctx, join(outputFolder(ctx, o.folder), 'duplex-test.pdf'), pdf)
+  else ctx.result.warnings.push(msg('export.printed'))
+  step(ctx)
 }
 
 // ——— Tabletop Simulator ———
