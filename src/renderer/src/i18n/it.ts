@@ -1548,6 +1548,11 @@ export const it: Record<MessageKey, string> = {
   'export.foldPairs': 'Fronte e retro affiancati, da piegare',
   'export.foldHint':
     'Ogni componente occupa una cella doppia: fronte a sinistra, retro a destra, da piegare lungo i trattini. Fronte-retro, lati, rotazione e poster non si applicano.',
+  'export.ink': 'Inchiostro',
+  'export.inkColor': 'A colori',
+  'export.inkGray': 'Bianco e nero',
+  'export.inkDraft': 'Bozza',
+  'export.inkDraftNote': 'Bianco e nero e più chiaro: meno inchiostro per le prime prove',
   'export.extras': 'Inoltre',
   'export.proof': 'Foglio di prova: tutti i componenti in piccolo, in un PDF a parte',
   'export.cmyk': 'Converti in CMYK',

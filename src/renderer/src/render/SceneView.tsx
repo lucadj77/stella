@@ -1,4 +1,4 @@
-import type { Scene, SceneItem, ScenePage } from '../../../shared/export'
+import { inkFilter, type Scene, type SceneItem, type ScenePage } from '../../../shared/export'
 import CardSvg from './CardSvg'
 
 // Una pagina di una scena di esportazione: carte e segni di taglio. La usano la finestra nascosta
@@ -81,6 +81,7 @@ export default function ScenePageView({
         style={{
           position: 'absolute',
           overflow: 'hidden',
+          filter: inkFilter(s.ink),
           left: c.x * s.scale,
           top: c.y * s.scale,
           width: c.w * s.scale,

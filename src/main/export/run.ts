@@ -253,7 +253,8 @@ async function exportPdf(
       background: '#FFFFFF',
       lineColor: o.markColor,
       lineWidth: o.markWidth,
-      linesOver: o.marksOver
+      linesOver: o.marksOver,
+      ink: o.ink
     }
     await ctx.win.show(scene, page.width * PDF_SCALE, page.height * PDF_SCALE)
     let pdf = await ctx.win.printToPdf()

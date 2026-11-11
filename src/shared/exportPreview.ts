@@ -70,7 +70,8 @@ export function previewItems(job: ExportJob): PreviewPlan {
       background: '#FFFFFF',
       lineColor: o.markColor,
       lineWidth: o.markWidth,
-      linesOver: o.marksOver
+      linesOver: o.marksOver,
+      ink: o.ink
     }
     return {
       files: docs.length,

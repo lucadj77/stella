@@ -18,6 +18,9 @@ export type ChoiceIcon =
   | 'dest-tts'
   | 'dest-both'
   | 'dice-faces'
+  | 'ink-color'
+  | 'ink-gray'
+  | 'ink-draft'
   | 'dice-net'
 
 const line = {
@@ -153,6 +156,36 @@ function choicePicture(name: ChoiceIcon): React.JSX.Element {
           )}
         </>
       )
+    case 'ink-color':
+    case 'ink-gray':
+    case 'ink-draft': {
+      // una carta con la fascia del titolo e l'immagine: a colori, grigie o grigio chiaro
+      const fill =
+        name === 'ink-color'
+          ? { fill: 'var(--accent)', fillOpacity: 0.85 }
+          : { fill: 'currentColor', fillOpacity: name === 'ink-gray' ? 0.6 : 0.22 }
+      return (
+        <>
+          <rect {...CARD} rx={2} {...line} />
+          <rect x={15.5} y={8.5} width={13} height={4} rx={0.5} {...fill} />
+          <rect
+            x={15.5}
+            y={14}
+            width={13}
+            height={8}
+            rx={0.5}
+            {...fill}
+            fillOpacity={fill.fillOpacity * 0.6}
+          />
+          <path
+            d="M16 25h12M16 27.5h8"
+            {...line}
+            strokeWidth={1}
+            strokeOpacity={name === 'ink-draft' ? 0.6 : 1}
+          />
+        </>
+      )
+    }
     case 'dice-net':
       return (
         <>

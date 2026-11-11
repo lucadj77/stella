@@ -592,6 +592,23 @@ export default function ExportDialog({
           { value: 'lines', label: t('export.marksLines'), icon: 'marks-lines' }
         ]}
       />
+      {goal === 'home' && (
+        <Choice
+          label={t('export.ink')}
+          value={pdf.ink ?? 'color'}
+          onChange={(ink) => patch({ ink })}
+          options={[
+            { value: 'color', label: t('export.inkColor'), icon: 'ink-color' },
+            { value: 'gray', label: t('export.inkGray'), icon: 'ink-gray' },
+            {
+              value: 'draft',
+              label: t('export.inkDraft'),
+              note: t('export.inkDraftNote'),
+              icon: 'ink-draft'
+            }
+          ]}
+        />
+      )}
       {hasDice && (
         <Choice
           label={t('export.dice')}
@@ -1269,6 +1286,9 @@ export default function ExportDialog({
               pdf.marks === 'corners' ? 'export.marksCorners' : 'export.marksLines'
             ).toLowerCase()
           }),
+      ...(pdf.ink === 'gray' || pdf.ink === 'draft'
+        ? [t(pdf.ink === 'gray' ? 'export.inkGray' : 'export.inkDraft').toLowerCase()]
+        : []),
       t('export.sum.sheets', { n: summary.sheets })
     ].join(' · ')
   } else if (kind === 'images') {

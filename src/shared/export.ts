@@ -63,6 +63,11 @@ export interface PdfOptions extends CommonOptions {
   /** Spostamento dei retri per compensare il disallineamento della stampante */
   offsetX: number
   offsetY: number
+  /**
+   * Inchiostro delle carte: a colori, in bianco e nero, o in bianco e nero più chiaro per le
+   * bozze (circa il 40% di inchiostro in meno anche sul nero). I segni di taglio restano neri
+   */
+  ink?: InkMode
   /** Un file in tutto, uno per set o uno per lato (fronti e retri separati) */
   split: 'single' | 'set' | 'side'
   /** Carte ruotate di 90° quando altrimenti non entrano nella pagina o ne entrano di più */
@@ -215,6 +220,7 @@ export const DEFAULT_PDF: PdfOptions = {
   duplex: 'none',
   offsetX: 0,
   offsetY: 0,
+  ink: 'color',
   split: 'single',
   autoRotate: true,
   poster: true,
@@ -377,7 +383,18 @@ export interface SceneShape {
   fill: string
 }
 
+export type InkMode = 'color' | 'gray' | 'draft'
+
+/** Il filtro CSS dell'inchiostro: la bozza porta ogni tono v a 0,4 + 0,6 v */
+export function inkFilter(ink: InkMode | undefined): string | undefined {
+  if (ink === 'gray') return 'grayscale(1)'
+  if (ink === 'draft') return 'grayscale(1) invert(1) brightness(0.6) invert(1)'
+  return undefined
+}
+
 export interface Scene {
+  /** Inchiostro delle carte; i segni di taglio non cambiano */
+  ink?: InkMode
   pages: ScenePage[]
   /** Pixel per mm */
   scale: number

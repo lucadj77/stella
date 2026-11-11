@@ -1520,6 +1520,11 @@ export const en = {
   'export.foldPairs': 'Front and back side by side, to fold',
   'export.foldHint':
     'Each component takes a double cell: front on the left, back on the right, fold along the dashed marks. Duplex, sides, rotation and poster do not apply.',
+  'export.ink': 'Ink',
+  'export.inkColor': 'Color',
+  'export.inkGray': 'Black and white',
+  'export.inkDraft': 'Draft',
+  'export.inkDraftNote': 'Black and white and lighter: less ink for the first tests',
   'export.extras': 'Also',
   'export.proof': 'Proof sheet: every component small, in a separate PDF',
   'export.cmyk': 'Convert to CMYK',
