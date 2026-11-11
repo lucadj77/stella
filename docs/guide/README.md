@@ -696,6 +696,8 @@ The image button next to the fields opens thumbnails of the assets, with search 
 - **Download into the project** saves the file in `assets/images` with the chosen name. The image is part of the project and works offline; the address stays in the credits, and with the file selected in the image chooser **Download again** updates it from the site.
 - **Use the link** writes the `https://...` address in place of the file name. You can also type it in the image field, in a column or in an icon variable. Each computer downloads the image the first time and keeps a copy, used offline too; **Download again**, in the image chooser, refreshes it. A link that does not work shows as a missing image and is reported when you export.
 
+**QR code…** makes a QR code from a text or an address, for example the link to the rules or to a video: the image becomes `qr:` followed by the text, and it is drawn black on white with a small white margin, without tint or adjustments, so that it can be scanned. You can write the same in a column or a formula, with a field too: `qr:{link}` makes a different code for each component. A box at least 15 mm wide works best.
+
 In the web app only images from sites that allow it can be downloaded; for the others, save the image on the computer and use **Add images…**.
 
 ![Choosing an image](img/scegli-immagine.png)

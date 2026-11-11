@@ -21,6 +21,7 @@ import {
 import MarkupText from '../render/MarkupText'
 import IconBrowser from './IconBrowser'
 import UrlImageDialog from './UrlImageDialog'
+import QrDialog from './QrDialog'
 
 const SIZE_KEY = 'assetPickerSize'
 const DARK_KEY = 'assetPickerDark'
@@ -63,6 +64,7 @@ export default function AssetPicker({
   const [size, setSizeState] = useState(loadSize)
   const [importing, setImporting] = useState(false)
   const [fromUrl, setFromUrl] = useState(false)
+  const [qr, setQr] = useState(false)
   const [busy, setBusy] = useState(false)
   const sources = useContext(SourcesContext)
   const [error, setError] = useState<Message | null>(null)
@@ -220,6 +222,9 @@ export default function AssetPicker({
           <button onClick={() => setFromUrl(true)} title={t('assetPicker.fromUrlHint')}>
             {t('assetPicker.fromUrl')}
           </button>
+          <button onClick={() => setQr(true)} title={t('assetPicker.qrHint')}>
+            {t('assetPicker.qr')}
+          </button>
         </div>
         {error && <div className="banner error">{t(error)}</div>}
         {link && (
@@ -303,6 +308,16 @@ export default function AssetPicker({
           <button onClick={onClose}>{t('dialog.cancel')}</button>
         </div>
       </div>
+      {qr && (
+        <QrDialog
+          value={value}
+          onPick={(name) => {
+            onPick(name)
+            onClose()
+          }}
+          onClose={() => setQr(false)}
+        />
+      )}
       {fromUrl && (
         <UrlImageDialog
           onPick={(name) => {

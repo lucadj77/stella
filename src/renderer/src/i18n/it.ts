@@ -563,12 +563,22 @@ export const it: Record<MessageKey, string> = {
   'assetPicker.importIcons': 'Importa icone…',
   'assetPicker.fromUrl': 'Da internet…',
   'assetPicker.fromUrlHint': "Scarica un'immagine da un indirizzo, o collegala",
+  'assetPicker.qr': 'Codice QR…',
+  'assetPicker.qrHint':
+    'Un codice QR fatto da un testo o un indirizzo, per esempio il link al regolamento',
   'assetPicker.link': 'Immagine collegata',
   'assetPicker.refreshLink': 'Riscarica',
   'assetPicker.refreshLinkHint':
     'Questo computer tiene una copia delle immagini collegate: riscarica questa da internet',
   'assetPicker.redownload': 'Riscarica «{name}»',
   'assetPicker.redownloadHint': 'Scarica di nuovo da {url}',
+  'qr.title': 'Codice QR',
+  'qr.text': 'Testo o indirizzo',
+  'qr.hint':
+    "L'immagine diventa qr: seguito da questo testo. In una colonna o in una formula puoi scrivere qr: e il testo da te, per esempio qr:{link}.",
+  'qr.empty': 'Scrivi un testo o un indirizzo per vedere il codice.',
+  'qr.tooLong': 'Il testo è troppo lungo per un codice QR.',
+  'qr.use': 'Usa il codice',
   'urlImage.title': 'Immagine da internet',
   'urlImage.url': 'Indirizzo',
   'urlImage.urlHint': "https://… di un'immagine PNG, JPG, WebP o SVG",

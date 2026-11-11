@@ -557,12 +557,22 @@ export const en = {
   'assetPicker.importIcons': 'Import icons…',
   'assetPicker.fromUrl': 'From the internet…',
   'assetPicker.fromUrlHint': 'Download an image from an address, or link it',
+  'assetPicker.qr': 'QR code…',
+  'assetPicker.qrHint':
+    'A QR code made from a text or an address, for example the link to the rules',
   'assetPicker.link': 'Linked image',
   'assetPicker.refreshLink': 'Download again',
   'assetPicker.refreshLinkHint':
     'This computer keeps a copy of linked images: download this one again from the internet',
   'assetPicker.redownload': 'Download "{name}" again',
   'assetPicker.redownloadHint': 'Download again from {url}',
+  'qr.title': 'QR code',
+  'qr.text': 'Text or address',
+  'qr.hint':
+    'The image becomes qr: followed by this text. In a column or a formula you can write qr: and the text yourself, for example qr:{link}.',
+  'qr.empty': 'Write a text or an address to see the code.',
+  'qr.tooLong': 'The text is too long for a QR code.',
+  'qr.use': 'Use the code',
   'urlImage.title': 'Image from the internet',
   'urlImage.url': 'Address',
   'urlImage.urlHint': 'https://… of a PNG, JPG, WebP or SVG image',

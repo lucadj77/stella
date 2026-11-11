@@ -2733,12 +2733,18 @@ button.danger:hover:not(:disabled) {
 
 .asset-picker-bar {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   align-items: center;
 }
 
 .asset-picker-bar input[type='search'] {
   flex: 1;
+  min-width: 200px;
+}
+
+.asset-picker-bar button {
+  white-space: nowrap;
 }
 
 .asset-picker-bar input[type='range'] {
@@ -8600,6 +8606,27 @@ button.wide {
 
 .url-image-field > span:first-child {
   font-weight: 600;
+}
+
+/* Codice QR: il testo e il codice che ne viene, su bianco */
+.qr-dialog {
+  width: min(460px, 90vw);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.qr-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+}
+
+.qr-preview img {
+  width: 180px;
+  height: 180px;
+  image-rendering: pixelated;
 }
 
 .url-image-choices {

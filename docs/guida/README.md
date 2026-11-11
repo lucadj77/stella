@@ -696,6 +696,8 @@ Il pulsante con l'immagine accanto ai campi apre le miniature degli asset, con r
 - **Scarica nel progetto** salva il file in `assets/images` con il nome scelto. L'immagine fa parte del progetto e funziona anche senza rete; l'indirizzo resta nei crediti, e con il file selezionato nella scelta delle immagini **Riscarica** lo aggiorna dal sito.
 - **Usa il collegamento** scrive l'indirizzo `https://...` al posto del nome del file. Lo stesso si può scrivere a mano nel campo dell'immagine, in una colonna o in una variabile icona. Ogni computer scarica l'immagine la prima volta e ne tiene una copia, che usa anche senza rete; **Riscarica**, nella scelta delle immagini, la aggiorna. Un collegamento che non funziona si vede come un'immagine mancante ed è segnalato quando si esporta.
 
+**Codice QR…** crea un codice QR da un testo o da un indirizzo, per esempio il link al regolamento o a un video: l'immagine diventa `qr:` seguito dal testo, e si disegna nera su bianco con un piccolo margine bianco, senza tinta né regolazioni, perché si possa leggere. Lo stesso si può scrivere in una colonna o in una formula, anche con un campo: `qr:{link}` fa un codice diverso per ogni componente. Conviene un riquadro di almeno 15 mm di lato.
+
 Nell'app web si scaricano solo le immagini dei siti che lo permettono; per gli altri conviene salvare l'immagine sul computer e usare **Aggiungi immagini…**.
 
 ![La scelta di un'immagine](img/scegli-immagine.png)

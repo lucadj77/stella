@@ -1,4 +1,5 @@
 // Risoluzione dei nomi di file: vedi docs/specifica.md, sezione 3.1.
+import { isQrImage, qrText } from './qr'
 
 export const IMAGE_EXTENSIONS = ['.svg', '.png', '.webp', '.jpg', '.jpeg']
 
@@ -16,6 +17,13 @@ export function isRemoteImage(name: string): boolean {
  * @param assets percorsi relativi a assets/, con "/" come separatore
  */
 export function resolveAsset(name: string, assets: string[]): AssetResolution {
+  // un codice QR non è un file: vale com'è, tranne quando aspetta ancora un campo
+  if (isQrImage(name)) {
+    const text = qrText(name)
+    if (!text) return { ok: false, reason: 'empty', candidates: [] }
+    if (/\{[^}]+\}/.test(text)) return { ok: false, reason: 'missing', candidates: [] }
+    return { ok: true, path: name.trim() }
+  }
   const wanted = name
     .trim()
     .replace(/\\/g, '/')

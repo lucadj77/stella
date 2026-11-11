@@ -7,6 +7,7 @@ import { numberFormatting, type NumberSettings } from '../../../shared/model/num
 import { useProjectFonts } from './fonts'
 import { isRemoteImage } from '../../../shared/model/assets'
 import { encodeRemotePath } from '../../../shared/model/remoteUrl'
+import { isQrImage, qrDataUrl, qrText } from '../../../shared/model/qr'
 
 /** Provenienza dei file importati o scaricati (assets/sources.json) */
 export const SourcesContext = createContext<Sources>({})
@@ -27,6 +28,7 @@ export async function refreshRemoteImages(urls: string[]): Promise<void> {
 }
 
 export function assetUrl(path: string): string {
+  if (isQrImage(path)) return qrDataUrl(qrText(path))
   if (window.api.assetUrl) return window.api.assetUrl(path)
   if (isRemoteImage(path)) return `gc-asset://remote${encodeRemotePath(path, remoteVersion)}`
   return `gc-asset://project/${path.split('/').map(encodeURIComponent).join('/')}`
