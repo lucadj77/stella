@@ -101,9 +101,13 @@ export default function VariableDialog({
   const sample =
     v.type === 'color'
       ? `[${t('variable.sampleText')}]{color=${name || '_'}} [ 7 ]{bg=circle bg-color=${name || '_'} color=white}`
-      : substituteFields(`${t('variable.sampleBefore')} ${ref} ${t('variable.sampleAfter')}`, {
-          ...variableFields(draft)
-        })
+      : // solo un'icona sta dentro una frase; un testo o un valore si mostra da solo, come lo scrive
+        substituteFields(
+          v.type === 'image'
+            ? `${t('variable.sampleBefore')} ${ref} ${t('variable.sampleAfter')}`
+            : ref,
+          { ...variableFields(draft) }
+        )
 
   const images = [
     ...new Set(

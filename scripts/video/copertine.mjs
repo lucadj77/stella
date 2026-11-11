@@ -33,7 +33,8 @@ const SUBTITLES = {
   impagina: ['Approfondimento: impaginare un template', 'Deep dive: laying out a template'],
   immagini: ['Approfondimento: immagini e forme', 'Deep dive: images and shapes'],
   statistiche: ['Approfondimento: le statistiche del set', 'Deep dive: set statistics'],
-  generare: ['Approfondimento: generare i componenti', 'Deep dive: generating components']
+  generare: ['Approfondimento: generare i componenti', 'Deep dive: generating components'],
+  parametri: ['Approfondimento: variabili con parametri', 'Deep dive: variables with parameters']
 }
 if (!SUBTITLES[video]) throw new Error('video sconosciuto: ' + video)
 const subtitle = SUBTITLES[video][it ? 0 : 1]
