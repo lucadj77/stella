@@ -503,6 +503,8 @@ A layer with the **Spill out of the box** fit is marked _fixed size_: its text i
 
 **Compare…** marks the components that are new or changed since the last export or a backup, so you can reprint only those. Pick the version, and in the sets the different components get a blue dot; **Show only these** hides the others. While comparing, the **Export…** window offers **Changed components**. The comparison looks at what the components show (data, template, and the variables and styles they use), not at the content of image and font files; a component that only moved does not count as changed, unless it shows its number. Every export made in the app remembers the exported components in the project's hidden file `.stella-printed.json`.
 
+**Color blindness preview** shows the components of the set, in the grid, in the preview and in the large view, as people with color blindness see them: **Deuteranopia** (reds and greens look alike, the most common kind), **Protanopia** (reds look dark, close to greens), **Tritanopia** (blues and greens look alike, rare) and **Grayscale** (only lightness, as in a black and white print). Use it to check that colors carrying meaning, such as suits or factions, stay distinct; when they do not, add a symbol or change the lightness. The view stays on while you move between sets, until **Back to normal**, and it changes neither the components nor the export.
+
 ### 5.4 Property columns
 
 Besides the main value, every property of a layer can change from one component to another with a `layer.property` column: for example `name.color` for the title color, or `icon.tint` for the tint of an icon. **+ Field** suggests the columns the template reads and the sheet lacks, the properties of a layer of your choice, or a free column.

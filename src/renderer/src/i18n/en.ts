@@ -2586,6 +2586,23 @@ export const en = {
   'compare.onlyChanged': 'Show only these',
   'compare.end': 'End comparison',
   'compare.changedCard': 'New or changed',
+  'set.vision': 'Color blindness preview',
+  'tip.vision':
+    'Show the components as people with color blindness see them, to check that colors that carry meaning stay distinct',
+  'vision.label': 'Seen with:',
+  'vision.normal': 'Normal vision',
+  'vision.normal.tip': 'The components as they are',
+  'vision.protan': 'Protanopia',
+  'vision.protan.tip':
+    'No red cones: reds look dark and brownish, close to greens (about 1 man in 100)',
+  'vision.deutan': 'Deuteranopia',
+  'vision.deutan.tip':
+    'No green cones: reds and greens look alike, the most common kind (about 6 men in 100 in milder forms)',
+  'vision.tritan': 'Tritanopia',
+  'vision.tritan.tip': 'No blue cones: blues and greens look alike, yellows turn pink (rare)',
+  'vision.gray': 'Grayscale',
+  'vision.gray.tip': 'Only lightness, as in a black and white print',
+  'vision.end': 'Back to normal',
   'export.onlyChanged': 'Changed components',
   'export.onlyChangedHint': 'Only the components new or changed in the comparison ({n})',
   'app.trash': 'Trash…',

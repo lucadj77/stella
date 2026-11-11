@@ -2627,6 +2627,24 @@ export const it: Record<MessageKey, string> = {
   'compare.onlyChanged': 'Mostra solo queste',
   'compare.end': 'Fine confronto',
   'compare.changedCard': 'Nuova o cambiata',
+  'set.vision': 'Anteprima daltonismo',
+  'tip.vision':
+    'Mostra i componenti come li vede chi è daltonico, per controllare che i colori che hanno un significato restino distinti',
+  'vision.label': 'Visti con:',
+  'vision.normal': 'Vista normale',
+  'vision.normal.tip': 'I componenti come sono',
+  'vision.protan': 'Protanopia',
+  'vision.protan.tip':
+    'Senza coni del rosso: i rossi sembrano scuri e bruni, vicini ai verdi (circa 1 uomo su 100)',
+  'vision.deutan': 'Deuteranopia',
+  'vision.deutan.tip':
+    'Senza coni del verde: rossi e verdi si confondono, il caso più comune (circa 6 uomini su 100 nelle forme lievi)',
+  'vision.tritan': 'Tritanopia',
+  'vision.tritan.tip':
+    'Senza coni del blu: blu e verdi si confondono, i gialli diventano rosati (raro)',
+  'vision.gray': 'Scala di grigi',
+  'vision.gray.tip': 'Solo la luminosità, come in una stampa in bianco e nero',
+  'vision.end': 'Torna normale',
   'export.onlyChanged': 'Componenti cambiati',
   'export.onlyChangedHint': 'Solo i componenti nuovi o cambiati nel confronto ({n})',
   'app.trash': 'Cestino…',

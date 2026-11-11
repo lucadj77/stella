@@ -6011,6 +6011,37 @@ details.usages button.link {
   gap: 4px;
 }
 
+/* anteprima per chi vede i colori in modo diverso: la barra e i filtri sulle carte del set */
+.vision-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: var(--accent-soft);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+body[data-vision='protan'] {
+  --vision: url(#vision-protan);
+}
+body[data-vision='deutan'] {
+  --vision: url(#vision-deutan);
+}
+body[data-vision='tritan'] {
+  --vision: url(#vision-tritan);
+}
+body[data-vision='gray'] {
+  --vision: url(#vision-gray);
+}
+/* solo l'SVG della carta, non quelli dentro, che altrimenti avrebbero il filtro due volte */
+body[data-vision] .card-cell > svg {
+  filter: var(--vision) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
+}
+body[data-vision] .preview-card-inner > svg {
+  filter: var(--vision) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
 .compare-choices {
   display: flex;
   flex-direction: column;

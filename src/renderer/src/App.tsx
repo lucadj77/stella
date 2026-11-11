@@ -191,6 +191,11 @@ import HistoryMenu from './components/HistoryMenu'
 import type { EditorChange } from './editor/TemplateEditor'
 import { LENGTH_UNITS, toUnit, type LengthUnit } from '../../shared/model/units'
 import type { AgentLock, Theme } from '../../shared/api'
+import VisionFilters from './components/VisionFilters'
+import { VISIONS, type Vision } from '../../shared/vision'
+
+/** La visione dei colori scelta, che resta passando da un set all'altro finché l'app è aperta */
+let lastVision: Vision | null = null
 
 // finestre usate di rado: si caricano la prima volta che si aprono (la versione web parte prima)
 const GenerateDialog = lazy(() => import('./components/GenerateDialog'))
@@ -3656,6 +3661,12 @@ function SetView({
   }
   /** Filtro scelto con un clic nelle statistiche: solo quelle carte */
   const [statsFilter, setStatsFilter] = useState<StatsFilter | null>(null)
+  /** Anteprima per chi vede i colori in modo diverso; null quando la barra è chiusa */
+  const [vision, setVisionState] = useState<Vision | null>(lastVision)
+  const setVision = (v: Vision | null): void => {
+    lastVision = v
+    setVisionState(v)
+  }
   const [colorsOpen, setColorsOpen] = useState(false)
   const [colorsFocus, setColorsFocus] = useState<string | null>(null)
   const [splitting, setSplitting] = useState(false)
@@ -3698,6 +3709,14 @@ function SetView({
   const [view, setView] = useState<View>('grid')
 
   const template = templates.find((tpl) => tpl.name === set.template) ?? null
+  // i filtri valgono per le carte di questo set: griglia, anteprima e carta grande
+  useEffect(() => {
+    if (!vision || vision === 'normal' || !template) return
+    document.body.dataset.vision = vision
+    return () => {
+      delete document.body.dataset.vision
+    }
+  }, [vision, template])
   // le facce di dado hanno solo il fronte
   const frontOnly = hasNoBack(template)
   const side: Side = frontOnly ? 'front' : chosenSide
@@ -4297,6 +4316,12 @@ function SetView({
                   title: t('tip.textCheck'),
                   disabled: !template,
                   onClick: () => setCheckingText(true)
+                },
+                {
+                  label: t('set.vision'),
+                  title: t('tip.vision'),
+                  disabled: !template,
+                  onClick: () => setVision(vision ?? 'deutan')
                 }
               ]}
             />
@@ -4417,6 +4442,18 @@ function SetView({
               {t('compare.onlyChanged')}
             </label>
             <button onClick={onEndCompare}>{t('compare.end')}</button>
+          </div>
+        )}
+        {vision && template && (
+          <div className="vision-bar set-hint">
+            <VisionFilters />
+            <span>{t('vision.label')}</span>
+            <Segmented<Vision>
+              value={vision}
+              options={VISIONS.map((v) => [v, t(`vision.${v}`), t(`vision.${v}.tip`)])}
+              onChange={setVision}
+            />
+            <button onClick={() => setVision(null)}>{t('vision.end')}</button>
           </div>
         )}
         {statsFilter && (
