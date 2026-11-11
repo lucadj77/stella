@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import {
   isValidNoteName,
   type LoadedSet,
@@ -29,13 +29,10 @@ import {
 } from '../render/assets'
 import DocumentPreview, { DOC_UNIT } from '../render/DocumentPreview'
 import DocumentSettingsPanel from './DocumentSettingsPanel'
-import DocumentExportDialog, { type DocExportKind } from './DocumentExportDialog'
-import { documentHtml, documentMarkdown } from '../export/documentExport'
-import { documentDocx } from '../export/documentDocx'
+import type { DocExportKind } from './DocumentExportDialog'
 import { printHtml } from '../export/printHtml'
 import InsertCardDialog from './InsertCardDialog'
 import TableDialog, { type TableValue } from './TableDialog'
-import SetupDialog from './SetupDialog'
 import type { Setup } from '../../../shared/model/setup'
 import MarkupTextarea from './MarkupTextarea'
 import DocumentToolbar from './DocumentToolbar'
@@ -50,6 +47,10 @@ import FindBar from './FindBar'
 import Resizer from './Resizer'
 import { usePanelWidth } from './usePanelWidth'
 import { plainText } from '../../../shared/model/markup'
+
+// finestre ed esportazioni usate di rado: si caricano la prima volta che servono
+const DocumentExportDialog = lazy(() => import('./DocumentExportDialog'))
+const SetupDialog = lazy(() => import('./SetupDialog'))
 
 /** I passi dello zoom dell'anteprima, in percento */
 const ZOOM_STEPS = [25, 33, 50, 67, 75, 90, 100, 110, 125, 150, 175, 200, 250, 300, 400]
@@ -398,7 +399,9 @@ export default function DocumentView({
           variables
         }
         return await window.api.exportDocumentFiles(
-          await documentMarkdown(page, name, text, ctx, fonts)
+          await (
+            await import('../export/documentExport')
+          ).documentMarkdown(page, name, text, ctx, fonts)
         )
       }
       if (kind === 'docx') {
@@ -412,9 +415,12 @@ export default function DocumentView({
           variables
         }
         return await window.api.exportDocumentFiles(
-          await documentDocx(page, name, text, ctx, settings, fonts)
+          await (
+            await import('../export/documentDocx')
+          ).documentDocx(page, name, text, ctx, settings, fonts)
         )
       }
+      const { documentHtml } = await import('../export/documentExport')
       const html = await documentHtml(page, name, settings, fonts)
       // nel browser il PDF passa dalla finestra di stampa: il file lo salva chi stampa
       if (kind === 'pdf' && window.api.isWeb) {
@@ -719,12 +725,14 @@ export default function DocumentView({
           )}
         </div>
         {exporting && (
-          <DocumentExportDialog
-            name={name}
-            problems={problems.length}
-            onExport={exportAs}
-            onClose={() => setExporting(false)}
-          />
+          <Suspense fallback={null}>
+            <DocumentExportDialog
+              name={name}
+              problems={problems.length}
+              onExport={exportAs}
+              onClose={() => setExporting(false)}
+            />
+          </Suspense>
         )}
         {imageEdit && (
           <ImageDialog
@@ -779,30 +787,32 @@ export default function DocumentView({
           />
         )}
         {setupEdit && (
-          <SetupDialog
-            initial={setupEdit.value}
-            sets={sets}
-            templates={templates}
-            project={meta}
-            maxWidth={DOC_PAGES[settings.page][0] - 2 * settings.margin}
-            font={(settings.size * 0.88 * 25.4) / 72}
-            display={(s) =>
-              documentText(s, {
-                project: shownProject,
-                ...docInfo,
-                language: localization?.language,
-                sets,
-                assets,
-                styles,
-                variables
-              })
-            }
-            onSave={(md) => {
-              setSetupEdit(null)
-              putBlock(md, setupEdit.from, setupEdit.to)
-            }}
-            onClose={() => setSetupEdit(null)}
-          />
+          <Suspense fallback={null}>
+            <SetupDialog
+              initial={setupEdit.value}
+              sets={sets}
+              templates={templates}
+              project={meta}
+              maxWidth={DOC_PAGES[settings.page][0] - 2 * settings.margin}
+              font={(settings.size * 0.88 * 25.4) / 72}
+              display={(s) =>
+                documentText(s, {
+                  project: shownProject,
+                  ...docInfo,
+                  language: localization?.language,
+                  sets,
+                  assets,
+                  styles,
+                  variables
+                })
+              }
+              onSave={(md) => {
+                setSetupEdit(null)
+                putBlock(md, setupEdit.from, setupEdit.to)
+              }}
+              onClose={() => setSetupEdit(null)}
+            />
+          </Suspense>
         )}
         {anatomyEdit && (
           <InsertCardDialog

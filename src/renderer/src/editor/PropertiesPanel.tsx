@@ -1,4 +1,13 @@
-import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+  lazy,
+  Suspense,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState
+} from 'react'
 import AssetPicker from '../components/AssetPicker'
 import HelpTip from '../components/HelpTip'
 import Segmented from '../components/Segmented'
@@ -98,7 +107,7 @@ import {
   VariablesContext,
   assetUrl
 } from '../render/assets'
-import FormulaDialog, { type FormulaExpect } from '../components/FormulaDialog'
+import type { FormulaExpect } from '../components/FormulaDialog'
 import { contentGrid } from '../../../shared/model/formulaAssist'
 import CropDialog from '../components/CropDialog'
 import { DisplayContext } from './displayContext'
@@ -131,6 +140,9 @@ import CellContentDialog, { type CellContentChoice } from './CellContentDialog'
 import type { PanelSide } from '../components/usePanelWidth'
 import { useRatioLock, type LockKind } from './ratioLock'
 import TranslationFields from '../components/TranslationFields'
+
+// l'assistente formule si carica la prima volta che si apre
+const FormulaDialog = lazy(() => import('../components/FormulaDialog'))
 
 interface Props {
   state: EditorState
@@ -2439,27 +2451,29 @@ function ValueSource({
         />
       )}
       {assistant && (
-        <FormulaDialog
-          value={src.kind === 'formula' ? src.expr : ''}
-          expect={FORMULA_EXPECT[l.type]}
-          columns={headers}
-          layers={walkLayers([...template.front, ...template.back])
-            .filter((x) => x.id !== l.id && x.type !== 'group')
-            .map((x) => x.name)}
-          sample={fields}
-          sampleLabel={sample ? t('fx.firstCardOf', { set: sample.set }) : undefined}
-          cells={cells}
-          startScreen={autoOpen}
-          onVaryCells={
-            onVaryCells &&
-            (() => {
-              close()
-              onVaryCells()
-            })
-          }
-          onApply={(expr) => set({ source: { kind: 'formula', expr } })}
-          onClose={close}
-        />
+        <Suspense fallback={null}>
+          <FormulaDialog
+            value={src.kind === 'formula' ? src.expr : ''}
+            expect={FORMULA_EXPECT[l.type]}
+            columns={headers}
+            layers={walkLayers([...template.front, ...template.back])
+              .filter((x) => x.id !== l.id && x.type !== 'group')
+              .map((x) => x.name)}
+            sample={fields}
+            sampleLabel={sample ? t('fx.firstCardOf', { set: sample.set }) : undefined}
+            cells={cells}
+            startScreen={autoOpen}
+            onVaryCells={
+              onVaryCells &&
+              (() => {
+                close()
+                onVaryCells()
+              })
+            }
+            onApply={(expr) => set({ source: { kind: 'formula', expr } })}
+            onClose={close}
+          />
+        </Suspense>
       )}
       <p className="small muted">
         {src.kind === 'fixed'

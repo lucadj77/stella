@@ -6,8 +6,7 @@ import type { UsagesNav } from './components/UsagesSection'
 import AgentLockOverlay from './components/AgentLockOverlay'
 import HelpDialog from './components/HelpDialog'
 import BackupDialog from './components/BackupDialog'
-import GenerateDialog from './components/GenerateDialog'
-import StatsPanel, { type StatsFilter } from './components/StatsPanel'
+import type { StatsFilter } from './components/StatsPanel'
 import ColorsMenu from './components/ColorsMenu'
 import { fieldValues, templateValue } from '../../shared/model/stats'
 import { colorKeys, keyColor, keyOf, type ColorKey } from '../../shared/model/setColors'
@@ -17,7 +16,7 @@ import TrashDialog from './components/TrashDialog'
 import CompareDialog, { type CompareBase } from './components/CompareDialog'
 import { cardFingerprints, changedCards } from '../../shared/model/compare'
 import TextCheckDialog from './components/TextCheckDialog'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type {
   DeletedItem,
   LoadedProject,
@@ -165,7 +164,6 @@ import VariableDialog, { VariableSwatch } from './components/VariableDialog'
 import { usedColors, type Variable, type Variables } from '../../shared/model/variables'
 import FormatDialog from './components/FormatDialog'
 import { isMacPlatform, platformKeys } from '../../shared/keys'
-import ExportDialog from './export/ExportDialog'
 import ExportToast, { type ExportRun } from './export/ExportToast'
 import { runExport, savedOptions } from './export/exportRun'
 import LanguagesDialog, { type LanguagesChange } from './components/LanguagesDialog'
@@ -193,6 +191,11 @@ import HistoryMenu from './components/HistoryMenu'
 import type { EditorChange } from './editor/TemplateEditor'
 import { LENGTH_UNITS, toUnit, type LengthUnit } from '../../shared/model/units'
 import type { AgentLock, Theme } from '../../shared/api'
+
+// finestre usate di rado: si caricano la prima volta che si aprono (la versione web parte prima)
+const GenerateDialog = lazy(() => import('./components/GenerateDialog'))
+const StatsPanel = lazy(() => import('./components/StatsPanel'))
+const ExportDialog = lazy(() => import('./export/ExportDialog'))
 
 const NO_SOURCES = {}
 const NO_STYLES: Record<string, string> = {}
@@ -3499,17 +3502,21 @@ function App(): React.JSX.Element {
                         <ExportToast run={exportRun} onClose={() => setExportRun(null)} />
                       )}
                       {exporting !== null && project && (
-                        <ExportDialog
-                          project={project}
-                          profile={exporting}
-                          changed={changed}
-                          language={localization?.language ?? null}
-                          // le opzioni sono già scritte su disco: il progetto non risulta modificato
-                          onProfiles={(profiles) =>
-                            setProject((p) => p && { ...p, file: { ...p.file, export: profiles } })
-                          }
-                          onClose={() => setExporting(false)}
-                        />
+                        <Suspense fallback={null}>
+                          <ExportDialog
+                            project={project}
+                            profile={exporting}
+                            changed={changed}
+                            language={localization?.language ?? null}
+                            // le opzioni sono già scritte su disco: il progetto non risulta modificato
+                            onProfiles={(profiles) =>
+                              setProject(
+                                (p) => p && { ...p, file: { ...p.file, export: profiles } }
+                              )
+                            }
+                            onClose={() => setExporting(false)}
+                          />
+                        </Suspense>
                       )}
                       {editingStyle !== null && project && (
                         <FormatDialog
@@ -4532,32 +4539,34 @@ function SetView({
         )}
       </section>
       {showStats && (
-        <StatsPanel
-          set={set}
-          sheet={sheet}
-          sets={sets}
-          rows={searchedRows}
-          searched={rowView.filter.trim() !== '' || (!!compare && onlyChanged)}
-          columns={allColumns}
-          template={template}
-          templates={templates}
-          variables={bindCtx.variables}
-          numbers={bindCtx.numbers}
-          cards={cards}
-          bindOther={(other, row) => {
-            const tpl = templates.find((x) => x.name === other.template)
-            if (!tpl || !other.data) return null
-            return bindRow(other.data.headers, other.data.rows[row] ?? [], tpl, templates, {
-              ...bindCtx,
-              system: { ...systemOfSet(projectName, other), number: row + 1 }
-            })
-          }}
-          isDie={kindOf(template) === 'die'}
-          filter={statsFilter}
-          onFilter={setStatsFilter}
-          onShowCard={(row) => setSelection([row])}
-          onClose={() => setShowStats(false)}
-        />
+        <Suspense fallback={null}>
+          <StatsPanel
+            set={set}
+            sheet={sheet}
+            sets={sets}
+            rows={searchedRows}
+            searched={rowView.filter.trim() !== '' || (!!compare && onlyChanged)}
+            columns={allColumns}
+            template={template}
+            templates={templates}
+            variables={bindCtx.variables}
+            numbers={bindCtx.numbers}
+            cards={cards}
+            bindOther={(other, row) => {
+              const tpl = templates.find((x) => x.name === other.template)
+              if (!tpl || !other.data) return null
+              return bindRow(other.data.headers, other.data.rows[row] ?? [], tpl, templates, {
+                ...bindCtx,
+                system: { ...systemOfSet(projectName, other), number: row + 1 }
+              })
+            }}
+            isDie={kindOf(template) === 'die'}
+            filter={statsFilter}
+            onFilter={setStatsFilter}
+            onShowCard={(row) => setSelection([row])}
+            onClose={() => setShowStats(false)}
+          />
+        </Suspense>
       )}
       {previewSide === 'right' && (
         <>
@@ -4640,15 +4649,17 @@ function SetView({
         />
       )}
       {generating && (
-        <GenerateDialog
-          sheet={sheet}
-          template={template}
-          onApply={(s) => {
-            onChange(s)
-            setGenerating(false)
-          }}
-          onClose={() => setGenerating(false)}
-        />
+        <Suspense fallback={null}>
+          <GenerateDialog
+            sheet={sheet}
+            template={template}
+            onApply={(s) => {
+              onChange(s)
+              setGenerating(false)
+            }}
+            onClose={() => setGenerating(false)}
+          />
+        </Suspense>
       )}
       {addingColumn && (
         <AddColumnDialog
