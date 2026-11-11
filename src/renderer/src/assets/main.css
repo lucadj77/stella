@@ -465,6 +465,14 @@ tbody tr.selected td {
   border-radius: 10px;
 }
 
+/*
+ * Le carte fuori vista non si disegnano: con centinaia di carte scrivere resta veloce. Vale
+ * solo dopo il primo disegno, perché adattare i testi di carte saltate costa di più.
+ */
+.card-grid.settled .card-cell {
+  content-visibility: auto;
+}
+
 .card-cell svg {
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
 }

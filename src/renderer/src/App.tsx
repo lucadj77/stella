@@ -116,7 +116,7 @@ import {
 import TemplateEditor from './editor/TemplateEditor'
 import { Dialog, NewTemplateDialog, type NewTemplate } from './editor/dialogs'
 import { KIND_CORNER } from '../../shared/model/kinds'
-import { applyDie, dieSheet, dieStarterLayers } from '../../shared/model/dice'
+import { applyDie, dieOf, dieSheet, dieStarterLayers } from '../../shared/model/dice'
 import { starterLayers } from '../../shared/model/starters'
 import CardGrid from './components/CardGrid'
 import CardForm from './components/CardForm'
@@ -256,6 +256,11 @@ function loadUiZoom(): number {
 }
 
 type View = 'table' | 'grid'
+/** Una riga già legata, con la sua posizione nel foglio */
+interface BoundRow {
+  index: number
+  card: BoundCard
+}
 /** Stato dei dati per annulla/ripristina */
 /** Stato del progetto per ⌘Z: vedi history.ts */
 type DataSnapshot = HistoryEntry
@@ -3690,14 +3695,43 @@ function SetView({
   const frontOnly = hasNoBack(template)
   const side: Side = frontOnly ? 'front' : chosenSide
   const bindCtx = useBindContext()
+  const sheetSystem = useMemo(() => systemOfSet(projectName, set), [projectName, set])
+  const headers = set.data?.headers
+  /**
+   * Carte già legate, per riga: scrivendo in un campo cambia una riga sola, e le altre tengono
+   * la stessa carta (e la griglia non le ridisegna). Si riparte da zero quando cambia ciò che
+   * vale per tutte le righe, compresi il numero di righe e di copie del set.
+   */
+  const boundCache = useMemo(
+    () => new WeakMap<string[], BoundRow>(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      template,
+      templates,
+      headers,
+      bindCtx,
+      projectName,
+      set.name,
+      sheetSystem.rows,
+      sheetSystem.cards
+    ]
+  )
   const cards = useMemo<BoundCard[]>(() => {
     if (!template || !set.data) return []
     const { headers, rows } = set.data
-    const info = systemOfSet(projectName, set)
-    return rows.map((row, i) =>
-      bindRow(headers, row, template, templates, { ...bindCtx, system: { ...info, number: i + 1 } })
-    )
-  }, [template, templates, set, projectName, bindCtx])
+    // il d4 legge anche le righe vicine: lì ogni riga si rilega sempre
+    const cache = dieOf(template) === 'd4' ? new WeakMap<string[], BoundRow>() : boundCache
+    return rows.map((row, i) => {
+      const hit = cache.get(row)
+      if (hit && hit.index === i) return hit.card
+      const card = bindRow(headers, row, template, templates, {
+        ...bindCtx,
+        system: { ...sheetSystem, number: i + 1 }
+      })
+      cache.set(row, { index: i, card })
+      return card
+    })
+  }, [template, templates, set.data, sheetSystem, bindCtx, boundCache])
   /** Template di ogni carta: quello del set o quello della colonna template */
   const rowTemplates = useMemo(
     () =>

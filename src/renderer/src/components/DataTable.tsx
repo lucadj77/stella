@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { dragHasFiles, importDropped } from './dropImages'
 import { confirmKey } from './confirm'
 import type { Sheet } from '../../../shared/project'
@@ -389,15 +389,15 @@ function CellText({
   if (!MARKUP.test(text)) return <>{text}</>
   return (
     <div className="cell-markup" title={text}>
-      <MarkupText
-        text={substituteFields(text, fields())}
-        unit={3.5}
-        ratio={1}
-        paragraphSpacing={0}
-      />
+      <CellMarkup text={substituteFields(text, fields())} />
     </div>
   )
 }
+
+/** Il testo già con i valori della riga: non si ridisegna se non cambia */
+const CellMarkup = memo(function CellMarkup({ text }: { text: string }): React.JSX.Element {
+  return <MarkupText text={text} unit={3.5} ratio={1} paragraphSpacing={0} />
+})
 
 /** Campo di una cella: le modifiche arrivano subito alla carta, Esc le annulla */
 function CellEditor({
