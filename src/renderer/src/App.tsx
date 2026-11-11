@@ -121,6 +121,7 @@ import CardGrid from './components/CardGrid'
 import CardForm from './components/CardForm'
 import ColumnsMenu from './components/ColumnsMenu'
 import { askChoice, askConfirm, confirmKey, showNotice } from './components/confirm'
+import ErrorBoundary from './components/ErrorBoundary'
 import FirstSteps from './components/FirstSteps'
 import { kindWords } from './i18n/kinds'
 import HelpTip from './components/HelpTip'
@@ -200,6 +201,21 @@ const NO_VARIABLES: Variables = {}
 const UI_ZOOM_KEY = 'uiZoom'
 const UI_ZOOMS = [0.8, 0.9, 1, 1.1, 1.25, 1.4, 1.6]
 const WEBSITE = 'https://github.com/lucadj77/stella'
+
+/** Copia delle modifiche non salvate, per recuperarle dopo una chiusura sbagliata */
+interface RecoverySnapshot {
+  version: 1
+  file: ProjectFile
+  sets: LoadedSet[]
+  templates: Template[]
+  dirty: string[]
+  dirtySheets: string[]
+  trashedSheets: string[]
+  fileDirty: boolean
+}
+
+/** Attesa dopo l'ultima modifica prima di scrivere il recupero (ms) */
+const RECOVERY_DELAY = 3000
 
 /** Ultima scelta di Dati nell'editor, per progetto e template; null: nessun dato */
 type EditorData = { set: string; row: number } | null
@@ -471,6 +487,49 @@ function App(): React.JSX.Element {
   const [groupDrop, setGroupDrop] = useState<string | null>(null)
   const sidebarPreview = useSidebarPreview()
 
+  /** Progetto di cui questa sessione ha scritto il recupero: si toglie quando torna salvato */
+  const recoveryFolder = useRef<string | null>(null)
+  // copia delle modifiche non salvate: se Stella si chiude male, riaprendo il progetto si
+  // propone di recuperarle (vedi main/project/recovery.ts)
+  const offerRecovery = useRef<(loaded: LoadedProject) => Promise<void>>(async () => undefined)
+  useEffect(() => {
+    offerRecovery.current = async (loaded) => {
+      const found = await window.api.readRecovery(loaded.folder).catch(() => null)
+      if (!found) return
+      let r: RecoverySnapshot
+      try {
+        r = JSON.parse(found.json)
+      } catch {
+        void window.api.clearRecovery(loaded.folder)
+        return
+      }
+      if (r.version !== 1) return
+      const when = new Date(found.at).toLocaleString(lang)
+      const ok = await askConfirm({
+        title: t('recovery.title'),
+        message: t('recovery.text', { when }),
+        ok: t('recovery.ok'),
+        cancel: t('recovery.discard')
+      })
+      if (!ok) {
+        void window.api.clearRecovery(loaded.folder)
+        return
+      }
+      setProjectState((p) =>
+        p?.folder === loaded.folder
+          ? { ...p, file: r.file, sets: r.sets, templates: r.templates }
+          : p
+      )
+      setDirty(new Set(r.dirty))
+      setDirtySheets(new Set(r.dirtySheets))
+      setTrashedSheets(new Set(r.trashedSheets))
+      setFileDirty(r.fileDirty)
+      setHistoryRaw({ past: [], future: [], at: 0 })
+      setEditorRev((n) => n + 1)
+      recoveryFolder.current = loaded.folder
+    }
+  })
+
   const load = useCallback(async (folder: string) => {
     setLoading(true)
     setError(null)
@@ -498,6 +557,7 @@ function App(): React.JSX.Element {
             : { kind: 'set', index: 0 }
       )
       updateThumbnail(loaded, true).catch((e) => console.error(e))
+      void offerRecovery.current(loaded)
     } catch (e) {
       setError(messageFromError(e))
     } finally {
@@ -672,8 +732,13 @@ function App(): React.JSX.Element {
   }
 
   /** Chiede conferma prima di perdere modifiche non salvate */
-  const discardOk = async (): Promise<boolean> =>
-    !anyDirty || confirmKey(t, 'app.discardChanges', undefined, { danger: true })
+  const discardOk = async (): Promise<boolean> => {
+    if (!anyDirty) return true
+    if (!(await confirmKey(t, 'app.discardChanges', undefined, { danger: true }))) return false
+    // le modifiche scartate non si propongono più come recupero
+    if (project) void window.api.clearRecovery(project.folder)
+    return true
+  }
 
   const open = async (): Promise<void> => {
     const folder = await window.api.chooseProjectFolder()
@@ -1469,6 +1534,7 @@ function App(): React.JSX.Element {
         })
         if (choice === 'cancel') return
         if (choice === 'ok' && !(await saveAll())) return
+        if (choice === 'alt' && project) await window.api.clearRecovery(project.folder)
         window.api.closeWindow()
       } finally {
         askingClose.current = false
@@ -1476,6 +1542,34 @@ function App(): React.JSX.Element {
     }
   })
   useEffect(() => window.api.onCloseRequest(() => void closeRequest.current()), [])
+
+  // con modifiche non salvate se ne scrive una copia, qualche secondo dopo l'ultima modifica
+  useEffect(() => {
+    if (!project || window.api.isWeb) return undefined
+    const folder = project.folder
+    if (!anyDirty) {
+      if (recoveryFolder.current === folder) {
+        recoveryFolder.current = null
+        void window.api.clearRecovery(folder)
+      }
+      return undefined
+    }
+    const timer = setTimeout(() => {
+      const snapshot: RecoverySnapshot = {
+        version: 1,
+        file: project.file,
+        sets: project.sets,
+        templates: project.templates,
+        dirty: [...dirty],
+        dirtySheets: [...dirtySheets],
+        trashedSheets: [...trashedSheets],
+        fileDirty
+      }
+      recoveryFolder.current = folder
+      window.api.writeRecovery(folder, JSON.stringify(snapshot)).catch((e) => console.error(e))
+    }, RECOVERY_DELAY)
+    return () => clearTimeout(timer)
+  }, [project, anyDirty, dirty, dirtySheets, trashedSheets, fileDirty])
 
   const createSet = (name: string, template: string, sheetName: string | null): void => {
     if (!project || (!sheetName && dataLocked())) return
@@ -2959,137 +3053,145 @@ function App(): React.JSX.Element {
                                 )}
                               </>
                             )}
-                            {openDocument &&
-                            project.documents?.some((d) => d.name === openDocument) ? (
-                              <DocumentView
-                                key={openDocument}
-                                name={openDocument}
-                                text={
-                                  project.documents.find((d) => d.name === openDocument)?.text ?? ''
-                                }
-                                others={project.documents
-                                  .map((d) => d.name)
-                                  .filter((n) => n !== openDocument)}
-                                project={project.file.name}
-                                file={project.file}
-                                sets={project.sets}
-                                templates={project.templates}
-                                fonts={project.fonts}
-                                onChange={(text) => documents.change(openDocument, text)}
-                                onRename={(to) =>
-                                  void documents
-                                    .rename(openDocument, to)
-                                    .then((ok) => ok && setSelected({ kind: 'document', name: to }))
-                                }
-                                onDelete={() => void deleteDocument(openDocument)}
-                                onDuplicate={() => void duplicateDocument(openDocument)}
-                              />
-                            ) : editing ? (
-                              <TemplateEditor
-                                key={`${editing.name}:${editorRev}`}
-                                template={editing}
-                                sets={editorSets}
-                                initialPreview={editorPreview}
-                                onPreviewChange={(p) =>
-                                  rememberEditorData(
-                                    project.folder,
-                                    editing.name,
-                                    p && editorSets[p.set]
-                                      ? { set: editorSets[p.set].name, row: p.row }
-                                      : null
-                                  )
-                                }
-                                projectName={project.file}
-                                onChange={updateTemplate}
-                                base={baseOf(project.templates, editing)}
-                                onOpen={(name) => setSelected({ kind: 'template', name })}
-                                onDetach={() => detachTemplate(editing.name)}
-                                menu={templateMenu(editing.name)}
-                                restore={editorRestore}
-                                onRestored={clearEditorRestore}
-                                onOpenSet={(i, row) => {
-                                  const index = project.sets.indexOf(editorSets[i])
-                                  if (index < 0) return
-                                  const sel: Selected = { kind: 'set', index }
-                                  setOpenRow(row === undefined ? null : { for: sel, row })
-                                  setSelected(sel)
-                                }}
-                              />
-                            ) : current ? (
-                              <SetView
-                                key={project.sets.indexOf(current)}
-                                set={current}
-                                sets={project.sets}
-                                initialRow={openRow?.for === selected ? openRow.row : undefined}
-                                projectName={project.file}
-                                readOnly={readOnlyData}
-                                templates={project.templates}
-                                onChange={(sheet, key) =>
-                                  updateSheet(
-                                    selected.kind === 'set' ? selected.index : 0,
-                                    sheet,
-                                    key
-                                  )
-                                }
-                                onEditTemplate={(name, row) => {
-                                  const sel: Selected = { kind: 'template', name }
-                                  setEditPreview(
-                                    row === undefined || row < 0
-                                      ? null
-                                      : { for: sel, set: current.name, row }
-                                  )
-                                  setSelected(sel)
-                                }}
-                                menu={setMenu(selected.kind === 'set' ? selected.index : 0)}
+                            <ErrorBoundary key={screenKey(selected, openDocument)}>
+                              {openDocument &&
+                              project.documents?.some((d) => d.name === openDocument) ? (
+                                <DocumentView
+                                  key={openDocument}
+                                  name={openDocument}
+                                  text={
+                                    project.documents.find((d) => d.name === openDocument)?.text ??
+                                    ''
+                                  }
+                                  others={project.documents
+                                    .map((d) => d.name)
+                                    .filter((n) => n !== openDocument)}
+                                  project={project.file.name}
+                                  file={project.file}
+                                  sets={project.sets}
+                                  templates={project.templates}
+                                  fonts={project.fonts}
+                                  onChange={(text) => documents.change(openDocument, text)}
+                                  onRename={(to) =>
+                                    void documents
+                                      .rename(openDocument, to)
+                                      .then(
+                                        (ok) => ok && setSelected({ kind: 'document', name: to })
+                                      )
+                                  }
+                                  onDelete={() => void deleteDocument(openDocument)}
+                                  onDuplicate={() => void duplicateDocument(openDocument)}
+                                />
+                              ) : editing ? (
+                                <TemplateEditor
+                                  key={`${editing.name}:${editorRev}`}
+                                  template={editing}
+                                  sets={editorSets}
+                                  initialPreview={editorPreview}
+                                  onPreviewChange={(p) =>
+                                    rememberEditorData(
+                                      project.folder,
+                                      editing.name,
+                                      p && editorSets[p.set]
+                                        ? { set: editorSets[p.set].name, row: p.row }
+                                        : null
+                                    )
+                                  }
+                                  projectName={project.file}
+                                  onChange={updateTemplate}
+                                  base={baseOf(project.templates, editing)}
+                                  onOpen={(name) => setSelected({ kind: 'template', name })}
+                                  onDetach={() => detachTemplate(editing.name)}
+                                  menu={templateMenu(editing.name)}
+                                  restore={editorRestore}
+                                  onRestored={clearEditorRestore}
+                                  onOpenSet={(i, row) => {
+                                    const index = project.sets.indexOf(editorSets[i])
+                                    if (index < 0) return
+                                    const sel: Selected = { kind: 'set', index }
+                                    setOpenRow(row === undefined ? null : { for: sel, row })
+                                    setSelected(sel)
+                                  }}
+                                />
+                              ) : current ? (
+                                <SetView
+                                  key={project.sets.indexOf(current)}
+                                  set={current}
+                                  sets={project.sets}
+                                  initialRow={openRow?.for === selected ? openRow.row : undefined}
+                                  projectName={project.file}
+                                  readOnly={readOnlyData}
+                                  templates={project.templates}
+                                  onChange={(sheet, key) =>
+                                    updateSheet(
+                                      selected.kind === 'set' ? selected.index : 0,
+                                      sheet,
+                                      key
+                                    )
+                                  }
+                                  onEditTemplate={(name, row) => {
+                                    const sel: Selected = { kind: 'template', name }
+                                    setEditPreview(
+                                      row === undefined || row < 0
+                                        ? null
+                                        : { for: sel, set: current.name, row }
+                                    )
+                                    setSelected(sel)
+                                  }}
+                                  menu={setMenu(selected.kind === 'set' ? selected.index : 0)}
 
-                                onChangeTemplate={(name) =>
-                                  setTemplate(selected.kind === 'set' ? selected.index : 0, name)
-                                }
-                                onChangeColumns={(view) =>
-                                  setColumnsView(selected.kind === 'set' ? selected.index : 0, view)
-                                }
-                                compare={
-                                  compareBase && changed
-                                    ? {
-                                        label: compareBase.label,
-                                        rows: changed[current.name] ?? []
-                                      }
-                                    : null
-                                }
-                                onCompare={() => setComparing(true)}
-                                onEndCompare={() => setCompareBase(null)}
-                              />
-                            ) : (
-                              <section className="content">
-                                {!project.sets.length && (
-                                  <div className="empty">
-                                    <div>
-                                      {project.templates.length ? (
-                                        <>
-                                          <p>{t('app.noSets')}</p>
-                                          <button
-                                            className="primary"
-                                            onClick={() => setCreatingSet(true)}
-                                          >
-                                            {t('sidebar.newSet')}
-                                          </button>
-                                        </>
-                                      ) : (
-                                        <>
-                                          <p>{t('app.emptyProject')}</p>
-                                          <button
-                                            className="primary"
-                                            onClick={() => setCreating(true)}
-                                          >
-                                            {t('sidebar.newTemplate')}
-                                          </button>
-                                        </>
-                                      )}
+                                  onChangeTemplate={(name) =>
+                                    setTemplate(selected.kind === 'set' ? selected.index : 0, name)
+                                  }
+                                  onChangeColumns={(view) =>
+                                    setColumnsView(
+                                      selected.kind === 'set' ? selected.index : 0,
+                                      view
+                                    )
+                                  }
+                                  compare={
+                                    compareBase && changed
+                                      ? {
+                                          label: compareBase.label,
+                                          rows: changed[current.name] ?? []
+                                        }
+                                      : null
+                                  }
+                                  onCompare={() => setComparing(true)}
+                                  onEndCompare={() => setCompareBase(null)}
+                                />
+                              ) : (
+                                <section className="content">
+                                  {!project.sets.length && (
+                                    <div className="empty">
+                                      <div>
+                                        {project.templates.length ? (
+                                          <>
+                                            <p>{t('app.noSets')}</p>
+                                            <button
+                                              className="primary"
+                                              onClick={() => setCreatingSet(true)}
+                                            >
+                                              {t('sidebar.newSet')}
+                                            </button>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <p>{t('app.emptyProject')}</p>
+                                            <button
+                                              className="primary"
+                                              onClick={() => setCreating(true)}
+                                            >
+                                              {t('sidebar.newTemplate')}
+                                            </button>
+                                          </>
+                                        )}
+                                      </div>
                                     </div>
-                                  </div>
-                                )}
-                              </section>
-                            )}
+                                  )}
+                                </section>
+                              )}
+                            </ErrorBoundary>
                             {openNote && project.notes?.some((n) => n.name === openNote) && (
                               <NotePanel
                                 key={openNote}
@@ -4554,6 +4656,12 @@ function hitsAt(
     } else if (!isBlank(l)) out.push({ layer: l, chain })
   }
   return out
+}
+
+/** La schermata aperta: cambiandola, una schermata che aveva avuto un errore riparte */
+function screenKey(s: Selected, doc: string | null): string {
+  if (doc) return `doc:${doc}`
+  return s.kind === 'set' ? `set:${s.index}` : `${s.kind}:${s.name}`
 }
 
 function isBlank(l: Layer): boolean {

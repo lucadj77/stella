@@ -109,6 +109,9 @@ const api: Api = {
     return () => ipcRenderer.removeListener('app:close-request', listener)
   },
   closeWindow: () => ipcRenderer.send('app:close-confirmed'),
+  writeRecovery: (folder, json) => ipcRenderer.invoke('recovery:write', folder, json),
+  readRecovery: (folder) => ipcRenderer.invoke('recovery:read', folder),
+  clearRecovery: (folder) => ipcRenderer.invoke('recovery:clear', folder),
   setAppMenu: (menus) => ipcRenderer.send('menu:set', menus),
   onMenuCommand: (cb) => {
     const listener = (_: unknown, id: string): void => cb(id)

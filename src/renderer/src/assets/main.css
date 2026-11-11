@@ -8525,3 +8525,22 @@ button.wide {
   font-size: 12px;
   font-weight: 700;
 }
+
+/* una schermata ferma per un errore: il resto della finestra funziona */
+.error-screen {
+  padding: 32px;
+  max-width: 640px;
+}
+
+.error-screen h2 {
+  margin-top: 0;
+}
+
+.error-details {
+  white-space: pre-wrap;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 13px;
+}

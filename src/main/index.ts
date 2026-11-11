@@ -36,6 +36,7 @@ import {
   setProjectFolder
 } from './protocol'
 import { guardWindow, registerCloseGuard } from './closeGuard'
+import { clearRecovery, readRecovery, writeRecovery } from './project/recovery'
 import { downloadSkill } from '../shared/skill'
 import { MessageError, msg } from '../shared/messages'
 import { projectFolderName } from '../shared/model/projectName'
@@ -707,6 +708,11 @@ function registerIpc(): void {
     if (folder) await writeAppState(folder, dirty)
   })
   ipcMain.handle('agent:unlock', () => stateFolder && endAgent(stateFolder))
+
+  // copia delle modifiche non salvate, per recuperarle dopo una chiusura sbagliata
+  ipcMain.handle('recovery:write', (_, folder: string, json: string) => writeRecovery(folder, json))
+  ipcMain.handle('recovery:read', (_, folder: string) => readRecovery(folder))
+  ipcMain.handle('recovery:clear', (_, folder: string) => clearRecovery(folder))
 
   // menu dell'app: lo descrive il renderer, che conosce la lingua e cosa è aperto
   ipcMain.on('menu:set', (e, menus: AppMenu[]) => {

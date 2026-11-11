@@ -274,6 +274,16 @@ export const en = {
   'app.discardChanges': 'There are unsaved changes. If you go on, they are lost.',
   'app.discardChanges.title': 'Discard the changes?',
   'app.discardChanges.ok': 'Discard the changes',
+  'recovery.title': 'Recover the unsaved changes?',
+  'recovery.text':
+    'Stella closed on {when} with unsaved changes in this project. You can get them back and then save them, or discard them and keep the project as it is on disk.',
+  'recovery.ok': 'Recover the changes',
+  'recovery.discard': 'Discard them',
+  'crash.title': 'This screen stopped because of an error',
+  'crash.text':
+    'Your unsaved changes are still there: you can save them with Save at the top, or open another screen from the sidebar. If it happens again, copy the details and send them on Discord.',
+  'crash.copy': 'Copy the details',
+  'crash.retry': 'Try again',
   'app.closeUnsaved':
     "There are unsaved changes in the project. If you don't save them, they are lost.",
   'app.closeUnsaved.title': 'Save the changes before closing?',

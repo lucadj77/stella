@@ -275,6 +275,16 @@ export const it: Record<MessageKey, string> = {
   'app.discardChanges': 'Ci sono modifiche non salvate. Se continui vanno perse.',
   'app.discardChanges.title': 'Scartare le modifiche?',
   'app.discardChanges.ok': 'Scarta le modifiche',
+  'recovery.title': 'Recuperare le modifiche non salvate?',
+  'recovery.text':
+    "Stella si è chiusa il {when} con modifiche non salvate in questo progetto. Puoi recuperarle e poi salvarle, oppure scartarle e tenere il progetto com'è sul disco.",
+  'recovery.ok': 'Recupera le modifiche',
+  'recovery.discard': 'Scartale',
+  'crash.title': 'Questa schermata si è fermata per un errore',
+  'crash.text':
+    "Le modifiche non salvate ci sono ancora: puoi salvarle con Salva in alto, o aprire un'altra schermata dalla barra laterale. Se succede di nuovo, copia i dettagli e mandali su Discord.",
+  'crash.copy': 'Copia i dettagli',
+  'crash.retry': 'Riprova',
   'app.closeUnsaved': 'Ci sono modifiche non salvate nel progetto. Se non le salvi vanno perse.',
   'app.closeUnsaved.title': 'Salvare le modifiche prima di chiudere?',
   'app.closeUnsaved.ok': 'Salva',
