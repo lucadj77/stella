@@ -103,6 +103,12 @@ const api: Api = {
     return () => ipcRenderer.removeListener('agent:lock', listener)
   },
   unlockAgent: () => ipcRenderer.invoke('agent:unlock'),
+  onCloseRequest: (cb) => {
+    const listener = (): void => cb()
+    ipcRenderer.on('app:close-request', listener)
+    return () => ipcRenderer.removeListener('app:close-request', listener)
+  },
+  closeWindow: () => ipcRenderer.send('app:close-confirmed'),
   setAppMenu: (menus) => ipcRenderer.send('menu:set', menus),
   onMenuCommand: (cb) => {
     const listener = (_: unknown, id: string): void => cb(id)

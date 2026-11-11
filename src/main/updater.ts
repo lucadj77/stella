@@ -14,6 +14,7 @@ import {
   type UpdateInfo,
   type UpdateMode
 } from '../shared/update'
+import { allowClose } from './closeGuard'
 
 // Aggiornamento dall'app. Il controllo sceglie la release secondo il canale (Stabile o Beta). Su
 // Windows (installato con il setup) e Linux (AppImage) la installa electron-updater, puntato sui
@@ -144,6 +145,8 @@ async function install(version: string, sender: WebContents): Promise<void> {
   await autoUpdater.downloadUpdate()
   progress(1)
   // senza installazione guidata, e l'app si riapre
+  // le modifiche non salvate le ha già chieste la finestra prima di installare
+  allowClose()
   setImmediate(() => autoUpdater.quitAndInstall(true, true))
 }
 
@@ -202,5 +205,6 @@ async function installMac(version: string, progress: (p: number) => void): Promi
     }
   })
   child.unref()
+  allowClose()
   setImmediate(() => app.quit())
 }

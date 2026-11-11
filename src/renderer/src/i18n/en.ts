@@ -274,6 +274,11 @@ export const en = {
   'app.discardChanges': 'There are unsaved changes. If you go on, they are lost.',
   'app.discardChanges.title': 'Discard the changes?',
   'app.discardChanges.ok': 'Discard the changes',
+  'app.closeUnsaved':
+    "There are unsaved changes in the project. If you don't save them, they are lost.",
+  'app.closeUnsaved.title': 'Save the changes before closing?',
+  'app.closeUnsaved.ok': 'Save',
+  'app.closeUnsaved.alt': "Don't save",
   'app.unsaved': 'Unsaved changes',
   'sidebar.newTemplate': 'New template',
   'dialog.cancel': 'Cancel',

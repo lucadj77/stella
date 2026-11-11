@@ -298,6 +298,9 @@ export const webApi: Api = {
     dirty = !!f && d
   },
   onAgentLock: () => () => undefined,
+  // nel browser avvisa beforeunload, qui sopra
+  onCloseRequest: () => () => undefined,
+  closeWindow: () => undefined,
   unlockAgent: async () => undefined,
   setAppMenu: () => undefined,
   onMenuCommand: () => () => undefined,

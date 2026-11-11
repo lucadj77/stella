@@ -622,6 +622,7 @@ export default function DocumentView({
               ref={editor}
               fields={[]}
               comments
+              currentLine
               value={text}
               placeholder={t('documents.placeholder')}
               toolbar={(format) => (

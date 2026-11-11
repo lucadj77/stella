@@ -6,6 +6,11 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versione da pubblicare, scritta come in package.json (per esempio 1.10.2-beta.1)'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -18,8 +23,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Tag della versione
+        env:
+          EXPECTED: ${{ inputs.version }}
         run: |
-          tag="v$(node -p "require('./package.json').version")"
+          version="$(node -p "require('./package.json').version")"
+          # la versione si scrive anche all'avvio: un numero sbagliato in package.json non diventa
+          # un tag pubblico
+          if [ "$version" != "$EXPECTED" ]; then
+            echo "::error::package.json dice $version, all'avvio è stato scritto $EXPECTED: non si pubblica"
+            exit 1
+          fi
+          tag="v$version"
           if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
             echo "::error::Il tag $tag esiste già: alza la versione in package.json e CHANGELOG.md"
             exit 1

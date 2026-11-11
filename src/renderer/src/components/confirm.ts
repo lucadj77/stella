@@ -16,10 +16,17 @@ export interface ConfirmOptions {
   cancel?: string | null
   /** L'azione toglie o perde qualcosa: tasto rosso, il fuoco va su Annulla */
   danger?: boolean
+  /** Un terzo tasto, tra Annulla e quello principale: "Non salvare" (vedi askChoice) */
+  alt?: string
+  /** Il terzo tasto perde qualcosa: rosso */
+  altDanger?: boolean
 }
 
+/** Risposta di askChoice: il tasto principale, il terzo o Annulla (anche Esc) */
+export type Choice = 'ok' | 'alt' | 'cancel'
+
 export interface ConfirmRequest extends ConfirmOptions {
-  resolve(ok: boolean): void
+  resolve(answer: boolean | 'alt'): void
 }
 
 let enqueue: ((r: ConfirmRequest) => void) | null = null
@@ -40,7 +47,18 @@ export function askConfirm(o: ConfirmOptions): Promise<boolean> {
     }
     return Promise.resolve(window.confirm(text))
   }
-  return new Promise((resolve) => host({ ...o, resolve }))
+  return new Promise((resolve) =>
+    host({ ...o, alt: undefined, resolve: (a) => resolve(a === true) })
+  )
+}
+
+/** Una domanda con tre risposte: il tasto principale, `alt` e Annulla */
+export function askChoice(o: ConfirmOptions & { alt: string }): Promise<Choice> {
+  const host = enqueue
+  if (!host) return Promise.resolve(window.confirm(o.title) ? 'ok' : 'cancel')
+  return new Promise((resolve) =>
+    host({ ...o, resolve: (a) => resolve(a === 'alt' ? 'alt' : a ? 'ok' : 'cancel') })
+  )
 }
 
 /**

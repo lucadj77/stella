@@ -200,7 +200,14 @@ function DataTable({
                     onClick={() => i >= 0 && !calc && onSort?.(h)}
                   >
                     {calc && <span className="calc-mark">ƒ </span>}
-                    {h}
+                    {/* la colonna delle copie ha il nome del modulo della carta, con quello del foglio */}
+                    {h === 'amount' ? (
+                      <>
+                        {t('cardForm.amount')} <span className="th-key">amount</span>
+                      </>
+                    ) : (
+                      h
+                    )}
                     {sort?.column === h && (
                       <span className="sort-mark">{sort.desc ? ' ↓' : ' ↑'}</span>
                     )}

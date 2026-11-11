@@ -120,7 +120,7 @@ import { applyDie, dieSheet, dieStarterLayers } from '../../shared/model/dice'
 import CardGrid from './components/CardGrid'
 import CardForm from './components/CardForm'
 import ColumnsMenu from './components/ColumnsMenu'
-import { askConfirm, confirmKey, showNotice } from './components/confirm'
+import { askChoice, askConfirm, confirmKey, showNotice } from './components/confirm'
 import FirstSteps from './components/FirstSteps'
 import { kindWords } from './i18n/kinds'
 import HelpTip from './components/HelpTip'
@@ -200,6 +200,34 @@ const NO_VARIABLES: Variables = {}
 const UI_ZOOM_KEY = 'uiZoom'
 const UI_ZOOMS = [0.8, 0.9, 1, 1.1, 1.25, 1.4, 1.6]
 const WEBSITE = 'https://github.com/lucadj77/stella'
+
+/** Ultima scelta di Dati nell'editor, per progetto e template; null: nessun dato */
+type EditorData = { set: string; row: number } | null
+const EDITOR_DATA_KEY = 'editorData:'
+
+function readEditorData(folder: string): Record<string, EditorData> {
+  try {
+    return JSON.parse(localStorage.getItem(EDITOR_DATA_KEY + folder) ?? '{}')
+  } catch {
+    return {}
+  }
+}
+
+function editorDataFor(folder: string | undefined, template: string): EditorData {
+  return folder ? (readEditorData(folder)[template] ?? null) : null
+}
+
+function rememberEditorData(folder: string, template: string, data: EditorData): void {
+  try {
+    const all = readEditorData(folder)
+    if (JSON.stringify(all[template] ?? null) === JSON.stringify(data)) return
+    if (data) all[template] = data
+    else delete all[template]
+    localStorage.setItem(EDITOR_DATA_KEY + folder, JSON.stringify(all))
+  } catch {
+    // preferenza non essenziale
+  }
+}
 
 function loadUiZoom(): number {
   try {
@@ -1304,8 +1332,9 @@ function App(): React.JSX.Element {
     setFileDirty(true)
   }
 
-  const saveAll = async (): Promise<void> => {
-    if (!project || saving) return
+  /** Salva tutto; dice se è riuscito (falso anche se l'utente rinuncia o c'è un errore) */
+  const saveAll = async (): Promise<boolean> => {
+    if (!project || saving) return false
     // un foglio condiviso da più set si scrive una volta; in sola lettura nessuno
     const sheets = readOnlyData
       ? []
@@ -1338,7 +1367,7 @@ function App(): React.JSX.Element {
     const restructure =
       removed.length > 0 ||
       sheets.some((x) => x.origin || !(project.diskSheets ?? []).includes(x.name))
-    if (restructure && losses.length && !(await lossConfirm())) return
+    if (restructure && losses.length && !(await lossConfirm())) return false
     setError(null)
     setSaving(true)
     try {
@@ -1373,7 +1402,7 @@ function App(): React.JSX.Element {
         } catch (e) {
           if (messageFromError(e).key !== 'save.needsRewrite') throw e
           // i dati restano da salvare
-          if (!lossConfirm()) return
+          if (!(await lossConfirm())) return false
           ;({ rewritten } = await window.api.saveData(changes))
         }
       }
@@ -1411,12 +1440,42 @@ function App(): React.JSX.Element {
       setTrashedSheets(new Set())
       setFileDirty(false)
       updateThumbnail(project, false).catch((e) => console.error(e))
+      return true
     } catch (e) {
       setError(messageFromError(e))
+      return false
     } finally {
       setSaving(false)
     }
   }
+  // chiudendo la finestra (o uscendo dall'app) con modifiche non salvate: salva, scarta o resta
+  const closeRequest = useRef<() => Promise<void>>(async () => undefined)
+  const askingClose = useRef(false)
+  useEffect(() => {
+    closeRequest.current = async () => {
+      if (askingClose.current) return
+      if (!anyDirty) {
+        window.api.closeWindow()
+        return
+      }
+      askingClose.current = true
+      try {
+        const choice = await askChoice({
+          title: t('app.closeUnsaved.title'),
+          message: t('app.closeUnsaved'),
+          ok: t('app.closeUnsaved.ok'),
+          alt: t('app.closeUnsaved.alt'),
+          altDanger: true
+        })
+        if (choice === 'cancel') return
+        if (choice === 'ok' && !(await saveAll())) return
+        window.api.closeWindow()
+      } finally {
+        askingClose.current = false
+      }
+    }
+  })
+  useEffect(() => window.api.onCloseRequest(() => void closeRequest.current()), [])
 
   const createSet = (name: string, template: string, sheetName: string | null): void => {
     if (!project || (!sheetName && dataLocked())) return
@@ -1877,9 +1936,19 @@ function App(): React.JSX.Element {
         (s) => s.template === editing.name || (fromSet && s.name === fromSet.set)
       )
     : []
-  const editorPreviewIndex = fromSet ? editorSets.findIndex((s) => s.name === fromSet.set) : -1
+  // senza un set da cui si è aperto, l'editor riparte dall'ultima scelta di Dati del template
+  const editorData = fromSet ?? (editing ? editorDataFor(project?.folder, editing.name) : null)
+  const editorPreviewIndex = editorData
+    ? editorSets.findIndex((s) => s.name === editorData.set)
+    : -1
+  const editorPreviewRows = editorSets[editorPreviewIndex]?.data?.rows.length ?? 0
   const editorPreview =
-    editorPreviewIndex >= 0 && fromSet ? { set: editorPreviewIndex, row: fromSet.row } : null
+    editorPreviewIndex >= 0 && editorData
+      ? {
+          set: editorPreviewIndex,
+          row: editorData.row < editorPreviewRows ? editorData.row : 0
+        }
+      : null
 
   // la barra laterale sta a sinistra o a destra, a scelta
   const allStyles = { ...BUILTIN_STYLES, ...project?.file.styles }
@@ -2809,7 +2878,7 @@ function App(): React.JSX.Element {
                               className="primary"
                               disabled={!anyDirty || saving}
                               title={t('app.saveHint')}
-                              onClick={saveAll}
+                              onClick={() => void saveAll()}
                             >
                               {anyDirty ? t('app.save') : t('app.saved')}
                             </button>
@@ -2921,6 +2990,15 @@ function App(): React.JSX.Element {
                                 template={editing}
                                 sets={editorSets}
                                 initialPreview={editorPreview}
+                                onPreviewChange={(p) =>
+                                  rememberEditorData(
+                                    project.folder,
+                                    editing.name,
+                                    p && editorSets[p.set]
+                                      ? { set: editorSets[p.set].name, row: p.row }
+                                      : null
+                                  )
+                                }
                                 projectName={project.file}
                                 onChange={updateTemplate}
                                 base={baseOf(project.templates, editing)}
@@ -3273,7 +3351,7 @@ function App(): React.JSX.Element {
                       {backingUp && project && (
                         <BackupDialog
                           dirty={anyDirty}
-                          onSave={saveAll}
+                          onSave={async () => void (await saveAll())}
                           onRestored={async (folder) => {
                             setBackingUp(false)
                             if (await discardOk()) load(folder)

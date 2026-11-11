@@ -342,6 +342,13 @@ export interface Api {
   onAgentLock(cb: (lock: AgentLock | null) => void): () => void
   /** Toglie il blocco lasciato da un'IA che non ha chiuso il lavoro */
   unlockAgent(): Promise<void>
+  /**
+   * Chiamato quando si chiude la finestra (o si esce dall'app) con modifiche non salvate: la
+   * chiusura è sospesa finché il renderer non chiama closeWindow()
+   */
+  onCloseRequest(cb: () => void): () => void
+  /** Chiude la finestra (o esce dall'app) dopo che onCloseRequest ha chiesto cosa fare */
+  closeWindow(): void
   /** Imposta il menu dell'app desktop (nel web non c'è) */
   setAppMenu(menus: AppMenu[]): void
   /** Chiamato quando si sceglie una voce del menu dell'app, con il suo id */

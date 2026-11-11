@@ -558,6 +558,7 @@ button.primary {
 
 input:not([type]),
 input[type='text'],
+input[type='search'],
 textarea {
   font: inherit;
   color: inherit;
@@ -1433,6 +1434,11 @@ textarea.invalid {
   flex-wrap: wrap;
 }
 
+.data-table .th-key {
+  color: var(--muted);
+  font-weight: normal;
+}
+
 .set-actions .row-filter {
   width: 140px;
 }
@@ -1716,6 +1722,16 @@ button.layer-source.open {
   overflow-wrap: break-word;
   border-color: transparent !important;
   background: none !important;
+}
+
+/* nei documenti: la riga del cursore, sopra il testo ma trasparente */
+.markup-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-left: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  pointer-events: none;
 }
 
 .markup-overlay .mk-punct {
@@ -3420,7 +3436,8 @@ div.font-row {
   gap: 18px;
 }
 
-.welcome-links a {
+.welcome-links a,
+.help-dialog a {
   color: var(--accent);
   font-weight: 600;
 }

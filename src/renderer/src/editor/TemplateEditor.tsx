@@ -54,6 +54,8 @@ interface Props {
   initialPreview?: { set: number; row: number } | null
   /** Apre un set (indice in `sets`); row: la carta mostrata nell'anteprima, se è di quel set */
   onOpenSet?(set: number, row?: number): void
+  /** Cambia la scelta di Dati (set e carta, o nessun dato): l'app la ricorda per il template */
+  onPreviewChange?(preview: { set: number; row: number } | null): void
 }
 
 /** Una modifica dell'editor, per la cronologia del progetto */
@@ -81,7 +83,8 @@ export default function TemplateEditor({
   restore = null,
   onRestored,
   initialPreview = null,
-  onOpenSet
+  onOpenSet,
+  onPreviewChange
 }: Props): React.JSX.Element {
   const { t } = useI18n()
   // in un derivato ogni modifica passa per le sue regole: si salvano solo le differenze
@@ -93,6 +96,12 @@ export default function TemplateEditor({
   const [pickingImage, setPickingImage] = useState(false)
   const [dropping, setDropping] = useState(false)
   const [preview, setPreview] = useState<{ set: number; row: number } | null>(initialPreview)
+  // la scelta di Dati resta al template: riaprendolo si rivede la stessa carta
+  const previewChanged = useRef(onPreviewChange)
+  useEffect(() => {
+    previewChanged.current = onPreviewChange
+  })
+  useEffect(() => previewChanged.current?.(preview), [preview])
   const inheritedIds = useMemo(
     () => (base ? new Set(walkLayers([...base.front, ...base.back]).map((l) => l.id)) : null),
     [base]

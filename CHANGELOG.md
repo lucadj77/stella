@@ -5,6 +5,26 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.11.0-beta.1
+
+### English
+
+- **Closing with unsaved changes**: closing the window or quitting Stella with unsaved changes now asks first: **Save**, **Don't save** or **Cancel**. Before, the desktop app closed without a word and the changes were lost.
+- **The line of the cursor in documents**: in the text of a document, a coloured band marks the line (the whole paragraph) where the cursor is, so after a click on the preview you see at once where you landed in the text.
+- **The editor remembers the Data choice**: the set and card chosen in **Data** stay with each template; opening the template again shows the same card, or no data if you chose none.
+- **Copies in the table**: the `amount` column of the table is headed **Copies amount**, like the field in the card form.
+- **Small fixes**: the filter of the set and the search of the properties have the same look as the other fields; the links of the Help window use the colour of the app; saving a data file that would lose charts, after declining once, now really waits for the answer; links open in the browser only when they are web or mail addresses.
+- Electron 44.9.3, with a security fix.
+
+### Italiano
+
+- **Chiudere con modifiche non salvate**: chiudendo la finestra o uscendo da Stella con modifiche non salvate, ora Stella chiede prima: **Salva**, **Non salvare** o **Annulla**. Prima l'app per computer si chiudeva senza dire nulla e le modifiche andavano perse.
+- **La riga del cursore nei documenti**: nel testo di un documento una fascia colorata segna la riga (tutto il paragrafo) in cui sta il cursore, così dopo un clic sull'anteprima si vede subito dove si è arrivati nel testo.
+- **L'editor ricorda la scelta di Dati**: il set e la carta scelti in **Dati** restano a ogni template; riaprendo il template si rivede la stessa carta, o nessun dato se avevi scelto nessuno.
+- **Copie nella tabella**: la colonna `amount` della tabella ha per titolo **Copie amount**, come il campo nella scheda della carta.
+- **Piccole correzioni**: il filtro del set e la ricerca nelle proprietà hanno lo stesso aspetto degli altri campi; i link della finestra Aiuto hanno il colore dell'app; il salvataggio di un file dati che perderebbe dei grafici, dopo un primo rifiuto, ora aspetta davvero la risposta; i link si aprono nel browser solo se sono indirizzi web o di posta.
+- Electron 44.9.3, con una correzione di sicurezza.
+
 ## 1.10.1
 
 ### English
