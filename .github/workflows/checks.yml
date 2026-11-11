@@ -40,6 +40,8 @@ jobs:
       - run: npx electron-vite build
       - run: npm i --no-save playwright-core@1.63.0
       - run: command -v xvfb-run || (sudo apt-get update && sudo apt-get install -y xvfb)
+      # Ubuntu blocca il sandbox di Chromium per namespace: Electron usa il suo aiutante setuid
+      - run: sudo chown root:root node_modules/electron/dist/chrome-sandbox && sudo chmod 4755 node_modules/electron/dist/chrome-sandbox
       - name: Prova dell'interfaccia
         run: xvfb-run -a node scripts/e2e/smoke.mjs
       # la prima carta disegnata dal comando stella, che ha bisogno dell'app compilata
