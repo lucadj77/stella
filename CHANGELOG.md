@@ -10,18 +10,26 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 ### English
 
 - **Closing with unsaved changes**: closing the window or quitting Stella with unsaved changes now asks first: **Save**, **Don't save** or **Cancel**. Before, the desktop app closed without a word and the changes were lost.
+- **Recovering after a sudden close**: Stella keeps the unsaved changes aside in a recovery file a few seconds after each change. If the app closes suddenly, opening the project again offers to recover them. A screen that fails now shows a message with **Try again** and **Copy the details**, instead of an empty window.
+- **Starting layouts for new templates**: the **New template** window has a **Starting layout** choice, with a thumbnail for each: **Empty** (the default) or a few layers already in place, such as **Title, art, text** for a card or **Number** for a token.
 - **The line of the cursor in documents**: in the text of a document, a coloured band marks the line (the whole paragraph) where the cursor is, so after a click on the preview you see at once where you landed in the text.
 - **The editor remembers the Data choice**: the set and card chosen in **Data** stay with each template; opening the template again shows the same card, or no data if you chose none.
 - **Copies in the table**: the `amount` column of the table is headed **Copies amount**, like the field in the card form.
+- **Easier editor**: in a narrow window the layers and properties panels shrink to leave room for the canvas; the buttons under the layers have names (**Group**, **Ungroup**, **Duplicate**, **Delete**) and the lock, eye and source icons are bigger; **Position and size** comes first in the properties, and text alignment is a row of icon buttons.
+- **Tidier set**: **Delete** sits at the right end of the button row and is red only when cards are selected; in the card form the icons next to the fields show on the active row or under the mouse.
 - **Small fixes**: the filter of the set and the search of the properties have the same look as the other fields; the links of the Help window use the colour of the app; saving a data file that would lose charts, after declining once, now really waits for the answer; links open in the browser only when they are web or mail addresses.
 - Electron 44.9.3, with a security fix.
 
 ### Italiano
 
 - **Chiudere con modifiche non salvate**: chiudendo la finestra o uscendo da Stella con modifiche non salvate, ora Stella chiede prima: **Salva**, **Non salvare** o **Annulla**. Prima l'app per computer si chiudeva senza dire nulla e le modifiche andavano perse.
+- **Recuperare dopo una chiusura improvvisa**: Stella tiene da parte le modifiche non salvate in un file di recupero, pochi secondi dopo ogni modifica. Se l'app si chiude di colpo, riaprendo il progetto propone di recuperarle. Una schermata che va in errore ora mostra un messaggio con **Riprova** e **Copia i dettagli**, invece di una finestra vuota.
+- **Disposizioni di partenza per i nuovi template**: la finestra **Nuovo template** ha la scelta **Disposizione di partenza**, con una miniatura per ciascuna: **Vuoto** (la scelta di base) o alcuni livelli già al loro posto, come **Titolo, immagine, testo** per una carta o **Numero** per un segnalino.
 - **La riga del cursore nei documenti**: nel testo di un documento una fascia colorata segna la riga (tutto il paragrafo) in cui sta il cursore, così dopo un clic sull'anteprima si vede subito dove si è arrivati nel testo.
 - **L'editor ricorda la scelta di Dati**: il set e la carta scelti in **Dati** restano a ogni template; riaprendo il template si rivede la stessa carta, o nessun dato se avevi scelto nessuno.
 - **Copie nella tabella**: la colonna `amount` della tabella ha per titolo **Copie amount**, come il campo nella scheda della carta.
+- **Editor più comodo**: in una finestra stretta i pannelli dei livelli e delle proprietà si restringono per lasciare spazio alla tela; i pulsanti sotto i livelli hanno il nome (**Raggruppa**, **Separa**, **Duplica**, **Elimina**) e le icone di lucchetto, occhio e fonte sono più grandi; **Posizione e dimensioni** viene per prima nelle proprietà, e l'allineamento del testo è una fila di pulsanti a icona.
+- **Set più ordinato**: **Elimina** sta in fondo a destra nella riga dei pulsanti ed è rosso solo con delle carte selezionate; nel modulo della carta le icone accanto ai campi compaiono sulla riga attiva o sotto il mouse.
 - **Piccole correzioni**: il filtro del set e la ricerca nelle proprietà hanno lo stesso aspetto degli altri campi; i link della finestra Aiuto hanno il colore dell'app; il salvataggio di un file dati che perderebbe dei grafici, dopo un primo rifiuto, ora aspetta davvero la risposta; i link si aprono nel browser solo se sono indirizzi web o di posta.
 - Electron 44.9.3, con una correzione di sicurezza.
 

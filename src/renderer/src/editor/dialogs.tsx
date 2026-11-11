@@ -17,6 +17,7 @@ import { UNIT_LABEL, formatLength, fromUnit, toUnit } from '../../../shared/mode
 import { RatioLock } from './fields'
 import { DieIcon, KindIcon } from '../export/exportIcons'
 import { useRatioLock } from './ratioLock'
+import { STARTERS, starterLayers, type StarterKey } from '../../../shared/model/starters'
 
 export function Dialog({
   title,
@@ -75,6 +76,8 @@ export interface NewTemplate {
   shape?: CardShape
   /** Tipo di dado, per le facce di dado */
   die?: DieType
+  /** Disposizione di partenza scelta dall'utente; senza, il template nasce vuoto */
+  starter?: StarterKey
 }
 
 export function NewTemplateDialog({
@@ -95,6 +98,9 @@ export function NewTemplateDialog({
   const [height, setHeight] = useState(() => String(toUnit(88, unit)))
   const [shape, setShape] = useState<CardShape | undefined>(undefined)
   const [die, setDie] = useState<DieType>('d6')
+  // si parte sempre da vuoto: una disposizione si usa solo se la si sceglie
+  const [starter, setStarter] = useState<StarterKey | null>(null)
+  const starters = STARTERS[kind]
   const wu = Number(width.replace(',', '.'))
   const hu = Number(height.replace(',', '.'))
   const w = Math.round(fromUnit(wu, unit) * 100) / 100
@@ -139,7 +145,15 @@ export function NewTemplateDialog({
           e.preventDefault()
           if (!valid) return
           if (kind === 'die') onCreate({ name, width: w, height: dieHeight(die, w, h), kind, die })
-          else onCreate({ name, width: w, height: h, kind, ...(shape ? { shape } : {}) })
+          else
+            onCreate({
+              name,
+              width: w,
+              height: h,
+              kind,
+              ...(shape ? { shape } : {}),
+              ...(starter ? { starter } : {})
+            })
         }}
       >
         <div className="kind-choice" role="radiogroup" aria-label={t('newTemplate.kind')}>
@@ -155,6 +169,7 @@ export function NewTemplateDialog({
                 title={t(`kind.${k}.hint`)}
                 onClick={() => {
                   setKind(k)
+                  setStarter(null)
                   applyPreset(k === 'die' ? diePresets(die)[0] : KIND_PRESETS[k][0])
                 }}
               >
@@ -249,6 +264,30 @@ export function NewTemplateDialog({
             {UNIT_LABEL[unit]}
           </label>
         </div>
+        {starters.length > 0 && (
+          <div
+            className="kind-choice starter-choice"
+            role="radiogroup"
+            aria-label={t('starter.label')}
+          >
+            <span className="kind-choice-label">{t('starter.label')}</span>
+            <div className="kind-choice-buttons">
+              {[null, ...starters].map((k) => (
+                <button
+                  key={k ?? 'empty'}
+                  type="button"
+                  role="radio"
+                  aria-checked={starter === k}
+                  className={starter === k ? 'active' : ''}
+                  onClick={() => setStarter(k)}
+                >
+                  <StarterThumb starter={k} w={w} h={h} shape={shape} />
+                  {t(k ? (`starter.${k}` as MessageKey) : 'starter.empty')}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="dialog-buttons">
           <button type="button" onClick={onClose}>
             {t('dialog.cancel')}
@@ -259,6 +298,76 @@ export function NewTemplateDialog({
         </div>
       </form>
     </Dialog>
+  )
+}
+
+/** Miniatura di una disposizione di partenza, disegnata dai suoi livelli: sempre come sarà */
+function StarterThumb({
+  starter,
+  w,
+  h,
+  shape
+}: {
+  starter: StarterKey | null
+  w: number
+  h: number
+  shape?: CardShape
+}): React.JSX.Element {
+  const W = w >= 5 ? w : 63
+  const H = h >= 5 ? h : 88
+  // dentro un quadrato di 56 px, con le proporzioni del componente
+  const k = 56 / Math.max(W, H)
+  const layers = starter ? starterLayers(starter, W, H, 3, 3, { title: '', text: '' }, shape) : []
+  const outline =
+    shape === 'ellipse' ? (
+      <ellipse cx={W / 2} cy={H / 2} rx={W / 2} ry={H / 2} />
+    ) : shape === 'hexagon' ? (
+      <polygon
+        points={`${W * 0.25},0 ${W * 0.75},0 ${W},${H / 2} ${W * 0.75},${H} ${W * 0.25},${H} 0,${H / 2}`}
+      />
+    ) : (
+      <rect width={W} height={H} rx={Math.min(W, H) * 0.05} />
+    )
+  return (
+    <svg
+      className="starter-thumb"
+      width={Math.round(W * k)}
+      height={Math.round(H * k)}
+      viewBox={`0 0 ${W} ${H}`}
+      aria-hidden="true"
+    >
+      <defs>
+        <clipPath id={`starter-${starter ?? 'empty'}`}>{outline}</clipPath>
+      </defs>
+      <g className="starter-thumb-paper">{outline}</g>
+      <g clipPath={`url(#starter-${starter ?? 'empty'})`}>
+        {layers
+          .slice()
+          .reverse()
+          .map((l, i) => {
+            const [x, y, lw, lh] = [l.x, l.y, l.w, l.h] as number[]
+            if (l.type === 'image')
+              return (
+                <rect key={i} className="starter-thumb-art" x={x} y={y} width={lw} height={lh} />
+              )
+            // un testo: una riga spessa per il titolo, righe sottili per il corpo
+            const line = Math.min(lh * 0.5, Math.max(W, H) * 0.05)
+            const rows = l.name === 'text' ? Math.max(1, Math.floor(lh / (line * 2.2))) : 1
+            const thick = l.name === 'text' ? line * 0.6 : line * 1.4
+            return (
+              <g key={i} className="starter-thumb-text">
+                {Array.from({ length: Math.min(rows, 6) }, (_, j) => {
+                  const lw2 =
+                    l.align === 'center' || rows === 1 ? lw * 0.6 : j % 3 === 2 ? lw * 0.6 : lw
+                  const lx = l.align === 'center' || rows === 1 ? x + (lw - lw2) / 2 : x
+                  const ly = rows === 1 ? y + (lh - thick) / 2 : y + j * line * 2.2
+                  return <rect key={j} x={lx} y={ly} width={lw2} height={thick} rx={thick / 2} />
+                })}
+              </g>
+            )
+          })}
+      </g>
+    </svg>
   )
 }
 

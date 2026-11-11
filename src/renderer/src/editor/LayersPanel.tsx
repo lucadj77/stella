@@ -346,16 +346,20 @@ export default function LayersPanel({
           ↓
         </button>
         <button disabled={!cmd.canGroup} title={t('layers.group')} onClick={cmd.group}>
-          ⊞
+          <span aria-hidden="true">⊞</span>{' '}
+          <span className="layers-action-label">{t('layers.groupShort')}</span>
         </button>
         <button disabled={!cmd.canUngroup} title={t('layers.ungroup')} onClick={cmd.ungroup}>
-          ⊟
+          <span aria-hidden="true">⊟</span>{' '}
+          <span className="layers-action-label">{t('layers.ungroupShort')}</span>
         </button>
         <button disabled={none} title={t('layers.duplicate')} onClick={cmd.duplicate}>
-          ⧉
+          <span aria-hidden="true">⧉</span>{' '}
+          <span className="layers-action-label">{t('layers.duplicateShort')}</span>
         </button>
         <button disabled={none} title={t('layers.delete')} onClick={cmd.remove}>
-          🗑
+          <span aria-hidden="true">🗑</span>{' '}
+          <span className="layers-action-label">{t('layers.deleteShort')}</span>
         </button>
       </div>
     </aside>

@@ -70,6 +70,8 @@ export interface EditorChange {
 }
 
 const NUDGE = 0.5
+/** Sotto questa larghezza dell'editor (px) i pannelli si stringono per la tela */
+const NARROW_EDITOR = 1100
 
 export default function TemplateEditor({
   template,
@@ -114,6 +116,25 @@ export default function TemplateEditor({
   )
   const [layersWidth, setLayersWidth] = usePanelWidth('layers.v2', 270)
   const [propsWidth, setPropsWidth] = usePanelWidth('properties.v2', 380)
+  // in una finestra stretta i pannelli lasciano spazio alla tela: la larghezza scelta resta
+  // ricordata e torna quando la finestra si allarga
+  const editorRef = useRef<HTMLDivElement>(null)
+  const [editorWidth, setEditorWidth] = useState(0)
+  useEffect(() => {
+    const el = editorRef.current
+    if (!el) return undefined
+    const ro = new ResizeObserver(() => setEditorWidth(el.clientWidth))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  // trascinato a mano il bordo di un pannello, vale la larghezza scelta anche se la finestra è stretta
+  const [resized, setResized] = useState(false)
+  const fitPanel = (w: number, min: number, share: number): number =>
+    !resized && editorWidth > 0 && editorWidth < NARROW_EDITOR
+      ? Math.min(w, Math.max(min, Math.round(editorWidth * share)))
+      : w
+  const layersShown = fitPanel(layersWidth, 170, 0.19)
+  const propsShown = fitPanel(propsWidth, 280, 0.3)
   const [layersSide, toggleLayersSide] = usePanelSide('layers', 'left')
   const [propsSide, togglePropsSide] = usePanelSide('properties', 'right')
 
@@ -333,7 +354,7 @@ export default function TemplateEditor({
       state={state}
       dispatch={dispatch}
       cmd={cmd}
-      width={layersWidth}
+      width={layersShown}
       side={layersSide}
       onToggleSide={toggleLayersSide}
       base={base}
@@ -342,7 +363,7 @@ export default function TemplateEditor({
   const propsPanel = (
     <DisplayContext.Provider value={displayInfo}>
       <PropertiesPanel
-        width={propsWidth}
+        width={propsShown}
         state={state}
         dispatch={dispatch}
         cmd={cmd}
@@ -361,16 +382,22 @@ export default function TemplateEditor({
       key: 'layers',
       side: layersSide,
       el: layersPanel,
-      width: layersWidth,
-      setWidth: setLayersWidth,
+      width: layersShown,
+      setWidth: (w: number) => {
+        setResized(true)
+        setLayersWidth(w)
+      },
       min: 160
     },
     {
       key: 'properties',
       side: propsSide,
       el: propsPanel,
-      width: propsWidth,
-      setWidth: setPropsWidth,
+      width: propsShown,
+      setWidth: (w: number) => {
+        setResized(true)
+        setPropsWidth(w)
+      },
       min: 260
     }
   ]
@@ -391,7 +418,7 @@ export default function TemplateEditor({
   const right = panels.filter((p) => p.side === 'right').flatMap(withResizer)
 
   return (
-    <div className="editor">
+    <div className="editor" ref={editorRef}>
       <div className="editor-toolbar">
         <h1>{state.template.name}</h1>
         {menu && <Menu className="more-button" label="⋯" title={t('app.more')} items={menu} />}

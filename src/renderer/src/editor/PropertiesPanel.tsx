@@ -116,6 +116,8 @@ import {
   FadeFields,
   Row,
   SelectField,
+  IconChoiceField,
+  AlignIcon,
   ShadowFields,
   StrokeField,
   TextField
@@ -690,6 +692,9 @@ function LayerProperties({
         </>
       )}
 
+      {layers.every((x) => x.type !== 'value') && (
+        <DrawnProperties l={l} set={set} col={col} multi={multi} part="geometry" />
+      )}
       {same && l.type === 'text' && (
         <TextProperties
           l={l}
@@ -749,7 +754,7 @@ function LayerProperties({
       {same && l.type === 'group' && <GroupProperties l={l as GroupLayer} set={set} col={col} />}
 
       {layers.every((x) => x.type !== 'value') && (
-        <DrawnProperties l={l} set={set} col={col} multi={multi} />
+        <DrawnProperties l={l} set={set} col={col} multi={multi} part="appearance" />
       )}
       {!multi && l.type !== 'value' && <SnapProperties l={l} set={set} />}
     </InheritContext.Provider>
@@ -1039,10 +1044,13 @@ function DrawnProperties({
   l,
   set,
   col,
-  multi = false
+  multi = false,
+  part
 }: Omit<TypeProps<Layer>, 'computed'> & {
   /** Più livelli: posizione e dimensioni restano di ciascuno (per quelle c'è Allinea) */
   multi?: boolean
+  /** Posizione e dimensioni stanno in cima al pannello, l'aspetto in fondo */
+  part: 'geometry' | 'appearance'
 }): React.JSX.Element {
   const { t } = useI18n()
   const [locked, setLocked] = useRatioLock(l.type as LockKind)
@@ -1050,188 +1058,181 @@ function DrawnProperties({
   const [a, b] = lineEnds(l)
   const ends = (p: Point, q: Point): void => set(lineFromEnds(l, p, q))
   const r = (v: number): number => Math.round(v * 100) / 100
+  if (part === 'appearance') return <AppearanceProperties l={l} set={set} col={col} />
   return (
-    <>
-      <Section scope="geometry" title={t('editor.geometry')}>
-        {multi ? null : line ? (
-          <Inherit keys={['x', 'y', 'w', 'rotation']}>
-            <div className="field-grid">
-              <NumberField
-                label="Ax"
-                value={r(a.x)}
-                unit="mm"
-                onChange={(x) => ends({ ...a, x }, b)}
-              />
-              <NumberField
-                label="Ay"
-                value={r(a.y)}
-                unit="mm"
-                onChange={(y) => ends({ ...a, y }, b)}
-              />
-              <NumberField
-                label="Bx"
-                value={r(b.x)}
-                unit="mm"
-                onChange={(x) => ends(a, { ...b, x })}
-              />
-              <NumberField
-                label="By"
-                value={r(b.y)}
-                unit="mm"
-                onChange={(y) => ends(a, { ...b, y })}
-              />
-              <NumberField
-                label="L"
-                hint={t('prop.length')}
-                value={r(l.w)}
-                min={0}
-                unit="mm"
-                onChange={(w) => set({ w })}
-              />
-            </div>
-          </Inherit>
-        ) : (
-          <Inherit keys={['x', 'y', 'w', 'h']}>
-            <div className="field-grid">
-              <NumberField
-                label="X"
-                hint={col('x')}
-                value={l.x}
-                unit="mm"
-                onChange={(x) => set({ x })}
-              />
-              <NumberField
-                label="Y"
-                hint={col('y')}
-                value={l.y}
-                unit="mm"
-                onChange={(y) => set({ y })}
-              />
-              <SizeFields
-                labels={[t('prop.w'), t('prop.h')]}
-                hints={[col('w'), col('h')]}
-                w={l.w}
-                h={l.h}
-                min={0.5}
-                unit="mm"
-                locked={locked}
-                onLock={setLocked}
-                // la misura di una griglia con la casella fissa viene dalle caselle
-                disabled={l.type === 'grid' && !!l.cellSize}
-                onChange={(w, h) => set(anchoredResize(l, w, h))}
-              />
-            </div>
-          </Inherit>
-        )}
-        {line && !multi && <p className="muted small">{t('editor.lineHint')}</p>}
-        <P id="rotation">
-          <NumberField
-            label={t('prop.rotation')}
-            hint={col('rotation')}
-            value={l.rotation}
-            step={1}
-            min={-360}
-            max={360}
-            unit="°"
-            onChange={(rotation) => set({ rotation })}
-          />
-        </P>
-        <P id="anchor" adv>
-          <SelectField<Anchor>
-            label={t('prop.anchor')}
-            hint={t('editor.anchorHint')}
-            value={l.anchor}
-            options={ANCHORS.map((a) => [a, t(`anchor.${a}` as MessageKey)])}
-            onChange={(anchor) => set({ anchor })}
-          />
-        </P>
-        <P id="constraintH" adv>
-          <SelectField<Constraints['h']>
-            label={t('prop.constraintH')}
-            hint={t('editor.constraintsHint')}
-            value={l.constraints.h}
-            options={options(t, 'constraintH', [
-              'left',
-              'right',
-              'center',
-              'both',
-              'scale'
-            ] as const)}
-            onChange={(h) => set({ constraints: { ...l.constraints, h } })}
-          />
-        </P>
-        <P id="constraintV" adv>
-          <SelectField<Constraints['v']>
-            label={t('prop.constraintV')}
-            hint={t('editor.constraintsHint')}
-            value={l.constraints.v}
-            options={options(t, 'constraintV', [
-              'top',
-              'bottom',
-              'center',
-              'both',
-              'scale'
-            ] as const)}
-            onChange={(v) => set({ constraints: { ...l.constraints, v } })}
-          />
-        </P>
-      </Section>
-      <Section scope="appearance" title={t('editor.appearance')}>
-        <P id="opacity">
-          <NumberField
-            label={t('prop.opacity')}
-            hint={col('opacity')}
-            value={l.opacity}
-            factor={100}
-            step={5}
-            min={0}
-            max={1}
-            unit="%"
-            onChange={(opacity) => set({ opacity })}
-          />
-        </P>
-        <P id="blend" adv>
-          <SelectField<BlendMode>
-            label={t('prop.blend')}
-            hint={col('blend')}
-            value={l.blend}
-            options={options(t, 'blend', ['normal', 'multiply', 'screen', 'overlay'] as const)}
-            onChange={(blend) => set({ blend })}
-          />
-        </P>
-        <P id="fade" adv>
-          <FadeFields
-            value={l.fade}
-            hint={t('editor.fadeHint')}
-            onChange={(fade) => set({ fade })}
-          />
-        </P>
-        <P id="shadow" adv>
-          <ShadowFields
-            value={l.shadow}
-            hint={col('shadow')}
-            onChange={(shadow) => set({ shadow })}
-          />
-        </P>
-        <P id="visible">
-          <CheckField
-            label={t('prop.visible')}
-            hint={l.type === 'group' ? col() : col('visible')}
-            disabled={l.type === 'group' && l.source.kind === 'formula'}
-            value={l.visible}
-            onChange={(visible) => set({ visible })}
-          />
-        </P>
-        <P id="locked" adv>
-          <CheckField
-            label={t('prop.locked')}
-            hint={t('editor.lockedHint')}
-            value={l.locked}
-            onChange={(locked) => set({ locked })}
-          />
-        </P>
-      </Section>
-    </>
+    <Section scope="geometry" title={t('editor.geometry')}>
+      {multi ? null : line ? (
+        <Inherit keys={['x', 'y', 'w', 'rotation']}>
+          <div className="field-grid">
+            <NumberField
+              label="Ax"
+              value={r(a.x)}
+              unit="mm"
+              onChange={(x) => ends({ ...a, x }, b)}
+            />
+            <NumberField
+              label="Ay"
+              value={r(a.y)}
+              unit="mm"
+              onChange={(y) => ends({ ...a, y }, b)}
+            />
+            <NumberField
+              label="Bx"
+              value={r(b.x)}
+              unit="mm"
+              onChange={(x) => ends(a, { ...b, x })}
+            />
+            <NumberField
+              label="By"
+              value={r(b.y)}
+              unit="mm"
+              onChange={(y) => ends(a, { ...b, y })}
+            />
+            <NumberField
+              label="L"
+              hint={t('prop.length')}
+              value={r(l.w)}
+              min={0}
+              unit="mm"
+              onChange={(w) => set({ w })}
+            />
+          </div>
+        </Inherit>
+      ) : (
+        <Inherit keys={['x', 'y', 'w', 'h']}>
+          <div className="field-grid">
+            <NumberField
+              label="X"
+              hint={col('x')}
+              value={l.x}
+              unit="mm"
+              onChange={(x) => set({ x })}
+            />
+            <NumberField
+              label="Y"
+              hint={col('y')}
+              value={l.y}
+              unit="mm"
+              onChange={(y) => set({ y })}
+            />
+            <SizeFields
+              labels={[t('prop.w'), t('prop.h')]}
+              hints={[col('w'), col('h')]}
+              w={l.w}
+              h={l.h}
+              min={0.5}
+              unit="mm"
+              locked={locked}
+              onLock={setLocked}
+              // la misura di una griglia con la casella fissa viene dalle caselle
+              disabled={l.type === 'grid' && !!l.cellSize}
+              onChange={(w, h) => set(anchoredResize(l, w, h))}
+            />
+          </div>
+        </Inherit>
+      )}
+      {line && !multi && <p className="muted small">{t('editor.lineHint')}</p>}
+      <P id="rotation">
+        <NumberField
+          label={t('prop.rotation')}
+          hint={col('rotation')}
+          value={l.rotation}
+          step={1}
+          min={-360}
+          max={360}
+          unit="°"
+          onChange={(rotation) => set({ rotation })}
+        />
+      </P>
+      <P id="anchor" adv>
+        <SelectField<Anchor>
+          label={t('prop.anchor')}
+          hint={t('editor.anchorHint')}
+          value={l.anchor}
+          options={ANCHORS.map((a) => [a, t(`anchor.${a}` as MessageKey)])}
+          onChange={(anchor) => set({ anchor })}
+        />
+      </P>
+      <P id="constraintH" adv>
+        <SelectField<Constraints['h']>
+          label={t('prop.constraintH')}
+          hint={t('editor.constraintsHint')}
+          value={l.constraints.h}
+          options={options(t, 'constraintH', ['left', 'right', 'center', 'both', 'scale'] as const)}
+          onChange={(h) => set({ constraints: { ...l.constraints, h } })}
+        />
+      </P>
+      <P id="constraintV" adv>
+        <SelectField<Constraints['v']>
+          label={t('prop.constraintV')}
+          hint={t('editor.constraintsHint')}
+          value={l.constraints.v}
+          options={options(t, 'constraintV', ['top', 'bottom', 'center', 'both', 'scale'] as const)}
+          onChange={(v) => set({ constraints: { ...l.constraints, v } })}
+        />
+      </P>
+    </Section>
+  )
+}
+
+function AppearanceProperties({
+  l,
+  set,
+  col
+}: Omit<TypeProps<Layer>, 'computed'>): React.JSX.Element {
+  const { t } = useI18n()
+  return (
+    <Section scope="appearance" title={t('editor.appearance')}>
+      <P id="opacity">
+        <NumberField
+          label={t('prop.opacity')}
+          hint={col('opacity')}
+          value={l.opacity}
+          factor={100}
+          step={5}
+          min={0}
+          max={1}
+          unit="%"
+          onChange={(opacity) => set({ opacity })}
+        />
+      </P>
+      <P id="blend" adv>
+        <SelectField<BlendMode>
+          label={t('prop.blend')}
+          hint={col('blend')}
+          value={l.blend}
+          options={options(t, 'blend', ['normal', 'multiply', 'screen', 'overlay'] as const)}
+          onChange={(blend) => set({ blend })}
+        />
+      </P>
+      <P id="fade" adv>
+        <FadeFields value={l.fade} hint={t('editor.fadeHint')} onChange={(fade) => set({ fade })} />
+      </P>
+      <P id="shadow" adv>
+        <ShadowFields
+          value={l.shadow}
+          hint={col('shadow')}
+          onChange={(shadow) => set({ shadow })}
+        />
+      </P>
+      <P id="visible">
+        <CheckField
+          label={t('prop.visible')}
+          hint={l.type === 'group' ? col() : col('visible')}
+          disabled={l.type === 'group' && l.source.kind === 'formula'}
+          value={l.visible}
+          onChange={(visible) => set({ visible })}
+        />
+      </P>
+      <P id="locked" adv>
+        <CheckField
+          label={t('prop.locked')}
+          hint={t('editor.lockedHint')}
+          value={l.locked}
+          onChange={(locked) => set({ locked })}
+        />
+      </P>
+    </Section>
   )
 }
 
@@ -1349,20 +1350,26 @@ function TextProperties({
           />
         </P>
         <P id="align">
-          <SelectField
+          <IconChoiceField
             label={t('prop.align')}
             hint={col('align')}
             value={l.align}
-            options={options(t, 'align', ['left', 'center', 'right', 'justify'] as const)}
+            options={options(t, 'align', ['left', 'center', 'right', 'justify'] as const).map(
+              ([v, name]) => [v, <AlignIcon key={v} kind={v} />, name]
+            )}
             onChange={(align) => set({ align })}
           />
         </P>
         <P id="valign">
-          <SelectField
+          <IconChoiceField
             label={t('prop.valign')}
             hint={col('valign')}
             value={l.valign}
-            options={options(t, 'valign', ['top', 'middle', 'bottom'] as const)}
+            options={options(t, 'valign', ['top', 'middle', 'bottom'] as const).map(([v, name]) => [
+              v,
+              <AlignIcon key={v} kind={v} />,
+              name
+            ])}
             onChange={(valign) => set({ valign })}
           />
         </P>

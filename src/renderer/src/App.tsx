@@ -117,6 +117,7 @@ import TemplateEditor from './editor/TemplateEditor'
 import { Dialog, NewTemplateDialog, type NewTemplate } from './editor/dialogs'
 import { KIND_CORNER } from '../../shared/model/kinds'
 import { applyDie, dieSheet, dieStarterLayers } from '../../shared/model/dice'
+import { starterLayers } from '../../shared/model/starters'
 import CardGrid from './components/CardGrid'
 import CardForm from './components/CardForm'
 import ColumnsMenu from './components/ColumnsMenu'
@@ -1955,7 +1956,15 @@ function App(): React.JSX.Element {
     return () => window.removeEventListener('keydown', onKey)
   })
 
-  const createTemplate = ({ name, width, height, kind, shape, die }: NewTemplate): void => {
+  const createTemplate = ({
+    name,
+    width,
+    height,
+    kind,
+    shape,
+    die,
+    starter
+  }: NewTemplate): void => {
     // la pedina è una figura su fondo trasparente, con il retro specchiato dal fronte: niente
     // sfondi e niente abbondanza, il bordo è la figura stessa
     const standee = kind === 'standee'
@@ -2011,7 +2020,27 @@ function App(): React.JSX.Element {
               ...plain.front
             ]
           }
-        : plain
+        : starter
+          ? {
+              ...plain,
+              // la disposizione scelta nella finestra, sopra lo sfondo
+              front: [
+                ...starterLayers(
+                  starter,
+                  width,
+                  height,
+                  plain.safeMargin,
+                  plain.bleed,
+                  {
+                    title: t('starter.sample.title'),
+                    text: t('starter.sample.text')
+                  },
+                  shape
+                ).map((l, i) => normalizeLayer(l, i)),
+                ...plain.front
+              ]
+            }
+          : plain
     setProject((p) => p && { ...p, templates: [...p.templates, tpl] })
     setDirty((d) => new Set(d).add(name))
     setSelected({ kind: 'template', name })
@@ -4173,7 +4202,7 @@ function SetView({
             onChange={setView}
           />
         </div>
-        {/* carte, struttura del foglio, controlli; Elimina in fondo, lontano da + Carta */}
+        {/* carte, struttura del foglio, controlli; Elimina a destra, lontano da + Carta */}
         <div className="set-actions">
           <span className="action-group">
             <button onClick={addCard} title={t('tip.addCard')}>
@@ -4250,7 +4279,7 @@ function SetView({
               focus={colorsFocus}
             />
           </span>
-          <span className="action-group">
+          <span className="action-group delete-group">
             <button
               className="danger"
               disabled={none}

@@ -884,7 +884,7 @@ textarea.invalid {
   width: 16px;
   text-align: center;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .layer-name {
@@ -900,13 +900,39 @@ textarea.invalid {
 
 .layers-actions {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px;
   border-top: 1px solid var(--border);
   padding: 6px 8px;
 }
 
+/* in un pannello stretto i pulsanti tornano solo icone, su una riga */
+.layers {
+  container-type: inline-size;
+}
+
+@container (max-width: 230px) {
+  .layers-action-label {
+    display: none;
+  }
+}
+
+/* su e giù solo freccia, gli altri con il nome: si leggono senza passarci sopra */
 .layers-actions button {
-  padding: 2px 7px;
+  flex: 1 1 auto;
+  padding: 3px 7px;
+  white-space: nowrap;
+}
+
+/* lucchetto, occhio e fonte del valore: più grandi e meno sbiaditi */
+.layer-row .icon-btn {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.layer-row .icon-btn:hover,
+.layer-row .icon-btn.on {
+  opacity: 1;
 }
 
 .properties {
@@ -928,7 +954,7 @@ textarea.invalid {
   width: var(--label-w, 88px);
   flex-shrink: 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .field-control {
@@ -1561,7 +1587,7 @@ th.prop-col {
   display: inline-flex;
   justify-content: center;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .layer-source-wrap {
@@ -4238,7 +4264,17 @@ input[type='checkbox'].bool-default {
   opacity: 0.75;
 }
 
+/* nel modulo della carta le icone compaiono sulla riga attiva o sotto il mouse; restano in vista
+   quando dicono qualcosa: livello nascosto, proprietà cambiate, dettagli aperti */
+.card-form .field-tools .icon-btn {
+  opacity: 0;
+}
+
 .card-form .field:hover .field-tools .icon-btn,
+.card-form .field:focus-within .field-tools .icon-btn,
+.card-form .field-tools .icon-btn:focus-visible,
+.card-form .field-tools .icon-btn:has(.field-count),
+.card-form .field-tools .icon-btn.off,
 .field-tools .icon-btn.on {
   opacity: 1;
 }
@@ -4320,7 +4356,6 @@ input[type='checkbox'].bool-default {
 
 .field-tools .icon-btn.off {
   color: var(--muted);
-  opacity: 0.75;
 }
 
 select.from-template {
@@ -6641,6 +6676,18 @@ button.more-button {
   border-right: 1px solid var(--border);
 }
 
+/* Elimina staccato a destra, e rosso solo quando c'è qualcosa da eliminare */
+.set-actions .action-group.delete-group {
+  margin-left: auto;
+  padding-right: 0;
+  border-right: none;
+}
+
+.set-actions .delete-group button.danger:disabled {
+  color: inherit;
+  border-color: var(--border);
+}
+
 .set-actions .action-group:last-child {
   padding-right: 0;
   border-right: none;
@@ -8543,4 +8590,44 @@ button.wide {
   border-radius: 6px;
   padding: 10px 12px;
   font-size: 13px;
+}
+
+/* allineamento del testo: pulsanti a icona al posto del menu */
+.segmented.icon-choice button {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+}
+
+.set-actions .action-group:has(+ .delete-group) {
+  border-right: none;
+}
+
+/* disposizioni di partenza del nuovo template: miniature disegnate dai livelli */
+.starter-choice .kind-choice-buttons {
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+}
+
+.starter-choice .kind-choice-buttons button {
+  font-size: 13px;
+  min-height: 96px;
+  justify-content: flex-end;
+}
+
+.starter-thumb-paper {
+  fill: var(--panel);
+  stroke: var(--border);
+  stroke-width: 1.2;
+}
+
+.starter-thumb-art {
+  fill: color-mix(in srgb, var(--accent) 22%, var(--panel));
+}
+
+.starter-thumb-text {
+  fill: var(--muted);
+}
+
+.starter-choice button.active .starter-thumb-paper {
+  stroke: var(--accent);
 }
