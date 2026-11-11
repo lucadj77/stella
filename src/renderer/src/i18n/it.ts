@@ -2063,7 +2063,7 @@ export const it: Record<MessageKey, string> = {
     'Nel testo si possono cambiare per un singolo uso: {spada tint=red size=150% rotate=90 flip=h opacity=50%}',
   'variable.text': 'Testo',
   'variable.textHint':
-    'Sostituisce {nome}; può avere formattazione e altre variabili. {1}, {2} sono parametri: {nome:3:1}',
+    'Sostituisce {nome}; può avere formattazione e altre variabili. {1}, {2} sono parametri: {nome:3:1}. {1|carta|carte} sceglie singolare o plurale',
   'variable.tryWith': 'Prova con',
   'variable.tryWithHint': "Parametri per l'anteprima, divisi da : come in {nome:3:1}",
   'variable.color': 'Colore',
@@ -2304,7 +2304,7 @@ export const it: Record<MessageKey, string> = {
   'help.field.repeat': "L'icona ripetuta tre volte, o tante volte quanto vale il campo",
   'help.field.attrs': "L'icona con attributi validi solo qui",
   'help.field.params':
-    'Variabile di testo con parametri: nel suo testo {1} e {2} diventano 2 e 1. Un parametro può essere un campo: {pesca:{forza}}',
+    'Variabile di testo con parametri: nel suo testo {1} e {2} diventano 2 e 1. Un parametro può essere un campo: {pesca:{forza}}. {1|carta|carte}: la prima parola se il parametro vale 1, altrimenti la seconda',
   'help.field.paramsExample': '{pesca:2}  {scambia:2:1}',
   'help.field.escape': 'Il carattere letterale',
   'help.imageAttributes': 'Attributi delle icone',

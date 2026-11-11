@@ -8,7 +8,9 @@ const variables: Variables = {
   raccogli: { type: 'text', text: '[Raccogli {1}]{.keyword}: pesca {1} carte' },
   scambio: { type: 'text', text: 'Dai {1}, ricevi {2}' },
   doppio: { type: 'text', text: '{raccogli:{1}} e {scambio:{1}:{2}}' },
-  moneta: { type: 'text', text: '[{1}]{bg=circle}' }
+  moneta: { type: 'text', text: '[{1}]{bg=circle}' },
+  pesca: { type: 'text', text: 'prendi {1} {1|carta|carte}' },
+  dai: { type: 'text', text: '{1|una moneta|{1} monete|niente}, {2} {2|legno|legni}' }
 }
 const fields = { ...variableFields(variables), forza: '3' }
 
@@ -30,6 +32,22 @@ describe('variabili con parametri', () => {
     expect(substituteFields('{doppio:4:2}', fields)).toBe(
       '[Raccogli 4]{.keyword}: pesca 4 carte e Dai 4, ricevi 2'
     )
+  })
+
+  it('{1|carta|carte} sceglie il singolare con 1, il plurale altrimenti', () => {
+    expect(substituteFields('{pesca:1}', fields)).toBe('prendi 1 carta')
+    expect(substituteFields('{pesca:3}', fields)).toBe('prendi 3 carte')
+    // un parametro che non è un numero (la X di un glossario) prende il plurale
+    expect(substituteFields('{pesca:X}', fields)).toBe('prendi X carte')
+    // senza terza forma lo zero è plurale
+    expect(substituteFields('{pesca:0}', fields)).toBe('prendi 0 carte')
+    expect(substituteFields('{pesca:{forza}}', { ...fields, forza: '1' })).toBe('prendi 1 carta')
+  })
+
+  it('la terza forma vale per lo zero, e le forme possono contenere il parametro', () => {
+    expect(substituteFields('{dai:1:1}', fields)).toBe('una moneta, 1 legno')
+    expect(substituteFields('{dai:4:2}', fields)).toBe('4 monete, 2 legni')
+    expect(substituteFields('{dai:0:2}', fields)).toBe('niente, 2 legni')
   })
 
   it('\\: è un due punti scritto', () => {
