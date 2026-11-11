@@ -2028,7 +2028,7 @@ export const en = {
     'In text these can be changed for a single use: {spada tint=red size=150% rotate=90 flip=h opacity=50%}',
   'variable.text': 'Text',
   'variable.textHint':
-    'Replaces {name}; it can use formatting and other variables. {1}, {2} are parameters: {name:3:1}',
+    'Replaces {name}; it can use formatting and other variables. {1}, {2} are parameters: {name:3:1}. {1|card|cards} picks singular or plural',
   'variable.tryWith': 'Try with',
   'variable.tryWithHint': 'Parameters for the preview, separated by : as in {name:3:1}',
   'variable.color': 'Color',
@@ -2264,7 +2264,7 @@ export const en = {
   'help.field.repeat': 'The icon repeated three times, or as many times as the field says',
   'help.field.attrs': 'The icon with attributes valid only here',
   'help.field.params':
-    'Text variable with parameters: in its text {1} and {2} become 2 and 1. A parameter can be a field: {draw:{strength}}',
+    'Text variable with parameters: in its text {1} and {2} become 2 and 1. A parameter can be a field: {draw:{strength}}. {1|card|cards}: the first word if the parameter is 1, otherwise the second',
   'help.field.paramsExample': '{draw:2}  {trade:2:1}',
   'help.field.escape': 'The character itself',
   'help.imageAttributes': 'Icon attributes',

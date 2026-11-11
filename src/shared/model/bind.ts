@@ -730,7 +730,21 @@ export function imageFields(
 
 /** {raccogli:2} · {scambio:3:1} · {raccogli:{forza}}: nome, poi i parametri divisi da : */
 const PARAMETRIC = /(?<!\\)\{([^{}:*\s]+)(?::((?:[^{}]|\{[^{}]*\})*))?\}/g
-const PLACEHOLDER = /(?<!\\)\{(\d+)\}/g
+/** {1} · {1|carta|carte} · {1|carta|carte|nessuna carta}: il parametro, o la parola giusta per lui */
+const PLACEHOLDER = /(?<!\\)\{(\d+)(?:\|((?:[^{}]|\{\d+\})*))?\}/g
+
+/**
+ * {1|carta|carte}: la prima forma se il parametro vale 1, la terza (se c'è) se vale 0, altrimenti
+ * la seconda; anche quando il parametro non è un numero (la X di un glossario)
+ */
+export function pluralForm(arg: string, forms: string): string {
+  const [one, many = one, zero] = forms.split('|')
+  const n = Number(arg.trim().replace(',', '.'))
+  const isNum = arg.trim() !== '' && Number.isFinite(n)
+  if (isNum && n === 1) return one
+  if (isNum && n === 0 && zero !== undefined) return zero
+  return many
+}
 
 /**
  * Variabili di testo (e campi) con parametri: {raccogli:2} scrive il testo di raccogli con {1}
@@ -752,10 +766,15 @@ function withParameters(
       if (!has(name) || (rest === undefined && !fields[name].match(PLACEHOLDER))) return m
       const args =
         rest === undefined ? [] : splitParameters(substituteFields(rest, fields, images, missing))
-      return fields[name].replace(PLACEHOLDER, (_, n: string) => {
+      return fields[name].replace(PLACEHOLDER, (_, n: string, forms?: string) => {
         const arg = args[Number(n) - 1]
         if (arg === undefined) missing?.(name, Number(n))
-        return arg ?? ''
+        if (forms === undefined) return arg ?? ''
+        // la forma scelta può contenere i parametri: {1|una carta|{1} carte}
+        return pluralForm(arg ?? '', forms).replace(
+          /\{(\d+)\}/g,
+          (_, k: string) => args[Number(k) - 1] ?? ''
+        )
       })
     })
     if (next === out) break

@@ -281,7 +281,7 @@ A text variable whose text contains `{1}`, `{2}`... takes parameters: write them
 
 ```json
 "variables": {
-  "draw": { "type": "text", "text": "[Draw {1}]{.keyword}: take {1} cards from the deck" },
+  "draw": { "type": "text", "text": "[Draw {1}]{.keyword}: take {1} {1|card|cards} from the deck" },
   "trade": { "type": "text", "text": "Give {1} {gold}, get {2} {wood}" },
   "coin": { "type": "text", "text": "[{1}]{bg=circle bg-color=#D4A017 color=white weight=800}" }
 }
@@ -290,6 +290,7 @@ A text variable whose text contains `{1}`, `{2}`... takes parameters: write them
 Use in a cell, a template text or a document: `{draw:2}` → "Draw 2: take 2 cards from the deck"; `{trade:3:1}`; `{coin:5}` draws 5 on a gold circle (a number on an icon: no special variable type needed, use `bg=` with a shape, a file or an image variable). Rules:
 
 - `{1}` is the first parameter, `{2}` the second; the same placeholder can appear several times. Up to 9 is fine; keep to 1-3 in practice.
+- Singular and plural: `{1|card|cards}` writes the first word when parameter 1 is exactly 1, otherwise the second; an optional third word is for 0 (`{1|card|cards|no cards}`); a parameter that is not a number (the X of a glossary) takes the plural. The words can contain parameters (`{1|a card|{1} cards}`). Always use it when a number precedes a noun: `take {1} {1|card|cards}`, `[Draw {1}]{.keyword}: take {1} {1|card|cards}`.
 - A parameter can be a card field: `{draw:{strength}}`. Plain text works too, spaces included (`{search:fire sword}`); a colon inside a parameter is written `\:`.
 - The same variable can be used several times in one text, and a variable's text can call other variables, also with parameters (`{draw:{1}}` inside another variable), up to 5 levels.
 - Inside a variable's text `{1}` is always a parameter. Never name a variable or column with digits only (`1`, `2`): the app refuses new ones.

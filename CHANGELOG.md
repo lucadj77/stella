@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.10.1-beta.5
+
+### English
+
+- **Singular and plural in variables with parameters**: in the text of a variable, `{1|card|cards}` writes the first word when parameter 1 is 1 and the second otherwise. With `draw` = `[Draw {1}]{.keyword}: take {1} {1|card|cards}`, `{draw:1}` writes "take 1 card" and `{draw:3}` "take 3 cards". An optional third word is used for zero (`{1|card|cards|no cards}`), and a parameter that is not a number, like the X of a glossary, takes the plural.
+
+### Italiano
+
+- **Singolare e plurale nelle variabili con parametri**: nel testo di una variabile, `{1|carta|carte}` scrive la prima parola se il parametro 1 vale 1, altrimenti la seconda. Con `pesca` = `[Pesca {1}]{.parola_chiave}: prendi {1} {1|carta|carte}`, `{pesca:1}` scrive «prendi 1 carta» e `{pesca:3}` «prendi 3 carte». Una terza parola, facoltativa, vale per lo zero (`{1|carta|carte|nessuna carta}`), e un parametro che non è un numero, come la X di un glossario, prende il plurale.
+
 ## 1.10.1-beta.4
 
 ### English

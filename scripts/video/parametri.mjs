@@ -65,9 +65,12 @@ const S = it
   ? {
       draw2: `[Pesca 2]{${K}}: prendi 2 carte dal mazzo`,
       draw3: `[Pesca 3]{${K}}: prendi 3 carte dal mazzo`,
+      draw1: `[Pesca 1]{${K}}: prendi 1 carta dal mazzo`,
+      plain: '{1} carte',
+      plural: '{1} {1|carta|carte}',
       drawVar: `[Pesca {1}]{${K}}: prendi {1} carte dal mazzo`,
-      drawOld: 'prendi {1} carte dal mazzo',
-      drawNew: 'aggiungi alla mano {1} carte',
+      drawOld: 'prendi {1} {1|carta|carte} dal mazzo',
+      drawNew: 'aggiungi alla mano {1} {1|carta|carte}',
       tradeOld: `Dai 3{${I.coin}}, ricevi 1{${I.wood}}`,
       tradeVar: `Dai {1}{${I.coin}}, ricevi {2}{${I.wood}}`,
       attack2: `[Attacca 2]{${K}}: 2{${I.sword}} a un nemico`,
@@ -77,20 +80,19 @@ const S = it
       attackUse2: `{${V.attack}:2:un nemico}`,
       attackUse1: `{${V.attack}:1:ogni nemico}`,
       goldVar: '[{1}]{bg=circle bg-color=#C9A227 bg-size=170% color=white weight=800}',
-      restOld: `{${V.draw}:2}, poi scarta una carta`,
+      restOld: `{${V.draw}:1}, poi scarta una carta`,
       restVar: `{${V.draw}:{1}}, poi scarta una carta`,
-      glossary: [
-        `- {${V.draw}:X}.`,
-        `- {${V.attack}:X:un bersaglio}.`,
-        `- {${V.trade}:X:Y}.`
-      ]
+      glossary: [`- {${V.draw}:X}.`, `- {${V.attack}:X:un bersaglio}.`, `- {${V.trade}:X:Y}.`]
     }
   : {
       draw2: `[Draw 2]{${K}}: take 2 cards from the deck`,
       draw3: `[Draw 3]{${K}}: take 3 cards from the deck`,
+      draw1: `[Draw 1]{${K}}: take 1 card from the deck`,
+      plain: '{1} cards',
+      plural: '{1} {1|card|cards}',
       drawVar: `[Draw {1}]{${K}}: take {1} cards from the deck`,
-      drawOld: 'take {1} cards from the deck',
-      drawNew: 'add {1} cards to your hand',
+      drawOld: 'take {1} {1|card|cards} from the deck',
+      drawNew: 'add {1} {1|card|cards} to your hand',
       tradeOld: `Give 3{${I.coin}}, get 1{${I.wood}}`,
       tradeVar: `Give {1}{${I.coin}}, get {2}{${I.wood}}`,
       attack2: `[Attack 2]{${K}}: 2{${I.sword}} to one enemy`,
@@ -100,13 +102,9 @@ const S = it
       attackUse2: `{${V.attack}:2:one enemy}`,
       attackUse1: `{${V.attack}:1:every enemy}`,
       goldVar: '[{1}]{bg=circle bg-color=#C9A227 bg-size=170% color=white weight=800}',
-      restOld: `{${V.draw}:2}, then discard a card`,
+      restOld: `{${V.draw}:1}, then discard a card`,
       restVar: `{${V.draw}:{1}}, then discard a card`,
-      glossary: [
-        `- {${V.draw}:X}.`,
-        `- {${V.attack}:X:a target}.`,
-        `- {${V.trade}:X:Y}.`
-      ]
+      glossary: [`- {${V.draw}:X}.`, `- {${V.attack}:X:a target}.`, `- {${V.trade}:X:Y}.`]
     }
 
 const dialog = () => win.locator('[role="dialog"]').last()
@@ -124,7 +122,10 @@ const layer = (n) => win.locator('.layers .layer-name', { hasText: new RegExp(`^
 const titled = (key) => win.locator(`[title="${T[key]}"], [data-tip="${T[key]}"]`).first()
 const side = (name) => win.locator('.sidebar').getByText(name, { exact: true }).first()
 const varItem = (name) =>
-  win.locator('#sidebar-variables li button').filter({ hasText: `{${name}}` }).first()
+  win
+    .locator('#sidebar-variables li button')
+    .filter({ hasText: `{${name}}` })
+    .first()
 const saveButton = () =>
   win
     .locator('header.toolbar button')
@@ -150,7 +151,12 @@ const typeButton = (key) =>
     .first()
 /** chiude i suggerimenti delle graffe, se aperti (Esc chiuderebbe anche la finestra) */
 async function closeHelp() {
-  if (await win.locator('.markup-help').isVisible().catch(() => false))
+  if (
+    await win
+      .locator('.markup-help')
+      .isVisible()
+      .catch(() => false)
+  )
     await win.keyboard.press('Escape')
 }
 const docEditor = () => win.locator('.document-editor .markup-field textarea').first()
@@ -185,16 +191,13 @@ async function openSet(name) {
 async function replace(loc, from, to, { tab = true } = {}) {
   await loc.scrollIntoViewIfNeeded()
   await r.click(loc, { after: 250 })
-  const found = await loc.evaluate(
-    (el, w) => {
-      el.focus()
-      const a = el.value.indexOf(w)
-      if (a < 0) return false
-      el.setSelectionRange(a, a + w.length)
-      return true
-    },
-    from
-  )
+  const found = await loc.evaluate((el, w) => {
+    el.focus()
+    const a = el.value.indexOf(w)
+    if (a < 0) return false
+    el.setSelectionRange(a, a + w.length)
+    return true
+  }, from)
   if (!found) throw new Error(`testo non trovato: ${from}`)
   await r.wait(400)
   await r.type(to)
@@ -241,11 +244,14 @@ async function previewRow(n) {
 
 /** carte più grandi nella griglia, perché si leggano i testi */
 async function bigThumbs(v = 3.4) {
-  await win.locator('input.thumb-size').first().evaluate((el, v) => {
-    const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
-    set.call(el, String(v))
-    el.dispatchEvent(new Event('input', { bubbles: true }))
-  }, v)
+  await win
+    .locator('input.thumb-size')
+    .first()
+    .evaluate((el, v) => {
+      const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
+      set.call(el, String(v))
+      el.dispatchEvent(new Event('input', { bubbles: true }))
+    }, v)
   await r.wait(400)
 }
 
@@ -275,7 +281,12 @@ await r.focus(
 )
 
 // ---- 1. il problema
-await r.title(t('1 · Il problema: la stessa frase, numeri diversi', '1 · The problem: same sentence, different numbers'))
+await r.title(
+  t(
+    '1 · Il problema: la stessa frase, numeri diversi',
+    '1 · The problem: same sentence, different numbers'
+  )
+)
 await r.clear()
 await pick(0)
 await zoomCard(
@@ -352,6 +363,33 @@ await r.focus(
   'left',
   { pad: 4 }
 )
+await fill(tryWith(), '1')
+await r.focus(
+  [prow(T['variable.tryWith'], dialog()), sample()],
+  t('Con 1 però esce «1 carte»', 'With 1, though, it says “1 cards”'),
+  'left',
+  { pad: 4 }
+)
+await replace(varText(), S.plain, S.plural, { tab: false })
+await r.focus(
+  [prow(T['variable.text'], dialog()), sample()],
+  t(
+    '{1|carta|carte}: la prima parola se il parametro 1 vale 1, altrimenti la seconda',
+    '{1|card|cards}: the first word when parameter 1 is 1, otherwise the second'
+  ),
+  'left',
+  { pad: 4 }
+)
+await fill(tryWith(), '3')
+await r.focus(
+  [prow(T['variable.tryWith'], dialog()), sample()],
+  t(
+    'Con 3 torna «3 carte». Una terza parola, facoltativa, vale per lo zero: {1|carta|carte|nessuna carta}',
+    'With 3 it is “3 cards” again. An optional third word is for zero: {1|card|cards|no cards}'
+  ),
+  'left',
+  { pad: 4 }
+)
 await closeWith('variable.save')
 await pick(0)
 await replace(textField(), S.draw2, `{${V.draw}:2}`)
@@ -364,14 +402,22 @@ await r.focus(
   'left',
   { pad: 4 }
 )
-await zoomCard(t('La stessa frase di prima, ora dalla variabile', 'The same sentence as before, now from the variable'))
+await zoomCard(
+  t(
+    'La stessa frase di prima, ora dalla variabile',
+    'The same sentence as before, now from the variable'
+  )
+)
 await pick(2)
 await replace(textField(), S.draw3, `{${V.draw}:3}`)
 await pick(5)
-await replace(textField(), S.draw2, `{${V.draw}:2}`)
+await replace(textField(), S.draw1, `{${V.draw}:1}`)
 await r.focus(
   [cell(0), cell(2), cell(5)],
-  t('{pesca:2}, {pesca:3}, {pesca:2}: una frase sola', '{draw:2}, {draw:3}, {draw:2}: one sentence'),
+  t(
+    '{pesca:2}, {pesca:3}, {pesca:1}: una frase sola, con «carta» al singolare',
+    '{draw:2}, {draw:3}, {draw:1}: one sentence, with “card” in the singular'
+  ),
   'right',
   { pad: 4 }
 )
@@ -410,7 +456,9 @@ await r.focus(
 await closeWith('variable.save')
 await pick(1)
 await replace(textField(), S.tradeOld, `{${V.trade}:3:1}`)
-await zoomCard(t('{scambia:3:1}: dai 3 monete, ricevi 1 legno', '{trade:3:1}: give 3 coins, get 1 wood'))
+await zoomCard(
+  t('{scambia:3:1}: dai 3 monete, ricevi 1 legno', '{trade:3:1}: give 3 coins, get 1 wood')
+)
 await newVariable(V.attack, 'text')
 await fill(varText(), S.attackVar)
 await fill(tryWith(), S.attackTry)
@@ -497,12 +545,9 @@ await r.focus(
 )
 await save()
 await openSet(N.actions)
-await r.focus(
-  grid(),
-  t('Ogni carta con la sua moneta', 'Each card with its own coin'),
-  'left',
-  { pad: 4 }
-)
+await r.focus(grid(), t('Ogni carta con la sua moneta', 'Each card with its own coin'), 'left', {
+  pad: 4
+})
 await openSet(N.die)
 for (const [i, v] of ['1', '1', '2', '2', '3'].entries()) {
   await pick(i)
@@ -538,7 +583,9 @@ await r.focus(
 )
 await closeWith('variable.save')
 await pick(1)
-await zoomCard(t('Il prezzo è ora una moneta con il numero', 'The price is now a coin with the number'))
+await zoomCard(
+  t('Il prezzo è ora una moneta con il numero', 'The price is now a coin with the number')
+)
 await newVariable(V.rest, 'text')
 await fill(varText(), S.restVar)
 await fill(tryWith(), '2')
@@ -553,12 +600,9 @@ await r.focus(
 )
 await closeWith('variable.save')
 await pick(5)
-await replace(textField(), S.restOld, `{${V.rest}:2}`)
+await replace(textField(), S.restOld, `{${V.rest}:1}`)
 await zoomCard(
-  t(
-    '{riposa:2}. Cambiando pesca cambia anche riposa',
-    '{rest:2}. Change draw and rest changes too'
-  )
+  t('{riposa:1}. Cambiando pesca cambia anche riposa', '{rest:1}. Change draw and rest changes too')
 )
 await save()
 
@@ -578,12 +622,18 @@ for (const [i, row] of S.glossary.entries()) {
 }
 await r.wait(800)
 const zoomIn = docPreview().locator('.document-zoom button').last()
-for (let i = 0; i < 3; i++) await r.click(zoomIn, { after: 300, ms: 350 })
+const zoomPct = docPreview().locator('.document-zoom button').nth(1)
+// lo zoom resta da una prova all'altra: prima si torna ad «adatta», poi fino a circa il 100%
+// (i passi dipendono dalla larghezza della pagina)
+await zoomPct.click()
+await r.wait(300)
+for (let i = 0; i < 6 && parseInt(await zoomPct.innerText()) < 95; i++)
+  await r.click(zoomIn, { after: 300, ms: 350 })
 await r.focus(
   docPreview(),
   t(
-    'Le stesse variabili nel glossario, con una lettera al posto del numero',
-    'The same variables in the glossary, with a letter instead of the number'
+    'Le stesse variabili nel glossario, con una lettera al posto del numero: con X la parola va al plurale',
+    'The same variables in the glossary, with a letter instead of the number: with X the word is plural'
   ),
   'left',
   { pad: 4 }

@@ -77,8 +77,9 @@ export function emptyVariable(type: VariableType): Variable {
 }
 
 /** Nome valido: lettere, cifre, _ e -, senza spazi né caratteri del markup */
-/** Il testo di una variabile aspetta parametri: contiene {1}, {2}... */
-export const hasParameters = (text: string): boolean => /(?<!\\)\{\d+\}/.test(text)
+/** Il testo di una variabile aspetta parametri: contiene {1}, {2}... (anche {1|carta|carte}) */
+export const hasParameters = (text: string): boolean =>
+  /(?<!\\)\{\d+(\|(?:[^{}]|\{\d+\})*)?\}/.test(text)
 
 /** Un nome di sole cifre si confonderebbe con i parametri {1}, {2} delle variabili di testo */
 export const isValidVariableName = (name: string): boolean =>

@@ -81,7 +81,12 @@ export function cards(lang, N) {
         ['Bibliotecario', 4, 'scholar', `${k('Pesca 3')}: prendi 3 carte dal mazzo.`],
         ['Guerriera', 3, 'warrior', `${k('Attacca 2')}: 2{${sword}} a un nemico.`],
         ['Ladro', 2, 'thief', `${k('Attacca 1')}: 1{${sword}} a ogni nemico. Ruba 1{${coin}}.`],
-        ['Erborista', 1, 'herbalist', `${k('Pesca 2')}: prendi 2 carte dal mazzo, poi scarta una carta.`]
+        [
+          'Erborista',
+          1,
+          'herbalist',
+          `${k('Pesca 1')}: prendi 1 carta dal mazzo, poi scarta una carta.`
+        ]
       ]
     : [
         ['Explorer', 2, 'explorer', `${k('Draw 2')}: take 2 cards from the deck.`],
@@ -89,7 +94,12 @@ export function cards(lang, N) {
         ['Librarian', 4, 'scholar', `${k('Draw 3')}: take 3 cards from the deck.`],
         ['Warrior', 3, 'warrior', `${k('Attack 2')}: 2{${sword}} to one enemy.`],
         ['Thief', 2, 'thief', `${k('Attack 1')}: 1{${sword}} to every enemy. Steal 1{${coin}}.`],
-        ['Herbalist', 1, 'herbalist', `${k('Draw 2')}: take 2 cards from the deck, then discard a card.`]
+        [
+          'Herbalist',
+          1,
+          'herbalist',
+          `${k('Draw 1')}: take 1 card from the deck, then discard a card.`
+        ]
       ]
 }
 
