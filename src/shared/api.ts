@@ -16,6 +16,7 @@ import type { Localization } from './model/language'
 import type { NumberSettings } from './model/numberFormat'
 import type { SheetInspection } from './dataCheck'
 import type { Message } from './messages'
+import type { SkillKind } from './skill'
 
 /** Un'IA sta lavorando sul progetto: vedi main/project/agentLock.ts */
 export interface AgentLock {
@@ -316,6 +317,12 @@ export interface Api {
   defaultTtcTarget(source: string): Promise<string>
   /** Converte un progetto Tabletop Creator in un progetto nuovo; l'originale non si modifica */
   importTtc(options: TtcImportOptions): Promise<TtcImportResult>
+  /** Script .nde di una cartella nanDECK, con la scelta proposta */
+  scanNandeck(source: string): Promise<NandeckScriptInfo[]>
+  /** Cartella proposta per un gioco nanDECK convertito */
+  defaultNandeckTarget(source: string): Promise<string>
+  /** Converte gli script scelti di un gioco nanDECK in un progetto nuovo; l'originale non si modifica */
+  importNandeck(options: NandeckImportOptions): Promise<NandeckImportResult>
   /** Come lanciare il comando stella su questo computer; ready è falso se va prima compilato */
   stellaCommand(): Promise<{ command: string; ready: boolean }>
   /** L'ultima versione pubblicata, se è più recente di questa; null anche senza rete */
@@ -332,8 +339,9 @@ export interface Api {
   appVersion(): Promise<string>
   /** Scrive la skill in <cartella>/stella/SKILL.md e ne restituisce il percorso */
   /** Scarica da GitHub la skill della versione installata (non è dentro l'app) */
-  downloadSkill(): Promise<string>
-  saveSkill(folder: string, text: string): Promise<string>
+  downloadSkill(kind?: SkillKind): Promise<string>
+  /** Scrive la skill in <cartella>/<nome della skill>/SKILL.md e ne restituisce il percorso */
+  saveSkill(folder: string, text: string, kind?: SkillKind): Promise<string>
   /** Cartella proposta per salvare la skill: quella delle skill di Claude Code, se c'è */
   skillsFolder(): Promise<string>
   /** Progetto aperto (null alla chiusura) e modifiche non salvate, per `stella begin` */
@@ -371,6 +379,48 @@ export interface ExportPageApi {
   shown(id: number, error?: string): void
   /** La pagina sta ancora lavorando alla scena */
   alive(id: number): void
+}
+
+export interface NandeckScriptInfo {
+  /** Percorso relativo alla cartella del gioco, con / */
+  path: string
+  /**
+   * deck: uno script che disegna carte; copy: una copia o una versione vecchia; print: uno
+   * script di stampa; include: un file usato con INCLUDE da altri script
+   */
+  kind: 'deck' | 'copy' | 'print' | 'include'
+  /** Scelto all'inizio: solo gli script deck */
+  selected: boolean
+  lines: number
+}
+
+export interface NandeckImportOptions {
+  /** Cartella del gioco nanDECK */
+  source: string
+  /** Cartella nuova (o vuota) del progetto Stella */
+  target: string
+  /** Script da convertire, come in NandeckScriptInfo.path */
+  scripts: string[]
+  /** Lingua della nota "Import nanDECK" */
+  language: string
+}
+
+export interface NandeckImportResult {
+  folder: string
+  templates: number
+  sets: number
+  cards: number
+  /** Immagini copiate in assets */
+  images: number
+  /** Immagini usate dagli script che non sono nella cartella del gioco */
+  missingImages: string[]
+  fonts: string[]
+  /** Righe degli script non convertite: sono elencate nella nota */
+  skipped: number
+  /** Conversioni approssimate */
+  notes: Message[]
+  /** Nome della nota scritta nel progetto */
+  note: string
 }
 
 export interface TtcImportOptions {

@@ -2224,6 +2224,66 @@ export const it: Record<MessageKey, string> = {
   'start.newProject': 'Nuovo progetto…',
   'start.openProject': 'Apri progetto…',
   'start.importTtc': 'Importa da Tabletop Creator…',
+  'start.importNandeck': 'Importa da nanDECK…',
+  'tip.importNandeck':
+    'Importa da nanDECK: converte gli script di un gioco in un progetto Stella nuovo; la cartella originale non si modifica',
+  'nandeck.title': 'Importa da nanDECK',
+  'nandeck.intro':
+    'Ogni script diventa un template e un set: i dati di LINK e le etichette vanno nel foglio, frame e intervalli diventano livelli e formule di visibilità, le immagini usate si copiano. La cartella di nanDECK si legge soltanto. Le righe che non hanno un equivalente sono elencate nella nota "Import nanDECK", che la skill nanDECK usa per finire il lavoro.',
+  'nandeck.source': 'Cartella del gioco nanDECK',
+  'nandeck.sourceHint': 'La cartella con gli script .nde, le immagini e i file di dati',
+  'nandeck.scripts': 'Script da convertire',
+  'nandeck.scriptsHint':
+    'Copie, versioni vecchie, script di stampa e file usati solo con INCLUDE non sono spuntati',
+  'nandeck.kind.copy': 'copia o versione vecchia',
+  'nandeck.kind.print': 'script di stampa',
+  'nandeck.kind.include': 'usato con INCLUDE',
+  'nandeck.done':
+    'Importati {templates} template, {sets} set con {cards} righe e {images} immagini.',
+  'nandeck.partial':
+    'L\'importazione è parziale: {count} righe degli script non sono state convertite. Sono elencate, con il motivo, nella nota "{note}" del progetto.',
+  'nandeck.partialNone':
+    'Tutte le righe degli script sono state convertite, alcune in modo approssimato: controlla la nota "{note}" del progetto.',
+  'nandeck.skillTitle': 'Finire con un agente IA',
+  'nandeck.skillHint':
+    'La skill nanDECK permette a un agente IA (Claude Code, Codex…) di leggere la nota e gli script e di convertire a mano ciò che manca. Funziona insieme alla skill di Stella (Aiuto > Strumenti IA). Non è dentro Stella: Copia e Salva la scaricano da GitHub.',
+  'nandeck.skillCopy': 'Copia la skill nanDECK',
+  'nandeck.skillSave': 'Salva la skill nanDECK…',
+  'nandeck.missingImages': 'Immagini non trovate ({count})',
+  'nandeck.noScripts': 'La cartella {folder} non ha script nanDECK (file .nde)',
+  'nandeck.noneSelected': 'Scegli almeno uno script da convertire',
+  'nandeck.noteIntro':
+    "Questo progetto è stato convertito da script nanDECK. La conversione è parziale: qui sotto c'è ciò che non è stato convertito, o è stato convertito solo in modo approssimato, script per script, con la riga dello script. Un agente IA con la skill nanDECK può usare questa nota per finire il lavoro.",
+  'nandeck.noteSkillTitle': 'Come finire la conversione',
+  'nandeck.noteSkill':
+    "Installa nel tuo agente IA la skill di Stella (Aiuto > Strumenti IA) e la skill nanDECK ({url}), poi chiedigli di finire l'importazione da nanDECK di questo progetto. L'agente legge questa nota e gli script originali.",
+  'nandeck.noteScript': 'Template: {templates}. Carte: {cards}. Livelli: {layers}.',
+  'nandeck.noteNoCards':
+    'Nessuna carta disegnata: lo script non ha comandi di disegno che si possano convertire.',
+  'nandeck.notePrint':
+    '{count} righe di stampa ed esportazione ignorate (pagina, bordi, salvataggio delle immagini): Stella ha le sue impostazioni di esportazione.',
+  'nandeck.noteSkipped': 'Righe non convertite',
+  'nandeck.noteFile': 'File',
+  'nandeck.noteLine': 'Riga',
+  'nandeck.noteText': 'Testo',
+  'nandeck.noteReason': 'Motivo',
+  'nandeck.noteApprox': 'Convertito in modo approssimato',
+  'nandeck.noteMissing': 'Immagini non trovate',
+  'nandeck.noteFonts': 'Caratteri usati',
+  'nandeck.reason.command': 'comando senza equivalente in Stella',
+  'nandeck.reason.function': 'funzione non convertita',
+  'nandeck.reason.print': 'impostazione di stampa',
+  'nandeck.reason.macro': 'macro o sintassi particolare',
+  'nandeck.reason.syntax': 'parametri non capiti',
+  'nandeck.reason.fill': 'riempimento a macchia, dipende dal disegno',
+  'nandeck.reason.link': 'dati collegati non trovati',
+  'nandeck.note.fontBackground':
+    'Testo con sfondo pieno (FONT senza la lettera T) disegnato senza lo sfondo, righe {lines}',
+  'nandeck.note.htmlBackground':
+    'HTMLTEXT con un colore di sfondo disegnato senza lo sfondo, righe {lines}',
+  'nandeck.note.firstCard':
+    'Proprietà che cambiano da carta a carta e non possono andare nel foglio: tutte le carte usano il valore della prima ({lines})',
+  'nandeck.note.htmlTags': 'Tag HTML non convertiti: {tags}',
   'start.example': 'Apri il progetto di esempio',
   'tip.example':
     'Il progetto della guida e dei video, copiato in Documenti/Stella/Esempio la prima volta',

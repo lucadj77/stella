@@ -171,6 +171,7 @@ import ProjectInfoDialog, { type ProjectInfo } from './components/ProjectInfoDia
 import { languageName } from './i18n/languageName'
 import { localizationOf, projectLanguages } from '../../shared/model/language'
 import ImportTtcDialog from './components/ImportTtcDialog'
+import ImportNandeckDialog from './components/ImportNandeckDialog'
 import StartScreen from './components/StartScreen'
 import { thumbnailTemplate } from '../../shared/model/thumbnail'
 import UpdateNotice from './components/UpdateNotice'
@@ -425,7 +426,7 @@ function App(): React.JSX.Element {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
-  const [importing, setImporting] = useState(false)
+  const [importing, setImporting] = useState<false | 'ttc' | 'nandeck'>(false)
   const [duplicating, setDuplicating] = useState<Selected | null>(null)
   /** Set di cui si sta cambiando il nome */
   const [renamingSet, setRenamingSet] = useState<number | null>(null)
@@ -3270,7 +3271,8 @@ function App(): React.JSX.Element {
                             settings={settings}
                             onOpen={load}
                             onChoose={open}
-                            onImport={() => setImporting(true)}
+                            onImport={() => setImporting('ttc')}
+                            onImportNandeck={() => setImporting('nandeck')}
                           />
                         )}
                         {renamingTemplate !== null && project && (
@@ -3422,7 +3424,19 @@ function App(): React.JSX.Element {
                           />
                         )}
                       </div>
-                      {importing && (
+                      {importing === 'nandeck' && (
+                        <ImportNandeckDialog
+                          onOpen={async (folder, note) => {
+                            if (!(await discardOk())) return
+                            setImporting(false)
+                            await load(folder)
+                            // la nota con ciò che non è stato convertito
+                            setOpenNote(note)
+                          }}
+                          onClose={() => setImporting(false)}
+                        />
+                      )}
+                      {importing === 'ttc' && (
                         <ImportTtcDialog
                           onOpen={async (folder) => {
                             if (!(await discardOk())) return

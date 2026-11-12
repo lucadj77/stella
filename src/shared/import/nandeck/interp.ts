@@ -43,8 +43,7 @@ export type SkipReason =
 
 /** Sequenza: un elemento per carta, che ricomincia dall'inizio dopo l'ultimo */
 type Label =
-  | { seq: string[]; rangeCall?: string }
-  | { deferred: string; labels: LabelMap; count: number }
+  { seq: string[]; rangeCall?: string } | { deferred: string; labels: LabelMap; count: number }
 type LabelMap = Map<string, Label>
 
 /** Condizione di un blocco IF: il testo originale e il suo valore per carta */
@@ -134,13 +133,7 @@ export interface HtmlImage {
 }
 
 // funzioni di intervallo che si possono rileggere (AUTORANGE no: dà carte nuove ogni volta)
-const RANGE_FUNCTIONS = new Set([
-  'labelrange',
-  'rangeadd',
-  'rangemerge',
-  'rangerem',
-  'rangeint'
-])
+const RANGE_FUNCTIONS = new Set(['labelrange', 'rangeadd', 'rangemerge', 'rangerem', 'rangeint'])
 
 const PRINT_COMMANDS = new Set([
   'PAGE',
@@ -318,7 +311,11 @@ export class NandeckScript {
         else this.execLines(scriptLines(text, path), depth + 1)
         continue
       }
-      if (st.kind === 'command' && st.name === 'SECTION' && /^off$/i.test(splitParams(st.value)[1] ?? '')) {
+      if (
+        st.kind === 'command' &&
+        st.name === 'SECTION' &&
+        /^off$/i.test(splitParams(st.value)[1] ?? '')
+      ) {
         // una sezione spenta non si disegna: si salta fino a ENDSECTION
         let j = i + 1
         while (j < lines.length) {
@@ -415,12 +412,13 @@ export class NandeckScript {
         this.cardsDirective = evalNumber(this.substConst(st.value)) ?? 0
         return
       case 'BASERANGE':
-      {
-        const cards = this.range(p[0] ?? '') ?? Array.from({ length: this.cardCount }, (_, i) => i + 1)
-        const on = /on/i.test(p[1] ?? '')
-        this.baseRange = new Set(this.baseRange)
-        for (const c of cards) on ? this.baseRange.add(c) : this.baseRange.delete(c)
-      }
+        {
+          const cards =
+            this.range(p[0] ?? '') ?? Array.from({ length: this.cardCount }, (_, i) => i + 1)
+          const on = /on/i.test(p[1] ?? '')
+          this.baseRange = new Set(this.baseRange)
+          for (const c of cards) on ? this.baseRange.add(c) : this.baseRange.delete(c)
+        }
         return
       case 'FONT':
         this.font = this.fontFrom(p)
@@ -687,7 +685,8 @@ export class NandeckScript {
     const parts = splitTop(value, '|')
     // [x]=[y] copia la sequenza
     const only = /^\[([^\][]+)\]$/.exec(value.trim())
-    if (only && this.labels.has(only[1].toLowerCase())) return this.labels.get(only[1].toLowerCase())!
+    if (only && this.labels.has(only[1].toLowerCase()))
+      return this.labels.get(only[1].toLowerCase())!
     const multi = referencedLabels(value).some((n) => this.count(n) > 1)
     if (multi && parts.length === 1)
       return {
@@ -742,13 +741,7 @@ export class NandeckScript {
    * della carta e calcola le espressioni tra graffe ({(nome)} è il numero di elementi, {nome?n}
    * l'elemento n). Le etichette che non esistono restano come sono.
    */
-  subst(
-    text: string,
-    card: number,
-    pos: number,
-    labels: LabelMap,
-    keep?: Set<string>
-  ): string {
+  subst(text: string, card: number, pos: number, labels: LabelMap, keep?: Set<string>): string {
     let s = text.replace(/\\(\d+)\\/g, (_, n: string) => String.fromCharCode(Number(n)))
     // etichette, dalle più interne: [[tipo]] usa il valore di [tipo] come nome
     for (let guard = 0; guard < 20; guard++) {
@@ -762,6 +755,7 @@ export class NandeckScript {
       })
       if (!changed) break
     }
+    // eslint-disable-next-line no-control-regex
     s = s.replace(/\u0001/g, '[').replace(/\u0002/g, ']')
     s = s.replace(/§/g, String(card))
     for (let guard = 0; guard < 20; guard++) {
@@ -808,7 +802,9 @@ export class NandeckScript {
     if (depth > 6) return text
     return text.replace(/\[([^\][]+)\]/g, (m, name: string) => {
       const label = this.labels.get(name.trim().toLowerCase())
-      return label && 'seq' in label && label.rangeCall ? this.expandRange(label.rangeCall, depth + 1) : m
+      return label && 'seq' in label && label.rangeCall
+        ? this.expandRange(label.rangeCall, depth + 1)
+        : m
     })
   }
 
@@ -890,7 +886,8 @@ export class NandeckScript {
         const times = Math.max(1, Math.round(this.num(args[1], 1)))
         const each = Math.max(1, Math.round(this.num(args[2], 1)))
         const out: string[] = []
-        for (let t = 0; t < times; t++) for (const e of seq) for (let k = 0; k < each; k++) out.push(e)
+        for (let t = 0; t < times; t++)
+          for (const e of seq) for (let k = 0; k < each; k++) out.push(e)
         return out
       }
       case 'join': {
@@ -965,7 +962,9 @@ export class NandeckScript {
       case 'dirfiles': {
         const dir = this.resolvePath(unquote(this.substConst(args[0] ?? '')))
         const pattern = unquote(this.substConst(args[1] ?? '*')) || '*'
-        const re = wildcard(pattern.includes('.') || pattern.includes('*') ? pattern : `*.${pattern}`)
+        const re = wildcard(
+          pattern.includes('.') || pattern.includes('*') ? pattern : `*.${pattern}`
+        )
         const prefix = dir ? `${dir}/` : ''
         const local = this.dir ? `${this.dir}/` : ''
         return this.env.files
@@ -1260,7 +1259,6 @@ export const KEEP_CLOSE = '\u0004'
 /** Un parametro che non si può scrivere con i campi: si usa il valore di ogni carta */
 export const NOT_SYMBOLIC = '\u0005'
 
-
 const KNOWN_FUNCTIONS = new Set([
   'expand',
   'join',
@@ -1365,6 +1363,9 @@ export function compare(a: string, op: string, b: string): boolean {
 }
 
 function wildcard(pattern: string): RegExp {
-  const esc = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.')
+  const esc = pattern
+    .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+    .replace(/\*/g, '.*')
+    .replace(/\?/g, '.')
   return new RegExp(`^${esc}$`, 'i')
 }

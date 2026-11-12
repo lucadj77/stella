@@ -3242,6 +3242,28 @@ div.font-row {
   font-size: 13px;
 }
 
+/* importazione da nanDECK: elenco degli script da convertire */
+.nandeck-scripts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 30vh;
+  overflow-y: auto;
+}
+
+.nandeck-scripts label.check {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+
+.dialog-buttons.start {
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: 4px;
+}
+
 /* ——— barra del progetto ——— */
 
 .toolbar-group {

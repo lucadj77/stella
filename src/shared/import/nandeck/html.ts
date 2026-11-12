@@ -46,10 +46,10 @@ export function htmlToMarkup(
   let m: RegExpExecArray | null
   const decode = (s: string): string =>
     s.replace(/&(#\d+|#x[0-9a-f]+|[a-z]+);/gi, (e, code: string) => {
-        if (code.startsWith('#x')) return String.fromCodePoint(parseInt(code.slice(2), 16))
-        if (code.startsWith('#')) return String.fromCodePoint(Number(code.slice(1)))
-        return ENTITIES[code.toLowerCase()] ?? e
-      })
+      if (code.startsWith('#x')) return String.fromCodePoint(parseInt(code.slice(2), 16))
+      if (code.startsWith('#')) return String.fromCodePoint(Number(code.slice(1)))
+      return ENTITIES[code.toLowerCase()] ?? e
+    })
   const text = (s: string): string => escapeMarkup(decode(s))
   while ((m = re.exec(html))) {
     out += text(html.slice(last, m.index))

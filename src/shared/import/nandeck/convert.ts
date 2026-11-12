@@ -191,7 +191,12 @@ function textValign(v: string | undefined): { valign: string; wrap: boolean } {
   return { valign, wrap }
 }
 
-function fontProps(name: string, size: number, flags: string, col: string): Record<string, unknown> {
+function fontProps(
+  name: string,
+  size: number,
+  flags: string,
+  col: string
+): Record<string, unknown> {
   const f = flags.toUpperCase()
   const out: Record<string, unknown> = { font: name, size: r3(size) }
   if (f.includes('B')) out.weight = 700
@@ -215,7 +220,10 @@ function hintFrom(raw: string, fallback: string): string {
 
 /** Testo con i segni dei campi lasciati dalla sostituzione simbolica: [nome] → {nome} */
 const fieldsOf = (s: string): string =>
-  s.replace(new RegExp(`${KEEP_OPEN}([^${KEEP_CLOSE}]*)${KEEP_CLOSE}`, 'g'), (_, n: string) => `{${cleanName(n)}}`)
+  s.replace(
+    new RegExp(`${KEEP_OPEN}([^${KEEP_CLOSE}]*)${KEEP_CLOSE}`, 'g'),
+    (_, n: string) => `{${cleanName(n)}}`
+  )
 
 function build(
   ctx: Context,
@@ -249,7 +257,8 @@ function build(
         props.stroke = { color: color(font.color) ?? '#000000', width: r3(2 * grow * s.unit) }
       // TEXT, outline width: testo disegnato come contorno
       const outline = evalNumber(p[9] ?? '')
-      if (outline) props.stroke = { color: color(font.color) ?? '#000000', width: r3(outline * s.unit) }
+      if (outline)
+        props.stroke = { color: color(font.color) ?? '#000000', width: r3(outline * s.unit) }
       // senza la lettera T nanDECK riempie il rettangolo con il colore di sfondo
       if (!/[TO]/i.test(font.flags)) note(ctx, 'nandeck.note.fontBackground', String(op.line))
       ctx.fonts.add(font.name)
@@ -264,7 +273,9 @@ function build(
       const g = geometry(ctx, p, 1)
       if (!g) return null
       // il font di tutto il testo (htmlfont1) o di ogni paragrafo (htmlfont2)
-      const fontKey = [p[9], p[10]].map((k) => (k ?? '').trim().toLowerCase()).find((k) => s.htmlFonts.has(k)) ?? ''
+      const fontKey =
+        [p[9], p[10]].map((k) => (k ?? '').trim().toLowerCase()).find((k) => s.htmlFonts.has(k)) ??
+        ''
       const hf = s.htmlFonts.get(fontKey)
       const htmlFlags = (p[7] ?? '').toUpperCase()
       const margins = s.htmlMargins.get(fontKey)
@@ -279,7 +290,10 @@ function build(
       }
       if (hf) ctx.fonts.add(hf.font)
       if (hf?.outlineColor && hf.outline)
-        props.stroke = { color: color(hf.outlineColor) ?? '#000000', width: r3(hf.outline * s.unit) }
+        props.stroke = {
+          color: color(hf.outlineColor) ?? '#000000',
+          width: r3(hf.outline * s.unit)
+        }
       if (margins) {
         const pad = [margins.top, margins.right, margins.bottom, margins.left].map((v) =>
           r3(v * s.unit)
@@ -299,7 +313,10 @@ function build(
         type: 'text',
         hint: hintFrom(raw[0] ?? '', 'text'),
         props,
-        symbolic: sym && !sym[0]?.includes(NOT_SYMBOLIC) ? fieldsOf(html(ctx, unquote(sym[0] ?? ''), hf?.size ?? 12)) : undefined
+        symbolic:
+          sym && !sym[0]?.includes(NOT_SYMBOLIC)
+            ? fieldsOf(html(ctx, unquote(sym[0] ?? ''), hf?.size ?? 12))
+            : undefined
       }
     }
     case 'IMAGE': {
@@ -333,6 +350,7 @@ function build(
       if (sym && sym[0] && !sym[0].includes(NOT_SYMBOLIC)) {
         const t = unquote(sym[0])
         // un percorso con un campo: img/{nome}.png
+        // eslint-disable-next-line no-control-regex
         if (t.includes(KEEP_OPEN) && !/^\s*\u0003[^\u0004]*\u0004\s*$/.test(t))
           symbolic = fieldsOf(s.resolvePath(t.replace(/\\/g, '/')))
       }
@@ -449,7 +467,9 @@ function build(
           w: r3(w),
           h: r3(h),
           fill: c2 === undefined ? (c1 ?? null) : c2,
-          ...(c2 !== undefined && c1 && thick > 0 ? { stroke: { color: c1, width: r3(thick) } } : {})
+          ...(c2 !== undefined && c1 && thick > 0
+            ? { stroke: { color: c1, width: r3(thick) } }
+            : {})
         }
       }
     }
@@ -511,7 +531,9 @@ function html(ctx: Context, text: string, fontSize: number): string {
     if (k.key)
       t = t
         .split(k.key)
-        .join(k.font && ctx.script.htmlFonts.has(k.font) ? `<${k.font}>${k.value}</${k.font}>` : k.value)
+        .join(
+          k.font && ctx.script.htmlFonts.has(k.font) ? `<${k.font}>${k.value}</${k.font}>` : k.value
+        )
   // le chiavi più lunghe prima: (2oro) non deve diventare (2{oro})
   const vars = [...ctx.htmlVars].sort((a, b) => b.key.length - a.key.length)
   const marks: string[] = []
@@ -519,7 +541,8 @@ function html(ctx: Context, text: string, fontSize: number): string {
     if (t.includes(v.key)) {
       t = t.split(v.key).join(`\u0006${marks.length}\u0007`)
       // un'icona nel testo è alta 1,15 volte il corpo: size= è l'altezza rispetto a quella
-      const ratio = v.height === null ? 1 : v.relative ? v.height / 1.15 : v.height / (fontSize * PT * 1.15)
+      const ratio =
+        v.height === null ? 1 : v.relative ? v.height / 1.15 : v.height / (fontSize * PT * 1.15)
       const pct = Math.round(ratio * 100)
       marks.push(pct > 0 && Math.abs(pct - 100) > 5 ? `{${v.name} size=${pct}%}` : `{${v.name}}`)
     }
@@ -527,6 +550,7 @@ function html(ctx: Context, text: string, fontSize: number): string {
   for (const [key, f] of ctx.script.htmlFonts) fonts.set(key, fontAttrs(f))
   const r = htmlToMarkup(t.replace(/\n/g, '<br>'), fonts)
   r.unsupported.forEach((u) => ctx.unsupportedTags.add(u))
+  // eslint-disable-next-line no-control-regex
   return r.text.replace(/\u0006(\d+)\u0007/g, (_, i: string) => marks[Number(i)])
 }
 
@@ -586,7 +610,11 @@ function rangeFormula(
   return parts.length === 1 ? parts[0] : `${join}(${parts.join('; ')})`
 }
 
-function conditionFormula(text: string, negated: boolean, columns: Map<string, string>): string | null {
+function conditionFormula(
+  text: string,
+  negated: boolean,
+  columns: Map<string, string>
+): string | null {
   const m = /^\s*\[([^[\]]+)\]\s*(<>|<=|>=|=|<|>)\s*(.*)$/s.exec(text)
   if (!m) return null
   const column = columns.get(m[1].trim().toLowerCase())
@@ -665,11 +693,20 @@ export function convertNandeck(inputs: ScriptInput[]): NandeckProject {
     // icone di ICON e immagini di HTMLIMAGE: variabili immagine del progetto
     const iconVar = (key: string, file: string, prefix: string): string => {
       const base = cleanName(key.replace(/^\(|\)$/g, '')) || 'icon'
+      // la stessa immagine con lo stesso tasto in un altro script (un INCLUDE comune): stessa variabile
       const existing = Object.entries(variables).find(
-        ([, v]) => v.type === 'image' && v.src === file
+        ([n, v]) =>
+          v.type === 'image' &&
+          v.src === file &&
+          (n.toLowerCase() === base.toLowerCase() ||
+            n.toLowerCase().startsWith(`${base.toLowerCase()}_`) ||
+            n.toLowerCase() === `${prefix}${base}`.toLowerCase())
       )
-      if (existing && existing[0].startsWith(base)) return existing[0]
-      const name = unique(/^\d/.test(base) || base === 'layer' ? `${prefix}${base}` : base, variableNames)
+      if (existing) return existing[0]
+      const name = unique(
+        /^\d/.test(base) || base === 'layer' ? `${prefix}${base}` : base,
+        variableNames
+      )
       variables[name] = { type: 'image', src: file }
       images.add(file)
       return name
@@ -696,7 +733,10 @@ export function convertNandeck(inputs: ScriptInput[]): NandeckProject {
       )
       active.set(op.id, cards)
     }
-    const groups = clusters([...active.values()].filter((c) => c.length), all)
+    const groups = clusters(
+      [...active.values()].filter((c) => c.length),
+      all
+    )
     const report: ScriptReport = {
       script: s.file,
       templates: [],
@@ -722,7 +762,8 @@ export function convertNandeck(inputs: ScriptInput[]): NandeckProject {
 
     // colonne dei dati: le etichette con più elementi usate dai comandi, e quelle del LINK
     const linkHeaders = new Map<string, string>()
-    for (const h of s.link?.headers ?? []) if (h.trim()) linkHeaders.set(h.trim().toLowerCase(), h.trim())
+    for (const h of s.link?.headers ?? [])
+      if (h.trim()) linkHeaders.set(h.trim().toLowerCase(), h.trim())
     const used = new Set<string>()
     for (const op of s.ops) {
       const texts = [op.rangeText, ...op.params, ...op.conditions.map((c) => c.text)]
@@ -733,7 +774,8 @@ export function convertNandeck(inputs: ScriptInput[]): NandeckProject {
     const columnNames = new Set<string>()
     for (const [k, h] of linkHeaders) columns.set(k, unique(cleanName(h), columnNames))
     for (const name of used)
-      if (!columns.has(name) && s.count(name) > 1) columns.set(name, unique(cleanName(name), columnNames))
+      if (!columns.has(name) && s.count(name) > 1)
+        columns.set(name, unique(cleanName(name), columnNames))
     const keep = new Set(columns.keys())
     const byClean = new Map<string, string>()
     for (const [k, c] of columns) byClean.set(cleanName(k).toLowerCase(), c)
@@ -744,7 +786,10 @@ export function convertNandeck(inputs: ScriptInput[]): NandeckProject {
         templateNames
       )
       report.templates.push(name)
-      const layerNames = new Set<string>([...columnNames].map((c) => c.toLowerCase()))
+      // i livelli non prendono il nome di una variabile: {nome} mostrerebbe il livello
+      const layerNames = new Set<string>(
+        [...columnNames, ...variableNames].map((c) => c.toLowerCase())
+      )
       const rows: Record<string, string>[] = part.cards.map(() => ({}))
       const headers: string[] = []
       const addCell = (header: string, i: number, value: string): void => {
@@ -901,6 +946,8 @@ export function convertNandeck(inputs: ScriptInput[]): NandeckProject {
       const label = [...columns.values()].find((c) => /^(nome|name|titolo|title)$/i.test(c))
       if (label) template.labelField = label
       templates.push(template)
+      // né le variabili degli script dopo prendono il nome di un livello
+      for (const n of layerNames) variableNames.add(n)
 
       // foglio: righe uguali e consecutive diventano copie
       const sheetName = unique(sheetNameFor(name), sheetNames)
@@ -929,7 +976,9 @@ export function convertNandeck(inputs: ScriptInput[]): NandeckProject {
       report.notes.push(msg(key, { lines: [...what].slice(0, 12).join(', ') }))
     if (ctx.unsupportedTags.size)
       report.notes.push(
-        msg('nandeck.note.htmlTags', { tags: [...ctx.unsupportedTags].map((t) => `<${t}>`).join(' ') })
+        msg('nandeck.note.htmlTags', {
+          tags: [...ctx.unsupportedTags].map((t) => `<${t}>`).join(' ')
+        })
       )
   }
 
@@ -959,7 +1008,7 @@ function finalLabels(s: NandeckScript): Parameters<NandeckScript['element']>[3] 
 function nest(items: LayerOut[], names: Set<string>): RawLayer[] {
   const build = (list: LayerOut[], depth: number): RawLayer[] => {
     const out: RawLayer[] = []
-    for (let i = 0; i < list.length; ) {
+    for (let i = 0; i < list.length;) {
       const g = list[i].groups[depth]
       if (g) {
         let j = i
@@ -981,7 +1030,10 @@ function nest(items: LayerOut[], names: Set<string>): RawLayer[] {
           type: 'group',
           name: unique(groupName(f), names),
           source: { kind: 'formula', expr: `=${f}` },
-          children: list.slice(i, j).map((x) => x.layer).reverse()
+          children: list
+            .slice(i, j)
+            .map((x) => x.layer)
+            .reverse()
         })
         i = j
         continue

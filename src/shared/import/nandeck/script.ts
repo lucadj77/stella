@@ -21,7 +21,7 @@ export function decodeScript(data: Uint8Array): string {
   } catch {
     text = new TextDecoder('windows-1252').decode(data)
   }
-  return text.replace(/^﻿/, '')
+  return text.replace(/^\uFEFF/, '')
 }
 
 /**
@@ -121,8 +121,7 @@ export function splitParams(text: string, sep = ','): string[] {
       continue
     }
     if (OPEN[c]) stack.push(OPEN[c])
-    else if (c === '<' && /^<[A-Za-z_]/.test(text.slice(i)) && frameCloses(text, i))
-      stack.push('>')
+    else if (c === '<' && /^<[A-Za-z_]/.test(text.slice(i)) && frameCloses(text, i)) stack.push('>')
     else if (stack.length && c === stack[stack.length - 1]) stack.pop()
     if (c === sep && !stack.length) {
       out.push(cur.trim())
