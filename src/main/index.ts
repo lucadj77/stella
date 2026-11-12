@@ -172,12 +172,24 @@ if (cliArgs) {
   })
 }
 
-/** Indirizzo che si può aprire nel browser o nel programma di posta */
 /** Skill chiesta dal renderer: solo i nomi che esistono */
 function skillKind(kind?: SkillKind): SkillKind {
   return kind === 'stella-nandeck' ? 'stella-nandeck' : 'stella'
 }
 
+/**
+ * Con npm run dev la skill si legge dalla cartella del repository: così si prova anche quella
+ * di un ramo non ancora su main. L'app installata la scarica sempre da GitHub.
+ */
+async function skillText(kind: SkillKind): Promise<string> {
+  if (!app.isPackaged) {
+    const file = join(app.getAppPath(), 'skill', kind, 'SKILL.md')
+    if (existsSync(file)) return readFile(file, 'utf8')
+  }
+  return downloadSkill(app.getVersion(), (url) => net.fetch(url), kind)
+}
+
+/** Indirizzo che si può aprire nel browser o nel programma di posta */
 function isWebLink(url: string): boolean {
   try {
     return ['http:', 'https:', 'mailto:'].includes(new URL(url).protocol)
@@ -646,9 +658,7 @@ function registerIpc(): void {
   )
   ipcMain.handle('update:mode', () => updateMode())
   ipcMain.handle('update:install', (e, version: string) => installUpdate(version, e.sender))
-  ipcMain.handle('ai:download-skill', (_, kind?: SkillKind) =>
-    downloadSkill(app.getVersion(), (url) => net.fetch(url), skillKind(kind))
-  )
+  ipcMain.handle('ai:download-skill', (_, kind?: SkillKind) => skillText(skillKind(kind)))
   ipcMain.handle('ai:save-skill', async (_, folder: string, text: string, kind?: SkillKind) => {
     const file = join(folder, skillKind(kind), 'SKILL.md')
     await mkdir(dirname(file), { recursive: true })
