@@ -1339,6 +1339,8 @@ export const en = {
     'Layer {layer}: the image of variable {name} ({src}) is not in assets',
   'bind.ambiguousRef':
     'Layer {layer}: {{name}} matches more than one image; add the extension or the folder',
+  'bind.gridTooBig':
+    'Layer {layer}: a grid of {rows} × {columns} cells is over the limit of {max} cells; only part of it is drawn',
   'bind.missingFont':
     'Layer {layer}: font “{font}” is not in assets/fonts nor installed on this computer',
   'markup.unknownAttribute': 'unknown attribute “{name}”',
@@ -1673,6 +1675,8 @@ export const en = {
     'Fonts not found in assets/fonts nor on this computer, replaced by a default font: {fonts}',
   'export.missingImages':
     'Images not found in assets (or links that cannot be reached), exported as placeholders: {cards}',
+  'export.heavyPngs':
+    'Very heavy PNG images, which may be left out of the export: {images}. If they have no transparent parts, convert them to JPG.',
   'export.livePreview': 'Preview',
   'export.enlarge': 'Enlarge',
   'export.enlargeHint': 'Open the preview in a large window, with every page and image',

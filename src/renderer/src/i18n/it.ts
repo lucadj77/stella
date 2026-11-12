@@ -1358,6 +1358,8 @@ export const it: Record<MessageKey, string> = {
     "Livello {layer}: l'immagine della variabile {name} ({src}) non è negli asset",
   'bind.ambiguousRef':
     "Livello {layer}: {{name}} corrisponde a più immagini; aggiungi l'estensione o la cartella",
+  'bind.gridTooBig':
+    'Livello {layer}: una griglia di {rows} × {columns} caselle supera il limite di {max} caselle; se ne disegna solo una parte',
   'bind.missingFont':
     'Livello {layer}: il font “{font}” non è in assets/fonts né installato sul computer',
   'markup.unknownAttribute': 'attributo “{name}” sconosciuto',
@@ -1699,6 +1701,8 @@ export const it: Record<MessageKey, string> = {
     'Font non trovati in assets/fonts né sul computer, sostituiti da un font predefinito: {fonts}',
   'export.missingImages':
     'Immagini non trovate in assets (o collegamenti non raggiungibili), esportate come segnaposto: {cards}',
+  'export.heavyPngs':
+    'Immagini PNG molto pesanti, che possono mancare nell\'esportazione: {images}. Se non hanno parti trasparenti, convertile in JPG.',
   'export.livePreview': 'Anteprima',
   'export.enlarge': 'Ingrandisci',
   'export.enlargeHint':

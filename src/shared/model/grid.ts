@@ -34,8 +34,11 @@ export interface GridGeometry {
   cell: { w: number; h: number }
 }
 
-/** Limite alle caselle, per non bloccare il disegno con un numero sbagliato nel foglio */
-export const MAX_CELLS = 400
+/**
+ * Limite alle caselle, per non bloccare il disegno con un numero sbagliato nel foglio (100 × 100);
+ * oltre, il controllo lo segnala
+ */
+export const MAX_CELLS = 10000
 
 /** Righe e colonne usate, dentro il limite delle caselle */
 export function gridSize(g: Pick<GridLayer, 'rows' | 'columns'>): {

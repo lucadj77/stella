@@ -297,6 +297,22 @@ describe('contenuto della griglia', () => {
     expect(bound.problems).toEqual([])
   })
 
+  it('disegna una griglia di 22 × 20 caselle intera, e segnala quella oltre il limite', () => {
+    const big = (rows: number, columns: number): ReturnType<typeof bindCard> =>
+      bindCard(
+        normalizeTemplate({
+          name: 't',
+          front: [{ ...(tpl.front[0] as GridLayer), rows, columns }]
+        }),
+        rowToCard([], [])
+      )
+    const ok = big(20, 22)
+    const g = ok.template.front[0]
+    expect(g.type === 'grid' && g.cells?.length).toBe(440)
+    expect(ok.problems).toEqual([])
+    expect(big(200, 200).problems.map((p) => p.key)).toContain('bind.gridTooBig')
+  })
+
   it('numero continuo per colonna, a serpentina, dall’ultima, saltando le nascoste', () => {
     const t = normalizeTemplate({
       name: 't',
