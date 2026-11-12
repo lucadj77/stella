@@ -2232,6 +2232,8 @@ export const it: Record<MessageKey, string> = {
   'tip.importNandeck':
     'Importa da nanDECK: converte gli script di un gioco in un progetto Stella nuovo; la cartella originale non si modifica',
   'nandeck.title': 'Importa da nanDECK',
+  'nandeck.experimental':
+    "L'importazione è sperimentale e incompleta: spesso il risultato automatico è molto parziale. Un agente AI con la skill nanDECK, scaricabile dal programma, può dare risultati migliori, ma non sempre perfetti.",
   'nandeck.intro':
     'Ogni script diventa un template e un set: i dati di LINK e le etichette vanno nel foglio, frame e intervalli diventano livelli e formule di visibilità, le immagini usate si copiano. La cartella di nanDECK si legge soltanto. Le righe che non hanno un equivalente sono elencate nella nota "Import nanDECK", che la skill nanDECK usa per finire il lavoro.',
   'nandeck.source': 'Cartella del gioco nanDECK',
@@ -2276,6 +2278,9 @@ export const it: Record<MessageKey, string> = {
   'nandeck.noteApprox': 'Convertito in modo approssimato',
   'nandeck.noteMissing': 'Immagini non trovate',
   'nandeck.noteFonts': 'Caratteri usati',
+  'nandeck.noteMissingFonts': 'Caratteri non installati',
+  'nandeck.noteMissingFontsHint':
+    'Questo computer non ha questi caratteri: installali, o aggiungili al progetto, perché i testi appaiano come in nanDECK.',
   'nandeck.reason.command': 'comando senza equivalente in Stella',
   'nandeck.reason.function': 'funzione non convertita',
   'nandeck.reason.print': 'impostazione di stampa',

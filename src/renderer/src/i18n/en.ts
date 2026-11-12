@@ -2199,6 +2199,8 @@ export const en = {
   'tip.importNandeck':
     'Import from nanDECK: convert the scripts of a game into a new Stella project; the original folder is not changed',
   'nandeck.title': 'Import from nanDECK',
+  'nandeck.experimental':
+    'The import is experimental and incomplete: the automatic result is often very partial. An AI agent with the nanDECK skill, which you can download from the app, can give better results, but not always perfect ones.',
   'nandeck.intro':
     'Each script becomes a template and a set: data from LINK and labels go in the sheet, frames and ranges become layers and visibility formulas, the images used are copied. The nanDECK folder is only read. Lines that have no equivalent are listed in the note "Import nanDECK", which the nanDECK skill uses to finish the work.',
   'nandeck.source': 'nanDECK game folder',
@@ -2243,6 +2245,9 @@ export const en = {
   'nandeck.noteApprox': 'Converted approximately',
   'nandeck.noteMissing': 'Images not found',
   'nandeck.noteFonts': 'Fonts used',
+  'nandeck.noteMissingFonts': 'Fonts not installed',
+  'nandeck.noteMissingFontsHint':
+    'This computer does not have these fonts: install them, or add them to the project, so that the texts look as in nanDECK.',
   'nandeck.reason.command': 'command with no equivalent in Stella',
   'nandeck.reason.function': 'function not converted',
   'nandeck.reason.print': 'print setting',

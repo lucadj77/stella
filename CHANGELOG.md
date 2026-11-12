@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## Next version
+
+### English
+
+- **Import from nanDECK**: the import window warns that the import is experimental and incomplete, and that an AI agent with the nanDECK skill can give better results. The importer now handles combination labels (`C`, `CR`, `P`, `PR`), using the same engine as the **Generate** window, joined and repeated labels, `IF` conditions with `_AND_`, `_OR_`, `_NOT_`, `@` and `#`, `CANVAS` boards split over several cards, scripts in a subfolder and `DIRFILES`. Borders are centered on the outline as in nanDECK, the back is found even when a frame is drawn on every card, icon variables get readable names, and fonts that are not installed are listed in the note.
+
+### Italiano
+
+- **Importa da nanDECK**: la finestra di importazione avvisa che l'importazione è sperimentale e incompleta, e che un agente IA con la skill nanDECK può dare risultati migliori. L'importazione ora gestisce le etichette combinatorie (`C`, `CR`, `P`, `PR`), con lo stesso motore della finestra **Genera**, le etichette concatenate e ripetute, le condizioni `IF` con `_AND_`, `_OR_`, `_NOT_`, `@` e `#`, i tabelloni `CANVAS` divisi su più carte, gli script in una sottocartella e `DIRFILES`. I bordi stanno a cavallo del contorno come in nanDECK, il retro si riconosce anche quando una cornice è disegnata su tutte le carte, le variabili delle icone hanno nomi leggibili e i font non installati sono elencati nella nota.
+
 ## 1.11.0-beta.2
 
 ### English

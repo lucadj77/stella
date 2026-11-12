@@ -13,6 +13,7 @@ import type { Variables } from '../../model/variables'
 import type { ProjectFile, Sheet } from '../../project'
 import { evalNumber, formatNumber } from './expr'
 import { escapeMarkup, htmlToMarkup } from './html'
+import { parseCondition, type CondNode } from './cond'
 import {
   KEEP_CLOSE,
   KEEP_OPEN,
@@ -156,17 +157,6 @@ function rotatedBox(g: Geometry, angle: number): Record<string, number> {
     return { x: r3(cx - g.h / 2), y: r3(cy - g.w / 2), w: g.h, h: g.w, rotation: rot }
   }
   return { ...g, ...(rot ? { rotation: rot } : {}) }
-}
-
-/** Contorno di Stella, centrato sul bordo: si rientra di metà spessore come nanDECK */
-function insetStroke(g: Geometry, width: number): Geometry {
-  const half = width / 2
-  return {
-    x: r3(g.x + half),
-    y: r3(g.y + half),
-    w: r3(Math.max(0, g.w - width)),
-    h: r3(Math.max(0, g.h - width))
-  }
 }
 
 const H_ALIGN: Record<string, string> = {
@@ -369,6 +359,12 @@ function build(
       const alpha = evalNumber(p[7] ?? '')
       if (alpha !== null && alpha < 100) props.opacity = r3(Math.max(0, alpha) / 100)
       if (flags.includes('G')) props.grayscale = true
+      // CANVAS: la parte dell'immagine grande che va su questa carta
+      const crop = op.canvasCrop?.get(card)
+      if (crop) {
+        const [x, y, w, h] = crop.split(' ').map((n) => Number(n) / 100)
+        props.crop = { x, y, w, h }
+      }
       let symbolic: string | undefined
       if (sym && sym[0] && !sym[0].includes(NOT_SYMBOLIC)) {
         const t = unquote(sym[0])
@@ -408,14 +404,14 @@ function build(
       const c1 = color(p[c0])
       const c2 = color(p[c0 + 1])
       const thick = lengthMm(ctx, p[c0 + 2])
-      let box = g
+      const box = g
       if (c2 === undefined) {
         props.fill = c1 ?? null
       } else {
         props.fill = c2
         if (c1 && thick > 0) {
+          // il bordo è centrato sul contorno, come in Stella (misurato sulle carte di nanDECK)
           props.stroke = { color: c1, width: r3(thick) }
-          box = insetStroke(g, thick)
         } else if (c1 && c2 === null) {
           // senza spessore nanDECK disegna un bordo sottile
           props.stroke = { color: c1, width: 0.2 }
@@ -426,7 +422,7 @@ function build(
         const rx = lengthMm(ctx, p[c0 + 3])
         const ry = lengthMm(ctx, p[c0 + 4], s.heightUnits)
         const rad = Math.min(rx || ry, ry || rx)
-        if (rad > 0) props.radius = r3(Math.max(0, rad - (box === g ? 0 : thick / 2)))
+        if (rad > 0) props.radius = r3(rad)
         props.shape = 'rect'
       } else if (op.command === 'ELLIPSE' || op.command === 'CIRCLE') props.shape = 'ellipse'
       else if (op.command === 'RHOMBUS') {
@@ -446,7 +442,14 @@ function build(
         const rot = r3((((90 - (evalNumber(p[5] ?? '') ?? 90)) % 360) + 360) % 360)
         if (rot) props.rotation = rot > 180 ? r3(rot - 360) : rot
       } else props.shape = 'rect'
-      return { type: 'shape', hint: frameHint(raw[0]) ?? op.command.toLowerCase(), props }
+      // un rettangolo grande come la carta è lo sfondo
+      const full =
+        Math.abs(g.x) < 0.01 &&
+        Math.abs(g.y) < 0.01 &&
+        Math.abs(g.w - s.width) < 0.01 &&
+        Math.abs(g.h - s.height) < 0.01
+      const hint = frameHint(raw[0]) ?? (full ? 'background' : op.command.toLowerCase())
+      return { type: 'shape', hint, props }
     }
     case 'LINE': {
       const W = s.widthUnits
@@ -570,7 +573,10 @@ function build(
       const size = r3(Math.max(4, iconH / 1.15 / PT))
       return {
         type: 'text',
-        hint: hintFrom(raw[0] ?? '', 'icons'),
+        // non il nome dell'etichetta, che è la colonna dei tasti
+        hint: /\[([^[\]]+)\]/.test(raw[0] ?? '')
+          ? `${hintFrom(raw[0] ?? '', 'icons')}_icons`
+          : 'icons',
         props: {
           ...g,
           text,
@@ -702,12 +708,49 @@ function conditionFormula(
   negated: boolean,
   columns: Map<string, string>
 ): string | null {
-  const m = /^\s*\[([^[\]]+)\]\s*(<>|<=|>=|=|<|>)\s*(.*)$/s.exec(text)
-  if (!m) return null
-  const column = columns.get(m[1].trim().toLowerCase())
-  if (!column) return null
-  const f = compareFormula(column, m[2], m[3])
+  const tree = parseCondition(text)
+  const f = tree ? nodeFormula(tree, columns) : null
+  if (f === null) return null
   return negated ? `NOT(${f})` : f
+}
+
+/** Formula di un albero di condizioni; null se un confronto non si scrive con le colonne */
+function nodeFormula(node: CondNode, columns: Map<string, string>): string | null {
+  switch (node.kind) {
+    case 'const':
+      return node.value ? 'TRUE' : 'FALSE'
+    case 'not': {
+      const f = nodeFormula(node.item, columns)
+      return f === null ? null : `NOT(${f})`
+    }
+    case 'and':
+    case 'or': {
+      const parts = node.items.map((x) => nodeFormula(x, columns))
+      if (parts.some((x) => x === null)) return null
+      return `${node.kind.toUpperCase()}(${parts.join('; ')})`
+    }
+    case 'atom': {
+      const label = (t: string): string | undefined => {
+        const m = /^\s*\[([^[\]]+)\]\s*$/.exec(t)
+        return m ? columns.get(m[1].trim().toLowerCase()) : undefined
+      }
+      const constant = (t: string): boolean => !/[[\]{}§]/.test(t)
+      if (node.op === null) return null
+      const left = label(node.left)
+      const right = label(node.right)
+      // b@[risorse]: il testo sta nella colonna
+      if (node.op === '@' || node.op === '#') {
+        if (!right || !constant(node.left)) return null
+        const f = compareFormula(right, '@', node.left)
+        return node.op === '#' ? `NOT(${f})` : f
+      }
+      if (left && constant(node.right)) return compareFormula(left, node.op, node.right)
+      const swap: Record<string, string> = { '<': '>', '>': '<', '<=': '>=', '>=': '<=' }
+      if (right && constant(node.left))
+        return compareFormula(right, swap[node.op] ?? node.op, node.left)
+      return null
+    }
+  }
 }
 
 // ——— script → template e set ———
@@ -781,7 +824,10 @@ export function convertNandeck(inputs: ScriptInput[]): NandeckProject {
     }
     // icone di ICON e immagini di HTMLIMAGE: variabili immagine del progetto
     const iconVar = (key: string, file: string, prefix: string): string => {
-      const base = cleanName(key.replace(/^\(|\)$/g, '')) || 'icon'
+      // un tasto di una o due lettere (a, b) dice poco: la variabile prende il nome del file
+      const keyName = cleanName(key.replace(/^\(|\)$/g, ''))
+      const stem = fileHint(file)
+      const base = (keyName.length <= 2 && stem ? stem : keyName) || 'icon'
       // la stessa immagine con lo stesso tasto in un altro script (un INCLUDE comune): stessa variabile
       const existing = Object.entries(variables).find(
         ([n, v]) =>
@@ -822,10 +868,27 @@ export function convertNandeck(inputs: ScriptInput[]): NandeckProject {
       )
       active.set(op.id, cards)
     }
-    const groups = clusters(
-      [...active.values()].filter((c) => c.length),
-      all
-    )
+    const cardSets = [...active.values()].filter((c) => c.length)
+    let groups = clusters(cardSets, all)
+    // un comando su tutte le carte (una cornice senza intervallo) lega anche il retro al
+    // fronte: senza quei comandi, l'ultimo gruppo di carte può essere il retro
+    const partial = cardSets.filter((c) => c.length < total)
+    if (groups.length === 1 && partial.length < cardSets.length) {
+      const used = new Set(cardSets.flat())
+      const split = clusters(partial, all)
+      const grouped = new Set(split.flat())
+      const left = all.filter((c) => used.has(c) && !grouped.has(c))
+      if (left.length) split.push(left)
+      const last = split.reduce((a, b) => (b[b.length - 1] > a[a.length - 1] ? b : a))
+      const front = groups[0].filter((c) => !last.includes(c))
+      if (
+        split.length > 1 &&
+        front.length &&
+        (last.length === 1 || last.length === front.length) &&
+        last[0] > front[front.length - 1]
+      )
+        groups = [front, last]
+    }
     const report: ScriptReport = {
       script: s.file,
       templates: [],
@@ -980,7 +1043,11 @@ export function convertNandeck(inputs: ScriptInput[]): NandeckProject {
                 : typeof v === 'object'
                   ? 'color' in (v as object) && 'width' in (v as object) && key === 'stroke'
                     ? `${(v as { color: string }).color}/${(v as { width: number }).width}`
-                    : null
+                    : key === 'crop'
+                      ? ['x', 'y', 'w', 'h']
+                          .map((k) => formatNumber(r3((v as Record<string, number>)[k] * 100)))
+                          .join(' ')
+                      : null
                   : String(v)
             if (values.some((v) => cell(v) === null)) {
               // proprietà composte che cambiano: vale la prima carta

@@ -131,7 +131,11 @@ async function readTexts(source: string, files: string[]): Promise<Map<string, s
   return out
 }
 
-export async function importNandeck(opts: NandeckImportOptions): Promise<NandeckImportResult> {
+export async function importNandeck(
+  opts: NandeckImportOptions,
+  /** Il carattere è installato: solo nell'app desktop, che li conosce */
+  hasFont?: (family: string) => boolean
+): Promise<NandeckImportResult> {
   const { source, target } = opts
   if (!opts.scripts.length) throw new MessageError(msg('nandeck.noneSelected'))
   if (await exists(target)) {
@@ -201,6 +205,11 @@ export async function importNandeck(opts: NandeckImportOptions): Promise<Nandeck
     fonts: [...new Map(project.fonts.map((f) => [f.toLowerCase(), f])).values()]
       .filter((f) => f !== 'Nunito')
       .sort(),
+    missingFonts: hasFont
+      ? [...new Map(project.fonts.map((f) => [f.toLowerCase(), f])).values()]
+          .filter((f) => f !== 'Nunito' && !hasFont(f))
+          .sort()
+      : [],
     skipped: project.reports.reduce((n, r) => n + r.skipped.length, 0),
     notes: project.reports.flatMap((r) => r.notes),
     note: NANDECK_NOTE
@@ -297,6 +306,16 @@ export function importNote(
   }
   if (result.fonts.length) {
     out.push(`## ${t('nandeck.noteFonts')}`, '', result.fonts.join(', '), '')
+  }
+  if (result.missingFonts?.length) {
+    out.push(
+      `## ${t('nandeck.noteMissingFonts')}`,
+      '',
+      t('nandeck.noteMissingFontsHint'),
+      '',
+      ...result.missingFonts.map((f) => `- ${f}`),
+      ''
+    )
   }
   return out.join('\n')
 }

@@ -110,6 +110,65 @@ describe('interpreter', () => {
     expect(s.cardCount).toBe(2)
     expect(s.resolveParams(s.ops[0], 2)[0]).toBe('B')
   })
+
+  it('makes combinations, repetitions and concatenations of labels', () => {
+    const s = run('[r]=a|b|c\nC[two]2=[r]\n[r]2=[r]\n[t]=[r]|[two]')
+    expect(s.sequence('two')).toEqual(['ab', 'ac', 'bc'])
+    expect(s.sequence('r')).toEqual(['a', 'b', 'c', 'a', 'b', 'c'])
+    expect(s.sequence('t')).toEqual(['a', 'b', 'c', 'a', 'b', 'c', 'ab', 'ac', 'bc'])
+    const d = run('[r]=a|b\nDCR[x]2=[r]')
+    expect(d.sequence('x')).toEqual(['aa', 'ab', 'bb'])
+    const lim = run('[r]=a|b\nCR[x]2;a:0-1=[r]')
+    expect(lim.sequence('x')).toEqual(['ab', 'bb'])
+  })
+
+  it('tests conditions with _AND_, _OR_, @ and #', () => {
+    const s = run(
+      [
+        '[k]=ab|b|ca',
+        'TEXT=1-3,[k],0,0,1,1',
+        'IF=a@[k] _AND_ [k]<>ca',
+        'TEXT=1-3,"x",0,0,1,1',
+        'ENDIF',
+        'IF=a#[k] _OR_ [k]=ca',
+        'TEXT=1-3,"y",0,0,1,1',
+        'ENDIF'
+      ].join('\n')
+    )
+    const on = (i: number): number[] =>
+      [1, 2, 3].filter((c) =>
+        s.ops[i].conditions.every((cond) => s.test(cond, c, s.posOf(s.ops[i], c)))
+      )
+    expect(on(1)).toEqual([1])
+    expect(on(2)).toEqual([2, 3])
+    const p = convertNandeck([{ name: 'deck', script: s }])
+    const formulas = flat(p.templates[0].front)
+      .map((l) => (l.source as { expr?: string } | undefined)?.expr)
+      .filter(Boolean)
+    expect(formulas).toContain('=AND(COUNTIN({k}; "a")>0; {k}<>"ca")')
+  })
+
+  it('splits a full-canvas image over the CANVAS cards', () => {
+    const s = run('CARDSIZE=5,5\nCANVASSIZE=10,10\nCANVAS=1-4\nIMAGE=0,img\\a.png,0,0,10,10,0,P')
+    const p = convertNandeck([{ name: 'board', script: s }])
+    const image = flat(p.templates[0].front).find((l) => l.type === 'image')!
+    const col = p.sheets[0].headers.indexOf(`${image.name}.crop`)
+    expect(col).toBeGreaterThan(0)
+    expect(p.sheets[0].rows.map((r) => r[col])).toEqual([
+      '0 0 50 50',
+      '50 0 50 50',
+      '0 50 50 50',
+      '50 50 50 50'
+    ])
+  })
+
+  it('finds paths next to the game when the script is in a subfolder', () => {
+    const files = { 'old/deck.nde': 'CARDSIZE=6,9\nIMAGE=1,img\\a.png,0,0,1,1,0,P' }
+    const s = new NandeckScript(env(files), 'old/deck.nde')
+    s.run(files['old/deck.nde'])
+    // img/a.png non c'è accanto allo script (old/img/a.png): si prende quella del gioco
+    expect(s.resolvePath('img\\a.png')).toBe('img/a.png')
+  })
 })
 
 describe('html', () => {
@@ -172,9 +231,9 @@ describe('conversion', () => {
     const group = front.find((l) => l.type === 'group')!
     expect(group.source).toEqual({ kind: 'formula', expr: '={color}="gold"' })
     expect((group.children as RawLayer[])[0]).toMatchObject({ shape: 'ellipse', fill: '#FFD700' })
-    // il bordo sta dentro il riquadro, il primo livello è quello disegnato per ultimo
+    // il bordo sta a cavallo del contorno, come in nanDECK; il primo livello è quello disegnato per ultimo
     const rect = front.filter((l) => l.type === 'shape').at(-1)!
-    expect(rect).toMatchObject({ fill: '#FFFFFF', stroke: { color: '#000000', width: 1 }, x: 0.5 })
+    expect(rect).toMatchObject({ fill: '#FFFFFF', stroke: { color: '#000000', width: 1 }, x: 0 })
     // la carta 4, da sola dopo le altre, è il retro
     expect(flat(tpl.back)).toHaveLength(1)
     expect(p.sheets[0].headers).toEqual(['amount', 'name', 'color', 'pic'])
@@ -216,6 +275,21 @@ describe('conversion', () => {
     expect(p.sheets[0].headers).toContain(b.name)
     const col = p.sheets[0].headers.indexOf(b.name as string)
     expect(p.sheets[0].rows.slice(0, 2).map((r) => r[col])).toEqual(['img/b2.png', 'img/b3.png'])
+  })
+
+  it('finds the back even when a frame covers every card', () => {
+    const s = run(
+      [
+        'CARDSIZE=6,9',
+        'ROUNDRECT=,0,0,100%,100%,#000000,#FFFFFF,0.1,0.5,0.5',
+        'TEXT=1-3,"front",0,0,6,1',
+        'TEXT=4,"back",0,0,6,1'
+      ].join('\n')
+    )
+    const p = convertNandeck([{ name: 'deck', script: s }])
+    expect(p.reports[0].cards).toBe(3)
+    expect(flat(p.templates[0].back).some((l) => l.text === 'back')).toBe(true)
+    expect(p.sheets[0].headers.filter((h) => h.endsWith('.visible'))).toEqual([])
   })
 
   it('turns HTML image keys into image variables', () => {

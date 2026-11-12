@@ -81,7 +81,17 @@ function stripClose(body: string): string {
 }
 
 export type Statement =
-  | { kind: 'label'; name: string; value: string }
+  | {
+      kind: 'label'
+      name: string
+      value: string
+      /** Prefisso del motore combinatorio (C, CR, P, PR... con i flag), in maiuscolo */
+      prefix?: string
+      /** Il numero dopo il nome: quanti elementi per combinazione, o ripetizioni della sequenza */
+      count?: number
+      /** Limiti per elemento: ;a:1-2;b:3 → { a: [1, 2], b: [3, 3] } */
+      limits?: Record<string, [number, number]>
+    }
   | { kind: 'frame'; name: string; value: string }
   | { kind: 'command'; name: string; value: string }
   | { kind: 'other'; text: string }
@@ -90,6 +100,24 @@ export type Statement =
 export function statement(text: string): Statement {
   const label = /^\[([^\]]+)\]\s*=(.*)$/s.exec(text)
   if (label) return { kind: 'label', name: label[1].trim(), value: label[2].trim() }
+  // C[nome]2 = a|b|c, CR[nome]4;a:1-2 = a|b, [nome]3 = x: combinazioni e ripetizioni
+  const special =
+    /^([A-Za-z]+\d*)?\[([^\]]+)\](-?\d+)?((?:\s*;\s*[^;=:]+:\s*\d+(?:\s*-\s*\d+)?)*)\s*=(.*)$/s.exec(
+      text
+    )
+  if (special && (special[1] || special[3] || special[4])) {
+    const limits: Record<string, [number, number]> = {}
+    for (const m of special[4].matchAll(/;\s*([^;=:]+?)\s*:\s*(\d+)(?:\s*-\s*(\d+))?/g))
+      limits[m[1]] = [Number(m[2]), Number(m[3] ?? m[2])]
+    return {
+      kind: 'label',
+      name: special[2].trim(),
+      value: special[5].trim(),
+      prefix: special[1]?.toUpperCase(),
+      count: special[3] === undefined ? undefined : Number(special[3]),
+      limits: Object.keys(limits).length ? limits : undefined
+    }
+  }
   const frame = /^<([^<>,=]+)>\s*=(.*)$/s.exec(text)
   if (frame) return { kind: 'frame', name: frame[1].trim(), value: frame[2].trim() }
   const cmd = /^([A-Za-z][A-Za-z0-9_]*)\s*(?:=(.*))?$/s.exec(text)
