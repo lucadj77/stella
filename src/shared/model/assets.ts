@@ -3,6 +3,15 @@ import { isQrImage, qrText } from './qr'
 
 export const IMAGE_EXTENSIONS = ['.svg', '.png', '.webp', '.jpg', '.jpeg']
 
+/**
+ * Una PNG più pesante di così (8 MB) può non essere disegnata nella finestra nascosta
+ * dell'esportazione: il controllo e l'esportazione consigliano di convertirla in JPG
+ */
+export const HEAVY_PNG_BYTES = 8 * 1024 * 1024
+
+/** Megabyte con un decimale, per i messaggi */
+export const megabytes = (bytes: number): string => (bytes / 1024 / 1024).toFixed(1)
+
 export type AssetResolution =
   | { ok: true; path: string }
   | { ok: false; reason: 'empty' | 'missing' | 'ambiguous'; candidates: string[] }

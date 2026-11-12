@@ -28,7 +28,11 @@ function load(src: string): Promise<void> {
     p = new Promise<void>((resolve) => {
       const img = new Image()
       img.onload = () => {
-        within(img.decode(), DECODE_WAIT, 'decode')
+        // un'immagine grande (una PNG di 4724 × 4724 px) chiede più tempo per la decodifica:
+        // un secondo in più ogni 4 milioni di pixel, fino a 15 secondi
+        const megapixels = (img.naturalWidth * img.naturalHeight) / 1e6
+        const wait = Math.min(15000, DECODE_WAIT + Math.round(megapixels / 4) * 1000)
+        within(img.decode(), wait, 'decode')
           .catch(() => undefined)
           // anche le dimensioni lette dai livelli immagine (adatta, riempi, ritaglio) e dalle
           // icone colorate: senza, la carta si cattura con l'immagine non ancora sistemata
