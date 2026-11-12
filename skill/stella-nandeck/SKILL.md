@@ -9,6 +9,10 @@ Stella's **Import from nanDECK** turns each nanDECK script (`.nde`) of a game in
 
 This skill only covers nanDECK. **For everything about Stella (the `stella` command, `begin`/`end`, the project files, templates, layers, markup, formulas) use the Stella skill (`stella`) and follow its workflow.** If the Stella skill is not installed, tell the user to install it from Stella (**Help → AI tools**) and stop.
 
+## Before you start: updates
+
+This skill is for Stella {{STELLA_VERSION}}. Once per session, after the Stella skill's own first steps (which find the `stella` command and its version, and update the Stella skill), compare that version with this skill's version. If they differ, or this skill still shows the placeholder, download `https://raw.githubusercontent.com/lucadj77/stella/v<command version>/skill/stella-nandeck/SKILL.md`, put the command's version in place of `{{STELLA_VERSION}}` in the first sentence of this section only, write it over this skill's file, tell the user, and read it again. Then this skill describes the importer of the Stella that made the project. If you cannot reach the network or write files, say so and carry on.
+
 ## Rules
 
 - **Never change the nanDECK folder.** Its path is written at the top of the note ("nanDECK folder: ..."). Read the scripts and images there; write only inside the Stella project. If the folder is not there (another computer, moved), ask the user where it is.

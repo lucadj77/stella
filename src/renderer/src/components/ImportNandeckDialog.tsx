@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { NandeckImportResult, NandeckScriptInfo } from '../../../shared/api'
 import { messageFromError, type Message } from '../../../shared/messages'
-import { NANDECK_SKILL_PAGE } from '../../../shared/skill'
+import { NANDECK_SKILL_PAGE, fillSkill } from '../../../shared/skill'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import type { MessageKey } from '../i18n/en'
@@ -11,6 +11,9 @@ import type { MessageKey } from '../i18n/en'
 // l'importazione è parziale e come finirla con la skill nanDECK, che si scarica a parte.
 
 type Folder = 'source' | 'target'
+
+/** La skill porta la versione di Stella, così l'agente sa quando aggiornarla */
+const withVersion = (text: string): string => fillSkill(text, __APP_VERSION__, '')
 
 const KIND_HINT: Record<NandeckScriptInfo['kind'], MessageKey | null> = {
   deck: null,
@@ -98,11 +101,13 @@ export default function ImportNandeckDialog({
       if (how === 'save') {
         const folder = await window.api.chooseFolder(await window.api.skillsFolder())
         if (!folder) return
-        const text = await window.api.downloadSkill('stella-nandeck')
+        const text = withVersion(await window.api.downloadSkill('stella-nandeck'))
         const file = await window.api.saveSkill(folder, text, 'stella-nandeck')
         setSkillDone({ key: 'ai.saved', params: { file } })
       } else {
-        await navigator.clipboard.writeText(await window.api.downloadSkill('stella-nandeck'))
+        await navigator.clipboard.writeText(
+          withVersion(await window.api.downloadSkill('stella-nandeck'))
+        )
         setSkillDone({ key: 'ai.copied' })
       }
     } catch (e) {
