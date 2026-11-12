@@ -31,6 +31,7 @@ export default function ImportNandeckDialog({
   const [folders, setFolders] = useState<Record<Folder, string>>({ source: '', target: '' })
   const [scripts, setScripts] = useState<NandeckScriptInfo[] | null>(null)
   const [chosen, setChosen] = useState<Set<string>>(new Set())
+  const [name, setName] = useState('')
   const [running, setRunning] = useState(false)
   const [error, setError] = useState<Message | null>(null)
   const [result, setResult] = useState<NandeckImportResult | null>(null)
@@ -46,6 +47,7 @@ export default function ImportNandeckDialog({
       const list = await window.api.scanNandeck(source.trim())
       setScripts(list)
       setChosen(new Set(list.filter((s) => s.selected).map((s) => s.path)))
+      setName(source.trim().split(/[\\/]/).filter(Boolean).pop() ?? '')
       const target = await window.api.defaultNandeckTarget(source.trim())
       setFolders((f) => ({ ...f, target }))
     } catch (e) {
@@ -77,7 +79,8 @@ export default function ImportNandeckDialog({
           source: folders.source.trim(),
           target: folders.target.trim(),
           scripts: (scripts ?? []).filter((s) => chosen.has(s.path)).map((s) => s.path),
-          language: lang
+          language: lang,
+          name: name.trim()
         })
       )
     } catch (e) {
@@ -226,6 +229,14 @@ export default function ImportNandeckDialog({
                 })}
               </div>
               <p className="field-note export-note">{t('nandeck.scriptsHint')}</p>
+            </div>
+          )}
+          {scripts && (
+            <div className="field">
+              <span className="field-label">{t('nandeck.name')}</span>
+              <div className="field-control">
+                <input value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
             </div>
           )}
           {field('target', 'ttc.target', 'ttc.targetHint')}

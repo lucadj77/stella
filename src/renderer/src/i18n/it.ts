@@ -2231,6 +2231,7 @@ export const it: Record<MessageKey, string> = {
   'nandeck.intro':
     'Ogni script diventa un template e un set: i dati di LINK e le etichette vanno nel foglio, frame e intervalli diventano livelli e formule di visibilità, le immagini usate si copiano. La cartella di nanDECK si legge soltanto. Le righe che non hanno un equivalente sono elencate nella nota "Import nanDECK", che la skill nanDECK usa per finire il lavoro.',
   'nandeck.source': 'Cartella del gioco nanDECK',
+  'nandeck.name': 'Nome del progetto',
   'nandeck.sourceHint': 'La cartella con gli script .nde, le immagini e i file di dati',
   'nandeck.scripts': 'Script da convertire',
   'nandeck.scriptsHint':

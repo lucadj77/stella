@@ -218,6 +218,23 @@ function hintFrom(raw: string, fallback: string): string {
   return fallback
 }
 
+/** Nome di un frame usato intero come posizione (<plus_el>), o null */
+function frameHint(raw: string | undefined): string | null {
+  const m = /^\s*<\s*([A-Za-z_][\w]*)\s*>\s*$/.exec(raw ?? '')
+  return m ? cleanName(m[1]) : null
+}
+
+/** Nome del file di un'immagine senza cartella, campi, numeri finali ed estensione */
+function fileHint(src: string): string | null {
+  const base = src
+    .replace(/\{[^{}]*\}/g, '')
+    .split('/')
+    .pop()!
+    .replace(/\.[a-z0-9]+$/i, '')
+    .replace(/[\d_-]+$/, '')
+  return base ? cleanName(base) : null
+}
+
 /** Testo con i segni dei campi lasciati dalla sostituzione simbolica: [nome] → {nome} */
 const fieldsOf = (s: string): string =>
   s.replace(
@@ -324,7 +341,6 @@ function build(
       if (!g) return null
       const flags = (p[6] ?? '').toUpperCase()
       const file = s.resolvePath(unquote(p[0] ?? ''))
-      if (file) ctx.images.add(file)
       const props: Record<string, unknown> = {
         ...g,
         src: file,
@@ -341,7 +357,9 @@ function build(
       const vert = flags.includes('U') ? 'top' : flags.includes('S') ? 'bottom' : ''
       const horiz = flags.includes('W') ? 'left' : flags.includes('E') ? 'right' : ''
       if (vert || horiz) props.align = [vert, horiz].filter(Boolean).join('-')
-      const rot = rotation(evalNumber(p[5] ?? '') ?? 0)
+      // le immagini girano nello stesso verso in nanDECK e in Stella (verificato sulle carte
+      // salvate da nanDECK), il testo invece nel verso opposto
+      const rot = rotation(-(evalNumber(p[5] ?? '') ?? 0))
       if (rot) props.rotation = rot
       const alpha = evalNumber(p[7] ?? '')
       if (alpha !== null && alpha < 100) props.opacity = r3(Math.max(0, alpha) / 100)
@@ -354,7 +372,20 @@ function build(
         if (t.includes(KEEP_OPEN) && !/^\s*\u0003[^\u0004]*\u0004\s*$/.test(t))
           symbolic = fieldsOf(s.resolvePath(t.replace(/\\/g, '/')))
       }
-      return { type: 'image', hint: hintFrom(raw[0] ?? '', 'image'), props, symbolic }
+      // un percorso fatto con un campo vuoto (img/el{x}.png → img/el.png) non è un file:
+      // nanDECK non disegna niente, in Stella il livello si nasconde su quella carta
+      if (
+        file &&
+        !s.fileExists(file) &&
+        symbolic &&
+        symbolic.replace(/\{[^{}]*\}/g, '').toLowerCase() === file.toLowerCase()
+      )
+        props.missing = 'hide'
+      else if (file) ctx.images.add(file)
+      // il nome: il frame della posizione, se c'è, poi il nome del file (img/muro{n}.png → muro)
+      const hint =
+        frameHint(raw[1]) ?? fileHint(symbolic ?? file) ?? hintFrom(raw[0] ?? '', 'image')
+      return { type: 'image', hint, props, symbolic }
     }
     case 'RECTANGLE':
     case 'ROUNDRECT':
@@ -410,7 +441,7 @@ function build(
         const rot = r3((((90 - (evalNumber(p[5] ?? '') ?? 90)) % 360) + 360) % 360)
         if (rot) props.rotation = rot > 180 ? r3(rot - 360) : rot
       } else props.shape = 'rect'
-      return { type: 'shape', hint: op.command.toLowerCase(), props }
+      return { type: 'shape', hint: frameHint(raw[0]) ?? op.command.toLowerCase(), props }
     }
     case 'LINE': {
       const W = s.widthUnits
@@ -682,6 +713,8 @@ interface LayerOut {
   formula: string | null
   /** Gruppi LAYER di nanDECK, dal più esterno */
   groups: { id: number; opacity: number }[]
+  /** Nome dell'etichetta dell'intervallo ([ob] → ob), per il nome del gruppo */
+  rangeName: string | null
 }
 
 /** Gruppi di carte collegate da comandi comuni (unione di insiemi) */
@@ -881,7 +914,13 @@ export function convertNandeck(inputs: ScriptInput[]): NandeckProject {
             continue
           }
           const firstBuilt = built[okIdx[0]]!
-          const layerName = unique(firstBuilt.hint, layerNames)
+          // un'immagine con il nome di una colonna lo prende con _img (muro → muro_img)
+          const layerName = unique(
+            firstBuilt.type === 'image' && layerNames.has(firstBuilt.hint.toLowerCase())
+              ? `${firstBuilt.hint}_img`
+              : firstBuilt.hint,
+            layerNames
+          )
           const layer: RawLayer = { type: firstBuilt.type, name: layerName }
           const mainKey =
             firstBuilt.type === 'text' ? 'text' : firstBuilt.type === 'image' ? 'src' : 'fill'
@@ -908,6 +947,10 @@ export function convertNandeck(inputs: ScriptInput[]): NandeckProject {
             )
           for (const key of keys) {
             const values = okIdx.map((i) => built[i]!.props[key])
+            if (key === 'missing') {
+              if (values.includes('hide')) layer.missing = 'hide'
+              continue
+            }
             const same = values.every((v) => JSON.stringify(v) === JSON.stringify(values[0]))
             if (key === mainKey && sameSymbolic && symbolic[0] !== values[0]) {
               layer[key] = symbolic[0]
@@ -966,7 +1009,14 @@ export function convertNandeck(inputs: ScriptInput[]): NandeckProject {
               cards.forEach((c) => addCell(header, rowsIndex(c), onSet(here, c) ? 'true' : 'false'))
             }
           }
-          out.push({ layer, formula, groups: op.layers })
+          const rangeLabel = /^[^=]*=\s*\[([^\][]+)\]\s*,/.exec(op.text)?.[1]?.trim()
+          out.push({
+            layer,
+            formula,
+            groups: op.layers,
+            rangeName:
+              rangeLabel && rangeLabel.toLowerCase() !== 'all' ? cleanName(rangeLabel) : null
+          })
         }
         return out
       }
@@ -983,7 +1033,14 @@ export function convertNandeck(inputs: ScriptInput[]): NandeckProject {
       report.layers += front.length + back.length
 
       // livelli valore delle colonne dei dati, in cima: le formule e i testi li leggono
-      const values: RawLayer[] = [...columns.values()].map((c) => ({ type: 'value', name: c }))
+      const frontLayers = nest(front, layerNames)
+      const backLayers = nest(back, layerNames)
+      // livelli valore solo per le colonne che i livelli leggono ({nome}): le altre restano
+      // nel foglio
+      const read = JSON.stringify([frontLayers, backLayers]).toLowerCase()
+      const values: RawLayer[] = [...columns.values()]
+        .filter((c) => new RegExp(`\\{${escapeRegExp(c.toLowerCase())}[}\\s]`).test(read))
+        .map((c) => ({ type: 'value', name: c }))
       const template: RawTemplate = {
         name,
         width: r3(s.width),
@@ -991,8 +1048,8 @@ export function convertNandeck(inputs: ScriptInput[]): NandeckProject {
         bleed: 0,
         safeMargin: 3,
         cornerRadius: 0,
-        front: [...values, ...nest(front, layerNames)],
-        back: nest(back, layerNames)
+        front: [...values, ...frontLayers],
+        back: backLayers
       }
       const label = [...columns.values()].find((c) => /^(nome|name|titolo|title)$/i.test(c))
       if (label) template.labelField = label
@@ -1053,38 +1110,45 @@ function finalLabels(s: NandeckScript): Parameters<NandeckScript['element']>[3] 
 }
 
 /**
- * Livelli nell'ordine di Stella (il primo è sopra) con i gruppi: i gruppi LAYER di nanDECK
- * (opacità) e, dentro, i livelli consecutivi con la stessa formula di visibilità.
+ * Livelli nell'ordine di Stella (il primo è sopra) con i gruppi: i livelli consecutivi con la
+ * stessa formula di visibilità stanno in un gruppo con la formula, e dentro i gruppi LAYER di
+ * nanDECK (opacità). Un blocco LAYER dentro lo stesso intervallo resta così dentro il gruppo
+ * dell'intervallo, invece di dividerlo in due gruppi con la stessa formula.
  */
 function nest(items: LayerOut[], names: Set<string>): RawLayer[] {
-  const build = (list: LayerOut[], depth: number): RawLayer[] => {
+  const build = (list: LayerOut[], depth: number, inFormula: boolean): RawLayer[] => {
     const out: RawLayer[] = []
     for (let i = 0; i < list.length;) {
-      const g = list[i].groups[depth]
-      if (g) {
+      const f = list[i].formula
+      if (f && !inFormula) {
         let j = i
-        while (j < list.length && list[j].groups[depth]?.id === g.id) j++
+        while (j < list.length && list[j].formula === f) j++
+        const range = list.slice(i, j).find((x) => x.rangeName)?.rangeName
         out.push({
           type: 'group',
-          name: unique('layer', names),
-          opacity: r3(g.opacity),
-          children: build(list.slice(i, j), depth + 1)
+          name: unique(range ?? groupName(f), names),
+          source: { kind: 'formula', expr: `=${f}` },
+          children: build(list.slice(i, j), depth, true)
         })
         i = j
         continue
       }
-      const f = list[i].formula
-      if (f) {
+      const g = list[i].groups[depth]
+      if (g) {
         let j = i
-        while (j < list.length && list[j].formula === f && !list[j].groups[depth]) j++
+        while (
+          j < list.length &&
+          list[j].groups[depth]?.id === g.id &&
+          (inFormula || list[j].formula === f)
+        )
+          j++
+        // senza formula, il gruppo LAYER prende anche i livelli con una formula
+        if (!inFormula && !f) while (j < list.length && list[j].groups[depth]?.id === g.id) j++
         out.push({
           type: 'group',
-          name: unique(groupName(f), names),
-          source: { kind: 'formula', expr: `=${f}` },
-          children: list
-            .slice(i, j)
-            .map((x) => x.layer)
-            .reverse()
+          name: unique(`opacity_${Math.round(g.opacity * 100)}`, names),
+          opacity: r3(g.opacity),
+          children: build(list.slice(i, j), depth + 1, inFormula)
         })
         i = j
         continue
@@ -1094,8 +1158,10 @@ function nest(items: LayerOut[], names: Set<string>): RawLayer[] {
     }
     return out.reverse()
   }
-  return build(items, 0)
+  return build(items, 0, false)
 }
+
+const escapeRegExp = (t: string): string => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 /** Nome del gruppo di una formula: if_colonna_valore */
 function groupName(formula: string): string {

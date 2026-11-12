@@ -256,6 +256,14 @@ export class NandeckScript {
   }
 
   /** Percorso relativo alla cartella del gioco di un file scritto nello script */
+  /** Vero se il file esiste nella cartella del gioco (senza distinguere maiuscole) */
+  fileExists(path: string): boolean {
+    if (!this.fileSet) this.fileSet = new Set(this.env.files.map((f) => f.toLowerCase()))
+    return this.fileSet.has(path.toLowerCase())
+  }
+
+  private fileSet: Set<string> | null = null
+
   resolvePath(p: string): string {
     const clean = p.trim().replace(/\\/g, '/').replace(/^\.\//, '')
     if (/^[a-z]:\//i.test(clean) || clean.startsWith('/')) return clean
@@ -1086,6 +1094,12 @@ export class NandeckScript {
         }
       }
       const call = functionCall(p)
+      // join di etichette, testi ed espressioni: si calcola carta per carta, così le etichette
+      // diventano campi ({nome}) e le espressioni ({[pers]-1}) prendono il valore della carta
+      if (call && call.name === 'join' && call.args.every((a) => !functionCall(a))) {
+        out.push(call.args.map((a) => unquote(this.subst(a, card, pos, op.labels, keep))).join(''))
+        continue
+      }
       if (call && KNOWN_FUNCTIONS.has(call.name)) {
         if (keep) {
           out.push(NOT_SYMBOLIC)

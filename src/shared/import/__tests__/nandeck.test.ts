@@ -183,6 +183,41 @@ describe('conversion', () => {
     expect(p.reports[0]).toMatchObject({ cards: 3, printLines: 1, skipped: [] })
   })
 
+  it('converts join() card by card, rotates images like nanDECK and hides empty paths', () => {
+    const data: Sheet = {
+      name: 'cards',
+      headers: ['pers', 'unused'],
+      rows: [
+        ['1', 'x'],
+        ['2', 'y'],
+        ['', 'z']
+      ]
+    }
+    const s = run(
+      [
+        'CARDSIZE=6,6',
+        'LINK=data.xlsx',
+        '[all]=1-{(pers)}',
+        '<f>=1,1,2,2',
+        'IMAGE=[all],join(img\\c,[pers],".png"),<f>,90,P',
+        'IMAGE=[all],join(img\\b,{[pers]+1},".png"),0,0,1,1,0,P'
+      ].join('\n'),
+      { 'data.xlsx': data }
+    )
+    const p = convertNandeck([{ name: 'deck', script: s }])
+    const front = flat(p.templates[0].front)
+    // un livello valore solo per le colonne lette dai livelli
+    expect(front.filter((l) => l.type === 'value').map((l) => l.name)).toEqual(['pers'])
+    const a = front.find((l) => l.name === 'f')!
+    // stesso verso di nanDECK; il percorso con un campo vuoto (img/c.png) si nasconde
+    expect(a).toMatchObject({ src: 'img/c{pers}.png', rotation: 90, missing: 'hide' })
+    // l'espressione cambia da carta a carta: una colonna con il valore di ognuna
+    const b = front.find((l) => l.type === 'image' && l.name !== 'f')!
+    expect(p.sheets[0].headers).toContain(b.name)
+    const col = p.sheets[0].headers.indexOf(b.name as string)
+    expect(p.sheets[0].rows.slice(0, 2).map((r) => r[col])).toEqual(['img/b2.png', 'img/b3.png'])
+  })
+
   it('turns HTML image keys into image variables', () => {
     const s = run(
       'CARDSIZE=6,9\nHTMLFONT=f,Arial,10,,#000000\nHTMLIMAGE=,(a),img\\a.png,0.5,0.5\nHTMLTEXT=1,"Pay (a)",0,0,6,2,#FFFFFF,0,T,100,f'

@@ -19,7 +19,7 @@ import { systemOfSet } from '../shared/model/system'
 import { documentLocalization, documentProblems } from '../shared/model/document'
 import { isGenericFont } from '../shared/model/fonts'
 import { resolveAsset } from '../shared/model/assets'
-import type { Layer, Template } from '../shared/model/template'
+import { innerLayers, type Layer, type Template } from '../shared/model/template'
 import {
   DEFAULT_IMAGE,
   DEFAULT_PDF,
@@ -332,7 +332,7 @@ async function check(p: Parsed): Promise<number> {
       const problems = bound.problems.map(messageText)
       // le immagini dei livelli: l'app le segnala solo all'esportazione
       for (const side of ['front', 'back'] as const)
-        for (const l of walkLayers(bound.template[side]))
+        for (const l of visibleLayers(bound.template[side]))
           if (l.type === 'image' && l.visible && l.missing !== 'hide' && l.src.trim()) {
             const r = resolveAsset(l.src, project.assets)
             if (!r.ok)
@@ -1100,4 +1100,13 @@ export async function runCli(args: string[]): Promise<number> {
     process.stderr.write(`stella: ${text}\n`)
     return 2
   }
+}
+
+/** Livelli che si vedono sulla carta: i figli di un gruppo nascosto non contano */
+function visibleLayers(layers: Layer[]): Layer[] {
+  return layers.flatMap((l) => {
+    if (!l.visible) return []
+    const inner = innerLayers(l)
+    return inner ? [l, ...visibleLayers(inner)] : [l]
+  })
 }

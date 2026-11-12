@@ -2196,6 +2196,7 @@ export const en = {
   'nandeck.intro':
     'Each script becomes a template and a set: data from LINK and labels go in the sheet, frames and ranges become layers and visibility formulas, the images used are copied. The nanDECK folder is only read. Lines that have no equivalent are listed in the note "Import nanDECK", which the nanDECK skill uses to finish the work.',
   'nandeck.source': 'nanDECK game folder',
+  'nandeck.name': 'Project name',
   'nandeck.sourceHint': 'The folder with the .nde scripts, the images and the data files',
   'nandeck.scripts': 'Scripts to convert',
   'nandeck.scriptsHint':

@@ -182,7 +182,7 @@ export async function importNandeck(opts: NandeckImportOptions): Promise<Nandeck
   for (const raw of project.templates) await saveTemplate(target, normalizeTemplate(raw))
   const file: ProjectFile = {
     formatVersion: FORMAT_VERSION,
-    name: basename(source),
+    name: opts.name?.trim() || basename(source),
     dataFile: 'data/cards.xlsx',
     sets: project.sets,
     ...(Object.keys(project.variables).length ? { variables: project.variables } : {})

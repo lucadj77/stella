@@ -403,6 +403,8 @@ export interface NandeckImportOptions {
   scripts: string[]
   /** Lingua della nota "Import nanDECK" */
   language: string
+  /** Nome del progetto; vuoto = il nome della cartella del gioco */
+  name?: string
 }
 
 export interface NandeckImportResult {
