@@ -2219,6 +2219,7 @@ export const en = {
   'nandeck.noneSelected': 'Choose at least one script to convert',
   'nandeck.noteIntro':
     'This project was converted from nanDECK scripts. The conversion is partial: what follows is what was not converted, or was converted only approximately, script by script, with the line of the script. An AI agent with the nanDECK skill can use this note to finish the work.',
+  'nandeck.noteSource': 'nanDECK folder: `{folder}`',
   'nandeck.noteSkillTitle': 'How to finish the conversion',
   'nandeck.noteSkill':
     'Install the Stella skill (Help > AI tools) and the nanDECK skill ({url}) in your AI agent, then ask it to finish the nanDECK import of this project. The agent reads this note and the original scripts.',

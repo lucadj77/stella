@@ -2254,6 +2254,7 @@ export const it: Record<MessageKey, string> = {
   'nandeck.noneSelected': 'Scegli almeno uno script da convertire',
   'nandeck.noteIntro':
     "Questo progetto è stato convertito da script nanDECK. La conversione è parziale: qui sotto c'è ciò che non è stato convertito, o è stato convertito solo in modo approssimato, script per script, con la riga dello script. Un agente IA con la skill nanDECK può usare questa nota per finire il lavoro.",
+  'nandeck.noteSource': 'Cartella di nanDECK: `{folder}`',
   'nandeck.noteSkillTitle': 'Come finire la conversione',
   'nandeck.noteSkill':
     "Installa nel tuo agente IA la skill di Stella (Aiuto > Strumenti IA) e la skill nanDECK ({url}), poi chiedigli di finire l'importazione da nanDECK di questo progetto. L'agente legge questa nota e gli script originali.",

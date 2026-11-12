@@ -172,6 +172,7 @@ La prima volta, quando non ci sono ancora progetti recenti, la schermata dà il 
 - **Nuovo progetto…** crea una cartella vuota con la struttura di un progetto.
 - **Apri progetto…** apre una cartella che contiene `stella.json`. Si aprono anche i progetti creati quando l'app si chiamava Naibi (`naibi.json`) o GameCreator (`gamecreator.json`).
 - **Importa da Tabletop Creator…** converte un progetto di Tabletop Creator ([capitolo 14](#14-importare-da-tabletop-creator)).
+- **Importa da nanDECK…** converte gli script di un gioco nanDECK ([capitolo 14](#importare-da-nandeck)).
 - **Apri il progetto di esempio** apre il progetto usato in questa guida e nei video: tre set (Personaggi, Oggetti, Mercato), icone, variabili e stili. La prima volta lo copia in Documenti/Stella/Esempio, dove si può modificare liberamente; poi apre quella copia. Nella versione web la copia sta nello spazio che il browser riserva al sito: si modifica e si salva senza scegliere una cartella, ma resta solo in quel browser.
 - **Progetti recenti** mostra fino a 24 progetti, con il primo componente come miniatura, o la copertina scelta in **Informazioni progetto…** ([capitolo 3](#3-la-finestra-del-progetto)). La × toglie un progetto dall'elenco senza cancellare la cartella.
 
@@ -1138,6 +1139,23 @@ Si indicano la cartella del progetto Tabletop Creator (quella con il file `.tcp`
 ![L'importazione da Tabletop Creator](img/importa-ttc.png)
 
 Al termine l'app elenca ciò che non ha potuto convertire, per esempio le maschere delle immagini e le immagini a 9 sezioni, e i font usati che non sono installati.
+
+### Importare da nanDECK
+
+**Importa da nanDECK…** converte gli script di un gioco nanDECK (i file `.nde`) in un progetto Stella nuovo. La cartella del gioco viene solo letta.
+
+Si sceglie la cartella del gioco, quella con gli script, le immagini e i file di dati. L'app elenca gli script e spunta quelli che disegnano carte: le copie e le versioni vecchie, gli script di stampa e i file usati solo con `INCLUDE` restano senza spunta, ma si possono aggiungere. Poi si indica la cartella del nuovo progetto, che deve essere nuova o vuota.
+
+Ogni script diventa un template e un set:
+
+- le etichette con più valori e le colonne collegate con `LINK` vanno nel foglio dei dati, e il template ha un livello valore per ciascuna;
+- i comandi di disegno (`TEXT`, `HTMLTEXT`, `IMAGE`, `ICONS`, rettangoli, ellissi, poligoni, stelle, linee, triangoli, curve, griglie) diventano livelli, con i frame e le percentuali convertiti in millimetri;
+- gli intervalli di carte diventano la visibilità dei livelli: una formula quando vengono da `LABELRANGE` o da un `IF` su una colonna, altrimenti una colonna `livello.visible`;
+- ciò che cambia da carta a carta va in una colonna del foglio; le immagini di `HTMLIMAGE` e `ICON` diventano variabili immagine;
+- le immagini usate si copiano in `assets`, con le stesse sottocartelle;
+- le righe di stampa (pagina, bordi, `DISPLAY`, `SAVE`) si ignorano: in Stella valgono le impostazioni di esportazione.
+
+L'importazione è parziale: alcuni comandi non hanno un equivalente diretto. L'app scrive nel progetto la nota **Import nanDECK**, con le righe non convertite di ogni script (file, riga, testo e motivo) e ciò che è stato convertito in modo approssimato, e la apre quando si apre il progetto. Per finire il lavoro c'è la **skill nanDECK**, separata da quella di Stella: la finestra di fine importazione la copia o la salva come file (la scarica da GitHub). Un agente IA con la skill di Stella e la skill nanDECK ([capitolo 15](#15-lavorare-con-un-agente-ia)) legge la nota e gli script originali e converte a mano le righe che mancano.
 
 ## 15. Lavorare con un agente IA
 

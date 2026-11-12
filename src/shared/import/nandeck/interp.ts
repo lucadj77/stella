@@ -159,13 +159,11 @@ const PRINT_COMMANDS = new Set([
   'ENDVISUAL',
   'SECTION',
   'ENDSECTION',
-  'GRID',
   'ZOOM',
   'RECTANGLE_PRINT',
   'PAGEFONT',
   'NOTE',
   'SPLIT',
-  'TAG',
   'HEADER',
   'FOOTER',
   'PAGEIMAGE',
@@ -194,6 +192,7 @@ export const DRAW_COMMANDS = new Set([
   'RHOMBUS',
   'TRIANGLE',
   'STAR',
+  'GRID',
   'BEZIER',
   'ICONS',
   'ICON_DRAW'
@@ -1305,6 +1304,14 @@ export function parseRange(spec: string): number[] {
       const b = Number(m[2])
       if (b - a > 10000) throw new Error('range')
       for (let k = Math.min(a, b); k <= Math.max(a, b); k++) out.add(k)
+      continue
+    }
+    // 10#5: cinque carte a partire dalla 10
+    const count = /^(\d+)\s*#\s*(\d+)$/.exec(p)
+    if (count) {
+      const a = Number(count[1])
+      const n = Math.min(10000, Number(count[2]))
+      for (let k = 0; k < n; k++) out.add(a + k)
       continue
     }
     const v = evalNumber(p)

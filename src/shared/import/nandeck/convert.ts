@@ -52,7 +52,7 @@ export interface NandeckProject {
 }
 
 interface Built {
-  type: 'text' | 'image' | 'shape'
+  type: 'text' | 'image' | 'shape' | 'grid'
   hint: string
   props: Record<string, unknown>
   /** Proprietà principale scritta con i campi ({nome}), uguale per tutte le carte */
@@ -434,6 +434,57 @@ function build(
       const rot = r3((Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI)
       if (rot) props.rotation = rot
       return { type: 'shape', hint: 'line', props }
+    }
+    case 'GRID': {
+      // linee di una griglia: in Stella una griglia di celle quadrate senza spazio fra loro
+      const g = geometry(ctx, p, 0)
+      if (!g) return null
+      const columns = Math.max(1, Math.round(evalNumber(p[6] ?? '') ?? 1))
+      const rows = Math.max(1, Math.round(evalNumber(p[7] ?? '') ?? 1))
+      return {
+        type: 'grid',
+        hint: 'grid',
+        props: {
+          ...g,
+          cell: 'square',
+          rows,
+          columns,
+          cellRatio: r3(g.w / columns / (g.h / rows)),
+          gap: 0,
+          fill: null,
+          stroke: { color: color(p[4]) ?? '#000000', width: r3(Math.max(0.1, lengthMm(ctx, p[5]))) }
+        }
+      }
+    }
+    case 'BEZIER': {
+      // curva da (x1, y1) a (x2, y2) con due maniglie
+      const W = s.widthUnits
+      const H = s.heightUnits
+      const v = [0, 1, 2, 3, 4, 5, 6, 7].map((i) => evalNumber(p[i] ?? '', i % 2 ? H : W))
+      if (v.some((x) => x === null)) return null
+      const pts = (v as number[]).map((n) => n * s.unit)
+      const xs = pts.filter((_, i) => i % 2 === 0)
+      const ys = pts.filter((_, i) => i % 2 === 1)
+      const x = Math.min(...xs)
+      const y = Math.min(...ys)
+      const w = Math.max(...xs) - x || 1
+      const h = Math.max(...ys) - y || 1
+      const pt = (i: number): string =>
+        `${formatNumber((xs[i] - x) / w)} ${formatNumber((ys[i] - y) / h)}`
+      return {
+        type: 'shape',
+        hint: 'bezier',
+        props: {
+          shape: 'path',
+          path: `M${pt(0)} C${pt(1)} ${pt(2)} ${pt(3)}`,
+          x: r3(x),
+          y: r3(y),
+          w: r3(w),
+          h: r3(h),
+          fill: null,
+          stroke: { color: color(p[8]) ?? '#000000', width: r3(Math.max(0.1, lengthMm(ctx, p[9]))) }
+        }
+      }
     }
     case 'TRIANGLE': {
       const W = s.widthUnits

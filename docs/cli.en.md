@@ -62,3 +62,9 @@ In the app, **AI tools…** (in the ⚙ menu of every screen) prepares the skill
 The skill carries the Stella version it is written for (`{{STELLA_VERSION}}`, filled in by **AI tools…**). At the start of the work it asks the agent to find the command (the desktop app in the usual paths, then `stella` in the PATH), to read its version with `stella version`, to propose installing the `stella-cli` package if it finds nothing (and Node.js before, if missing), to update the package when a newer release is out (the desktop app updates by itself) and to replace itself with the skill of the same version as the command, taken from the tag on GitHub. In the web version **AI tools…** shows the skill without a command, which the agent finds this way.
 
 When the project format changes, the skill must be updated too.
+
+### Skill to finish a nanDECK import
+
+The skill [skill/stella-nandeck/SKILL.md](../skill/stella-nandeck/SKILL.md), in English, helps an agent finish by hand a game imported with **Import from nanDECK**: it reads the note `notes/Import nanDECK.md` and the original `.nde` scripts, and converts the lines the import skipped or converted approximately. For everything about Stella it refers to the `stella` skill, which must be installed. This skill is not in the packages either: the summary window of the import downloads it from GitHub (`.../skill/stella-nandeck/SKILL.md`, same tag or `main` as the Stella skill) when you press Copy or Save, and saves it in `<folder>/stella-nandeck/SKILL.md`.
+
+When what the nanDECK import does changes, this skill must be updated too.

@@ -207,7 +207,7 @@ export async function importNandeck(opts: NandeckImportOptions): Promise<Nandeck
   }
   await writeFile(
     join(target, 'notes', `${NANDECK_NOTE}.md`),
-    importNote(project.reports, result, opts.language === 'it' ? 'it' : 'en'),
+    importNote(project.reports, result, source, opts.language === 'it' ? 'it' : 'en'),
     'utf8'
   )
   return result
@@ -240,11 +240,19 @@ const cell = (s: string): string =>
 export function importNote(
   reports: ScriptReport[],
   result: NandeckImportResult,
+  source: string,
   language: 'it' | 'en'
 ): string {
   const dict = (language === 'it' ? it : en) as Dict
   const t = (key: string, params?: Message['params']): string => translate(dict, msg(key, params))
-  const out: string[] = [`# ${NANDECK_NOTE}`, '', t('nandeck.noteIntro'), '']
+  const out: string[] = [
+    `# ${NANDECK_NOTE}`,
+    '',
+    t('nandeck.noteIntro'),
+    '',
+    t('nandeck.noteSource', { folder: source }),
+    ''
+  ]
   out.push(
     `## ${t('nandeck.noteSkillTitle')}`,
     '',
