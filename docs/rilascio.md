@@ -38,7 +38,7 @@ Un difetto della versione stabile si corregge su un ramo nato da `release/1.2`, 
 
 1. Controlla che la sezione `## x.y.z` in cima a `CHANGELOG.md` sia completa e che `package.json` abbia la stessa versione (`npm version x.y.z --no-git-tag-version` aggiorna anche `package-lock.json`).
 2. Unisci tutto nel ramo da cui esce la versione: `main`, o `release/x.y` per una correzione della stabile.
-3. Su GitHub, **Actions → Release → Run workflow** sul ramo: l'azione crea il tag della versione di `package.json` sull'ultimo commit del ramo e avvia Build e Web su quel tag. Si ferma se il tag esiste già o se manca la sezione in `CHANGELOG.md`. La stessa azione la può avviare anche un'IA con accesso a GitHub.
+3. Su GitHub, **Actions → Release → Run workflow** sul ramo, scrivendo nel campo la versione da pubblicare (la stessa di `package.json`, per esempio `1.10.2-beta.1`): l'azione crea il tag della versione sull'ultimo commit del ramo e avvia Build e Web su quel tag. Si ferma se la versione scritta non è quella di `package.json`, se il tag esiste già o se manca la sezione in `CHANGELOG.md`. Il sito pubblica solo i tag che hanno una release: per togliere dal sito una versione uscita per sbaglio basta eliminarne la release e riavviare Web. La stessa azione la può avviare anche un'IA con accesso a GitHub.
 
    In alternativa, dal Mac, nella cartella di Stella:
 

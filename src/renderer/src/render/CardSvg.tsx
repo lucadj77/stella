@@ -11,6 +11,7 @@ import {
   roundedPolygonPath
 } from '../../../shared/model/geometry'
 import { useI18n } from '../i18n/context'
+import { isQrImage } from '../../../shared/model/qr'
 import { AssetsContext, InlineImageReadyContext, ShowEmptyContext, assetUrl } from './assets'
 import { fitRect, imageFailed, useImageSize } from './imageSize'
 import { SvgBackdrop } from './backdrop'
@@ -787,8 +788,10 @@ function ImageBody({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
     l.flipH || l.flipV
       ? `translate(${l.flipH ? 2 * l.x + l.w : 0} ${l.flipV ? 2 * l.y + l.h : 0}) scale(${l.flipH ? -1 : 1} ${l.flipV ? -1 : 1})`
       : undefined
+  // un codice QR resta nero su bianco, altrimenti non si legge: niente tinta né regolazioni
   const adjusted =
-    l.grayscale || l.brightness !== 1 || l.contrast !== 1 || l.saturation !== 1 || !!l.tint
+    !isQrImage(l.src) &&
+    (l.grayscale || l.brightness !== 1 || l.contrast !== 1 || l.saturation !== 1 || !!l.tint)
   const filter = adjusted ? `url(#${id}-fx)` : undefined
   const tile = l.fit === 'tile' && size
   const outline = l.stroke ? strokeWidth(l.stroke) : 0

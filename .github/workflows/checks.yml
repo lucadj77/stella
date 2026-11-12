@@ -1,0 +1,49 @@
+# Controlli su ogni PR verso main e su ogni push di main: tipi, lint e test (circa un minuto) e,
+# in parallelo, una prova dell'app vera: apre l'esempio, cambia una carta, salva ed esporta un
+# PDF (scripts/e2e/smoke.mjs). Non costruisce i pacchetti: quello lo fa Build.
+name: Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      # senza scaricare Electron: i controlli non avviano l'app
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+
+  ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      # con Electron, questa volta: l'app si avvia davvero
+      - run: npm ci
+      - run: npx electron-vite build
+      - run: npm i --no-save playwright-core@1.63.0
+      - run: command -v xvfb-run || (sudo apt-get update && sudo apt-get install -y xvfb)
+      # Ubuntu blocca il sandbox di Chromium per namespace: Electron usa il suo aiutante setuid
+      - run: sudo chown root:root node_modules/electron/dist/chrome-sandbox && sudo chmod 4755 node_modules/electron/dist/chrome-sandbox
+      - name: Prova dell'interfaccia
+        run: xvfb-run -a node scripts/e2e/smoke.mjs
+      # la prima carta disegnata dal comando stella, che ha bisogno dell'app compilata
+      - name: Prima carta del comando stella
+        run: xvfb-run -a npx vitest run src/main/__tests__/renderFirstCard.test.ts

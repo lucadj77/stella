@@ -45,6 +45,10 @@ export async function launch({
   await app.evaluate(({ app }, v) => {
     app.getVersion = () => v
   }, version)
+  // l'app chiede conferma se ci sono modifiche non salvate: le foto non salvano, si chiude e basta
+  app.close = async () => {
+    app.process().kill('SIGKILL')
+  }
   const win = await app.firstWindow()
   await win.setViewportSize({ width: w, height: h })
   await win.evaluate(

@@ -298,6 +298,13 @@ export const webApi: Api = {
     dirty = !!f && d
   },
   onAgentLock: () => () => undefined,
+  // nel browser avvisa beforeunload, qui sopra
+  onCloseRequest: () => () => undefined,
+  closeWindow: () => undefined,
+  // nel browser il recupero non c'è: avvisa la scheda prima di chiudersi
+  writeRecovery: async () => undefined,
+  readRecovery: async () => null,
+  clearRecovery: async () => undefined,
   unlockAgent: async () => undefined,
   setAppMenu: () => undefined,
   onMenuCommand: () => () => undefined,

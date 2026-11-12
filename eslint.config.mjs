@@ -28,5 +28,14 @@ export default defineConfig(
       ...eslintPluginReactRefresh.configs.vite.rules
     }
   },
+  // script di supporto (guida, video) e sito: JavaScript senza tipi, quindi senza tipo di
+  // ritorno; gli script dei video copiano funzioni di aiuto che non sempre usano
+  {
+    files: ['**/*.{js,mjs,cjs}'],
+    rules: {
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/no-unused-vars': 'warn'
+    }
+  },
   eslintConfigPrettier
 )

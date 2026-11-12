@@ -342,6 +342,18 @@ export interface Api {
   onAgentLock(cb: (lock: AgentLock | null) => void): () => void
   /** Toglie il blocco lasciato da un'IA che non ha chiuso il lavoro */
   unlockAgent(): Promise<void>
+  /**
+   * Chiamato quando si chiude la finestra (o si esce dall'app) con modifiche non salvate: la
+   * chiusura è sospesa finché il renderer non chiama closeWindow()
+   */
+  onCloseRequest(cb: () => void): () => void
+  /** Chiude la finestra (o esce dall'app) dopo che onCloseRequest ha chiesto cosa fare */
+  closeWindow(): void
+  /** Copia delle modifiche non salvate del progetto, nella cartella dell'app (vedi recovery.ts) */
+  writeRecovery(folder: string, json: string): Promise<void>
+  /** La copia lasciata da una chiusura sbagliata, con la data (ms); null se non c'è */
+  readRecovery(folder: string): Promise<{ at: number; json: string } | null>
+  clearRecovery(folder: string): Promise<void>
   /** Imposta il menu dell'app desktop (nel web non c'è) */
   setAppMenu(menus: AppMenu[]): void
   /** Chiamato quando si sceglie una voce del menu dell'app, con il suo id */

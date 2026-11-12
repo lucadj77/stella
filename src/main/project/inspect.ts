@@ -1,11 +1,10 @@
 import { readFile } from 'fs/promises'
 import { extname } from 'path'
-import ExcelJS from 'exceljs'
 import Papa from 'papaparse'
 import { inspectTable, type SheetInspection } from '../../shared/dataCheck'
 import { MessageError, msg } from '../../shared/messages'
 import { readOds } from './ods'
-import { cellText } from './spreadsheet'
+import { cellText, FORMULA_CELL, loadExcel } from './spreadsheet'
 
 // Controlla file dati: il file letto così com'è, con le righe vuote, i titoli sopra le
 // intestazioni e, per l'xlsx, celle unite, errori e formule senza risultato
@@ -45,7 +44,7 @@ export async function inspectDataFile(path: string): Promise<SheetInspection[]> 
 const noCellChecks = { merged: [], errors: [], noResult: [] }
 
 async function inspectXlsx(data: Buffer): Promise<SheetInspection[]> {
-  const workbook = new ExcelJS.Workbook()
+  const workbook = new (await loadExcel()).Workbook()
   await workbook.xlsx.load(data as unknown as ArrayBuffer)
   return workbook.worksheets.map((ws) => {
     const width = ws.columnCount
@@ -59,7 +58,7 @@ async function inspectXlsx(data: Buffer): Promise<SheetInspection[]> {
       for (let c = 1; c <= width; c++) {
         const cell = row.getCell(c)
         cells.push(cellText(cell))
-        const formula = cell.type === ExcelJS.ValueType.Formula
+        const formula = cell.type === FORMULA_CELL
         const r = formula ? cell.result : cell.value
         if (r && typeof r === 'object' && 'error' in r) {
           if (errorCount++ < LIST) errors.push(`${cell.address} ${r.error}`)

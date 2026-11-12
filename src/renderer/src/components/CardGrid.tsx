@@ -1,8 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import type { BoundCard } from '../../../shared/model/bind'
 import type { Side } from '../../../shared/model/template'
 import CardSvg from '../render/CardSvg'
 import { useI18n } from '../i18n/context'
+
+/** Una carta che non cambia non si ridisegna quando cambia un'altra carta */
+const GridCard = memo(CardSvg)
 
 interface Props {
   cards: BoundCard[]
@@ -87,13 +90,19 @@ function CardGrid({
     return { index: Number(els[els.length - 1].dataset.index), after: true }
   }
   const gridRef = useRef<HTMLDivElement>(null)
+  // dopo il primo disegno le carte fuori vista si saltano (content-visibility nel CSS)
+  const [settled, setSettled] = useState(false)
+  useEffect(() => {
+    const id = setTimeout(() => setSettled(true), 1500)
+    return () => clearTimeout(id)
+  }, [])
   // la carta scelta resta visibile anche quando cambia da tastiera (PagSu, PagGiù)
   useEffect(() => {
     gridRef.current?.querySelector('.card-cell.selected')?.scrollIntoView({ block: 'nearest' })
   }, [selected])
   return (
     <div
-      className="card-grid"
+      className={settled ? 'card-grid settled' : 'card-grid'}
       ref={gridRef}
       // trascinando sullo sfondo si selezionano le carte nel rettangolo
       onPointerDown={(e) => {
@@ -163,6 +172,10 @@ function CardGrid({
             ]
               .filter(Boolean)
               .join(' ')}
+            // misura della cella finché è fuori vista (content-visibility nel CSS)
+            style={{
+              containIntrinsicSize: `auto ${Math.round(c.template.width * scale + 12)}px auto ${Math.round(c.template.height * scale + 36)}px`
+            }}
             onClick={(e) => onSelect(i, e)}
             draggable={!!onMove}
             onDragStart={(e) => {
@@ -191,7 +204,7 @@ function CardGrid({
               reset()
             }}
           >
-            <CardSvg template={c.template} side={side} scale={scale} />
+            <GridCard template={c.template} side={side} scale={scale} />
             <span className="card-caption" title={`${i + 1}`}>
               {marked?.has(i) && <span className="compare-dot" title={t('compare.changedCard')} />}
               <span className="card-label">{c.label || i + 1}</span>

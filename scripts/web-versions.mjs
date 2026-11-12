@@ -5,6 +5,7 @@
 //   BETA=v1.3.0-beta.2   la più recente in assoluto, ufficiale o beta
 // Uso: node scripts/web-versions.mjs >> "$GITHUB_ENV"
 import { execFileSync } from 'child_process'
+import { existsSync, readFileSync } from 'fs'
 
 const git = (...args) =>
   execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
@@ -43,10 +44,31 @@ function hasWeb(tag) {
   }
 }
 
+/**
+ * Tag con una release su GitHub, da RELEASED_FILE (uno per riga): un tag senza release, fatto per
+ * sbaglio o la cui release è stata eliminata, non va sul sito. Il tag che ha avviato il lavoro
+ * (GITHUB_REF_NAME) vale anche se la sua release è ancora in costruzione. Senza il file valgono
+ * tutti i tag.
+ */
+function releasedTags() {
+  const file = process.env.RELEASED_FILE
+  if (!file || !existsSync(file)) return null
+  const list = new Set(
+    readFileSync(file, 'utf8')
+      .split('\n')
+      .map((t) => t.trim())
+      .filter(Boolean)
+  )
+  if (process.env.GITHUB_REF_NAME) list.add(process.env.GITHUB_REF_NAME)
+  return list
+}
+
+const released = releasedTags()
 const tags = git('tag', '--list', 'v*')
   .split('\n')
   .map((t) => t.trim())
   .filter((t) => /^v\d+\.\d+\.\d+(-[\w.]+)?$/.test(t))
+  .filter((t) => !released || released.has(t))
   .sort(compare)
   .reverse()
 const beta = tags.find(hasWeb)

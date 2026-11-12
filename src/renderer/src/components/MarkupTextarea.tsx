@@ -38,6 +38,7 @@ export default function MarkupTextarea({
   showProblems = true,
   toolbar,
   comments = false,
+  currentLine = false,
   ...rest
 }: TextareaProps & {
   value: string
@@ -50,6 +51,8 @@ export default function MarkupTextarea({
   toolbar?(format: FormatControl): React.ReactNode
   /** Nei documenti: %% commento %% si colora come commento */
   comments?: boolean
+  /** Nei documenti: una fascia evidenzia la riga (il paragrafo) in cui sta il cursore */
+  currentLine?: boolean
 }): React.JSX.Element {
   const { t } = useI18n()
   const assets = useContext(AssetsContext)
@@ -80,6 +83,35 @@ export default function MarkupTextarea({
   useLayoutEffect(() => {
     if (ref.current && overlayRef.current) overlayRef.current.scrollTop = ref.current.scrollTop
   })
+
+  // la riga del cursore: si misura quando cambiano testo, cursore o larghezza del campo
+  const [line, setLine] = useState<{ top: number; height: number } | null>(null)
+  const measureLine = useRef<() => void>(() => undefined)
+  useLayoutEffect(() => {
+    measureLine.current = () => {
+      const el = ref.current
+      if (!currentLine || !el) return
+      const next = lineBox(el, el.selectionStart)
+      setLine((l) => (l && next && l.top === next.top && l.height === next.height ? l : next))
+    }
+  })
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!currentLine || !el) return undefined
+    const update = (): void => measureLine.current()
+    update()
+    // il cursore si sposta anche da fuori (un clic sull'anteprima del documento)
+    el.addEventListener('selectionchange', update)
+    document.addEventListener('selectionchange', update)
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => {
+      el.removeEventListener('selectionchange', update)
+      document.removeEventListener('selectionchange', update)
+      ro.disconnect()
+    }
+  }, [currentLine])
+  useLayoutEffect(() => measureLine.current(), [value])
 
   const setRefs = (el: HTMLTextAreaElement | null): void => {
     ref.current = el
@@ -213,6 +245,9 @@ export default function MarkupTextarea({
         />
         <div className="markup-overlay" ref={overlayRef} aria-hidden>
           {HIGHLIGHTS ? `${value}\u200b` : highlighted(value, allProblems, comments)}
+          {currentLine && line && (
+            <span className="markup-line" style={{ top: line.top, height: line.height }} />
+          )}
         </div>
       </span>
       {help && pos && (
@@ -523,6 +558,64 @@ function caretPosition(
     y: box.bottom + 2,
     top: box.top - 2
   }
+}
+
+/**
+ * Posizione verticale della riga in cui sta il cursore, cioè del paragrafo tra due a capo (anche
+ * se va a capo da solo su più righe), nelle coordinate del testo del campo. Si misura come in
+ * caretPosition, con una copia invisibile del testo.
+ */
+function lineBox(el: HTMLTextAreaElement, pos: number): { top: number; height: number } | null {
+  const text = el.value
+  const start = text.lastIndexOf('\n', pos - 1) + 1
+  const nl = text.indexOf('\n', pos)
+  const end = nl < 0 ? text.length : nl
+  const cs = getComputedStyle(el)
+  const mirror = document.createElement('div')
+  for (const p of [
+    'boxSizing',
+    'width',
+    'paddingTop',
+    'paddingRight',
+    'paddingBottom',
+    'paddingLeft',
+    'borderTopWidth',
+    'borderRightWidth',
+    'borderBottomWidth',
+    'borderLeftWidth',
+    'borderStyle',
+    'fontFamily',
+    'fontSize',
+    'fontWeight',
+    'lineHeight',
+    'letterSpacing',
+    'tabSize'
+  ] as const)
+    mirror.style[p] = cs[p]
+  Object.assign(mirror.style, {
+    position: 'fixed',
+    visibility: 'hidden',
+    whiteSpace: 'pre-wrap',
+    overflowWrap: 'break-word',
+    top: '0',
+    left: '0'
+  })
+  // la larghezza senza la barra di scorrimento del campo, così le righe vanno a capo uguali
+  mirror.style.boxSizing = 'border-box'
+  mirror.style.width = `${el.clientWidth + parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth)}px`
+  mirror.textContent = text.slice(0, start)
+  const span = document.createElement('span')
+  // una riga vuota è alta quanto una riga di testo
+  span.textContent = text.slice(start, end) || '\u200b'
+  mirror.appendChild(span)
+  document.body.appendChild(mirror)
+  const top = span.offsetTop
+  const rects = span.getClientRects()
+  const last = rects[rects.length - 1]
+  const first = rects[0]
+  const height = first && last ? last.bottom - first.top : span.offsetHeight
+  document.body.removeChild(mirror)
+  return height > 0 ? { top, height } : null
 }
 
 /** Il "Formatta…" del campo, per una barra esterna */

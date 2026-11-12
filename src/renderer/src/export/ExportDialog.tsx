@@ -308,6 +308,36 @@ export default function ExportDialog({
     }
   }
 
+  /** La pagina di prova del fronte-retro, con le opzioni del PDF di ora */
+  const runDuplexTest = async (): Promise<void> => {
+    setError(null)
+    setResult(null)
+    setProgress({ done: 0, total: 0 })
+    try {
+      setResult(
+        await window.api.runExport(
+          {
+            kind: 'pdf',
+            options: pdf,
+            project: project.file.name,
+            sets: [],
+            duplexTest: {
+              front: t('duplexTest.front'),
+              back: t('duplexTest.back'),
+              frontHint: t('duplexTest.frontHint'),
+              steps: [1, 2, 3, 4, 5].map((n) => t(`duplexTest.step${n}` as MessageKey))
+            }
+          },
+          { assets: [], fonts: [], styles: {} }
+        )
+      )
+    } catch (e) {
+      setError(messageFromError(e))
+    } finally {
+      setProgress(null)
+    }
+  }
+
   const chooseFolder = async (current: string, key: 'folder' | 'ttsFolder'): Promise<void> => {
     const f = await window.api.chooseExportFolder(current)
     if (!f) return
@@ -562,6 +592,23 @@ export default function ExportDialog({
           { value: 'lines', label: t('export.marksLines'), icon: 'marks-lines' }
         ]}
       />
+      {goal === 'home' && (
+        <Choice
+          label={t('export.ink')}
+          value={pdf.ink ?? 'color'}
+          onChange={(ink) => patch({ ink })}
+          options={[
+            { value: 'color', label: t('export.inkColor'), icon: 'ink-color' },
+            { value: 'gray', label: t('export.inkGray'), icon: 'ink-gray' },
+            {
+              value: 'draft',
+              label: t('export.inkDraft'),
+              note: t('export.inkDraftNote'),
+              icon: 'ink-draft'
+            }
+          ]}
+        />
+      )}
       {hasDice && (
         <Choice
           label={t('export.dice')}
@@ -780,6 +827,13 @@ export default function ExportDialog({
           {mm(pdf.offsetX, (offsetX) => patch({ offsetX }))}
           <span className="unit">y</span>
           {mm(pdf.offsetY, (offsetY) => patch({ offsetY }))}
+          <button
+            title={t('export.duplexTestHint')}
+            disabled={pdf.fold || pdf.duplex === 'none' || !!progress}
+            onClick={() => void runDuplexTest()}
+          >
+            {t('export.duplexTest')}
+          </button>
         </Row>
         <Row
           label={t('export.extras')}
@@ -1232,6 +1286,9 @@ export default function ExportDialog({
               pdf.marks === 'corners' ? 'export.marksCorners' : 'export.marksLines'
             ).toLowerCase()
           }),
+      ...(pdf.ink === 'gray' || pdf.ink === 'draft'
+        ? [t(pdf.ink === 'gray' ? 'export.inkGray' : 'export.inkDraft').toLowerCase()]
+        : []),
       t('export.sum.sheets', { n: summary.sheets })
     ].join(' · ')
   } else if (kind === 'images') {

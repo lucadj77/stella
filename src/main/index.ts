@@ -35,6 +35,8 @@ import {
   registerAssetScheme,
   setProjectFolder
 } from './protocol'
+import { guardWindow, registerCloseGuard } from './closeGuard'
+import { clearRecovery, readRecovery, writeRecovery } from './project/recovery'
 import { downloadSkill } from '../shared/skill'
 import { MessageError, msg } from '../shared/messages'
 import { projectFolderName } from '../shared/model/projectName'
@@ -168,6 +170,15 @@ if (cliArgs) {
   })
 }
 
+/** Indirizzo che si può aprire nel browser o nel programma di posta */
+function isWebLink(url: string): boolean {
+  try {
+    return ['http:', 'https:', 'mailto:'].includes(new URL(url).protocol)
+  } catch {
+    return false
+  }
+}
+
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
     width: 1200,
@@ -182,13 +193,29 @@ function createWindow(): void {
     }
   })
 
+  // con modifiche non salvate la finestra chiede prima di chiudersi (vedi closeGuard.ts)
+  guardWindow(mainWindow, () => stateDirty)
+
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
   })
 
+  // i link si aprono nel browser, solo se sono indirizzi web o di posta: un progetto scaricato da
+  // altri non deve poter aprire file o programmi del computer
   mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
+    if (isWebLink(details.url)) shell.openExternal(details.url)
     return { action: 'deny' }
+  })
+  // la finestra resta sull'app: un link seguito dentro la pagina va nel browser
+  mainWindow.webContents.on('will-navigate', (e, url) => {
+    if (url.startsWith(mainWindow.webContents.getURL().split('#')[0].split('?')[0])) return
+    if (
+      process.env['ELECTRON_RENDERER_URL'] &&
+      url.startsWith(process.env['ELECTRON_RENDERER_URL'])
+    )
+      return
+    e.preventDefault()
+    if (isWebLink(url)) shell.openExternal(url)
   })
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
@@ -682,6 +709,11 @@ function registerIpc(): void {
   })
   ipcMain.handle('agent:unlock', () => stateFolder && endAgent(stateFolder))
 
+  // copia delle modifiche non salvate, per recuperarle dopo una chiusura sbagliata
+  ipcMain.handle('recovery:write', (_, folder: string, json: string) => writeRecovery(folder, json))
+  ipcMain.handle('recovery:read', (_, folder: string) => readRecovery(folder))
+  ipcMain.handle('recovery:clear', (_, folder: string) => clearRecovery(folder))
+
   // menu dell'app: lo descrive il renderer, che conosce la lingua e cosa è aperto
   ipcMain.on('menu:set', (e, menus: AppMenu[]) => {
     const toItem = (item: AppMenuItem): MenuItemConstructorOptions => {
@@ -723,6 +755,7 @@ if (!cliArgs)
 
     handleAssetProtocol()
     registerIpc()
+    registerCloseGuard()
     createWindow()
     setInterval(() => pollAgentLock().catch((e) => console.error(e)), 1000)
     setInterval(() => touchAppState().catch((e) => console.error(e)), APP_STATE_HEARTBEAT)

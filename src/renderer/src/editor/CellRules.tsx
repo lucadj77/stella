@@ -1,5 +1,4 @@
-import { Fragment, useContext, useState } from 'react'
-import FormulaDialog from '../components/FormulaDialog'
+import { Fragment, lazy, Suspense, useContext, useState } from 'react'
 import HelpTip from '../components/HelpTip'
 import { cardFields, defaultValue, rowToCard } from '../../../shared/model/bind'
 import { contentCounters, hiddenCells, ruleCellFields } from '../../../shared/model/cells'
@@ -21,6 +20,9 @@ import { CheckField, FillField, NumberField, StrokeField, TextField } from './fi
 import CellPicker, { type PickerCell } from './CellPicker'
 import { cellsCondition, pickedCells } from '../../../shared/model/cellRules'
 import { Inherit } from './inheritance'
+
+// l'assistente formule si carica la prima volta che si apre
+const FormulaDialog = lazy(() => import('../components/FormulaDialog'))
 
 // Regole delle caselle di una griglia: dove la condizione è vera la casella cambia riempimento,
 // contorno, raggio o si nasconde. Vedi docs/formato.md, "Griglia".
@@ -397,21 +399,23 @@ export default function CellRules({
         />
       )}
       {fx !== null && rules[fx] && (
-        <FormulaDialog
-          title={t('editor.cellRuleFx', { n: fx + 1 })}
-          value={condition(rules[fx].when)}
-          expect="bool"
-          condition
-          columns={headers}
-          layers={walkLayers([...template.front, ...template.back])
-            .filter((x) => x.type !== 'group')
-            .map((x) => x.name)}
-          sample={perCell[0] ?? fields}
-          sampleLabel={sample ? t('fx.firstCardOf', { set: sample.set }) : undefined}
-          cells={{ grid: l.name, rows, columns, fields: perCell, counters: contentCounters(l) }}
-          onApply={(when) => change(fx, { when })}
-          onClose={() => setFx(null)}
-        />
+        <Suspense fallback={null}>
+          <FormulaDialog
+            title={t('editor.cellRuleFx', { n: fx + 1 })}
+            value={condition(rules[fx].when)}
+            expect="bool"
+            condition
+            columns={headers}
+            layers={walkLayers([...template.front, ...template.back])
+              .filter((x) => x.type !== 'group')
+              .map((x) => x.name)}
+            sample={perCell[0] ?? fields}
+            sampleLabel={sample ? t('fx.firstCardOf', { set: sample.set }) : undefined}
+            cells={{ grid: l.name, rows, columns, fields: perCell, counters: contentCounters(l) }}
+            onApply={(when) => change(fx, { when })}
+            onClose={() => setFx(null)}
+          />
+        </Suspense>
       )}
     </Inherit>
   )

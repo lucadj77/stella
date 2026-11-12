@@ -1,7 +1,7 @@
 import { readFile, rename, writeFile } from 'fs/promises'
 import { exists } from '../fs'
 import { basename, extname } from 'path'
-import ExcelJS from 'exceljs'
+import type * as ExcelJS from 'exceljs'
 import JSZip from 'jszip'
 import Papa from 'papaparse'
 import { addLocale, format, isDateFormat, isPercentFormat, isTextFormat } from 'numfmt'
@@ -12,6 +12,21 @@ import { deletedPath } from './deleted'
 import { placeRows } from './rowSlots'
 import { readNumber } from '../../shared/model/number'
 import { patchXlsx, type CellEdit } from './xlsxPatch'
+
+/**
+ * exceljs è grande (quasi 1 MB nella versione web): si carica la prima volta che serve, così la
+ * schermata di ingresso arriva prima
+ */
+let excel: Promise<typeof ExcelJS> | null = null
+export function loadExcel(): Promise<typeof ExcelJS> {
+  excel ??= import('exceljs').then(
+    (m) => ((m as unknown as { default?: typeof ExcelJS }).default ?? m) as typeof ExcelJS
+  )
+  return excel
+}
+
+/** ExcelJS.ValueType.Formula, senza caricare la libreria per leggerlo */
+export const FORMULA_CELL = 6 as ExcelJS.ValueType.Formula
 
 export async function readSpreadsheet(path: string): Promise<Sheet[]> {
   const ext = extname(path).toLowerCase()
@@ -44,7 +59,7 @@ export async function readXlsx(source: string | Buffer): Promise<Sheet[]> {
  */
 export function cellText(cell: ExcelJS.Cell): string {
   // di una formula conta il risultato salvato nel file (da cell.result: cell.value perde FALSO)
-  const r = cell.type === ExcelJS.ValueType.Formula ? cell.result : cell.value
+  const r = cell.type === FORMULA_CELL ? cell.result : cell.value
   if (r instanceof Date) return isoDate(r)
   // un errore (#DIV/0!, #N/A) si legge com'è scritto, VERO e FALSO come true e false
   if (r && typeof r === 'object' && 'error' in r) return String(r.error)
@@ -203,7 +218,7 @@ async function writeXlsx(
   options: WriteOptions
 ): Promise<boolean> {
   const data = (await exists(path)) ? await readFile(path) : null
-  const workbook = data ? await readWorkbook(data) : new ExcelJS.Workbook()
+  const workbook = data ? await readWorkbook(data) : new (await loadExcel()).Workbook()
   // se cambiano solo celle di fogli che ci sono già si scrivono quelle, direttamente nell'xml,
   // e il resto del file resta com'era; fogli nuovi, rinominati o tolti richiedono exceljs
   if (data && !removed.length && sheets.every((s) => !s.origin && workbook.getWorksheet(s.name))) {
@@ -274,7 +289,7 @@ export async function xlsxLosses(source: string | Buffer): Promise<DataFileLoss[
  * codice funziona anche nella versione web, dove i file passano dal browser
  */
 async function readWorkbook(source: string | Buffer): Promise<ExcelJS.Workbook> {
-  const workbook = new ExcelJS.Workbook()
+  const workbook = new (await loadExcel()).Workbook()
   const data = typeof source === 'string' ? await readFile(source) : source
   await workbook.xlsx.load(data as unknown as ArrayBuffer)
   return workbook

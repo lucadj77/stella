@@ -48,9 +48,14 @@ jobs:
           npm run typecheck:webapp
           npx vite build -c vite.web.config.mts
           mkdir -p pages/app && cp -R out/web/. pages/app/
+      # solo i tag con una release: per togliere una versione dal sito basta eliminarne la release
       - name: Versioni da pubblicare
         if: github.event_name != 'pull_request'
-        run: node scripts/web-versions.mjs >> "$GITHUB_ENV"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release list --limit 1000 --json tagName --jq '.[].tagName' > "$RUNNER_TEMP/released.txt"
+          RELEASED_FILE="$RUNNER_TEMP/released.txt" node scripts/web-versions.mjs >> "$GITHUB_ENV"
       # ogni versione si costruisce dal suo tag, in una cartella a parte; senza gli script di
       # installazione: Electron qui non serve
       - name: Stabile e beta

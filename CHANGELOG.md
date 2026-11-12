@@ -5,6 +5,50 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.11.0-beta.1
+
+### English
+
+- **Closing with unsaved changes**: closing the window or quitting Stella with unsaved changes now asks first: **Save**, **Don't save** or **Cancel**. Before, the desktop app closed without a word and the changes were lost.
+- **Recovering after a sudden close**: Stella keeps the unsaved changes aside in a recovery file a few seconds after each change. If the app closes suddenly, opening the project again offers to recover them. A screen that fails now shows a message with **Try again** and **Copy the details**, instead of an empty window.
+- **Starting layouts for new templates**: the **New template** window has a **Starting layout** choice, with a thumbnail for each: **Empty** (the default) or a few layers already in place, such as **Title, art, text** for a card or **Number** for a token.
+- **The line of the cursor in documents**: in the text of a document, a coloured band marks the line (the whole paragraph) where the cursor is, so after a click on the preview you see at once where you landed in the text.
+- **The editor remembers the Data choice**: the set and card chosen in **Data** stay with each template; opening the template again shows the same card, or no data if you chose none.
+- **Copies in the table**: the `amount` column of the table is headed **Copies amount**, like the field in the card form.
+- **Easier editor**: in a narrow window the layers and properties panels shrink to leave room for the canvas; the buttons under the layers have names (**Group**, **Ungroup**, **Duplicate**, **Delete**) and the lock, eye and source icons are bigger; the properties follow the order you work in (name, source, value, then **Position and size** with the align buttons as its first row), the value of a column layer is labelled **default**, and text alignment is a row of icon buttons.
+- **Tidier set**: **Delete** sits at the right end of the button row and is red only when cards are selected; in the card form the icons next to the fields show on the active row or under the mouse.
+- **QR codes**: the image picker has **QR code…**, which turns a text or an address, such as the link to the rules or to a video, into a QR code on the component. In a column or a formula, `qr:` followed by the text does the same, with fields too (`qr:{link}`).
+- **Less ink for the first tests**: printing at home, the new **Ink** choice prints the components in **Black and white** or as a **Draft**, in lighter grays (black too), to use less ink on prototypes reprinted many times. Crop marks stay black.
+- **Duplex test page**: next to **Back offset** in the PDF export, **Test page** writes a two-page PDF with crosses on the front and millimetre scales on the back. Printed double-sided and held against a light, it tells the numbers to add to the offset so that the backs line up.
+- **Color blindness preview**: the set's **Tools** menu has **Color blindness preview**, which shows the components as people with deuteranopia, protanopia or tritanopia see them, or in grayscale, to check that suits and factions stay distinct. It changes neither the components nor the export.
+- **Search the guide from Help**: the Help window (F1) has a **Search the guide…** field. It lists the sections with all the words typed, with the words highlighted; a click opens the section in the window, with its pictures taken from GitHub, **Open in the guide** in the browser at the guide of the installed version. Searching works offline.
+- **Large sets stay fast**: with hundreds of components, typing in a field of the form no longer slows down; the components out of view are not redrawn.
+- **Web version starts sooner**: the browser downloads about a third less code before the start screen; the spreadsheet library and the rarely used windows load when needed.
+- **Clearer guide**: the guide talks about components in general, with cards as the example, its long paragraphs are split into shorter ones, and the dice to fold have their own part, from the cross of the d6 to the tabs.
+- **Small fixes**: the filter of the set and the search of the properties have the same look as the other fields; the links of the Help window use the colour of the app; saving a data file that would lose charts, after declining once, now really waits for the answer; links open in the browser only when they are web or mail addresses.
+- Electron 44.9.3, with a security fix.
+
+### Italiano
+
+- **Chiudere con modifiche non salvate**: chiudendo la finestra o uscendo da Stella con modifiche non salvate, ora Stella chiede prima: **Salva**, **Non salvare** o **Annulla**. Prima l'app per computer si chiudeva senza dire nulla e le modifiche andavano perse.
+- **Recuperare dopo una chiusura improvvisa**: Stella tiene da parte le modifiche non salvate in un file di recupero, pochi secondi dopo ogni modifica. Se l'app si chiude di colpo, riaprendo il progetto propone di recuperarle. Una schermata che va in errore ora mostra un messaggio con **Riprova** e **Copia i dettagli**, invece di una finestra vuota.
+- **Disposizioni di partenza per i nuovi template**: la finestra **Nuovo template** ha la scelta **Disposizione di partenza**, con una miniatura per ciascuna: **Vuoto** (la scelta di base) o alcuni livelli già al loro posto, come **Titolo, immagine, testo** per una carta o **Numero** per un segnalino.
+- **La riga del cursore nei documenti**: nel testo di un documento una fascia colorata segna la riga (tutto il paragrafo) in cui sta il cursore, così dopo un clic sull'anteprima si vede subito dove si è arrivati nel testo.
+- **L'editor ricorda la scelta di Dati**: il set e la carta scelti in **Dati** restano a ogni template; riaprendo il template si rivede la stessa carta, o nessun dato se avevi scelto nessuno.
+- **Copie nella tabella**: la colonna `amount` della tabella ha per titolo **Copie amount**, come il campo nella scheda della carta.
+- **Editor più comodo**: in una finestra stretta i pannelli dei livelli e delle proprietà si restringono per lasciare spazio alla tela; i pulsanti sotto i livelli hanno il nome (**Raggruppa**, **Separa**, **Duplica**, **Elimina**) e le icone di lucchetto, occhio e fonte sono più grandi; le proprietà seguono l'ordine in cui si lavora (nome, fonte, valore, poi **Posizione e dimensioni** con i pulsanti di allineamento nella prima riga), il valore di un livello con fonte colonna si chiama **di base**, e l'allineamento del testo è una fila di pulsanti a icona.
+- **Set più ordinato**: **Elimina** sta in fondo a destra nella riga dei pulsanti ed è rosso solo con delle carte selezionate; nel modulo della carta le icone accanto ai campi compaiono sulla riga attiva o sotto il mouse.
+- **Codici QR**: la scelta delle immagini ha **Codice QR…**, che trasforma un testo o un indirizzo, come il link al regolamento o a un video, in un codice QR sul componente. In una colonna o in una formula, `qr:` seguito dal testo fa lo stesso, anche con i campi (`qr:{link}`).
+- **Meno inchiostro per le prime prove**: stampando a casa, la nuova scelta **Inchiostro** stampa i componenti in **Bianco e nero** o come **Bozza**, in grigi più chiari (anche il nero), per consumare meno inchiostro sui prototipi ristampati molte volte. I segni di taglio restano neri.
+- **Pagina di prova del fronte-retro**: accanto a **Spostamento retri** nell'esportazione in PDF, **Pagina di prova** crea un PDF di due pagine con croci sul fronte e scale in millimetri sul retro. Stampato fronte-retro e guardato controluce, dice i numeri da sommare allo spostamento perché i retri combacino.
+- **Anteprima daltonismo**: il menu **Strumenti** del set ha **Anteprima daltonismo**, che mostra i componenti come li vede chi ha deuteranopia, protanopia o tritanopia, o in scala di grigi, per controllare che semi e fazioni restino distinti. Non cambia né i componenti né l'esportazione.
+- **Cercare nella guida dall'Aiuto**: la finestra Aiuto (F1) ha il campo **Cerca nella guida…**. Elenca le sezioni con tutte le parole scritte, evidenziate; un clic apre la sezione nella finestra, con le sue immagini prese da GitHub, **Apri nella guida** nel browser sulla guida della versione installata. La ricerca funziona anche senza rete.
+- **Set grandi sempre veloci**: con centinaia di componenti, scrivere in un campo del modulo non rallenta più; i componenti fuori vista non si ridisegnano.
+- **La versione web parte prima**: il browser scarica circa un terzo di codice in meno prima della schermata di ingresso; la libreria dei fogli di calcolo e le finestre usate di rado si caricano quando servono.
+- **Guida più chiara**: la guida parla dei componenti in generale, con le carte come esempio, i paragrafi lunghi sono divisi in paragrafi più corti, e i dadi da piegare hanno una parte loro, dalla croce del d6 alle linguette.
+- **Piccole correzioni**: il filtro del set e la ricerca nelle proprietà hanno lo stesso aspetto degli altri campi; i link della finestra Aiuto hanno il colore dell'app; il salvataggio di un file dati che perderebbe dei grafici, dopo un primo rifiuto, ora aspetta davvero la risposta; i link si aprono nel browser solo se sono indirizzi web o di posta.
+- Electron 44.9.3, con una correzione di sicurezza.
+
 ## 1.10.1
 
 ### English

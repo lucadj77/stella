@@ -13,8 +13,8 @@ export function ConfirmHost(): React.JSX.Element | null {
   }, [])
   const r = queue[0]
   if (!r) return null
-  const done = (ok: boolean): void => {
-    r.resolve(ok)
+  const done = (answer: boolean | 'alt'): void => {
+    r.resolve(answer)
     setQueue((q) => q.slice(1))
   }
   return (
@@ -25,6 +25,15 @@ export function ConfirmHost(): React.JSX.Element | null {
           {r.cancel !== null && (
             <button type="button" autoFocus={r.danger} onClick={() => done(false)}>
               {r.cancel ?? t('dialog.cancel')}
+            </button>
+          )}
+          {r.alt && (
+            <button
+              type="button"
+              className={r.altDanger ? 'danger' : undefined}
+              onClick={() => done('alt')}
+            >
+              {r.alt}
             </button>
           )}
           <button

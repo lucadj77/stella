@@ -371,6 +371,103 @@ export function SelectField<T extends string | number>({
   )
 }
 
+/** Una scelta fra poche opzioni come pulsanti a icona: si vede subito ed è un clic solo */
+export function IconChoiceField<T extends string>({
+  label,
+  hint,
+  help,
+  disabled,
+  value,
+  options,
+  onChange
+}: Base & {
+  value: T
+  /** Valore, icona e nome (il nome è il suggerimento del pulsante) */
+  options: [T, React.ReactNode, string][]
+  onChange(v: T): void
+}): React.JSX.Element {
+  return (
+    <Row label={label} hint={hint} help={help} disabled={disabled}>
+      <span className="segmented icon-choice" role="group" aria-label={label}>
+        {options.map(([v, icon, name]) => (
+          <button
+            key={v}
+            type="button"
+            title={name}
+            aria-label={name}
+            aria-pressed={v === value}
+            className={v === value ? 'active' : ''}
+            disabled={disabled}
+            onClick={() => onChange(v)}
+          >
+            {icon}
+          </button>
+        ))}
+      </span>
+    </Row>
+  )
+}
+
+/** Righe di testo allineate, o un riquadro con la riga in alto, al centro o in basso */
+export function AlignIcon({
+  kind
+}: {
+  kind: 'left' | 'center' | 'right' | 'justify' | 'top' | 'middle' | 'bottom'
+}): React.JSX.Element {
+  const lines: [number, number][] =
+    kind === 'left'
+      ? [
+          [2, 14],
+          [2, 10],
+          [2, 14],
+          [2, 8]
+        ]
+      : kind === 'center'
+        ? [
+            [2, 14],
+            [4, 12],
+            [2, 14],
+            [5, 11]
+          ]
+        : kind === 'right'
+          ? [
+              [2, 14],
+              [6, 14],
+              [2, 14],
+              [8, 14]
+            ]
+          : [
+              [2, 14],
+              [2, 14],
+              [2, 14],
+              [2, 14]
+            ]
+  if (kind === 'top' || kind === 'middle' || kind === 'bottom') {
+    const y = kind === 'top' ? 4 : kind === 'middle' ? 7 : 10
+    return (
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+        <rect x="1.5" y="1.5" width="13" height="13" rx="1.5" fill="none" stroke="currentColor" />
+        <rect x="4" y={y} width="8" height="2" rx="0.5" fill="currentColor" />
+      </svg>
+    )
+  }
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+      {lines.map(([a, b], i) => (
+        <rect
+          key={i}
+          x={a}
+          y={2.5 + i * 3.25}
+          width={b - a}
+          height="1.6"
+          rx="0.5"
+          fill="currentColor"
+        />
+      ))}
+    </svg>
+  )
+}
+
 export function CheckField({
   label,
   hint,
