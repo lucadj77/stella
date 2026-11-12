@@ -568,7 +568,8 @@ function build(
       if (!g) return null
       const iconH = lengthMm(ctx, p[6], s.heightUnits) || g.h
       const keys = unquote(p[0] ?? '')
-      const text = iconText(ctx, keys)
+      const keyLen = Math.max(1, Math.round(Number(p[12]) || 1))
+      const text = iconText(ctx, keys, keyLen, /X/i.test(p[8] ?? ''))
       // un'icona nel testo è alta 1,15 volte il corpo
       const size = r3(Math.max(4, iconH / 1.15 / PT))
       return {
@@ -593,12 +594,37 @@ function build(
   }
 }
 
-/** Testo di ICONS: ogni tasto diventa la variabile della sua icona */
-function iconText(ctx: Context, keys: string): string {
+/**
+ * Testo di ICONS: ogni tasto diventa la variabile della sua icona. I tasti sono lunghi `len`
+ * caratteri (o di lunghezza variabile, flag X); `>` va a capo; `<`, `_` e `+` (sovrapponi,
+ * icona larga, ruota) non hanno un equivalente nel testo e si tolgono.
+ */
+function iconText(ctx: Context, keys: string, len = 1, variable = false): string {
+  const known = [...ctx.iconVars.keys()].sort((a, b) => b.length - a.length)
   let out = ''
-  for (const ch of keys) {
-    const v = ctx.iconVars.get(ch)
-    out += v ? `{${v}}` : ch === ' ' ? ' ' : escapeMarkup(ch)
+  let i = 0
+  while (i < keys.length) {
+    const ch = keys[i]
+    if ('<>_+'.includes(ch)) {
+      const n = variable ? 1 : len
+      if (keys.slice(i, i + n) === ch.repeat(n)) {
+        if (ch === '>') out += '\n'
+        i += n
+        continue
+      }
+    }
+    const key = variable
+      ? known.find((k) => keys.startsWith(k, i))
+      : ctx.iconVars.has(keys.slice(i, i + len))
+        ? keys.slice(i, i + len)
+        : undefined
+    if (key) {
+      out += `{${ctx.iconVars.get(key)}}`
+      i += key.length
+      continue
+    }
+    out += ch === ' ' ? ' ' : escapeMarkup(ch)
+    i++
   }
   return out
 }

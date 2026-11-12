@@ -292,6 +292,20 @@ describe('conversion', () => {
     expect(p.sheets[0].headers.filter((h) => h.endsWith('.visible'))).toEqual([])
   })
 
+  it('writes ICONS keys as icon variables, with key length and new lines', () => {
+    const s = run(
+      [
+        'CARDSIZE=6,9',
+        'ICON=1,AA,img\\a.png',
+        'ICON=1,BB,img\\b.png',
+        'ICONS=1,"AA>>BBBB__AA",0,0,6,3,1,1,0,PN,center,center,100,2'
+      ].join('\n')
+    )
+    const p = convertNandeck([{ name: 'deck', script: s }])
+    const text = flat(p.templates[0].front).find((l) => l.type === 'text')!
+    expect(text.text).toBe('{a}\n{b}{b}{a}')
+  })
+
   it('turns HTML image keys into image variables', () => {
     const s = run(
       'CARDSIZE=6,9\nHTMLFONT=f,Arial,10,,#000000\nHTMLIMAGE=,(a),img\\a.png,0.5,0.5\nHTMLTEXT=1,"Pay (a)",0,0,6,2,#FFFFFF,0,T,100,f'
