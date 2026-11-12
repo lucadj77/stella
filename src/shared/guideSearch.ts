@@ -23,6 +23,8 @@ export interface GuideParagraph {
   text: string
   /** Voce di un elenco */
   item?: boolean
+  /** Un'immagine della guida al posto del testo: src come nel Markdown (img/editor.png) */
+  image?: { src: string; alt: string }
 }
 
 export interface GuideHit {
@@ -68,6 +70,19 @@ function paragraphOf(md: string): GuideParagraph {
   return item ? { ...out, item: true } : out
 }
 
+/** Le immagini della cartella img/ in una riga: ![alt](img/…) da sola o <img src="img/…" alt="…"> */
+function imagesOf(line: string): { src: string; alt: string }[] {
+  const md = /^\s*!\[([^\]]*)\]\((img\/[^)\s]+)\)\s*$/.exec(line)
+  if (md) return [{ src: md[2], alt: md[1] }]
+  if (/^\s*\|/.test(line)) return []
+  const out: { src: string; alt: string }[] = []
+  for (const m of line.matchAll(/<img\b[^>]*>/g)) {
+    const src = /\bsrc="(img\/[^"]+)"/.exec(m[0])
+    if (src) out.push({ src: src[1], alt: /\balt="([^"]*)"/.exec(m[0])?.[1] ?? '' })
+  }
+  return out
+}
+
 /** Le righe di una tabella Markdown come testo: celle separate da « · », senza la riga dei trattini */
 function tableLine(line: string): string | null {
   const cells = line
@@ -100,6 +115,13 @@ export function guideParts(md: string): GuidePart[] {
         flush()
         continue
       }
+      // le immagini della guida, da sole su una riga o nelle tabelle HTML che le affiancano
+      const images = imagesOf(line)
+      if (images.length) {
+        flush()
+        for (const image of images) paragraphs.push({ text: '', image })
+        continue
+      }
       if (/^\s*\|/.test(line)) {
         flush()
         const row = tableLine(line)
@@ -111,8 +133,9 @@ export function guideParts(md: string): GuidePart[] {
       para.push(line.trim())
     }
     flush()
-    current.part.paragraphs = paragraphs.filter((p) => p.text || p.lead)
+    current.part.paragraphs = paragraphs.filter((p) => p.text || p.lead || p.image)
     current.part.text = current.part.paragraphs
+      .filter((p) => !p.image)
       .map((p) => (p.lead ? p.lead + (p.text ? ' ' + p.text : '') : p.text))
       .join('\n\n')
     parts.push(current.part)

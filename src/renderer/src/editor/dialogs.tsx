@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { guideSectionUrl, type GuideSection } from '../../../shared/donate'
+import type { GuideSection } from '../../../shared/donate'
+import { guideSectionLink } from '../guideLinks'
 import { KIND_PRESETS, type KindPreset } from '../../../shared/model/kinds'
 import {
   DIE_TYPES,
@@ -52,7 +53,7 @@ export function Dialog({
           {guide && (
             <a
               className="dialog-guide"
-              href={guideSectionUrl(guide, lang)}
+              href={guideSectionLink(guide, lang)}
               target="_blank"
               rel="noreferrer"
               title={t('dialog.guide')}

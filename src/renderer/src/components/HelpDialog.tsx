@@ -6,13 +6,12 @@ import { SYSTEM_VARIABLES } from '../../../shared/model/system'
 import {
   DISCORD_URL,
   DONATE_URL,
-  guideSectionUrl,
-  guideUrl,
   siteUrl,
   tutorialsUrl,
   videoUrl,
   type GuideSection
 } from '../../../shared/donate'
+import { guideImageLink, guideLink, guideSectionLink } from '../guideLinks'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import type { MessageKey } from '../i18n/en'
@@ -164,10 +163,33 @@ function loadGuide(lang: string): Promise<GuidePart[]> {
   return p
 }
 
+/** Quante immagini ha una sezione */
+const images = (part: GuidePart): number => part.paragraphs.filter((p) => p.image).length
+
 /** Un testo con le parole cercate evidenziate */
 function Marked({ text, query }: { text: string; query: string }): React.JSX.Element {
   return (
     <>{markWords(text, query).map((m, i) => (m.hit ? <mark key={i}>{m.text}</mark> : m.text))}</>
+  )
+}
+
+/** Un'immagine della guida, presa da GitHub solo quando si apre la sezione; se non arriva (senza
+ * rete, o in una versione di prova che non ha ancora il suo tag) resta la descrizione */
+function GuideImage({ src, alt }: { src: string; alt: string }): React.JSX.Element {
+  const { t, lang } = useI18n()
+  const [failed, setFailed] = useState(false)
+  const url = guideImageLink(lang, src)
+  return (
+    <figure className="guide-hit-figure">
+      {failed ? (
+        <p className="muted">{t('help.search.imageMissing', { alt })}</p>
+      ) : (
+        <a href={url} target="_blank" rel="noreferrer" title={t('help.search.imageOpen')}>
+          <img src={url} alt={alt} loading="lazy" onError={() => setFailed(true)} />
+        </a>
+      )}
+      {!failed && alt && <figcaption className="muted">{alt}</figcaption>}
+    </figure>
   )
 }
 
@@ -204,9 +226,16 @@ function GuideResults({ query }: { query: string }): React.JSX.Element {
               <Marked text={part.title} query={query} />
             </button>
             {part.chapter && <span className="muted guide-hit-chapter">{part.chapter}</span>}
+            {open !== part.anchor && images(part) > 0 && (
+              <span className="muted guide-hit-chapter">
+                {images(part) === 1
+                  ? t('help.search.image')
+                  : t('help.search.images', { n: images(part) })}
+              </span>
+            )}
             <a
               className="guide-hit-open"
-              href={guideUrl(lang, part.anchor)}
+              href={guideLink(lang, part.anchor)}
               target="_blank"
               rel="noreferrer"
             >
@@ -215,17 +244,21 @@ function GuideResults({ query }: { query: string }): React.JSX.Element {
           </div>
           {open === part.anchor ? (
             <div className="guide-hit-text">
-              {part.paragraphs.map((p, i) => (
-                <p key={i} className={p.item ? 'guide-hit-item' : undefined}>
-                  {p.lead && (
-                    <strong>
-                      <Marked text={p.lead} query={query} />
-                    </strong>
-                  )}
-                  {p.lead && p.text && ' '}
-                  <Marked text={p.text} query={query} />
-                </p>
-              ))}
+              {part.paragraphs.map((p, i) =>
+                p.image ? (
+                  <GuideImage key={i} src={p.image.src} alt={p.image.alt} />
+                ) : (
+                  <p key={i} className={p.item ? 'guide-hit-item' : undefined}>
+                    {p.lead && (
+                      <strong>
+                        <Marked text={p.lead} query={query} />
+                      </strong>
+                    )}
+                    {p.lead && p.text && !/^[,.;:]/.test(p.text) && ' '}
+                    <Marked text={p.text} query={query} />
+                  </p>
+                )
+              )}
             </div>
           ) : (
             <p className="guide-hit-snippet">
@@ -265,7 +298,7 @@ export default function HelpDialog({
     <Dialog title={t('help.title')} onClose={onClose}>
       <div className="help-dialog">
         <p className="help-guide">
-          <a href={guideUrl(lang)} target="_blank" rel="noreferrer">
+          <a href={guideLink(lang)} target="_blank" rel="noreferrer">
             {t('help.guide')}
           </a>
           {' · '}
@@ -322,7 +355,7 @@ export default function HelpDialog({
                     {STEPS.map(([title, text, section]) => (
                       <li key={title}>
                         <strong>{t(title)}</strong> {t(text)}{' '}
-                        <a href={guideSectionUrl(section, lang)} target="_blank" rel="noreferrer">
+                        <a href={guideSectionLink(section, lang)} target="_blank" rel="noreferrer">
                           {t('help.start.inGuide')}
                         </a>
                       </li>

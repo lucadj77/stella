@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { guideParts, headingAnchor, markWords, plainMarkdown, searchGuide } from '../guideSearch'
 
@@ -73,5 +73,28 @@ describe('guide paragraphs', () => {
       { text: 'plain item', item: true }
     ])
     expect(part.text).toContain('Folding dice. With To fold every die.')
+  })
+
+  it('keeps the guide images, alone or in HTML tables, out of the text', () => {
+    const [part] = guideParts(
+      '## A\n\nText.\n\n![The editor](img/editor.png)\n\n<table><tr>\n<td><img src="img/a.png" alt="First"></td>\n<td><img src="img/b.png" alt="Second"></td>\n</tr></table>\n\n| `![x](img/c.png)` | code |'
+    )
+    expect(part.paragraphs.filter((p) => p.image).map((p) => p.image)).toEqual([
+      { src: 'img/editor.png', alt: 'The editor' },
+      { src: 'img/a.png', alt: 'First' },
+      { src: 'img/b.png', alt: 'Second' }
+    ])
+    expect(part.text).not.toContain('editor.png')
+  })
+
+  it('finds every image of both guides in their img folders', () => {
+    for (const lang of ['guida', 'guide']) {
+      const images = guideParts(read(lang)).flatMap((p) =>
+        p.paragraphs.flatMap((q) => (q.image ? [q.image.src] : []))
+      )
+      expect(images.length).toBeGreaterThan(50)
+      for (const src of images)
+        expect(existsSync(new URL(`../../../docs/${lang}/${src}`, import.meta.url)), src).toBe(true)
+    }
   })
 })

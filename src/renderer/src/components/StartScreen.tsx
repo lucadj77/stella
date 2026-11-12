@@ -2,14 +2,8 @@ import { useEffect, useState } from 'react'
 import type { RecentProject } from '../../../shared/api'
 import { projectFolderName } from '../../../shared/model/projectName'
 import { isPrerelease } from '../../../shared/update'
-import {
-  DISCORD_URL,
-  DONATE_URL,
-  guideUrl,
-  siteUrl,
-  tutorialsUrl,
-  videoUrl
-} from '../../../shared/donate'
+import { DISCORD_URL, DONATE_URL, siteUrl, tutorialsUrl, videoUrl } from '../../../shared/donate'
+import { guideLink } from '../guideLinks'
 import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
@@ -170,7 +164,7 @@ export default function StartScreen({
               {t('welcome.overviewVideo')}
             </a>
             {' · '}
-            <a href={guideUrl(lang)} target="_blank" rel="noreferrer">
+            <a href={guideLink(lang)} target="_blank" rel="noreferrer">
               {t('welcome.guide')}
             </a>
           </p>
@@ -267,7 +261,7 @@ function Welcome({
         <a href={tutorialsUrl(lang)} target="_blank" rel="noreferrer">
           {t('welcome.allVideos')}
         </a>
-        <a href={guideUrl(lang)} target="_blank" rel="noreferrer">
+        <a href={guideLink(lang)} target="_blank" rel="noreferrer">
           {t('welcome.guide')}
         </a>
       </p>

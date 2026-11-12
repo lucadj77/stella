@@ -5084,6 +5084,23 @@ select.from-template {
   left: 4px;
 }
 
+.guide-hit-figure {
+  margin: 10px 0;
+}
+
+.guide-hit-figure img {
+  display: block;
+  max-width: 100%;
+  max-height: 360px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.guide-hit-figure figcaption {
+  margin-top: 4px;
+  font-size: 12px;
+}
+
 .guide-hits mark {
   background: color-mix(in srgb, var(--accent) 22%, transparent);
   color: inherit;

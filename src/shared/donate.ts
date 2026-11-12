@@ -8,10 +8,15 @@ export const DISCORD_URL = 'https://discord.gg/bkP3a3CwkP'
 export const SITE_URL = 'https://stella.lucadj.eu/'
 export const siteUrl = (lang: string): string => (lang === 'it' ? `${SITE_URL}it/` : SITE_URL)
 
-/** La guida completa su GitHub, nella lingua dell'interfaccia */
-const GUIDE = 'https://github.com/lucadj77/stella/blob/main/docs'
-export const guideUrl = (lang: string, anchor = ''): string =>
-  `${GUIDE}/${lang === 'it' ? 'guida' : 'guide'}/README.md${anchor ? '#' + anchor : ''}`
+/** La guida completa su GitHub, nella lingua dell'interfaccia. ref è il ramo o il tag: l'app
+ * apre quello della sua versione, perché titoli, ancore e immagini siano quelli del testo che ha */
+const REPO = 'https://github.com/lucadj77/stella'
+const guideDir = (lang: string): string => (lang === 'it' ? 'guida' : 'guide')
+export const guideUrl = (lang: string, anchor = '', ref = 'main'): string =>
+  `${REPO}/blob/${ref}/docs/${guideDir(lang)}/README.md${anchor ? '#' + anchor : ''}`
+/** Un'immagine della guida (src come nel Markdown, per esempio img/editor.png), da GitHub */
+export const guideImageUrl = (lang: string, src: string, ref = 'main'): string =>
+  `https://raw.githubusercontent.com/lucadj77/stella/${ref}/docs/${guideDir(lang)}/${src}`
 
 /** I video tutorial sul sito, nella sezione con l'elenco */
 export const tutorialsUrl = (lang: string): string => `${siteUrl(lang)}#tutorial`
@@ -40,5 +45,5 @@ const GUIDE_SECTIONS = {
   export: { it: '11-esportare', en: '11-exporting' }
 } as const
 export type GuideSection = keyof typeof GUIDE_SECTIONS
-export const guideSectionUrl = (section: GuideSection, lang: string): string =>
-  guideUrl(lang, lang === 'it' ? GUIDE_SECTIONS[section].it : GUIDE_SECTIONS[section].en)
+export const guideSectionUrl = (section: GuideSection, lang: string, ref = 'main'): string =>
+  guideUrl(lang, lang === 'it' ? GUIDE_SECTIONS[section].it : GUIDE_SECTIONS[section].en, ref)
