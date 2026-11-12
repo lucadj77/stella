@@ -49,7 +49,9 @@ await shot(win, `${lang}/proprieta-forma`, await panel(904))
 await layer(it ? 'forza' : 'strength').click()
 await layer(it ? 'rango' : 'rank').click({ modifiers: ['Shift'] })
 await win.waitForTimeout(500)
-await shot(win, `${lang}/allinea`, await panel(260))
+// i pulsanti sono la prima riga di posizione e dimensioni: il riquadro arriva fin sotto di loro
+const al = await props.locator('.align-section').first().boundingBox()
+await shot(win, `${lang}/allinea`, await panel(Math.round(al.y + al.height + 12 - 96)))
 // retro
 await win.getByRole('button', { name: T['preview.back'], exact: true }).first().click()
 await win.waitForTimeout(800)

@@ -231,7 +231,6 @@ export default function PropertiesPanel({
           {t('editor.searchPropertiesNone')}
         </p>
         <div ref={bodyRef} className="props-body">
-          {selection.length > 0 && <AlignSection state={state} dispatch={dispatch} />}
           {selection.length > 1 ? (
             <>
               <h2>{t('editor.multiSelectionTitle', { n: selection.length })}</h2>
@@ -704,8 +703,32 @@ function LayerProperties({
         </>
       )}
 
+      {/* il valore che la fonte decide, subito sotto la fonte; poi posizione e allineamento */}
+      {same && l.type === 'text' && (
+        <TextProperties
+          l={l}
+          set={set}
+          col={col}
+          computed={computed}
+          fields={labelChoices(tpl, sheets)}
+          part="value"
+        />
+      )}
+      {same && l.type === 'image' && (
+        <ImageProperties l={l} set={set} col={col} computed={computed} part="value" />
+      )}
+      {same && l.type === 'shape' && (
+        <ShapeProperties l={l} set={set} col={col} computed={computed} part="value" />
+      )}
       {layers.every((x) => x.type !== 'value') && (
-        <DrawnProperties l={l} set={set} col={col} multi={multi} part="geometry" />
+        <DrawnProperties
+          l={l}
+          set={set}
+          col={col}
+          multi={multi}
+          part="geometry"
+          align={<AlignSection state={state} dispatch={dispatch} />}
+        />
       )}
       {same && l.type === 'text' && (
         <TextProperties
@@ -714,13 +737,14 @@ function LayerProperties({
           col={col}
           computed={computed}
           fields={labelChoices(tpl, sheets)}
+          part="rest"
         />
       )}
       {same && l.type === 'image' && (
-        <ImageProperties l={l} set={set} col={col} computed={computed} />
+        <ImageProperties l={l} set={set} col={col} computed={computed} part="rest" />
       )}
       {same && l.type === 'shape' && (
-        <ShapeProperties l={l} set={set} col={col} computed={computed} />
+        <ShapeProperties l={l} set={set} col={col} computed={computed} part="rest" />
       )}
       {same && l.type === 'grid' && (
         <GridProperties
@@ -1057,12 +1081,15 @@ function DrawnProperties({
   set,
   col,
   multi = false,
-  part
-}: Omit<TypeProps<Layer>, 'computed'> & {
+  part,
+  align
+}: Omit<TypeProps<Layer>, 'computed' | 'part'> & {
   /** Più livelli: posizione e dimensioni restano di ciascuno (per quelle c'è Allinea) */
   multi?: boolean
-  /** Posizione e dimensioni stanno in cima al pannello, l'aspetto in fondo */
+  /** Posizione e dimensioni stanno dopo il valore del livello, l'aspetto in fondo */
   part: 'geometry' | 'appearance'
+  /** Allinea e distribuisci: la prima riga di posizione e dimensioni */
+  align?: React.ReactNode
 }): React.JSX.Element {
   const { t } = useI18n()
   const [locked, setLocked] = useRatioLock(l.type as LockKind)
@@ -1073,6 +1100,7 @@ function DrawnProperties({
   if (part === 'appearance') return <AppearanceProperties l={l} set={set} col={col} />
   return (
     <Section scope="geometry" title={t('editor.geometry')}>
+      {align}
       {multi ? null : line ? (
         <Inherit keys={['x', 'y', 'w', 'rotation']}>
           <div className="field-grid">
@@ -1257,6 +1285,11 @@ interface TypeProps<T> {
   computed: boolean
   /** Campi della carta, per l'aiuto alla scrittura del markup */
   fields?: string[]
+  /**
+   * 'value': solo il valore che la fonte decide (testo, immagine, riempimento), subito sotto la
+   * fonte; 'rest': tutto il resto, dopo posizione e dimensioni
+   */
+  part?: 'value' | 'rest'
 }
 
 function options<T extends string>(
@@ -1285,38 +1318,44 @@ function TextProperties({
   set: setLayer,
   col,
   computed,
-  fields
+  fields,
+  part
 }: TypeProps<TextLayer>): React.JSX.Element {
   const { t } = useI18n()
   const set = setLayer as SetFn<TextLayer>
   const translatable = useContext(ProjectLanguagesContext).length > 1
+  if (part === 'value')
+    return (
+      <>
+        {/* con una formula il valore è il suo risultato: il campo non serve */}
+        {!computed && (
+          <Inherit keys={['text']}>
+            <TextField
+              label={t(l.source.kind === 'column' ? 'prop.textDefault' : 'prop.text')}
+              hint={`${col()} ${t('prop.textFxHint')}`}
+              value={l.text}
+              multiline
+              markupFields={fields}
+              onChange={(text) => set({ text })}
+            />
+          </Inherit>
+        )}
+        {/* le traduzioni valgono solo per un testo fisso: una colonna si traduce con nome@lingua */}
+        {l.source.kind === 'fixed' && translatable && (
+          <Inherit keys={['texts']}>
+            <TranslationFields
+              label={t('prop.text')}
+              value={l.texts}
+              multiline
+              markupFields={fields}
+              onChange={(texts) => set({ texts })}
+            />
+          </Inherit>
+        )}
+      </>
+    )
   return (
     <>
-      {/* con una formula il valore è il suo risultato: il campo non serve */}
-      {!computed && (
-        <Inherit keys={['text']}>
-          <TextField
-            label={t('prop.text')}
-            hint={`${col()} ${t('prop.textFxHint')}`}
-            value={l.text}
-            multiline
-            markupFields={fields}
-            onChange={(text) => set({ text })}
-          />
-        </Inherit>
-      )}
-      {/* le traduzioni valgono solo per un testo fisso: una colonna si traduce con nome@lingua */}
-      {l.source.kind === 'fixed' && translatable && (
-        <Inherit keys={['texts']}>
-          <TranslationFields
-            label={t('prop.text')}
-            value={l.texts}
-            multiline
-            markupFields={fields}
-            onChange={(texts) => set({ texts })}
-          />
-        </Inherit>
-      )}
       <Section scope="text" title={t('editor.typography')}>
         <P id="font">
           <FontField
@@ -1555,7 +1594,8 @@ function ImageProperties({
   l,
   set: setLayer,
   col,
-  computed
+  computed,
+  part
 }: TypeProps<ImageLayer>): React.JSX.Element {
   const { t } = useI18n()
   const set = setLayer as SetFn<ImageLayer>
@@ -1586,30 +1626,54 @@ function ImageProperties({
     }
     return null
   })()
+  if (part === 'value')
+    return (
+      <>
+        {/* con una formula il valore è il suo risultato: il campo non serve */}
+        {!computed && (
+          <Inherit keys={['src']}>
+            <TextField
+              label={t(l.source.kind === 'column' ? 'prop.srcDefault' : 'prop.src')}
+              hint={col()}
+              value={l.src}
+              list={listId}
+              placeholder={t('editor.srcPlaceholder')}
+              onChange={(src) => set({ src })}
+              action={
+                <button
+                  className="pick-btn"
+                  title={t('assetPicker.open')}
+                  onClick={() => setPicking(true)}
+                >
+                  <ImageIcon />
+                </button>
+              }
+            />
+          </Inherit>
+        )}
+        {picking && (
+          <AssetPicker
+            value={l.src}
+            onPick={(src) => set({ src })}
+            onClose={() => setPicking(false)}
+          />
+        )}
+        <datalist id={listId}>
+          {names.map((n) => (
+            <option key={n} value={n} />
+          ))}
+        </datalist>
+        {!computed && !res.ok && res.reason !== 'empty' && !l.src.includes('{') && (
+          <p className="field-note">
+            {res.reason === 'ambiguous'
+              ? t('editor.srcAmbiguous', { files: res.candidates.join(', ') })
+              : t('editor.srcMissing')}
+          </p>
+        )}
+      </>
+    )
   return (
     <>
-      {/* con una formula il valore è il suo risultato: il campo non serve */}
-      {!computed && (
-        <Inherit keys={['src']}>
-          <TextField
-            label={t('prop.src')}
-            hint={col()}
-            value={l.src}
-            list={listId}
-            placeholder={t('editor.srcPlaceholder')}
-            onChange={(src) => set({ src })}
-            action={
-              <button
-                className="pick-btn"
-                title={t('assetPicker.open')}
-                onClick={() => setPicking(true)}
-              >
-                <ImageIcon />
-              </button>
-            }
-          />
-        </Inherit>
-      )}
       {cropping && cropSrc && (
         <CropDialog
           url={cropSrc}
@@ -1622,26 +1686,7 @@ function ImageProperties({
           onClose={() => setCropping(false)}
         />
       )}
-      {picking && (
-        <AssetPicker
-          value={l.src}
-          onPick={(src) => set({ src })}
-          onClose={() => setPicking(false)}
-        />
-      )}
-      <datalist id={listId}>
-        {names.map((n) => (
-          <option key={n} value={n} />
-        ))}
-      </datalist>
-      {!computed && !res.ok && res.reason !== 'empty' && !l.src.includes('{') && (
-        <p className="field-note">
-          {res.reason === 'ambiguous'
-            ? t('editor.srcAmbiguous', { files: res.candidates.join(', ') })
-            : t('editor.srcMissing')}
-        </p>
-      )}
-      <Section scope="image">
+      <Section scope="image" title={t('editor.imageSection')}>
         <P id="fit">
           <SelectField
             label={t('prop.fit')}
@@ -1848,7 +1893,7 @@ function ValueProperties({
       {!computed && (
         <Inherit keys={['value']}>
           <TextField
-            label={t('prop.value')}
+            label={t(l.source.kind === 'column' ? 'prop.valueDefault' : 'prop.value')}
             hint={col()}
             value={l.value}
             onChange={(value) => set({ value })}
@@ -1875,13 +1920,29 @@ function ShapeProperties({
   l,
   set: setLayer,
   col,
-  computed
+  computed,
+  part
 }: TypeProps<ShapeLayer>): React.JSX.Element {
   const { t } = useI18n()
   const set = setLayer as SetFn<ShapeLayer>
+  // il riempimento è il valore che la fonte decide: sta sotto la fonte
+  if (part === 'value')
+    return computed ? (
+      <></>
+    ) : (
+      <P id="fill">
+        <FillField
+          label={t(l.source.kind === 'column' ? 'prop.fillDefault' : 'prop.fill')}
+          hint={col()}
+          value={l.fill}
+          fallback="#CCCCCC"
+          onChange={(fill) => set({ fill })}
+        />
+      </P>
+    )
   return (
     <>
-      <Section scope="shape">
+      <Section scope="shape" title={t('editor.shapeSection')}>
         <P id="shape">
           <SelectField<ShapeKind>
             label={t('prop.shape')}
@@ -1891,18 +1952,6 @@ function ShapeProperties({
             onChange={(shape) => set({ shape })}
           />
         </P>
-        {/* con una formula il valore è il suo risultato: il campo non serve */}
-        {!computed && (
-          <P id="fill">
-            <FillField
-              label={t('prop.fill')}
-              hint={col()}
-              value={l.fill}
-              fallback="#CCCCCC"
-              onChange={(fill) => set({ fill })}
-            />
-          </P>
-        )}
         <P id="stroke">
           <StrokeField
             label={t('prop.stroke')}

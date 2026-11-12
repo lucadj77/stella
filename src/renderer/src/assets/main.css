@@ -1917,8 +1917,10 @@ button.layer-source.open {
   max-height: calc(16lh + 8px);
 }
 
+/* nelle proprietà il testo sta sopra posizione e dimensioni: oltre otto righe scorre */
 .properties .markup-input textarea {
   min-height: calc(4lh + 8px);
+  max-height: calc(8lh + 8px);
 }
 
 /* il pulsante Formatta compare solo nel campo in uso */
@@ -2655,10 +2657,9 @@ button.danger:hover:not(:disabled) {
   font-size: 12px;
 }
 
+/* allinea e distribuisci: la prima riga di posizione e dimensioni */
 .align-section {
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .align-row {

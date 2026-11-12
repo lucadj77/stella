@@ -314,7 +314,7 @@ Constraints are useful when the same design must fit two sizes, for example a po
 
 ### 4.4 Layer properties
 
-The properties panel is split into sections. Right under the name and value of the layer comes **Position and size**, the section used most often; then the ones of the layer type (for a text **Typography**) and **Appearance** at the bottom. In **Typography** horizontal and vertical alignment are icon buttons: one click chooses. Each section shows the most used items and keeps the others under **Advanced**. Hovering an item shows an arrow that moves it to Advanced or back out; the layout applies to all projects.
+The properties panel follows the order you work in: the layer name, the source (column, fixed or formula) and the value, that is the text to write, the image or the fill. With the **Column** source the value is called **default**: a card with an empty cell uses it. With the **Formula** source there is no value, because the formula computes it. Then comes **Position and size**, the section used most often, then the ones of the layer type (for a text **Typography**, for an image **Fit and crop**, for a shape **Shape and outline**) and **Appearance** at the bottom. In **Typography** horizontal and vertical alignment are icon buttons: one click chooses. Each section shows the most used items and keeps the others under **Advanced**. Hovering an item shows an arrow that moves it to Advanced or back out; the layout applies to all projects.
 
 At the top of the panel there is a search field (⌘F / Ctrl+F in the editor). Typing part of an item's name keeps only the items that contain it, with the title of their section: for example "cont" shows **Stroke** under **Typography**. If the text is in a section title, the whole section shows: "pos" shows all of **Position and size**. Items found under **Advanced** appear open; Esc clears the search.
 
@@ -360,7 +360,7 @@ In the **Appearance** section, **opacity** makes the layer transparent; the **bl
 
 ### 4.5 Aligning and distributing
 
-With two or more layers selected, the buttons at the top of the panel align them to each other, to the component or to the safe area, and distribute them with equal spacing. **Arrange in a grid** places them in rows and columns.
+The alignment buttons are the first row of **Position and size**. With two or more layers selected they align them to each other, to the component or to the safe area, and distribute them with equal spacing. **Arrange in a grid** places them in rows and columns.
 
 ![Aligning two selected layers](img/allinea.png)
 

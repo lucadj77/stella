@@ -314,7 +314,7 @@ I vincoli servono quando lo stesso disegno deve stare su due formati, per esempi
 
 ### 4.4 Le proprietà dei livelli
 
-Il pannello delle proprietà è diviso in sezioni. Sotto il nome e il valore del livello viene subito **Posizione e dimensioni**, la sezione che si usa più spesso; poi quelle del tipo di livello (per un testo **Tipografia**) e in fondo **Aspetto**. Nella **Tipografia** l'allineamento orizzontale e quello verticale sono pulsanti a icona: un clic sceglie. Ogni sezione mostra le voci più usate e raccoglie le altre in **Avanzate**. Passando con il mouse su una voce compare una freccia che la sposta in Avanzate o la riporta fuori; la disposizione vale per tutti i progetti.
+Il pannello delle proprietà segue l'ordine in cui si lavora: il nome del livello, la fonte (colonna, fisso o formula) e il valore, cioè il testo da scrivere, l'immagine o il riempimento. Con la fonte **Colonna** il valore si chiama **di base**: è quello che usa una carta con la cella vuota. Con la fonte **Formula** il valore non c'è, perché lo calcola la formula. Poi viene **Posizione e dimensioni**, la sezione che si usa più spesso, quindi quelle del tipo di livello (per un testo **Tipografia**, per un'immagine **Adattamento e ritaglio**, per una forma **Forma e contorno**) e in fondo **Aspetto**. Nella **Tipografia** l'allineamento orizzontale e quello verticale sono pulsanti a icona: un clic sceglie. Ogni sezione mostra le voci più usate e raccoglie le altre in **Avanzate**. Passando con il mouse su una voce compare una freccia che la sposta in Avanzate o la riporta fuori; la disposizione vale per tutti i progetti.
 
 In cima al pannello c'è un campo di ricerca (⌘F / Ctrl+F nell'editor). Scrivendo parte del nome di una voce restano solo le voci che la contengono, con il titolo della loro sezione: per esempio «cont» mostra **Contorno** in **Tipografia**. Se il testo è nel titolo di una sezione, la sezione si mostra intera: «pos» mostra tutta **Posizione e dimensioni**. Le voci trovate in **Avanzate** compaiono aperte; Esc cancella la ricerca.
 
@@ -360,7 +360,7 @@ Nella sezione **Aspetto** l'**opacità** rende il livello trasparente; la **fusi
 
 ### 4.5 Allineare e distribuire
 
-Con due o più livelli selezionati, i pulsanti in cima al pannello li allineano tra loro, al componente o all'area sicura, e li distribuiscono con spaziatura uguale. **Disponi a griglia** li mette in righe e colonne.
+I pulsanti di allineamento sono la prima riga di **Posizione e dimensioni**. Con due o più livelli selezionati li allineano tra loro, al componente o all'area sicura, e li distribuiscono con spaziatura uguale. **Disponi a griglia** li mette in righe e colonne.
 
 ![Allineamento di due livelli selezionati](img/allinea.png)
 
