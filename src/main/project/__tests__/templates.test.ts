@@ -2,6 +2,17 @@ import { describe, expect, it } from 'vitest'
 import { formatTemplate } from '../templates'
 
 describe('formatTemplate', () => {
+  it('leaves out keys without a value, like JSON.stringify', () => {
+    const value = {
+      width: 63,
+      skip: undefined,
+      front: [{ type: 'image', name: 'a', rotation: undefined, style: { x: undefined, y: 1 } }]
+    }
+    const out = formatTemplate(value)
+    expect(out).not.toContain('undefined')
+    expect(JSON.parse(out)).toEqual(JSON.parse(JSON.stringify(value)))
+  })
+
   it('scrive un livello per riga e va a capo nei gruppi', () => {
     const out = formatTemplate({
       width: 63,

@@ -930,12 +930,12 @@ export function convertNandeck(inputs: ScriptInput[]): NandeckProject {
                   : String(v)
             if (values.some((v) => cell(v) === null)) {
               // proprietà composte che cambiano: vale la prima carta
-              layer[key] = values[0]
+              if (values[0] !== undefined) layer[key] = values[0]
               note(ctx, 'nandeck.note.firstCard', `${layerName}.${key}`)
               continue
             }
             // il template tiene il valore della prima carta, il foglio quello di ognuna
-            layer[key] = values[0]
+            if (values[0] !== undefined) layer[key] = values[0]
             okIdx.forEach((i) => addCell(header, rowsIndex(here[i]), cell(built[i]!.props[key])!))
           }
           // visibilità
