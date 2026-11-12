@@ -13,6 +13,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Large grids**: a grid can now have up to 10,000 cells (before, 400: a 22 × 20 grid lost two columns and its contents were shifted). Over the limit, the check says so.
 - **Heavy PNG images**: the check and the export warn about PNG images over 8 MB, which may be left out of the export, and suggest converting them to JPG. Large images also get more time to load before an export.
 - **Semi-transparent colors**: color fields (fill, stroke, text) accept `rgba(...)` and `hsl(...)`; before, the stroke field ignored them.
+- **Transparent components**: a component is transparent where no layer draws; before, there was always white underneath. New templates still start with the white `background` layer: delete or hide it and the editor shows a checkerboard, PNG and WebP images with **Transparent background** are transparent there, Tabletop Simulator tokens take the shape of what is drawn, and documents, the project cover and the table setup show what is beneath. PDF, JPG, Tabletop Simulator decks, tiles and dice stay on white. Templates without a background layer (made by hand or imported from Tabletop Creator) become transparent in those images; the nanDECK import adds a white `paper` layer, as nanDECK draws on white.
 
 ### Italiano
 
@@ -20,6 +21,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Griglie grandi**: una griglia può avere fino a 10.000 caselle (prima 400: una griglia 22 × 20 perdeva due colonne e il contenuto risultava spostato). Oltre il limite, il controllo lo segnala.
 - **Immagini PNG pesanti**: il controllo e l'esportazione avvisano delle PNG oltre 8 MB, che possono mancare nell'esportazione, e consigliano di convertirle in JPG. Le immagini grandi hanno anche più tempo per caricarsi prima di un'esportazione.
 - **Colori semitrasparenti**: i campi colore (riempimento, bordo, testo) accettano `rgba(...)` e `hsl(...)`; prima il campo del bordo li ignorava.
+- **Componenti trasparenti**: un componente è trasparente dove nessun livello disegna; prima sotto c'era sempre il bianco. I template nuovi nascono ancora con il livello bianco `background`: se lo cancelli o lo nascondi, l'editor mostra una scacchiera, le immagini PNG e WebP con **Sfondo trasparente** sono trasparenti lì, i segnalini di Tabletop Simulator prendono la forma di ciò che è disegnato, e documenti, copertina del progetto e schema del tavolo mostrano quello che c'è sotto. PDF, JPG, mazzi di Tabletop Simulator, tessere e dadi restano su bianco. I template senza un livello di sfondo (fatti a mano o importati da Tabletop Creator) diventano trasparenti in quelle immagini; l'importazione da nanDECK aggiunge un livello bianco `paper`, perché nanDECK disegna su bianco.
 
 ## 1.11.0-beta.2
 

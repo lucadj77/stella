@@ -110,8 +110,8 @@ export default function CardSvg({
             <CardOutline template={outline} />
           )}
         </clipPath>
-        {pasteboard && standee && (
-          // la pedina è trasparente: nell'editor sotto si vede una scacchiera
+        {pasteboard && (
+          // il componente è trasparente dove non c'è niente: nell'editor sotto si vede una scacchiera
           <pattern id={`${uid}-checker`} width={4} height={4} patternUnits="userSpaceOnUse">
             <rect width={4} height={4} fill="#FFFFFF" />
             <rect width={2} height={2} fill="#E4E4E4" />
@@ -135,20 +135,19 @@ export default function CardSvg({
               y={-b}
               width={vw}
               height={vh}
-              fill={standee ? `url(#${uid}-checker)` : '#FFFFFF'}
+              fill={`url(#${uid}-checker)`}
               filter={`url(#${uid}-lift)`}
             />
           ) : (
             <CardOutline
               template={outline}
-              fill={standee ? `url(#${uid}-checker)` : '#FFFFFF'}
+              fill={`url(#${uid}-checker)`}
               filter={`url(#${uid}-lift)`}
             />
           )}
         </>
       )}
       <g clipPath={`url(#${uid}-card)`}>
-        {!standee && <rect x={-b} y={-b} width={vw} height={vh} fill="#FFFFFF" />}
         <g transform={flip}>
           {dieOf(t) === 'd4' && side === 'front' ? (
             <D4Face template={t} uid={uid} editing={!!pasteboard} />

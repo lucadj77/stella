@@ -891,7 +891,7 @@ A esportazione finita, sotto la frase compaiono il numero dei file scritti, gli 
 
 ### 11.1 Immagini
 
-Formato PNG, JPG, WebP o SVG, risoluzione (150, 300, 600 DPI o personalizzata), abbondanza inclusa o no, fronte, retro o entrambi, sfondo trasparente fuori dagli angoli arrotondati. I nomi dei file seguono un modello con `%set`, `%n` (numero del componente), `%copy`, `%side` e `{campo}`; una `/` crea sottocartelle.
+Formato PNG, JPG, WebP o SVG, risoluzione (150, 300, 600 DPI o personalizzata), abbondanza inclusa o no, fronte, retro o entrambi, sfondo trasparente (dove nessun livello disegna e fuori dagli angoli arrotondati; il JPG è sempre su bianco). I nomi dei file seguono un modello con `%set`, `%n` (numero del componente), `%copy`, `%side` e `{campo}`; una `/` crea sottocartelle.
 
 L'SVG è vettoriale e non ha una risoluzione: si ingrandisce senza perdere qualità e si apre nei programmi di grafica (Inkscape, Illustrator, Affinity). Immagini e font del progetto sono dentro il file; i font installati sul computer no, e chi apre il file deve averli. I testi diventano testi SVG, una riga per elemento, quindi si modificano ma non vanno più a capo da soli.
 

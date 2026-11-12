@@ -232,10 +232,12 @@ describe('conversion', () => {
     expect(group.source).toEqual({ kind: 'formula', expr: '={color}="gold"' })
     expect((group.children as RawLayer[])[0]).toMatchObject({ shape: 'ellipse', fill: '#FFD700' })
     // il bordo sta a cavallo del contorno, come in nanDECK; il primo livello è quello disegnato per ultimo
-    const rect = front.filter((l) => l.type === 'shape').at(-1)!
+    const rect = front.filter((l) => l.type === 'shape' && l.name !== 'paper').at(-1)!
+    // sotto tutto, il bianco della carta di nanDECK
+    expect(front.at(-1)).toMatchObject({ name: 'paper', fill: '#FFFFFF', w: 60, h: 90 })
     expect(rect).toMatchObject({ fill: '#FFFFFF', stroke: { color: '#000000', width: 1 }, x: 0 })
     // la carta 4, da sola dopo le altre, è il retro
-    expect(flat(tpl.back)).toHaveLength(1)
+    expect(flat(tpl.back)).toHaveLength(2)
     expect(p.sheets[0].headers).toEqual(['amount', 'name', 'color', 'pic'])
     expect(p.sheets[0].rows.map((r) => r[1])).toEqual(['Ann', 'Bob', 'Cid'])
     expect(p.images.sort()).toEqual(['img/a.png', 'img/b.png'])
@@ -367,7 +369,7 @@ describe('conversion', () => {
     const p = convertNandeck([{ name: 'deck', script: s }])
     const names = flat(p.templates[0].front).map((l) => l.name)
     expect(names).toContain('text_plus')
-    expect(flat(p.templates[0].back).map((l) => l.name)).toEqual(['background_back'])
+    expect(flat(p.templates[0].back).map((l) => l.name)).toEqual(['background_back', 'paper_back'])
     expect(p.sheets[0].rows).toEqual([
       ['2', 'a'],
       ['2', 'b']

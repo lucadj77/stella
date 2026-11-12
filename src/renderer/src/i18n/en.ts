@@ -1523,7 +1523,8 @@ export const en = {
   'export.back': 'Back',
   'export.bothSides': 'Front and back',
   'export.background': 'Corners',
-  'export.transparent': 'Transparent outside the rounded corners',
+  'export.transparent':
+    'Transparent background: where nothing is drawn and outside the rounded corners',
   'export.pattern': 'File names',
   'export.patternHint':
     '%set set, %n component number, %copy copy, %side side, {field} a component field; / makes subfolders',
@@ -1741,7 +1742,7 @@ export const en = {
   'export.svgNoDpi': 'SVG has no resolution',
   'export.otherDpi': 'other…',
   'export.detailsSection': 'Details',
-  'export.transparentShort': 'transparent corners',
+  'export.transparentShort': 'transparent background',
   'export.notJpg': 'not in JPG',
   'export.ttsObject': 'Object in TTS',
   'export.ttsDetails': 'Details',

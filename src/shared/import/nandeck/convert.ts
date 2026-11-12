@@ -101,6 +101,21 @@ function unique(name: string, taken: Set<string>): string {
   return out
 }
 
+/** Il fondo bianco della carta di nanDECK, sotto tutti i livelli */
+function paper(width: number, height: number, name: string, taken: Set<string>): RawLayer {
+  return {
+    type: 'shape',
+    name: unique(name, taken),
+    shape: 'rect',
+    x: 0,
+    y: 0,
+    w: r3(width),
+    h: r3(height),
+    fill: '#FFFFFF',
+    locked: true
+  }
+}
+
 /** Il primo nome libero tra name_1, name_2... */
 function numbered(name: string, taken: Set<string>): string {
   let n = 1
@@ -1472,8 +1487,10 @@ export function convertNandeck(inputs: ScriptInput[]): NandeckProject {
         bleed: 0,
         safeMargin: 3,
         cornerRadius: 0,
-        front: [...values, ...frontLayers],
-        back: backLayers
+        // nanDECK disegna su una carta bianca; in Stella il componente è trasparente dove non c'è
+        // niente: sotto tutti i livelli un rettangolo bianco bloccato, come nei template nuovi
+        front: [...values, ...frontLayers, paper(s.width, s.height, 'paper', layerNames)],
+        back: [...backLayers, paper(s.width, s.height, 'paper_back', layerNames)]
       }
       const label = [...columns.values()].find((c) => /^(nome|name|titolo|title)$/i.test(c))
       if (label) template.labelField = label

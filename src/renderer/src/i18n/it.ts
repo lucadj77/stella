@@ -1548,7 +1548,7 @@ export const it: Record<MessageKey, string> = {
   'export.back': 'Retro',
   'export.bothSides': 'Fronte e retro',
   'export.background': 'Angoli',
-  'export.transparent': 'Trasparente fuori dagli angoli arrotondati',
+  'export.transparent': "Sfondo trasparente: dove non c'è niente e fuori dagli angoli arrotondati",
   'export.pattern': 'Nomi dei file',
   'export.patternHint':
     '%set set, %n numero del componente, %copy copia, %side lato, {campo} un campo del componente; / crea sottocartelle',
@@ -1702,7 +1702,7 @@ export const it: Record<MessageKey, string> = {
   'export.missingImages':
     'Immagini non trovate in assets (o collegamenti non raggiungibili), esportate come segnaposto: {cards}',
   'export.heavyPngs':
-    'Immagini PNG molto pesanti, che possono mancare nell\'esportazione: {images}. Se non hanno parti trasparenti, convertile in JPG.',
+    "Immagini PNG molto pesanti, che possono mancare nell'esportazione: {images}. Se non hanno parti trasparenti, convertile in JPG.",
   'export.livePreview': 'Anteprima',
   'export.enlarge': 'Ingrandisci',
   'export.enlargeHint':
@@ -1769,7 +1769,7 @@ export const it: Record<MessageKey, string> = {
   'export.svgNoDpi': "l'SVG non ha una risoluzione",
   'export.otherDpi': 'altro…',
   'export.detailsSection': 'Dettagli',
-  'export.transparentShort': 'angoli trasparenti',
+  'export.transparentShort': 'sfondo trasparente',
   'export.notJpg': 'non in JPG',
   'export.ttsObject': 'Oggetto in TTS',
   'export.ttsDetails': 'Dettagli',
