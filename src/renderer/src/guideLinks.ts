@@ -1,5 +1,5 @@
 // I link alla guida su GitHub dall'app: la versione pubblicata apre il tag della sua versione
-// (v1.10.2 e così via), così il testo, le ancore delle sezioni e le immagini sono quelli della
+// (per esempio v1.11.0), così il testo, le ancore delle sezioni e le immagini sono quelli della
 // guida che l'app porta con sé per la ricerca. In sviluppo il tag non c'è ancora: si apre main.
 
 import { guideImageUrl, guideSectionUrl, guideUrl, type GuideSection } from '../../shared/donate'
