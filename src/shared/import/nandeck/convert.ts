@@ -58,6 +58,8 @@ interface Built {
   props: Record<string, unknown>
   /** Proprietà principale scritta con i campi ({nome}), uguale per tutte le carte */
   symbolic?: string
+  /** Nome con un numero da 1 (le icone di ICONS: pv_1, pv_2...) */
+  numbered?: boolean
 }
 
 interface Context {
@@ -97,6 +99,14 @@ function unique(name: string, taken: Set<string>): string {
   for (let n = 2; taken.has(out.toLowerCase()); n++) out = `${name}_${n}`
   taken.add(out.toLowerCase())
   return out
+}
+
+/** Il primo nome libero tra name_1, name_2... */
+function numbered(name: string, taken: Set<string>): string {
+  let n = 1
+  while (taken.has(`${name}_${n}`.toLowerCase())) n++
+  taken.add(`${name}_${n}`.toLowerCase())
+  return `${name}_${n}`
 }
 
 // ——— colori ———
@@ -208,6 +218,27 @@ function hintFrom(raw: string, fallback: string): string {
   return fallback
 }
 
+const SYMBOL_NAMES: Record<string, string> = {
+  '+': 'plus',
+  '-': 'minus',
+  '=': 'equals',
+  '/': 'slash',
+  '*': 'star',
+  '?': 'question',
+  '!': 'exclamation',
+  ':': 'colon',
+  '%': 'percent'
+}
+
+/** Nome di un testo fisso: la parola (start), o text_ e il simbolo o la lettera (text_plus, text_x) */
+function textHint(text: string): string {
+  const t = text.trim()
+  if (/^[\p{L}\p{N}_ -]{3,24}$/u.test(t)) return cleanName(t).toLowerCase()
+  if (/^[\p{L}\p{N}]{1,2}$/u.test(t)) return `text_${t.toLowerCase()}`
+  if (SYMBOL_NAMES[t]) return `text_${SYMBOL_NAMES[t]}`
+  return 'text'
+}
+
 /** Nome di un frame usato intero come posizione (<plus_el>), o null */
 function frameHint(raw: string | undefined): string | null {
   const m = /^\s*<\s*([A-Za-z_][\w]*)\s*>\s*$/.exec(raw ?? '')
@@ -238,7 +269,7 @@ function build(
   p: string[],
   sym: string[] | null,
   card: number
-): Built | null {
+): Built | Built[] | null {
   const s = ctx.script
   const raw = op.params
   switch (op.command) {
@@ -271,7 +302,7 @@ function build(
       ctx.fonts.add(font.name)
       return {
         type: 'text',
-        hint: hintFrom(raw[0] ?? '', 'text'),
+        hint: hintFrom(raw[0] ?? '', textHint(unquote(p[0] ?? ''))),
         props,
         symbolic: sym ? fieldsOf(escapeMarkup(unquote(sym[0] ?? ''))) : undefined
       }
@@ -566,32 +597,172 @@ function build(
     case 'ICONS': {
       const g = geometry(ctx, p, 1)
       if (!g) return null
-      const iconH = lengthMm(ctx, p[6], s.heightUnits) || g.h
-      const keys = unquote(p[0] ?? '')
       const keyLen = Math.max(1, Math.round(Number(p[12]) || 1))
-      const text = iconText(ctx, keys, keyLen, /X/i.test(p[8] ?? ''))
-      // un'icona nel testo è alta 1,15 volte il corpo
-      const size = r3(Math.max(4, iconH / 1.15 / PT))
-      return {
-        type: 'text',
-        // non il nome dell'etichetta, che è la colonna dei tasti
-        hint: /\[([^[\]]+)\]/.test(raw[0] ?? '')
-          ? `${hintFrom(raw[0] ?? '', 'icons')}_icons`
-          : 'icons',
-        props: {
-          ...g,
-          text,
-          size,
-          align: textAlign(p[9] || 'center'),
-          valign: textValign(p[10] || 'center').valign,
-          wrap: true,
-          lineHeight: 1
+      const flags = (p[8] ?? '').toUpperCase()
+      const keys = unquote(p[0] ?? '')
+      const hint = /\[([^[\]]+)\]/.test(raw[0] ?? '')
+        ? `${hintFrom(raw[0] ?? '', 'icons')}_icons`
+        : 'icons'
+      const placed = iconLayout(ctx, g, p, keys, keyLen, flags)
+      if (!placed) {
+        // troppe icone per un livello ciascuna: un testo di icone
+        const iconH = lengthMm(ctx, p[6], s.heightUnits) || g.h
+        return {
+          type: 'text',
+          hint,
+          props: {
+            ...g,
+            text: iconText(ctx, keys, keyLen, flags.includes('X')),
+            // un'icona nel testo è alta 1,15 volte il corpo
+            size: r3(Math.max(4, iconH / 1.15 / PT)),
+            align: textAlign(p[9] || 'center'),
+            valign: textValign(p[10] || 'center').valign,
+            wrap: true,
+            lineHeight: 1
+          }
         }
       }
+      // un livello immagine per ogni posto, con un numero; il nome dall'etichetta dei tasti
+      // (coll_1, coll_2) o dall'icona, se è sempre la stessa (pv_1, pv_2)
+      const vars = new Set(placed.map((i) => i.variable))
+      const iconHint = hint.endsWith('_icons')
+        ? hint.slice(0, -'_icons'.length)
+        : vars.size === 1
+          ? [...vars][0]
+          : hint
+      return placed.map((i) => {
+        const props: Record<string, unknown> = {
+          x: r3(i.x),
+          y: r3(i.y),
+          w: r3(i.w),
+          h: r3(i.h),
+          src: i.variable,
+          fit: flags.includes('P') ? 'contain' : 'stretch',
+          missing: 'hide'
+        }
+        if (i.rotation) props.rotation = i.rotation
+        const alpha = evalNumber(p[11] ?? '')
+        if (alpha !== null && alpha < 100) props.opacity = r3(Math.max(0, alpha) / 100)
+        return { type: 'image', hint: iconHint, props, numbered: true }
+      })
     }
     default:
       return null
   }
+}
+
+/** Un'icona di ICONS al suo posto: riquadro sulla carta e variabile dell'immagine */
+interface PlacedIcon {
+  x: number
+  y: number
+  w: number
+  h: number
+  variable: string
+  rotation: number
+}
+
+/** Le icone di una riga di ICONS, con i tasti lunghi keyLen (o variabili, flag X) */
+function iconRows(ctx: Context, keys: string, len: number, variable: boolean): string[][] {
+  const known = [...ctx.iconVars.keys()].sort((a, b) => b.length - a.length)
+  const rows: string[][] = [[]]
+  let i = 0
+  while (i < keys.length) {
+    const ch = keys[i]
+    const n = variable ? 1 : len
+    if ('<>_+'.includes(ch) && keys.slice(i, i + n) === ch.repeat(n)) {
+      if (ch === '>') rows.push([])
+      i += n
+      continue
+    }
+    const key = variable
+      ? known.find((k) => keys.startsWith(k, i))
+      : ctx.iconVars.has(keys.slice(i, i + len))
+        ? keys.slice(i, i + len)
+        : undefined
+    // un carattere senza icona (uno spazio) lascia il suo posto vuoto
+    rows[rows.length - 1].push(key ? ctx.iconVars.get(key)! : '')
+    i += key ? key.length : n
+  }
+  return rows
+}
+
+/**
+ * Posti delle icone di ICONS come li calcola nanDECK: ogni icona ha uno spazio largo il fattore
+ * di larghezza per la sua larghezza (15° parametro, 100 di base) e alto il fattore di altezza per
+ * la sua altezza; l'immagine sta al centro dello spazio. Le righe vanno a capo quando non entrano
+ * nel riquadro (non con il flag L) e si allineano come dicono i parametri 11 e 12; con W (e H)
+ * la prima e l'ultima icona toccano i lati del riquadro. Con P e un angolo l'icona si riduce
+ * perché, girata, stia nel suo spazio (non con il flag G). null: troppe icone, meglio un testo.
+ */
+function iconLayout(
+  ctx: Context,
+  g: Geometry,
+  p: string[],
+  keys: string,
+  keyLen: number,
+  flags: string
+): PlacedIcon[] | null {
+  const s = ctx.script
+  const objW = lengthMm(ctx, p[5]) || g.h
+  const objH = lengthMm(ctx, p[6], s.heightUnits) || objW
+  const wf = (evalNumber(p[13] ?? '') ?? 100) / 100 || 1
+  const hf = (evalNumber(p[14] ?? '') ?? 100) / 100 || 1
+  const angle = evalNumber(p[7] ?? '') ?? 0
+  const a = (angle * Math.PI) / 180
+  const shrink =
+    angle && flags.includes('P') && !flags.includes('G')
+      ? 1 / (Math.abs(Math.cos(a)) + Math.abs(Math.sin(a)))
+      : 1
+  const iw = objW * shrink
+  const ih = objH * shrink
+  const stepX = objW * wf
+  const stepY = objH * hf
+  let rows = iconRows(ctx, keys, keyLen, flags.includes('X'))
+  if (flags.includes('R')) rows = rows.map((r) => [...r].reverse()).reverse()
+  // a capo quando la riga non entra (con L resta una riga sola)
+  if (!flags.includes('L') && !flags.includes('W')) {
+    const perRow = Math.max(1, Math.floor(g.w / stepX + 1e-6))
+    rows = rows.flatMap((r) => {
+      const out: string[][] = []
+      for (let i = 0; i < r.length; i += perRow) out.push(r.slice(i, i + perRow))
+      return out.length ? out : [[]]
+    })
+  }
+  const count = rows.reduce((n, r) => n + r.length, 0)
+  if (!count || count > 12) return null
+  const halign = textAlign(p[9] || 'center')
+  const valign = textValign(p[10] || 'center').valign
+  // centri lungo un lato: allineati come dice il parametro, o distribuiti (W, H)
+  const centers = (
+    n: number,
+    start: number,
+    size: number,
+    step: number,
+    item: number,
+    align: string,
+    spread: boolean
+  ): number[] => {
+    if (spread && n > 1)
+      return Array.from({ length: n }, (_, k) => start + item / 2 + ((size - item) * k) / (n - 1))
+    const total = n * step
+    const from =
+      align === 'left' || align === 'top'
+        ? start
+        : align === 'right' || align === 'bottom'
+          ? start + size - total
+          : start + (size - total) / 2
+    return Array.from({ length: n }, (_, k) => from + step * (k + 0.5))
+  }
+  const ys = centers(rows.length, g.y, g.h, stepY, ih, valign, flags.includes('H'))
+  const rot = rotation(-angle)
+  const out: PlacedIcon[] = []
+  rows.forEach((r, ri) => {
+    const xs = centers(r.length, g.x, g.w, stepX, iw, halign, flags.includes('W'))
+    r.forEach((variable, k) =>
+      out.push({ x: xs[k] - iw / 2, y: ys[ri] - ih / 2, w: iw, h: ih, variable, rotation: rot })
+    )
+  })
+  return out
 }
 
 /**
@@ -789,6 +960,126 @@ interface LayerOut {
   groups: { id: number; opacity: number }[]
   /** Nome dell'etichetta dell'intervallo ([ob] → ob), per il nome del gruppo */
   rangeName: string | null
+}
+
+/**
+ * Immagini nello stesso posto mostrate da condizioni che si escludono (IF ... ELSEIF ... ELSE):
+ * una sola immagine con la formula =IF(cond1; "a.png"; IF(cond2; "b.png"; "")), al posto di
+ * un gruppo per ogni ramo. Solo se su ogni carta vale al più una condizione.
+ */
+function mergeChoices(items: LayerOut[], fields: Record<string, string>[]): LayerOut[] {
+  const geometryOf = (l: RawLayer): string => {
+    const rest: Record<string, unknown> = { ...l }
+    delete rest.name
+    delete rest.src
+    delete rest.missing
+    return JSON.stringify(rest)
+  }
+  const mergeable = (o: LayerOut): boolean =>
+    o.layer.type === 'image' &&
+    !!o.formula &&
+    typeof o.layer.src === 'string' &&
+    !String(o.layer.src).includes('{') &&
+    !o.groups.length
+  const out: LayerOut[] = []
+  let i = 0
+  while (i < items.length) {
+    let j = i
+    if (mergeable(items[i]))
+      while (
+        j + 1 < items.length &&
+        mergeable(items[j + 1]) &&
+        geometryOf(items[j + 1].layer) === geometryOf(items[i].layer)
+      )
+        j++
+    const run = items.slice(i, j + 1)
+    const exclusive =
+      run.length > 1 &&
+      fields.every(
+        (f) =>
+          run.filter((o) => evaluateFormula(`=${o.formula}`, f).value.toUpperCase() === 'TRUE')
+            .length <= 1
+      )
+    if (!exclusive) {
+      out.push(items[i])
+      i++
+      continue
+    }
+    // in un ramo ELSEIF le condizioni dei rami prima (NOT(...)) le fa già il SE annidato
+    const own: string[] = []
+    for (const o of run) {
+      const f = o.formula!
+      const args =
+        f.startsWith('AND(') && f.endsWith(')') && balanced(f.slice(4, -1))
+          ? topLevelArgs(f.slice(4, -1))
+          : [f]
+      const kept = args.filter((x) => !own.some((prev) => x === `NOT(${prev})`))
+      own.push(kept.length === 1 ? kept[0] : `AND(${kept.join('; ')})`)
+    }
+    const expr = run.reduceRight(
+      (rest, o, k) => `IF(${own[k]}; "${String(o.layer.src)}"; ${rest})`,
+      '""'
+    )
+    // la formula unica deve dare, carta per carta, l'immagine del ramo vero
+    const same = fields.every((f) => {
+      const hit = run.find(
+        (o) => evaluateFormula(`=${o.formula}`, f).value.toUpperCase() === 'TRUE'
+      )
+      return evaluateFormula(`=${expr}`, f).value === (hit ? String(hit.layer.src) : '')
+    })
+    if (!same) {
+      out.push(items[i])
+      i++
+      continue
+    }
+    const layer: RawLayer = { ...run[0].layer }
+    delete layer.src
+    out.push({
+      ...run[0],
+      layer: { ...layer, src: '', source: { kind: 'formula', expr: `=${expr}` }, missing: 'hide' },
+      formula: null
+    })
+    i = j + 1
+  }
+  return out
+}
+
+/** Argomenti di una funzione separati da ; al primo livello (fuori da parentesi e virgolette) */
+function topLevelArgs(t: string): string[] {
+  const out: string[] = []
+  let depth = 0
+  let quoted = false
+  let cur = ''
+  for (const ch of t) {
+    if (ch === '"') quoted = !quoted
+    else if (!quoted && ch === '(') depth++
+    else if (!quoted && ch === ')') depth--
+    if (!quoted && depth === 0 && ch === ';') {
+      out.push(cur.trim())
+      cur = ''
+    } else cur += ch
+  }
+  out.push(cur.trim())
+  return out
+}
+
+/** La lunghezza del blocco che, ripetuto, dà tutto l'elenco (l'elenco intero se non c'è) */
+function repeatPeriod(keys: string[]): number {
+  const n = keys.length
+  for (let p = 1; p < n; p++) if (n % p === 0 && keys.every((k, i) => k === keys[i % p])) return p
+  return n
+}
+
+/** Parentesi bilanciate (fuori dalle virgolette) */
+function balanced(t: string): boolean {
+  let depth = 0
+  let quoted = false
+  for (const ch of t) {
+    if (ch === '"') quoted = !quoted
+    else if (!quoted && ch === '(') depth++
+    else if (!quoted && ch === ')' && --depth < 0) return false
+  }
+  return depth === 0
 }
 
 /** Gruppi di carte collegate da comandi comuni (unione di insiemi) */
@@ -989,148 +1280,177 @@ export function convertNandeck(inputs: ScriptInput[]): NandeckProject {
         })
       }
 
-      const convertSide = (cards: number[], rowsIndex: (c: number) => number): LayerOut[] => {
+      const convertSide = (
+        cards: number[],
+        rowsIndex: (c: number) => number,
+        isBack = false
+      ): LayerOut[] => {
         const out: LayerOut[] = []
         for (const op of s.ops) {
           const on = new Set(active.get(op.id))
           const here = cards.filter((c) => on.has(c))
           if (!here.length) continue
-          const built: (Built | null)[] = here.map((c) => {
+          const builtAll: (Built | Built[] | null)[] = here.map((c) => {
             try {
               return build(ctx, op, s.resolveParams(op, c), s.resolveParams(op, c, keep), c)
             } catch {
               return null
             }
           })
-          const okIdx = built.map((b, i) => (b ? i : -1)).filter((i) => i >= 0)
-          if (!okIdx.length) {
-            s.skipped.push({ file: op.file, line: op.line, text: op.text, reason: 'syntax' })
-            continue
-          }
-          const firstBuilt = built[okIdx[0]]!
-          // un'immagine con il nome di una colonna lo prende con _img (muro → muro_img)
-          const layerName = unique(
-            firstBuilt.type === 'image' && layerNames.has(firstBuilt.hint.toLowerCase())
-              ? `${firstBuilt.hint}_img`
-              : firstBuilt.hint,
-            layerNames
-          )
-          const layer: RawLayer = { type: firstBuilt.type, name: layerName }
-          const mainKey =
-            firstBuilt.type === 'text' ? 'text' : firstBuilt.type === 'image' ? 'src' : 'fill'
-          // proprietà uguali per tutte le carte nel template, le altre nel foglio
-          const keys = new Set(okIdx.flatMap((i) => Object.keys(built[i]!.props)))
-          // i campi nel valore prendono il nome della colonna dei dati ({nome} → {NOME})
-          const symbolic = okIdx.map((i) =>
-            built[i]!.symbolic?.replace(
-              /\{([^{}\s]+)\}/g,
-              (_m, n: string) => `{${byClean.get(n.toLowerCase()) ?? n}}`
+          // ICONS dà un livello per ogni posto: il posto k di ogni carta è un livello; dove una
+          // carta ha meno icone, il posto resta vuoto
+          const slots = Math.max(1, ...builtAll.map((b) => (Array.isArray(b) ? b.length : 1)))
+          for (let slot = 0; slot < slots; slot++) {
+            const sample = builtAll.map((b) => (Array.isArray(b) ? b[slot] : null)).find((b) => !!b)
+            const built: (Built | null)[] = builtAll.map((b) =>
+              !Array.isArray(b)
+                ? b
+                : (b[slot] ?? (sample ? { ...sample, props: { ...sample.props, src: '' } } : null))
             )
-          )
-          // il valore con i campi vale solo se, con i dati di ogni carta, dà lo stesso testo
-          const fill = (t: string, fields: Record<string, string>): string =>
-            t.replace(/\{([^{}\s]+)\}/g, (m, n: string) => fields[n] ?? m)
-          const mainOf = (b: Built): unknown =>
-            b.props[b.type === 'text' ? 'text' : b.type === 'image' ? 'src' : 'fill']
-          const sameSymbolic =
-            symbolic[0] !== undefined &&
-            !symbolic[0].includes(NOT_SYMBOLIC) &&
-            symbolic.every((x) => x === symbolic[0]) &&
-            okIdx.every(
-              (i) => fill(symbolic[0]!, cardFields[rowsIndex(here[i])] ?? {}) === mainOf(built[i]!)
-            )
-          for (const key of keys) {
-            const values = okIdx.map((i) => built[i]!.props[key])
-            if (key === 'missing') {
-              if (values.includes('hide')) layer.missing = 'hide'
+            const okIdx = built.map((b, i) => (b ? i : -1)).filter((i) => i >= 0)
+            if (!okIdx.length) {
+              if (slot === 0)
+                s.skipped.push({ file: op.file, line: op.line, text: op.text, reason: 'syntax' })
               continue
             }
-            const same = values.every((v) => JSON.stringify(v) === JSON.stringify(values[0]))
-            if (key === mainKey && sameSymbolic && symbolic[0] !== values[0]) {
-              layer[key] = symbolic[0]
-              continue
-            }
-            if (same || cards.length === 1) {
-              // una proprietà da un campo prende il nome della colonna, come i testi
-              if (key !== mainKey && typeof values[0] === 'string' && values[0].includes('{'))
-                layer[key] = values[0].replace(
-                  /\{([^{}\s]+)\}/g,
-                  (_m, n: string) => `{${byClean.get(n.toLowerCase()) ?? n}}`
+            const firstBuilt = built[okIdx[0]]!
+            // un'immagine con il nome di una colonna lo prende con _img (muro → muro_img)
+            const layerName = firstBuilt.numbered
+              ? numbered(firstBuilt.hint, layerNames)
+              : unique(
+                  firstBuilt.type === 'image' && layerNames.has(firstBuilt.hint.toLowerCase())
+                    ? `${firstBuilt.hint}_img`
+                    : // sul retro un nome già usato sul fronte prende _back (background_back)
+                      isBack && layerNames.has(firstBuilt.hint.toLowerCase())
+                      ? `${firstBuilt.hint}_back`
+                      : firstBuilt.hint,
+                  layerNames
                 )
-              else if (values[0] !== undefined) layer[key] = values[0]
-              continue
-            }
-            const header = key === mainKey ? layerName : `${layerName}.${key}`
-            const cell = (v: unknown): string | null =>
-              v === undefined || v === null
-                ? key === 'fill' || key === 'stroke'
-                  ? 'none'
-                  : ''
-                : typeof v === 'object'
-                  ? 'color' in (v as object) && 'width' in (v as object) && key === 'stroke'
-                    ? `${(v as { color: string }).color}/${(v as { width: number }).width}`
-                    : key === 'crop'
-                      ? ['x', 'y', 'w', 'h']
-                          .map((k) => formatNumber(r3((v as Record<string, number>)[k] * 100)))
-                          .join(' ')
-                      : null
-                  : String(v)
-            if (values.some((v) => cell(v) === null)) {
-              // proprietà composte che cambiano: vale la prima carta
+            const layer: RawLayer = { type: firstBuilt.type, name: layerName }
+            const mainKey =
+              firstBuilt.type === 'text' ? 'text' : firstBuilt.type === 'image' ? 'src' : 'fill'
+            // proprietà uguali per tutte le carte nel template, le altre nel foglio
+            const keys = new Set(okIdx.flatMap((i) => Object.keys(built[i]!.props)))
+            // i campi nel valore prendono il nome della colonna dei dati ({nome} → {NOME})
+            const symbolic = okIdx.map((i) =>
+              built[i]!.symbolic?.replace(
+                /\{([^{}\s]+)\}/g,
+                (_m, n: string) => `{${byClean.get(n.toLowerCase()) ?? n}}`
+              )
+            )
+            // il valore con i campi vale solo se, con i dati di ogni carta, dà lo stesso testo
+            const fill = (t: string, fields: Record<string, string>): string =>
+              t.replace(/\{([^{}\s]+)\}/g, (m, n: string) => fields[n] ?? m)
+            const mainOf = (b: Built): unknown =>
+              b.props[b.type === 'text' ? 'text' : b.type === 'image' ? 'src' : 'fill']
+            const sameSymbolic =
+              symbolic[0] !== undefined &&
+              !symbolic[0].includes(NOT_SYMBOLIC) &&
+              symbolic.every((x) => x === symbolic[0]) &&
+              okIdx.every(
+                (i) =>
+                  fill(symbolic[0]!, cardFields[rowsIndex(here[i])] ?? {}) === mainOf(built[i]!)
+              )
+            for (const key of keys) {
+              const values = okIdx.map((i) => built[i]!.props[key])
+              if (key === 'missing') {
+                if (values.includes('hide')) layer.missing = 'hide'
+                continue
+              }
+              const same = values.every((v) => JSON.stringify(v) === JSON.stringify(values[0]))
+              if (key === mainKey && sameSymbolic && symbolic[0] !== values[0]) {
+                layer[key] = symbolic[0]
+                continue
+              }
+              if (same || cards.length === 1) {
+                // una proprietà da un campo prende il nome della colonna, come i testi
+                if (key !== mainKey && typeof values[0] === 'string' && values[0].includes('{'))
+                  layer[key] = values[0].replace(
+                    /\{([^{}\s]+)\}/g,
+                    (_m, n: string) => `{${byClean.get(n.toLowerCase()) ?? n}}`
+                  )
+                else if (values[0] !== undefined) layer[key] = values[0]
+                continue
+              }
+              const header = key === mainKey ? layerName : `${layerName}.${key}`
+              const cell = (v: unknown): string | null =>
+                v === undefined || v === null
+                  ? key === 'fill' || key === 'stroke'
+                    ? 'none'
+                    : ''
+                  : typeof v === 'object'
+                    ? 'color' in (v as object) && 'width' in (v as object) && key === 'stroke'
+                      ? `${(v as { color: string }).color}/${(v as { width: number }).width}`
+                      : key === 'crop'
+                        ? ['x', 'y', 'w', 'h']
+                            .map((k) => formatNumber(r3((v as Record<string, number>)[k] * 100)))
+                            .join(' ')
+                        : null
+                    : String(v)
+              if (values.some((v) => cell(v) === null)) {
+                // proprietà composte che cambiano: vale la prima carta
+                if (values[0] !== undefined) layer[key] = values[0]
+                note(ctx, 'nandeck.note.firstCard', `${layerName}.${key}`)
+                continue
+              }
+              // il template tiene il valore della prima carta, il foglio quello di ognuna
               if (values[0] !== undefined) layer[key] = values[0]
-              note(ctx, 'nandeck.note.firstCard', `${layerName}.${key}`)
-              continue
+              okIdx.forEach((i) => addCell(header, rowsIndex(here[i]), cell(built[i]!.props[key])!))
             }
-            // il template tiene il valore della prima carta, il foglio quello di ognuna
-            if (values[0] !== undefined) layer[key] = values[0]
-            okIdx.forEach((i) => addCell(header, rowsIndex(here[i]), cell(built[i]!.props[key])!))
+            // visibilità
+            let formula: string | null = null
+            if (here.length < cards.length) {
+              const parts: string[] = []
+              let ok = true
+              const rf = rangeFormula(s, op, op.rangeText, cards, columns)
+              if (rf === null) ok = false
+              else if (rf) parts.push(rf)
+              for (const c of op.conditions) {
+                const f = conditionFormula(c.text, c.negated, columns)
+                if (f === null) ok = false
+                else parts.push(f)
+              }
+              if (ok && parts.length) {
+                const expr = parts.length === 1 ? `=${parts[0]}` : `=AND(${parts.join('; ')})`
+                // la formula deve dare le stesse carte dell'intervallo
+                const onSet = new Set(here)
+                const matches = cards.every((c) => {
+                  const r = evaluateFormula(expr, cardFields[rowsIndex(c)] ?? {})
+                  return (r.value.toUpperCase() === 'TRUE') === onSet.has(c)
+                })
+                if (matches) formula = parts.length === 1 ? parts[0] : `AND(${parts.join('; ')})`
+              }
+              if (!formula) {
+                const header = `${layerName}.visible`
+                cards.forEach((c) =>
+                  addCell(header, rowsIndex(c), onSet(here, c) ? 'true' : 'false')
+                )
+              }
+            }
+            const rangeLabel = /^[^=]*=\s*\[([^\][]+)\]\s*,/.exec(op.text)?.[1]?.trim()
+            out.push({
+              layer,
+              formula,
+              groups: op.layers,
+              rangeName:
+                rangeLabel && rangeLabel.toLowerCase() !== 'all' ? cleanName(rangeLabel) : null
+            })
           }
-          // visibilità
-          let formula: string | null = null
-          if (here.length < cards.length) {
-            const parts: string[] = []
-            let ok = true
-            const rf = rangeFormula(s, op, op.rangeText, cards, columns)
-            if (rf === null) ok = false
-            else if (rf) parts.push(rf)
-            for (const c of op.conditions) {
-              const f = conditionFormula(c.text, c.negated, columns)
-              if (f === null) ok = false
-              else parts.push(f)
-            }
-            if (ok && parts.length) {
-              const expr = parts.length === 1 ? `=${parts[0]}` : `=AND(${parts.join('; ')})`
-              // la formula deve dare le stesse carte dell'intervallo
-              const onSet = new Set(here)
-              const matches = cards.every((c) => {
-                const r = evaluateFormula(expr, cardFields[rowsIndex(c)] ?? {})
-                return (r.value.toUpperCase() === 'TRUE') === onSet.has(c)
-              })
-              if (matches) formula = parts.length === 1 ? parts[0] : `AND(${parts.join('; ')})`
-            }
-            if (!formula) {
-              const header = `${layerName}.visible`
-              cards.forEach((c) => addCell(header, rowsIndex(c), onSet(here, c) ? 'true' : 'false'))
-            }
-          }
-          const rangeLabel = /^[^=]*=\s*\[([^\][]+)\]\s*,/.exec(op.text)?.[1]?.trim()
-          out.push({
-            layer,
-            formula,
-            groups: op.layers,
-            rangeName:
-              rangeLabel && rangeLabel.toLowerCase() !== 'all' ? cleanName(rangeLabel) : null
-          })
         }
-        return out
+        return mergeChoices(
+          out,
+          cards.map((c) => cardFields[rowsIndex(c)] ?? {})
+        )
       }
 
       const index = new Map(part.cards.map((c, i) => [c, i]))
       const front = convertSide(part.cards, (c) => index.get(c)!)
       const back =
         partIndex === 0 && backIndex > 0
-          ? convertSide(groups[backIndex], (c) =>
-              groups[backIndex].length === 1 ? 0 : groups[backIndex].indexOf(c)
+          ? convertSide(
+              groups[backIndex],
+              (c) => (groups[backIndex].length === 1 ? 0 : groups[backIndex].indexOf(c)),
+              true
             )
           : []
       report.cards += part.cards.length
@@ -1175,6 +1495,14 @@ export function convertNandeck(inputs: ScriptInput[]): NandeckProject {
           amounts.push(1)
         }
         prev = key
+      }
+      // tutto il mazzo ripetuto k volte (autorange({(x)*2})): una riga per carta con k copie
+      const period = repeatPeriod(sheetRows.map((r, i) => JSON.stringify([r, amounts[i]])))
+      if (period < sheetRows.length) {
+        const times = sheetRows.length / period
+        sheetRows.splice(period)
+        amounts.splice(period)
+        for (let i = 0; i < period; i++) amounts[i] *= times
       }
       sheets.push({
         name: sheetName,
