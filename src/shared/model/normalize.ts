@@ -154,7 +154,31 @@ export type RawChanges = Omit<TemplateChanges, 'added'> & {
   added?: (Omit<AddedLayer, 'layer'> & { layer: RawLayer })[]
 }
 
+/** Un testo al posto di un numero o di un sì/no: un campo ({or}) o una formula (=...) */
+export function isBinding(v: unknown): v is string {
+  return typeof v === 'string' && /^\s*(=\S|.*\{[^{}]+\})/s.test(v)
+}
+
 export function normalizeLayer(raw: RawLayer, index: number): Layer {
+  const layer = normalizeLayerProps(raw, index)
+  // le proprietà numeriche o sì/no scritte con un campo: il valore di base nel livello, il
+  // testo in bound (i colori e i testi accettano già i campi)
+  const defaults: Record<string, unknown> = { ...BASE_DEFAULTS, ...TYPE_DEFAULTS[layer.type] }
+  const values = layer as unknown as Record<string, unknown>
+  const bound: Record<string, string> = { ...(layer.bound ?? {}) }
+  for (const [k, v] of Object.entries(values)) {
+    const d = defaults[k]
+    if ((typeof d === 'number' || typeof d === 'boolean') && isBinding(v)) {
+      bound[k] = v.trim()
+      values[k] = d
+    }
+  }
+  if (Object.keys(bound).length) layer.bound = bound
+  else delete layer.bound
+  return layer
+}
+
+function normalizeLayerProps(raw: RawLayer, index: number): Layer {
   const base = {
     ...BASE_DEFAULTS,
     id: raw.id ?? newId(),
@@ -402,7 +426,15 @@ export function denormalizeLayer(l: Layer): RawLayer {
   const defaults: Record<string, unknown> = { ...BASE_DEFAULTS, ...TYPE_DEFAULTS[l.type] }
   const out: RawLayer = { type: l.type, name: l.name }
   for (const [k, v] of Object.entries(l)) {
-    if (k === 'id' || k === 'type' || k === 'name' || k === 'children' || k === 'groups') continue
+    if (
+      k === 'id' ||
+      k === 'type' ||
+      k === 'name' ||
+      k === 'children' ||
+      k === 'groups' ||
+      k === 'bound'
+    )
+      continue
     // il riquadro di un gruppo si ricava dai figli
     // (salvo con la disposizione automatica, dove è il riquadro in cui si dispongono)
     const fitted = l.type === 'value' || (l.type === 'group' && !isArranged(l))
@@ -414,6 +446,8 @@ export function denormalizeLayer(l: Layer): RawLayer {
     if (!frame && k in defaults && JSON.stringify(value) === JSON.stringify(defaults[k])) continue
     out[k] = value
   }
+  // le proprietà dai campi si scrivono al posto del valore: "rotation": "{or}"
+  for (const [k, v] of Object.entries(l.bound ?? {})) if (v.trim()) out[k] = v
   if (l.type === 'group') out.children = l.children.map(denormalizeLayer)
   if (l.type === 'grid' && l.groups.length) out.groups = l.groups.map(denormalizeLayer)
   return out

@@ -510,6 +510,8 @@ A layer with the **Spill out of the box** fit is marked _fixed size_: its text i
 
 Besides the main value, every property of a layer can change from one component to another with a `layer.property` column: for example `name.color` for the title color, or `icon.tint` for the tint of an icon. **+ Field** suggests the columns the template reads and the sheet lacks, the properties of a layer of your choice, or a free column.
 
+When a number property should follow a column you already have, you don't need to copy it: in the template's **X**, **Y**, width, height, **Rotation** and **Opacity** fields you can type a field in braces, like `{orientation}`, or a formula starting with `=`. Each component takes the value from its field, and typing a number again removes the field.
+
 ![The window to add a column](img/aggiungi-colonna.png)
 
 In cells, colors are written as names (`red`, or the name of a color variable) or in hex (`#A33A2A`); a stroke as `color/width/dash`, for example `red/0.3/dashed`; a crop as `x y width height` in percent of the image, for example `10 0 50 50` (`none` for the whole image). In the component form the **Crop…** button next to the crop field writes these numbers for you.

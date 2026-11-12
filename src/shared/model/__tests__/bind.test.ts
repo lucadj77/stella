@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { bindCard, cellFields, parseValue, rowToCard, substituteFields } from '../bind'
-import { normalizeTemplate } from '../normalize'
+import { denormalizeTemplate, normalizeTemplate } from '../normalize'
 import type { GridLayer, ImageLayer, ShapeLayer, TextLayer } from '../template'
 import { gridGeometry } from '../grid'
 
@@ -624,5 +624,51 @@ describe('variabili con il nome di un campo', () => {
       'bind.variableIsLayer:punti',
       'bind.variableIsColumn:forza'
     ])
+  })
+})
+
+describe('properties from fields', () => {
+  const t = normalizeTemplate({
+    name: 't',
+    front: [
+      { type: 'value', name: 'or' },
+      {
+        type: 'image',
+        name: 'muro',
+        src: 'a.png',
+        rotation: '{or}',
+        opacity: '=IF({or} > 90; 0.5; 1)',
+        visible: '{show}'
+      }
+    ]
+  } as never)
+
+  it('keeps the field in bound and writes it back in place of the value', () => {
+    const l = t.front[1]
+    expect(l.rotation).toBe(0)
+    expect(l.bound).toEqual({
+      rotation: '{or}',
+      opacity: '=IF({or} > 90; 0.5; 1)',
+      visible: '{show}'
+    })
+    const raw = denormalizeTemplate(t).front![1]
+    expect(raw).toMatchObject({ rotation: '{or}', visible: '{show}' })
+    expect(raw).not.toHaveProperty('bound')
+  })
+
+  it('reads the fields of the card, and a column wins', () => {
+    const at = (headers: string[], row: string[]): ImageLayer =>
+      bindCard(t, rowToCard(headers, row)).template.front[1] as ImageLayer
+    const a = at(['or', 'show'], ['270', 'false'])
+    expect(a).toMatchObject({ rotation: 270, opacity: 0.5, visible: false })
+    // campo vuoto: il valore del template
+    expect(at(['or', 'show'], ['', 'true'])).toMatchObject({ rotation: 0, visible: true })
+    expect(at(['or', 'show', 'muro.rotation'], ['90', 'true', '45']).rotation).toBe(45)
+    const t2 = normalizeTemplate({
+      name: 't2',
+      front: [{ type: 'image', name: 'a', src: 'a.png', rotation: '{nope}' }]
+    } as never)
+    const missing = bindCard(t2, rowToCard(['show'], ['true']))
+    expect(missing.problems.map((p) => p.key)).toContain('bind.boundField')
   })
 })

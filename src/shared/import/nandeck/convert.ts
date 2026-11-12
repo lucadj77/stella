@@ -360,7 +360,12 @@ function build(
       // le immagini girano nello stesso verso in nanDECK e in Stella (verificato sulle carte
       // salvate da nanDECK), il testo invece nel verso opposto
       const rot = rotation(-(evalNumber(p[5] ?? '') ?? 0))
-      if (rot) props.rotation = rot
+      // un angolo che è solo un campo ([or]) resta un campo: "rotation": "{or}"
+      const rotField = new RegExp(`^\\s*${KEEP_OPEN}[^${KEEP_CLOSE}]*${KEEP_CLOSE}\\s*$`).test(
+        sym?.[5] ?? ''
+      )
+      if (rotField && evalNumber(p[5] ?? '') !== null) props.rotation = fieldsOf(sym![5].trim())
+      else if (rot) props.rotation = rot
       const alpha = evalNumber(p[7] ?? '')
       if (alpha !== null && alpha < 100) props.opacity = r3(Math.max(0, alpha) / 100)
       if (flags.includes('G')) props.grayscale = true
@@ -957,7 +962,13 @@ export function convertNandeck(inputs: ScriptInput[]): NandeckProject {
               continue
             }
             if (same || cards.length === 1) {
-              if (values[0] !== undefined) layer[key] = values[0]
+              // una proprietà da un campo prende il nome della colonna, come i testi
+              if (key !== mainKey && typeof values[0] === 'string' && values[0].includes('{'))
+                layer[key] = values[0].replace(
+                  /\{([^{}\s]+)\}/g,
+                  (_m, n: string) => `{${byClean.get(n.toLowerCase()) ?? n}}`
+                )
+              else if (values[0] !== undefined) layer[key] = values[0]
               continue
             }
             const header = key === mainKey ? layerName : `${layerName}.${key}`

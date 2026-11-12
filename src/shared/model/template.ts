@@ -87,6 +87,12 @@ export interface LayerBase {
   exposed: string[]
   source: ValueSource
   /**
+   * Proprietà che vengono dai campi della carta, come le colonne livello.proprietà ma scritte nel
+   * template: { rotation: "{or}" } o una formula con = ({ opacity: "=IF({rara}; 1; 0.5)" }). Nel
+   * file stanno al posto del valore: "rotation": "{or}". Una colonna livello.proprietà vince.
+   */
+  bound?: Record<string, string>
+  /**
    * Snap point di Tabletop Simulator al centro del livello (in ogni casella per le griglie);
    * assente o null: nessuno
    */

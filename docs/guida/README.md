@@ -510,6 +510,8 @@ Un livello con l'adattamento **Esce dal riquadro** ha accanto _corpo fisso_: il 
 
 Oltre al valore principale, ogni proprietà di un livello può cambiare da un componente all'altro con una colonna `livello.proprietà`: per esempio `nome.color` per il colore del titolo o `icona.tint` per la colorazione di un'icona. **+ Campo** propone le colonne che il template legge e che mancano nel foglio, le proprietà di un livello a scelta, o una colonna libera.
 
+Quando una proprietà numerica deve seguire una colonna che c'è già, non serve copiarla: nei campi **X**, **Y**, larghezza, altezza, **Rotazione** e **Opacità** del template si può scrivere un campo tra graffe, come `{orientamento}`, o una formula che inizia con `=`. Ogni componente prende il valore dal suo campo, e scrivere di nuovo un numero toglie il campo.
+
 ![La finestra per aggiungere una colonna](img/aggiungi-colonna.png)
 
 Nelle celle i colori si scrivono come nomi (`red`, o il nome di una variabile colore) o in esadecimale (`#A33A2A`); un contorno come `colore/spessore/tratteggio`, per esempio `red/0.3/dashed`; un ritaglio come `x y larghezza altezza` in percentuale dell'immagine, per esempio `10 0 50 50` (`none` per l'immagine intera). Nel modulo del componente il pulsante **Ritaglia…** accanto al campo del ritaglio scrive questi numeri al posto tuo.

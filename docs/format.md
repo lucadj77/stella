@@ -100,7 +100,7 @@ A card field with the same name as a variable wins over the variable.
 
 - The first row holds the headers; every following row is a card.
 - `amount` is the number of copies (1 when empty or missing).
-- A header with the name of a template layer replaces its value; `layer.property` replaces another property (for example `name.color`).
+- A header with the name of a template layer replaces its value; `layer.property` replaces another property (for example `name.color`). The column wins over a property written with a field in the template (see below).
 - Empty cells keep the template value.
 - `field@language` (for example `name@it`, `name.size@it`) is the translation of `field` into one of the project languages: it applies only when the cards are shown in that language, and an empty cell keeps the value of the main language.
 
@@ -160,6 +160,10 @@ One JSON file per template in `templates/`. Units are millimetres, text size is 
 - A `group` with `layout` (`row`, `column`, `grid`) or with `repeat` other than 1 saves its own box (`x`, `y`, `w`, `h`): the children are laid out inside it with `gap`, `columns`, `justify` and `alignItems` (`start`, `center`, `end`). `repeat` is a number or a field, such as `"{strength}"`; the copies are not saved.
 - In texts and file names, `{field}` takes the value of that column of the same row.
 - In a project with several languages a `text` layer with a fixed source can have `texts` and a `value` layer with a fixed source `values`: the text or value in the other languages, by code (`"texts": { "it": "forza" }`). A missing or empty language uses `text` or `value`. In a derived template, a layer that changes `text` without also giving `texts` loses the translations of the base.
+
+### Properties from fields
+
+A number or true/false property of a layer can be written as a text with a field, or as a formula, instead of its value: `"rotation": "{orientation}"`, `"opacity": "=IF({rare}; 1; 0.5)"`, `"visible": "{shown}"`. On each card it takes the value of the field, read as in a `layer.property` column (so `50%` works for the opacity); an empty result keeps the default of the property, which is also what the template shows without data. Colours and texts already accept fields. A `layer.property` column wins over the field. In the app, the number fields of position, size, rotation and opacity accept `{field}` or `=formula`; typing a number removes it. In memory the texts are in `bound` (`{ "rotation": "{orientation}" }`) and the property keeps its default.
 
 ### Derived templates
 

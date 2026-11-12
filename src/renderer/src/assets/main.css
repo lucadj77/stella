@@ -986,6 +986,13 @@ textarea.invalid {
   width: 70px;
 }
 
+/* un numero che viene dai campi ({or}, =formula): più largo e nel colore dei campi */
+.field-control > input.num.bound {
+  flex: 1 1 110px;
+  width: 110px;
+  color: var(--accent);
+}
+
 .field-control input.color-text {
   flex: 1 1 64px;
   min-width: 64px;

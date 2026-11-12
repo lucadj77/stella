@@ -16,6 +16,7 @@ import {
 import { useI18n } from '../i18n/context'
 import { useLengthUnit } from '../units'
 import { MM_PER_UNIT, UNIT_LABEL, unitStep } from '../../../shared/model/units'
+import { isBinding } from '../../../shared/model/normalize'
 import MarkupTextarea from '../components/MarkupTextarea'
 import { APP_FONTS, useProjectFonts } from '../render/fonts'
 import FontPicker from '../components/FontPicker'
@@ -124,11 +125,17 @@ export function NumberField({
   max,
   unit: unitProp,
   factor: factorProp = 1,
-  deferred
+  deferred,
+  bound,
+  onBound
 }: Base & {
   value: number
   deferred?: boolean
   onChange(v: number): void
+  /** Testo con un campo ({or}) o una formula (=...) che dà il valore sulle carte */
+  bound?: string
+  /** Con questo il campo accetta anche {campo} e =formula al posto del numero */
+  onBound?(text: string): void
   step?: number
   min?: number
   max?: number
@@ -148,14 +155,21 @@ export function NumberField({
     if (max !== undefined) v = Math.min(max, v)
     return v
   }
+  const isBound = (text: string): boolean => !!onBound && isBinding(text)
   const live = useLive(
-    String(round(value * factor)),
+    bound ?? String(round(value * factor)),
     (text) => {
+      if (isBound(text)) {
+        if (text.trim() !== bound) onBound!(text.trim())
+        return
+      }
       const v = clamp(parseNumber(text)!)
-      if (v !== value) onChange(v)
+      // un numero scritto al posto di un campo toglie il campo
+      if (v !== value || bound !== undefined) onChange(v)
     },
-    (text) => parseNumber(text) !== null,
-    deferred
+    (text) => parseNumber(text) !== null || isBound(text),
+    // un campo o una formula si applicano uscendo dal campo, non a ogni lettera
+    deferred || bound !== undefined
   )
   const { t } = useI18n()
   /** Valore mostrato (moltiplicato per factor) applicato al modello */
@@ -166,7 +180,7 @@ export function NumberField({
   // trascinando l'etichetta a destra o a sinistra il valore cresce o cala come con un cursore:
   // un passo ogni 4 pixel, Maiusc per passi da 10, Alt per decimi di passo
   const scrub = (e: React.PointerEvent<HTMLSpanElement>): void => {
-    if (disabled || deferred || e.button !== 0) return
+    if (disabled || deferred || bound !== undefined || e.button !== 0) return
     e.preventDefault()
     const el = e.currentTarget
     el.setPointerCapture(e.pointerId)
@@ -188,7 +202,7 @@ export function NumberField({
     el.addEventListener('pointerup', up)
     el.addEventListener('pointercancel', up)
   }
-  const bounded = min !== undefined && max !== undefined && !deferred
+  const bounded = min !== undefined && max !== undefined && !deferred && bound === undefined
   return (
     <Row
       label={label}
@@ -214,8 +228,9 @@ export function NumberField({
         />
       )}
       <input
-        className="num"
+        className={bound !== undefined ? 'num bound' : 'num'}
         disabled={disabled}
+        title={bound !== undefined ? t('field.boundHint') : undefined}
         {...live.bind}
         onKeyDown={(e) => {
           if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
@@ -732,7 +747,9 @@ export function SizeFields({
   locked,
   onLock,
   disabled,
-  onChange
+  onChange,
+  bounds,
+  onBound
 }: {
   labels: [string, string]
   hints?: [string, string]
@@ -746,7 +763,11 @@ export function SizeFields({
   layout?: 'row' | 'column'
   locked: boolean
   onLock(locked: boolean): void
-  onChange(w: number, h: number): void
+  /** which: la misura scritta a mano (l'altra può cambiare con le proporzioni bloccate) */
+  onChange(w: number, h: number, which: 'w' | 'h'): void
+  /** Campi o formule che danno larghezza e altezza sulle carte */
+  bounds?: [string | undefined, string | undefined]
+  onBound?(which: 'w' | 'h', text: string): void
 }): React.JSX.Element {
   // l'altra misura non si limita al minimo: cambierebbe le proporzioni
   const other = (size: number, from: number, to: number): number =>
@@ -761,7 +782,9 @@ export function SizeFields({
         unit={unit}
         deferred={deferred}
         disabled={disabled}
-        onChange={(v) => onChange(v, locked ? other(v, w, h) : h)}
+        bound={bounds?.[0]}
+        onBound={onBound && ((text) => onBound('w', text))}
+        onChange={(v) => onChange(v, locked && bounds?.[1] === undefined ? other(v, w, h) : h, 'w')}
       />
       {!disabled && <RatioLock locked={locked} onChange={onLock} />}
       <NumberField
@@ -772,7 +795,9 @@ export function SizeFields({
         unit={unit}
         deferred={deferred}
         disabled={disabled}
-        onChange={(v) => onChange(locked ? other(v, h, w) : w, v)}
+        bound={bounds?.[1]}
+        onBound={onBound && ((text) => onBound('h', text))}
+        onChange={(v) => onChange(locked && bounds?.[0] === undefined ? other(v, h, w) : w, v, 'h')}
       />
     </div>
   )

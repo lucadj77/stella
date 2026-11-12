@@ -109,7 +109,7 @@ Un campo della carta con lo stesso nome di una variabile vince sulla variabile.
 
 - La prima riga contiene le intestazioni; ogni riga successiva è una carta.
 - `amount` indica il numero di copie (1 se vuoto o assente).
-- Un'intestazione con il nome di un pannello del template ne sostituisce il valore; `pannello.proprietà` sostituisce un'altra proprietà (per esempio `nome.color`).
+- Un'intestazione con il nome di un pannello del template ne sostituisce il valore; `pannello.proprietà` sostituisce un'altra proprietà (per esempio `nome.color`). La colonna vince su una proprietà scritta con un campo nel template (vedi sotto).
 - Le celle vuote lasciano il valore del template.
 - `campo@lingua` (per esempio `nome@en`, `nome.size@en`) è la traduzione di `campo` in una delle lingue del progetto: vale solo quando le carte si mostrano in quella lingua, e una cella vuota lascia il valore della lingua principale.
 
@@ -169,6 +169,10 @@ Un file JSON per template in `templates/`. Le unità sono millimetri, la dimensi
 - Un `group` con `layout` (`row`, `column`, `grid`) o con `repeat` diverso da 1 salva il proprio riquadro (`x`, `y`, `w`, `h`): i figli vi si dispongono dentro con `gap`, `columns`, `justify` e `alignItems` (`start`, `center`, `end`). `repeat` è un numero o un campo, come `"{forza}"`; le copie non si salvano.
 - In testi e nomi di file, `{campo}` prende il valore di quella colonna della stessa riga.
 - In un progetto con più lingue un livello `text` con fonte fissa può avere `texts` e un livello `value` con fonte fissa `values`: il testo o il valore nelle altre lingue, per codice (`"texts": { "en": "strength" }`). Una lingua assente o vuota usa `text` o `value`. In un template derivato, un livello che cambia `text` senza dare anche `texts` perde le traduzioni del base.
+
+### Proprietà dai campi
+
+Una proprietà di un livello che è un numero o un sì/no si può scrivere come un testo con un campo, o come una formula, al posto del valore: `"rotation": "{orientamento}"`, `"opacity": "=IF({rara}; 1; 0.5)"`, `"visible": "{mostra}"`. Su ogni carta prende il valore del campo, letto come in una colonna `livello.proprietà` (quindi per l'opacità vale anche `50%`); un risultato vuoto lascia il valore predefinito della proprietà, che è anche quello che il template mostra senza dati. Colori e testi accettano già i campi. Una colonna `livello.proprietà` vince sul campo. Nell'app i campi numerici di posizione, dimensioni, rotazione e opacità accettano `{campo}` o `=formula`; scrivere un numero lo toglie. In memoria i testi stanno in `bound` (`{ "rotation": "{orientamento}" }`) e la proprietà tiene il valore predefinito.
 
 ### Template derivati
 

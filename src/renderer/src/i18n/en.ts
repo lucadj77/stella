@@ -303,6 +303,8 @@ export const en = {
   'editor.shapeSection': 'Shape and outline',
   'editor.typography': 'Typography',
   'editor.columnHint': 'Sheet column: {column}',
+  'editor.boundHint':
+    'Sheet column: {column}. You can also type a field in braces or a formula starting with =',
   'editor.nameHint': 'Also the name of the sheet column that fills this layer',
   'editor.nameEmpty': 'The name cannot be empty or start/end with spaces',
   'editor.nameChars': 'The name cannot contain . { } [ ]',
@@ -704,6 +706,8 @@ export const en = {
   'arrange.arrange': 'Arrange',
   'arrange.arrangeHint':
     'Places the layers in reading order on a grid of cells as large as the largest layer, each centred in its cell',
+  'field.boundHint':
+    'The value comes from the fields of each card. Type a number to set it by hand',
   'field.scrubHint': 'Drag right or left to change the value (Shift: bigger steps, Alt: finer)',
   'field.enabled': 'Enabled',
   'field.none': 'none',
@@ -1315,6 +1319,8 @@ export const en = {
     'Template file {file} has the same name "{name}" as {kept} and was skipped: rename it',
   'template.unknownLayerType': 'Template {file}: layer "{layer}" has unknown type "{type}"',
   'bind.unknownProperty': 'Column {column}: no such property',
+  'bind.boundField':
+    'Property {property}: it uses the field "{field}", which this row doesn\'t have',
   'bind.formulaField':
     'Layer {layer}: the formula uses field "{field}", which this row does not have',
   'bind.invalidValue': 'Column {column}: invalid value "{value}"',

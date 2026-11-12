@@ -1076,6 +1076,38 @@ function GroupProperties({
 const ALIGNS = ['start', 'center', 'end'] as const
 
 /** Geometria e aspetto: i livelli valore non li hanno */
+/**
+ * Una proprietà numerica che accetta anche {campo} o =formula, con un solo livello scelto: il
+ * valore sulle carte viene dai campi. Scrivere un numero toglie il campo (unbind).
+ */
+function bindable(
+  l: Layer,
+  set: (patch: Partial<Layer>) => void,
+  multi: boolean,
+  t: (key: MessageKey, params?: Record<string, string>) => string
+): {
+  field(key: string): { bound?: string; onBound?(text: string): void; hint: string }
+  unbind(patch: Partial<Layer>, keys: string[]): Partial<Layer>
+} {
+  return {
+    field: (key) =>
+      multi
+        ? { hint: t('editor.columnHint', { column: `${l.name}.${key}` }) }
+        : {
+            bound: l.bound?.[key],
+            onBound: (text) => set({ bound: { ...l.bound, [key]: text } }),
+            hint: t('editor.boundHint', { column: `${l.name}.${key}` })
+          },
+    unbind: (patch, keys) => {
+      if (multi || !keys.some((k) => l.bound?.[k] !== undefined)) return patch
+      const rest = Object.fromEntries(
+        Object.entries(l.bound ?? {}).filter(([k]) => !keys.includes(k))
+      )
+      return { ...patch, bound: Object.keys(rest).length ? rest : undefined }
+    }
+  }
+}
+
 function DrawnProperties({
   l,
   set,
@@ -1097,7 +1129,8 @@ function DrawnProperties({
   const [a, b] = lineEnds(l)
   const ends = (p: Point, q: Point): void => set(lineFromEnds(l, p, q))
   const r = (v: number): number => Math.round(v * 100) / 100
-  if (part === 'appearance') return <AppearanceProperties l={l} set={set} col={col} />
+  const bf = bindable(l, set, multi, t)
+  if (part === 'appearance') return <AppearanceProperties l={l} set={set} col={col} multi={multi} />
   return (
     <Section scope="geometry" title={t('editor.geometry')}>
       {align}
@@ -1143,21 +1176,23 @@ function DrawnProperties({
           <div className="field-grid">
             <NumberField
               label="X"
-              hint={col('x')}
+              {...bf.field('x')}
               value={l.x}
               unit="mm"
-              onChange={(x) => set({ x })}
+              onChange={(x) => set(bf.unbind({ x }, ['x']))}
             />
             <NumberField
               label="Y"
-              hint={col('y')}
+              {...bf.field('y')}
               value={l.y}
               unit="mm"
-              onChange={(y) => set({ y })}
+              onChange={(y) => set(bf.unbind({ y }, ['y']))}
             />
             <SizeFields
               labels={[t('prop.w'), t('prop.h')]}
-              hints={[col('w'), col('h')]}
+              hints={[bf.field('w').hint, bf.field('h').hint]}
+              bounds={[bf.field('w').bound, bf.field('h').bound]}
+              onBound={multi ? undefined : (which, text) => bf.field(which).onBound?.(text)}
               w={l.w}
               h={l.h}
               min={0.5}
@@ -1166,7 +1201,7 @@ function DrawnProperties({
               onLock={setLocked}
               // la misura di una griglia con la casella fissa viene dalle caselle
               disabled={l.type === 'grid' && !!l.cellSize}
-              onChange={(w, h) => set(anchoredResize(l, w, h))}
+              onChange={(w, h, which) => set(bf.unbind(anchoredResize(l, w, h), [which]))}
             />
           </div>
         </Inherit>
@@ -1175,13 +1210,13 @@ function DrawnProperties({
       <P id="rotation">
         <NumberField
           label={t('prop.rotation')}
-          hint={col('rotation')}
+          {...bf.field('rotation')}
           value={l.rotation}
           step={1}
           min={-360}
           max={360}
           unit="°"
-          onChange={(rotation) => set({ rotation })}
+          onChange={(rotation) => set(bf.unbind({ rotation }, ['rotation']))}
         />
       </P>
       <P id="anchor" adv>
@@ -1218,22 +1253,24 @@ function DrawnProperties({
 function AppearanceProperties({
   l,
   set,
-  col
-}: Omit<TypeProps<Layer>, 'computed'>): React.JSX.Element {
+  col,
+  multi = false
+}: Omit<TypeProps<Layer>, 'computed'> & { multi?: boolean }): React.JSX.Element {
   const { t } = useI18n()
+  const b = bindable(l, set, multi, t)
   return (
     <Section scope="appearance" title={t('editor.appearance')}>
       <P id="opacity">
         <NumberField
           label={t('prop.opacity')}
-          hint={col('opacity')}
+          {...b.field('opacity')}
           value={l.opacity}
           factor={100}
           step={5}
           min={0}
           max={1}
           unit="%"
-          onChange={(opacity) => set({ opacity })}
+          onChange={(opacity) => set(b.unbind({ opacity }, ['opacity']))}
         />
       </P>
       <P id="blend" adv>

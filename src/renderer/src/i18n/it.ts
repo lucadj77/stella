@@ -303,6 +303,8 @@ export const it: Record<MessageKey, string> = {
   'editor.shapeSection': 'Forma e contorno',
   'editor.typography': 'Tipografia',
   'editor.columnHint': 'Colonna del foglio: {column}',
+  'editor.boundHint':
+    'Colonna del foglio: {column}. Puoi anche scrivere un campo tra graffe o una formula che inizia con =',
   'editor.nameHint': 'È anche il nome della colonna del foglio che riempie questo livello',
   'editor.nameEmpty': 'Il nome non può essere vuoto né iniziare o finire con spazi',
   'editor.nameChars': 'Il nome non può contenere . { } [ ]',
@@ -712,6 +714,7 @@ export const it: Record<MessageKey, string> = {
   'arrange.arrange': 'Disponi',
   'arrange.arrangeHint':
     'Mette i livelli in ordine di lettura su una griglia di celle grandi quanto il livello più grande, ognuno centrato nella sua cella',
+  'field.boundHint': 'Il valore viene dai campi di ogni carta. Scrivi un numero per darlo a mano',
   'field.scrubHint':
     'Trascina a destra o a sinistra per cambiare il valore (Maiusc: passi più grandi, Alt: più fini)',
   'field.enabled': 'Attivo',
@@ -1334,6 +1337,7 @@ export const it: Record<MessageKey, string> = {
   'template.unknownLayerType':
     'Template {file}: il livello "{layer}" ha un tipo sconosciuto "{type}"',
   'bind.unknownProperty': 'Colonna {column}: proprietà inesistente',
+  'bind.boundField': 'Proprietà {property}: usa il campo "{field}", che questa riga non ha',
   'bind.formulaField': 'Livello {layer}: la formula usa il campo "{field}", che questa riga non ha',
   'bind.invalidValue': 'Colonna {column}: valore non valido "{value}"',
   'bind.variableIsLayer':

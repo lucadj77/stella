@@ -315,6 +315,26 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
               props.set('', r.value)
             else props.delete('')
           }
+          // le proprietà dai campi nel template ({or}, =formula); la colonna livello.proprietà vince
+          for (const [key, text] of Object.entries(layer.bound ?? {})) {
+            if (props.has(key)) continue
+            let value: string
+            if (text.trimStart().startsWith('=')) {
+              const r = evaluateFormula(text, fields, formulaNumbers(nums, false))
+              for (const f of r.missing)
+                say(msg('bind.formulaField', { layer: `${layer.name}.${key}`, field: f }))
+              if (r.error)
+                say(msg('bind.formulaError', { layer: `${layer.name}.${key}`, error: r.error }))
+              value = r.value
+            } else {
+              const missing = boundFields(text).filter((f) => !(f in fields))
+              for (const f of missing)
+                say(msg('bind.boundField', { property: `${layer.name}.${key}`, field: f }))
+              value = substituteFields(text, fields)
+            }
+            // un campo vuoto lascia il valore del template
+            if (value.trim() !== '') props.set(key, value.trim())
+          }
           // il numero di una colonna, sulla carta, nel formato della lingua
           if (nums && layer.type === 'text' && src.kind === 'column' && props.has(''))
             props.set('', localizeNumber(props.get('')!, nums.shown))
@@ -989,4 +1009,9 @@ function parseShadow(v: string): Shadow | undefined {
   const [blur = 0.5, dx = 0.3, dy = 0.3] = nums.map((n) => Number(n.replace(',', '.')))
   if (!color || [blur, dx, dy].some((n) => !Number.isFinite(n))) return undefined
   return { color, blur, dx, dy }
+}
+
+/** Nomi dei campi scritti come {nome} in una proprietà dai campi */
+function boundFields(text: string): string[] {
+  return [...text.matchAll(/(?<!\\)\{([^{}*:|]+)\}/g)].map((m) => m[1].trim())
 }

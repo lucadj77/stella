@@ -10,10 +10,12 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 ### English
 
 - **Import from nanDECK**: the start screen has **Import from nanDECK**. Choose the folder of a nanDECK game and the scripts to convert (copies and print-only scripts are unchecked; files read only through INCLUDE are not offered). Each script becomes a template and a set: labels and linked data go into the data sheet, fonts, shapes, images, HTML text, icons and ranges become layers, and the images used are copied into the project. The import is partial: the note **Import nanDECK** lists, script by script, the lines not converted and those converted approximately. The summary window offers the **stella-nandeck** skill, downloaded from GitHub, so that an AI agent can finish the work from that note.
+- **Numbers from a field**: in the template, the **X**, **Y**, width, height, **Rotation** and **Opacity** fields accept a field in braces, such as `{orientation}`, or a formula starting with `=`. Each component takes its own value, without copying the column into a `layer.rotation` column.
 
 ### Italiano
 
 - **Importa da nanDECK**: la schermata iniziale ha **Importa da nanDECK**. Si sceglie la cartella di un gioco nanDECK e gli script da convertire (le copie e gli script solo di stampa sono deselezionati; i file letti solo con INCLUDE non sono proposti). Ogni script diventa un modello e un set: le etichette e i dati collegati vanno nel foglio dei dati, font, forme, immagini, testo HTML, icone e intervalli diventano livelli, e le immagini usate sono copiate nel progetto. L'importazione è parziale: la nota **Import nanDECK** elenca, script per script, le righe non convertite e quelle convertite in modo approssimato. La finestra di riepilogo offre la skill **stella-nandeck**, scaricata da GitHub, perché un agente IA possa finire il lavoro a partire da quella nota.
+- **Numeri da un campo**: nel template i campi **X**, **Y**, larghezza, altezza, **Rotazione** e **Opacità** accettano un campo tra graffe, come `{orientamento}`, o una formula che inizia con `=`. Ogni componente prende il suo valore, senza copiare la colonna in una colonna `livello.rotation`.
 
 ## 1.11.0-beta.1
 
