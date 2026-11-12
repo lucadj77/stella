@@ -954,7 +954,7 @@ export default function ExportDialog({
         title={t('export.detailsSection')}
         summary={[
           img.bleed ? t('export.bleedOnShort') : t('export.bleedOffShort'),
-          img.transparent && img.format !== 'jpg' && !img.bleed ? t('export.transparentShort') : '',
+          img.transparent && img.format !== 'jpg' ? t('export.transparentShort') : '',
           img.pattern,
           shortFolder(img.folder)
         ]
@@ -966,8 +966,8 @@ export default function ExportDialog({
         </Row>
         <Row
           label={t('export.background')}
-          disabled={img.format === 'jpg' || img.bleed}
-          reason={img.format === 'jpg' ? t('export.notJpg') : t('export.bleedCovers')}
+          disabled={img.format === 'jpg'}
+          reason={t('export.notJpg')}
         >
           {check(img.transparent, (transparent) => patch({ transparent }), 'export.transparent')}
         </Row>

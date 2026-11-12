@@ -4,6 +4,8 @@
 // del momento, che convert.ts trasforma in livelli valutandola carta per carta.
 
 import type { Sheet } from '../../project'
+import { choices, type ValueLimit } from '../../model/generate'
+import { evaluateCondition, parseCondition } from './cond'
 import { evalNumber, formatNumber } from './expr'
 import {
   functionCall,
@@ -110,6 +112,11 @@ export interface DrawOp {
    * intervallo: tutte se l'intervallo viene da LABELRANGE, altrimenti quelle di BASERANGE ON
    */
   deckPos: Set<number> | 'all'
+  /**
+   * CANVAS: un'immagine grande come la tela (carta 0) divisa sulle carte; per ogni carta la
+   * parte da mostrare, in percentuale (x y w h)
+   */
+  canvasCrop?: Map<number, string>
 }
 
 export interface LinkInfo {
@@ -154,7 +161,6 @@ const PRINT_COMMANDS = new Set([
   'LINKCOLOR',
   'LINKFILTER',
   'LINKSEP',
-  'CANVASSIZE',
   'VISUAL',
   'ENDVISUAL',
   'SECTION',
@@ -267,7 +273,27 @@ export class NandeckScript {
   resolvePath(p: string): string {
     const clean = p.trim().replace(/\\/g, '/').replace(/^\.\//, '')
     if (/^[a-z]:\//i.test(clean) || clean.startsWith('/')) return clean
-    const parts = (this.dir ? `${this.dir}/${clean}` : clean).split('/')
+    const local = this.joinPath(this.dir ? `${this.dir}/${clean}` : clean)
+    // uno script spostato in una sottocartella (old/) che usa ancora i percorsi della cartella
+    // del gioco: se il file non c'è accanto allo script, si cerca dalla cartella del gioco
+    if (this.dir && !this.pathExists(local)) {
+      const root = this.joinPath(clean)
+      if (this.pathExists(root)) return root
+    }
+    return local
+  }
+
+  /** Un file o una cartella del gioco */
+  private pathExists(path: string): boolean {
+    if (!path) return true
+    const lower = path.toLowerCase().replace(/\/$/, '')
+    return (
+      this.fileExists(lower) || this.env.files.some((f) => f.toLowerCase().startsWith(`${lower}/`))
+    )
+  }
+
+  private joinPath(path: string): string {
+    const parts = path.split('/')
     const out: string[] = []
     for (const s of parts) {
       if (s === '..') out.pop()
@@ -399,7 +425,11 @@ export class NandeckScript {
 
   private exec(l: ScriptLine): void {
     const st = statement(l.text)
-    if (st.kind === 'label') return this.defineLabel(l, st.name, st.value)
+    if (st.kind === 'label') {
+      if (st.prefix !== undefined || st.count !== undefined)
+        return this.defineSpecialLabel(l, st.name, st.value, st.prefix ?? '', st.count, st.limits)
+      return this.defineLabel(l, st.name, st.value)
+    }
     if (st.kind === 'frame') {
       this.frames = new Map(this.frames).set(st.name.toLowerCase(), st.value)
       return
@@ -414,6 +444,17 @@ export class NandeckScript {
       case 'CARDSIZE':
         this.widthText = p[0] ?? this.widthText
         this.heightText = p[1] ?? this.heightText
+        return
+      case 'CANVASSIZE':
+        this.canvasSize = [p[0] ?? '6', p[1] ?? '9']
+        return
+      case 'CANVAS':
+        try {
+          const cards = this.range(p[0] ?? '')
+          this.canvas = { cards: cards ?? [], flags: unquote(p[1] ?? '').toUpperCase() }
+        } catch {
+          return this.skip(l, 'function')
+        }
         return
       case 'CARDS':
         this.cardsDirective = evalNumber(this.substConst(st.value)) ?? 0
@@ -564,11 +605,20 @@ export class NandeckScript {
   private draw(l: ScriptLine, command: string, p: string[]): void {
     let cards: number[] | null
     try {
-      cards = this.range(p[0] ?? '')
+      // 0 è la tela di CANVAS
+      cards = (p[0] ?? '').trim() === '0' ? [0] : this.range(p[0] ?? '')
     } catch {
       return this.skip(l, 'function')
     }
     if (cards && !cards.length) return
+    let canvasCrop: Map<number, string> | undefined
+    let params = p.slice(1)
+    // la carta 0 è la tela: con CANVAS, un'immagine che la riempie si divide sulle carte
+    if (cards && cards.length === 1 && cards[0] === 0) {
+      const split = command === 'IMAGE' ? this.canvasSplit(params) : null
+      if (!split) return this.skip(l, 'command')
+      ;[cards, canvasCrop, params] = split
+    }
     this.ops.push({
       id: ++opCounter,
       file: l.file,
@@ -577,7 +627,8 @@ export class NandeckScript {
       command,
       rangeText: this.rangeSource((p[0] ?? '').trim()),
       cards,
-      params: p.slice(1),
+      params,
+      canvasCrop,
       labels: this.labels,
       frames: this.frames,
       font: this.font,
@@ -586,6 +637,40 @@ export class NandeckScript {
       layers: this.layerStack,
       deckPos: this.rangeFromLabel ? 'all' : this.baseRange
     })
+  }
+
+  canvasSize: [string, string] = ['6', '9']
+  canvas: { cards: number[]; flags: string } | null = null
+
+  /**
+   * Un'immagine che riempie la tela (0, 0, 100%, 100%) divisa sulle carte di CANVAS: le carte
+   * stanno in righe sulla tela, una dopo l'altra; H e V centrano la tela nelle carte
+   */
+  private canvasSplit(params: string[]): [number[], Map<number, string>, string[]] | null {
+    if (!this.canvas?.cards.length) return null
+    const cw = (evalNumber(this.substConst(this.canvasSize[0])) ?? 6) * this.unit
+    const ch = (evalNumber(this.substConst(this.canvasSize[1])) ?? 9) * this.unit
+    const at = (i: number, ref: number): number | null =>
+      evalNumber(this.substConst(params[i] ?? ''), ref / this.unit)
+    const [x, y, w, h] = [at(1, cw), at(2, ch), at(3, cw), at(4, ch)]
+    const full = (v: number | null, size: number): boolean =>
+      v !== null && Math.abs(v * this.unit - size) < 0.01
+    if (x !== 0 || y !== 0 || !full(w, cw) || !full(h, ch)) return null
+    const cols = Math.max(1, Math.round(cw / this.width))
+    const rows = Math.max(1, Math.ceil(this.canvas.cards.length / cols))
+    const ox = this.canvas.flags.includes('H') ? (cols * this.width - cw) / 2 : 0
+    const oy = this.canvas.flags.includes('V') ? (rows * this.height - ch) / 2 : 0
+    const pct = (v: number): string => formatNumber(Math.round(v * 10000) / 100)
+    const crop = new Map<number, string>()
+    this.canvas.cards.forEach((c, i) => {
+      const left = (i % cols) * this.width - ox
+      const top = Math.floor(i / cols) * this.height - oy
+      crop.set(
+        c,
+        [left / cw, top / ch, this.width / cw, this.height / ch].map((v) => pct(v)).join(' ')
+      )
+    })
+    return [this.canvas.cards, crop, [params[0], '0', '0', '100%', '100%', ...params.slice(5)]]
   }
 
   /** Corpo del font in punti; in percentuale è una parte dell'altezza della carta */
@@ -682,6 +767,48 @@ export class NandeckScript {
     void name
   }
 
+  /**
+   * Etichette del motore combinatorio di nanDECK: C (combinazioni), CR (con ripetizioni),
+   * P e PR (permutazioni), con il flag D (senza doppi) e i limiti per elemento (;a:1-2). Senza
+   * prefisso, [nome]n ripete la sequenza n volte ([nome]-n tiene i primi n elementi). Gli altri
+   * prefissi (E, F, B, T, K, X...) restano da fare a mano.
+   */
+  private defineSpecialLabel(
+    l: ScriptLine,
+    rawName: string,
+    value: string,
+    prefix: string,
+    count: number | undefined,
+    limits: Record<string, [number, number]> | undefined
+  ): void {
+    const name = rawName.toLowerCase()
+    let base: string[]
+    try {
+      const v = this.labelValue(value)
+      base = 'seq' in v ? v.seq : (this.sequence(name) ?? [])
+      if ('deferred' in v) return this.skip(l, 'macro')
+    } catch {
+      return this.skip(l, 'function')
+    }
+    let seq: string[]
+    if (!prefix) {
+      const n = count ?? 1
+      seq = n >= 0 ? Array.from({ length: n }, () => base).flat() : base.slice(0, -n)
+    } else {
+      const m = /^(D?)(CR|PR|C|P)(D?)$/.exec(prefix)
+      if (!m || count === undefined || count < 1) return this.skip(l, 'macro')
+      const repeat = m[2].endsWith('R')
+      const ordered = m[2].startsWith('P')
+      const values = m[1] || m[3] ? [...new Set(base)] : base
+      const lim: Record<string, ValueLimit> = {}
+      for (const [k, [min, max]] of Object.entries(limits ?? {})) lim[k] = { min, max }
+      seq = choices(values, count, repeat, ordered, lim).map((c) => c.join(''))
+      if (m[1] || m[3]) seq = [...new Set(seq)]
+    }
+    this.labels = new Map(this.labels).set(name, { seq })
+    this.seqCache.clear()
+  }
+
   private labelValue(value: string): Label {
     const call = functionCall(value)
     if (call)
@@ -694,6 +821,14 @@ export class NandeckScript {
     const only = /^\[([^\][]+)\]$/.exec(value.trim())
     if (only && this.labels.has(only[1].toLowerCase()))
       return this.labels.get(only[1].toLowerCase())!
+    // [x]=[a]|[b]|[c]: gli elementi delle etichette uno dopo l'altro
+    if (parts.length > 1 && parts.every((p) => /^\[([^\][]+)\]$/.test(p.trim())))
+      return {
+        seq: parts.flatMap((p) => {
+          const n = p.trim().slice(1, -1).toLowerCase()
+          return this.labels.has(n) ? (this.sequence(n) ?? []) : [unquote(this.substConst(p))]
+        })
+      }
     const multi = referencedLabels(value).some((n) => this.count(n) > 1)
     if (multi && parts.length === 1)
       return {
@@ -1233,9 +1368,19 @@ export class NandeckScript {
 
   /** Valore di una condizione IF per una carta */
   test(cond: Condition, card: number, pos: number): boolean {
-    const t = this.subst(cond.text, card, pos, cond.labels)
-    const m = /^(.*?)(<>|<=|>=|=|<|>)(.*)$/s.exec(t)
-    const v = m ? compare(unquote(m[1]), m[2], unquote(m[3])) : !!t.trim() && t.trim() !== '0'
+    const tree = parseCondition(cond.text)
+    let v: boolean
+    if (tree)
+      v = evaluateCondition(
+        tree,
+        (side) => unquote(this.subst(side, card, pos, cond.labels)),
+        compare
+      )
+    else {
+      const t = this.subst(cond.text, card, pos, cond.labels)
+      const m = /^(.*?)(<>|<=|>=|=|<|>)(.*)$/s.exec(t)
+      v = m ? compare(unquote(m[1]), m[2], unquote(m[3])) : !!t.trim() && t.trim() !== '0'
+    }
     return cond.negated ? !v : v
   }
 

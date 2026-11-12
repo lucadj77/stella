@@ -891,7 +891,7 @@ When the export is done, the number of files written, any warnings and the links
 
 ### 11.1 Images
 
-PNG, JPG, WebP or SVG format, resolution (150, 300, 600 DPI or custom), bleed included or not, front, back or both, transparent background outside rounded corners. File names follow a pattern with `%set`, `%n` (component number), `%copy`, `%side` and `{field}`; a `/` creates subfolders.
+PNG, JPG, WebP or SVG format, resolution (150, 300, 600 DPI or custom), bleed included or not, front, back or both, transparent background (where no layer draws and outside rounded corners; JPG is always on white). File names follow a pattern with `%set`, `%n` (component number), `%copy`, `%side` and `{field}`; a `/` creates subfolders.
 
 SVG is vector and has no resolution: it scales without losing quality and opens in graphics programs (Inkscape, Illustrator, Affinity). Project images and fonts are inside the file; fonts installed on the computer are not, and whoever opens the file needs them. Texts become SVG text, one element per line, so they can be edited but no longer wrap by themselves.
 

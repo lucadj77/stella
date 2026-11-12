@@ -1,7 +1,7 @@
 import { fetchGoogleSheet } from './project/googleSheets'
 import { matchTabs } from '../shared/model/googleSheets'
 import { app } from 'electron'
-import { readFile } from 'fs/promises'
+import { readFile, stat } from 'fs/promises'
 import { join, resolve } from 'path'
 import Papa from 'papaparse'
 import { messageFromError } from '../shared/messages'
@@ -18,7 +18,7 @@ import { bindRow, rowToCard } from '../shared/model/bind'
 import { systemOfSet } from '../shared/model/system'
 import { documentLocalization, documentProblems } from '../shared/model/document'
 import { isGenericFont } from '../shared/model/fonts'
-import { resolveAsset } from '../shared/model/assets'
+import { HEAVY_PNG_BYTES, megabytes, resolveAsset } from '../shared/model/assets'
 import { innerLayers, type Layer, type Template } from '../shared/model/template'
 import {
   DEFAULT_IMAGE,
@@ -302,6 +302,19 @@ async function fontCheck(project: LoadedProject): Promise<(family: string) => bo
 
 async function check(p: Parsed): Promise<number> {
   const project = await open(p.positional[0])
+  // peso delle PNG usate, letto una volta per file
+  const pngSizes = new Map<string, Promise<number>>()
+  const pngSize = (path: string): Promise<number> => {
+    if (!pngSizes.has(path))
+      pngSizes.set(
+        path,
+        stat(join(project.folder, 'assets', path)).then(
+          (st) => st.size,
+          () => 0
+        )
+      )
+    return pngSizes.get(path)!
+  }
   const only = typeof p.flags.set === 'string' ? p.flags.set : null
   if (only) findSet(project, only)
   const ctx = {
@@ -322,7 +335,7 @@ async function check(p: Parsed): Promise<number> {
     const tpl = project.templates.find((t) => t.name === s.template)
     if (!tpl || !s.data) continue
     const info = systemOfSet(project.file, s)
-    s.data.rows.forEach((row, i) => {
+    for (const [i, row] of s.data.rows.entries()) {
       const bound = bindRow(s.data!.headers, row, tpl, project.templates, {
         ...ctx,
         system: { ...info, number: i + 1 },
@@ -335,6 +348,13 @@ async function check(p: Parsed): Promise<number> {
         for (const l of visibleLayers(bound.template[side]))
           if (l.type === 'image' && l.visible && l.missing !== 'hide' && l.src.trim()) {
             const r = resolveAsset(l.src, project.assets)
+            if (r.ok && /\.png$/i.test(r.path)) {
+              const bytes = await pngSize(r.path)
+              if (bytes > HEAVY_PNG_BYTES)
+                problems.push(
+                  `Layer ${l.name} (${side}): image "${r.path}" is a PNG of ${megabytes(bytes)} MB, which may not be drawn: convert it to JPG if it has no transparent parts`
+                )
+            }
             if (!r.ok)
               problems.push(
                 `Layer ${l.name} (${side}): image "${l.src.trim()}" ${r.reason === 'ambiguous' ? `is ambiguous (${r.candidates.join(', ')})` : 'not found in assets'}`
@@ -347,7 +367,7 @@ async function check(p: Parsed): Promise<number> {
           label: bound.label,
           problems: [...new Set(problems)]
         })
-    })
+    }
   }
   // i documenti richiamano le carte di tutti i set: si controllano solo senza --set
   const documents = only ? [] : documentReport(project)

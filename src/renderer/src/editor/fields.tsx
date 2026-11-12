@@ -502,9 +502,13 @@ export function CheckField({
   )
 }
 
-/** Codice esadecimale completo, nome di colore o colore del progetto: le versioni a metà non si applicano */
+/**
+ * Codice esadecimale completo, rgb()/rgba()/hsl()/hsla() chiusi, nome di colore o colore del
+ * progetto: le versioni a metà non si applicano
+ */
 const isColor = (t: string): boolean =>
   /^#([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(t.trim()) ||
+  /^(rgba?|hsla?)\([^()]*\)$/i.test(t.trim()) ||
   /^\{?[\p{L}_][\p{L}\p{N}_-]*\}?$/u.test(t.trim())
 
 function ColorInput({

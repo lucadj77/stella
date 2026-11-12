@@ -417,6 +417,8 @@ export interface NandeckImportResult {
   /** Immagini usate dagli script che non sono nella cartella del gioco */
   missingImages: string[]
   fonts: string[]
+  /** Caratteri usati che questo computer non ha (vuoto se non si sa) */
+  missingFonts?: string[]
   /** Righe degli script non convertite: sono elencate nella nota */
   skipped: number
   /** Conversioni approssimate */

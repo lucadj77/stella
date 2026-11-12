@@ -1358,6 +1358,8 @@ export const it: Record<MessageKey, string> = {
     "Livello {layer}: l'immagine della variabile {name} ({src}) non è negli asset",
   'bind.ambiguousRef':
     "Livello {layer}: {{name}} corrisponde a più immagini; aggiungi l'estensione o la cartella",
+  'bind.gridTooBig':
+    'Livello {layer}: una griglia di {rows} × {columns} caselle supera il limite di {max} caselle; se ne disegna solo una parte',
   'bind.missingFont':
     'Livello {layer}: il font “{font}” non è in assets/fonts né installato sul computer',
   'markup.unknownAttribute': 'attributo “{name}” sconosciuto',
@@ -1546,7 +1548,7 @@ export const it: Record<MessageKey, string> = {
   'export.back': 'Retro',
   'export.bothSides': 'Fronte e retro',
   'export.background': 'Angoli',
-  'export.transparent': 'Trasparente fuori dagli angoli arrotondati',
+  'export.transparent': "Sfondo trasparente: dove non c'è niente e fuori dagli angoli arrotondati",
   'export.pattern': 'Nomi dei file',
   'export.patternHint':
     '%set set, %n numero del componente, %copy copia, %side lato, {campo} un campo del componente; / crea sottocartelle',
@@ -1699,6 +1701,8 @@ export const it: Record<MessageKey, string> = {
     'Font non trovati in assets/fonts né sul computer, sostituiti da un font predefinito: {fonts}',
   'export.missingImages':
     'Immagini non trovate in assets (o collegamenti non raggiungibili), esportate come segnaposto: {cards}',
+  'export.heavyPngs':
+    "Immagini PNG molto pesanti, che possono mancare nell'esportazione: {images}. Se non hanno parti trasparenti, convertile in JPG.",
   'export.livePreview': 'Anteprima',
   'export.enlarge': 'Ingrandisci',
   'export.enlargeHint':
@@ -1765,7 +1769,7 @@ export const it: Record<MessageKey, string> = {
   'export.svgNoDpi': "l'SVG non ha una risoluzione",
   'export.otherDpi': 'altro…',
   'export.detailsSection': 'Dettagli',
-  'export.transparentShort': 'angoli trasparenti',
+  'export.transparentShort': 'sfondo trasparente',
   'export.notJpg': 'non in JPG',
   'export.ttsObject': 'Oggetto in TTS',
   'export.ttsDetails': 'Dettagli',
@@ -2232,6 +2236,8 @@ export const it: Record<MessageKey, string> = {
   'tip.importNandeck':
     'Importa da nanDECK: converte gli script di un gioco in un progetto Stella nuovo; la cartella originale non si modifica',
   'nandeck.title': 'Importa da nanDECK',
+  'nandeck.experimental':
+    "L'importazione è sperimentale e incompleta: spesso il risultato automatico è molto parziale. Un agente AI con la skill nanDECK, scaricabile dal programma, può dare risultati migliori, ma non sempre perfetti.",
   'nandeck.intro':
     'Ogni script diventa un template e un set: i dati di LINK e le etichette vanno nel foglio, frame e intervalli diventano livelli e formule di visibilità, le immagini usate si copiano. La cartella di nanDECK si legge soltanto. Le righe che non hanno un equivalente sono elencate nella nota "Import nanDECK", che la skill nanDECK usa per finire il lavoro.',
   'nandeck.source': 'Cartella del gioco nanDECK',
@@ -2276,6 +2282,9 @@ export const it: Record<MessageKey, string> = {
   'nandeck.noteApprox': 'Convertito in modo approssimato',
   'nandeck.noteMissing': 'Immagini non trovate',
   'nandeck.noteFonts': 'Caratteri usati',
+  'nandeck.noteMissingFonts': 'Caratteri non installati',
+  'nandeck.noteMissingFontsHint':
+    'Questo computer non ha questi caratteri: installali, o aggiungili al progetto, perché i testi appaiano come in nanDECK.',
   'nandeck.reason.command': 'comando senza equivalente in Stella',
   'nandeck.reason.function': 'funzione non convertita',
   'nandeck.reason.print': 'impostazione di stampa',

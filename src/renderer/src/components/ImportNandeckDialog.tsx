@@ -211,6 +211,7 @@ export default function ImportNandeckDialog({
   return (
     <Dialog title={t('nandeck.title')} onClose={onClose}>
       <div className="export-dialog">
+        <div className="banner warning">{t('nandeck.experimental')}</div>
         <p className="muted small">{t('nandeck.intro')}</p>
         <div className="export-fields">
           {field('source', 'nandeck.source', 'nandeck.sourceHint')}

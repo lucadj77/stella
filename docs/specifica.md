@@ -422,7 +422,7 @@ Il ▾ accanto a **Esporta…** ha **Ripeti l'ultima esportazione** (⇧⌘E / C
 | risoluzione   | 150, 300, 600 DPI o personalizzata                                                                      |
 | abbondanza    | inclusa, esclusa                                                                                        |
 | lati          | fronte, retro, entrambi                                                                                 |
-| sfondo        | fuori dagli angoli arrotondati: bianco o trasparente (PNG e WebP, senza abbondanza)                     |
+| sfondo        | dove non c'è niente e fuori dagli angoli: bianco o trasparente (PNG e WebP)                             |
 | nome dei file | modello con `%set`, `%n` (posizione nel set), `%copy`, `%side`, `{campo}`; per esempio `%set/%n_{nome}` |
 
 Con fronte e retro senza `%side` nel modello, il lato si aggiunge in fondo al nome (`_front`, `_back`); con le copie succede lo stesso per `%copy`. I nomi ripetuti ricevono `_2`, `_3`.

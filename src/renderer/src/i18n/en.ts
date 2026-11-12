@@ -1339,6 +1339,8 @@ export const en = {
     'Layer {layer}: the image of variable {name} ({src}) is not in assets',
   'bind.ambiguousRef':
     'Layer {layer}: {{name}} matches more than one image; add the extension or the folder',
+  'bind.gridTooBig':
+    'Layer {layer}: a grid of {rows} × {columns} cells is over the limit of {max} cells; only part of it is drawn',
   'bind.missingFont':
     'Layer {layer}: font “{font}” is not in assets/fonts nor installed on this computer',
   'markup.unknownAttribute': 'unknown attribute “{name}”',
@@ -1521,7 +1523,8 @@ export const en = {
   'export.back': 'Back',
   'export.bothSides': 'Front and back',
   'export.background': 'Corners',
-  'export.transparent': 'Transparent outside the rounded corners',
+  'export.transparent':
+    'Transparent background: where nothing is drawn and outside the rounded corners',
   'export.pattern': 'File names',
   'export.patternHint':
     '%set set, %n component number, %copy copy, %side side, {field} a component field; / makes subfolders',
@@ -1673,6 +1676,8 @@ export const en = {
     'Fonts not found in assets/fonts nor on this computer, replaced by a default font: {fonts}',
   'export.missingImages':
     'Images not found in assets (or links that cannot be reached), exported as placeholders: {cards}',
+  'export.heavyPngs':
+    'Very heavy PNG images, which may be left out of the export: {images}. If they have no transparent parts, convert them to JPG.',
   'export.livePreview': 'Preview',
   'export.enlarge': 'Enlarge',
   'export.enlargeHint': 'Open the preview in a large window, with every page and image',
@@ -1737,7 +1742,7 @@ export const en = {
   'export.svgNoDpi': 'SVG has no resolution',
   'export.otherDpi': 'other…',
   'export.detailsSection': 'Details',
-  'export.transparentShort': 'transparent corners',
+  'export.transparentShort': 'transparent background',
   'export.notJpg': 'not in JPG',
   'export.ttsObject': 'Object in TTS',
   'export.ttsDetails': 'Details',
@@ -2199,6 +2204,8 @@ export const en = {
   'tip.importNandeck':
     'Import from nanDECK: convert the scripts of a game into a new Stella project; the original folder is not changed',
   'nandeck.title': 'Import from nanDECK',
+  'nandeck.experimental':
+    'The import is experimental and incomplete: the automatic result is often very partial. An AI agent with the nanDECK skill, which you can download from the app, can give better results, but not always perfect ones.',
   'nandeck.intro':
     'Each script becomes a template and a set: data from LINK and labels go in the sheet, frames and ranges become layers and visibility formulas, the images used are copied. The nanDECK folder is only read. Lines that have no equivalent are listed in the note "Import nanDECK", which the nanDECK skill uses to finish the work.',
   'nandeck.source': 'nanDECK game folder',
@@ -2243,6 +2250,9 @@ export const en = {
   'nandeck.noteApprox': 'Converted approximately',
   'nandeck.noteMissing': 'Images not found',
   'nandeck.noteFonts': 'Fonts used',
+  'nandeck.noteMissingFonts': 'Fonts not installed',
+  'nandeck.noteMissingFontsHint':
+    'This computer does not have these fonts: install them, or add them to the project, so that the texts look as in nanDECK.',
   'nandeck.reason.command': 'command with no equivalent in Stella',
   'nandeck.reason.function': 'function not converted',
   'nandeck.reason.print': 'print setting',

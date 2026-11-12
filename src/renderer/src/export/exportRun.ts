@@ -1,7 +1,12 @@
 import type { LoadedProject } from '../../../shared/project'
 import type { Side } from '../../../shared/model/template'
 import { walkLayers } from '../../../shared/model/normalize'
-import { isRemoteImage, resolveAsset } from '../../../shared/model/assets'
+import {
+  HEAVY_PNG_BYTES,
+  isRemoteImage,
+  megabytes,
+  resolveAsset
+} from '../../../shared/model/assets'
 import { assetUrl } from '../render/assets'
 import { isGenericFont, markupFonts } from '../../../shared/model/fonts'
 import { cardFingerprints } from '../../../shared/model/compare'
@@ -122,6 +127,9 @@ export async function runExport(
   const missing = await missingImages(project, sets, sides)
   if (missing.length)
     r.warnings.push({ key: 'export.missingImages', params: { cards: missing.join('; ') } })
+  const heavy = await heavyPngs(project, sets, sides)
+  if (heavy.length)
+    r.warnings.push({ key: 'export.heavyPngs', params: { images: heavy.join(', ') } })
   const fonts = missingFonts(project, sets, hasFont)
   if (fonts.length)
     r.warnings.push({ key: 'export.missingFonts', params: { fonts: fonts.join(', ') } })
@@ -192,6 +200,34 @@ async function missingImages(
       for (const name of names) byImage.set(name, [...(byImage.get(name) ?? []), card])
     }
   return [...byImage].map(([name, cards]) => `"${name}": ${cards.join(', ')}`)
+}
+
+/**
+ * PNG molto pesanti usate dai lati esportati: nella finestra nascosta possono restare non
+ * disegnate, in JPG invece si disegnano. Ognuna con il suo peso in MB
+ */
+async function heavyPngs(
+  project: LoadedProject,
+  sets: ExportSet[],
+  sides: Side[]
+): Promise<string[]> {
+  const paths = new Set<string>()
+  for (const set of sets)
+    for (const c of set.cards)
+      for (const l of walkLayers(sides.flatMap((side) => c.template[side]))) {
+        if (l.type !== 'image' || !l.visible) continue
+        const r = resolveAsset(l.src, project.assets)
+        if (r.ok && /\.png$/i.test(r.path) && !isRemoteImage(r.path)) paths.add(r.path)
+      }
+  const out: string[] = []
+  for (const path of paths) {
+    const bytes = await fetch(assetUrl(path))
+      .then((res) => (res.ok ? res.blob() : null))
+      .then((b) => b?.size ?? 0)
+      .catch(() => 0)
+    if (bytes > HEAVY_PNG_BYTES) out.push(`"${path}" (${megabytes(bytes)} MB)`)
+  }
+  return out
 }
 
 /** Font usati dalle carte esportate che non sono né nel progetto né installati */

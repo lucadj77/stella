@@ -716,7 +716,13 @@ function registerIpc(): void {
   ipcMain.handle('ttc:import', (_, options: TtcImportOptions) => importTtc(options))
   ipcMain.handle('nandeck:scan', (_, source: string) => scanNandeck(source))
   ipcMain.handle('nandeck:default-target', (_, source: string) => defaultNandeckTarget(source))
-  ipcMain.handle('nandeck:import', (_, options: NandeckImportOptions) => importNandeck(options))
+  ipcMain.handle('nandeck:import', async (_, options: NandeckImportOptions) => {
+    // i caratteri che il computer non ha finiscono nella nota
+    const installed = new Set(
+      (await systemFonts().catch(() => [])).map((f) => f.family.toLowerCase())
+    )
+    return importNandeck(options, (f) => !installed.size || installed.has(f.trim().toLowerCase()))
+  })
 
   // Blocco mentre lavora un'IA (vedi project/agentLock.ts): il renderer dice se ha modifiche non
   // salvate, qui si scrive il file per `stella begin` e si controlla ogni secondo il file dell'IA
