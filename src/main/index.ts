@@ -37,7 +37,7 @@ import {
 } from './protocol'
 import { guardWindow, registerCloseGuard } from './closeGuard'
 import { clearRecovery, readRecovery, writeRecovery } from './project/recovery'
-import { downloadSkill } from '../shared/skill'
+import { downloadSkill, type SkillKind } from '../shared/skill'
 import { MessageError, msg } from '../shared/messages'
 import { projectFolderName } from '../shared/model/projectName'
 import { exists } from './fs'
@@ -49,10 +49,12 @@ import type {
   BackupState,
   DocExportFile,
   Theme,
-  TtcImportOptions
+  TtcImportOptions,
+  NandeckImportOptions
 } from '../shared/api'
 import type { PrintedState } from '../shared/project'
 import { defaultTarget, importTtc } from './import/ttc'
+import { defaultNandeckTarget, importNandeck, scanNandeck } from './import/nandeck'
 import { runExport } from './export/run'
 import { ExportWindow } from './export/window'
 import { toCmyk } from './export/cmyk'
@@ -168,6 +170,23 @@ if (cliArgs) {
     const code = await runCli(cliArgs)
     app.exit(code)
   })
+}
+
+/** Skill chiesta dal renderer: solo i nomi che esistono */
+function skillKind(kind?: SkillKind): SkillKind {
+  return kind === 'stella-nandeck' ? 'stella-nandeck' : 'stella'
+}
+
+/**
+ * Con npm run dev la skill si legge dalla cartella del repository: così si prova anche quella
+ * di un ramo non ancora su main. L'app installata la scarica sempre da GitHub.
+ */
+async function skillText(kind: SkillKind): Promise<string> {
+  if (!app.isPackaged) {
+    const file = join(app.getAppPath(), 'skill', kind, 'SKILL.md')
+    if (existsSync(file)) return readFile(file, 'utf8')
+  }
+  return downloadSkill(app.getVersion(), (url) => net.fetch(url), kind)
 }
 
 /** Indirizzo che si può aprire nel browser o nel programma di posta */
@@ -639,11 +658,9 @@ function registerIpc(): void {
   )
   ipcMain.handle('update:mode', () => updateMode())
   ipcMain.handle('update:install', (e, version: string) => installUpdate(version, e.sender))
-  ipcMain.handle('ai:download-skill', () =>
-    downloadSkill(app.getVersion(), (url) => net.fetch(url))
-  )
-  ipcMain.handle('ai:save-skill', async (_, folder: string, text: string) => {
-    const file = join(folder, 'stella', 'SKILL.md')
+  ipcMain.handle('ai:download-skill', (_, kind?: SkillKind) => skillText(skillKind(kind)))
+  ipcMain.handle('ai:save-skill', async (_, folder: string, text: string, kind?: SkillKind) => {
+    const file = join(folder, skillKind(kind), 'SKILL.md')
     await mkdir(dirname(file), { recursive: true })
     await writeFile(file, text)
     return file
@@ -697,6 +714,9 @@ function registerIpc(): void {
   ipcMain.handle('ttc:default-target', (_, source: string) => defaultTarget(source))
   // l'importazione scrive solo nella cartella di destinazione, che deve essere nuova o vuota
   ipcMain.handle('ttc:import', (_, options: TtcImportOptions) => importTtc(options))
+  ipcMain.handle('nandeck:scan', (_, source: string) => scanNandeck(source))
+  ipcMain.handle('nandeck:default-target', (_, source: string) => defaultNandeckTarget(source))
+  ipcMain.handle('nandeck:import', (_, options: NandeckImportOptions) => importNandeck(options))
 
   // Blocco mentre lavora un'IA (vedi project/agentLock.ts): il renderer dice se ha modifiche non
   // salvate, qui si scrive il file per `stella begin` e si controlla ogni secondo il file dell'IA

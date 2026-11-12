@@ -303,6 +303,8 @@ export const en = {
   'editor.shapeSection': 'Shape and outline',
   'editor.typography': 'Typography',
   'editor.columnHint': 'Sheet column: {column}',
+  'editor.boundHint':
+    'Sheet column: {column}. You can also type a field in braces or a formula starting with =',
   'editor.nameHint': 'Also the name of the sheet column that fills this layer',
   'editor.nameEmpty': 'The name cannot be empty or start/end with spaces',
   'editor.nameChars': 'The name cannot contain . { } [ ]',
@@ -704,6 +706,8 @@ export const en = {
   'arrange.arrange': 'Arrange',
   'arrange.arrangeHint':
     'Places the layers in reading order on a grid of cells as large as the largest layer, each centred in its cell',
+  'field.boundHint':
+    'The value comes from the fields of each card. Type a number to set it by hand',
   'field.scrubHint': 'Drag right or left to change the value (Shift: bigger steps, Alt: finer)',
   'field.enabled': 'Enabled',
   'field.none': 'none',
@@ -1315,6 +1319,8 @@ export const en = {
     'Template file {file} has the same name "{name}" as {kept} and was skipped: rename it',
   'template.unknownLayerType': 'Template {file}: layer "{layer}" has unknown type "{type}"',
   'bind.unknownProperty': 'Column {column}: no such property',
+  'bind.boundField':
+    'Property {property}: it uses the field "{field}", which this row doesn\'t have',
   'bind.formulaField':
     'Layer {layer}: the formula uses field "{field}", which this row does not have',
   'bind.invalidValue': 'Column {column}: invalid value "{value}"',
@@ -2189,6 +2195,68 @@ export const en = {
   'start.newProject': 'New project…',
   'start.openProject': 'Open project…',
   'start.importTtc': 'Import from Tabletop Creator…',
+  'start.importNandeck': 'Import from nanDECK…',
+  'tip.importNandeck':
+    'Import from nanDECK: convert the scripts of a game into a new Stella project; the original folder is not changed',
+  'nandeck.title': 'Import from nanDECK',
+  'nandeck.intro':
+    'Each script becomes a template and a set: data from LINK and labels go in the sheet, frames and ranges become layers and visibility formulas, the images used are copied. The nanDECK folder is only read. Lines that have no equivalent are listed in the note "Import nanDECK", which the nanDECK skill uses to finish the work.',
+  'nandeck.source': 'nanDECK game folder',
+  'nandeck.name': 'Project name',
+  'nandeck.sourceHint': 'The folder with the .nde scripts, the images and the data files',
+  'nandeck.scripts': 'Scripts to convert',
+  'nandeck.scriptsHint':
+    'Copies, old versions, print scripts and files used only with INCLUDE are not checked',
+  'nandeck.kind.copy': 'copy or old version',
+  'nandeck.kind.print': 'print script',
+  'nandeck.kind.include': 'used with INCLUDE',
+  'nandeck.done':
+    'Imported {templates} templates, {sets} sets with {cards} rows and {images} images.',
+  'nandeck.partial':
+    'The import is partial: {count} script lines were not converted. They are listed in the note "{note}" of the project, with the reason.',
+  'nandeck.partialNone':
+    'All script lines were converted, some only approximately: check the note "{note}" of the project.',
+  'nandeck.skillTitle': 'Finish with an AI agent',
+  'nandeck.skillHint':
+    'The nanDECK skill lets an AI agent (Claude Code, Codex…) read the note and the scripts and convert by hand what is missing. It works together with the Stella skill (Help > AI tools). It is not inside Stella: Copy and Save download it from GitHub.',
+  'nandeck.skillCopy': 'Copy the nanDECK skill',
+  'nandeck.skillSave': 'Save the nanDECK skill…',
+  'nandeck.missingImages': 'Images not found ({count})',
+  'nandeck.noScripts': 'The folder {folder} has no nanDECK scripts (.nde files)',
+  'nandeck.noneSelected': 'Choose at least one script to convert',
+  'nandeck.noteIntro':
+    'This project was converted from nanDECK scripts. The conversion is partial: what follows is what was not converted, or was converted only approximately, script by script, with the line of the script. An AI agent with the nanDECK skill can use this note to finish the work.',
+  'nandeck.noteSource': 'nanDECK folder: `{folder}`',
+  'nandeck.noteSkillTitle': 'How to finish the conversion',
+  'nandeck.noteSkill':
+    'Install the Stella skill (Help > AI tools) and the nanDECK skill ({url}) in your AI agent, then ask it to finish the nanDECK import of this project. The agent reads this note and the original scripts.',
+  'nandeck.noteScript': 'Templates: {templates}. Cards: {cards}. Layers: {layers}.',
+  'nandeck.noteNoCards':
+    'No cards drawn: the script has no drawing commands that can be converted.',
+  'nandeck.notePrint':
+    '{count} print and export lines ignored (page, borders, saving images): Stella has its own export settings.',
+  'nandeck.noteSkipped': 'Lines not converted',
+  'nandeck.noteFile': 'File',
+  'nandeck.noteLine': 'Line',
+  'nandeck.noteText': 'Text',
+  'nandeck.noteReason': 'Reason',
+  'nandeck.noteApprox': 'Converted approximately',
+  'nandeck.noteMissing': 'Images not found',
+  'nandeck.noteFonts': 'Fonts used',
+  'nandeck.reason.command': 'command with no equivalent in Stella',
+  'nandeck.reason.function': 'function not converted',
+  'nandeck.reason.print': 'print setting',
+  'nandeck.reason.macro': 'macro or special syntax',
+  'nandeck.reason.syntax': 'parameters not understood',
+  'nandeck.reason.fill': 'flood fill, depends on the drawing',
+  'nandeck.reason.link': 'linked data not found',
+  'nandeck.note.fontBackground':
+    'Text with a filled background (FONT without the T flag) drawn without the background, lines {lines}',
+  'nandeck.note.htmlBackground':
+    'HTMLTEXT with a background color drawn without the background, lines {lines}',
+  'nandeck.note.firstCard':
+    'Properties that change between cards and cannot go in the sheet: all cards use the value of the first one ({lines})',
+  'nandeck.note.htmlTags': 'HTML tags not converted: {tags}',
   'start.example': 'Open the example project',
   'tip.example':
     'The project of the guide and the videos, copied into Documents/Stella/Example the first time',

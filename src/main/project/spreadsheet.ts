@@ -64,8 +64,17 @@ export function cellText(cell: ExcelJS.Cell): string {
   // un errore (#DIV/0!, #N/A) si legge com'è scritto, VERO e FALSO come true e false
   if (r && typeof r === 'object' && 'error' in r) return String(r.error)
   if (typeof r === 'boolean') return String(r)
-  if (typeof r === 'number') return formatNumber(r, cell.numFmt) ?? cell.text ?? ''
-  return cell.text ?? ''
+  if (typeof r === 'number') return formatNumber(r, cell.numFmt) ?? safeText(cell)
+  return safeText(cell)
+}
+
+/** `cell.text`, che in una cella unita a una vuota lancia un errore */
+function safeText(cell: ExcelJS.Cell): string {
+  try {
+    return cell.text ?? ''
+  } catch {
+    return ''
+  }
 }
 
 // Il formato si applica con il punto per i decimali, come i numeri senza formato, e lo spazio

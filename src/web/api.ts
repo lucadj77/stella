@@ -39,6 +39,7 @@ import {
 } from '../main/project/backup'
 import { backupDirFor, backupSettingsFile } from '../main/project/backupPaths'
 import { defaultTarget, importTtc } from '../main/import/ttc'
+import { defaultNandeckTarget, importNandeck, scanNandeck } from '../main/import/nandeck'
 import { readRealPath, realPathMatches, toRealPath, virtualRoot } from '../shared/realPath'
 import { ensurePermission, hasPermission, pickFolder } from './fs/roots'
 import { assetChanged, assetUrl, openAssets } from './assets'
@@ -279,6 +280,17 @@ export const webApi: Api = {
       if (p && !(await ensurePermission(p))) throw new MessageError(msg('web.permissionDenied'))
     return importTtc(options)
   },
+  scanNandeck: async (source) => {
+    if (!(await ensurePermission(source))) throw new MessageError(msg('web.permissionDenied'))
+    return scanNandeck(source)
+  },
+  defaultNandeckTarget: async (source) =>
+    dirname(source) === '/' ? '' : defaultNandeckTarget(source),
+  importNandeck: async (options) => {
+    for (const p of [options.source, options.target])
+      if (p && !(await ensurePermission(p))) throw new MessageError(msg('web.permissionDenied'))
+    return importNandeck(options)
+  },
   // il comando lo trova la skill: l'app desktop se c'è, se no il pacchetto stella-cli
   stellaCommand: async () => ({ command: '', ready: true }),
   // chi apre il sito ha sempre l'ultima versione
@@ -291,7 +303,7 @@ export const webApi: Api = {
   installUpdate: async () => {},
   onUpdateProgress: () => () => {},
   appVersion: async () => __APP_VERSION__,
-  downloadSkill: () => downloadSkill(__APP_VERSION__, (url) => fetch(url)),
+  downloadSkill: (kind) => downloadSkill(__APP_VERSION__, (url) => fetch(url), kind),
   saveSkill: desktopOnly,
   skillsFolder: desktopOnly,
   setAppState: async (f, d) => {

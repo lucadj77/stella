@@ -69,7 +69,8 @@ export function formatTemplate(value: unknown, indent = ''): string {
     return `[\n${value.map((v) => inner + formatTemplate(v, inner)).join(',\n')}\n${indent}]`
   }
   if (value && typeof value === 'object') {
-    const entries = Object.entries(value)
+    // come JSON.stringify, le chiavi senza valore non si scrivono
+    const entries = Object.entries(value).filter(([, v]) => v !== undefined)
     const isLayer = 'type' in value
     if (isLayer && !('children' in value)) return oneLine(value)
     return `{\n${entries
@@ -81,6 +82,7 @@ export function formatTemplate(value: unknown, indent = ''): string {
 
 function oneLine(value: object): string {
   const body = Object.entries(value)
+    .filter(([, v]) => v !== undefined)
     .map(([k, v]) => `${JSON.stringify(k)}: ${inline(v)}`)
     .join(', ')
   return `{ ${body} }`
@@ -91,6 +93,7 @@ function inline(v: unknown): string {
   if (Array.isArray(v)) return `[${v.map(inline).join(', ')}]`
   if (v && typeof v === 'object')
     return `{${Object.entries(v)
+      .filter(([, x]) => x !== undefined)
       .map(([k, x]) => `${JSON.stringify(k)}: ${inline(x)}`)
       .join(', ')}}`
   return JSON.stringify(v)

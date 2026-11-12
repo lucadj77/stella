@@ -115,6 +115,7 @@ Older projects have `naibi.json` or `gamecreator.json` instead of `stella.json`;
 - `amount` is the number of copies (1 when empty or missing).
 - A column named like a template layer replaces that layer's main value: the text of a `text` layer, the file of an `image` layer, the fill of a `shape` or `grid`, the visibility of a `group`, the value of a `value` layer.
 - A column `layer.property` replaces another property for that card: `name.color`, `cover.zoom`, `badge.visible`, `title.size`. Values are written as in the template (numbers, `true`/`false`, colours); a stroke is `colour/width/dashed`, for example `red/0.3/dotted`.
+- In the template, a number or true/false property can be a field or a formula instead of a value: `"rotation": "{orientation}"`, `"opacity": "=IF({rare}; 1; 0.5)"`, `"visible": "{shown}"`. Each card reads it like a `layer.property` column; an empty result keeps the default. Prefer it to a `layer.property` column that would only copy another column. A `layer.property` column wins over it. The field needs a value layer, like any field.
 - An empty cell keeps the template's value. A cell with only spaces empties the main value.
 - Other columns are free fields, usable as `{column}` in texts and formulas.
 - Write line breaks inside a cell as real newlines in JSON (`"\n"`).

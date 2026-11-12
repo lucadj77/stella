@@ -62,3 +62,9 @@ Nell'app **Strumenti IA…** (nel menu ⚙ di ogni schermata) prepara la skill c
 La skill porta la versione di Stella per cui è scritta (`{{STELLA_VERSION}}`, inserita da **Strumenti IA…**). All'inizio del lavoro chiede all'agente di trovare il comando (l'app desktop nei percorsi abituali, poi `stella` nel PATH), di leggerne la versione con `stella version`, di proporre l'installazione del pacchetto `stella-cli` se non trova niente (e prima di Node.js, se manca), di aggiornare il pacchetto quando esce una release più recente (l'app desktop invece si aggiorna da sola) e di sostituirsi con la skill della stessa versione del comando, presa dal tag su GitHub. Nella versione web **Strumenti IA…** mostra la skill senza comando, che l'agente trova così.
 
 Quando cambia il formato del progetto va aggiornata anche la skill.
+
+### Skill per finire un'importazione da nanDECK
+
+La skill [skill/stella-nandeck/SKILL.md](../skill/stella-nandeck/SKILL.md), in inglese, aiuta un agente a finire a mano un gioco importato con **Importa da nanDECK**: legge la nota `notes/Import nanDECK.md` e gli script `.nde` originali, e converte le righe che l'importazione ha saltato o reso in modo approssimato. Per tutto quello che riguarda Stella rimanda alla skill `stella`, che deve essere installata. Anche questa skill non è nei pacchetti: la finestra di riepilogo dell'importazione la scarica da GitHub (`.../skill/stella-nandeck/SKILL.md`, stesso tag o `main` della skill di Stella) quando si preme Copia o Salva, e la salva in `<cartella>/stella-nandeck/SKILL.md`. Come la skill di Stella porta la versione dell'app (`{{STELLA_VERSION}}`) e chiede all'agente di sostituirsi con quella della stessa versione del comando, presa dal tag su GitHub.
+
+Quando cambia quello che fa l'importazione da nanDECK va aggiornata anche questa skill.

@@ -23,6 +23,7 @@ export default function StartScreen({
   onOpen,
   onChoose,
   onImport,
+  onImportNandeck,
   onHelp
 }: {
   error: Message | null
@@ -33,6 +34,7 @@ export default function StartScreen({
   /** Sceglie una cartella di progetto e la apre */
   onChoose(): void
   onImport(): void
+  onImportNandeck(): void
   onHelp(): void
 }): React.JSX.Element {
   const { t, lang } = useI18n()
@@ -98,6 +100,7 @@ export default function StartScreen({
             onExample={openExample}
             onChoose={onChoose}
             onImport={onImport}
+            onImportNandeck={onImportNandeck}
             onHelp={onHelp}
           />
         ) : (
@@ -114,6 +117,9 @@ export default function StartScreen({
             </button>
             <button onClick={onImport} title={t('tip.importTtc')}>
               {t('start.importTtc')}
+            </button>
+            <button onClick={onImportNandeck} title={t('tip.importNandeck')}>
+              {t('start.importNandeck')}
             </button>
             <button disabled={loading} title={t('tip.example')} onClick={openExample}>
               {t('start.example')}
@@ -219,6 +225,7 @@ function Welcome({
   onExample,
   onChoose,
   onImport,
+  onImportNandeck,
   onHelp
 }: {
   loading: boolean
@@ -226,6 +233,7 @@ function Welcome({
   onExample(): void
   onChoose(): void
   onImport(): void
+  onImportNandeck(): void
   onHelp(): void
 }): React.JSX.Element {
   const { t, lang } = useI18n()
@@ -271,6 +279,9 @@ function Welcome({
         </button>
         <button onClick={onImport} title={t('tip.importTtc')}>
           {t('start.importTtc')}
+        </button>
+        <button onClick={onImportNandeck} title={t('tip.importNandeck')}>
+          {t('start.importNandeck')}
         </button>
         <button onClick={onHelp} title={t('tip.help')}>
           {t('app.help')}

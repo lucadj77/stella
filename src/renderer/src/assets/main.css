@@ -986,6 +986,13 @@ textarea.invalid {
   width: 70px;
 }
 
+/* un numero che viene dai campi ({or}, =formula): più largo e nel colore dei campi */
+.field-control > input.num.bound {
+  flex: 1 1 110px;
+  width: 110px;
+  color: var(--accent);
+}
+
 .field-control input.color-text {
   flex: 1 1 64px;
   min-width: 64px;
@@ -3240,6 +3247,28 @@ div.font-row {
 .export-result h3 {
   margin: 8px 0 4px;
   font-size: 13px;
+}
+
+/* importazione da nanDECK: elenco degli script da convertire */
+.nandeck-scripts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 30vh;
+  overflow-y: auto;
+}
+
+.nandeck-scripts label.check {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+
+.dialog-buttons.start {
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: 4px;
 }
 
 /* ——— barra del progetto ——— */

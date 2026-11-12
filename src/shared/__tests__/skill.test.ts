@@ -43,6 +43,26 @@ describe('downloadSkill', () => {
     expect(asked[0]).toContain('/v1.8.5/skill/stella/SKILL.md')
   })
 
+  it('scarica la skill nanDECK, separata da quella di Stella', async () => {
+    const nandeck = readFileSync('skill/stella-nandeck/SKILL.md', 'utf8')
+    const asked: string[] = []
+    const text = await downloadSkill(
+      '1.11.0',
+      async (url) => {
+        asked.push(url)
+        return ok(nandeck)
+      },
+      'stella-nandeck'
+    )
+    expect(text).toBe(nandeck)
+    expect(asked[0]).toContain('/v1.11.0/skill/stella-nandeck/SKILL.md')
+    // la skill di Stella non vale come skill nanDECK, né il contrario
+    await expect(
+      downloadSkill('1.11.0', async () => ok(source), 'stella-nandeck')
+    ).rejects.toThrow()
+    await expect(downloadSkill('1.11.0', async () => ok(nandeck))).rejects.toThrow()
+  })
+
   it('senza rete dà un messaggio con la pagina da cui scaricarla', async () => {
     await expect(
       downloadSkill('1.8.5', async () => {

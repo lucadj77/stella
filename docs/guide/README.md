@@ -172,6 +172,7 @@ The first time, when there are no recent projects yet, the screen welcomes you w
 - **New project…** creates an empty folder with the structure of a project.
 - **Open project…** opens a folder that contains `stella.json`. Projects created when the app was called Naibi (`naibi.json`) or GameCreator (`gamecreator.json`) open too.
 - **Import from Tabletop Creator…** converts a Tabletop Creator project ([chapter 14](#14-importing-from-tabletop-creator)).
+- **Import from nanDECK…** converts the scripts of a nanDECK game ([chapter 14](#importing-from-nandeck)).
 - **Open the example project** opens the project used in this guide and in the videos: three sets (Characters, Items, Market), icons, variables and styles. The first time it is copied into Documents/Stella/Example, where it can be changed freely; after that the copy is opened. In the web version the copy lives in the storage the browser keeps for the site: you change and save it without choosing a folder, but it stays in that browser only.
 - **Recent projects** shows up to 24 projects, with their first component as thumbnail, or the cover chosen in **Project info…** ([chapter 3](#3-the-project-window)). The × removes a project from the list without deleting the folder.
 
@@ -508,6 +509,8 @@ A layer with the **Spill out of the box** fit is marked _fixed size_: its text i
 ### 5.4 Property columns
 
 Besides the main value, every property of a layer can change from one component to another with a `layer.property` column: for example `name.color` for the title color, or `icon.tint` for the tint of an icon. **+ Field** suggests the columns the template reads and the sheet lacks, the properties of a layer of your choice, or a free column.
+
+When a number property should follow a column you already have, you don't need to copy it: in the template's **X**, **Y**, width, height, **Rotation** and **Opacity** fields you can type a field in braces, like `{orientation}`, or a formula starting with `=`. Each component takes the value from its field, and typing a number again removes the field.
 
 ![The window to add a column](img/aggiungi-colonna.png)
 
@@ -1138,6 +1141,23 @@ You choose the Tabletop Creator project folder (the one with the `.tcp` file and
 ![Importing from Tabletop Creator](img/importa-ttc.png)
 
 At the end the app lists what it could not convert, for example image masks and 9-slice images, and the fonts used that are not installed.
+
+### Importing from nanDECK
+
+**Import from nanDECK…** converts the scripts of a nanDECK game (the `.nde` files) into a new Stella project. The game folder is only read.
+
+You choose the game folder, the one with the scripts, the images and the data files. The app lists the scripts and checks those that draw cards: copies and old versions, print scripts and files used only with `INCLUDE` stay unchecked, but you can add them. Then you choose the folder of the new project, which must be new or empty.
+
+Each script becomes a template and a set:
+
+- labels with more than one value and the columns linked with `LINK` go in the data sheet, and the template has a value layer for each of them;
+- drawing commands (`TEXT`, `HTMLTEXT`, `IMAGE`, `ICONS`, rectangles, ellipses, polygons, stars, lines, triangles, curves, grids) become layers, with frames and percentages converted to millimetres;
+- card ranges become the visibility of the layers: a formula when they come from `LABELRANGE` or from an `IF` on a column, otherwise a `layer.visible` column;
+- what changes from card to card goes in a column of the sheet; images from `HTMLIMAGE` and `ICON` become image variables;
+- the images used are copied into `assets`, with the same subfolders;
+- print lines (page, borders, `DISPLAY`, `SAVE`) are ignored: in Stella the export settings apply.
+
+The import is partial: some commands have no direct equivalent. The app writes the note **Import nanDECK** in the project, with the lines of each script that were not converted (file, line, text and reason) and what was converted only approximately, and opens it when you open the project. To finish the work there is the **nanDECK skill**, separate from the Stella skill: the window at the end of the import copies it or saves it as a file (it downloads it from GitHub). An AI agent with the Stella skill and the nanDECK skill ([chapter 15](#15-working-with-an-ai-agent)) reads the note and the original scripts and converts the missing lines by hand.
 
 ## 15. Working with an AI agent
 
