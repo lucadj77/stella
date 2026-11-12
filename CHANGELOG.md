@@ -10,10 +10,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 ### English
 
 - **Import from nanDECK**: the import window warns that the import is experimental and incomplete, and that an AI agent with the nanDECK skill can give better results. The importer now handles combination labels (`C`, `CR`, `P`, `PR`), using the same engine as the **Generate** window, joined and repeated labels, `IF` conditions with `_AND_`, `_OR_`, `_NOT_`, `@` and `#`, `CANVAS` boards split over several cards, scripts in a subfolder and `DIRFILES`. Borders are centered on the outline as in nanDECK, the back is found even when a frame is drawn on every card, icon variables get readable names, `ICONS` icons become image layers placed as nanDECK places them (icon size, width and height factors, angle, `W`/`H`, longer keys), `IF ... ELSEIF` images become one image with a formula, layers get readable names, a deck repeated twice becomes copies, and fonts that are not installed are listed in the note.
+- **Large grids**: a grid can now have up to 10,000 cells (before, 400: a 22 × 20 grid lost two columns and its contents were shifted). Over the limit, the check says so.
+- **Heavy PNG images**: the check and the export warn about PNG images over 8 MB, which may be left out of the export, and suggest converting them to JPG. Large images also get more time to load before an export.
+- **Semi-transparent colors**: color fields (fill, stroke, text) accept `rgba(...)` and `hsl(...)`; before, the stroke field ignored them.
 
 ### Italiano
 
 - **Importa da nanDECK**: la finestra di importazione avvisa che l'importazione è sperimentale e incompleta, e che un agente IA con la skill nanDECK può dare risultati migliori. L'importazione ora gestisce le etichette combinatorie (`C`, `CR`, `P`, `PR`), con lo stesso motore della finestra **Genera**, le etichette concatenate e ripetute, le condizioni `IF` con `_AND_`, `_OR_`, `_NOT_`, `@` e `#`, i tabelloni `CANVAS` divisi su più carte, gli script in una sottocartella e `DIRFILES`. I bordi stanno a cavallo del contorno come in nanDECK, il retro si riconosce anche quando una cornice è disegnata su tutte le carte, le variabili delle icone hanno nomi leggibili, le icone di `ICONS` diventano livelli immagine messi dove li mette nanDECK (misura dell'icona, fattori di larghezza e altezza, angolo, `W`/`H`, tasti lunghi), le immagini di `IF ... ELSEIF` diventano una sola immagine con una formula, i livelli hanno nomi leggibili, un mazzo ripetuto due volte diventa copie, e i font non installati sono elencati nella nota.
+- **Griglie grandi**: una griglia può avere fino a 10.000 caselle (prima 400: una griglia 22 × 20 perdeva due colonne e il contenuto risultava spostato). Oltre il limite, il controllo lo segnala.
+- **Immagini PNG pesanti**: il controllo e l'esportazione avvisano delle PNG oltre 8 MB, che possono mancare nell'esportazione, e consigliano di convertirle in JPG. Le immagini grandi hanno anche più tempo per caricarsi prima di un'esportazione.
+- **Colori semitrasparenti**: i campi colore (riempimento, bordo, testo) accettano `rgba(...)` e `hsl(...)`; prima il campo del bordo li ignorava.
 
 ## 1.11.0-beta.2
 
