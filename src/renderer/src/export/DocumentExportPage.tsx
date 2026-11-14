@@ -70,7 +70,7 @@ async function render(root: HTMLElement, input: DocRenderInput): Promise<DocRend
         : { path: f.path, base64: base64(f.data) }
     )
   }
-  const html = await documentHtml(page, input.name, settings, input.fonts)
+  const html = await documentHtml(page, input.name, settings, input.fonts, input.kind === 'pdf')
   return [{ path: `${input.name}.html`, text: html }]
 }
 

@@ -17,7 +17,10 @@ export async function htmlToPdf(html: string): Promise<Uint8Array> {
   })
   try {
     await win.loadFile(file)
-    await win.webContents.executeJavaScript('document.fonts.ready.then(() => true)')
+    // con i caratteri pronti la pagina si divide nelle pagine dell'anteprima (stellaPaginate)
+    await win.webContents.executeJavaScript(
+      'document.fonts.ready.then(() => { window.stellaPaginate?.(); return true })'
+    )
     return await win.webContents.printToPDF({ printBackground: true, preferCSSPageSize: true })
   } finally {
     win.destroy()

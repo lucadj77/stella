@@ -9,14 +9,14 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 
 ### English
 
-- **Document pages**: the document preview marks with a dashed line where each PDF page begins (**Page 2**, **Page 3**…), with the same rules as the PDF: lines left alone at the bottom or top of a page, cards, tables and quotes that are not split, headings kept with the text after them. **Pages**, next to the zoom buttons, hides or shows the lines.
+- **Document pages**: the document preview marks with a dashed line where each PDF page begins (**Page 2**, **Page 3**…). The PDF is now laid out in pages the same way as the preview, so the lines show exactly where its pages begin, also next to drawings placed beside the text. No line is left alone at the bottom or top of a page, cards, tables and quotes are not split, and a heading never stays alone at the bottom of a page: it moves to the next one with the text that follows. **Pages**, next to the zoom buttons, hides or shows the lines.
 - **PDF preview**: the button next to **Export document…** shows the PDF as it will be exported, page by page, in a separate window (in the browser it opens the print window, which has its own preview).
 - **Settings**: the document's **Page** button is now called **Settings**.
 - **Same lines as the PDF**: with the preview zoomed out, the text is laid out at its real size and then reduced, so it goes to a new line in the same places as in the PDF. Before, on some systems the reduced text could wrap differently and look narrower.
 
 ### Italiano
 
-- **Pagine del documento**: l'anteprima del documento segna con una linea tratteggiata dove comincia ogni pagina del PDF (**Pagina 2**, **Pagina 3**…), con le stesse regole del PDF: righe rimaste sole in fondo o in cima a una pagina, carte, tabelle e citazioni che non si dividono, titoli che restano col testo che segue. **Pagine**, accanto ai tasti dello zoom, nasconde o mostra le linee.
+- **Pagine del documento**: l'anteprima del documento segna con una linea tratteggiata dove comincia ogni pagina del PDF (**Pagina 2**, **Pagina 3**…). Il PDF ora si divide in pagine nello stesso modo dell'anteprima, quindi le linee mostrano esattamente dove cominciano le sue pagine, anche accanto ai disegni messi a lato del testo. Nessuna riga resta da sola in fondo o in cima a una pagina, carte, tabelle e citazioni non si dividono, e un titolo non resta mai da solo in fondo a una pagina: passa alla pagina dopo con il testo che segue. **Pagine**, accanto ai tasti dello zoom, nasconde o mostra le linee.
 - **Anteprima PDF**: il tasto accanto a **Esporta documento…** mostra il PDF come sarà esportato, pagina per pagina, in una finestra a parte (nel browser apre la finestra di stampa, che ha la sua anteprima).
 - **Impostazioni**: il tasto **Pagina** del documento ora si chiama **Impostazioni**.
 - **Stesse righe del PDF**: con l'anteprima rimpicciolita, il testo si impagina a grandezza vera e poi si riduce, così va a capo negli stessi punti del PDF. Prima su alcuni sistemi il testo ridotto poteva andare a capo diversamente e sembrare più stretto.

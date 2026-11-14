@@ -2,7 +2,15 @@
 // dell'esportazione (con @page per formato e margini) va in una cornice nascosta e si apre la
 // finestra di stampa, da cui si sceglie "Salva come PDF". Le misure restano in millimetri.
 
-export async function printHtml(html: string, title: string): Promise<void> {
+import { paginate } from '../render/pageBreaks'
+
+/** `text` è lo spazio del testo di una pagina in mm: il documento si divide nelle pagine
+ *  dell'anteprima prima di stampare */
+export async function printHtml(
+  html: string,
+  title: string,
+  text?: [number, number]
+): Promise<void> {
   const frame = document.createElement('iframe')
   frame.title = title
   Object.assign(frame.style, {
@@ -27,6 +35,7 @@ export async function printHtml(html: string, title: string): Promise<void> {
     const win = frame.contentWindow
     if (!win) throw new Error('print frame')
     await win.document.fonts.ready
+    if (text) paginate(win.document, text[0], text[1])
     // il nome proposto per il file è il titolo della pagina
     win.document.title = title
     win.focus()
