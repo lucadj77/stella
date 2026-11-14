@@ -1951,6 +1951,8 @@ export const en = {
     'Column width, as % of the table width (empty: as wide as the content)',
   'documents.tableAuto': 'auto',
   'documents.tableLook': 'Look',
+  'documents.tablePosition': 'Position',
+  'documents.tablePositionHint': 'Where a table narrower than the text sits on the line',
   'documents.tableWidth': 'Table width',
   'documents.tableWidthHint': 'As % of the text width; 0 is as wide as the content.',
   'documents.tableLines': 'Lines',

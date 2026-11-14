@@ -413,7 +413,7 @@ export async function documentDocx(
             st.width
               ? `<w:tblW w:w="${Math.round(tableW)}" w:type="dxa"/>`
               : '<w:tblW w:w="0" w:type="auto"/>'
-          }<w:tblCellMar><w:left w:w="85" w:type="dxa"/>` +
+          }${st.align !== 'left' ? `<w:jc w:val="${st.align}"/>` : ''}<w:tblCellMar><w:left w:w="85" w:type="dxa"/>` +
             `<w:right w:w="85" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${colW
               .map((w) => `<w:gridCol w:w="${w}"/>`)
               .join('')}</w:tblGrid>${rows.join('')}</w:tbl>`,

@@ -24,7 +24,11 @@ export interface TableStyle {
   fill: string | null
   /** Sfondo di una riga sì e una no (la seconda, la quarta...); null per nessuno */
   stripes: string | null
+  /** Posizione nella riga di una tabella più stretta del testo (align=center) */
+  align: TableAlign
 }
+
+export type TableAlign = 'left' | 'center' | 'right'
 
 export const DEFAULT_TABLE_STYLE: TableStyle = {
   width: null,
@@ -34,7 +38,8 @@ export const DEFAULT_TABLE_STYLE: TableStyle = {
   lines: 'all',
   header: '#f3f3f0',
   fill: null,
-  stripes: null
+  stripes: null,
+  align: 'left'
 }
 
 const LINE = /^\s*<!--\s*table(\s(?:(?!-->).)*)?-->\s*$/
@@ -72,6 +77,7 @@ export function parseTableStyle(line: string): { style: TableStyle; bad: string[
     else if (k === 'header') style.header = color(v)
     else if (k === 'fill') style.fill = color(v)
     else if (k === 'stripes') style.stripes = color(v)
+    else if (k === 'align' && (v === 'left' || v === 'center' || v === 'right')) style.align = v
     else bad.push(part)
   }
   return { style, bad }
@@ -90,6 +96,7 @@ export function tableStyleSource(s: TableStyle): string {
   if (s.header !== d.header) opts.push(`header=${color(s.header)}`)
   if (s.fill !== d.fill) opts.push(`fill=${color(s.fill)}`)
   if (s.stripes !== d.stripes) opts.push(`stripes=${color(s.stripes)}`)
+  if (s.align !== d.align) opts.push(`align=${s.align}`)
   return opts.length ? `<!-- table ${opts.join(' ')} -->` : ''
 }
 
