@@ -1,4 +1,5 @@
 import type { DocExportFile } from '../../../shared/api'
+import { forcePageBreaks, paginate } from '../render/pageBreaks'
 import type { ProjectFont } from '../../../shared/project'
 import type { HAlign } from '../../../shared/model/template'
 import { parseInline, type Inline } from '../../../shared/model/markup'
@@ -41,16 +42,21 @@ const firstFamily = (css: string): string =>
 /**
  * Pagina HTML autonoma del documento. `page` è la pagina dell'anteprima (.doc-page), da
  * mostrare senza riduzione mentre si esporta: le carte si misurano come le ha disegnate il
- * browser.
+ * browser. Con `paged` (per il PDF) la pagina ha la funzione window.stellaPaginate, che la divide
+ * nelle pagine dell'anteprima: la chiama chi stampa, dopo che i caratteri sono pronti.
  */
 export async function documentHtml(
   page: HTMLElement,
   title: string,
   settings: DocSettings,
-  fonts: ProjectFont[]
+  fonts: ProjectFont[],
+  paged = false
 ): Promise<string> {
   const clone = page.cloneNode(true) as HTMLElement
+  // le pagine come le segna l'anteprima, anche dove la stampa farebbe diversamente
+  forcePageBreaks(page, clone, settings)
   clone.style.removeProperty('zoom')
+  clone.style.removeProperty('transform')
   clone.querySelectorAll('[data-from]').forEach((el) => el.removeAttribute('data-from'))
   // le carte e le immagini che non si trovano restano fuori, con la loro didascalia
   clone.querySelectorAll('.doc-missing').forEach((el) => (el.closest('figure') ?? el).remove())
@@ -96,8 +102,6 @@ body { margin: 0; padding: 10mm 0 }
 * { print-color-adjust: exact; -webkit-print-color-adjust: exact }
 ${faces}
 ${css}
-.doc-figure figure, .doc-page tr, .doc-page pre, .doc-page blockquote, .doc-item { break-inside: avoid }
-.doc-page h1, .doc-page h2, .doc-page h3 { break-after: avoid }
 @media print {
   html { background: none }
   body { padding: 0 }
@@ -107,6 +111,11 @@ ${css}
 </head>
 <body>
 ${clone.outerHTML}
+${
+  paged
+    ? `<script>window.stellaPaginate = () => (${paginate.toString()})(document, ${w - 2 * settings.margin}, ${h - 2 * settings.margin})</script>`
+    : ''
+}
 </body>
 </html>
 `

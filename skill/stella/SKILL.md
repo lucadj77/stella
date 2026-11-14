@@ -322,7 +322,7 @@ headingColor: red
 
 Documents export to `export/docs/` as PDF, standalone HTML, Word (.docx) or plain Markdown with PNG cards: in the app with **Export document…**, from the command line with `export-doc` (for example `export-doc <project> Rules --format pdf`). Open the PDF to check the layout.
 
-A card anatomy (the card with labels pointing at its parts) is a fenced block:
+An anatomy (a component with labels pointing at its parts) is a fenced block:
 
 ````
 ```anatomy

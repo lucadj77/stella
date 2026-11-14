@@ -18,7 +18,8 @@ import {
   isCardSource,
   parseDocument,
   withDocumentSettings,
-  type Anatomy
+  type Anatomy,
+  type DocSettings
 } from '../../../shared/model/document'
 import { useI18n } from '../i18n/context'
 import {
@@ -47,10 +48,17 @@ import FindBar from './FindBar'
 import Resizer from './Resizer'
 import { usePanelWidth } from './usePanelWidth'
 import { plainText } from '../../../shared/model/markup'
+import { messageFromError, type Message } from '../../../shared/messages'
 
 // finestre ed esportazioni usate di rado: si caricano la prima volta che servono
 const DocumentExportDialog = lazy(() => import('./DocumentExportDialog'))
 const SetupDialog = lazy(() => import('./SetupDialog'))
+
+/** Lo spazio del testo di una pagina, in mm */
+function textArea(s: DocSettings): [number, number] {
+  const [w, h] = DOC_PAGES[s.page]
+  return [w - 2 * s.margin, h - 2 * s.margin]
+}
 
 /** I passi dello zoom dell'anteprima, in percento */
 const ZOOM_STEPS = [25, 33, 50, 67, 75, 90, 100, 110, 125, 150, 175, 200, 250, 300, 400]
@@ -257,6 +265,9 @@ export default function DocumentView({
   const [zoomPct, setZoomPct] = usePanelWidth('document.zoom', 0)
   const zoom = zoomPct ? zoomPct / 100 : fit
   const zoomBy = (dir: 1 | -1): void => setZoomPct(zoomStep(zoom, dir))
+  // le interruzioni di pagina del PDF sull'anteprima: 1 si vedono, 2 no
+  const [pagesMode, setPagesMode] = usePanelWidth('document.pages', 1)
+  const showPages = pagesMode !== 2
   // ⌘ o Ctrl con la rotella ingrandisce l'anteprima; serve un ascoltatore non passivo
   useEffect(() => {
     const box = preview.current
@@ -384,8 +395,8 @@ export default function DocumentView({
   const exportAs = async (kind: DocExportKind): Promise<string> => {
     const page = preview.current?.querySelector<HTMLElement>('.doc-page')
     if (!page) throw new Error('no preview')
-    const zoomed = page.style.zoom
-    page.style.zoom = '1'
+    const zoomed = page.style.transform
+    page.style.transform = 'none'
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
     try {
       if (kind === 'md') {
@@ -421,16 +432,44 @@ export default function DocumentView({
         )
       }
       const { documentHtml } = await import('../export/documentExport')
-      const html = await documentHtml(page, name, settings, fonts)
+      const html = await documentHtml(page, name, settings, fonts, kind === 'pdf')
       // nel browser il PDF passa dalla finestra di stampa: il file lo salva chi stampa
       if (kind === 'pdf' && window.api.isWeb) {
-        await printHtml(html, name)
+        await printHtml(html, name, textArea(settings))
         return ''
       }
       const data = kind === 'pdf' ? await window.api.documentPdf(html) : html
       return await window.api.exportDocumentFiles([{ path: `${name}.${kind}`, data }])
     } finally {
-      page.style.zoom = zoomed
+      page.style.transform = zoomed
+    }
+  }
+
+  /**
+   * Il PDF com'è stampato, in una finestra dell'app; nel browser la finestra di stampa, che ha la
+   * sua anteprima
+   */
+  const [pdfBusy, setPdfBusy] = useState(false)
+  const [pdfError, setPdfError] = useState<Message | null>(null)
+  const previewPdf = async (): Promise<void> => {
+    const page = preview.current?.querySelector<HTMLElement>('.doc-page')
+    if (!page || pdfBusy) return
+    setPdfBusy(true)
+    setPdfError(null)
+    const zoomed = page.style.transform
+    page.style.transform = 'none'
+    try {
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+      const { documentHtml } = await import('../export/documentExport')
+      const html = await documentHtml(page, name, settings, fonts, true)
+      page.style.transform = zoomed
+      if (window.api.isWeb) await printHtml(html, name, textArea(settings))
+      else await window.api.previewDocumentPdf(html, name)
+    } catch (e) {
+      setPdfError(messageFromError(e))
+    } finally {
+      page.style.transform = zoomed
+      setPdfBusy(false)
     }
   }
 
@@ -453,7 +492,7 @@ export default function DocumentView({
   }
 
   /**
-   * Porta il blocco dell'anteprima in vista. La pagina è ingrandita con `zoom`: offsetTop dà le
+   * Porta il blocco dell'anteprima in vista. La pagina è rimpicciolita con transform: offsetTop dà le
    * misure senza zoom, quindi si misura sullo schermo, che tiene conto dello zoom.
    */
   const scrollPreviewTo = (target: HTMLElement, always = false): void => {
@@ -571,10 +610,18 @@ export default function DocumentView({
           >
             {t('documents.page')}
           </button>
+          <button
+            onClick={() => void previewPdf()}
+            disabled={pdfBusy}
+            title={t(window.api.isWeb ? 'documents.pdfPreviewWebHint' : 'documents.pdfPreviewHint')}
+          >
+            {pdfBusy ? t('documents.pdfPreviewBusy') : t('documents.pdfPreview')}
+          </button>
           <button onClick={() => setExporting(true)} title={t('documents.exportHint')}>
             {t('documents.exportButton')}
           </button>
         </div>
+        {pdfError && <p className="field-error">{t(pdfError)}</p>}
         <div className="document-body" ref={body} style={{ gridTemplateColumns: columns }}>
           {outlineOpen && (
             <nav className="document-outline" aria-label={t('documents.outline')}>
@@ -682,6 +729,15 @@ export default function DocumentView({
           />
           <div className="document-preview" ref={preview}>
             <div className="document-zoom" role="group" aria-label={t('documents.zoom')}>
+              <button
+                type="button"
+                className={showPages ? 'active' : ''}
+                aria-pressed={showPages}
+                title={t('documents.pagesHint')}
+                onClick={() => setPagesMode(showPages ? 2 : 1)}
+              >
+                {t('documents.pages')}
+              </button>
               <button type="button" title={t('documents.zoomOut')} onClick={() => zoomBy(-1)}>
                 −
               </button>
@@ -703,6 +759,8 @@ export default function DocumentView({
               sets={sets}
               templates={templates}
               zoom={zoom}
+              pages={showPages}
+              scalable
               localization={localization}
               onPick={(from) => {
                 const el = editor.current

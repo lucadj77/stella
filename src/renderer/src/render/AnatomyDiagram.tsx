@@ -8,6 +8,7 @@ import {
   type Anatomy
 } from '../../../shared/model/document'
 import CardSvg from './CardSvg'
+import Edged from './Edged'
 import { MarkupInline } from './MarkupText'
 import { useBoundCard } from './useBoundCard'
 
@@ -340,7 +341,9 @@ export default function AnatomyDiagram({
     >
       {faces.map((face) => (
         <g key={face} transform={`translate(${faceX(face)} 0)`}>
-          <CardSvg template={t} side={face} scale={s} />
+          <Edged>
+            <CardSvg template={t} side={face} scale={s} />
+          </Edged>
         </g>
       ))}
       {placedL.map((p, k) => label(p, 'left', k))}

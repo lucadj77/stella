@@ -1,5 +1,5 @@
 import { projectMeta, type ProjectMeta } from '../../../shared/model/system'
-import { Fragment, memo, useContext, useMemo } from 'react'
+import { Fragment, memo, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { LoadedSet } from '../../../shared/project'
 import type { Template } from '../../../shared/model/template'
 import { resolveAsset } from '../../../shared/model/assets'
@@ -18,6 +18,7 @@ import AnatomyDiagram from './AnatomyDiagram'
 import SetupDiagram from './SetupDiagram'
 import { setupView, setupWithText } from './setupGeometry'
 import { useBoundCard } from './useBoundCard'
+import { pageBreaks } from './pageBreaks'
 import {
   anatomyCardSource,
   DOC_PAGES,
@@ -61,6 +62,13 @@ interface Props {
   templates: Template[]
   /** Riduzione della pagina per farla stare nello spazio, 1 alla misura vera */
   zoom?: number
+  /** Segna dove cominciano le pagine del PDF */
+  pages?: boolean
+  /**
+   * La pagina si può rimpicciolire o segnare le pagine: resta sempre nel contenitore, così non
+   * si ricrea quando cambiano zoom o pagine
+   */
+  scalable?: boolean
   /** Posizione nel testo del blocco su cui si è fatto clic */
   onPick?(from: number): void
   /** Lingua delle carte del documento (documentLocalization); nessuna per la principale */
@@ -111,6 +119,8 @@ export default function DocumentPreview({
   sets,
   templates,
   zoom = 1,
+  pages = false,
+  scalable = false,
   onPick,
   localization
 }: Props): React.JSX.Element {
@@ -132,43 +142,135 @@ export default function DocumentPreview({
   )
   const blocks = useMemo(() => parseDocument(text), [text])
   const settings = useMemo(() => documentSettings(text).settings, [text])
+  const page = useRef<HTMLDivElement>(null)
+  const scaled = scalable || zoom !== 1 || pages
+  const height = usePageHeight(page, scaled)
+  const breaks = usePageBreaks(page, pages, settings, text, scaled)
+  // con lo zoom la pagina si impagina a grandezza vera e poi si rimpicciolisce (transform): con
+  // `zoom` il testo si impaginerebbe con i caratteri più piccoli, e su alcuni sistemi le righe
+  // andrebbero a capo in punti diversi dal PDF
+  const sheet = (
+    <div
+      className="doc-page"
+      ref={page}
+      style={{
+        ...pageStyle(settings, variables),
+        ...(scaled ? { transform: `scale(${zoom})` } : {})
+      }}
+    >
+      {!blocks.length && <p className="muted">{t('documents.empty')}</p>}
+      {groups(blocks).map(({ box, items }) => {
+        /* chiave per posizione: scrivendo prima di una carta la carta non si ridisegna */
+        const list = items.map(({ block: b, k }) => (
+          <div
+            key={`${k}:${b.kind}`}
+            className={blockClass(b, k === items[0].k)}
+            data-from={b.from}
+            onClick={(e) => {
+              // un clic su un collegamento o una selezione di testo non sposta il cursore
+              if (!window.getSelection()?.isCollapsed) return
+              e.stopPropagation()
+              onPick?.(b.from)
+            }}
+          >
+            <Block block={b} ctx={ctx} templates={templates} settings={settings} />
+          </div>
+        ))
+        return box ? (
+          <div
+            key={`box:${items[0].k}`}
+            className={boxClass(box, items[0].block)}
+            style={boxStyle(box.style, variables)}
+          >
+            {list}
+          </div>
+        ) : (
+          list
+        )
+      })}
+    </div>
+  )
   return (
     // le carte del documento si disegnano nella sua lingua, non in quella scelta nell'app
     <LocalizationContext.Provider value={localization}>
-      <div className="doc-page" style={{ ...pageStyle(settings, variables), zoom }}>
-        {!blocks.length && <p className="muted">{t('documents.empty')}</p>}
-        {groups(blocks).map(({ box, items }) => {
-          /* chiave per posizione: scrivendo prima di una carta la carta non si ridisegna */
-          const list = items.map(({ block: b, k }) => (
-            <div
-              key={`${k}:${b.kind}`}
-              className={blockClass(b, k === items[0].k)}
-              data-from={b.from}
-              onClick={(e) => {
-                // un clic su un collegamento o una selezione di testo non sposta il cursore
-                if (!window.getSelection()?.isCollapsed) return
-                e.stopPropagation()
-                onPick?.(b.from)
-              }}
-            >
-              <Block block={b} ctx={ctx} templates={templates} settings={settings} />
-            </div>
-          ))
-          return box ? (
-            <div
-              key={`box:${items[0].k}`}
-              className={boxClass(box, items[0].block)}
-              style={boxStyle(box.style, variables)}
-            >
-              {list}
-            </div>
-          ) : (
-            list
-          )
-        })}
-      </div>
+      {scaled ? (
+        <div
+          className="page-sheet"
+          style={{
+            width: DOC_PAGES[settings.page][0] * DOC_UNIT * zoom,
+            height: height * zoom
+          }}
+        >
+          {sheet}
+          {pages &&
+            breaks.map((y, i) => (
+              <div key={i} className="page-break-mark" style={{ top: `${y * 100}%` }}>
+                <span>{t('documents.pageNumber', { n: i + 2 })}</span>
+              </div>
+            ))}
+        </div>
+      ) : (
+        sheet
+      )}
     </LocalizationContext.Provider>
   )
+}
+
+/** L'altezza della pagina senza zoom, che cresce col testo */
+function usePageHeight(page: React.RefObject<HTMLDivElement | null>, scaled: boolean): number {
+  const [height, setHeight] = useState(0)
+  useEffect(() => {
+    const el = page.current
+    if (!el) return undefined
+    // una pagina tolta dalla finestra misura 0: non è più quella da seguire
+    const observer = new ResizeObserver(() => {
+      if (el.isConnected) setHeight(el.offsetHeight)
+    })
+    // la prima misura arriva subito, appena si osserva; la pagina cambia passando dal contenitore
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [page, scaled])
+  return height
+}
+
+/**
+ * Le interruzioni di pagina del PDF sull'anteprima: si rimisurano poco dopo l'ultima modifica e
+ * quando la pagina cambia altezza (una carta o un'immagine che finisce di caricarsi).
+ */
+function usePageBreaks(
+  page: React.RefObject<HTMLDivElement | null>,
+  on: boolean,
+  settings: DocSettings,
+  text: string,
+  scaled: boolean
+): number[] {
+  const [breaks, setBreaks] = useState<number[]>([])
+  useEffect(() => {
+    const el = page.current
+    // spente, non si mostrano: quelle vecchie restano finché non si rimisura
+    if (!on || !el) return undefined
+    let timer = 0
+    const measure = (): void => {
+      window.clearTimeout(timer)
+      timer = window.setTimeout(() => {
+        if (!el.isConnected) return
+        const next = pageBreaks(el, settings)
+        setBreaks((old) =>
+          old.length === next.length && old.every((y, i) => Math.abs(y - next[i]) < 1e-4)
+            ? old
+            : next
+        )
+      }, 300)
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => {
+      window.clearTimeout(timer)
+      observer.disconnect()
+    }
+  }, [page, on, settings, text, scaled])
+  return breaks
 }
 
 /** Classe del contenitore di un blocco: a lato se il testo gli scorre accanto; sotto quelli a

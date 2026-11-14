@@ -216,6 +216,8 @@ export interface Api {
   exportDocumentFiles(files: DocExportFile[]): Promise<string>
   /** PDF di una pagina HTML autonoma (solo desktop) */
   documentPdf(html: string): Promise<Uint8Array>
+  /** Mostra il PDF della pagina HTML in una finestra dell'app, com'è stampato (solo desktop) */
+  previewDocumentPdf(html: string, title: string): Promise<void>
   /** Cestino del progetto: elementi in deleted/, il contenuto di uno, e togliere i ripristinati */
   listDeleted(): Promise<DeletedItem[]>
   readDeleted(file: string): Promise<DeletedContent>

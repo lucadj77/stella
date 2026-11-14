@@ -1870,7 +1870,7 @@ export const en = {
   'documents.outlineHint':
     'List of the headings: click one to jump there in the text and in the preview',
   'documents.outlineEmpty': 'No headings yet. Lines starting with #, ## or ### appear here.',
-  'documents.page': 'Page',
+  'documents.page': 'Settings',
   'documents.pageButtonHint': 'Page size, margins, fonts, line spacing and colors of this document',
   'documents.pageSize': 'Size',
   'documents.margin': 'Margins',
@@ -1965,8 +1965,8 @@ export const en = {
   'documents.anatomy': 'Anatomy',
   'documents.anatomyButtonHint':
     'A component with labels that explain its parts; with the cursor in an anatomy, edits it',
-  'documents.insertAnatomy': 'Component anatomy',
-  'documents.editAnatomy': 'Edit component anatomy',
+  'documents.insertAnatomy': 'Anatomy',
+  'documents.editAnatomy': 'Edit anatomy',
   'documents.anatomyHint':
     'Tick the parts of the component to explain and write their labels. Labels go on the side nearest to each part. Drag a point on the drawing to move where its line ends (double-click puts it back); drag a label up or down to choose its height (remove `label` from the code to make it automatic again); double-click a label to change its text. You can also edit the code below.',
   'documents.anatomy.dragPoint': 'Drag to move the point; double-click puts it back',
@@ -3165,6 +3165,15 @@ export const en = {
   'menu.uiReset': 'Normal interface size',
   'menu.whatsNew': "What's new",
   'menu.website': 'Stella on GitHub',
+  'documents.pdfPreview': 'PDF preview',
+  'documents.pdfPreviewBusy': 'Preparing…',
+  'documents.pdfPreviewHint':
+    'Show the document as it will be printed to PDF, page by page, in a separate window',
+  'documents.pdfPreviewWebHint':
+    'Open the print window, whose preview shows the pages as they will be printed',
+  'documents.pages': 'Pages',
+  'documents.pagesHint': 'Show where the PDF pages begin',
+  'documents.pageNumber': 'Page {n}',
   'documents.zoom': 'Preview zoom',
   'documents.zoomIn': 'Zoom in (⌘ / Ctrl and scroll wheel)',
   'documents.zoomOut': 'Zoom out (⌘ / Ctrl and scroll wheel)',

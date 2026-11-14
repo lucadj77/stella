@@ -1898,7 +1898,7 @@ export const it: Record<MessageKey, string> = {
     "Elenco dei titoli: un clic porta a quel punto nel testo e nell'anteprima",
   'documents.outlineEmpty':
     'Ancora nessun titolo. Qui compaiono le righe che iniziano con #, ## o ###.',
-  'documents.page': 'Pagina',
+  'documents.page': 'Impostazioni',
   'documents.pageButtonHint':
     'Formato, margini, caratteri, interlinea e colori di questo documento',
   'documents.pageSize': 'Formato',
@@ -1995,8 +1995,8 @@ export const it: Record<MessageKey, string> = {
   'documents.anatomy': 'Anatomia',
   'documents.anatomyButtonHint':
     "Un componente con le etichette che ne spiegano le parti; con il cursore in un'anatomia, la modifica",
-  'documents.insertAnatomy': 'Anatomia del componente',
-  'documents.editAnatomy': "Modifica l'anatomia del componente",
+  'documents.insertAnatomy': 'Anatomia',
+  'documents.editAnatomy': "Modifica l'anatomia",
   'documents.anatomyHint':
     "Spunta le parti del componente da spiegare e scrivi le etichette. Ogni etichetta va dal lato più vicino alla sua parte. Trascina un punto sul disegno per spostare dove arriva la sua linea (un doppio clic lo rimette a posto); trascina un'etichetta in su o in giù per sceglierne l'altezza (togli `label` dal codice per tornare automatica); fai doppio clic su un'etichetta per cambiarne il testo. Puoi anche modificare il codice qui sotto.",
   'documents.anatomy.dragPoint':
@@ -3205,6 +3205,15 @@ export const it: Record<MessageKey, string> = {
   'menu.uiReset': 'Dimensione normale',
   'menu.whatsNew': 'Novità',
   'menu.website': 'Stella su GitHub',
+  'documents.pdfPreview': 'Anteprima PDF',
+  'documents.pdfPreviewBusy': 'Preparo…',
+  'documents.pdfPreviewHint':
+    "Mostra il documento com'è stampato in PDF, pagina per pagina, in una finestra a parte",
+  'documents.pdfPreviewWebHint':
+    "Apre la finestra di stampa, che nell'anteprima mostra le pagine come saranno stampate",
+  'documents.pages': 'Pagine',
+  'documents.pagesHint': 'Mostra dove cominciano le pagine del PDF',
+  'documents.pageNumber': 'Pagina {n}',
   'documents.zoom': "Zoom dell'anteprima",
   'documents.zoomIn': 'Ingrandisci (⌘ / Ctrl e rotella)',
   'documents.zoomOut': 'Riduci (⌘ / Ctrl e rotella)',
