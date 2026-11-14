@@ -90,7 +90,9 @@ export default function AnatomyDiagram({
   maxWidth,
   font,
   onMovePoint,
-  dragHint = ''
+  dragHint = '',
+  onEditLabel,
+  editHint = ''
 }: {
   anatomy: Anatomy
   sets: LoadedSet[]
@@ -109,6 +111,9 @@ export default function AnatomyDiagram({
   onMovePoint?(index: number, at: { x: number; y: number } | undefined): void
   /** Suggerimento sui punti trascinabili */
   dragHint?: string
+  /** Doppio clic su un'etichetta: l'indice in anatomy.callouts e il suo testo sullo schermo */
+  onEditLabel?(index: number, el: HTMLElement): void
+  editHint?: string
 }): React.JSX.Element | null {
   const card = useBoundCard(anatomyCardSource(anatomy.card), sets, templates, project)
   if (!card) return null
@@ -250,6 +255,9 @@ export default function AnatomyDiagram({
             style={{ overflow: 'visible' }}
           >
             <div
+              className={onEditLabel ? 'anatomy-label-text' : undefined}
+              title={onEditLabel ? editHint : undefined}
+              onDoubleClick={onEditLabel ? (e) => onEditLabel(p.index, e.currentTarget) : undefined}
               style={{
                 fontSize: font * ZOOM,
                 lineHeight: LINE,

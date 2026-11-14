@@ -1087,6 +1087,10 @@ Elements inside a grid can be explained too: in the list of layers they appear u
 
 ![The ability's point moved further right by dragging it](img/anatomia-punto.png)
 
+**Editing on the drawing.** Double-clicking a label on the drawing opens a field with its text over it: Enter confirms, Esc cancels. **⤢ Enlarge**, at the top right of the preview, shows the anatomy large in a separate window, where you drag the points and change the labels in the same way; **Close** goes back to the anatomy window with the changes.
+
+![The enlarged anatomy, with a label being edited](img/anatomia-grande.png)
+
 ### 12.5 Table setup
 
 **Table setup** draws how to set up the table, with the real components of the project. In the window the buttons **Zone**, **Component**, **Deck**, **Text**, **Arrow** and **Image** add an element; components and decks are chosen as in **Insert component**, images from assets.

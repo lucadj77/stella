@@ -24,7 +24,7 @@ import { gridSize } from '../../../shared/model/grid'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import CardSvg from '../render/CardSvg'
-import AnatomyDiagram from '../render/AnatomyDiagram'
+import AnatomyCanvas from './AnatomyCanvas'
 import { useBindContext } from '../render/assets'
 import Segmented from './Segmented'
 import WrapField, { type WrapSide } from './WrapField'
@@ -274,6 +274,40 @@ export default function InsertCardDialog({
   // l'anatomia come uscirà nel documento, aggiornata mentre si scelgono livelli ed etichette
   const block = anatomy && text ? parseDocument(text)[0] : undefined
   const preview = block?.kind === 'anatomy' ? block : undefined
+
+  const [enlarged, setEnlarged] = useState(false)
+  /** La chiave dell'etichetta `index` dell'anatomia mostrata */
+  const keyOf = (index: number): string | null => {
+    const c = preview?.callouts[index]
+    return preview && c ? labelKey(calloutFace(preview, c, side), c.layer, c.cell) : null
+  }
+  /** L'anatomia da modificare sul disegno, grande `unit` pixel per mm */
+  const canvas = (unit: number, maxWidth: number): React.JSX.Element | null =>
+    preview ? (
+      <AnatomyCanvas
+        anatomy={preview}
+        sets={sets}
+        templates={templates}
+        project={project}
+        unit={unit}
+        maxWidth={maxWidth * (preview.width ?? 1)}
+        font={3.2 * (preview.font ?? 1)}
+        onMovePoint={(index, at) => {
+          const key = keyOf(index)
+          if (!key) return
+          setPoints((m) => {
+            const next = new Map(m)
+            if (at) next.set(key, at)
+            else next.delete(key)
+            return next
+          })
+        }}
+        onLabel={(index, text) => {
+          const key = keyOf(index)
+          if (key) setLabels((m) => new Map(m).set(key, text))
+        }}
+      />
+    ) : null
 
   const choose = set && (
     <div className="dialog-row">
@@ -556,33 +590,34 @@ export default function InsertCardDialog({
               <div className="anatomy-detail">
                 {preview && (
                   <div className="anatomy-card">
-                    <AnatomyDiagram
-                      anatomy={preview}
-                      sets={sets}
-                      templates={templates}
-                      project={project}
-                      unit={3}
-                      maxWidth={160 * (preview.width ?? 1)}
-                      font={3.2 * (preview.font ?? 1)}
-                      dragHint={t('documents.anatomy.dragPoint')}
-                      onMovePoint={(index, at) => {
-                        const c = preview.callouts[index]
-                        if (!c) return
-                        const key = labelKey(calloutFace(preview, c, side), c.layer, c.cell)
-                        setPoints((m) => {
-                          const next = new Map(m)
-                          if (at) next.set(key, at)
-                          else next.delete(key)
-                          return next
-                        })
-                      }}
-                    />
+                    {canvas(4.5, 160)}
+                    <button
+                      type="button"
+                      className="anatomy-enlarge"
+                      title={t('documents.anatomy.enlargeHint')}
+                      onClick={() => setEnlarged(true)}
+                    >
+                      ⤢ {t('documents.anatomy.enlarge')}
+                    </button>
                   </div>
                 )}
                 {layerList}
               </div>
             </div>
             <code className="insert-card-code">{text}</code>
+            {enlarged && preview && (
+              <Dialog title={t('documents.anatomy.enlarged')} onClose={() => setEnlarged(false)}>
+                <div className="anatomy-big">
+                  <p className="muted small">{t('documents.anatomy.bigHint')}</p>
+                  <div className="anatomy-card">{canvas(8, 200)}</div>
+                  <div className="dialog-buttons">
+                    <button className="primary" onClick={() => setEnlarged(false)}>
+                      {t('dialog.close')}
+                    </button>
+                  </div>
+                </div>
+              </Dialog>
+            )}
           </>
         ) : (
           <>

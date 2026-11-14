@@ -1968,8 +1968,15 @@ export const en = {
   'documents.insertAnatomy': 'Component anatomy',
   'documents.editAnatomy': 'Edit component anatomy',
   'documents.anatomyHint':
-    'Tick the parts of the component to explain and write their labels. Labels go on the side nearest to each part. Drag a point on the drawing to move where its line ends; double-click puts it back.',
+    'Tick the parts of the component to explain and write their labels. Labels go on the side nearest to each part. Drag a point on the drawing to move where its line ends (double-click puts it back); double-click a label to change its text.',
   'documents.anatomy.dragPoint': 'Drag to move the point; double-click puts it back',
+  'documents.anatomy.editLabel': 'Double-click to change the text',
+  'documents.anatomy.enlarge': 'Enlarge',
+  'documents.anatomy.enlargeHint':
+    'Show the anatomy large: drag the points and double-click a label to change it',
+  'documents.anatomy.enlarged': 'Anatomy',
+  'documents.anatomy.bigHint':
+    'Drag a point to move where its line ends (double-click puts it back). Double-click a label to change its text: Enter confirms, Esc cancels.',
   'documents.anatomyLabel': 'Label',
   'documents.saveAnatomy': 'Save',
   'documents.setup': 'Table setup',

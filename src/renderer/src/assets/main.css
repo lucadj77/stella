@@ -7186,8 +7186,8 @@ button.more-button {
 /* anatomia della carta: finestra larga quanto serve ma dentro lo schermo, due colonne che
    scorrono ciascuna per conto suo */
 .dialog:has(.anatomy-mode) {
-  max-width: min(1100px, 96vw);
-  width: min(1100px, 96vw);
+  max-width: min(1280px, 96vw);
+  width: min(1280px, 96vw);
   max-height: 92vh;
   display: flex;
   flex-direction: column;
@@ -7202,7 +7202,7 @@ button.more-button {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
   gap: 16px;
 }
 
@@ -7233,9 +7233,12 @@ button.more-button {
   padding: 8px;
 }
 
-.anatomy-card > svg {
+.anatomy-card {
+  position: relative;
+}
+.anatomy-card svg {
   max-width: 100%;
-  max-height: 36vh;
+  max-height: 50vh;
   width: auto;
   height: auto;
 }
@@ -8915,4 +8918,47 @@ button.wide {
 }
 .anatomy-handle:hover {
   fill: rgba(47, 111, 222, 0.25);
+}
+
+/* l'anatomia da modificare sul disegno: campo sopra l'etichetta, tasto Ingrandisci, vista grande */
+.anatomy-canvas {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  max-width: 100%;
+}
+.anatomy-label-text {
+  cursor: text;
+}
+.anatomy-label-text:hover {
+  background: rgba(47, 111, 222, 0.08);
+}
+.anatomy-label-edit {
+  position: absolute;
+  z-index: 2;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--panel);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+.anatomy-enlarge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+.dialog:has(.anatomy-big) {
+  max-width: none;
+  width: min(1400px, 96vw);
+  max-height: 96vh;
+  display: flex;
+  flex-direction: column;
+}
+.anatomy-big {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+.anatomy-big .anatomy-card svg {
+  max-height: 78vh;
 }

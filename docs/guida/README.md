@@ -1087,6 +1087,10 @@ Anche gli elementi dentro una griglia si possono spiegare: nell'elenco dei livel
 
 ![Il punto dell'abilità spostato più a destra trascinandolo](img/anatomia-punto.png)
 
+**Modificare sul disegno.** Un doppio clic su un'etichetta del disegno apre sopra di essa un campo con il suo testo: Invio conferma, Esc annulla. **⤢ Ingrandisci**, in alto a destra dell'anteprima, mostra l'anatomia in grande in una finestra a parte, dove si trascinano i punti e si cambiano le etichette allo stesso modo; **Chiudi** torna alla finestra dell'anatomia con le modifiche.
+
+![L'anatomia ingrandita, con il testo di un'etichetta in modifica](img/anatomia-grande.png)
+
 ### 12.5 Schema del tavolo
 
 **Schema tavolo** disegna come preparare il tavolo, con i componenti veri del progetto. Nella finestra i tasti **Zona**, **Componente**, **Mazzo**, **Testo**, **Freccia** e **Immagine** aggiungono un elemento; componenti e mazzi si scelgono come in **Inserisci componente**, le immagini dagli asset.
