@@ -1087,7 +1087,7 @@ Anche gli elementi dentro una griglia si possono spiegare: nell'elenco dei livel
 
 ![Il punto dell'abilità spostato più a destra trascinandolo](img/anatomia-punto.png)
 
-**Spostare l'etichetta.** Di base ogni etichetta sta all'altezza del suo punto, e le etichette che si toccherebbero si allontanano un po'. Per alzarla o abbassarla, trascinala in su o in giù sul disegno: la sua altezza resta quella scelta, e le altre etichette dello stesso lato si spostano per farle posto. Riportata all'altezza del punto torna automatica. Nel testo è `label` con una percentuale dell'altezza del componente (`0%` in alto, `100%` in basso), per esempio `- forza (label 30%): …`.
+**Spostare l'etichetta.** Di base ogni etichetta sta all'altezza del suo punto, e le etichette che si toccherebbero si allontanano un po'. Per alzarla o abbassarla, trascinala in su o in giù sul disegno: segue il mouse e resta all'altezza scelta, senza spostare le altre (se ne copre una, spostala ancora). Nel testo è `label` con una percentuale dell'altezza del componente (`0%` in alto, `100%` in basso), per esempio `- forza (label 30%): …`; togliendolo dal codice l'etichetta torna automatica.
 
 **Modificare sul disegno.** Un doppio clic su un'etichetta del disegno apre sopra di essa un campo con il suo testo: Invio conferma, Esc annulla. **⤢ Ingrandisci**, in alto a destra dell'anteprima, mostra l'anatomia in grande in una finestra a parte, dove si trascinano i punti e si cambiano le etichette allo stesso modo; **Chiudi** torna alla finestra dell'anatomia con le modifiche.
 

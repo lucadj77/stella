@@ -71,37 +71,25 @@ interface Placed {
 }
 
 /**
- * Mette le etichette di un lato all'altezza dei loro punti, spostandole se si sovrappongono.
- * Quelle con un'altezza scelta (fixed) restano dove sono: si spostano le altre, senza cambiare
- * il loro ordine.
+ * Mette le etichette di un lato all'altezza dei loro punti, spostandole se si sovrappongono tra
+ * loro. Quelle con un'altezza scelta (fixed) restano dove sono e non spostano le altre: così
+ * trascinarne una non fa saltare le vicine.
  */
 function stack(items: Omit<Placed, 'y'>[], top: number, bottom: number): Placed[] {
   const fixed = items.filter((it) => it.fixed).map((it) => ({ ...it, y: it.ty - it.h / 2 }))
-  const free = items
+  const out = items
     .filter((it) => !it.fixed)
     .sort((a, b) => a.ty - b.ty)
     .map((it) => ({ ...it, y: it.ty - it.h / 2 }))
-  const hits = (y: number, h: number): Placed | undefined =>
-    fixed.find((f) => y < f.y + f.h + SPACING && y + h + SPACING > f.y)
-  // verso il basso: ognuna sotto la precedente e fuori dalle etichette ferme
-  const down = free.map((it) => ({ ...it }))
-  for (let i = 0; i < down.length; i++) {
-    let y = Math.max(down[i].y, i ? down[i - 1].y + down[i - 1].h + SPACING : top)
-    for (let f = hits(y, down[i].h); f; f = hits(y, down[i].h)) y = f.y + f.h + SPACING
-    down[i].y = y
+  for (let i = 0; i < out.length; i++)
+    out[i].y = Math.max(out[i].y, i ? out[i - 1].y + out[i - 1].h + SPACING : top)
+  // se escono in fondo si risale, senza superare l'alto; se non ci stanno, scendono sotto la carta
+  bottom = Math.max(bottom, top + out.reduce((n, p) => n + p.h + SPACING, -SPACING))
+  for (let i = out.length - 1; i >= 0; i--) {
+    const limit = i === out.length - 1 ? bottom : out[i + 1].y - SPACING
+    out[i].y = Math.max(top, Math.min(out[i].y, limit - out[i].h))
   }
-  const last = down[down.length - 1]
-  if (!last || last.y + last.h <= bottom) return [...fixed, ...down]
-  // se escono in fondo si risale, senza superare l'alto né toccare le ferme; se non si può,
-  // restano sotto la carta
-  const up = down.map((it) => ({ ...it }))
-  for (let i = up.length - 1; i >= 0; i--) {
-    const limit = i === up.length - 1 ? bottom : up[i + 1].y - SPACING
-    let y = Math.min(up[i].y, limit - up[i].h)
-    for (let f = hits(y, up[i].h); f; f = hits(y, up[i].h)) y = f.y - SPACING - up[i].h
-    up[i].y = y
-  }
-  return [...fixed, ...(up[0].y >= top ? up : down)]
+  return [...fixed, ...out]
 }
 
 export default function AnatomyDiagram({
@@ -245,24 +233,25 @@ export default function AnatomyDiagram({
   }
 
   /**
-   * Trascinando un'etichetta in su o in giù: la sua altezza in frazioni dell'altezza della carta;
-   * riportata all'altezza del punto torna a seguirlo. Senza movimento resta un clic (e il doppio
-   * clic che la modifica).
+   * Trascinando un'etichetta in su o in giù: si sposta di quanto si muove il mouse, partendo da
+   * dov'è disegnata, e prende quell'altezza (label N%). Le altre restano dove sono.
    */
-  const startLabelDrag = (e: React.PointerEvent<HTMLElement>, index: number, ay: number): void => {
+  const startLabelDrag = (e: React.PointerEvent<HTMLElement>, p: Placed): void => {
     const svg = e.currentTarget.closest('svg')
     if (!svg || !onMoveLabel || e.button !== 0) return
-    const y0 = e.clientY
+    const m0 = svg.getScreenCTM()
+    if (!m0) return
+    const y0 = new DOMPoint(e.clientX, e.clientY).matrixTransform(m0.inverse()).y
+    const center = p.y + p.h / 2
+    const cy0 = e.clientY
     let moved = false
     const move = (ev: PointerEvent): void => {
-      if (!moved && Math.abs(ev.clientY - y0) < 4) return
+      if (!moved && Math.abs(ev.clientY - cy0) < 4) return
       moved = true
       const m = svg.getScreenCTM()
       if (!m) return
-      const y = new DOMPoint(ev.clientX, ev.clientY).matrixTransform(m.inverse()).y
-      const snap = Math.abs(y - ay) < height * 0.025
-      const f = Math.round(Math.max(-0.2, Math.min(1.2, y / height)) * 100) / 100
-      onMoveLabel(index, snap ? undefined : f)
+      const y = center + new DOMPoint(ev.clientX, ev.clientY).matrixTransform(m.inverse()).y - y0
+      onMoveLabel(p.index, Math.round(Math.max(-0.2, Math.min(1.2, y / height)) * 1000) / 1000)
     }
     const up = (): void => {
       window.removeEventListener('pointermove', move)
@@ -325,7 +314,7 @@ export default function AnatomyDiagram({
               className={onEditLabel ? 'anatomy-label-text' : undefined}
               title={onEditLabel ? editHint : undefined}
               onDoubleClick={onEditLabel ? (e) => onEditLabel(p.index, e.currentTarget) : undefined}
-              onPointerDown={onMoveLabel ? (e) => startLabelDrag(e, p.index, p.ay) : undefined}
+              onPointerDown={onMoveLabel ? (e) => startLabelDrag(e, p) : undefined}
               style={{
                 fontSize: font * ZOOM,
                 lineHeight: LINE,

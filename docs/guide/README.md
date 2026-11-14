@@ -1087,7 +1087,7 @@ Elements inside a grid can be explained too: in the list of layers they appear u
 
 ![The ability's point moved further right by dragging it](img/anatomia-punto.png)
 
-**Moving the label.** By default each label sits level with its point, and labels that would touch move apart a little. To raise or lower one, drag it up or down on the drawing: it keeps the height you chose, and the other labels on the same side move out of its way. Brought back level with its point, it becomes automatic again. In the text it is `label` with a percentage of the component's height (`0%` top, `100%` bottom), for example `- strength (label 30%): …`.
+**Moving the label.** By default each label sits level with its point, and labels that would touch move apart a little. To raise or lower one, drag it up or down on the drawing: it follows the mouse and stays at the height you chose, without moving the others (if it covers one, move it again). In the text it is `label` with a percentage of the component's height (`0%` top, `100%` bottom), for example `- strength (label 30%): …`; removing it from the code makes the label automatic again.
 
 **Editing on the drawing.** Double-clicking a label on the drawing opens a field with its text over it: Enter confirms, Esc cancels. **⤢ Enlarge**, at the top right of the preview, shows the anatomy large in a separate window, where you drag the points and change the labels in the same way; **Close** goes back to the anatomy window with the changes.
 

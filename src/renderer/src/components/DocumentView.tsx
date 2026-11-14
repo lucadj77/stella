@@ -818,6 +818,8 @@ export default function DocumentView({
           <InsertCardDialog
             anatomy
             initial={anatomyEdit.value}
+            pageWidth={DOC_PAGES[settings.page][0] - 2 * settings.margin}
+            pageFont={(settings.size * 0.88 * 25.4) / 72}
             sets={sets}
             templates={templates}
             project={meta}
