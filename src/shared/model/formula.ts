@@ -292,6 +292,41 @@ function walkCells(
 /** Le funzioni leggono gli argomenti; poche, come CELLNUMBER, anche i campi della casella */
 type Fn = (args: (() => Value)[], fields: Record<string, string>) => Value
 
+/** FNV-1a di un testo, 32 bit */
+function hashText(text: string): number {
+  let h = 2166136261
+  for (const c of text) {
+    h ^= c.charCodeAt(0)
+    h = Math.imul(h, 16777619)
+  }
+  return h >>> 0
+}
+
+/**
+ * Numeri a caso della formula che si sta calcolando (RAND, RANDBETWEEN): mulberry32 con un seme
+ * dato dal seme del set, dalla carta, dalla casella e dal testo della formula, così ogni disegno
+ * della stessa carta dà gli stessi numeri e due chiamate nella stessa formula danno numeri diversi
+ */
+let randomState: { node: FormulaNode | null; seed: number | null } = { node: null, seed: null }
+
+function nextRandom(fields: Record<string, string>): number {
+  if (randomState.seed === null) {
+    const where = ['set.seed', 'card.number', 'card.copy', 'cell.index'].map((k) => fields[k] ?? '')
+    const what = randomState.node ? printExpression(randomState.node) : ''
+    randomState.seed = hashText(`${where.join('|')}|${what}`)
+  }
+  randomState.seed = (randomState.seed + 0x6d2b79f5) >>> 0
+  let t = randomState.seed
+  t = Math.imul(t ^ (t >>> 15), t | 1)
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+}
+
+/** La formula usa numeri a caso: RAND, RANDBETWEEN, DEAL o {cell.random} */
+export function usesRandom(text: string): boolean {
+  return /\b(?:RAND|RANDBETWEEN|DEAL)\s*\(|\{\s*cell\.random\s*\}/i.test(text)
+}
+
 /** Funzioni disponibili; gli argomenti si valutano solo se servono (IF non calcola il ramo scartato) */
 const FUNCTIONS: Record<string, Fn> = {
   IF: (a) => {
@@ -328,6 +363,24 @@ const FUNCTIONS: Record<string, Fn> = {
     const d = toNumber(a[1]())
     if (d === 0) throw new FormulaError('division by zero')
     return n - d * Math.floor(n / d)
+  },
+  /**
+   * Un numero a caso tra 0 e 1, uguale a ogni disegno della stessa carta: cambia con il seme del
+   * set ({set.seed}), con la carta, con la casella della griglia e con la formula
+   */
+  RAND: (a, fields) => {
+    if (a.length) throw new FormulaError('RAND takes no arguments')
+    return nextRandom(fields)
+  },
+  /** Un numero intero a caso tra i due estremi compresi: RANDBETWEEN(1; 6) */
+  RANDBETWEEN: (a, fields) => {
+    if (a.length !== 2) throw new FormulaError('RANDBETWEEN needs 2 arguments')
+    const x = toNumber(a[0]())
+    const y = toNumber(a[1]())
+    const lo = Math.ceil(Math.min(x, y))
+    const hi = Math.floor(Math.max(x, y))
+    if (hi < lo) throw new FormulaError('RANDBETWEEN: no whole number between the two')
+    return lo + Math.floor(nextRandom(fields) * (hi - lo + 1))
   },
   /**
    * L'n-esimo di un elenco, da 1, ricominciando dall'inizio dopo l'ultimo:
@@ -703,6 +756,8 @@ export function evaluateNodeText(
   shown?: NumberFormat
 ): { value: string; error?: string } {
   shownFormat = shown
+  const outer = randomState
+  randomState = { node, seed: null }
   try {
     return { value: toText(evaluateNode(node, fields)) }
   } catch (e) {
@@ -710,6 +765,7 @@ export function evaluateNodeText(
     throw e
   } finally {
     shownFormat = undefined
+    randomState = outer
   }
 }
 

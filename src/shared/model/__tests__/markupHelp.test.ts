@@ -40,6 +40,7 @@ describe('aiuto alla scrittura del markup', () => {
       ['spada', 'spada}'],
       // poi le variabili di sistema, prima quelle che cominciano con s
       ['set.name', 'set.name}'],
+      ['set.seed', 'set.seed}'],
       ['set.rows', 'set.rows}'],
       ['set.cards', 'set.cards}'],
       ['project.version', 'project.version}'],

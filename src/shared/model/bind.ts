@@ -475,7 +475,7 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
                     : (ruleGroup ?? group)
                 if (!base) return empty(i)
                 const cell = {
-                  ...cellFields(grid.name, i, columns, count, system?.number),
+                  ...cellFields(grid.name, i, columns, count, system?.number, fields['set.seed']),
                   'cell.hidden': hidden
                 }
                 const f = { ...fields, ...cell }

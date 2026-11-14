@@ -62,7 +62,9 @@ const FUNCTIONS = [
   'MOD',
   'PICK',
   'CELLNUMBER',
-  'DEAL'
+  'DEAL',
+  'RAND',
+  'RANDBETWEEN'
 ] as const
 
 const KEYS: [string, MessageKey][] = [

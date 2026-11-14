@@ -579,3 +579,46 @@ export function addGenerated(s: Sheet, gen: GeneratedCards, mode: GenerateMode):
   }
   return { ...s, headers, rows: [...(mode === 'replace' ? [] : s.rows.map(widen)), ...rows] }
 }
+
+/**
+ * Le impostazioni dell'ultima generazione a caso di un set, salvate nel progetto: il tasto
+ * Rigenera le riapplica con un altro seme. `from` è la prima riga scritta dal generatore.
+ */
+export interface SetGenerator {
+  spec: GeneratorSpec
+  from: number
+}
+
+/** Il generatore usa il caso: carte a caso o sequenza mescolata */
+export function isRandomSpec(spec: GeneratorSpec): boolean {
+  return !!spec.random || (!!spec.sequence && spec.sequence.shuffle !== 'none')
+}
+
+/** Le stesse impostazioni con un altro seme */
+export function withSeed(spec: GeneratorSpec, seed: number): GeneratorSpec {
+  return {
+    ...spec,
+    ...(spec.random ? { random: { ...spec.random, seed } } : {}),
+    ...(spec.sequence ? { sequence: { ...spec.sequence, seed } } : {})
+  }
+}
+
+/**
+ * Rigenera le carte con il seme dato: le colonne generate si riscrivono nelle stesse righe di
+ * prima (da `from`), le altre colonne e amount restano come sono
+ */
+export function regenerateSheet(s: Sheet, g: SetGenerator, seed: number): Sheet {
+  const gen = generateCards(withSeed(g.spec, seed))
+  const from = Math.max(0, Math.min(g.from, s.rows.length))
+  const head = { ...s, rows: s.rows.slice(from) }
+  const done = addGenerated(head, gen, 'update')
+  return {
+    ...s,
+    headers: done.headers,
+    rows: [...s.rows.slice(0, from).map((r) => widen(r, done.headers.length)), ...done.rows]
+  }
+}
+
+function widen(r: string[], n: number): string[] {
+  return r.length < n ? [...r, ...Array(n - r.length).fill('')] : r
+}

@@ -14,6 +14,13 @@ import SplitImageDialog from './components/SplitImageDialog'
 import GoogleSheetsDialog, { type SheetImport } from './components/GoogleSheetsDialog'
 import TrashDialog from './components/TrashDialog'
 import CompareDialog, { type CompareBase } from './components/CompareDialog'
+import {
+  isRandomSpec,
+  regenerateSheet,
+  withSeed,
+  type SetGenerator
+} from '../../shared/model/generate'
+import { randomSeed, setUsesRandom } from '../../shared/model/random'
 import { cardFingerprints, changedCards } from '../../shared/model/compare'
 import TextCheckDialog from './components/TextCheckDialog'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -962,6 +969,55 @@ function App(): React.JSX.Element {
       file: { ...project.file, sets: project.file.sets.map((x, i) => (i === index ? patch(x) : x)) }
     })
     setFileDirty(true)
+  }
+
+  /**
+   * Seme del set e, se le righe vengono da una generazione a caso, le carte rigenerate con quel
+   * seme; `generated` arriva da Genera con le carte appena scritte. ⌘Z annulla
+   */
+  const changeRandom = (
+    index: number,
+    seed: number | undefined,
+    generated?: { sheet: Sheet; generator?: SetGenerator | null }
+  ): void => {
+    const set = project?.sets[index]
+    if (!project || !set) return
+    // da Genera: undefined tiene le impostazioni di prima, null le toglie
+    const generator =
+      generated && generated.generator !== undefined
+        ? (generated.generator ?? undefined)
+        : set.generator
+    const regen = !generated && set.data && generator && isRandomSpec(generator.spec)
+    if ((generated || regen) && dataLocked()) return
+    const data = generated
+      ? generated.sheet
+      : regen
+        ? regenerateSheet(set.data!, generator!, seed ?? 0)
+        : set.data
+    const nextGen =
+      generator && seed !== undefined && isRandomSpec(generator.spec)
+        ? { ...generator, spec: withSeed(generator.spec, seed) }
+        : generator
+    const patch = <T extends SetDefinition>(x: T): T => {
+      const next = { ...x, seed }
+      if (seed === undefined) delete next.seed
+      if (nextGen) next.generator = nextGen
+      else delete next.generator
+      return next
+    }
+    setHistory((h) => ({
+      past: [...h.past.slice(-99), { sets: project.sets, file: project.file }],
+      future: [],
+      at: 0
+    }))
+    setProject({
+      ...project,
+      sets: project.sets.map((x, i) => (i === index ? { ...patch(x), data } : x)),
+      file: { ...project.file, sets: project.file.sets.map((x, i) => (i === index ? patch(x) : x)) }
+    })
+    setFileDirty(true)
+    if (data && data !== set.data)
+      setDirtySheets((d) => (d.has(data.name) ? d : new Set(d).add(data.name)))
   }
 
   /** Sposta un set nella barra laterale; il set aperto resta aperto. ⌘Z annulla */
@@ -3186,6 +3242,13 @@ function App(): React.JSX.Element {
                                   onChangeTemplate={(name) =>
                                     setTemplate(selected.kind === 'set' ? selected.index : 0, name)
                                   }
+                                  onChangeRandom={(seed, generated) =>
+                                    changeRandom(
+                                      selected.kind === 'set' ? selected.index : 0,
+                                      seed,
+                                      generated
+                                    )
+                                  }
                                   onChangeColumns={(view) =>
                                     setColumnsView(
                                       selected.kind === 'set' ? selected.index : 0,
@@ -3616,6 +3679,7 @@ function SetView({
   onEditTemplate,
   menu,
   onChangeTemplate,
+  onChangeRandom,
   onChangeColumns,
   compare,
   onCompare,
@@ -3635,6 +3699,11 @@ function SetView({
   onChange(sheet: Sheet, key?: string): void
   /** Assegna al set un altro template */
   onChangeTemplate(name: string): void
+  /** Nuovo seme dei numeri a caso; con `generated` le carte appena scritte da Genera */
+  onChangeRandom(
+    seed: number | undefined,
+    generated?: { sheet: Sheet; generator?: SetGenerator | null }
+  ): void
   /** Colonne nascoste, livelli calcolati mostrati, colori della tabella */
   onChangeColumns(
     view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed' | 'pinnedProperties' | 'colors'>
@@ -3656,6 +3725,8 @@ function SetView({
     initialRow !== undefined && initialRow < (set.data?.rows.length ?? 0) ? [initialRow] : [0]
   )
   const [chosenSide, setSide] = useState<Side>('front')
+  /** Il set usa numeri a caso: si può rigenerare con un altro seme */
+  const random = useMemo(() => setUsesRandom(set, templates), [set, templates])
   const [addingColumn, setAddingColumn] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [showStats, setShowStatsState] = useState(() => {
@@ -4359,6 +4430,23 @@ function SetView({
               focus={colorsFocus}
             />
           </span>
+          {random && (
+            <span className="action-group seed-group">
+              <button
+                disabled={readOnly}
+                title={t('tip.regenerate')}
+                onClick={() => onChangeRandom(randomSeed())}
+              >
+                🎲 {t('set.regenerate')}
+              </button>
+              <SeedField
+                key={set.seed ?? ''}
+                seed={set.seed}
+                disabled={readOnly}
+                onChange={(seed) => onChangeRandom(seed)}
+              />
+            </span>
+          )}
           <span className="action-group delete-group">
             <button
               className="danger"
@@ -4704,8 +4792,11 @@ function SetView({
           <GenerateDialog
             sheet={sheet}
             template={template}
-            onApply={(s) => {
-              onChange(s)
+            seed={set.seed}
+            generator={set.generator}
+            onApply={(s, random) => {
+              if (random) onChangeRandom(random.seed, { sheet: s, generator: random.generator })
+              else onChange(s)
               setGenerating(false)
             }}
             onClose={() => setGenerating(false)}
@@ -4815,3 +4906,41 @@ function countCards(sheet: { headers: string[]; rows: string[][] }): number {
 }
 
 export default App
+
+/** Il seme del set: si applica uscendo dal campo o con Invio */
+function SeedField({
+  seed,
+  disabled,
+  onChange
+}: {
+  seed: number | undefined
+  disabled: boolean
+  onChange(seed: number): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  // la finestra rimonta il campo quando il seme cambia altrove (key)
+  const [text, setText] = useState(seed === undefined ? '' : String(seed))
+  const commit = (): void => {
+    const n = Math.round(Number(text))
+    if (text.trim() && Number.isFinite(n) && n >= 0 && n !== seed) onChange(n)
+    else setText(seed === undefined ? '' : String(seed))
+  }
+  return (
+    <label className="seed-field" title={t('tip.seed')}>
+      {t('set.seed')}
+      <input
+        type="number"
+        min={0}
+        step={1}
+        disabled={disabled}
+        placeholder={t('set.seedDefault')}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') commit()
+        }}
+      />
+    </label>
+  )
+}

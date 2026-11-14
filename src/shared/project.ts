@@ -8,6 +8,7 @@ import type { Variables } from './model/variables'
 import type { ListOrder } from './model/order'
 import type { NumberStyle } from './model/numberFormat'
 import type { SetColors } from './model/setColors'
+import type { SetGenerator } from './model/generate'
 
 export const PROJECT_FILE = 'stella.json'
 /** Nomi del file dei progetti creati quando l'app si chiamava Naibi e, prima, GameCreator */
@@ -34,6 +35,13 @@ export interface SetDefinition {
   colors?: SetColors
   /** Nome del set nelle altre lingue del progetto, per codice della lingua */
   names?: Record<string, string>
+  /**
+   * Seme dei numeri a caso del set: RAND, RANDBETWEEN, {cell.random} e DEAL nelle formule, e la
+   * generazione a caso. Assente: i numeri di base, sempre uguali. Il tasto Rigenera lo cambia.
+   */
+  seed?: number
+  /** Ultima generazione a caso (Strumenti > Genera), per rigenerare con un altro seme */
+  generator?: SetGenerator
 }
 
 /**

@@ -711,7 +711,7 @@ Le icone a un colore (SVG nere su fondo trasparente) si ricolorano con la propri
 
 **Importa icone…**, nella scelta delle immagini e nella finestra di una variabile icona, apre tre raccolte incluse nell'app, che funzionano senza rete, e una online:
 
-- **game-icons.net**: circa 4200 icone, con categorie tradotte e ricerca anche in italiano. Licenza CC BY 3.0: gli autori vanno citati (vedi i crediti, [capitolo 11.6](#116-crediti)). **Aggiorna catalogo** scarica le icone pubblicate dopo questa versione dell'app (serve la rete, richiede circa un minuto).
+- **game-icons.net**: circa 4200 icone, con categorie tradotte e ricerca anche in italiano. Licenza CC BY 3.0: gli autori vanno citati (vedi i crediti, [capitolo 11.7](#117-crediti)). **Aggiorna catalogo** scarica le icone pubblicate dopo questa versione dell'app (serve la rete, richiede circa un minuto).
 - **Kenney: icone e motivi**: icone per giochi da tavolo e motivi ripetibili, in CC0.
 - **Kenney: carte, dadi e pedine**: immagini PNG a colori, in CC0.
 - **Iconify (online)**: oltre 200 altre collezioni (Material Design, Tabler, Phosphor, emoji...), cercate su internet. Si scrive nella ricerca per cercare in tutte, oppure si sceglie una collezione a sinistra per sfogliarla. I nomi delle icone sono in inglese.
@@ -754,7 +754,7 @@ Un livello con **Valore sui componenti: Formula** calcola il proprio valore dagl
 
 - **Composizione di testo**: `{nome}.png`, `Forza {forza}`.
 - **Calcolo**: se la formula contiene `+ - * /` e il risultato è un numero, si calcola: `{forza}+2`.
-- **Espressione**: con `=` iniziale funziona come in Excel. Testi tra virgolette, confronti `= <> < > <= >=`, `&` per unire testi, argomenti separati da `;` (o da `,` seguita da uno spazio). Funzioni: `IF`, `AND`, `OR`, `NOT`, `MIN`, `MAX`, `ABS`, `ROUND`, `FLOOR`, `CEILING`, `UPPER`, `LOWER`, `LEN`, `CONCAT`, `ISBLANK`, `COUNTIN`, `INLIST`, `MOD`, `PICK`, `CELLNUMBER`, `DEAL`.
+- **Espressione**: con `=` iniziale funziona come in Excel. Testi tra virgolette, confronti `= <> < > <= >=`, `&` per unire testi, argomenti separati da `;` (o da `,` seguita da uno spazio). Funzioni: `IF`, `AND`, `OR`, `NOT`, `MIN`, `MAX`, `ABS`, `ROUND`, `FLOOR`, `CEILING`, `UPPER`, `LOWER`, `LEN`, `CONCAT`, `ISBLANK`, `COUNTIN`, `INLIST`, `MOD`, `PICK`, `CELLNUMBER`, `DEAL`, `RAND`, `RANDBETWEEN`.
 
 Le funzioni, con un esempio sulle carte della guida (Drago, forza 4, costo `{oro}{oro}{legno}`):
 
@@ -775,8 +775,14 @@ Le funzioni, con un esempio sulle carte della guida (Drago, forza 4, costo `{oro
 | `PICK(n; valore1; valore2; …)`                         | l'n-esimo valore, ricominciando dopo l'ultimo                                                                                 | `=PICK({forza}; "spada"; "scudo"; "mano")` → spada                 |
 | `CELLNUMBER(verso; ordine; percorso; caselle; inizio)` | il numero continuo della casella: `"up"`/`"down"`, `"rows"`/`"columns"`, `"straight"`/`"snake"`/`"path"`, `"all"`/`"visible"` | `=CELLNUMBER("up"; "rows"; "snake"; "all"; 1)` → 1 2 3 4 / 8 7 6 5 |
 | `DEAL(voce; quante; voce; quante; …)`                  | distribuisce a caso le voci nelle caselle visibili, ognuna quante volte dici: `4`, `3-5`, `2-`, `-3` o vuoto                  | `=DEAL("spada"; 4; "scudo"; "")` → 4 spade, il resto scudi         |
+| `RAND()`                                               | un numero a caso da 0 a 1                                                                                                     | `=IF(RAND()<1/4; "rara"; "comune")` → rara su circa una carta su 4 |
+| `RANDBETWEEN(da; a)`                                   | un numero intero a caso tra i due, compresi                                                                                   | `=RANDBETWEEN(1; 6)` → 4                                           |
 
 La finestra **Aiuto** (F1), scheda **Formule**, ha la stessa tabella con il risultato calcolato sui componenti del progetto aperto.
+
+**Numeri a caso e seme.** `RAND`, `RANDBETWEEN`, `DEAL` e `{cell.random}` danno numeri a caso che però restano uguali a ogni disegno dello stesso componente: l'anteprima, la stampa e l'esportazione mostrano le stesse carte. Due chiamate nella stessa formula danno numeri diversi; la stessa formula scritta in due livelli dà lo stesso numero, quindi per riusarlo conviene metterla in un livello **Valore** e richiamarlo con `{nome}`. I numeri dipendono dal **seme** del set: un set che usa il caso (nelle formule o con **Genera** a caso, sezione 10) ha nella barra il tasto **🎲 Rigenera**, che sceglie un seme nuovo e quindi un'altra estrazione, e il campo **Seme**, dove si può riscrivere il numero di un'estrazione che piaceva. Lo stesso seme dà sempre le stesse carte; ⌘Z / Ctrl+Z torna a quelle di prima. Il seme si salva nel progetto e si mostra sulle carte con `{set.seed}`. Un set senza seme usa i numeri di base, gli stessi delle versioni precedenti.
+
+![Rigenera e il seme nella barra del set](img/rigenera.png)
 
 **Numeri con la virgola.** Di base Stella scrive i numeri con il punto: `=ROUND(7/3; 2)` dà 2.33. Per la virgola apri **Progetto › Lingue…** e, nella riga della lingua principale, scegli **Numeri: 1.234,5**. Da quel momento i numeri sui componenti si scrivono con la virgola, sia quelli del foglio sia i risultati delle formule, e nelle formule si scrive `2,5`: per questo gli argomenti vanno separati con `;`.
 
@@ -847,7 +853,8 @@ L'anteprima mostra quanti componenti nasceranno e le prime righe. **Aggiungi in 
 - **Con ripetizioni** acceso è come tirare un dado per ogni colonna; spento è come distribuire carte da un mazzo: lo stesso valore non torna in nessuna colonna dell'insieme.
 - **Limiti per valore** conta le presenze in tutte le colonne dell'insieme: con il 4 da 1 a 3 ogni componente ha almeno un 4 e al massimo tre.
 - **Filtro** funziona come prima: i componenti che scarta si estraggono di nuovo. **Tutte diverse** scarta i componenti già usciti. Se il filtro o **Tutte diverse** lasciano meno componenti di quelli chiesti, l'anteprima lo dice.
-- **Seme** è il numero da cui parte l'estrazione: lo stesso seme dà gli stessi componenti, **Rimescola** ne sceglie un altro.
+- **Seme** è il numero da cui parte l'estrazione: lo stesso seme dà gli stessi componenti, **Rimescola** ne sceglie un altro. La finestra parte dal seme del set e, generando, lo diventa.
+- Il set ricorda le impostazioni dell'ultima generazione a caso: **🎲 Rigenera** nella barra del set (sezione 9) riscrive le stesse righe con un altro seme, senza riaprire la finestra, e **Genera…** si riapre con quelle impostazioni. Le altre colonne e `amount` restano come sono. Una generazione non a caso che sostituisce o aggiorna i componenti toglie le impostazioni ricordate.
 
 ![Il generatore a caso: i numeri 1-4 su quattro colonne, il 4 da una a tre volte](img/genera-caso.png)
 
@@ -973,7 +980,17 @@ Le tipografie e la stampa in casa sono già nelle scelte: **Tipografia** e **Sta
 
 Il menu **Profilo ▾** in basso salva le opzioni attuali come profilo del progetto, con un nome, da riprendere in seguito: **Salva come nuovo profilo…**, **Salva in** per aggiornare il profilo scelto, **Elimina**. Scegliere un profilo dal menu rimette il suo tipo di esportazione e le sue opzioni.
 
-### 11.6 Crediti
+### 11.6 Scegliere i componenti
+
+Per ristampare solo alcuni componenti, sotto i set c'è **Scegli i componenti…**. Apre le miniature dei componenti dei set scelti, con una casella ciascuno: un clic sceglie o toglie un componente, la casella accanto al nome del set li prende o li toglie tutti, **Tutti** e **Nessuno** valgono per tutti i set, **Fronte** e **Retro** cambiano il lato mostrato.
+
+**Nuovi o cambiati rispetto a** sceglie una versione del progetto: l'ultima esportazione, un backup (sezione 13) o, se è attivo, il confronto in corso (**Confronta…**, sezione 5.3). **Scegli questi** sceglie solo i componenti nuovi o diversi da quella versione, segnati con un punto blu; poi se ne possono aggiungere o togliere altri a mano. Con un backup, **Mostra prima e dopo** mette accanto a ogni componente cambiato com'era e com'è; un componente che prima non c'era ha la scritta **Nuovo**. L'ultima esportazione conserva solo le impronte dei componenti, non le immagini, quindi per il prima e dopo serve un backup: prima di una sessione di modifiche conviene farne uno con un nome («prima della revisione»).
+
+**Usa questi** torna alla finestra di esportazione, che sotto i set dice quanti componenti sono scelti («6 componenti su 17»); **Tutti** torna a tutti i componenti. L'anteprima e la frase sopra **Esporta** contano solo i componenti scelti. La scelta vale per la finestra aperta e non si salva nei profili.
+
+![Solo le carte del mercato cambiate dal backup, con il prima e il dopo](img/scegli-componenti.png)
+
+### 11.7 Crediti
 
 **Crediti…** compone il testo da mettere nel regolamento o sulla scatola, con le icone e i font importati dall'app raggruppati per fonte, licenza e autore. Di base elenca solo ciò che i componenti usano. Il testo si copia o si salva in `export/credits.txt`. Le immagini copiate a mano in `assets/` non sono elencate.
 

@@ -782,7 +782,7 @@ export const it: Record<MessageKey, string> = {
   'layerType.image': 'Immagine',
   'layerType.shape': 'Forma',
   'source.formulaHelp':
-    'Inizia con = per un\'espressione come in Excel: =IF({forza}>3; "Forte"; "Debole"). Funzioni: IF, AND, OR, NOT, MIN, MAX, ABS, ROUND, FLOOR, CEILING, UPPER, LOWER, LEN, CONCAT, ISBLANK, COUNTIN (quante volte un testo ne contiene un altro: COUNTIN({costo}; "oro")), INLIST, MOD, PICK, CELLNUMBER. & unisce i testi. Il tasto fx costruisce la formula passo per passo.',
+    'Inizia con = per un\'espressione come in Excel: =IF({forza}>3; "Forte"; "Debole"). Funzioni: IF, AND, OR, NOT, MIN, MAX, ABS, ROUND, FLOOR, CEILING, UPPER, LOWER, LEN, CONCAT, ISBLANK, COUNTIN (quante volte un testo ne contiene un altro: COUNTIN({costo}; "oro")), INLIST, MOD, PICK, CELLNUMBER, RAND, RANDBETWEEN. & unisce i testi. Il tasto fx costruisce la formula passo per passo.',
   'source.formulaError': 'Errore nella formula: {error}',
   'source.formulaPreviewDefaults': 'Con i valori del template: {value}',
   'source.computedHint': 'Calcolato dalla formula sopra',
@@ -2494,6 +2494,8 @@ export const it: Record<MessageKey, string> = {
   'fx.var.project.version': 'Versione del progetto',
   'system.project.name': 'Nome del progetto (il gioco)',
   'system.set.name': 'Nome del set',
+  'system.set.seed':
+    'Seme del set per i numeri a caso (RAND, RANDBETWEEN, {cell.random}, DEAL); vuoto: quello di base',
   'system.template.name': 'Nome del template del componente',
   'system.card.number': 'Numero del componente nel set: la sua riga, da 1',
   'system.set.rows': 'Quante righe ha il set',
@@ -2558,6 +2560,12 @@ export const it: Record<MessageKey, string> = {
     'Distribuisce a caso dei valori nelle caselle visibili, ognuno quante volte dici: un numero, un intervallo come "3-5", "2-" (almeno), "-3" (al massimo) o vuoto (quanti servono)',
   'help.ex.DEAL':
     '=DEAL("spada"; 4; "scudo"; "3-5"; "mano"; "") → 16 caselle: 4 spade, da 3 a 5 scudi, il resto mani',
+  'help.fn.RAND':
+    'Un numero a caso da 0 a 1. Resta uguale a ogni disegno della carta; cambia con il seme del set ({set.seed}) e con il tasto 🎲 Rigenera',
+  'help.ex.RAND': '=IF(RAND()<1/4; "rara"; "comune") → comune su circa 3 carte su 4',
+  'help.fn.RANDBETWEEN':
+    'Un numero intero a caso dal primo al secondo, compresi; come RAND segue il seme del set',
+  'help.ex.RANDBETWEEN': '=RANDBETWEEN(1; 6) → 4',
   'help.ex.CELLNUMBER': '=CELLNUMBER("up"; "rows"; "snake"; "all"; 1) → 1 2 3 4 / 8 7 6 5',
   'help.keys.save': 'Salva template, dati e impostazioni',
   'help.keys.project': 'Apri e chiudi il progetto (app desktop)',
@@ -2727,6 +2735,31 @@ export const it: Record<MessageKey, string> = {
   'set.compare': 'Confronta…',
   'tip.compare':
     "Segna i componenti nuovi o cambiati dall'ultima esportazione o da un backup, per ristampare solo quelli",
+  'pick.button': 'Scegli i componenti…',
+  'pick.buttonHint':
+    "Esporta solo alcuni componenti dei set scelti: uno per uno, o solo quelli nuovi o cambiati dall'ultima esportazione o da un backup",
+  'pick.summary': '{n} componenti su {of}',
+  'pick.reset': 'Tutti',
+  'pick.title': 'Componenti da esportare',
+  'pick.all': 'Tutti',
+  'pick.none': 'Nessuno',
+  'pick.changedSince': 'Nuovi o cambiati rispetto a',
+  'pick.currentCompare': 'il confronto in corso',
+  'pick.selectChanged': 'Scegli questi',
+  'pick.selectChangedHint':
+    'Sceglie solo i componenti nuovi o diversi da quella versione. Poi puoi aggiungerne o toglierne altri a mano',
+  'pick.beforeAfter': 'Mostra prima e dopo',
+  'pick.noVersions':
+    "Per scegliere i componenti cambiati serve un'esportazione precedente o un backup (Progetto › Backup…).",
+  'pick.changedCount': 'Nuovi o cambiati: {n}.',
+  'pick.noBefore':
+    "L'ultima esportazione non conserva le immagini dei componenti: confronta con un backup per vedere com'erano.",
+  'pick.setCount': '{n} su {of}',
+  'pick.before': 'Prima',
+  'pick.after': 'Dopo',
+  'pick.new': 'Nuovo',
+  'pick.count': '{n} componenti scelti su {of}',
+  'pick.apply': 'Usa questi',
   'compare.title': "Confronta con un'altra versione",
   'compare.hint':
     "I componenti nuovi o diversi dalla versione scelta hanno un punto blu nei set, e l'esportazione può includere solo quelli. Il confronto guarda quello che i componenti mostrano (dati, template, variabili e stili), non il contenuto dei file di immagini e font.",
@@ -2824,6 +2857,13 @@ export const it: Record<MessageKey, string> = {
   'history.variable': 'Variabile {name}',
   'history.order': 'Ordine nella barra laterale',
   'history.project': 'Impostazioni del progetto',
+  'set.regenerate': 'Rigenera',
+  'tip.regenerate':
+    'Estrae di nuovo i numeri a caso con un altro seme: RAND, RANDBETWEEN, DEAL e {cell.random} nelle formule, e le carte create a caso da Genera. ⌘Z / Ctrl+Z torna indietro',
+  'set.seed': 'Seme',
+  'set.seedDefault': 'di base',
+  'tip.seed':
+    "Lo stesso seme dà sempre le stesse carte. Scrivi un numero per ritrovare un'estrazione che ti piaceva",
   'set.stats': 'Statistiche',
   'tip.stats':
     'Apre le statistiche del set accanto alle carte: valori, incrocio, dispersione, probabilità di pesca, testi, dadi e panoramica',
@@ -3432,6 +3472,8 @@ export const it: Record<MessageKey, string> = {
   'fx.arg.divisor': 'Diviso per',
   'fx.arg.text': 'Testo',
   'fx.arg.wanted': 'Testo da contare',
+  'fx.arg.lowest': 'Da',
+  'fx.arg.highest': 'A',
   'fx.arg.list': 'Elenco',
   'fx.arg.left': 'Sinistra',
   'fx.arg.right': 'Destra',
@@ -3468,6 +3510,8 @@ export const it: Record<MessageKey, string> = {
   'fx.fn.CONCAT': 'Unisci testi',
   'fx.fn.COUNTIN': 'Conta le ripetizioni',
   'fx.fn.INLIST': "È nell'elenco",
+  'fx.fn.RAND': 'Numero a caso da 0 a 1',
+  'fx.fn.RANDBETWEEN': 'Numero intero a caso',
   'fx.fn.DEAL': 'Distribuisci a caso',
   'fx.fn.CELLNUMBER': 'Numero continuo',
   'fx.entry.if': 'Risultato condizionato',
@@ -3539,6 +3583,7 @@ export const it: Record<MessageKey, string> = {
   'fx.var.cell.random': 'Numero casuale della casella',
   'fx.var.project.name': 'Nome del progetto',
   'fx.var.set.name': 'Nome del set',
+  'fx.var.set.seed': 'Seme del set',
   'fx.var.template.name': 'Nome del template',
   'fx.var.card.number': 'Numero del componente',
   'fx.var.set.rows': 'Righe del set',

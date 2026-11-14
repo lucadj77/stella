@@ -53,6 +53,8 @@ Projects created when the app was called Naibi have `naibi.json`, older ones (Ga
 
 `sheet` is optional: when missing, the sheet with the same name as the set is used. `hiddenColumns` (optional) lists the columns hidden in the table and in the card fields; `showComputed: true` also shows the fixed and formula layers, read-only. `pinnedProperties` (optional) lists the properties pinned in the card fields, as `layer.property` columns. They are view preferences only: they do not change the cards.
 
+`seed` (optional, a whole number) is the seed of the set's random numbers: `RAND()`, `RANDBETWEEN()`, `{cell.random}` and `DEAL` in formulas. When missing the numbers are the default ones, always the same; the same seed always gives the same cards. `generator` (optional) keeps the settings of the last random generation (Tools > Generate) and the first row it wrote (`from`), so that Regenerate can write the cards again with another seed.
+
 `styles` (optional) holds the project's text styles, written with the same attributes as the markup (docs/specifica.md, 2.1). The styles `heading1`, `heading2` and `note` always exist and can be redefined here. Until there is a style editor they are edited by hand.
 
 ```json
