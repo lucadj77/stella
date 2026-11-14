@@ -5,17 +5,41 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
-## Next version
+## 1.11.0
 
 ### English
 
-- **Anatomy labels**: dragging a label no longer moves the other labels around it, so it follows the mouse without jumps. It moves from where it is drawn, not from the mouse position. Labels with a chosen height stay where you put them; remove `label` from the code to make one automatic again.
-- **Same anatomy everywhere**: the anatomy window and its enlarged view lay out the anatomy with the page width and text size of the document, so card, labels and line breaks are as in the rulebook, only larger or smaller.
+- **Choose the components to export**: below the sets, **Choose components…** shows the thumbnails of the components and lets you export only some of them. **New or changed since** picks only those that differ from the last export or from a backup, and with a backup **Show before and after** puts each changed component next to how it was. Useful to reprint only what changed.
+- **Seed and Regenerate**: a set that uses chance has **🎲 Regenerate** and a **Seed** field in its bar. The same seed always gives the same cards, and ⌘Z / Ctrl+Z goes back. New formula functions `RAND()` and `RANDBETWEEN(from; to)`; like `DEAL` and `{cell.random}` they change with the set's seed. **Generate** remembers its random settings, so Regenerate writes the same rows again with another seed. Sets without a seed keep the numbers they had.
+- **No more lost work**: closing the window or quitting with unsaved changes asks first (**Save**, **Don't save**, **Cancel**), and a recovery file offers to bring back the changes after a sudden close.
+- **Import from nanDECK** (experimental): the start screen converts the scripts of a nanDECK game into templates and sets, with the data, shapes, text, images and icons. A note lists what was not converted, and the **stella-nandeck** skill lets an AI agent finish the work.
+- **Transparent components**: a component is transparent where no layer draws. New templates keep the white `background` layer; delete or hide it for transparent PNG and WebP images, Tabletop Simulator tokens shaped like the drawing, and documents that show what is beneath. PDF, JPG, decks, tiles and dice stay on white.
+- **Anatomy in documents**: drag the point where a label's line ends (`(at 30% 80%)`) and drag a label up or down to choose its height (`(label 30%)`); double-click a label to change its text. **⤢ Enlarge** shows the anatomy large, and the anatomy window lays it out with the page width and text size of the document, so it looks as in the rulebook. The anatomy and table setup windows also show the block's code in a field you can edit.
+- **Numbers from a field**: **X**, **Y**, width, height, **Rotation** and **Opacity** of a layer accept a field such as `{orientation}` or a formula starting with `=`.
+- **QR codes**: **QR code…** in the image picker, or `qr:` followed by a text in a column or formula (`qr:{link}`).
+- **Printing at home**: the **Ink** choice prints in **Black and white** or as a lighter **Draft** to save ink, and **Test page** next to **Back offset** tells the numbers that line up the backs of a duplex print.
+- **Color blindness preview** in the set's **Tools** menu, to check that suits and factions stay distinct.
+- **Search the guide** from the Help window (F1), offline too.
+- **Easier editor and sets**: starting layouts for new templates, the editor remembers the **Data** choice of each template, layer buttons with names and bigger icons, properties in the order you work in, a coloured band on the cursor line of documents, faster large sets and a web version that starts sooner.
+- **Larger grids** (up to 10,000 cells), warnings for PNG images over 8 MB, and `rgba(...)`/`hsl(...)` in every color field.
+- Electron 44.9.3, with a security fix, and small fixes.
 
 ### Italiano
 
-- **Etichette dell'anatomia**: trascinare un'etichetta non sposta più le altre attorno, così segue il mouse senza sobbalzi. Si sposta da dov'è disegnata, non dalla posizione del mouse. Le etichette con un'altezza scelta restano dove le metti; togli `label` dal codice per farne tornare una automatica.
-- **Anatomia uguale ovunque**: la finestra dell'anatomia e la vista ingrandita dispongono l'anatomia con la larghezza della pagina e il corpo del testo del documento, così carta, etichette e a capo sono come nel regolamento, solo più grandi o più piccoli.
+- **Scegliere i componenti da esportare**: sotto i set, **Scegli i componenti…** mostra le miniature dei componenti e permette di esportarne solo alcuni. **Nuovi o cambiati rispetto a** sceglie solo quelli diversi dall'ultima esportazione o da un backup, e con un backup **Mostra prima e dopo** mette accanto a ogni componente cambiato com'era. Serve per ristampare solo quello che è cambiato.
+- **Seed e Rigenera**: un set che usa il caso ha nella barra **🎲 Rigenera** e il campo **Seed**. Lo stesso seed dà sempre le stesse carte e ⌘Z / Ctrl+Z torna indietro. Nuove funzioni nelle formule, `RAND()` e `RANDBETWEEN(da; a)`; come `DEAL` e `{cell.random}` cambiano con il seed del set. **Genera** ricorda le impostazioni a caso, così Rigenera riscrive le stesse righe con un altro seed. I set senza seed tengono i numeri che avevano.
+- **Niente più lavoro perso**: chiudendo la finestra o uscendo con modifiche non salvate Stella chiede prima (**Salva**, **Non salvare**, **Annulla**), e un file di recupero propone di riprendere le modifiche dopo una chiusura improvvisa.
+- **Importa da nanDECK** (sperimentale): dalla schermata iniziale converte gli script di un gioco nanDECK in template e set, con dati, forme, testi, immagini e icone. Una nota elenca quello che non è stato convertito, e la skill **stella-nandeck** permette a un agente IA di finire il lavoro.
+- **Componenti trasparenti**: un componente è trasparente dove nessun livello disegna. I template nuovi tengono il livello bianco `background`; cancellalo o nascondilo per avere immagini PNG e WebP trasparenti, segnalini di Tabletop Simulator con la forma del disegno e documenti che mostrano quello che c'è sotto. PDF, JPG, mazzi, tessere e dadi restano su bianco.
+- **Anatomia nei documenti**: si trascina il punto dove arriva la linea di un'etichetta (`(at 30% 80%)`) e si trascina un'etichetta in su o in giù per sceglierne l'altezza (`(label 30%)`); un doppio clic su un'etichetta ne cambia il testo. **⤢ Ingrandisci** mostra l'anatomia in grande, e la finestra dell'anatomia la dispone con la larghezza della pagina e il corpo del testo del documento, così si vede come nel regolamento. Le finestre dell'anatomia e dello schema del tavolo mostrano anche il codice del blocco in un campo modificabile.
+- **Numeri da un campo**: **X**, **Y**, larghezza, altezza, **Rotazione** e **Opacità** di un livello accettano un campo come `{orientamento}` o una formula che inizia con `=`.
+- **Codici QR**: **Codice QR…** nella scelta delle immagini, oppure `qr:` seguito da un testo in una colonna o in una formula (`qr:{link}`).
+- **Stampa a casa**: la scelta **Inchiostro** stampa in **Bianco e nero** o come **Bozza** più chiara per risparmiare inchiostro, e **Pagina di prova** accanto a **Spostamento retri** dice i numeri che allineano i retri di una stampa fronte-retro.
+- **Anteprima daltonismo** nel menu **Strumenti** del set, per controllare che semi e fazioni restino distinti.
+- **Cercare nella guida** dalla finestra Aiuto (F1), anche senza rete.
+- **Editor e set più comodi**: disposizioni di partenza per i template nuovi, l'editor ricorda la scelta di **Dati** di ogni template, pulsanti dei livelli con il nome e icone più grandi, proprietà nell'ordine in cui si lavora, una fascia colorata sulla riga del cursore nei documenti, set grandi più veloci e una versione web che parte prima.
+- **Griglie più grandi** (fino a 10.000 caselle), avvisi per le immagini PNG oltre 8 MB, e `rgba(...)`/`hsl(...)` in tutti i campi colore.
+- Electron 44.9.3, con una correzione di sicurezza, e piccole correzioni.
 
 ## 1.11.0-beta.4
 
