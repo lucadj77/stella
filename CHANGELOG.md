@@ -5,6 +5,18 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.11.1-beta.3
+
+### English
+
+- **Centered text in documents**: `{center}` at the start of a paragraph centers it, as in component texts: `{center} *The castle will not fall tonight.*`. It also works for headings (`## {center} Setup`) and notes (`> {center} text`); `{right}` aligns to the right, and `{left}` or `{justify}` override the document alignment for that paragraph. A style in the same braces applies to the whole paragraph (`{.flavor center} Text`). PDF, HTML and Word keep the alignment.
+- **Centered boxes**: a box narrower than the line can sit in the center or on the right: **Position** in the **Box** window, `<!-- box width=60% align=center -->` in the text. In Word, a box now also keeps its width.
+
+### Italiano
+
+- **Testo centrato nei documenti**: `{center}` a inizio paragrafo lo centra, come nei testi dei componenti: `{center} *Il castello non cadrà stanotte.*`. Vale anche per i titoli (`## {center} Preparazione`) e per le note (`> {center} testo`); `{right}` allinea a destra, e `{left}` o `{justify}` cambiano l'allineamento del documento solo per quel paragrafo. Uno stile nelle stesse graffe vale per tutto il paragrafo (`{.flavor center} Testo`). PDF, HTML e Word mantengono l'allineamento.
+- **Riquadri centrati**: un riquadro più stretto della riga può stare al centro o a destra: **Posizione** nella finestra **Riquadro**, `<!-- box width=60% align=center -->` nel testo. In Word il riquadro ora mantiene anche la sua larghezza.
+
 ## 1.11.1-beta.2
 
 ### English

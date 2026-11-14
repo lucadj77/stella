@@ -52,3 +52,16 @@ describe('riquadri dei documenti', () => {
     expect(out.text.slice(0, out.caret).endsWith('Prova')).toBe(true)
   })
 })
+
+describe('posizione dei riquadri', () => {
+  it('align= al centro o a destra, scritto solo se il riquadro è più stretto e senza testo accanto', () => {
+    expect(parseBoxStyle('<!-- box width=60% align=center -->').style.align).toBe('center')
+    expect(parseBoxStyle('<!-- box align=right -->').style.align).toBe('right')
+    expect(parseBoxStyle('<!-- box align=middle -->').bad).toEqual(['align=middle'])
+    const narrow = { ...DEFAULT_BOX_STYLE, width: 0.6, align: 'center' as const }
+    expect(boxStartLine(narrow)).toBe('<!-- box width=60% align=center -->')
+    expect(parseBoxStyle(boxStartLine(narrow)).style).toEqual(narrow)
+    expect(boxStartLine({ ...narrow, width: null })).toBe('<!-- box -->')
+    expect(boxStartLine({ ...narrow, wrap: 'right' })).toBe('<!-- box width=60% wrap=right -->')
+  })
+})

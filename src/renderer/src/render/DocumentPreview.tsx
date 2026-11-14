@@ -1,7 +1,7 @@
 import { projectMeta, type ProjectMeta } from '../../../shared/model/system'
 import { Fragment, memo, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { LoadedSet } from '../../../shared/project'
-import type { Template } from '../../../shared/model/template'
+import type { HAlign, Template } from '../../../shared/model/template'
 import { resolveAsset } from '../../../shared/model/assets'
 import {
   imageVariable,
@@ -310,9 +310,17 @@ function boxStyle(s: BoxStyle, variables: Variables): React.CSSProperties {
     padding: `${s.padding}mm`,
     borderRadius: s.radius ? `${s.radius}mm` : undefined,
     width:
-      s.width && s.width < 1 ? `${s.width * 100}%` : s.wrap ? `${WRAP_WIDTH * 100}%` : undefined
+      s.width && s.width < 1 ? `${s.width * 100}%` : s.wrap ? `${WRAP_WIDTH * 100}%` : undefined,
+    // più stretto della riga e senza testo accanto: al centro o a destra con align=
+    ...(!s.wrap && s.width && s.width < 1 && s.align !== 'left'
+      ? { marginLeft: 'auto', marginRight: s.align === 'center' ? 'auto' : 0 }
+      : null)
   }
 }
+
+/** Allineamento di un paragrafo dato con {center} a inizio testo */
+const alignStyle = (align?: HAlign): React.CSSProperties | undefined =>
+  align ? { textAlign: align } : undefined
 
 /** Frazione della riga per anatomie e schemi: width:, o metà se il testo scorre accanto */
 const blockWidth = (b: { width?: number | null; wrap?: unknown }): number =>
@@ -336,12 +344,12 @@ function Block({
   switch (b.kind) {
     case 'heading': {
       const H = `h${b.level}` as 'h1' | 'h2' | 'h3'
-      return <H>{inline(b.text)}</H>
+      return <H style={alignStyle(b.align)}>{inline(b.text)}</H>
     }
     case 'paragraph':
-      return <p>{inline(b.text)}</p>
+      return <p style={alignStyle(b.align)}>{inline(b.text)}</p>
     case 'quote':
-      return <blockquote>{inline(b.text)}</blockquote>
+      return <blockquote style={alignStyle(b.align)}>{inline(b.text)}</blockquote>
     case 'rule':
       return <hr />
     case 'code':

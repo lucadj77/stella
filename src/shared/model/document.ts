@@ -1,6 +1,6 @@
 import type { LoadedSet, ProjectFile } from '../project'
 import { msg, type Message } from '../messages'
-import { markupProblems, markupRefs } from './markup'
+import { looksLikeAttrs, markupProblems, markupRefs } from './markup'
 import { substituteFields } from './bind'
 import { imageVariable, variableFields, type Variables } from './variables'
 import { resolveAsset } from './assets'
@@ -64,10 +64,10 @@ export type DocBlock = {
   /** Il blocco riparte sotto quelli messi a lato (riga <!-- clear --> prima) */
   clear?: boolean
 } & (
-  | { kind: 'heading'; level: 1 | 2 | 3; text: string }
-  | { kind: 'paragraph'; text: string }
+  | { kind: 'heading'; level: 1 | 2 | 3; text: string; align?: HAlign }
+  | { kind: 'paragraph'; text: string; align?: HAlign }
   | { kind: 'list'; items: DocListItem[] }
-  | { kind: 'quote'; text: string }
+  | { kind: 'quote'; text: string; align?: HAlign }
   | {
       kind: 'table'
       /** Vuota in una tabella senza intestazione (le proprietà del documento) */
@@ -407,7 +407,7 @@ export function parseDocument(source: string): DocBlock[] {
     const heading = /^\s{0,3}(#{1,6})\s+(.*?)\s*#*\s*$/.exec(line)
     if (heading) {
       const level = Math.min(3, heading[1].length) as 1 | 2 | 3
-      blocks.push({ kind: 'heading', level, text: heading[2], from })
+      blocks.push({ kind: 'heading', level, ...leadingAttrs(heading[2]), from })
       i++
       continue
     }
@@ -420,7 +420,7 @@ export function parseDocument(source: string): DocBlock[] {
       const body: string[] = []
       while (i < lines.length && /^\s{0,3}>/.test(lines[i]))
         body.push(lines[i++].replace(/^\s{0,3}> ?/, ''))
-      blocks.push({ kind: 'quote', text: joinLines(body), from })
+      blocks.push({ kind: 'quote', ...leadingAttrs(joinLines(body)), from })
       continue
     }
     if (LIST_ITEM.test(line)) {
@@ -512,7 +512,7 @@ export function parseDocument(source: string): DocBlock[] {
         images.push({ alt: m[1], src: m[2].trim(), from: at, to: at + m[0].length })
       }
       blocks.push({ kind: 'figure', images, from })
-    } else blocks.push({ kind: 'paragraph', text: joinLines(body), from })
+    } else blocks.push({ kind: 'paragraph', ...leadingAttrs(joinLines(body)), from })
   }
   const boxes = documentBoxes(src)
   for (const b of blocks) {
@@ -594,6 +594,26 @@ function numberItems(items: DocListItem[]): DocListItem[] {
  * Righe di un paragrafo unite come nel Markdown: un a capo semplice è uno spazio; due spazi o
  * "\" a fine riga vanno a capo
  */
+const PARA_ALIGNS: readonly string[] = ['left', 'center', 'right', 'justify']
+
+/**
+ * Attributi del paragrafo a inizio testo, come nei componenti: `{center} Testo` o
+ * `{.flavor center} Testo`. L'allineamento va al blocco; stili e altri attributi valgono per
+ * tutto il testo, che diventa `[Testo]{.flavor}`.
+ */
+export function leadingAttrs(text: string): { text: string; align?: HAlign } {
+  const m = /^\{([^{}\n]*)\}[ \t]*/.exec(text)
+  if (!m || !looksLikeAttrs(m[1])) return { text }
+  const tokens = m[1].trim().split(/\s+/)
+  const align = tokens.filter((tk) => PARA_ALIGNS.includes(tk)).pop() as HAlign | undefined
+  const rest = tokens.filter((tk) => !PARA_ALIGNS.includes(tk))
+  const body = text.slice(m[0].length)
+  return {
+    text: rest.length && body ? `[${body}]{${rest.join(' ')}}` : body,
+    ...(align ? { align } : null)
+  }
+}
+
 function joinLines(lines: string[]): string {
   let out = ''
   lines.forEach((l, k) => {

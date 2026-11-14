@@ -21,7 +21,11 @@ export interface BoxStyle {
   width: number | null
   /** Il testo che segue scorre accanto, con il riquadro a sinistra o a destra (wrap=left) */
   wrap: 'left' | 'right' | null
+  /** Posizione nella riga di un riquadro più stretto della riga, senza testo accanto (align=center) */
+  align: BoxAlign
 }
+
+export type BoxAlign = 'left' | 'center' | 'right'
 
 export const DEFAULT_BOX_STYLE: BoxStyle = {
   fill: '#f3f3f0',
@@ -30,7 +34,8 @@ export const DEFAULT_BOX_STYLE: BoxStyle = {
   padding: 3,
   radius: 0,
   width: null,
-  wrap: null
+  wrap: null,
+  align: 'left'
 }
 
 /** Un riquadro nel testo del documento */
@@ -76,6 +81,7 @@ export function parseBoxStyle(line: string): { style: BoxStyle; bad: string[] } 
       style.width = parseFloat(v.replace(',', '.')) / 100
     else if (k === 'wrap' && (v === 'left' || v === 'right' || v === 'none'))
       style.wrap = v === 'none' ? null : v
+    else if (k === 'align' && (v === 'left' || v === 'center' || v === 'right')) style.align = v
     else bad.push(part)
   }
   return { style, bad }
@@ -94,6 +100,7 @@ export function boxStartLine(s: BoxStyle): string {
   if (s.radius !== d.radius) opts.push(`radius=${round(s.radius)}`)
   if (s.width && s.width < 1) opts.push(`width=${round(s.width * 100)}%`)
   if (s.wrap) opts.push(`wrap=${s.wrap}`)
+  else if (s.align !== d.align && s.width && s.width < 1) opts.push(`align=${s.align}`)
   return `<!-- box${opts.map((o) => ' ' + o).join('')} -->`
 }
 

@@ -564,21 +564,22 @@ Il testo dei componenti si scrive con un markup semplice, uguale nell'app e nell
 
 ### 6.1 Markdown
 
-| Scrivi                       | Ottieni                                        |
-| ---------------------------- | ---------------------------------------------- |
-| `**testo**`                  | grassetto                                      |
-| `*testo*`                    | corsivo                                        |
-| `++testo++`                  | sottolineato                                   |
-| `~~testo~~`                  | barrato                                        |
-| `==testo==`                  | evidenziato                                    |
-| `^testo^` / `~testo~`        | apice / pedice                                 |
-| `# Titolo`, `## Sottotitolo` | paragrafo con lo stile `heading1` o `heading2` |
-| `> testo`                    | paragrafo con lo stile `note`                  |
-| `- voce` / `1. voce`         | elenco puntato / numerato                      |
-| `---`                        | linea separatrice                              |
-| `\` a fine riga              | a capo senza nuovo paragrafo                   |
-| `<br>`                       | a capo dove il testo sta su una riga sola      |
-| `_4{moneta}_`                | non va mai a capo                              |
+| Scrivi                                 | Ottieni                                                                    |
+| -------------------------------------- | -------------------------------------------------------------------------- |
+| `**testo**`                            | grassetto                                                                  |
+| `*testo*`                              | corsivo                                                                    |
+| `++testo++`                            | sottolineato                                                               |
+| `~~testo~~`                            | barrato                                                                    |
+| `==testo==`                            | evidenziato                                                                |
+| `^testo^` / `~testo~`                  | apice / pedice                                                             |
+| `# Titolo`, `## Sottotitolo`           | paragrafo con lo stile `heading1` o `heading2`                             |
+| `> testo`                              | paragrafo con lo stile `note`                                              |
+| `{center} testo`, `## {center} Titolo` | un paragrafo o un titolo centrato; anche `{right}`, `{left}` e `{justify}` |
+| `- voce` / `1. voce`                   | elenco puntato / numerato                                                  |
+| `---`                                  | linea separatrice                                                          |
+| `\` a fine riga                        | a capo senza nuovo paragrafo                                               |
+| `<br>`                                 | a capo dove il testo sta su una riga sola                                  |
+| `_4{moneta}_`                          | non va mai a capo                                                          |
 
 Ogni a capo inizia un nuovo paragrafo, come quando si scrive in una cella di Excel con Alt+Invio. Per tenere un pezzo di testo sulla stessa riga, così che `4` e la sua icona non finiscano su righe diverse, lo si chiude tra due trattini bassi: `_4{moneta}_`. È lo stesso di `[4{moneta}]{nowrap}`. Un trattino basso dentro una parola (`nome_file`) resta com'è; per scriverne uno isolato si usa `\_`.
 
@@ -1032,6 +1033,8 @@ Il testo è Markdown, con il markup di Stella del [capitolo 6](#6-testo-e-markup
 | `![](icone/mappa.png)`                      | un'immagine degli asset                                             |
 | `![](icone/mappa.png?width=40&align=right)` | un'immagine larga 40 mm, a destra                                   |
 
+Per centrare un paragrafo si scrive `{center}` all'inizio, come nei testi dei componenti: `{center} *Il castello non cadrà stanotte.*`. Vale anche per i titoli (`## {center} Preparazione`) e per le note (`> {center} testo`); `{right}` lo allinea a destra, e `{left}` o `{justify}` cambiano l'allineamento scelto in **Impostazioni** solo per quel paragrafo. Nelle stesse graffe si possono mettere uno stile e altri attributi, che valgono per tutto il paragrafo: `{.flavor center} Testo`. Le esportazioni PDF, HTML e Word mantengono l'allineamento, quella in Markdown no.
+
 ### 12.2 Componenti e immagini
 
 I componenti non si copiano nel documento: Stella li disegna dal progetto, quindi una modifica ai dati o al template si vede subito anche nel documento. **Inserisci componente** apre una finestra in cui si sceglie il set e il componente (si cerca per nome), il lato, la larghezza in millimetri (vuota per la misura vera) e la didascalia, e scrive il riferimento al posto del cursore.
@@ -1057,6 +1060,8 @@ Sotto la griglia, **Aspetto** sceglie la larghezza della tabella (in % del testo
 ![La finestra della tabella, con l'aspetto in basso](img/doc-tabella.png)
 
 **Riquadro** mette uno sfondo colorato dietro una parte del documento: serve a dare risalto a un pezzo di testo o a staccare dal foglio immagini bianche senza bordo. Con delle righe selezionate le mette nel riquadro; senza selezione ne inserisce uno nuovo con un testo di prova. Si scelgono lo sfondo, un bordo (colore e spessore), lo spazio interno e gli angoli arrotondati; con il cursore dentro un riquadro lo stesso tasto lo modifica o lo toglie (**Togli il riquadro** lascia il contenuto). Nel testo il riquadro è fatto da due righe, `<!-- box fill=#fff3c4 border=#e0b000 -->` all'inizio e `<!-- /box -->` alla fine: tutto quello che c'è in mezzo (titoli, elenchi, tabelle, componenti) prende lo sfondo. Le esportazioni HTML, PDF e Word lo mantengono, quella in Markdown no.
+
+Un riquadro più stretto della riga sta di base a sinistra: **Posizione** lo mette al centro o a destra (`<!-- box width=60% align=center -->`). La posizione vale solo senza testo accanto; il testo dentro il riquadro si allinea a parte, con `{center}` a inizio paragrafo.
 
 **Testo accanto** fa scorrere il testo che segue accanto a un'immagine, a un componente, a un'anatomia, a uno schema del tavolo o a un riquadro, invece di lasciare loro tutta la riga: si sceglie **A sinistra** o **A destra** in **Testo accanto**, nella loro finestra. Tutto quello che viene dopo, titoli compresi, scorre accanto finché c'è spazio; il tasto **Riparti sotto** della barra scrive una riga `<!-- clear -->` che fa ripartire il testo sotto il blocco. Anche la fine di un riquadro e la fine del documento ripartono sotto.
 
