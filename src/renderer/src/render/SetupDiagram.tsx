@@ -3,7 +3,7 @@ import { useContext, useId } from 'react'
 import type { LoadedSet } from '../../../shared/project'
 import type { Template } from '../../../shared/model/template'
 import { anatomyCardSource } from '../../../shared/model/document'
-import type { Setup, SetupItem } from '../../../shared/model/setup'
+import { arrowCurve, type Setup, type SetupItem } from '../../../shared/model/setup'
 import { resolveAsset } from '../../../shared/model/assets'
 import { backdropInner, imageBackdrop } from '../../../shared/model/shapes'
 import { imageVariable, palette, resolveColor } from '../../../shared/model/variables'
@@ -266,37 +266,46 @@ function Item({
     case 'image':
       return <ImageItem i={i} it={it} />
     case 'arrow': {
-      const dx = it.x2 - it.x
-      const dy = it.y2 - it.y
-      const len = Math.hypot(dx, dy) || 1
-      const ux = dx / len
-      const uy = dy / len
+      const { control, mid } = arrowCurve(it)
+      // direzione della punta: la tangente alla fine, dal punto di controllo (o dalla coda)
+      const curved = !!it.bend
+      const from = curved ? control : { x: it.x, y: it.y }
+      const dx = it.x2 - from.x
+      const dy = it.y2 - from.y
+      const tan = Math.hypot(dx, dy) || 1
+      const ux = dx / tan
+      const uy = dy / tan
+      const len = Math.hypot(it.x2 - it.x, it.y2 - it.y) || 1
       const head = Math.min(3.5, len / 2)
       const bx = it.x2 - ux * head
       const by = it.y2 - uy * head
       const w = head * 0.55
       const tip = `${it.x2},${it.y2} ${bx - uy * w},${by + ux * w} ${bx + uy * w},${by - ux * w}`
+      // la curva finisce alla base della punta: la quadratica si taglia a t, con de Casteljau
+      let d = `M${it.x},${it.y} L${bx},${by}`
+      if (curved) {
+        const t = Math.max(0.5, 1 - head / quadLength(it, control))
+        const c1 = { x: it.x + (control.x - it.x) * t, y: it.y + (control.y - it.y) * t }
+        const c2 = {
+          x: control.x + (it.x2 - control.x) * t,
+          y: control.y + (it.y2 - control.y) * t
+        }
+        const end = { x: c1.x + (c2.x - c1.x) * t, y: c1.y + (c2.y - c1.y) * t }
+        d = `M${it.x},${it.y} Q${c1.x},${c1.y} ${end.x},${end.y}`
+      }
       return (
         <g data-item={i}>
           {/* alone chiaro sotto la freccia: resta visibile anche sopra carte e plance scure */}
           <g stroke={HALO} strokeOpacity={0.85} strokeLinecap="round" strokeLinejoin="round">
-            <line x1={it.x} y1={it.y} x2={bx} y2={by} strokeWidth={1.4} />
+            <path d={d} fill="none" strokeWidth={1.4} />
             <polygon points={tip} fill={HALO} fillOpacity={0.85} strokeWidth={0.9} />
           </g>
-          <line
-            x1={it.x}
-            y1={it.y}
-            x2={bx}
-            y2={by}
-            stroke={INK}
-            strokeWidth={0.5}
-            strokeLinecap="round"
-          />
+          <path d={d} fill="none" stroke={INK} strokeWidth={0.5} strokeLinecap="round" />
           <polygon points={tip} fill={INK} />
           {it.label && (
             <Label
-              x={(it.x + it.x2) / 2 - 25}
-              y={(it.y + it.y2) / 2 - (font * LINE) / 2}
+              x={mid.x - 25}
+              y={mid.y - (font * LINE) / 2}
               w={50}
               font={font}
               text={it.label}
@@ -387,4 +396,24 @@ function ImageItem({
       )}
     </g>
   )
+}
+
+/** Lunghezza di una quadratica, da una spezzata di 16 tratti */
+function quadLength(
+  a: { x: number; y: number; x2: number; y2: number },
+  c: { x: number; y: number }
+): number {
+  let len = 0
+  let px = a.x
+  let py = a.y
+  for (let k = 1; k <= 16; k++) {
+    const t = k / 16
+    const u = 1 - t
+    const x = u * u * a.x + 2 * u * t * c.x + t * t * a.x2
+    const y = u * u * a.y + 2 * u * t * c.y + t * t * a.y2
+    len += Math.hypot(x - px, y - py)
+    px = x
+    py = y
+  }
+  return len || 1
 }

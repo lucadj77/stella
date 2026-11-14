@@ -63,6 +63,17 @@ export function hitTest(l: Layer, p: Point, pad = HIT_PAD): boolean {
   if (!l.visible || l.type === 'value') return false
   const q = toLocal(l, p)
   if (l.type === 'group') return arrangeGroup(l).children.some((c) => hitTest(c, q, pad))
+  if (l.type === 'shape' && l.shape === 'line' && l.bend) {
+    // una linea curva si prende vicino alla curva
+    const cy = l.y + l.h / 2
+    for (let k = 0; k <= 32; k++) {
+      const t = k / 32
+      const x = l.x + l.w * t
+      const y = cy + 4 * l.bend * t * (1 - t)
+      if (Math.hypot(q.x - x, q.y - y) <= Math.max(pad, l.h / 2)) return true
+    }
+    return false
+  }
   const px = l.w < 2 * pad ? pad : 0
   const py = l.h < 2 * pad ? pad : 0
   return q.x >= l.x - px && q.x <= l.x + l.w + px && q.y >= l.y - py && q.y <= l.y + l.h + py

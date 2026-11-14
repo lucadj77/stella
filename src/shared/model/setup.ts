@@ -9,6 +9,7 @@
 //   card Personaggi/nome=Mago 60,10 rotate=90 "Il mago"
 //   text 140,30 width=50 "Pesca **2** carte"            (align=left o align=right; di base al centro)
 //   arrow 40,50 -> 60,80 "pesca"
+//   arrow 40,50 -> 60,80 bend=8                        (curva: il centro si scosta di 8 mm)
 //   image icons/moneta.png 200,20 width=10
 //
 // Con `width 60%` lo schema occupa al massimo il 60% della riga, con `font 90%` le didascalie
@@ -37,7 +38,19 @@ export type SetupItem = { from: number; to: number } & (
       /** Allineamento nel riquadro largo w; di base al centro */
       align?: SetupTextAlign
     }
-  | { kind: 'arrow'; x: number; y: number; x2: number; y2: number; label: string }
+  | {
+      kind: 'arrow'
+      x: number
+      y: number
+      x2: number
+      y2: number
+      label: string
+      /**
+       * Curva: di quanti mm il centro della freccia si scosta dalla retta, a destra di chi va
+       * dalla coda alla punta (a sinistra se negativo); assente o 0 = dritta
+       */
+      bend?: number
+    }
   | { kind: 'image'; src: string; x: number; y: number; w: number; rotate: number }
 )
 
@@ -204,7 +217,7 @@ function parseItem(line: string, from: number): SetupItem | null {
     }
     const pair = PAIR.exec(p.text)
     const sz = SIZE.exec(p.text)
-    const opt = /^(rotate|count|width)=(-?\d+(?:[.,]\d+)?)$/i.exec(p.text)
+    const opt = /^(rotate|count|width|bend)=(-?\d+(?:[.,]\d+)?)$/i.exec(p.text)
     const al = /^align=(left|center|right)$/i.exec(p.text)
     if (p.text === '->') continue
     if (al && !align) align = al[1].toLowerCase() as SetupTextAlign
@@ -251,7 +264,16 @@ function parseItem(line: string, from: number): SetupItem | null {
       }
     case 'arrow':
       if (name || size || pairs.length !== 2) return null
-      return { kind, x, y, x2: pairs[1][0], y2: pairs[1][1], label: label ?? '', ...at }
+      return {
+        kind,
+        x,
+        y,
+        x2: pairs[1][0],
+        y2: pairs[1][1],
+        label: label ?? '',
+        ...(opts.bend ? { bend: opts.bend } : {}),
+        ...at
+      }
     case 'image':
       if (!name || size || pairs.length !== 1 || label !== null) return null
       return { kind, src: decode(name), x, y, w: opts.width ?? SETUP_IMAGE_W, rotate, ...at }
@@ -328,7 +350,7 @@ export function setupLine(it: SetupItem): string {
     case 'text':
       return `text ${r(it.x)},${r(it.y)} width=${r(it.w)}${it.align && it.align !== 'center' ? ` align=${it.align}` : ''} ${quote(it.text.replace(/\n/g, ' '))}`
     case 'arrow':
-      return `arrow ${r(it.x)},${r(it.y)} -> ${r(it.x2)},${r(it.y2)}${text(it.label)}`
+      return `arrow ${r(it.x)},${r(it.y)} -> ${r(it.x2)},${r(it.y2)}${it.bend ? ` bend=${r(it.bend)}` : ''}${text(it.label)}`
     case 'image':
       return `image ${it.src.replace(/%/g, '%25').replace(/ /g, '%20')} ${r(it.x)},${r(it.y)} width=${r(it.w)}${rot(it.rotate)}`
   }
@@ -369,6 +391,44 @@ export function moveSetupItem(it: SetupItem, dx: number, dy: number): SetupItem 
   return moved.kind === 'arrow'
     ? { ...moved, x2: tenth(moved.x2 + dx), y2: tenth(moved.y2 + dy) }
     : moved
+}
+
+interface Pt {
+  x: number
+  y: number
+}
+
+/**
+ * La curva di una freccia, una Bézier quadratica: `control` è il punto di controllo, `mid` il
+ * centro della curva (dove sta la didascalia e la maniglia della curva), `normal` la direzione in
+ * cui una curva positiva si scosta
+ */
+export function arrowCurve(it: { x: number; y: number; x2: number; y2: number; bend?: number }): {
+  control: Pt
+  mid: Pt
+  normal: Pt
+} {
+  const dx = it.x2 - it.x
+  const dy = it.y2 - it.y
+  const len = Math.hypot(dx, dy) || 1
+  // a destra di chi va dalla coda alla punta, con le y verso il basso
+  const normal = { x: -dy / len, y: dx / len }
+  const b = it.bend ?? 0
+  const cx = (it.x + it.x2) / 2
+  const cy = (it.y + it.y2) / 2
+  return {
+    // il centro di una quadratica sta a metà tra la corda e il punto di controllo
+    control: { x: cx + normal.x * b * 2, y: cy + normal.y * b * 2 },
+    mid: { x: cx + normal.x * b, y: cy + normal.y * b },
+    normal
+  }
+}
+
+/** La curva di una freccia da un punto: di quanto il punto si scosta dalla retta, al decimo */
+export function bendTowards(it: { x: number; y: number; x2: number; y2: number }, p: Pt): number {
+  const { normal } = arrowCurve(it)
+  const d = (p.x - (it.x + it.x2) / 2) * normal.x + (p.y - (it.y + it.y2) / 2) * normal.y
+  return Math.round(d * 10) / 10
 }
 
 export type SetupAlign = 'left' | 'hcenter' | 'right' | 'top' | 'vcenter' | 'bottom'

@@ -1,5 +1,6 @@
 import CombineButtons from './CombineButtons'
 import {
+  createContext,
   lazy,
   Suspense,
   useContext,
@@ -270,16 +271,24 @@ export default function PropertiesPanel({
             </>
           ) : layer ? (
             <>
-              <LayerProperties
-                key={layer.id}
-                layer={layer}
-                state={state}
-                dispatch={dispatch}
-                sheets={sheets}
-                base={base}
-                fxFor={fxFor}
-                setFxFor={setFxFor}
-              />
+              <PointsContext.Provider
+                value={{
+                  active: state.points === layer.id,
+                  toggle: () =>
+                    dispatch({ type: 'points', id: state.points === layer.id ? null : layer.id })
+                }}
+              >
+                <LayerProperties
+                  key={layer.id}
+                  layer={layer}
+                  state={state}
+                  dispatch={dispatch}
+                  sheets={sheets}
+                  base={base}
+                  fxFor={fxFor}
+                  setFxFor={setFxFor}
+                />
+              </PointsContext.Provider>
               {layer.type === 'group' && (
                 <div className="selection-actions">
                   <button onClick={cmd.ungroup} title={t('tip.ungroup')}>
@@ -1978,6 +1987,34 @@ function ValueProperties({
 
 const SHAPES: ShapeKind[] = ['rect', 'ellipse', 'polygon', 'star', 'line', 'path']
 
+/** Modifica dei punti della forma selezionata sulla tela: se è attiva e come cambiarla */
+const PointsContext = createContext<{ active: boolean; toggle: () => void } | null>(null)
+
+/** Il pulsante grande che apre e chiude la modifica dei punti sulla tela */
+function EditPointsButton(): React.JSX.Element | null {
+  const { t } = useI18n()
+  const points = useContext(PointsContext)
+  if (!points) return null
+  return (
+    <>
+      <div className="selection-actions">
+        <button
+          type="button"
+          className={points.active ? 'primary' : undefined}
+          aria-pressed={points.active}
+          title={t('editor.editPointsHint')}
+          onClick={points.toggle}
+        >
+          {t(points.active ? 'editor.editPointsDone' : 'editor.editPoints')}
+        </button>
+      </div>
+      <p className="muted small">
+        {t(points.active ? 'editor.editPointsHelp' : 'editor.editPointsHint')}
+      </p>
+    </>
+  )
+}
+
 function ShapeProperties({
   l,
   set: setLayer,
@@ -2014,6 +2051,7 @@ function ShapeProperties({
             onChange={(shape) => set({ shape })}
           />
         </P>
+        {l.shape !== 'line' && !l.locked && <EditPointsButton />}
         <P id="stroke">
           <StrokeField
             label={t('prop.stroke')}
@@ -2023,6 +2061,17 @@ function ShapeProperties({
             onChange={(stroke) => set({ stroke })}
           />
         </P>
+        {l.shape === 'line' && (
+          <P id="bend">
+            <NumberField
+              label={t('prop.bend')}
+              hint={`${t('editor.bendHint')} ${col('bend')}`}
+              value={l.bend}
+              unit="mm"
+              onChange={(bend) => set({ bend })}
+            />
+          </P>
+        )}
         {(l.shape === 'rect' || l.shape === 'polygon' || l.shape === 'star') && (
           <P id="radius">
             <NumberField

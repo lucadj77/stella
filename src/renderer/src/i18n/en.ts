@@ -890,7 +890,7 @@ export const en = {
     'The shape takes the outline of a project image (PNG with transparency or SVG; in images without transparency, the dark parts). The height follows the image proportions.',
   'editor.cardOutlineHint':
     'The component takes the outline of a project image (PNG with transparency or SVG; in images without transparency, the dark parts), stretched to its size: set width and height with the image proportions.',
-  'shape.path': 'From an image',
+  'shape.path': 'Path or image outline',
   'cardShape.path': 'From an image',
   'prop.cornerRadius': 'Corner radius',
   'prop.w': 'W',
@@ -1055,6 +1055,16 @@ export const en = {
   'editor.arrangedHint':
     'The group box stays where you put it and the children are placed inside it: drag its handles to move or resize the area.',
   'prop.clip': 'Bottom layer is a mask',
+  'prop.bend': 'Curve',
+  'editor.bendHint':
+    'How far the middle of the line moves away from the straight line, in mm: drag the round handle in the middle of the line. 0 = straight.',
+  'editor.pointHint': 'Drag to move the point; click it and press Delete to remove it',
+  'editor.editPoints': 'Edit points',
+  'editor.editPointsDone': 'Done editing points',
+  'editor.editPointsHint':
+    'Move the single points of the shape on the canvas (or double-click the shape). The shape becomes a path when you move a point.',
+  'editor.editPointsHelp':
+    'Drag a square to move a point, a circle to change a curve. Double-click the outline to add a point; click a point and press Delete to remove it. Esc to finish.',
   'combine.title': 'Combine shapes',
   'combine.union': 'Union',
   'combine.intersect': 'Intersect',
@@ -2023,6 +2033,9 @@ export const en = {
   'documents.setupW': 'Width (mm)',
   'documents.setupH': 'Height (mm)',
   'documents.setupCount': 'How many in the deck',
+  'documents.setupBend': 'Curve (mm)',
+  'documents.setupBendHint':
+    'Drag sideways to curve the arrow; back on the straight line it becomes straight again',
   'documents.setupRotation': 'Rotation (°)',
   'documents.setupRotate90': '+90°',
   'documents.setupRotateHandle': 'Drag to rotate; with Shift in 15° steps',

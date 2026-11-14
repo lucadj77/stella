@@ -202,6 +202,11 @@ export interface ShapeLayer extends LayerBase {
   /** Tracciato SVG in coordinate 0-1 rispetto al riquadro, per shape = 'path' */
   path: string
   /**
+   * Curva di una linea: di quanti mm il suo centro si scosta dalla retta, verso il basso del
+   * riquadro (verso l'alto se negativo); 0 = dritta
+   */
+  bend: number
+  /**
    * Solo sulla carta disegnata: il risultato di un gruppo combinato, tracciato in mm sulla carta
    * (model/combine.ts). Si disegna al posto di `path`
    */

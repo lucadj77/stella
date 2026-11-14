@@ -6,7 +6,7 @@ import {
   isMessage,
   parseCardRef
 } from '../../../shared/model/document'
-import type { Setup, SetupItem } from '../../../shared/model/setup'
+import { arrowCurve, type Setup, type SetupItem } from '../../../shared/model/setup'
 
 // Misure degli elementi dello schema del tavolo (model/setup.ts), in mm: servono al disegno,
 // all'area quando non è scritta e all'editor per selezionare e trascinare.
@@ -79,9 +79,13 @@ export function itemBox(it: SetupItem, sets: LoadedSet[], templates: Template[])
     case 'image':
       return { x: it.x, y: it.y, w: it.w, h: it.w }
     case 'arrow': {
-      const x = Math.min(it.x, it.x2)
-      const y = Math.min(it.y, it.y2)
-      return { x, y, w: Math.abs(it.x2 - it.x), h: Math.abs(it.y2 - it.y) }
+      // con la curva conta anche il suo centro
+      const { mid } = arrowCurve(it)
+      const xs = [it.x, it.x2, ...(it.bend ? [mid.x] : [])]
+      const ys = [it.y, it.y2, ...(it.bend ? [mid.y] : [])]
+      const x = Math.min(...xs)
+      const y = Math.min(...ys)
+      return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y }
     }
   }
 }
@@ -151,8 +155,9 @@ export function textBoxes(setup: Setup, boxes: Box[], font: number): Box[] {
     }
     if (it.kind === 'arrow' && it.label) {
       const e = textExtent(it.label, 50, font)
-      const cx = (it.x + it.x2) / 2
-      const cy = (it.y + it.y2) / 2 - (font * SETUP_LINE) / 2
+      const { mid } = arrowCurve(it)
+      const cx = mid.x
+      const cy = mid.y - (font * SETUP_LINE) / 2
       return [{ x: cx - e.w / 2, y: cy, w: e.w, h: e.lines * font * SETUP_LINE }]
     }
     if (it.kind === 'text') {

@@ -30,7 +30,10 @@ const shape = (props: Record<string, unknown>): ShapeLayer =>
   normalizeLayer({ type: 'shape', name: 's', ...props }, 0) as ShapeLayer
 
 const group = (combine: GroupCombine, children: Layer[]): GroupLayer =>
-  normalizeLayer({ type: 'group', name: 'g', combine, children: children as never }, 0) as GroupLayer
+  normalizeLayer(
+    { type: 'group', name: 'g', combine, children: children as never },
+    0
+  ) as GroupLayer
 
 // due quadrati 10 × 10 sovrapposti per metà: il primo in elenco sta sopra, l'ultimo è la base
 const top = shape({ name: 'top', x: 5, y: 0, w: 10, h: 10 })

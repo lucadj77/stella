@@ -95,7 +95,8 @@ const SHAPE_DEFAULTS: Omit<ShapeLayer, keyof LayerBase | 'type'> = {
   radius: 0,
   sides: 6,
   innerRatio: 0.5,
-  path: ''
+  path: '',
+  bend: 0
 }
 
 const GRID_DEFAULTS: Omit<GridLayer, keyof LayerBase | 'type'> = {

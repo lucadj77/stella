@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   alignSetupItems,
+  arrowCurve,
+  bendTowards,
   canReorderSetupItem,
   distributeSetupItems,
   moveSetupItem,
@@ -79,6 +81,7 @@ describe('schema del tavolo', () => {
       'deck Mazzo%20base/1 10,10 count=8 rotate=90 "Pesca"',
       'text 5,5 width=50 "Un \\"testo\\""',
       'arrow 1,2 -> 3,4',
+      'arrow 1,2 -> 30,4 bend=-6.5 "gira"',
       'image icone/a%20b.png 7,8 width=12',
       '```'
     ].join('\n')
@@ -186,5 +189,14 @@ describe('didascalia dello schema', () => {
     const s = parseSetup(lines, [0, 22])
     expect(s).toMatchObject({ caption: 'Preparazione', captionTop: true, bad: [] })
     expect(parseSetup(['caption-position: middle'], [0]).bad).toHaveLength(1)
+  })
+
+  it('curva le frecce: il centro si scosta della curva, a destra di chi va verso la punta', () => {
+    const a = { x: 0, y: 0, x2: 20, y2: 0, bend: 5 }
+    // verso destra sullo schermo, la destra di chi cammina è in basso
+    expect(arrowCurve(a).mid).toEqual({ x: 10, y: 5 })
+    expect(arrowCurve(a).control).toEqual({ x: 10, y: 10 })
+    expect(bendTowards(a, { x: 12, y: -3.33 })).toBe(-3.3)
+    expect(parse('arrow 0,0 -> 20,0 bend=5').items[0]).toMatchObject({ bend: 5 })
   })
 })

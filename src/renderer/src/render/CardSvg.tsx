@@ -521,18 +521,22 @@ function ShapeBody({ layer: l, fill }: { layer: ShapeLayer; fill: string }): Rea
           {...paint}
         />
       )
-    case 'line':
-      return (
-        <line
-          x1={l.x}
-          y1={l.y + l.h / 2}
-          x2={l.x + l.w}
-          y2={l.y + l.h / 2}
-          {...strokeProps(
-            l.stroke ?? { color: isGradient(l.fill) ? '#000' : (l.fill ?? '#000'), width: 0.3 }
-          )}
-        />
+    case 'line': {
+      const ink = strokeProps(
+        l.stroke ?? { color: isGradient(l.fill) ? '#000' : (l.fill ?? '#000'), width: 0.3 }
       )
+      const cy = l.y + l.h / 2
+      // curva: una quadratica con il centro a `bend` mm dalla retta
+      if (l.bend)
+        return (
+          <path
+            d={`M${l.x},${cy} Q${l.x + l.w / 2},${cy + l.bend * 2} ${l.x + l.w},${cy}`}
+            fill="none"
+            {...ink}
+          />
+        )
+      return <line x1={l.x} y1={cy} x2={l.x + l.w} y2={cy} {...ink} />
+    }
     case 'path': {
       // il risultato di un gruppo combinato è già in mm
       if (l.combined) return <path d={l.combined} strokeLinejoin="round" {...paint} />

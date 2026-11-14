@@ -766,6 +766,48 @@ textarea.invalid {
   cursor: grab;
 }
 
+/* curva di una linea: maniglia piena al centro */
+.handle.line-bend {
+  fill: var(--accent);
+  stroke: #fff;
+  cursor: move;
+}
+
+/* modifica dei punti di una forma */
+.points-outline {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.control-line {
+  stroke: var(--accent);
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+.handle.point-anchor,
+.handle.point-control {
+  cursor: move;
+}
+
+.handle.point-control {
+  fill: var(--accent);
+  stroke: #fff;
+}
+
+.handle.point-anchor.active {
+  fill: var(--accent);
+}
+
+.kind-choice-buttons.combine-buttons {
+  grid-template-columns: repeat(2, 1fr);
+  margin-bottom: 8px;
+}
+
 .zoom-controls {
   /* striscia sotto la tela: non copre la carta né i pannelli, e nelle finestre strette va a capo */
   flex-shrink: 0;

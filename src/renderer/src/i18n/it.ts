@@ -901,7 +901,7 @@ export const it: Record<MessageKey, string> = {
     "La forma prende il contorno di un'immagine del progetto (PNG con trasparenza o SVG; nelle immagini senza trasparenza, le parti scure). L'altezza segue le proporzioni dell'immagine.",
   'editor.cardOutlineHint':
     "Il componente prende il contorno di un'immagine del progetto (PNG con trasparenza o SVG; nelle immagini senza trasparenza, le parti scure), adattato alla sua dimensione: imposta larghezza e altezza con le proporzioni dell'immagine.",
-  'shape.path': "Da un'immagine",
+  'shape.path': 'Tracciato o sagoma da immagine',
   'cardShape.path': "Da un'immagine",
   'prop.cornerRadius': 'Raggio angoli',
   'prop.w': 'L',
@@ -1067,6 +1067,16 @@ export const it: Record<MessageKey, string> = {
   'editor.arrangedHint':
     "Il riquadro del gruppo resta dove lo metti e i figli si dispongono al suo interno: trascina le maniglie per spostare o ridimensionare l'area.",
   'prop.clip': 'Livello in fondo come maschera',
+  'prop.bend': 'Curva',
+  'editor.bendHint':
+    'Di quanti mm il centro della linea si scosta dalla retta: trascina la maniglia tonda al centro della linea. 0 = dritta.',
+  'editor.pointHint': 'Trascina per spostare il punto; fai clic e premi Canc per toglierlo',
+  'editor.editPoints': 'Modifica punti',
+  'editor.editPointsDone': 'Fine modifica punti',
+  'editor.editPointsHint':
+    'Sposta i singoli punti della forma sulla tela (o fai doppio clic sulla forma). La forma diventa un tracciato quando sposti un punto.',
+  'editor.editPointsHelp':
+    'Trascina un quadrato per spostare un punto, un cerchio per cambiare una curva. Doppio clic sul contorno per aggiungere un punto; fai clic su un punto e premi Canc per toglierlo. Esc per finire.',
   'combine.title': 'Combina forme',
   'combine.union': 'Unisci',
   'combine.intersect': 'Interseca',
@@ -2054,6 +2064,9 @@ export const it: Record<MessageKey, string> = {
   'documents.setupW': 'Larghezza (mm)',
   'documents.setupH': 'Altezza (mm)',
   'documents.setupCount': 'Quanti nel mazzo',
+  'documents.setupBend': 'Curva (mm)',
+  'documents.setupBendHint':
+    'Trascina di lato per curvare la freccia; riportata sulla retta torna dritta',
   'documents.setupRotation': 'Rotazione (°)',
   'documents.setupRotate90': '+90°',
   'documents.setupRotateHandle': 'Trascina per ruotare; con Maiuscolo a scatti di 15°',

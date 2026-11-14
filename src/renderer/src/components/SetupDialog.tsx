@@ -12,6 +12,8 @@ import {
   SETUP_IMAGE_W,
   SETUP_TEXT_W,
   alignSetupItems,
+  arrowCurve,
+  bendTowards,
   canReorderSetupItem,
   distributeSetupItems,
   moveSetupItem,
@@ -521,7 +523,11 @@ export default function SetupDialog({
     if (d.handle === 'start') patch = { x: snap(o.x + dx), y: snap(o.y + dy) }
     else if (d.handle === 'end' && o.kind === 'arrow')
       patch = { x2: snap(o.x2 + dx), y2: snap(o.y2 + dy) }
-    else if (d.handle === 'size' && o.kind === 'zone')
+    else if (d.handle === 'bend' && o.kind === 'arrow') {
+      // vicino alla retta torna dritta
+      const bend = bendTowards(o, p)
+      patch = { bend: Math.abs(bend) < 1 ? undefined : bend }
+    } else if (d.handle === 'size' && o.kind === 'zone')
       patch = { w: Math.max(5, snap(o.w + dx)), h: Math.max(5, snap(o.h + dy)) }
     else if (d.handle === 'size' && (o.kind === 'image' || o.kind === 'text'))
       patch = { w: Math.max(o.kind === 'text' ? 10 : 3, snap(o.w + dx)) }
@@ -607,6 +613,22 @@ export default function SetupDialog({
       />
     )
   }
+  /** Maniglia tonda al centro di una freccia: trascinata di lato la curva */
+  const bendHandle = (m: { x: number; y: number }): React.JSX.Element => (
+    <circle
+      key="bend"
+      data-handle="bend"
+      cx={m.x}
+      cy={m.y}
+      r={5 / scale}
+      fill={BLUE}
+      stroke="#fff"
+      strokeWidth={1.5 / scale}
+      style={{ cursor: 'move' }}
+    >
+      <title>{t('documents.setupBendHint')}</title>
+    </circle>
+  )
   /** Maniglia tonda sopra il riquadro, per ruotare carte, mazzi e immagini */
   const rotateHandle = (b: Box): React.JSX.Element => {
     const r = 5 / scale
@@ -679,7 +701,11 @@ export default function SetupDialog({
       {sel && box && (
         <>
           {sel.kind === 'arrow'
-            ? [handle('start', sel.x, sel.y), handle('end', sel.x2, sel.y2)]
+            ? [
+                handle('start', sel.x, sel.y),
+                handle('end', sel.x2, sel.y2),
+                bendHandle(arrowCurve(sel).mid)
+              ]
             : sel.kind === 'zone' || sel.kind === 'image' || sel.kind === 'text'
               ? handle('size', box.x + box.w, box.y + box.h)
               : null}
@@ -857,10 +883,15 @@ export default function SetupDialog({
                   {num('y', sel.y, (y) => change({ y }))}
                 </div>
                 {sel.kind === 'arrow' && (
-                  <div className="dialog-row">
-                    {num('x2', sel.x2, (x2) => change({ x2 }))}
-                    {num('y2', sel.y2, (y2) => change({ y2 }))}
-                  </div>
+                  <>
+                    <div className="dialog-row">
+                      {num('x2', sel.x2, (x2) => change({ x2 }))}
+                      {num('y2', sel.y2, (y2) => change({ y2 }))}
+                    </div>
+                    {num(t('documents.setupBend'), sel.bend ?? 0, (n) =>
+                      change({ bend: n ? n : undefined })
+                    )}
+                  </>
                 )}
                 {sel.kind === 'zone' && (
                   <div className="dialog-row">

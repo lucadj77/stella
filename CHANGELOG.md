@@ -5,6 +5,20 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.12.0-beta.1
+
+### English
+
+- **Combine shapes**: select two or more shapes and choose **Union**, **Intersect**, **Subtract** or **Exclude** to draw them as one shape, with the fill, stroke and shadow of the bottom one. The shapes stay editable in a group, and the result follows them, also when their position, size or visibility come from the data. **Convert to path** freezes the result into a single shape.
+- **Edit points**: the points of a shape can be moved one by one on the canvas: **Edit points** in the properties, or a double-click on the shape. Curves have their own handles; a double-click on the outline adds a point, Delete removes the chosen one.
+- **Curved lines and arrows**: the round handle in the middle of a line curves it (**Curve** in the properties). In the table setup the same handle curves arrows (`bend=8` in the text).
+
+### Italiano
+
+- **Combina forme**: seleziona due o più forme e scegli **Unisci**, **Interseca**, **Sottrai** o **Escludi** per disegnarle come una forma sola, con riempimento, contorno e ombra di quella in fondo. Le forme restano modificabili in un gruppo, e il risultato le segue, anche quando posizione, misura o visibilità vengono dai dati. **Converti in tracciato** congela il risultato in una forma sola.
+- **Modifica punti**: i punti di una forma si spostano uno per uno sulla tela: **Modifica punti** nelle proprietà, o un doppio clic sulla forma. Le curve hanno le loro maniglie; un doppio clic sul contorno aggiunge un punto, Canc toglie quello scelto.
+- **Linee e frecce curve**: la maniglia tonda al centro di una linea la curva (**Curva** nelle proprietà). Nello schema del tavolo la stessa maniglia curva le frecce (`bend=8` nel testo).
+
 ## 1.11.1-beta.4
 
 ### English
