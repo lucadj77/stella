@@ -60,7 +60,9 @@ export const FUNCTION_SPECS: Record<string, FunctionSpec> = {
   LEN: { args: [a('text', 'text')] },
   CONCAT: { args: [a('text', 'text')], variadic: true, min: 1 },
   COUNTIN: { args: [a('text', 'text'), a('wanted', 'text')] },
-  INLIST: { args: [a('value', 'value'), a('list', 'text')], variadic: true, min: 2 }
+  INLIST: { args: [a('value', 'value'), a('list', 'text')], variadic: true, min: 2 },
+  RAND: { args: [] },
+  RANDBETWEEN: { args: [a('lowest', 'number'), a('highest', 'number')] }
 }
 
 /** Specifica dell'argomento i di una funzione, anche oltre gli argomenti scritti per le variadiche */

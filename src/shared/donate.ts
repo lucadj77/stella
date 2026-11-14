@@ -42,7 +42,8 @@ const GUIDE_SECTIONS = {
   set: { it: '5-inserire-e-modificare-i-componenti', en: '5-entering-and-editing-components' },
   formulaAssistant: { it: '91-lassistente-formule', en: '91-the-formula-assistant' },
   generate: { it: '10-generare-i-componenti', en: '10-generating-components' },
-  export: { it: '11-esportare', en: '11-exporting' }
+  export: { it: '11-esportare', en: '11-exporting' },
+  pick: { it: '116-scegliere-i-componenti', en: '116-choosing-the-components' }
 } as const
 export type GuideSection = keyof typeof GUIDE_SECTIONS
 export const guideSectionUrl = (section: GuideSection, lang: string, ref = 'main'): string =>

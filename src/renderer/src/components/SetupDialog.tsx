@@ -4,6 +4,8 @@ import NumInput from './NumInput'
 import { useUndo } from './useUndo'
 import WrapField, { type WrapSide } from './WrapField'
 import CaptionField from './CaptionField'
+import BlockCodeField from './BlockCodeField'
+import { parseDocument } from '../../../shared/model/document'
 import type { LoadedSet } from '../../../shared/project'
 import type { Template } from '../../../shared/model/template'
 import {
@@ -184,6 +186,30 @@ export default function SetupDialog({
   const anchor = useRef<{ mm: { x: number; y: number }; cx: number; cy: number } | null>(null)
   const zoomRef = useRef(zoom)
   const busy = !!pickingCard || !!pickingImage
+  /** Il blocco ```setup come lo scrive la finestra */
+  const source = setupSource({
+    size,
+    items,
+    width: blockWidth,
+    font: blockFont,
+    caption,
+    captionTop,
+    wrap
+  })
+  /** Il codice scritto a mano: rimette lo schema come dice; false se non si capisce */
+  const applyCode = (code: string): boolean => {
+    const b = parseDocument(code.trim())[0]
+    if (b?.kind !== 'setup' || b.bad.length) return false
+    setItems(b.items)
+    setSize(b.size)
+    setBlockWidth(b.width ?? 1)
+    setBlockFont(b.font ?? 1)
+    setCaption(b.caption ?? '')
+    setCaptionTop(b.captionTop ?? false)
+    setWrapSide(b.wrap ?? null)
+    setSelection([])
+    return true
+  }
   useUndo(
     [items, size, blockWidth, blockFont, caption, captionTop],
     ([i, s, w, f, c, ct]) => {
@@ -959,25 +985,10 @@ export default function SetupDialog({
             )}
           </div>
         </div>
+        <BlockCodeField className="setup-code" value={source} onApply={applyCode} />
         <div className="dialog-buttons">
           <button onClick={onClose}>{t('dialog.cancel')}</button>
-          <button
-            className="primary"
-            disabled={!items.length}
-            onClick={() =>
-              onSave(
-                setupSource({
-                  size,
-                  items,
-                  width: blockWidth,
-                  font: blockFont,
-                  caption,
-                  captionTop,
-                  wrap
-                })
-              )
-            }
-          >
+          <button className="primary" disabled={!items.length} onClick={() => onSave(source)}>
             {t(initial ? 'documents.saveAnatomy' : 'documents.insert')}
           </button>
         </div>

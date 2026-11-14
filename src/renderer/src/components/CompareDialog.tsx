@@ -1,16 +1,12 @@
 import { useEffect, useState } from 'react'
 import type { BackupItem } from '../../../shared/api'
 import { messageFromError, type Message } from '../../../shared/messages'
-import { cardFingerprints } from '../../../shared/model/compare'
 import type { LoadedProject, PrintedState } from '../../../shared/project'
+import { readCompareBase, readCompareSources, type CompareBase } from './compareBase'
+
+export type { CompareBase }
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
-
-/** Versione con cui confrontare: le impronte delle sue carte, per set */
-export interface CompareBase {
-  label: string
-  before: Record<string, string[]>
-}
 
 /**
  * Sceglie la versione con cui confrontare il progetto: l'ultima esportazione o un backup. Le
@@ -33,13 +29,7 @@ export default function CompareDialog({
   const [error, setError] = useState<Message | null>(null)
 
   useEffect(() => {
-    void Promise.all([
-      window.api.readPrinted().catch(() => null),
-      window.api
-        .backups()
-        .then((s) => s.items)
-        .catch(() => [] as BackupItem[])
-    ]).then(([p, b]) => {
+    void readCompareSources().then(({ printed: p, backups: b }) => {
       setPrinted(p)
       setBackups(b)
       setChoice(p ? 'printed' : (b[0]?.file ?? ''))
@@ -53,20 +43,14 @@ export default function CompareDialog({
     setBusy(true)
     setError(null)
     try {
-      if (choice === 'printed' && printed) {
-        onCompare({
-          label: t('compare.sincePrinted', { date: when(printed.date) }),
-          before: printed.sets
-        })
-        return
-      }
-      const item = backups?.find((b) => b.file === choice)
-      if (!item) return
-      const version = await window.api.backupVersion(item.file)
-      onCompare({
-        label: t('compare.sinceBackup', { date: when(item.date) }),
-        before: cardFingerprints(version, project.assets)
-      })
+      const base = await readCompareBase(
+        choice,
+        { printed, backups: backups ?? [] },
+        project,
+        t,
+        when
+      )
+      if (base) onCompare(base)
     } catch (e) {
       setError(messageFromError(e))
     } finally {

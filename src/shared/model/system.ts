@@ -10,6 +10,7 @@ export const SYSTEM_VARIABLES = [
   'project.author',
   'project.version',
   'set.name',
+  'set.seed',
   'template.name',
   'card.number',
   'set.rows',
@@ -38,6 +39,8 @@ export interface SystemInfo {
   copy?: number
   /** Data del disegno, AAAA-MM-GG; di base oggi */
   date?: string
+  /** Seme del set per i numeri a caso (RAND, {cell.random}, DEAL); assente: quello di base */
+  seed?: number
   /** Il foglio del set: i vertici del d4 leggono i valori delle altre righe del dado */
   sheet?: { headers: string[]; rows: string[][] }
 }
@@ -73,7 +76,7 @@ export function projectSystem(project: string | ProjectMeta): SystemInfo {
 /** Le informazioni di un set per le sue carte; number e copy si aggiungono carta per carta */
 export function systemOfSet(
   project: string | ProjectMeta,
-  set: Pick<LoadedSet, 'name' | 'data'>
+  set: Pick<LoadedSet, 'name' | 'data' | 'seed'>
 ): SystemInfo {
   const amount = set.data?.headers.indexOf('amount') ?? -1
   const rows = set.data?.rows ?? []
@@ -84,6 +87,7 @@ export function systemOfSet(
   return {
     ...projectSystem(project),
     set: set.name,
+    ...(set.seed !== undefined ? { seed: set.seed } : {}),
     rows: rows.length,
     cards,
     ...(set.data ? { sheet: set.data } : {})
@@ -102,6 +106,7 @@ export function systemFields(
     'project.author': s(info?.author),
     'project.version': s(info?.version),
     'set.name': s(info?.set),
+    'set.seed': s(info?.seed),
     'template.name': template.name,
     'card.number': s(info?.number),
     'set.rows': s(info?.rows),

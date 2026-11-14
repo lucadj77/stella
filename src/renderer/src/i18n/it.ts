@@ -782,7 +782,7 @@ export const it: Record<MessageKey, string> = {
   'layerType.image': 'Immagine',
   'layerType.shape': 'Forma',
   'source.formulaHelp':
-    'Inizia con = per un\'espressione come in Excel: =IF({forza}>3; "Forte"; "Debole"). Funzioni: IF, AND, OR, NOT, MIN, MAX, ABS, ROUND, FLOOR, CEILING, UPPER, LOWER, LEN, CONCAT, ISBLANK, COUNTIN (quante volte un testo ne contiene un altro: COUNTIN({costo}; "oro")), INLIST, MOD, PICK, CELLNUMBER. & unisce i testi. Il tasto fx costruisce la formula passo per passo.',
+    'Inizia con = per un\'espressione come in Excel: =IF({forza}>3; "Forte"; "Debole"). Funzioni: IF, AND, OR, NOT, MIN, MAX, ABS, ROUND, FLOOR, CEILING, UPPER, LOWER, LEN, CONCAT, ISBLANK, COUNTIN (quante volte un testo ne contiene un altro: COUNTIN({costo}; "oro")), INLIST, MOD, PICK, CELLNUMBER, RAND, RANDBETWEEN. & unisce i testi. Il tasto fx costruisce la formula passo per passo.',
   'source.formulaError': 'Errore nella formula: {error}',
   'source.formulaPreviewDefaults': 'Con i valori del template: {value}',
   'source.computedHint': 'Calcolato dalla formula sopra',
@@ -1998,7 +1998,17 @@ export const it: Record<MessageKey, string> = {
   'documents.insertAnatomy': 'Anatomia del componente',
   'documents.editAnatomy': "Modifica l'anatomia del componente",
   'documents.anatomyHint':
-    'Spunta le parti del componente da spiegare e scrivi le etichette. Ogni etichetta va dal lato più vicino alla sua parte.',
+    "Spunta le parti del componente da spiegare e scrivi le etichette. Ogni etichetta va dal lato più vicino alla sua parte. Trascina un punto sul disegno per spostare dove arriva la sua linea (un doppio clic lo rimette a posto); trascina un'etichetta in su o in giù per sceglierne l'altezza (le altre si spostano per farle posto; riportala all'altezza del punto per tornare automatica); fai doppio clic su un'etichetta per cambiarne il testo. Puoi anche modificare il codice qui sotto.",
+  'documents.anatomy.dragPoint':
+    'Trascina per spostare il punto; un doppio clic lo rimette a posto',
+  'documents.anatomy.editLabel':
+    "Trascina in su o in giù per spostare l'etichetta; doppio clic per cambiare il testo",
+  'documents.anatomy.enlarge': 'Ingrandisci',
+  'documents.anatomy.enlargeHint':
+    "Mostra l'anatomia in grande: trascina i punti e le etichette, fai doppio clic su un'etichetta per cambiarla",
+  'documents.anatomy.enlarged': 'Anatomia',
+  'documents.anatomy.bigHint':
+    "Trascina un punto per spostare dove arriva la sua linea (un doppio clic lo rimette a posto). Trascina un'etichetta in su o in giù per sceglierne l'altezza. Fai doppio clic su un'etichetta per cambiarne il testo: Invio conferma, Esc annulla.",
   'documents.anatomyLabel': 'Etichetta',
   'documents.saveAnatomy': 'Salva',
   'documents.setup': 'Schema tavolo',
@@ -2029,6 +2039,9 @@ export const it: Record<MessageKey, string> = {
   'documents.setupDelete': 'Elimina',
   'documents.setupTable': 'Tavolo',
   'documents.setupFixedSize': 'Misura del tavolo fissa',
+  'documents.codeHint':
+    'Il codice di questo blocco: puoi modificarlo qui. Vale quando esci dal campo o premi ⌘↵ / Ctrl+Invio; Esc annulla la modifica.',
+  'documents.codeBad': 'Questo codice non si capisce: correggilo o premi Esc per tornare indietro.',
   'documents.setupHint':
     'Clicca un elemento per sceglierlo e trascinalo per spostarlo. Maiuscolo o ⌘/Ctrl + clic aggiunge elementi alla scelta, come trascinare un riquadro su uno spazio vuoto; ⌘A / Ctrl+A li sceglie tutti, ⌘C, ⌘X e ⌘V / Ctrl+C, Ctrl+X e Ctrl+V copiano, tagliano e incollano, ⌘D / Ctrl+D duplica. Le frecce della tastiera spostano la scelta di 1 mm (5 con Maiusc) e Canc la elimina. Senza misura fissa il disegno si adatta agli elementi (contorno tratteggiato).',
   'documents.setupZoomFitHint': 'Adatta tutto il disegno alla finestra (⌘0 / Ctrl+0)',
@@ -2494,6 +2507,8 @@ export const it: Record<MessageKey, string> = {
   'fx.var.project.version': 'Versione del progetto',
   'system.project.name': 'Nome del progetto (il gioco)',
   'system.set.name': 'Nome del set',
+  'system.set.seed':
+    'Seed del set per i numeri a caso (RAND, RANDBETWEEN, {cell.random}, DEAL); vuoto: quello di base',
   'system.template.name': 'Nome del template del componente',
   'system.card.number': 'Numero del componente nel set: la sua riga, da 1',
   'system.set.rows': 'Quante righe ha il set',
@@ -2558,6 +2573,12 @@ export const it: Record<MessageKey, string> = {
     'Distribuisce a caso dei valori nelle caselle visibili, ognuno quante volte dici: un numero, un intervallo come "3-5", "2-" (almeno), "-3" (al massimo) o vuoto (quanti servono)',
   'help.ex.DEAL':
     '=DEAL("spada"; 4; "scudo"; "3-5"; "mano"; "") → 16 caselle: 4 spade, da 3 a 5 scudi, il resto mani',
+  'help.fn.RAND':
+    'Un numero a caso da 0 a 1. Resta uguale a ogni disegno della carta; cambia con il seed del set ({set.seed}) e con il tasto 🎲 Rigenera',
+  'help.ex.RAND': '=IF(RAND()<1/4; "rara"; "comune") → comune su circa 3 carte su 4',
+  'help.fn.RANDBETWEEN':
+    'Un numero intero a caso dal primo al secondo, compresi; come RAND segue il seed del set',
+  'help.ex.RANDBETWEEN': '=RANDBETWEEN(1; 6) → 4',
   'help.ex.CELLNUMBER': '=CELLNUMBER("up"; "rows"; "snake"; "all"; 1) → 1 2 3 4 / 8 7 6 5',
   'help.keys.save': 'Salva template, dati e impostazioni',
   'help.keys.project': 'Apri e chiudi il progetto (app desktop)',
@@ -2727,6 +2748,31 @@ export const it: Record<MessageKey, string> = {
   'set.compare': 'Confronta…',
   'tip.compare':
     "Segna i componenti nuovi o cambiati dall'ultima esportazione o da un backup, per ristampare solo quelli",
+  'pick.button': 'Scegli i componenti…',
+  'pick.buttonHint':
+    "Esporta solo alcuni componenti dei set scelti: uno per uno, o solo quelli nuovi o cambiati dall'ultima esportazione o da un backup",
+  'pick.summary': '{n} componenti su {of}',
+  'pick.reset': 'Tutti',
+  'pick.title': 'Componenti da esportare',
+  'pick.all': 'Tutti',
+  'pick.none': 'Nessuno',
+  'pick.changedSince': 'Nuovi o cambiati rispetto a',
+  'pick.currentCompare': 'il confronto in corso',
+  'pick.selectChanged': 'Scegli questi',
+  'pick.selectChangedHint':
+    'Sceglie solo i componenti nuovi o diversi da quella versione. Poi puoi aggiungerne o toglierne altri a mano',
+  'pick.beforeAfter': 'Mostra prima e dopo',
+  'pick.noVersions':
+    "Per scegliere i componenti cambiati serve un'esportazione precedente o un backup (Progetto › Backup…).",
+  'pick.changedCount': 'Nuovi o cambiati: {n}.',
+  'pick.noBefore':
+    "L'ultima esportazione non conserva le immagini dei componenti: confronta con un backup per vedere com'erano.",
+  'pick.setCount': '{n} su {of}',
+  'pick.before': 'Prima',
+  'pick.after': 'Dopo',
+  'pick.new': 'Nuovo',
+  'pick.count': '{n} componenti scelti su {of}',
+  'pick.apply': 'Usa questi',
   'compare.title': "Confronta con un'altra versione",
   'compare.hint':
     "I componenti nuovi o diversi dalla versione scelta hanno un punto blu nei set, e l'esportazione può includere solo quelli. Il confronto guarda quello che i componenti mostrano (dati, template, variabili e stili), non il contenuto dei file di immagini e font.",
@@ -2824,6 +2870,13 @@ export const it: Record<MessageKey, string> = {
   'history.variable': 'Variabile {name}',
   'history.order': 'Ordine nella barra laterale',
   'history.project': 'Impostazioni del progetto',
+  'set.regenerate': 'Rigenera',
+  'tip.regenerate':
+    'Estrae di nuovo i numeri a caso con un altro seed: RAND, RANDBETWEEN, DEAL e {cell.random} nelle formule, e le carte create a caso da Genera. ⌘Z / Ctrl+Z torna indietro',
+  'set.seed': 'Seed',
+  'set.seedDefault': 'di base',
+  'tip.seed':
+    "Lo stesso seed dà sempre le stesse carte. Scrivi un numero per ritrovare un'estrazione che ti piaceva",
   'set.stats': 'Statistiche',
   'tip.stats':
     'Apre le statistiche del set accanto alle carte: valori, incrocio, dispersione, probabilità di pesca, testi, dadi e panoramica',
@@ -3055,10 +3108,10 @@ export const it: Record<MessageKey, string> = {
   'generate.count': 'Quanti',
   'generate.unique': 'Tutte diverse',
   'generate.uniqueHint': 'Niente componenti con gli stessi valori',
-  'generate.seed': 'Seme',
-  'generate.seedHint': 'Lo stesso seme dà gli stessi componenti',
+  'generate.seed': 'Seed',
+  'generate.seedHint': 'Lo stesso seed dà gli stessi componenti',
   'generate.shuffle': 'Rimescola',
-  'generate.shuffleHint': 'Estrai altri componenti con un nuovo seme',
+  'generate.shuffleHint': 'Estrai altri componenti con un nuovo seed',
   'generate.ofRequested': '(su {n} chieste: il filtro o Tutte diverse ne scartano troppe)',
   'generate.sequence': 'In sequenza',
   'generate.sequenceHint':
@@ -3432,6 +3485,8 @@ export const it: Record<MessageKey, string> = {
   'fx.arg.divisor': 'Diviso per',
   'fx.arg.text': 'Testo',
   'fx.arg.wanted': 'Testo da contare',
+  'fx.arg.lowest': 'Da',
+  'fx.arg.highest': 'A',
   'fx.arg.list': 'Elenco',
   'fx.arg.left': 'Sinistra',
   'fx.arg.right': 'Destra',
@@ -3468,6 +3523,8 @@ export const it: Record<MessageKey, string> = {
   'fx.fn.CONCAT': 'Unisci testi',
   'fx.fn.COUNTIN': 'Conta le ripetizioni',
   'fx.fn.INLIST': "È nell'elenco",
+  'fx.fn.RAND': 'Numero a caso da 0 a 1',
+  'fx.fn.RANDBETWEEN': 'Numero intero a caso',
   'fx.fn.DEAL': 'Distribuisci a caso',
   'fx.fn.CELLNUMBER': 'Numero continuo',
   'fx.entry.if': 'Risultato condizionato',
@@ -3539,6 +3596,7 @@ export const it: Record<MessageKey, string> = {
   'fx.var.cell.random': 'Numero casuale della casella',
   'fx.var.project.name': 'Nome del progetto',
   'fx.var.set.name': 'Nome del set',
+  'fx.var.set.seed': 'Seed del set',
   'fx.var.template.name': 'Nome del template',
   'fx.var.card.number': 'Numero del componente',
   'fx.var.set.rows': 'Righe del set',

@@ -7,6 +7,7 @@ import {
   addGenerated,
   countChoices,
   emptyColumn,
+  isRandomSpec,
   fieldsOf,
   generateCards,
   countOrders,
@@ -17,7 +18,8 @@ import {
   type GeneratorColumn,
   type RandomOptions,
   type SequenceOptions,
-  type SequenceShuffle
+  type SequenceShuffle,
+  type SetGenerator
 } from '../../../shared/model/generate'
 import { walkLayers } from '../../../shared/model/normalize'
 import { templateColumns } from '../../../shared/model/sheet'
@@ -47,12 +49,22 @@ interface Draft extends GeneratorColumn {
 export default function GenerateDialog({
   sheet,
   template,
+  seed: setSeed0,
+  generator,
   onApply,
   onClose
 }: {
   sheet: Sheet
   template: Template | null
-  onApply(sheet: Sheet): void
+  /** Seme del set: si parte da quello */
+  seed?: number
+  /** Ultima generazione a caso del set: la finestra riparte da quelle impostazioni */
+  generator?: SetGenerator
+  /**
+   * Le carte generate; `random` cambia il seme del set e le impostazioni salvate per Rigenera
+   * (generator null: non ci sono più carte a caso da rigenerare)
+   */
+  onApply(sheet: Sheet, random?: { seed: number | undefined; generator: SetGenerator | null }): void
   onClose(): void
 }): React.JSX.Element {
   const { t } = useI18n()
@@ -96,22 +108,29 @@ export default function GenerateDialog({
     icons: !imageColumns.has(column),
     text: ''
   })
-  const [list, setList] = useState<Draft[]>(() => [draft(columns[0] ?? '')])
-  const [filter, setFilter] = useState('')
-  const [copies, setCopies] = useState(1)
+  const last = generator?.spec
+  const [list, setList] = useState<Draft[]>(() =>
+    last?.columns.length
+      ? last.columns.map((c) => ({ ...c, text: (c as Partial<Draft>).text ?? c.values.join('\n') }))
+      : [draft(columns[0] ?? '')]
+  )
+  const [filter, setFilter] = useState(last?.filter ?? '')
+  const [copies, setCopies] = useState(last?.copies ?? 1)
   const [assistant, setAssistant] = useState(false)
   const [mode, setMode] = useState<GenerateMode>(sheet.rows.length ? 'append' : 'replace')
-  const [kind, setKind] = useState<Kind>('all')
+  const [kind, setKind] = useState<Kind>(
+    last?.random ? 'random' : last?.sequence ? 'sequence' : 'all'
+  )
   const isRandom = kind === 'random'
   const isSequence = kind === 'sequence'
-  const [count, setCount] = useState(Math.max(1, sheet.rows.length || 20))
-  const [unique, setUnique] = useState(false)
-  const [seed, setSeed] = useState(newSeed)
+  const [count, setCount] = useState(last?.random?.count ?? Math.max(1, sheet.rows.length || 20))
+  const [unique, setUnique] = useState(last?.random?.unique ?? false)
+  const [seed, setSeed] = useState(() => setSeed0 ?? newSeed())
   const random: RandomOptions | undefined = isRandom ? { count, seed, unique } : undefined
   // in sequenza: tutti i componenti del set o un numero di giri
   const [wholeSet, setWholeSet] = useState(sheet.rows.length > 0)
   const [rounds, setRounds] = useState(2)
-  const [order, setOrder] = useState<SequenceShuffle>('none')
+  const [order, setOrder] = useState<SequenceShuffle>(last?.sequence?.shuffle ?? 'none')
   // tutte le combinazioni: un giro o più, o tanti giri quanti ne servono per tutto il set
   const [allSet, setAllSet] = useState(false)
   const [allRounds, setAllRounds] = useState(1)
@@ -736,7 +755,26 @@ export default function GenerateDialog({
                 ))
               )
                 return
-              onApply(addGenerated(sheet, result, mode))
+              const out = addGenerated(sheet, result, mode)
+              const spec = {
+                columns: list,
+                filter: isSequence ? '' : filter,
+                copies,
+                random,
+                sequence,
+                repeatTo,
+                rounds: isAll ? allRounds : undefined,
+                decimalComma
+              }
+              if (isRandomSpec(spec))
+                // il set ricorda le impostazioni: Rigenera riscrive queste righe con un altro seme
+                onApply(out, {
+                  seed,
+                  generator: { spec, from: mode === 'append' ? sheet.rows.length : 0 }
+                })
+              else if (generator && mode !== 'append')
+                onApply(out, { seed: setSeed0, generator: null })
+              else onApply(out)
             }}
           >
             {mode === 'update'

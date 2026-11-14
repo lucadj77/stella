@@ -774,7 +774,7 @@ export const en = {
   'layerType.image': 'Image',
   'layerType.shape': 'Shape',
   'source.formulaHelp':
-    'Start with = for an Excel-style expression: =IF({strength}>3; "Strong"; "Weak"). Functions: IF, AND, OR, NOT, MIN, MAX, ABS, ROUND, FLOOR, CEILING, UPPER, LOWER, LEN, CONCAT, ISBLANK, COUNTIN (how many times a text contains another: COUNTIN({cost}; "gold")), INLIST, MOD, PICK, CELLNUMBER. & joins text. The fx button builds the formula step by step.',
+    'Start with = for an Excel-style expression: =IF({strength}>3; "Strong"; "Weak"). Functions: IF, AND, OR, NOT, MIN, MAX, ABS, ROUND, FLOOR, CEILING, UPPER, LOWER, LEN, CONCAT, ISBLANK, COUNTIN (how many times a text contains another: COUNTIN({cost}; "gold")), INLIST, MOD, PICK, CELLNUMBER, RAND, RANDBETWEEN. & joins text. The fx button builds the formula step by step.',
   'source.formulaError': 'Formula error: {error}',
   'source.formulaPreviewDefaults': 'With the template values: {value}',
   'source.computedHint': 'Calculated by the formula above',
@@ -1968,7 +1968,16 @@ export const en = {
   'documents.insertAnatomy': 'Component anatomy',
   'documents.editAnatomy': 'Edit component anatomy',
   'documents.anatomyHint':
-    'Tick the parts of the component to explain and write their labels. Labels go on the side nearest to each part.',
+    'Tick the parts of the component to explain and write their labels. Labels go on the side nearest to each part. Drag a point on the drawing to move where its line ends (double-click puts it back); drag a label up or down to choose its height (the other labels move out of its way; bring it back level with its point to make it automatic again); double-click a label to change its text. You can also edit the code below.',
+  'documents.anatomy.dragPoint': 'Drag to move the point; double-click puts it back',
+  'documents.anatomy.editLabel':
+    'Drag up or down to move the label; double-click to change the text',
+  'documents.anatomy.enlarge': 'Enlarge',
+  'documents.anatomy.enlargeHint':
+    'Show the anatomy large: drag the points and the labels, double-click a label to change it',
+  'documents.anatomy.enlarged': 'Anatomy',
+  'documents.anatomy.bigHint':
+    'Drag a point to move where its line ends (double-click puts it back). Drag a label up or down to choose its height. Double-click a label to change its text: Enter confirms, Esc cancels.',
   'documents.anatomyLabel': 'Label',
   'documents.saveAnatomy': 'Save',
   'documents.setup': 'Table setup',
@@ -1999,6 +2008,9 @@ export const en = {
   'documents.setupDelete': 'Delete',
   'documents.setupTable': 'Table',
   'documents.setupFixedSize': 'Fixed table size',
+  'documents.codeHint':
+    'The code of this block: you can edit it here. It applies when you leave the field or press ⌘↵ / Ctrl+Enter; Esc undoes the edit.',
+  'documents.codeBad': 'This code is not understood: fix it or press Esc to go back.',
   'documents.setupHint':
     'Click an element to select it and drag it to move it. Shift or ⌘/Ctrl + click adds elements to the selection, and so does dragging a box on an empty spot; ⌘A / Ctrl+A selects everything, ⌘C, ⌘X and ⌘V / Ctrl+C, Ctrl+X and Ctrl+V copy, cut and paste, ⌘D / Ctrl+D duplicates. The arrow keys nudge the selection by 1 mm (5 with Shift) and Delete removes it. Without a fixed size the drawing fits its elements (dashed outline).',
   'documents.setupZoomFitHint': 'Fit the whole drawing in the window (⌘0 / Ctrl+0)',
@@ -2459,6 +2471,8 @@ export const en = {
   'fx.var.project.version': 'Project version',
   'system.project.name': 'Name of the project (the game)',
   'system.set.name': 'Name of the set',
+  'system.set.seed':
+    'Seed of the set for random numbers (RAND, RANDBETWEEN, {cell.random}, DEAL); empty: the default one',
   'system.template.name': "Name of the component's template",
   'system.card.number': 'Number of the component in the set: its row, from 1',
   'system.set.rows': 'How many rows the set has',
@@ -2523,6 +2537,12 @@ export const en = {
     'Deals values at random in the visible cells, each as many times as you say: a number, a range like "3-5", "2-" (at least), "-3" (at most) or empty (as needed)',
   'help.ex.DEAL':
     '=DEAL("sword"; 4; "shield"; "3-5"; "hand"; "") → 16 cells: 4 swords, 3 to 5 shields, the rest hands',
+  'help.fn.RAND':
+    'A random number from 0 to 1. It stays the same every time the card is drawn; it changes with the seed of the set ({set.seed}) and the 🎲 Regenerate button',
+  'help.ex.RAND': '=IF(RAND()<1/4; "rare"; "common") → common on about 3 cards out of 4',
+  'help.fn.RANDBETWEEN':
+    'A random whole number from the first to the second, both included; like RAND it follows the seed of the set',
+  'help.ex.RANDBETWEEN': '=RANDBETWEEN(1; 6) → 4',
   'help.ex.CELLNUMBER': '=CELLNUMBER("up"; "rows"; "snake"; "all"; 1) → 1 2 3 4 / 8 7 6 5',
   'help.keys.save': 'Save templates, data and settings',
   'help.keys.project': 'Open and close the project (desktop app)',
@@ -2690,6 +2710,31 @@ export const en = {
   'set.compare': 'Compare…',
   'tip.compare':
     'Mark the components that are new or changed since the last export or a backup, to reprint only those',
+  'pick.button': 'Choose components…',
+  'pick.buttonHint':
+    'Export only some components of the chosen sets: one by one, or only those new or changed since the last export or a backup',
+  'pick.summary': '{n} of {of} components',
+  'pick.reset': 'All',
+  'pick.title': 'Components to export',
+  'pick.all': 'All',
+  'pick.none': 'None',
+  'pick.changedSince': 'New or changed since',
+  'pick.currentCompare': 'the current comparison',
+  'pick.selectChanged': 'Choose these',
+  'pick.selectChangedHint':
+    'Choose only the components that are new or look different from that version. You can then add or remove others by hand',
+  'pick.beforeAfter': 'Show before and after',
+  'pick.noVersions':
+    'To choose the changed components you need a previous export or a backup (Project › Backup…).',
+  'pick.changedCount': 'New or changed: {n}.',
+  'pick.noBefore':
+    'The last export keeps no pictures of the components: compare with a backup to see how they were.',
+  'pick.setCount': '{n} of {of}',
+  'pick.before': 'Before',
+  'pick.after': 'After',
+  'pick.new': 'New',
+  'pick.count': '{n} of {of} components chosen',
+  'pick.apply': 'Use these',
   'compare.title': 'Compare with another version',
   'compare.hint':
     'Components that are new or look different from the chosen version get a blue dot in the sets, and the export can include only them. The comparison looks at what the components show (data, template, variables and styles), not at the content of image and font files.',
@@ -2786,6 +2831,13 @@ export const en = {
   'history.variable': 'Variable {name}',
   'history.order': 'Order in the sidebar',
   'history.project': 'Project settings',
+  'set.regenerate': 'Regenerate',
+  'tip.regenerate':
+    'Draw the random numbers again with a new seed: RAND, RANDBETWEEN, DEAL and {cell.random} in the formulas, and the cards made by Generate at random. ⌘Z / Ctrl+Z goes back',
+  'set.seed': 'Seed',
+  'set.seedDefault': 'default',
+  'tip.seed':
+    'The same seed always gives the same cards. Write a number to get back a draw you liked',
   'set.stats': 'Statistics',
   'tip.stats':
     'Open the statistics of the set beside the cards: values, cross table, scatter, draw odds, texts, dice and overview',
@@ -3387,6 +3439,8 @@ export const en = {
   'fx.arg.divisor': 'Divided by',
   'fx.arg.text': 'Text',
   'fx.arg.wanted': 'Text to count',
+  'fx.arg.lowest': 'From',
+  'fx.arg.highest': 'To',
   'fx.arg.list': 'List',
   'fx.arg.left': 'Left',
   'fx.arg.right': 'Right',
@@ -3423,6 +3477,8 @@ export const en = {
   'fx.fn.CONCAT': 'Join texts',
   'fx.fn.COUNTIN': 'Count occurrences',
   'fx.fn.INLIST': 'Is in the list',
+  'fx.fn.RAND': 'Random number from 0 to 1',
+  'fx.fn.RANDBETWEEN': 'Random whole number',
   'fx.fn.DEAL': 'Deal at random',
   'fx.fn.CELLNUMBER': 'Running number',
   'fx.entry.if': 'Conditional result',
@@ -3494,6 +3550,7 @@ export const en = {
   'fx.var.cell.random': 'Random number of the cell',
   'fx.var.project.name': 'Project name',
   'fx.var.set.name': 'Set name',
+  'fx.var.set.seed': 'Set seed',
   'fx.var.template.name': 'Template name',
   'fx.var.card.number': 'Component number',
   'fx.var.set.rows': 'Rows in the set',

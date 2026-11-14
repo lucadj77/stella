@@ -711,7 +711,7 @@ Single-color icons (black SVGs on a transparent background) are recolored with t
 
 **Import icons…**, in the image chooser and in the window of an icon variable, opens three collections included in the app, which work offline, and an online one:
 
-- **game-icons.net**: about 4200 icons, with categories and search. License CC BY 3.0: authors must be credited (see credits, [chapter 11.6](#116-credits)). **Update catalog** downloads the icons published after this version of the app (needs the network, takes about a minute).
+- **game-icons.net**: about 4200 icons, with categories and search. License CC BY 3.0: authors must be credited (see credits, [chapter 11.7](#117-credits)). **Update catalog** downloads the icons published after this version of the app (needs the network, takes about a minute).
 - **Kenney: icons and patterns**: board game icons and tileable patterns, CC0.
 - **Kenney: cards, dice and pawns**: color PNG images, CC0.
 - **Iconify (online)**: over 200 more collections (Material Design, Tabler, Phosphor, emoji...), searched on the internet. Type in the search box to search all of them, or choose a collection on the left to browse it.
@@ -754,7 +754,7 @@ A layer with **Value on components: Formula** calculates its value from the othe
 
 - **Text composition**: `{name}.png`, `Strength {strength}`.
 - **Calculation**: if the formula contains `+ - * /` and the result is a number, it is calculated: `{strength}+2`.
-- **Expression**: with a leading `=` it works like Excel. Text in quotes, comparisons `= <> < > <= >=`, `&` to join text, arguments separated by `;` (or by `,` followed by a space). Functions: `IF`, `AND`, `OR`, `NOT`, `MIN`, `MAX`, `ABS`, `ROUND`, `FLOOR`, `CEILING`, `UPPER`, `LOWER`, `LEN`, `CONCAT`, `ISBLANK`, `COUNTIN`, `INLIST`, `MOD`, `PICK`, `CELLNUMBER`, `DEAL`.
+- **Expression**: with a leading `=` it works like Excel. Text in quotes, comparisons `= <> < > <= >=`, `&` to join text, arguments separated by `;` (or by `,` followed by a space). Functions: `IF`, `AND`, `OR`, `NOT`, `MIN`, `MAX`, `ABS`, `ROUND`, `FLOOR`, `CEILING`, `UPPER`, `LOWER`, `LEN`, `CONCAT`, `ISBLANK`, `COUNTIN`, `INLIST`, `MOD`, `PICK`, `CELLNUMBER`, `DEAL`, `RAND`, `RANDBETWEEN`.
 
 The functions, with an example on the cards of this guide (Dragon, strength 4, cost `{gold}{gold}{wood}`):
 
@@ -775,8 +775,14 @@ The functions, with an example on the cards of this guide (Dragon, strength 4, c
 | `PICK(n; value1; value2; …)`                       | the n-th value, starting again after the last                                                                               | `=PICK({strength}; "sword"; "shield"; "hand")` → sword             |
 | `CELLNUMBER(direction; order; path; cells; start)` | the running number of the cell: `"up"`/`"down"`, `"rows"`/`"columns"`, `"straight"`/`"snake"`/`"path"`, `"all"`/`"visible"` | `=CELLNUMBER("up"; "rows"; "snake"; "all"; 1)` → 1 2 3 4 / 8 7 6 5 |
 | `DEAL(item; times; item; times; …)`                | deals the items at random in the visible cells, each as many times as you say: `4`, `3-5`, `2-`, `-3` or empty              | `=DEAL("sword"; 4; "shield"; "")` → 4 swords, the rest shields     |
+| `RAND()`                                           | a random number from 0 to 1                                                                                                 | `=IF(RAND()<1/4; "rare"; "common")` → rare on about 1 card in 4    |
+| `RANDBETWEEN(from; to)`                            | a random whole number between the two, both included                                                                        | `=RANDBETWEEN(1; 6)` → 4                                           |
 
 The **Help** window (F1), **Formulas** tab, has the same table with the result computed on the components of the open project.
+
+**Random numbers and seed.** `RAND`, `RANDBETWEEN`, `DEAL` and `{cell.random}` give random numbers that stay the same every time the same component is drawn: the preview, the print and the export show the same cards. Two calls in the same formula give different numbers; the same formula written in two layers gives the same number, so to reuse it put it in a **Value** layer and refer to it with `{name}`. The numbers depend on the set's **seed**: a set that uses chance (in formulas or with random **Generate**, section 10) has the **🎲 Regenerate** button in its bar, which picks a new seed and so another draw, and the **Seed** field, where you can type back the number of a draw you liked. The same seed always gives the same cards; ⌘Z / Ctrl+Z goes back to the previous ones. The seed is saved in the project and shown on cards with `{set.seed}`. A set with no seed uses the default numbers, the same as in earlier versions.
+
+![Regenerate and the seed in the set bar](img/rigenera.png)
 
 **Numbers with a decimal comma.** By default Stella writes numbers with a point: `=ROUND(7/3; 2)` gives 2.33. For a comma, open **Project › Languages…** and, on the main language's row, choose **Numbers: 1.234,5**. From then on the numbers on the components are written with a comma, both those from the sheet and the results of formulas, and in formulas you write `2,5`: this is why arguments are separated with `;`.
 
@@ -847,7 +853,8 @@ The preview shows how many components will be created and the first rows. **Add 
 - **With repetition** on is like rolling a die for each column; off is like dealing cards from a deck: the same value never comes back in any column of the set.
 - **Limits per value** counts across all the set's columns: with 4 from 1 to 3, every component has at least one 4 and at most three.
 - **Filter** works as before: the components it rejects are drawn again. **All different** rejects components already drawn. If the filter or **All different** leave fewer components than requested, the preview says so.
-- **Seed** is the number the draw starts from: the same seed gives the same components, **Shuffle** picks another one.
+- **Seed** is the number the draw starts from: the same seed gives the same components, **Shuffle** picks another one. The window starts from the set's seed and, when you generate, its seed becomes the set's.
+- The set remembers the settings of the last random generation: **🎲 Regenerate** in the set bar (section 9) writes the same rows again with another seed, without opening the window, and **Generate…** opens again with those settings. The other columns and `amount` stay as they are. A non-random generation that replaces or updates the components drops the remembered settings.
 
 ![The random generator: the numbers 1-4 on four columns, 4 from one to three times](img/genera-caso.png)
 
@@ -973,7 +980,17 @@ Print shops and home printing are already in the choices: **Print shop** and **P
 
 The **Profile ▾** menu at the bottom stores the current options as a named project profile, to use again later: **Save as new profile…**, **Save in** to update the chosen profile, **Delete**. Picking a profile from the menu brings back its export type and options.
 
-### 11.6 Credits
+### 11.6 Choosing the components
+
+To reprint only some components, below the sets there is **Choose components…**. It opens the thumbnails of the components of the chosen sets, each with a checkbox: a click picks or drops a component, the checkbox next to the set name picks or drops them all, **All** and **None** apply to every set, **Front** and **Back** change the side shown.
+
+**New or changed since** chooses a version of the project: the last export, a backup (section 13) or, when active, the current comparison (**Compare…**, section 5.3). **Choose these** picks only the components that are new or different from that version, marked with a blue dot; then you can add or remove others by hand. With a backup, **Show before and after** puts how each changed component was next to how it is now; a component that was not there before says **New**. The last export keeps only the fingerprints of the components, not their pictures, so before and after needs a backup: before a round of changes it is worth making one with a name ("before the revision").
+
+**Use these** goes back to the export window, which says below the sets how many components are chosen ("6 of 17 components"); **All** goes back to every component. The preview and the sentence above **Export** count only the chosen components. The choice lasts while the window is open and is not saved in profiles.
+
+![Only the market cards changed since the backup, with before and after](img/scegli-componenti.png)
+
+### 11.7 Credits
 
 **Credits…** composes the text for the rulebook or the box, with the icons and fonts imported from the app grouped by source, license and author. By default it lists only what the components use. The text can be copied or saved to `export/credits.txt`. Images copied into `assets/` by hand are not listed.
 
@@ -1066,6 +1083,20 @@ card: Characters/name=Wizard?width=50
 
 Elements inside a grid can be explained too: in the list of layers they appear under the grid, with the group repeated in the cells. Next to the label, **Cell** chooses the cell the arrow points at (from 1, counting row by row), and **+ Another cell** adds a label for another cell of the same element. In the text it is `(cell 7)` after the name, as in `- token (cell 7): the treasure`; without it, the first cell. **Caption**, below the sizes, gives the anatomy a title below or above the drawing (`caption:` and `caption-position: top` lines).
 
+**Moving the point.** By default the line ends inside the layer, near the edge on the label's side and halfway up. If that point is not clear, drag it on the drawing in the window: the cursor becomes a hand over the points. A double-click puts it back. In the text the position is `at` with two percentages of the layer's area, first across and then down (`0% 0%` top left, `100% 100%` bottom right), for example `- text (left, at 30% 80%): …`. The point follows the layer if you move or resize it in the template; it can go outside the layer by up to half its size.
+
+![The ability's point moved further right by dragging it](img/anatomia-punto.png)
+
+**Moving the label.** By default each label sits level with its point, and labels that would touch move apart a little. To raise or lower one, drag it up or down on the drawing: it keeps the height you chose, and the other labels on the same side move out of its way. Brought back level with its point, it becomes automatic again. In the text it is `label` with a percentage of the component's height (`0%` top, `100%` bottom), for example `- strength (label 30%): …`.
+
+**Editing on the drawing.** Double-clicking a label on the drawing opens a field with its text over it: Enter confirms, Esc cancels. **⤢ Enlarge**, at the top right of the preview, shows the anatomy large in a separate window, where you drag the points and change the labels in the same way; **Close** goes back to the anatomy window with the changes.
+
+![The enlarged anatomy, with a label being edited](img/anatomia-grande.png)
+
+**Editing the code.** Under the two columns is the block as it will be written in the document, and you can edit it there too: the change applies when you leave the field or press ⌘↵ / Ctrl+Enter, and Esc cancels it. If the code is not understood, the window says so and keeps the anatomy as it was.
+
+![The strength label raised and the code edited in the window](img/anatomia-codice.png)
+
 ### 12.5 Table setup
 
 **Table setup** draws how to set up the table, with the real components of the project. In the window the buttons **Zone**, **Component**, **Deck**, **Text**, **Arrow** and **Image** add an element; components and decks are chosen as in **Insert component**, images from assets.
@@ -1078,7 +1109,7 @@ With several elements selected, dragging one moves them all, and the panel on th
 
 On the right you change position and sizes in millimetres, the label (or the text, with the same formatting bar as the anatomy; texts are centered in their box, and below you can align them left or right), the number of cards in a deck and the rotation in steps of 90°; **Order** brings the element to the front, forward, backward or to the back among the elements of the same kind: zones always stay below components, decks and images, and texts and arrows above. **Duplicate** and **Delete** do what they say. **Image** and **Change image…** also offer the image variables, which in the drawing keep their tint, rotation, flip, opacity and background.
 
-With nothing selected, **Fixed table size** gives the drawing a size in millimetres; without it, the drawing fits its elements. In the document the drawing shrinks to fit the page, and the labels stay readable; **Width (% of line)** narrows it further, down to that share of the line width, and **Captions (%)** changes the size of the captions. With the cursor inside a table setup, the same button opens it for editing. In the text it is a block like this, which you can also write by hand:
+With nothing selected, **Fixed table size** gives the drawing a size in millimetres; without it, the drawing fits its elements. In the document the drawing shrinks to fit the page, and the labels stay readable; **Width (% of line)** narrows it further, down to that share of the line width, and **Captions (%)** changes the size of the captions. With the cursor inside a table setup, the same button opens it for editing. In the text it is a block like this, which you can also write by hand, also in the field under the drawing in the window (it applies when you leave the field or press ⌘↵ / Ctrl+Enter, Esc cancels):
 
 ![The table setup window](img/schema-tavolo.png)
 

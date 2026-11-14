@@ -711,7 +711,7 @@ Le icone a un colore (SVG nere su fondo trasparente) si ricolorano con la propri
 
 **Importa icone…**, nella scelta delle immagini e nella finestra di una variabile icona, apre tre raccolte incluse nell'app, che funzionano senza rete, e una online:
 
-- **game-icons.net**: circa 4200 icone, con categorie tradotte e ricerca anche in italiano. Licenza CC BY 3.0: gli autori vanno citati (vedi i crediti, [capitolo 11.6](#116-crediti)). **Aggiorna catalogo** scarica le icone pubblicate dopo questa versione dell'app (serve la rete, richiede circa un minuto).
+- **game-icons.net**: circa 4200 icone, con categorie tradotte e ricerca anche in italiano. Licenza CC BY 3.0: gli autori vanno citati (vedi i crediti, [capitolo 11.7](#117-crediti)). **Aggiorna catalogo** scarica le icone pubblicate dopo questa versione dell'app (serve la rete, richiede circa un minuto).
 - **Kenney: icone e motivi**: icone per giochi da tavolo e motivi ripetibili, in CC0.
 - **Kenney: carte, dadi e pedine**: immagini PNG a colori, in CC0.
 - **Iconify (online)**: oltre 200 altre collezioni (Material Design, Tabler, Phosphor, emoji...), cercate su internet. Si scrive nella ricerca per cercare in tutte, oppure si sceglie una collezione a sinistra per sfogliarla. I nomi delle icone sono in inglese.
@@ -754,7 +754,7 @@ Un livello con **Valore sui componenti: Formula** calcola il proprio valore dagl
 
 - **Composizione di testo**: `{nome}.png`, `Forza {forza}`.
 - **Calcolo**: se la formula contiene `+ - * /` e il risultato è un numero, si calcola: `{forza}+2`.
-- **Espressione**: con `=` iniziale funziona come in Excel. Testi tra virgolette, confronti `= <> < > <= >=`, `&` per unire testi, argomenti separati da `;` (o da `,` seguita da uno spazio). Funzioni: `IF`, `AND`, `OR`, `NOT`, `MIN`, `MAX`, `ABS`, `ROUND`, `FLOOR`, `CEILING`, `UPPER`, `LOWER`, `LEN`, `CONCAT`, `ISBLANK`, `COUNTIN`, `INLIST`, `MOD`, `PICK`, `CELLNUMBER`, `DEAL`.
+- **Espressione**: con `=` iniziale funziona come in Excel. Testi tra virgolette, confronti `= <> < > <= >=`, `&` per unire testi, argomenti separati da `;` (o da `,` seguita da uno spazio). Funzioni: `IF`, `AND`, `OR`, `NOT`, `MIN`, `MAX`, `ABS`, `ROUND`, `FLOOR`, `CEILING`, `UPPER`, `LOWER`, `LEN`, `CONCAT`, `ISBLANK`, `COUNTIN`, `INLIST`, `MOD`, `PICK`, `CELLNUMBER`, `DEAL`, `RAND`, `RANDBETWEEN`.
 
 Le funzioni, con un esempio sulle carte della guida (Drago, forza 4, costo `{oro}{oro}{legno}`):
 
@@ -775,8 +775,14 @@ Le funzioni, con un esempio sulle carte della guida (Drago, forza 4, costo `{oro
 | `PICK(n; valore1; valore2; …)`                         | l'n-esimo valore, ricominciando dopo l'ultimo                                                                                 | `=PICK({forza}; "spada"; "scudo"; "mano")` → spada                 |
 | `CELLNUMBER(verso; ordine; percorso; caselle; inizio)` | il numero continuo della casella: `"up"`/`"down"`, `"rows"`/`"columns"`, `"straight"`/`"snake"`/`"path"`, `"all"`/`"visible"` | `=CELLNUMBER("up"; "rows"; "snake"; "all"; 1)` → 1 2 3 4 / 8 7 6 5 |
 | `DEAL(voce; quante; voce; quante; …)`                  | distribuisce a caso le voci nelle caselle visibili, ognuna quante volte dici: `4`, `3-5`, `2-`, `-3` o vuoto                  | `=DEAL("spada"; 4; "scudo"; "")` → 4 spade, il resto scudi         |
+| `RAND()`                                               | un numero a caso da 0 a 1                                                                                                     | `=IF(RAND()<1/4; "rara"; "comune")` → rara su circa una carta su 4 |
+| `RANDBETWEEN(da; a)`                                   | un numero intero a caso tra i due, compresi                                                                                   | `=RANDBETWEEN(1; 6)` → 4                                           |
 
 La finestra **Aiuto** (F1), scheda **Formule**, ha la stessa tabella con il risultato calcolato sui componenti del progetto aperto.
+
+**Numeri a caso e seed.** `RAND`, `RANDBETWEEN`, `DEAL` e `{cell.random}` danno numeri a caso che però restano uguali a ogni disegno dello stesso componente: l'anteprima, la stampa e l'esportazione mostrano le stesse carte. Due chiamate nella stessa formula danno numeri diversi; la stessa formula scritta in due livelli dà lo stesso numero, quindi per riusarlo conviene metterla in un livello **Valore** e richiamarlo con `{nome}`. I numeri dipendono dal **seed** del set: un set che usa il caso (nelle formule o con **Genera** a caso, sezione 10) ha nella barra il tasto **🎲 Rigenera**, che sceglie un nuovo seed e quindi un'altra estrazione, e il campo **Seed**, dove si può riscrivere il numero di un'estrazione che piaceva. Lo stesso seed dà sempre le stesse carte; ⌘Z / Ctrl+Z torna a quelle di prima. Il seed si salva nel progetto e si mostra sulle carte con `{set.seed}`. Un set senza seed usa i numeri di base, gli stessi delle versioni precedenti.
+
+![Rigenera e il seed nella barra del set](img/rigenera.png)
 
 **Numeri con la virgola.** Di base Stella scrive i numeri con il punto: `=ROUND(7/3; 2)` dà 2.33. Per la virgola apri **Progetto › Lingue…** e, nella riga della lingua principale, scegli **Numeri: 1.234,5**. Da quel momento i numeri sui componenti si scrivono con la virgola, sia quelli del foglio sia i risultati delle formule, e nelle formule si scrive `2,5`: per questo gli argomenti vanno separati con `;`.
 
@@ -847,7 +853,8 @@ L'anteprima mostra quanti componenti nasceranno e le prime righe. **Aggiungi in 
 - **Con ripetizioni** acceso è come tirare un dado per ogni colonna; spento è come distribuire carte da un mazzo: lo stesso valore non torna in nessuna colonna dell'insieme.
 - **Limiti per valore** conta le presenze in tutte le colonne dell'insieme: con il 4 da 1 a 3 ogni componente ha almeno un 4 e al massimo tre.
 - **Filtro** funziona come prima: i componenti che scarta si estraggono di nuovo. **Tutte diverse** scarta i componenti già usciti. Se il filtro o **Tutte diverse** lasciano meno componenti di quelli chiesti, l'anteprima lo dice.
-- **Seme** è il numero da cui parte l'estrazione: lo stesso seme dà gli stessi componenti, **Rimescola** ne sceglie un altro.
+- **Seed** è il numero da cui parte l'estrazione: lo stesso seed dà gli stessi componenti, **Rimescola** ne sceglie un altro. La finestra parte dal seed del set e, generando, lo diventa.
+- Il set ricorda le impostazioni dell'ultima generazione a caso: **🎲 Rigenera** nella barra del set (sezione 9) riscrive le stesse righe con un altro seed, senza riaprire la finestra, e **Genera…** si riapre con quelle impostazioni. Le altre colonne e `amount` restano come sono. Una generazione non a caso che sostituisce o aggiorna i componenti toglie le impostazioni ricordate.
 
 ![Il generatore a caso: i numeri 1-4 su quattro colonne, il 4 da una a tre volte](img/genera-caso.png)
 
@@ -857,7 +864,7 @@ Nell'elenco dei valori `oro*3` vale oro tre volte: a caso oro esce tre volte pi�
 
 - **Quanti** sceglie tra **Tutti i componenti del set**, che scrive la colonna nelle righe già presenti (**Aggiorna i componenti**), e un numero di **Giri**, cioè quante volte si ripete la sequenza. Se i componenti non sono un multiplo del giro, l'ultimo giro resta a metà.
 - **Ordine**: **Come scritto** ripete sempre lo stesso ordine; **Mescola ogni giro** cambia a caso l'ordine dentro ogni giro (ogni giro ha comunque tutti i valori una volta); **Ogni giro un ordine diverso** usa a ogni giro un ordine non ancora usato (con a, b, c ce ne sono sei) e, finiti tutti, ricomincia; **Mescola tutto** mescola insieme i valori di tutti i giri come un mazzo, per esempio `rosso*4, blu*4, verde*4` su 12 carte dà 4 carte per colore in ordine casuale.
-- Il **Seme** e **Rimescola** funzionano come a caso. Il filtro non c'è, perché scartare componenti romperebbe la sequenza.
+- Il **Seed** e **Rimescola** funzionano come a caso. Il filtro non c'è, perché scartare componenti romperebbe la sequenza.
 
 Una sequenza spostata di un posto rispetto a un'altra (a/b, b/c, c/a) si ottiene anche con un campo calcolato: `PICK({card.number}+1; "a"; "b"; "c")`. Vale solo per l'ordine come scritto.
 
@@ -973,7 +980,17 @@ Le tipografie e la stampa in casa sono già nelle scelte: **Tipografia** e **Sta
 
 Il menu **Profilo ▾** in basso salva le opzioni attuali come profilo del progetto, con un nome, da riprendere in seguito: **Salva come nuovo profilo…**, **Salva in** per aggiornare il profilo scelto, **Elimina**. Scegliere un profilo dal menu rimette il suo tipo di esportazione e le sue opzioni.
 
-### 11.6 Crediti
+### 11.6 Scegliere i componenti
+
+Per ristampare solo alcuni componenti, sotto i set c'è **Scegli i componenti…**. Apre le miniature dei componenti dei set scelti, con una casella ciascuno: un clic sceglie o toglie un componente, la casella accanto al nome del set li prende o li toglie tutti, **Tutti** e **Nessuno** valgono per tutti i set, **Fronte** e **Retro** cambiano il lato mostrato.
+
+**Nuovi o cambiati rispetto a** sceglie una versione del progetto: l'ultima esportazione, un backup (sezione 13) o, se è attivo, il confronto in corso (**Confronta…**, sezione 5.3). **Scegli questi** sceglie solo i componenti nuovi o diversi da quella versione, segnati con un punto blu; poi se ne possono aggiungere o togliere altri a mano. Con un backup, **Mostra prima e dopo** mette accanto a ogni componente cambiato com'era e com'è; un componente che prima non c'era ha la scritta **Nuovo**. L'ultima esportazione conserva solo le impronte dei componenti, non le immagini, quindi per il prima e dopo serve un backup: prima di una sessione di modifiche conviene farne uno con un nome («prima della revisione»).
+
+**Usa questi** torna alla finestra di esportazione, che sotto i set dice quanti componenti sono scelti («6 componenti su 17»); **Tutti** torna a tutti i componenti. L'anteprima e la frase sopra **Esporta** contano solo i componenti scelti. La scelta vale per la finestra aperta e non si salva nei profili.
+
+![Solo le carte del mercato cambiate dal backup, con il prima e il dopo](img/scegli-componenti.png)
+
+### 11.7 Crediti
 
 **Crediti…** compone il testo da mettere nel regolamento o sulla scatola, con le icone e i font importati dall'app raggruppati per fonte, licenza e autore. Di base elenca solo ciò che i componenti usano. Il testo si copia o si salva in `export/credits.txt`. Le immagini copiate a mano in `assets/` non sono elencate.
 
@@ -1066,6 +1083,20 @@ card: Personaggi/nome=Mago?width=50
 
 Anche gli elementi dentro una griglia si possono spiegare: nell'elenco dei livelli compaiono sotto la griglia, con il gruppo che si ripete nelle caselle. Accanto all'etichetta **Casella** sceglie la casella a cui punta la freccia (da 1, contando riga per riga), e **+ Un'altra casella** aggiunge un'etichetta per un'altra casella dello stesso elemento. Nel testo è `(cell 7)` dopo il nome, come in `- gettone (cell 7): il tesoro`; senza, la prima casella. **Didascalia**, sotto le misure, dà all'anatomia un titolo sotto o sopra il disegno (righe `caption:` e `caption-position: top`).
 
+**Spostare il punto.** Di base la linea arriva dentro il livello, vicino al bordo dalla parte dell'etichetta e a metà altezza. Se quel punto non è chiaro, trascinalo sul disegno nella finestra: il cursore diventa una mano sopra i punti. Un doppio clic lo rimette dov'era. Nel testo la posizione è `at` con due percentuali dell'area del livello, prima in orizzontale e poi in verticale (`0% 0%` in alto a sinistra, `100% 100%` in basso a destra), per esempio `- testo (left, at 30% 80%): …`. Il punto segue il livello se nel template lo sposti o lo ridimensioni; può uscire dal livello fino a metà della sua misura.
+
+![Il punto dell'abilità spostato più a destra trascinandolo](img/anatomia-punto.png)
+
+**Spostare l'etichetta.** Di base ogni etichetta sta all'altezza del suo punto, e le etichette che si toccherebbero si allontanano un po'. Per alzarla o abbassarla, trascinala in su o in giù sul disegno: la sua altezza resta quella scelta, e le altre etichette dello stesso lato si spostano per farle posto. Riportata all'altezza del punto torna automatica. Nel testo è `label` con una percentuale dell'altezza del componente (`0%` in alto, `100%` in basso), per esempio `- forza (label 30%): …`.
+
+**Modificare sul disegno.** Un doppio clic su un'etichetta del disegno apre sopra di essa un campo con il suo testo: Invio conferma, Esc annulla. **⤢ Ingrandisci**, in alto a destra dell'anteprima, mostra l'anatomia in grande in una finestra a parte, dove si trascinano i punti e si cambiano le etichette allo stesso modo; **Chiudi** torna alla finestra dell'anatomia con le modifiche.
+
+![L'anatomia ingrandita, con il testo di un'etichetta in modifica](img/anatomia-grande.png)
+
+**Modificare il codice.** Sotto le due colonne c'è il blocco come verrà scritto nel documento, e si può modificare anche lì: la modifica vale quando esci dal campo o premi ⌘↵ / Ctrl+Invio, ed Esc la annulla. Se il codice non si capisce la finestra lo segnala e tiene l'anatomia com'era.
+
+![L'etichetta della forza alzata e il codice modificato nella finestra](img/anatomia-codice.png)
+
 ### 12.5 Schema del tavolo
 
 **Schema tavolo** disegna come preparare il tavolo, con i componenti veri del progetto. Nella finestra i tasti **Zona**, **Componente**, **Mazzo**, **Testo**, **Freccia** e **Immagine** aggiungono un elemento; componenti e mazzi si scelgono come in **Inserisci componente**, le immagini dagli asset.
@@ -1078,7 +1109,7 @@ Con più elementi scelti, trascinandone uno si spostano tutti, e il pannello a d
 
 A destra si cambiano posizione e misure in millimetri, l'etichetta (o il testo, con la stessa barra di formattazione dell'anatomia; i testi sono centrati nel loro riquadro, e sotto si possono allineare a sinistra o a destra), il numero di carte di un mazzo e la rotazione di 90° in 90°; **Ordine** porta l'elemento in primo piano, avanti, indietro o sullo sfondo rispetto agli elementi dello stesso tipo: le zone restano sempre sotto componenti, mazzi e immagini, e testi e frecce sopra. **Duplica** ed **Elimina** fanno quel che dicono. **Immagine** e **Cambia immagine…** propongono anche le variabili immagine, che nello schema mantengono tinta, rotazione, ribaltamento, opacità e sfondo.
 
-Senza elemento scelto, **Misura del tavolo fissa** dà allo schema una misura in millimetri; senza, lo schema si adatta agli elementi. Nel documento lo schema si riduce per stare nella pagina, e le didascalie restano leggibili; **Larghezza (% riga)** lo restringe ancora, fino a quella parte della larghezza della riga, e **Didascalie (%)** cambia il corpo delle didascalie. Con il cursore dentro uno schema, lo stesso tasto lo apre per modificarlo. Nel testo è un blocco come questo, che si può anche scrivere a mano:
+Senza elemento scelto, **Misura del tavolo fissa** dà allo schema una misura in millimetri; senza, lo schema si adatta agli elementi. Nel documento lo schema si riduce per stare nella pagina, e le didascalie restano leggibili; **Larghezza (% riga)** lo restringe ancora, fino a quella parte della larghezza della riga, e **Didascalie (%)** cambia il corpo delle didascalie. Con il cursore dentro uno schema, lo stesso tasto lo apre per modificarlo. Nel testo è un blocco come questo, che si può anche scrivere a mano, anche nel campo sotto il disegno della finestra (vale quando esci dal campo o premi ⌘↵ / Ctrl+Invio, Esc annulla):
 
 ![La finestra dello schema del tavolo](img/schema-tavolo.png)
 

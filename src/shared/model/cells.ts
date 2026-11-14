@@ -15,7 +15,8 @@ export function cellFields(
   index: number,
   columns: number,
   count: number,
-  card = 0
+  card = 0,
+  seed = ''
 ): Record<string, string> {
   // FNV-1a: lo stesso numero a ogni disegno della stessa carta
   const hash = (text: string): number => {
@@ -26,7 +27,9 @@ export function cellFields(
     }
     return h >>> 0
   }
-  const h = hash(`${card}|${grid}|${index}`)
+  // il seme del set, se c'è, rimescola tutto; senza seme i numeri restano quelli di sempre
+  const key = seed ? `${seed}|${card}|${grid}` : `${card}|${grid}`
+  const h = hash(`${key}|${index}`)
   return {
     'cell.index': String(index + 1),
     'cell.row': String(Math.floor(index / columns) + 1),
@@ -36,7 +39,7 @@ export function cellFields(
     'cell.columns': String(columns),
     'cell.random': String((h % 999999) + 1),
     // uguale in tutte le caselle della griglia: DEAL mescola con questo
-    'cell.seed': String(hash(`${card}|${grid}`))
+    'cell.seed': String(hash(key))
   }
 }
 
@@ -83,7 +86,7 @@ export function ruleCellFields(
   }
   const base = Array.from({ length: count }, (_, i) => ({
     ...fields,
-    ...cellFields(g.name, i, columns, count, card),
+    ...cellFields(g.name, i, columns, count, card, fields['set.seed']),
     'cell.hidden': ''
   }))
   // le caselle nascoste: con le regole che nascondono, lette senza le caselle nascoste

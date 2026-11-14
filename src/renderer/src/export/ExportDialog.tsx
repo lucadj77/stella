@@ -29,6 +29,7 @@ import { exportSummary, previewItems } from '../../../shared/exportPreview'
 import { Dialog } from '../editor/dialogs'
 import CreditsDialog from './CreditsDialog'
 import ExportPreview from './ExportPreview'
+import ComponentPicker, { type PickedRows } from './ComponentPicker'
 import LivePreview from './LivePreview'
 import { ResultLinks } from './ExportToast'
 import { Choice, KindPicker, ProfileMenu, Row, Section } from './exportParts'
@@ -159,12 +160,22 @@ export default function ExportDialog({
   }
   const [onlyChanged, setOnlyChanged] = useState(!!changed)
   const changedCount = changed ? selected.reduce((n, s) => n + (changed[s]?.length ?? 0), 0) : 0
+  /** Componenti scelti uno per uno, per set (righe da 0); null: tutti quelli dei set scelti */
+  const [picked, setPicked] = useState<PickedRows | null>(null)
+  const [picking, setPicking] = useState(false)
+  /** Righe da esportare: la scelta a mano vince sul confronto attivo */
+  const rowFilter = (only: boolean, p: PickedRows | null): Record<string, number[]> | null =>
+    p ? fillPicked(p, project, selected) : changed && only ? changed : null
   const toggleSet = (name: string): void => {
     const next = selected.includes(name) ? selected.filter((s) => s !== name) : [...selected, name]
     if (next.length) patch({ sets: next.length === setNames.length ? [] : next })
   }
   const rowsOf = (name: string): number =>
     project.sets.find((s) => s.name === name)?.data?.rows.length ?? 0
+  const pickedCount = picked
+    ? selected.reduce((n, s) => n + (s in picked ? picked[s].length : rowsOf(s)), 0)
+    : 0
+  const totalRows = selected.reduce((n, s) => n + rowsOf(s), 0)
 
   /** Tag TTS del template del set: quelli proposti finché il set non ne ha di suoi */
   const templateTags = (name: string): string => {
@@ -212,9 +223,9 @@ export default function ExportDialog({
   // l'anteprima e la frase seguono le opzioni poco dopo l'ultimo cambio: costruire il lavoro
   // lega tutte le carte, e non serve rifarlo a ogni tasto
   const live = useMemo(
-    () => ({ what, language: exportLanguage, onlyChanged }),
+    () => ({ what, language: exportLanguage, onlyChanged, picked }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [kind, img, pdf, tts, exportLanguage, onlyChanged]
+    [kind, img, pdf, tts, exportLanguage, onlyChanged, picked]
   )
   const [stable, setStable] = useState(live)
   useEffect(() => {
@@ -227,7 +238,8 @@ export default function ExportDialog({
     stable.language === '*' ? (languages[0] ?? null) : stable.language || languages[0] || null
   const job = useMemo(
     () =>
-      buildJob(project, stable.what, firstLanguage, changed && stable.onlyChanged ? changed : null),
+      buildJob(project, stable.what, firstLanguage, rowFilter(stable.onlyChanged, stable.picked)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [project, stable, firstLanguage, changed]
   )
   const plan = useMemo(() => previewItems(job), [job])
@@ -293,13 +305,7 @@ export default function ExportDialog({
       window.api.saveExportProfiles(profiles).catch(() => undefined)
       onProfiles(profiles)
       setResult(
-        await runExport(
-          project,
-          what,
-          exportLanguage,
-          hasFont,
-          changed && onlyChanged ? changed : null
-        )
+        await runExport(project, what, exportLanguage, hasFont, rowFilter(onlyChanged, picked))
       )
     } catch (e) {
       setError(messageFromError(e))
@@ -475,7 +481,23 @@ export default function ExportDialog({
             </select>
           </label>
         )}
-        {changed && (
+        <button
+          type="button"
+          className={picked ? 'active' : undefined}
+          title={t('pick.buttonHint')}
+          onClick={() => setPicking(true)}
+        >
+          {t('pick.button')}
+        </button>
+        {picked && (
+          <span className="muted">
+            {t('pick.summary', { n: pickedCount, of: totalRows })}{' '}
+            <button type="button" className="link" onClick={() => setPicked(null)}>
+              {t('pick.reset')}
+            </button>
+          </span>
+        )}
+        {changed && !picked && (
           <label className="check">
             <input
               type="checkbox"
@@ -1321,7 +1343,10 @@ export default function ExportDialog({
     details = t('export.sum.ttsFiles', { images: summary.images, json: summary.objects })
   }
 
-  const blocked = running || !selected.length || (!!changed && onlyChanged && !changedCount)
+  const blocked =
+    running ||
+    !selected.length ||
+    (picked ? !pickedCount : !!changed && onlyChanged && !changedCount)
   return (
     <Dialog title={t('export.title')} onClose={running ? () => undefined : onClose} guide="export">
       <div className="export-dialog">
@@ -1418,6 +1443,20 @@ export default function ExportDialog({
         </div>
       </div>
       {credits && <CreditsDialog project={project} onClose={() => setCredits(false)} />}
+      {picking && (
+        <ComponentPicker
+          project={project}
+          sets={selected}
+          language={firstLanguage}
+          picked={picked ?? (changed && onlyChanged ? changed : null)}
+          changed={changed}
+          onApply={(p) => {
+            setPicked(p)
+            setPicking(false)
+          }}
+          onClose={() => setPicking(false)}
+        />
+      )}
       {enlarged && (
         <ExportPreview
           job={enlarged}
@@ -1428,4 +1467,18 @@ export default function ExportDialog({
       )}
     </Dialog>
   )
+}
+
+/** La scelta a mano per i set scelti: un set che non vi compare esce per intero */
+function fillPicked(
+  picked: PickedRows,
+  project: LoadedProject,
+  selected: string[]
+): Record<string, number[]> {
+  const out: Record<string, number[]> = {}
+  for (const name of selected) {
+    const rows = project.sets.find((s) => s.name === name)?.data?.rows.length ?? 0
+    out[name] = name in picked ? picked[name] : Array.from({ length: rows }, (_, i) => i)
+  }
+  return out
 }
