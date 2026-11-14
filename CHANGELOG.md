@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## Next version
+
+### English
+
+- **Table setup**: without a fixed table size, the drawing now also makes room for captions wider than their card, for every line of long captions and texts, and for arrow labels. Before, they could go past the dashed outline and be cut in the document.
+
+### Italiano
+
+- **Schema del tavolo**: senza una misura fissa del tavolo, il disegno ora fa spazio anche alle didascalie più larghe della loro carta, a tutte le righe delle didascalie e dei testi lunghi e alle etichette delle frecce. Prima potevano uscire dal contorno tratteggiato ed essere tagliate nel documento.
+
 ## 1.11.0
 
 ### English
