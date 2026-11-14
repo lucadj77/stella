@@ -29,7 +29,7 @@ import { AlignIcon, DistributeIcon } from '../editor/AlignSection'
 import { useI18n } from '../i18n/context'
 import type { MessageKey } from '../i18n/en'
 import SetupDiagram from '../render/SetupDiagram'
-import { itemBox, setupView, setupWithText, type Box } from '../render/setupGeometry'
+import { SETUP_MARGIN, itemBox, setupView, setupWithText, type Box } from '../render/setupGeometry'
 import AssetPicker from './AssetPicker'
 import InsertCardDialog from './InsertCardDialog'
 import FormattedField from './TextFormatBar'
@@ -148,6 +148,8 @@ export default function SetupDialog({
   const { t } = useI18n()
   const [items, setItems] = useState<Item[]>(initial?.items ?? [])
   const [size, setSize] = useState(initial?.size ?? null)
+  /** Margine intorno all'area automatica, in mm; null = quello di base */
+  const [margin, setMargin] = useState<number | null>(initial?.margin ?? null)
   /** Larghezza massima nel documento e corpo delle didascalie, in frazione (width: e font:) */
   const [blockWidth, setBlockWidth] = useState(initial?.width ?? 1)
   const [blockFont, setBlockFont] = useState(initial?.font ?? 1)
@@ -189,6 +191,7 @@ export default function SetupDialog({
   /** Il blocco ```setup come lo scrive la finestra */
   const source = setupSource({
     size,
+    margin,
     items,
     width: blockWidth,
     font: blockFont,
@@ -202,6 +205,7 @@ export default function SetupDialog({
     if (b?.kind !== 'setup' || b.bad.length) return false
     setItems(b.items)
     setSize(b.size)
+    setMargin(b.margin ?? null)
     setBlockWidth(b.width ?? 1)
     setBlockFont(b.font ?? 1)
     setCaption(b.caption ?? '')
@@ -211,10 +215,11 @@ export default function SetupDialog({
     return true
   }
   useUndo(
-    [items, size, blockWidth, blockFont, caption, captionTop],
-    ([i, s, w, f, c, ct]) => {
+    [items, size, blockWidth, blockFont, caption, captionTop, margin],
+    ([i, s, w, f, c, ct, m]) => {
       setItems(i)
       setSize(s)
+      setMargin(m)
       setBlockWidth(w)
       setBlockFont(f)
       setCaption(c)
@@ -233,7 +238,7 @@ export default function SetupDialog({
     }
   }
 
-  const setup: Setup = { size, items, bad: [] }
+  const setup: Setup = { size, margin, items, bad: [] }
   const view = setupView(setup, sets, templates, maxWidth * blockWidth, font * blockFont)
   const area = frozen ?? grow(view.area, size ? 10 : 25)
   const fit = Math.max(
@@ -950,6 +955,16 @@ export default function SetupDialog({
                   />
                   {t('documents.setupFixedSize')}
                 </label>
+                {!size && (
+                  <div className="dialog-row">
+                    {num(
+                      t('documents.setupMargin'),
+                      margin ?? SETUP_MARGIN,
+                      (n) => setMargin(n === SETUP_MARGIN ? null : n),
+                      0
+                    )}
+                  </div>
+                )}
                 {size && (
                   <div className="dialog-row">
                     {num(t('documents.setupW'), size.w, (w) => setSize({ ...size, w }), 20)}

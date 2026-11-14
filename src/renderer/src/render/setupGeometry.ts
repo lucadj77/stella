@@ -86,16 +86,84 @@ export function itemBox(it: SetupItem, sets: LoadedSet[], templates: Template[])
   }
 }
 
+/** Margine di base intorno agli elementi, in mm (`margin`) */
+export const SETUP_MARGIN = 3
+
 /** Area disegnata: quella scritta, o quella che contiene gli elementi con un poco di margine */
-export function setupArea(setup: Setup, boxes: Box[], below: number): Box {
+export function setupArea(setup: Setup, boxes: Box[]): Box {
   if (setup.size) return { x: 0, y: 0, w: setup.size.w, h: setup.size.h }
   if (!boxes.length) return { x: 0, y: 0, w: 100, h: 50 }
-  const pad = 3
+  const pad = setup.margin ?? SETUP_MARGIN
   const x = Math.min(...boxes.map((b) => b.x)) - pad
   const y = Math.min(...boxes.map((b) => b.y)) - pad
   const w = Math.max(...boxes.map((b) => b.x + b.w)) + pad - x
-  const h = Math.max(...boxes.map((b) => b.y + b.h)) + pad + below - y
+  const h = Math.max(...boxes.map((b) => b.y + b.h)) + pad - y
   return { x, y, w, h }
+}
+
+/** Larghezza media di un carattere, in corpi (un po' abbondante: meglio un margine in più) */
+const CHAR = 0.56
+
+/**
+ * Righe e larghezza della riga più lunga di un testo con il markup, andando a capo tra le parole
+ * entro `width` mm: una stima, senza misurare il carattere vero
+ */
+export function textExtent(
+  text: string,
+  width: number,
+  font: number
+): { lines: number; w: number } {
+  const plain = text
+    .replace(/\[([^\]]*)\]\{[^}]*\}/g, '$1')
+    .replace(/\{[^}]*\}/g, 'MM')
+    .replace(/[*_~]/g, '')
+  const char = font * CHAR
+  let lines = 0
+  let widest = 0
+  for (const para of plain.split(/\n|<br\s*\/?>/i)) {
+    let used = 0
+    lines++
+    for (const word of para.split(/\s+/).filter(Boolean)) {
+      const w = word.length * char
+      if (used && used + char + w > width) {
+        widest = Math.max(widest, used)
+        lines++
+        used = w
+      } else used += (used ? char : 0) + w
+    }
+    widest = Math.max(widest, used)
+  }
+  return { lines, w: widest }
+}
+
+/**
+ * Lo spazio occupato dalle didascalie di carte, mazzi e frecce e dai testi, che possono uscire dal
+ * riquadro dell'elemento: l'area dello schema deve contenerli
+ */
+export function textBoxes(setup: Setup, boxes: Box[], font: number): Box[] {
+  return setup.items.flatMap((it, i): Box[] => {
+    const box = boxes[i]
+    if ((it.kind === 'card' || it.kind === 'deck') && it.label) {
+      // come in SetupDiagram: centrata sotto la carta, larga la carta più 15 mm per parte
+      const e = textExtent(it.label, box.w + 30, font)
+      const cx = box.x + box.w / 2
+      return [{ x: cx - e.w / 2, y: box.y + box.h + 1, w: e.w, h: e.lines * font * SETUP_LINE }]
+    }
+    if (it.kind === 'arrow' && it.label) {
+      const e = textExtent(it.label, 50, font)
+      const cx = (it.x + it.x2) / 2
+      const cy = (it.y + it.y2) / 2 - (font * SETUP_LINE) / 2
+      return [{ x: cx - e.w / 2, y: cy, w: e.w, h: e.lines * font * SETUP_LINE }]
+    }
+    if (it.kind === 'text') {
+      const e = textExtent(it.text, it.w, font)
+      const w = Math.max(it.w, e.w)
+      const x =
+        it.align === 'right' ? it.x + it.w - w : it.align === 'left' ? it.x : it.x + (it.w - w) / 2
+      return [{ x, y: it.y, w, h: e.lines * font * SETUP_LINE }]
+    }
+    return []
+  })
 }
 
 /** Interlinea delle didascalie */
@@ -122,12 +190,12 @@ export function setupView(
   font: number
 ): SetupView {
   const boxes = setup.items.map((it) => itemBox(it, sets, templates))
-  const hasLabels = setup.items.some((it) => (it.kind === 'card' || it.kind === 'deck') && it.label)
-  // prima si misura senza didascalie, per sapere quanto si riduce
-  const raw = setupArea(setup, boxes, 0)
-  const shrink = Math.min(1, maxWidth / Math.max(1, raw.w))
-  const f = font / shrink
-  const area = setupArea(setup, boxes, hasLabels ? f * SETUP_LINE * 2 + 1 : 0)
+  // prima si misura senza testi, per sapere quanto si riduce; poi con i testi, che possono
+  // allargare l'area e quindi ridurla ancora: due giri bastano
+  let f = font / Math.min(1, maxWidth / Math.max(1, setupArea(setup, boxes).w))
+  let area = setupArea(setup, [...boxes, ...textBoxes(setup, boxes, f)])
+  f = font / Math.min(1, maxWidth / Math.max(1, area.w))
+  area = setupArea(setup, [...boxes, ...textBoxes(setup, boxes, f)])
   return { area, boxes, font: f }
 }
 

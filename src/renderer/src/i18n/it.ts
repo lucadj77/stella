@@ -2039,6 +2039,7 @@ export const it: Record<MessageKey, string> = {
   'documents.setupDelete': 'Elimina',
   'documents.setupTable': 'Tavolo',
   'documents.setupFixedSize': 'Misura del tavolo fissa',
+  'documents.setupMargin': 'Margine (mm)',
   'documents.codeHint':
     'Il codice di questo blocco: puoi modificarlo qui. Vale quando esci dal campo o premi ⌘↵ / Ctrl+Invio; Esc annulla la modifica.',
   'documents.codeBad': 'Questo codice non si capisce: correggilo o premi Esc per tornare indietro.',
