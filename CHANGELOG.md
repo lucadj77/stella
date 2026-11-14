@@ -9,11 +9,11 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 
 ### English
 
-- **Table setup**: without a fixed table size, the drawing now also makes room for captions wider than their card, for every line of long captions and texts, and for arrow labels. Before, they could go past the dashed outline and be cut in the document.
+- **Table setup**: without a fixed table size, the drawing now also makes room for captions wider than their card, for every line of long captions and texts, and for arrow labels, and leaves no space below when there are no captions. Before, they could go past the dashed outline and be cut in the document. **Margin (mm)** sets the space around the automatic area (`margin 10` in the text, 3 mm by default).
 
 ### Italiano
 
-- **Schema del tavolo**: senza una misura fissa del tavolo, il disegno ora fa spazio anche alle didascalie più larghe della loro carta, a tutte le righe delle didascalie e dei testi lunghi e alle etichette delle frecce. Prima potevano uscire dal contorno tratteggiato ed essere tagliate nel documento.
+- **Schema del tavolo**: senza una misura fissa del tavolo, il disegno ora fa spazio anche alle didascalie più larghe della loro carta, a tutte le righe delle didascalie e dei testi lunghi e alle etichette delle frecce, e non lascia spazio sotto se non ci sono didascalie. Prima potevano uscire dal contorno tratteggiato ed essere tagliate nel documento. **Margine (mm)** sceglie lo spazio intorno all'area automatica (`margin 10` nel testo, di base 3 mm).
 
 ## 1.11.0
 

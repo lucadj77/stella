@@ -3,6 +3,7 @@
 // dell'app; il documento lo disegna con le carte vere del progetto.
 //
 //   size 280x180
+//   margin 10                                          (senza size: margine intorno, di base 3 mm)
 //   zone 0,0 280x60 "Giocatore 1"
 //   deck Personaggi/1?side=back 20,10 count=8 "Mazzo"
 //   card Personaggi/nome=Mago 60,10 rotate=90 "Il mago"
@@ -47,6 +48,8 @@ export type SetupTextAlign = 'left' | 'center' | 'right'
 export interface Setup {
   /** Misure dell'area in mm; senza, quelle degli elementi */
   size: { w: number; h: number } | null
+  /** Senza misure, margine in mm intorno agli elementi e ai loro testi (`margin 10`); null = 3 */
+  margin?: number | null
   items: SetupItem[]
   /** Larghezza massima in frazione della riga; null = tutta */
   width?: number | null
@@ -259,6 +262,7 @@ function parseItem(line: string, from: number): SetupItem | null {
 export function parseSetup(lines: string[], starts: number[]): Setup {
   const out: Setup = {
     size: null,
+    margin: null,
     items: [],
     width: null,
     font: null,
@@ -295,6 +299,11 @@ export function parseSetup(lines: string[], starts: number[]): Setup {
       out.size = { w: num(sz[1]), h: num(sz[2]) }
       return
     }
+    const margin = /^\s*margin\s*:?\s*(\d+(?:[.,]\d+)?)\s*(?:mm)?\s*$/i.exec(l)
+    if (margin) {
+      out.margin = Number(margin[1].replace(',', '.'))
+      return
+    }
     const item = parseItem(l, from)
     if (item) out.items.push(item)
     else out.bad.push({ from, to: from + l.length })
@@ -327,11 +336,14 @@ export function setupLine(it: SetupItem): string {
 
 /** Il testo del blocco ```setup */
 export function setupSource(
-  s: Pick<Setup, 'size' | 'items' | 'width' | 'font' | 'caption' | 'captionTop' | 'wrap'>
+  s: Pick<Setup, 'size' | 'items' | 'width' | 'font' | 'caption' | 'captionTop' | 'wrap'> & {
+    margin?: number | null
+  }
 ): string {
   return [
     '```' + SETUP_FENCE,
     ...(s.size ? [`size ${r(s.size.w)}x${r(s.size.h)}`] : []),
+    ...(!s.size && s.margin != null ? [`margin ${r(s.margin)}`] : []),
     ...blockSizeLines(s),
     ...blockWrapLines(s),
     ...blockCaptionLines(s),

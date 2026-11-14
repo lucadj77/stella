@@ -2008,6 +2008,7 @@ export const en = {
   'documents.setupDelete': 'Delete',
   'documents.setupTable': 'Table',
   'documents.setupFixedSize': 'Fixed table size',
+  'documents.setupMargin': 'Margin (mm)',
   'documents.codeHint':
     'The code of this block: you can edit it here. It applies when you leave the field or press ⌘↵ / Ctrl+Enter; Esc undoes the edit.',
   'documents.codeBad': 'This code is not understood: fix it or press Esc to go back.',

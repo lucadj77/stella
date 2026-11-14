@@ -86,11 +86,14 @@ export function itemBox(it: SetupItem, sets: LoadedSet[], templates: Template[])
   }
 }
 
+/** Margine di base intorno agli elementi, in mm (`margin`) */
+export const SETUP_MARGIN = 3
+
 /** Area disegnata: quella scritta, o quella che contiene gli elementi con un poco di margine */
 export function setupArea(setup: Setup, boxes: Box[]): Box {
   if (setup.size) return { x: 0, y: 0, w: setup.size.w, h: setup.size.h }
   if (!boxes.length) return { x: 0, y: 0, w: 100, h: 50 }
-  const pad = 3
+  const pad = setup.margin ?? SETUP_MARGIN
   const x = Math.min(...boxes.map((b) => b.x)) - pad
   const y = Math.min(...boxes.map((b) => b.y)) - pad
   const w = Math.max(...boxes.map((b) => b.x + b.w)) + pad - x
