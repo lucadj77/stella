@@ -8,11 +8,13 @@ import { tableSource } from '../../../shared/model/document'
 import {
   DEFAULT_TABLE_STYLE,
   TABLE_LINES,
+  type TableAlign,
   type TableLines,
   type TableStyle
 } from '../../../shared/model/docTable'
 import { Dialog } from '../editor/dialogs'
-import { ColorField, NumberField, SelectField } from '../editor/fields'
+import { ColorField, NumberField, Row, SelectField } from '../editor/fields'
+import Segmented from './Segmented'
 import { useI18n } from '../i18n/context'
 import { runEdit } from './editRun'
 import ImageDialog from './ImageDialog'
@@ -236,6 +238,18 @@ export default function TableDialog({
             unit="%"
             onChange={(w) => change({ width: w > 0 ? w : null })}
           />
+          <Row label={t('documents.tablePosition')} hint={t('documents.tablePositionHint')}>
+            <Segmented<TableAlign>
+              value={style.align}
+              disabled={style.width === 100}
+              options={[
+                ['left', t('align.left')],
+                ['center', t('align.center')],
+                ['right', t('align.right')]
+              ]}
+              onChange={(align) => change({ align })}
+            />
+          </Row>
           <SelectField<TableLines>
             label={t('documents.tableLines')}
             value={style.lines}

@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.11.1-beta.4
+
+### English
+
+- **Table position**: a table narrower than the text can sit in the center or on the right of the line: **Position** in the **Table** window, `align=center` in the `<!-- table ... -->` line. PDF, HTML and Word keep it.
+
+### Italiano
+
+- **Posizione delle tabelle**: una tabella più stretta del testo può stare al centro o a destra della riga: **Posizione** nella finestra **Tabella**, `align=center` nella riga `<!-- table ... -->`. PDF, HTML e Word la mantengono.
+
 ## 1.11.1-beta.3
 
 ### English

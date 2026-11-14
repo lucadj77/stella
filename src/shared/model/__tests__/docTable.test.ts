@@ -74,3 +74,18 @@ describe('aspetto delle tabelle', () => {
     })
   })
 })
+
+describe('posizione delle tabelle', () => {
+  it('align=center o right, scritto solo se non è a sinistra', () => {
+    expect(parseTableStyle('<!-- table align=center -->').style.align).toBe('center')
+    expect(parseTableStyle('<!-- table width=60% align=right -->').style).toMatchObject({
+      width: 60,
+      align: 'right'
+    })
+    expect(parseTableStyle('<!-- table align=middle -->').bad).toEqual(['align=middle'])
+    expect(tableStyleSource({ ...DEFAULT_TABLE_STYLE, align: 'center' })).toBe(
+      '<!-- table align=center -->'
+    )
+    expect(tableStyleSource({ ...DEFAULT_TABLE_STYLE, align: 'left' })).toBe('')
+  })
+})

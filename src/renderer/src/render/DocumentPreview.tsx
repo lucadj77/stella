@@ -494,7 +494,13 @@ function TableView({
   return (
     <table
       className={head ? undefined : 'doc-properties'}
-      style={{ width: s.width ? `${s.width}%` : undefined }}
+      style={{
+        width: s.width ? `${s.width}%` : undefined,
+        // più stretta del testo: al centro o a destra con align=
+        ...(s.align !== 'left'
+          ? { marginLeft: 'auto', marginRight: s.align === 'center' ? 'auto' : 0 }
+          : null)
+      }}
     >
       {s.columns.length > 0 && (
         <colgroup>

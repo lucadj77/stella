@@ -1981,6 +1981,8 @@ export const it: Record<MessageKey, string> = {
     'Larghezza della colonna, in % della tabella (vuota: quanto il contenuto)',
   'documents.tableAuto': 'auto',
   'documents.tableLook': 'Aspetto',
+  'documents.tablePosition': 'Posizione',
+  'documents.tablePositionHint': 'Dove sta nella riga una tabella più stretta del testo',
   'documents.tableWidth': 'Larghezza della tabella',
   'documents.tableWidthHint': 'In % della larghezza del testo; 0 è quanto il contenuto.',
   'documents.tableLines': 'Linee',
