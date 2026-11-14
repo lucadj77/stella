@@ -17,7 +17,8 @@ import {
   ungroupLayer,
   updateLayers
 } from '../../../shared/model/edit'
-import type { Layer, LayerType, ShapeKind } from '../../../shared/model/template'
+import { combineLayers, convertToPath, isCombinable } from '../../../shared/model/combine'
+import type { GroupCombine, Layer, LayerType, ShapeKind } from '../../../shared/model/template'
 import type { EditorAction, EditorState } from './useEditor'
 
 // Comandi dell'editor, condivisi tra pannello livelli, barra degli strumenti e tastiera.
@@ -35,12 +36,18 @@ export interface Commands {
   paste(text: string): boolean
   group(): void
   ungroup(): void
+  /** Combina le forme selezionate in un gruppo, o cambia l'operazione del gruppo selezionato */
+  combine(op: GroupCombine): void
+  /** Il gruppo combinato selezionato diventa una forma `path` */
+  convertToPath(): void
   move(direction: 'up' | 'down'): void
   nudge(dx: number, dy: number): void
   toggle(id: string, prop: 'visible' | 'locked'): void
   /** Tutti i selezionati stanno nello stesso contenitore */
   canGroup: boolean
   canUngroup: boolean
+  /** Ci sono almeno due forme chiuse selezionate nello stesso contenitore */
+  canCombine: boolean
   /** I selezionati si possono spostare nella lista: in un derivato solo i livelli aggiunti */
   canMove: boolean
 }
@@ -69,6 +76,8 @@ export function commands(
     canGroup: siblings && !fixed,
     canUngroup: selected.some((l) => l.type === 'group' && !inherited(l.id)),
     canMove: selection.length > 0 && !fixed,
+    canCombine:
+      siblings && !fixed && selected.length > 1 && selected.filter(isCombinable).length > 1,
 
     add(type, shape, props) {
       const layer = { ...newLayer(tpl, type, shape, names), ...props } as Layer
@@ -132,6 +141,19 @@ export function commands(
       // l'ordine del gruppo segue quello dei livelli, non quello della selezione
       const { template, groupId } = groupLayers(tpl, side, selection)
       if (groupId) change(template, [groupId])
+    },
+
+    combine(op) {
+      if (!siblings || fixed) return
+      const { template, groupId } = combineLayers(tpl, side, selection, op)
+      if (groupId) change(template, [groupId])
+    },
+
+    convertToPath() {
+      const g = selected.length === 1 ? selected[0] : null
+      if (!g || inherited(g.id)) return
+      const r = convertToPath(tpl, side, g.id)
+      if (r.id) change(r.template, [r.id])
     },
 
     ungroup() {

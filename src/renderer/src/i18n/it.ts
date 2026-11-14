@@ -1067,6 +1067,24 @@ export const it: Record<MessageKey, string> = {
   'editor.arrangedHint':
     "Il riquadro del gruppo resta dove lo metti e i figli si dispongono al suo interno: trascina le maniglie per spostare o ridimensionare l'area.",
   'prop.clip': 'Livello in fondo come maschera',
+  'combine.title': 'Combina forme',
+  'combine.union': 'Unisci',
+  'combine.intersect': 'Interseca',
+  'combine.subtract': 'Sottrai',
+  'combine.exclude': 'Escludi',
+  'combine.unionHint': 'Una forma sola che copre tutte le forme',
+  'combine.intersectHint': 'Solo la parte comune a tutte le forme',
+  'combine.subtractHint': "La forma in fondo all'elenco dei livelli, meno le forme sopra",
+  'combine.excludeHint': 'Le parti coperte da una forma sola: le sovrapposizioni diventano buchi',
+  'combine.selectionHint':
+    'Fa delle forme selezionate una forma sola. Vanno in un gruppo e restano modificabili: se le sposti o le ridimensioni il risultato le segue. Il risultato prende riempimento, contorno e ombra della forma in fondo.',
+  'combine.groupHint':
+    'Disegna le forme di questo gruppo come una forma sola. Testi, immagini e linee si disegnano sopra, così come sono.',
+  'combine.activeHint':
+    "Le forme si disegnano come una sola, con l'aspetto della forma in fondo. Fai di nuovo clic sul pulsante attivo per disegnarle separate.",
+  'combine.convert': 'Converti in tracciato',
+  'combine.convertHint':
+    'Congela il risultato in una forma tracciato sola: le forme separate spariscono e non segue più i dati',
   'anchor.top-left': 'In alto a sinistra',
   'anchor.top': 'In alto',
   'anchor.top-right': 'In alto a destra',

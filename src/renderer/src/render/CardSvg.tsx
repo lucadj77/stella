@@ -1,6 +1,7 @@
 import { D4_TURNS, d4Wedge, dieOf, insetPolygon, pathPolygon } from '../../../shared/model/dice'
 import { Fragment, useCallback, useContext, useId, useLayoutEffect, useRef, useState } from 'react'
 import { arrangeGroup } from '../../../shared/model/arrange'
+import { combinedShape, isCombinable } from '../../../shared/model/combine'
 import { smoothStops } from './smoothGradient'
 import { isRemoteImage, resolveAsset } from '../../../shared/model/assets'
 import {
@@ -494,7 +495,7 @@ function ShapeView({ layer: l, id }: { layer: ShapeLayer; id: string }): React.J
     <GradientDef
       id={`${id}-fill`}
       gradient={gradient}
-      box={l.shape === 'path' ? { x: 0, y: 0, w: 1, h: 1 } : l}
+      box={l.shape === 'path' && !l.combined ? { x: 0, y: 0, w: 1, h: 1 } : l}
     />
   )
   const fill = gradient ? `url(#${id}-fill)` : (l.fill ?? 'none')
@@ -533,6 +534,8 @@ function ShapeBody({ layer: l, fill }: { layer: ShapeLayer; fill: string }): Rea
         />
       )
     case 'path': {
+      // il risultato di un gruppo combinato è già in mm
+      if (l.combined) return <path d={l.combined} strokeLinejoin="round" {...paint} />
       // il tracciato è in coordinate 0-1: lo spessore si riporta in mm dividendo per la scala
       const sw = l.stroke ? l.stroke.width : 0
       const k = (l.w + l.h) / 2
@@ -1356,6 +1359,16 @@ function GroupView({
   uid: string
 }): React.JSX.Element {
   const l = arrangeGroup(group)
+  if (l.combine !== 'none') {
+    // le forme diventano una sola, con l'aspetto della base; gli altri livelli stanno sopra
+    const shape = combinedShape(l)
+    return (
+      <>
+        {shape && <LayerView layer={shape} uid={uid} />}
+        <LayerList layers={l.children.filter((c) => !isCombinable(c))} uid={uid} />
+      </>
+    )
+  }
   const mask = l.clip ? l.children[l.children.length - 1] : undefined
   if (!mask || group.children.length < 2) return <LayerList layers={l.children} uid={uid} />
   const content = <LayerList layers={l.children.slice(0, -1)} uid={uid} />

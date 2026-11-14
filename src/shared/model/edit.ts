@@ -232,7 +232,7 @@ export function fitGroup(g: GroupLayer): GroupLayer {
   if (isArranged(g)) return arrangeModel(g)
   if (!g.children.some(isDrawn)) return g
   // un gruppo ritagliato occupa solo la sua maschera, il livello in fondo
-  if (g.clip && g.children.length > 1) return { ...g, ...boundsOf(g.children.slice(-1)) }
+  if (g.clip && g.combine === 'none' && g.children.length > 1) return { ...g, ...boundsOf(g.children.slice(-1)) }
   return { ...g, ...boundsOf(g.children) }
 }
 

@@ -1055,6 +1055,24 @@ export const en = {
   'editor.arrangedHint':
     'The group box stays where you put it and the children are placed inside it: drag its handles to move or resize the area.',
   'prop.clip': 'Bottom layer is a mask',
+  'combine.title': 'Combine shapes',
+  'combine.union': 'Union',
+  'combine.intersect': 'Intersect',
+  'combine.subtract': 'Subtract',
+  'combine.exclude': 'Exclude',
+  'combine.unionHint': 'One shape that covers all the shapes',
+  'combine.intersectHint': 'Only the area the shapes have in common',
+  'combine.subtractHint': 'The bottom shape in the layer list, minus the shapes above it',
+  'combine.excludeHint': 'The areas covered by only one shape: overlaps become holes',
+  'combine.selectionHint':
+    'Turn the selected shapes into one. They go into a group and stay editable: move or resize them and the result follows. The result takes the fill, stroke and shadow of the bottom shape.',
+  'combine.groupHint':
+    'Draw the shapes of this group as one shape. Texts, images and lines are drawn on top, as they are.',
+  'combine.activeHint':
+    'The shapes are drawn as one, with the look of the bottom shape. Click the active button again to draw them separately.',
+  'combine.convert': 'Convert to path',
+  'combine.convertHint':
+    'Freeze the result into a single path shape: the separate shapes are gone and it no longer follows the data',
   'anchor.top-left': 'Top left',
   'anchor.top': 'Top',
   'anchor.top-right': 'Top right',

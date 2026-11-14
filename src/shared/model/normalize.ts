@@ -1,6 +1,7 @@
 import { MessageError, msg } from '../messages'
 import type {
   AddedLayer,
+  GroupCombine,
   GroupLayer,
   ManualGuides,
   ImageLayer,
@@ -251,7 +252,9 @@ function normalizeLayerProps(raw: RawLayer, index: number): Layer {
       // il riquadro di un gruppo è l'ingombro dei figli, o della maschera se ritaglia;
       // con la disposizione automatica è salvato nel file
       if (isArranged(g) && raw.w !== undefined && raw.h !== undefined) return g
-      return { ...g, ...extent(raw.clip && children.length > 1 ? children.slice(-1) : children) }
+      if (!COMBINE_VALUES.includes(g.combine)) g.combine = 'none'
+      const masked = g.clip && g.combine === 'none' && children.length > 1
+      return { ...g, ...extent(masked ? children.slice(-1) : children) }
     }
     default:
       throw new MessageError(
@@ -264,8 +267,11 @@ function normalizeLayerProps(raw: RawLayer, index: number): Layer {
 export const SNAP_SIZE = 6
 export const SNAP_DEFAULTS: LayerSnap = { tags: '', rotated: false, angle: null }
 
+const COMBINE_VALUES: GroupCombine[] = ['none', 'union', 'intersect', 'subtract', 'exclude']
+
 const GROUP_DEFAULTS = {
   clip: false,
+  combine: 'none',
   layout: 'none',
   gap: 2,
   columns: 3,

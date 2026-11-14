@@ -201,6 +201,11 @@ export interface ShapeLayer extends LayerBase {
   innerRatio: number
   /** Tracciato SVG in coordinate 0-1 rispetto al riquadro, per shape = 'path' */
   path: string
+  /**
+   * Solo sulla carta disegnata: il risultato di un gruppo combinato, tracciato in mm sulla carta
+   * (model/combine.ts). Si disegna al posto di `path`
+   */
+  combined?: string
 }
 
 /** Forma delle caselle di una griglia */
@@ -319,11 +324,19 @@ export interface CellLook {
 }
 
 export type GroupLayout = 'none' | 'row' | 'column' | 'grid'
+/** Operazione tra le forme di un gruppo combinato (model/combine.ts) */
+export type GroupCombine = 'none' | 'union' | 'intersect' | 'subtract' | 'exclude'
 export type LayoutAlign = 'start' | 'center' | 'end'
 
 export interface GroupLayer extends LayerBase {
   type: 'group'
   clip: boolean
+  /**
+   * Le forme del gruppo si disegnano come una sola: unione, intersezione, differenza (dalla forma
+   * in fondo, la base, si tolgono le altre) o esclusione. Il risultato ha l'aspetto della base;
+   * gli altri livelli si disegnano sopra. Con combine, clip non conta
+   */
+  combine: GroupCombine
   children: Layer[]
   /** Disposizione automatica dei figli dentro il riquadro del gruppo */
   layout: GroupLayout

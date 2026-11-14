@@ -1,3 +1,4 @@
+import CombineButtons from './CombineButtons'
 import {
   lazy,
   Suspense,
@@ -246,6 +247,13 @@ export default function PropertiesPanel({
                   {t('layers.delete')}
                 </button>
               </div>
+              {cmd.canCombine && (
+                <>
+                  <h3>{t('combine.title')}</h3>
+                  <p className="muted small">{t('combine.selectionHint')}</p>
+                  <CombineButtons value={null} onPick={cmd.combine} />
+                </>
+              )}
               {first && (
                 <>
                   <p className="muted small">{t('editor.multiEdit', { name: first.name })}</p>
@@ -277,6 +285,11 @@ export default function PropertiesPanel({
                   <button onClick={cmd.ungroup} title={t('tip.ungroup')}>
                     {t('layers.ungroup')}
                   </button>
+                  {layer.combine !== 'none' && (
+                    <button onClick={cmd.convertToPath} title={t('combine.convertHint')}>
+                      {t('combine.convert')}
+                    </button>
+                  )}
                 </div>
               )}
             </>
@@ -998,14 +1011,26 @@ function GroupProperties({
   const arranged = l.layout !== 'none' || l.repeat.trim() !== '1'
   return (
     <>
-      <Inherit keys={['clip']}>
-        <CheckField
-          label={t('prop.clip')}
-          hint={t('editor.clipHint')}
-          value={l.clip}
-          onChange={(clip) => set({ clip })}
+      <h3>{t('combine.title')}</h3>
+      <p className="muted small">
+        {t(l.combine === 'none' ? 'combine.groupHint' : 'combine.activeHint')}
+      </p>
+      <Inherit keys={['combine']}>
+        <CombineButtons
+          value={l.combine}
+          onPick={(op) => set({ combine: op === l.combine ? 'none' : op })}
         />
       </Inherit>
+      {l.combine === 'none' && (
+        <Inherit keys={['clip']}>
+          <CheckField
+            label={t('prop.clip')}
+            hint={t('editor.clipHint')}
+            value={l.clip}
+            onChange={(clip) => set({ clip })}
+          />
+        </Inherit>
+      )}
       <h3>{t('editor.layout')}</h3>
       <Inherit keys={['layout']}>
         <SelectField<GroupLayout>
