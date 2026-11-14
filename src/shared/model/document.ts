@@ -108,7 +108,7 @@ export interface Callout {
   at?: { x: number; y: number }
   /**
    * Altezza del centro dell'etichetta, in frazione dell'altezza della carta (`label 30%`); di base
-   * all'altezza del punto. Un'etichetta con l'altezza scelta resta ferma: si spostano le altre.
+   * all'altezza del punto. Un'etichetta con l'altezza scelta resta lì e non sposta le altre.
    */
   labelY?: number
   /** Posizione della riga nel testo */

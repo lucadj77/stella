@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## Next version
+
+### English
+
+- **Anatomy labels**: dragging a label no longer moves the other labels around it, so it follows the mouse without jumps. It moves from where it is drawn, not from the mouse position. Labels with a chosen height stay where you put them; remove `label` from the code to make one automatic again.
+
+### Italiano
+
+- **Etichette dell'anatomia**: trascinare un'etichetta non sposta più le altre attorno, così segue il mouse senza sobbalzi. Si sposta da dov'è disegnata, non dalla posizione del mouse. Le etichette con un'altezza scelta restano dove le metti; togli `label` dal codice per farne tornare una automatica.
+
 ## 1.11.0-beta.4
 
 ### English
