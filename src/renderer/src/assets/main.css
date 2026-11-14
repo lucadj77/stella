@@ -8908,3 +8908,11 @@ button.wide {
   border-radius: 6px;
   font-size: 12px;
 }
+
+/* i punti dell'anatomia si trascinano nella finestra */
+.anatomy-handle {
+  cursor: grab;
+}
+.anatomy-handle:hover {
+  fill: rgba(47, 111, 222, 0.25);
+}

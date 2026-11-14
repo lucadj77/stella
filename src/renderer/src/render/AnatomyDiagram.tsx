@@ -56,6 +56,8 @@ function lines(text: string, width: number, font: number): number {
 
 interface Placed {
   label: string
+  /** Indice dell'etichetta in anatomy.callouts */
+  index: number
   /** Punto indicato sulla carta, in mm del disegno */
   ax: number
   ay: number
@@ -86,7 +88,9 @@ export default function AnatomyDiagram({
   project,
   unit,
   maxWidth,
-  font
+  font,
+  onMovePoint,
+  dragHint = ''
 }: {
   anatomy: Anatomy
   sets: LoadedSet[]
@@ -98,6 +102,13 @@ export default function AnatomyDiagram({
   maxWidth: number
   /** Corpo delle etichette in mm */
   font: number
+  /**
+   * Con questa funzione i punti si trascinano (nella finestra dell'anatomia): `at` in frazioni
+   * dell'area del livello, undefined per tornare al punto di base (doppio clic)
+   */
+  onMovePoint?(index: number, at: { x: number; y: number } | undefined): void
+  /** Suggerimento sui punti trascinabili */
+  dragHint?: string
 }): React.JSX.Element | null {
   const card = useBoundCard(anatomyCardSource(anatomy.card), sets, templates, project)
   if (!card) return null
@@ -106,9 +117,14 @@ export default function AnatomyDiagram({
   // del retro a destra; con una faccia sola ogni etichetta sta dalla parte del suo livello
   const faces: Side[] = anatomy.both ? ['front', 'back'] : [card.ref.side]
   const found = anatomy.callouts
-    .map((c) => {
+    .map((c, index) => {
       const face = calloutFace(anatomy, c, card.ref.side)
-      return { c, face, b: layerBounds(face === 'front' ? t.front : t.back, c.layer, c.cell) }
+      return {
+        c,
+        index,
+        face,
+        b: layerBounds(face === 'front' ? t.front : t.back, c.layer, c.cell)
+      }
     })
     .filter((x) => x.b !== null)
   const sideOf = (c: (typeof found)[number]): 'left' | 'right' =>
@@ -142,17 +158,49 @@ export default function AnatomyDiagram({
   for (const f of found) {
     const b = f.b!
     const side = sideOf(f)
-    // il punto sta dentro il livello, vicino al bordo dalla parte dell'etichetta
+    // il punto scelto con `at`, o dentro il livello vicino al bordo dalla parte dell'etichetta
     const inset = Math.min(2.5, (b.w * s) / 2)
-    const ax = faceX(f.face) + (side === 'left' ? b.x * s + inset : (b.x + b.w) * s - inset)
+    const at = f.c.at
+    const ax = at
+      ? faceX(f.face) + (b.x + at.x * b.w) * s
+      : faceX(f.face) + (side === 'left' ? b.x * s + inset : (b.x + b.w) * s - inset)
+    const ay = (at ? b.y + at.y * b.h : b.y + b.h / 2) * s
     const h = lines(f.c.label, labelW, font) * font * LINE
-    sides[side].push({ label: f.c.label, ax, ay: (b.y + b.h / 2) * s, h })
+    sides[side].push({ label: f.c.label, index: f.index, ax, ay, h })
   }
   const right = sides.right.length ? labelW + GAP : 0
   const placedL = stack(sides.left, 0, height)
   const placedR = stack(sides.right, 0, height)
   const total = Math.max(height, ...[...placedL, ...placedR].map((p) => p.y + p.h))
   const w = cardsEnd + right
+
+  /** Trascinando un punto: la posizione nell'area del livello, in frazioni, al massimo mezza area fuori */
+  const startDrag = (e: React.PointerEvent<SVGCircleElement>, index: number): void => {
+    const f = found.find((x) => x.index === index)
+    const svg = e.currentTarget.ownerSVGElement
+    if (!f || !svg || !onMovePoint) return
+    e.preventDefault()
+    const b = f.b!
+    // sulla finestra: trascinando, le etichette si riordinano e il cerchio può rinascere
+    const move = (ev: PointerEvent): void => {
+      const m = svg.getScreenCTM()
+      if (!m) return
+      const pt = new DOMPoint(ev.clientX, ev.clientY).matrixTransform(m.inverse())
+      const clamp = (v: number): number => Math.round(Math.max(-0.5, Math.min(1.5, v)) * 100) / 100
+      onMovePoint(index, {
+        x: clamp(((pt.x - faceX(f.face)) / s - b.x) / Math.max(b.w, 0.01)),
+        y: clamp((pt.y / s - b.y) / Math.max(b.h, 0.01))
+      })
+    }
+    const up = (): void => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+      window.removeEventListener('pointercancel', up)
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+    window.addEventListener('pointercancel', up)
+  }
 
   const label = (p: Placed, side: 'left' | 'right', k: number): React.JSX.Element => {
     const x = side === 'left' ? 0 : cardsEnd + GAP
@@ -179,6 +227,19 @@ export default function AnatomyDiagram({
           strokeLinejoin="round"
         />
         <circle cx={p.ax} cy={p.ay} r={0.9} fill={INK} stroke={HALO} strokeWidth={0.45} />
+        {onMovePoint && (
+          <circle
+            className="anatomy-handle"
+            cx={p.ax}
+            cy={p.ay}
+            r={2.2}
+            fill="transparent"
+            onPointerDown={(e) => startDrag(e, p.index)}
+            onDoubleClick={() => onMovePoint(p.index, undefined)}
+          >
+            <title>{dragHint}</title>
+          </circle>
+        )}
         {/* la posizione sta nel gruppo: l'esportazione in SVG converte il foreignObject da sé */}
         {/* il testo si impagina 10 volte più grande e si riduce: con un corpo di 3-4 px il
             browser lo ingrandisce fino al suo minimo e il foreignObject lo taglia */}

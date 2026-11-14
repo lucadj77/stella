@@ -1998,7 +1998,9 @@ export const it: Record<MessageKey, string> = {
   'documents.insertAnatomy': 'Anatomia del componente',
   'documents.editAnatomy': "Modifica l'anatomia del componente",
   'documents.anatomyHint':
-    'Spunta le parti del componente da spiegare e scrivi le etichette. Ogni etichetta va dal lato più vicino alla sua parte.',
+    'Spunta le parti del componente da spiegare e scrivi le etichette. Ogni etichetta va dal lato più vicino alla sua parte. Trascina un punto sul disegno per spostare dove arriva la sua linea; un doppio clic lo rimette a posto.',
+  'documents.anatomy.dragPoint':
+    'Trascina per spostare il punto; un doppio clic lo rimette a posto',
   'documents.anatomyLabel': 'Etichetta',
   'documents.saveAnatomy': 'Salva',
   'documents.setup': 'Schema tavolo',

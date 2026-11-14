@@ -604,3 +604,26 @@ describe('commenti', () => {
     expect(parseDocument('Testo %%resto\n\naltro').length).toBe(1)
   })
 })
+
+describe("punto delle etichette dell'anatomia", () => {
+  it('legge e riscrive at x% y%, anche con le altre opzioni', () => {
+    const src = [
+      '```anatomy',
+      'card: Personaggi/1',
+      '- forza (left, at 20% 80%): Forza',
+      '- nome (at 12.5%,-10%): Nome',
+      '- costo: Costo',
+      '```'
+    ].join('\n')
+    const [b] = parseDocument(src)
+    if (b.kind !== 'anatomy') throw new Error('not an anatomy')
+    expect(b.bad).toEqual([])
+    expect(b.callouts[0]).toMatchObject({ layer: 'forza', side: 'left', at: { x: 0.2, y: 0.8 } })
+    expect(b.callouts[1].at).toEqual({ x: 0.125, y: -0.1 })
+    expect(b.callouts[2].at).toBeUndefined()
+    const out = anatomySource('Personaggi/1', b.callouts)
+    expect(out).toContain('- forza (left, at 20% 80%): Forza')
+    expect(out).toContain('- nome (at 13% -10%): Nome')
+    expect(out).toContain('- costo: Costo')
+  })
+})

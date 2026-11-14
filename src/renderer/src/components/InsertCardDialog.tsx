@@ -166,6 +166,22 @@ export default function InsertCardDialog({
         ]) ?? []
       )
   )
+  /** Punti spostati delle etichette (at), per labelKey */
+  const [points, setPoints] = useState<Map<string, { x: number; y: number }>>(
+    () =>
+      new Map(
+        initial?.callouts.flatMap((c) =>
+          c.at
+            ? [
+                [
+                  labelKey(calloutFace(initial, c, start?.ref.side ?? 'front'), c.layer, c.cell),
+                  c.at
+                ]
+              ]
+            : []
+        ) ?? []
+      )
+  )
   const [caption, setCaption] = useState<string | null>(initial ? initial.caption : null)
   /** Didascalia sopra il disegno invece che sotto */
   const [captionTop, setCaptionTop] = useState(initial?.captionTop ?? false)
@@ -176,17 +192,21 @@ export default function InsertCardDialog({
     setWrapSide(w)
     if (w && anatomy && Number(blockWidth) >= 100) setBlockWidth('50')
   }
-  useUndo([setName, row, keyChoice, side, both, width, labels, caption, captionTop], (s) => {
-    setSetName(s[0])
-    setRow(s[1])
-    setKey(s[2])
-    setSide(s[3])
-    setBoth(s[4])
-    setWidth(s[5])
-    setLabels(s[6])
-    setCaption(s[7])
-    setCaptionTop(s[8])
-  })
+  useUndo(
+    [setName, row, keyChoice, side, both, width, labels, caption, captionTop, points],
+    (s) => {
+      setSetName(s[0])
+      setRow(s[1])
+      setKey(s[2])
+      setSide(s[3])
+      setBoth(s[4])
+      setWidth(s[5])
+      setLabels(s[6])
+      setCaption(s[7])
+      setCaptionTop(s[8])
+      setPoints(s[9])
+    }
+  )
   /** L'ultima etichetta dell'anatomia in cui si è scritto: la barra di formattazione agisce lì */
   const labelField = useRef<HTMLTextAreaElement | null>(null)
 
@@ -235,6 +255,7 @@ export default function InsertCardDialog({
                   face,
                   side: initial?.callouts.find((c) => c.layer === l.name && (c.cell ?? 1) === cell)
                     ?.side,
+                  ...(points.has(key) ? { at: points.get(key) } : {}),
                   ...(cell > 1 ? { cell } : {})
                 }))
               )
@@ -543,6 +564,18 @@ export default function InsertCardDialog({
                       unit={3}
                       maxWidth={160 * (preview.width ?? 1)}
                       font={3.2 * (preview.font ?? 1)}
+                      dragHint={t('documents.anatomy.dragPoint')}
+                      onMovePoint={(index, at) => {
+                        const c = preview.callouts[index]
+                        if (!c) return
+                        const key = labelKey(calloutFace(preview, c, side), c.layer, c.cell)
+                        setPoints((m) => {
+                          const next = new Map(m)
+                          if (at) next.set(key, at)
+                          else next.delete(key)
+                          return next
+                        })
+                      }}
                     />
                   </div>
                 )}

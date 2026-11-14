@@ -1083,6 +1083,10 @@ card: Characters/name=Wizard?width=50
 
 Elements inside a grid can be explained too: in the list of layers they appear under the grid, with the group repeated in the cells. Next to the label, **Cell** chooses the cell the arrow points at (from 1, counting row by row), and **+ Another cell** adds a label for another cell of the same element. In the text it is `(cell 7)` after the name, as in `- token (cell 7): the treasure`; without it, the first cell. **Caption**, below the sizes, gives the anatomy a title below or above the drawing (`caption:` and `caption-position: top` lines).
 
+**Moving the point.** By default the line ends inside the layer, near the edge on the label's side and halfway up. If that point is not clear, drag it on the drawing in the window: the cursor becomes a hand over the points. A double-click puts it back. In the text the position is `at` with two percentages of the layer's area, first across and then down (`0% 0%` top left, `100% 100%` bottom right), for example `- text (left, at 30% 80%): …`. The point follows the layer if you move or resize it in the template; it can go outside the layer by up to half its size.
+
+![The ability's point moved further right by dragging it](img/anatomia-punto.png)
+
 ### 12.5 Table setup
 
 **Table setup** draws how to set up the table, with the real components of the project. In the window the buttons **Zone**, **Component**, **Deck**, **Text**, **Arrow** and **Image** add an element; components and decks are chosen as in **Insert component**, images from assets.

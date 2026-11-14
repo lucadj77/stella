@@ -1083,6 +1083,10 @@ card: Personaggi/nome=Mago?width=50
 
 Anche gli elementi dentro una griglia si possono spiegare: nell'elenco dei livelli compaiono sotto la griglia, con il gruppo che si ripete nelle caselle. Accanto all'etichetta **Casella** sceglie la casella a cui punta la freccia (da 1, contando riga per riga), e **+ Un'altra casella** aggiunge un'etichetta per un'altra casella dello stesso elemento. Nel testo è `(cell 7)` dopo il nome, come in `- gettone (cell 7): il tesoro`; senza, la prima casella. **Didascalia**, sotto le misure, dà all'anatomia un titolo sotto o sopra il disegno (righe `caption:` e `caption-position: top`).
 
+**Spostare il punto.** Di base la linea arriva dentro il livello, vicino al bordo dalla parte dell'etichetta e a metà altezza. Se quel punto non è chiaro, trascinalo sul disegno nella finestra: il cursore diventa una mano sopra i punti. Un doppio clic lo rimette dov'era. Nel testo la posizione è `at` con due percentuali dell'area del livello, prima in orizzontale e poi in verticale (`0% 0%` in alto a sinistra, `100% 100%` in basso a destra), per esempio `- testo (left, at 30% 80%): …`. Il punto segue il livello se nel template lo sposti o lo ridimensioni; può uscire dal livello fino a metà della sua misura.
+
+![Il punto dell'abilità spostato più a destra trascinandolo](img/anatomia-punto.png)
+
 ### 12.5 Schema del tavolo
 
 **Schema tavolo** disegna come preparare il tavolo, con i componenti veri del progetto. Nella finestra i tasti **Zona**, **Componente**, **Mazzo**, **Testo**, **Freccia** e **Immagine** aggiungono un elemento; componenti e mazzi si scelgono come in **Inserisci componente**, le immagini dagli asset.

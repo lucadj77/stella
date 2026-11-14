@@ -1968,7 +1968,8 @@ export const en = {
   'documents.insertAnatomy': 'Component anatomy',
   'documents.editAnatomy': 'Edit component anatomy',
   'documents.anatomyHint':
-    'Tick the parts of the component to explain and write their labels. Labels go on the side nearest to each part.',
+    'Tick the parts of the component to explain and write their labels. Labels go on the side nearest to each part. Drag a point on the drawing to move where its line ends; double-click puts it back.',
+  'documents.anatomy.dragPoint': 'Drag to move the point; double-click puts it back',
   'documents.anatomyLabel': 'Label',
   'documents.saveAnatomy': 'Save',
   'documents.setup': 'Table setup',

@@ -13,6 +13,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Seed and Regenerate**: a set that uses chance has **🎲 Regenerate** and a **Seed** field in its bar. Regenerate draws the random numbers again with a new seed; the same seed always gives the same cards, and ⌘Z / Ctrl+Z goes back. The seed is saved in the project and shown with `{set.seed}`.
 - **Random formulas**: new functions `RAND()` (a number from 0 to 1) and `RANDBETWEEN(from; to)` (a whole number). Like `DEAL` and `{cell.random}`, they give the same result every time a card is drawn and change with the set's seed. Sets without a seed keep the numbers they had.
 - **Generate remembers**: after a random generation (at random or with a shuffled sequence) the set keeps the settings, so Regenerate writes the same rows again with another seed and **Generate…** opens with those settings.
+- **Anatomy points**: in the anatomy window you can drag the point where a label's line ends, and a double-click puts it back. In the text it is written `(at 30% 80%)`, a position in the layer's area, so it follows the layer when the template changes.
 
 ### Italiano
 
@@ -20,6 +21,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Seed e Rigenera**: un set che usa il caso ha nella barra **🎲 Rigenera** e il campo **Seed**. Rigenera estrae di nuovo i numeri a caso con un nuovo seed; lo stesso seed dà sempre le stesse carte e ⌘Z / Ctrl+Z torna indietro. Il seed si salva nel progetto e si mostra con `{set.seed}`.
 - **Formule a caso**: nuove funzioni `RAND()` (un numero da 0 a 1) e `RANDBETWEEN(da; a)` (un numero intero). Come `DEAL` e `{cell.random}` danno lo stesso risultato a ogni disegno della carta e cambiano con il seed del set. I set senza seed tengono i numeri che avevano.
 - **Genera ricorda**: dopo una generazione a caso (a caso o in sequenza mescolata) il set conserva le impostazioni, così Rigenera riscrive le stesse righe con un altro seed e **Genera…** si riapre con quelle impostazioni.
+- **Punti dell'anatomia**: nella finestra dell'anatomia si trascina il punto dove arriva la linea di un'etichetta, e un doppio clic lo rimette a posto. Nel testo si scrive `(at 30% 80%)`, una posizione nell'area del livello, così segue il livello quando il template cambia.
 
 ## 1.11.0-beta.3
 
