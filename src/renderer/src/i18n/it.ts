@@ -2495,7 +2495,7 @@ export const it: Record<MessageKey, string> = {
   'system.project.name': 'Nome del progetto (il gioco)',
   'system.set.name': 'Nome del set',
   'system.set.seed':
-    'Seme del set per i numeri a caso (RAND, RANDBETWEEN, {cell.random}, DEAL); vuoto: quello di base',
+    'Seed del set per i numeri a caso (RAND, RANDBETWEEN, {cell.random}, DEAL); vuoto: quello di base',
   'system.template.name': 'Nome del template del componente',
   'system.card.number': 'Numero del componente nel set: la sua riga, da 1',
   'system.set.rows': 'Quante righe ha il set',
@@ -2561,10 +2561,10 @@ export const it: Record<MessageKey, string> = {
   'help.ex.DEAL':
     '=DEAL("spada"; 4; "scudo"; "3-5"; "mano"; "") → 16 caselle: 4 spade, da 3 a 5 scudi, il resto mani',
   'help.fn.RAND':
-    'Un numero a caso da 0 a 1. Resta uguale a ogni disegno della carta; cambia con il seme del set ({set.seed}) e con il tasto 🎲 Rigenera',
+    'Un numero a caso da 0 a 1. Resta uguale a ogni disegno della carta; cambia con il seed del set ({set.seed}) e con il tasto 🎲 Rigenera',
   'help.ex.RAND': '=IF(RAND()<1/4; "rara"; "comune") → comune su circa 3 carte su 4',
   'help.fn.RANDBETWEEN':
-    'Un numero intero a caso dal primo al secondo, compresi; come RAND segue il seme del set',
+    'Un numero intero a caso dal primo al secondo, compresi; come RAND segue il seed del set',
   'help.ex.RANDBETWEEN': '=RANDBETWEEN(1; 6) → 4',
   'help.ex.CELLNUMBER': '=CELLNUMBER("up"; "rows"; "snake"; "all"; 1) → 1 2 3 4 / 8 7 6 5',
   'help.keys.save': 'Salva template, dati e impostazioni',
@@ -2859,11 +2859,11 @@ export const it: Record<MessageKey, string> = {
   'history.project': 'Impostazioni del progetto',
   'set.regenerate': 'Rigenera',
   'tip.regenerate':
-    'Estrae di nuovo i numeri a caso con un altro seme: RAND, RANDBETWEEN, DEAL e {cell.random} nelle formule, e le carte create a caso da Genera. ⌘Z / Ctrl+Z torna indietro',
-  'set.seed': 'Seme',
+    'Estrae di nuovo i numeri a caso con un altro seed: RAND, RANDBETWEEN, DEAL e {cell.random} nelle formule, e le carte create a caso da Genera. ⌘Z / Ctrl+Z torna indietro',
+  'set.seed': 'Seed',
   'set.seedDefault': 'di base',
   'tip.seed':
-    "Lo stesso seme dà sempre le stesse carte. Scrivi un numero per ritrovare un'estrazione che ti piaceva",
+    "Lo stesso seed dà sempre le stesse carte. Scrivi un numero per ritrovare un'estrazione che ti piaceva",
   'set.stats': 'Statistiche',
   'tip.stats':
     'Apre le statistiche del set accanto alle carte: valori, incrocio, dispersione, probabilità di pesca, testi, dadi e panoramica',
@@ -3095,10 +3095,10 @@ export const it: Record<MessageKey, string> = {
   'generate.count': 'Quanti',
   'generate.unique': 'Tutte diverse',
   'generate.uniqueHint': 'Niente componenti con gli stessi valori',
-  'generate.seed': 'Seme',
-  'generate.seedHint': 'Lo stesso seme dà gli stessi componenti',
+  'generate.seed': 'Seed',
+  'generate.seedHint': 'Lo stesso seed dà gli stessi componenti',
   'generate.shuffle': 'Rimescola',
-  'generate.shuffleHint': 'Estrai altri componenti con un nuovo seme',
+  'generate.shuffleHint': 'Estrai altri componenti con un nuovo seed',
   'generate.ofRequested': '(su {n} chieste: il filtro o Tutte diverse ne scartano troppe)',
   'generate.sequence': 'In sequenza',
   'generate.sequenceHint':
@@ -3583,7 +3583,7 @@ export const it: Record<MessageKey, string> = {
   'fx.var.cell.random': 'Numero casuale della casella',
   'fx.var.project.name': 'Nome del progetto',
   'fx.var.set.name': 'Nome del set',
-  'fx.var.set.seed': 'Seme del set',
+  'fx.var.set.seed': 'Seed del set',
   'fx.var.template.name': 'Nome del template',
   'fx.var.card.number': 'Numero del componente',
   'fx.var.set.rows': 'Righe del set',

@@ -780,9 +780,9 @@ Le funzioni, con un esempio sulle carte della guida (Drago, forza 4, costo `{oro
 
 La finestra **Aiuto** (F1), scheda **Formule**, ha la stessa tabella con il risultato calcolato sui componenti del progetto aperto.
 
-**Numeri a caso e seme.** `RAND`, `RANDBETWEEN`, `DEAL` e `{cell.random}` danno numeri a caso che però restano uguali a ogni disegno dello stesso componente: l'anteprima, la stampa e l'esportazione mostrano le stesse carte. Due chiamate nella stessa formula danno numeri diversi; la stessa formula scritta in due livelli dà lo stesso numero, quindi per riusarlo conviene metterla in un livello **Valore** e richiamarlo con `{nome}`. I numeri dipendono dal **seme** del set: un set che usa il caso (nelle formule o con **Genera** a caso, sezione 10) ha nella barra il tasto **🎲 Rigenera**, che sceglie un seme nuovo e quindi un'altra estrazione, e il campo **Seme**, dove si può riscrivere il numero di un'estrazione che piaceva. Lo stesso seme dà sempre le stesse carte; ⌘Z / Ctrl+Z torna a quelle di prima. Il seme si salva nel progetto e si mostra sulle carte con `{set.seed}`. Un set senza seme usa i numeri di base, gli stessi delle versioni precedenti.
+**Numeri a caso e seed.** `RAND`, `RANDBETWEEN`, `DEAL` e `{cell.random}` danno numeri a caso che però restano uguali a ogni disegno dello stesso componente: l'anteprima, la stampa e l'esportazione mostrano le stesse carte. Due chiamate nella stessa formula danno numeri diversi; la stessa formula scritta in due livelli dà lo stesso numero, quindi per riusarlo conviene metterla in un livello **Valore** e richiamarlo con `{nome}`. I numeri dipendono dal **seed** del set: un set che usa il caso (nelle formule o con **Genera** a caso, sezione 10) ha nella barra il tasto **🎲 Rigenera**, che sceglie un nuovo seed e quindi un'altra estrazione, e il campo **Seed**, dove si può riscrivere il numero di un'estrazione che piaceva. Lo stesso seed dà sempre le stesse carte; ⌘Z / Ctrl+Z torna a quelle di prima. Il seed si salva nel progetto e si mostra sulle carte con `{set.seed}`. Un set senza seed usa i numeri di base, gli stessi delle versioni precedenti.
 
-![Rigenera e il seme nella barra del set](img/rigenera.png)
+![Rigenera e il seed nella barra del set](img/rigenera.png)
 
 **Numeri con la virgola.** Di base Stella scrive i numeri con il punto: `=ROUND(7/3; 2)` dà 2.33. Per la virgola apri **Progetto › Lingue…** e, nella riga della lingua principale, scegli **Numeri: 1.234,5**. Da quel momento i numeri sui componenti si scrivono con la virgola, sia quelli del foglio sia i risultati delle formule, e nelle formule si scrive `2,5`: per questo gli argomenti vanno separati con `;`.
 
@@ -853,8 +853,8 @@ L'anteprima mostra quanti componenti nasceranno e le prime righe. **Aggiungi in 
 - **Con ripetizioni** acceso è come tirare un dado per ogni colonna; spento è come distribuire carte da un mazzo: lo stesso valore non torna in nessuna colonna dell'insieme.
 - **Limiti per valore** conta le presenze in tutte le colonne dell'insieme: con il 4 da 1 a 3 ogni componente ha almeno un 4 e al massimo tre.
 - **Filtro** funziona come prima: i componenti che scarta si estraggono di nuovo. **Tutte diverse** scarta i componenti già usciti. Se il filtro o **Tutte diverse** lasciano meno componenti di quelli chiesti, l'anteprima lo dice.
-- **Seme** è il numero da cui parte l'estrazione: lo stesso seme dà gli stessi componenti, **Rimescola** ne sceglie un altro. La finestra parte dal seme del set e, generando, lo diventa.
-- Il set ricorda le impostazioni dell'ultima generazione a caso: **🎲 Rigenera** nella barra del set (sezione 9) riscrive le stesse righe con un altro seme, senza riaprire la finestra, e **Genera…** si riapre con quelle impostazioni. Le altre colonne e `amount` restano come sono. Una generazione non a caso che sostituisce o aggiorna i componenti toglie le impostazioni ricordate.
+- **Seed** è il numero da cui parte l'estrazione: lo stesso seed dà gli stessi componenti, **Rimescola** ne sceglie un altro. La finestra parte dal seed del set e, generando, lo diventa.
+- Il set ricorda le impostazioni dell'ultima generazione a caso: **🎲 Rigenera** nella barra del set (sezione 9) riscrive le stesse righe con un altro seed, senza riaprire la finestra, e **Genera…** si riapre con quelle impostazioni. Le altre colonne e `amount` restano come sono. Una generazione non a caso che sostituisce o aggiorna i componenti toglie le impostazioni ricordate.
 
 ![Il generatore a caso: i numeri 1-4 su quattro colonne, il 4 da una a tre volte](img/genera-caso.png)
 
@@ -864,7 +864,7 @@ Nell'elenco dei valori `oro*3` vale oro tre volte: a caso oro esce tre volte pi�
 
 - **Quanti** sceglie tra **Tutti i componenti del set**, che scrive la colonna nelle righe già presenti (**Aggiorna i componenti**), e un numero di **Giri**, cioè quante volte si ripete la sequenza. Se i componenti non sono un multiplo del giro, l'ultimo giro resta a metà.
 - **Ordine**: **Come scritto** ripete sempre lo stesso ordine; **Mescola ogni giro** cambia a caso l'ordine dentro ogni giro (ogni giro ha comunque tutti i valori una volta); **Ogni giro un ordine diverso** usa a ogni giro un ordine non ancora usato (con a, b, c ce ne sono sei) e, finiti tutti, ricomincia; **Mescola tutto** mescola insieme i valori di tutti i giri come un mazzo, per esempio `rosso*4, blu*4, verde*4` su 12 carte dà 4 carte per colore in ordine casuale.
-- Il **Seme** e **Rimescola** funzionano come a caso. Il filtro non c'è, perché scartare componenti romperebbe la sequenza.
+- Il **Seed** e **Rimescola** funzionano come a caso. Il filtro non c'è, perché scartare componenti romperebbe la sequenza.
 
 Una sequenza spostata di un posto rispetto a un'altra (a/b, b/c, c/a) si ottiene anche con un campo calcolato: `PICK({card.number}+1; "a"; "b"; "c")`. Vale solo per l'ordine come scritto.
 

@@ -55,7 +55,7 @@ I progetti creati quando l'app si chiamava Naibi hanno `naibi.json`, quelli anco
 
 `sheet` è facoltativo: se manca si usa il foglio con lo stesso nome del set. `hiddenColumns` (facoltativo) elenca le colonne nascoste nella tabella e nei campi della carta; `showComputed: true` mostra anche i livelli fissi e con formula, in sola lettura. `pinnedProperties` (facoltativo) elenca le proprietà fissate nei campi della carta, come colonne `livello.proprietà`. Sono solo preferenze di vista: non cambiano le carte.
 
-`seed` (facoltativo, un numero intero) è il seme dei numeri a caso del set: `RAND()`, `RANDBETWEEN()`, `{cell.random}` e `DEAL` nelle formule. Se manca i numeri sono quelli di base, sempre uguali; lo stesso seme dà sempre le stesse carte. `generator` (facoltativo) conserva le impostazioni dell'ultima generazione a caso (Strumenti > Genera) e la prima riga che ha scritto (`from`), perché Rigenera possa riscrivere le carte con un altro seme.
+`seed` (facoltativo, un numero intero) è il seed dei numeri a caso del set: `RAND()`, `RANDBETWEEN()`, `{cell.random}` e `DEAL` nelle formule. Se manca i numeri sono quelli di base, sempre uguali; lo stesso seed dà sempre le stesse carte. `generator` (facoltativo) conserva le impostazioni dell'ultima generazione a caso (Strumenti > Genera) e la prima riga che ha scritto (`from`), perché Rigenera possa riscrivere le carte con un altro seed.
 
 `styles` (facoltativo) contiene gli stili di testo del progetto, scritti con gli stessi attributi del markup (docs/specifica.md, 2.1). Gli stili `heading1`, `heading2` e `note` esistono sempre e si possono ridefinire qui. Finché non c'è l'editor degli stili si modificano a mano.
 

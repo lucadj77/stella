@@ -17,9 +17,9 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 ### Italiano
 
 - **Scegliere i componenti da esportare**: sotto i set, **Scegli i componenti…** mostra le miniature dei componenti e permette di esportarne solo alcuni, uno per uno. **Nuovi o cambiati rispetto a** sceglie solo quelli diversi dall'ultima esportazione o da un backup; con un backup, **Mostra prima e dopo** mette accanto a ogni componente cambiato com'era. Serve per ristampare solo quello che è cambiato.
-- **Seme e Rigenera**: un set che usa il caso ha nella barra **🎲 Rigenera** e il campo **Seme**. Rigenera estrae di nuovo i numeri a caso con un seme nuovo; lo stesso seme dà sempre le stesse carte e ⌘Z / Ctrl+Z torna indietro. Il seme si salva nel progetto e si mostra con `{set.seed}`.
-- **Formule a caso**: nuove funzioni `RAND()` (un numero da 0 a 1) e `RANDBETWEEN(da; a)` (un numero intero). Come `DEAL` e `{cell.random}` danno lo stesso risultato a ogni disegno della carta e cambiano con il seme del set. I set senza seme tengono i numeri che avevano.
-- **Genera ricorda**: dopo una generazione a caso (a caso o in sequenza mescolata) il set conserva le impostazioni, così Rigenera riscrive le stesse righe con un altro seme e **Genera…** si riapre con quelle impostazioni.
+- **Seed e Rigenera**: un set che usa il caso ha nella barra **🎲 Rigenera** e il campo **Seed**. Rigenera estrae di nuovo i numeri a caso con un nuovo seed; lo stesso seed dà sempre le stesse carte e ⌘Z / Ctrl+Z torna indietro. Il seed si salva nel progetto e si mostra con `{set.seed}`.
+- **Formule a caso**: nuove funzioni `RAND()` (un numero da 0 a 1) e `RANDBETWEEN(da; a)` (un numero intero). Come `DEAL` e `{cell.random}` danno lo stesso risultato a ogni disegno della carta e cambiano con il seed del set. I set senza seed tengono i numeri che avevano.
+- **Genera ricorda**: dopo una generazione a caso (a caso o in sequenza mescolata) il set conserva le impostazioni, così Rigenera riscrive le stesse righe con un altro seed e **Genera…** si riapre con quelle impostazioni.
 
 ## 1.11.0-beta.3
 
