@@ -3205,6 +3205,15 @@ export const it: Record<MessageKey, string> = {
   'menu.uiReset': 'Dimensione normale',
   'menu.whatsNew': 'Novità',
   'menu.website': 'Stella su GitHub',
+  'documents.pdfPreview': 'Anteprima PDF',
+  'documents.pdfPreviewBusy': 'Preparo…',
+  'documents.pdfPreviewHint':
+    "Mostra il documento com'è stampato in PDF, pagina per pagina, in una finestra a parte",
+  'documents.pdfPreviewWebHint':
+    "Apre la finestra di stampa, che nell'anteprima mostra le pagine come saranno stampate",
+  'documents.pages': 'Pagine',
+  'documents.pagesHint': 'Mostra dove cominciano le pagine del PDF',
+  'documents.pageNumber': 'Pagina {n}',
   'documents.zoom': "Zoom dell'anteprima",
   'documents.zoomIn': 'Ingrandisci (⌘ / Ctrl e rotella)',
   'documents.zoomOut': 'Riduci (⌘ / Ctrl e rotella)',

@@ -9,7 +9,7 @@ import { loadProject } from './project/load'
 import { saveTemplate, trashTemplate } from './project/templates'
 import { saveDocument, saveNote, trashDocument, trashNote } from './project/notes'
 import { writeDocumentExport } from './project/docExport'
-import { htmlToPdf } from './export/docPdf'
+import { htmlToPdf, previewPdf } from './export/docPdf'
 import { dropDeleted, listDeleted, readDeleted } from './project/trash'
 import { readBackupVersion, readPrinted, savePrinted } from './project/versions'
 import { fetchGoogleSheet } from './project/googleSheets'
@@ -441,6 +441,9 @@ function registerIpc(): void {
   })
 
   ipcMain.handle('document:pdf', (_, html: string) => htmlToPdf(html))
+  ipcMain.handle('document:pdf-preview', (e, html: string, title: string) =>
+    previewPdf(html, title, BrowserWindow.fromWebContents(e.sender))
+  )
 
   ipcMain.handle('trash:list', async () => {
     const folder = getProjectFolder()

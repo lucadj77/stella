@@ -162,6 +162,7 @@ export const webApi: Api = {
   deleteDocument: (name) => trashDocument(projectFolder(), name),
   exportDocumentFiles: (files) => writeDocumentExport(projectFolder(), files),
   documentPdf: desktopOnly,
+  previewDocumentPdf: desktopOnly,
   listDeleted: () => listDeleted(projectFolder()),
   readDeleted: (file) => readDeleted(projectFolder(), file),
   dropDeleted: (files) => dropDeleted(projectFolder(), files),

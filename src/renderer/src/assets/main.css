@@ -6418,6 +6418,70 @@ body[data-vision] .preview-card-inner > svg {
   cursor: text;
 }
 
+/* le regole della stampa, che valgono anche per le interruzioni segnate sull'anteprima */
+.doc-figure figure,
+.doc-page tr,
+.doc-page pre,
+.doc-page blockquote,
+.doc-item {
+  break-inside: avoid;
+}
+
+.doc-page h1,
+.doc-page h2,
+.doc-page h3 {
+  break-after: avoid;
+}
+
+/* la copia nascosta della pagina, impaginata in colonne alte quanto una pagina del PDF */
+.pages-measure {
+  position: fixed;
+  left: -100000px;
+  top: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* la pagina con lo zoom: si impagina a grandezza vera e si rimpicciolisce; il contenitore ha la
+   misura rimpicciolita */
+.page-sheet {
+  position: relative;
+  flex-shrink: 0;
+  margin: 0 auto;
+}
+
+.page-sheet > .doc-page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 0;
+  transform-origin: 0 0;
+}
+
+/* dove comincia una pagina del PDF, sull'anteprima continua */
+
+.page-break-mark {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 2px dashed var(--accent);
+  pointer-events: none;
+}
+
+.page-break-mark span {
+  position: absolute;
+  right: 4px;
+  bottom: 2px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--accent);
+  color: #ffffff;
+  font:
+    600 11px/1.4 system-ui,
+    sans-serif;
+}
+
 .doc-page h1,
 .doc-page h2,
 .doc-page h3 {

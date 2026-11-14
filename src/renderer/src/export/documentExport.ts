@@ -51,6 +51,7 @@ export async function documentHtml(
 ): Promise<string> {
   const clone = page.cloneNode(true) as HTMLElement
   clone.style.removeProperty('zoom')
+  clone.style.removeProperty('transform')
   clone.querySelectorAll('[data-from]').forEach((el) => el.removeAttribute('data-from'))
   // le carte e le immagini che non si trovano restano fuori, con la loro didascalia
   clone.querySelectorAll('.doc-missing').forEach((el) => (el.closest('figure') ?? el).remove())
@@ -96,8 +97,6 @@ body { margin: 0; padding: 10mm 0 }
 * { print-color-adjust: exact; -webkit-print-color-adjust: exact }
 ${faces}
 ${css}
-.doc-figure figure, .doc-page tr, .doc-page pre, .doc-page blockquote, .doc-item { break-inside: avoid }
-.doc-page h1, .doc-page h2, .doc-page h3 { break-after: avoid }
 @media print {
   html { background: none }
   body { padding: 0 }

@@ -25,6 +25,7 @@ const api: Api = {
   deleteDocument: (name) => ipcRenderer.invoke('document:delete', name),
   exportDocumentFiles: (files) => ipcRenderer.invoke('document:export-files', files),
   documentPdf: (html) => ipcRenderer.invoke('document:pdf', html),
+  previewDocumentPdf: (html, title) => ipcRenderer.invoke('document:pdf-preview', html, title),
   listDeleted: () => ipcRenderer.invoke('trash:list'),
   readDeleted: (file) => ipcRenderer.invoke('trash:read', file),
   dropDeleted: (files) => ipcRenderer.invoke('trash:drop', files),

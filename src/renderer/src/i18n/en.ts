@@ -3165,6 +3165,15 @@ export const en = {
   'menu.uiReset': 'Normal interface size',
   'menu.whatsNew': "What's new",
   'menu.website': 'Stella on GitHub',
+  'documents.pdfPreview': 'PDF preview',
+  'documents.pdfPreviewBusy': 'Preparing…',
+  'documents.pdfPreviewHint':
+    'Show the document as it will be printed to PDF, page by page, in a separate window',
+  'documents.pdfPreviewWebHint':
+    'Open the print window, whose preview shows the pages as they will be printed',
+  'documents.pages': 'Pages',
+  'documents.pagesHint': 'Show where the PDF pages begin',
+  'documents.pageNumber': 'Page {n}',
   'documents.zoom': 'Preview zoom',
   'documents.zoomIn': 'Zoom in (⌘ / Ctrl and scroll wheel)',
   'documents.zoomOut': 'Zoom out (⌘ / Ctrl and scroll wheel)',
