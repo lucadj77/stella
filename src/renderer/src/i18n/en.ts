@@ -1965,8 +1965,8 @@ export const en = {
   'documents.anatomy': 'Anatomy',
   'documents.anatomyButtonHint':
     'A component with labels that explain its parts; with the cursor in an anatomy, edits it',
-  'documents.insertAnatomy': 'Component anatomy',
-  'documents.editAnatomy': 'Edit component anatomy',
+  'documents.insertAnatomy': 'Anatomy',
+  'documents.editAnatomy': 'Edit anatomy',
   'documents.anatomyHint':
     'Tick the parts of the component to explain and write their labels. Labels go on the side nearest to each part. Drag a point on the drawing to move where its line ends (double-click puts it back); drag a label up or down to choose its height (remove `label` from the code to make it automatic again); double-click a label to change its text. You can also edit the code below.',
   'documents.anatomy.dragPoint': 'Drag to move the point; double-click puts it back',

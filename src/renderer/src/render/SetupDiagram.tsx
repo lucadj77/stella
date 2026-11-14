@@ -9,6 +9,7 @@ import { backdropInner, imageBackdrop } from '../../../shared/model/shapes'
 import { imageVariable, palette, resolveColor } from '../../../shared/model/variables'
 import { SvgBackdrop } from './backdrop'
 import CardSvg, { CardOutline } from './CardSvg'
+import Edged from './Edged'
 import { MarkupInline } from './MarkupText'
 import { AssetsContext, VariablesContext, assetUrl } from './assets'
 import { useBoundCard } from './useBoundCard'
@@ -96,6 +97,7 @@ export default function SetupDiagram({
             sets={sets}
             templates={templates}
             project={project}
+            scale={px / unit / area.w}
           />
         ) : it.kind === 'image' ? (
           <Item key={i} i={i} it={it} font={font} />
@@ -162,7 +164,8 @@ function CardItem({
   font,
   sets,
   templates,
-  project
+  project,
+  scale
 }: {
   i: number
   it: Extract<SetupItem, { kind: 'card' | 'deck' }>
@@ -171,6 +174,8 @@ function CardItem({
   sets: LoadedSet[]
   templates: Template[]
   project?: string | ProjectMeta
+  /** mm della pagina per un mm del tavolo: il filo attorno alle carte resta sottile uguale */
+  scale: number
 }): React.JSX.Element {
   const card = useBoundCard(anatomyCardSource(it.card), sets, templates, project)
   const layers = it.kind === 'deck' ? Math.min(it.count, DECK_LAYERS + 1) - 1 : 0
@@ -183,17 +188,16 @@ function CardItem({
   const outline = (paint: React.SVGProps<SVGPathElement>): React.JSX.Element =>
     t ? (
       <g transform={`scale(${k})`}>
-        <CardOutline template={t} {...paint} scale={k} strokeWidth={0.25 / k} />
+        <CardOutline template={t} {...paint} scale={k} strokeWidth={0.25 / scale / k} />
       </g>
     ) : (
       <rect width={cw} height={ch} rx={3} {...(paint as React.SVGProps<SVGRectElement>)} />
     )
   const face = t ? (
-    <>
+    // un filo attorno alla carta, perché una faccia chiara non si perda sul foglio
+    <Edged unit={scale}>
       <CardSvg template={t} side={card.ref.side} scale={k} />
-      {/* un filo attorno alla carta, perché una faccia chiara non si perda sul foglio */}
-      {outline({ fill: 'none', stroke: '#a1a1a6' })}
-    </>
+    </Edged>
   ) : (
     <rect width={cw} height={ch} rx={3} fill="#f3f3f0" stroke="#e5484d" strokeDasharray="2 1" />
   )
@@ -206,7 +210,7 @@ function CardItem({
     <g data-item={i}>
       {Array.from({ length: layers }, (_, k) => (
         <g key={k} transform={rotated((layers - k) * DECK_STEP)}>
-          {outline({ fill: '#ffffff', stroke: '#a1a1a6' })}
+          {outline({ fill: '#ffffff', stroke: '#000000', strokeOpacity: 0.6 })}
         </g>
       ))}
       <g transform={rotated(0)}>{face}</g>
