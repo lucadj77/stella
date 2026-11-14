@@ -1923,6 +1923,9 @@ export const en = {
   'documents.boxBorder': 'Border',
   'documents.boxBorderWidth': 'Border thickness',
   'documents.boxPadding': 'Inner space',
+  'documents.boxAlign': 'Position',
+  'documents.boxAlignHint':
+    'Where a box narrower than the line sits, when the text does not flow beside it',
   'documents.boxWidth': 'Width',
   'documents.clear': 'Start below',
   'documents.clearHint':

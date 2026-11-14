@@ -564,21 +564,22 @@ Component text is written with a simple markup, the same in the app and in the s
 
 ### 6.1 Markdown
 
-| Write                    | You get                                           |
-| ------------------------ | ------------------------------------------------- |
-| `**text**`               | bold                                              |
-| `*text*`                 | italic                                            |
-| `++text++`               | underline                                         |
-| `~~text~~`               | strikethrough                                     |
-| `==text==`               | highlight                                         |
-| `^text^` / `~text~`      | superscript / subscript                           |
-| `# Title`, `## Subtitle` | paragraph with the `heading1` or `heading2` style |
-| `> text`                 | paragraph with the `note` style                   |
-| `- item` / `1. item`     | bulleted / numbered list                          |
-| `---`                    | divider line                                      |
-| `\` at the end of a line | line break without a new paragraph                |
-| `<br>`                   | line break where the text is on a single line     |
-| `_4{coin}_`              | never breaks across lines                         |
+| Write                                  | You get                                                                   |
+| -------------------------------------- | ------------------------------------------------------------------------- |
+| `**text**`                             | bold                                                                      |
+| `*text*`                               | italic                                                                    |
+| `++text++`                             | underline                                                                 |
+| `~~text~~`                             | strikethrough                                                             |
+| `==text==`                             | highlight                                                                 |
+| `^text^` / `~text~`                    | superscript / subscript                                                   |
+| `# Title`, `## Subtitle`               | paragraph with the `heading1` or `heading2` style                         |
+| `> text`                               | paragraph with the `note` style                                           |
+| `{center} text`, `## {center} Heading` | a centered paragraph or heading; also `{right}`, `{left}` and `{justify}` |
+| `- item` / `1. item`                   | bulleted / numbered list                                                  |
+| `---`                                  | divider line                                                              |
+| `\` at the end of a line               | line break without a new paragraph                                        |
+| `<br>`                                 | line break where the text is on a single line                             |
+| `_4{coin}_`                            | never breaks across lines                                                 |
 
 Every line break starts a new paragraph, as when you type in an Excel cell with Alt+Enter. To keep a piece of text on one line, so that `4` and its icon never end up on different lines, wrap it in underscores: `_4{coin}_`. It is the same as `[4{coin}]{nowrap}`. An underscore inside a word (`file_name`) stays as it is; write `\_` for a lone one.
 
@@ -1032,6 +1033,8 @@ The text is Markdown, with Stella's markup from [chapter 6](#6-text-and-markup) 
 | `![](icons/map.png)`                         | an image from assets                                             |
 | `![](icons/map.png?width=40&align=right)`    | an image 40 mm wide, on the right                                |
 
+To center a paragraph, write `{center}` at its start, as in component texts: `{center} *The castle will not fall tonight.*`. It also works for headings (`## {center} Setup`) and notes (`> {center} text`); `{right}` aligns it to the right, and `{left}` or `{justify}` change the alignment chosen in **Settings** for that paragraph only. The same braces can hold a style and other attributes, which apply to the whole paragraph: `{.flavor center} Text`. The PDF, HTML and Word exports keep the alignment, the Markdown export does not.
+
 ### 12.2 Components and images
 
 Components are not copied into the document: Stella draws them from the project, so a change to the data or the template shows in the document at once. **Insert component** opens a window where you choose the set and the component (search by name), the side, the width in millimetres (empty for the real size) and the caption, and writes the reference at the cursor.
@@ -1057,6 +1060,8 @@ Under the grid, **Look** sets the table width (as % of the text, 0 for as wide a
 ![The table window, with the look at the bottom](img/doc-tabella.png)
 
 **Box** puts a colored background behind a part of the document: to make a piece of text stand out, or to set white images without a border apart from the page. With some lines selected it puts them in the box; with no selection it inserts a new box with sample text. You choose the background, a border (color and thickness), the inner space and rounded corners; with the cursor inside a box the same button changes it or removes it (**Remove box** keeps what is inside). In the text a box is two lines, `<!-- box fill=#fff3c4 border=#e0b000 -->` at the start and `<!-- /box -->` at the end: everything between them (headings, lists, tables, components) gets the background. The HTML, PDF and Word exports keep it, the Markdown export does not.
+
+A box narrower than the line sits on the left by default: **Position** puts it in the center or on the right (`<!-- box width=60% align=center -->`). The position applies only without text beside; the text inside the box is aligned on its own, with `{center}` at the start of a paragraph.
 
 **Text beside** makes the text that follows flow beside an image, a component, an anatomy, a table setup or a box, instead of leaving them the whole line: choose **On the left** or **On the right** under **Text beside**, in their window. Everything that comes after, headings included, flows beside it while there is room; the **Start below** button of the toolbar writes a `<!-- clear -->` line that makes the text start again below the block. The end of a box and the end of the document start below too.
 

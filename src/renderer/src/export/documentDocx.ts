@@ -204,6 +204,9 @@ export async function documentDocx(
     `<w:p>${props ? `<w:pPr>${props}</w:pPr>` : ''}${content}</w:p>`
   const jc = (a: HAlign | null | undefined): string =>
     a === 'center' ? '<w:jc w:val="center"/>' : a === 'right' ? '<w:jc w:val="right"/>' : ''
+  /** Allineamento di un paragrafo con {center} a inizio testo (anche left, contro il giustificato) */
+  const paraJc = (a: HAlign | undefined): string =>
+    a ? `<w:jc w:val="${a === 'justify' ? 'both' : a}"/>` : ''
 
   const [pageW, pageH] = DOC_PAGES[settings.page]
   const textW = (pageW - 2 * settings.margin) * TWIP
@@ -257,8 +260,12 @@ export async function documentDocx(
         ? `<w:${name} w:val="single" w:sz="${size}" w:space="0" w:color="${border}"/>`
         : `<w:${name} w:val="nil"/>`
     const pad = Math.round(s.padding * TWIP)
+    // più stretto della riga: la sua larghezza, al centro o a destra con align= (il testo accanto
+    // in Word non c'è: il riquadro sta sulla sua riga)
+    const boxW = Math.round(textW * (s.width && s.width < 1 ? s.width : 1))
+    const boxJc = boxW < textW && !s.wrap && s.align !== 'left' ? `<w:jc w:val="${s.align}"/>` : ''
     body.push(
-      `<w:tbl><w:tblPr><w:tblW w:w="${Math.round(textW)}" w:type="dxa"/><w:tblBorders>` +
+      `<w:tbl><w:tblPr><w:tblW w:w="${boxW}" w:type="dxa"/>${boxJc}<w:tblBorders>` +
         side('top') +
         side('left') +
         side('bottom') +
@@ -266,8 +273,8 @@ export async function documentDocx(
         `</w:tblBorders><w:tblCellMar><w:top w:w="${pad}" w:type="dxa"/>` +
         `<w:left w:w="${pad}" w:type="dxa"/><w:bottom w:w="${pad}" w:type="dxa"/>` +
         `<w:right w:w="${pad}" w:type="dxa"/></w:tblCellMar></w:tblPr>` +
-        `<w:tblGrid><w:gridCol w:w="${Math.round(textW)}"/></w:tblGrid><w:tr><w:tc><w:tcPr>` +
-        `<w:tcW w:w="${Math.round(textW)}" w:type="dxa"/>` +
+        `<w:tblGrid><w:gridCol w:w="${boxW}"/></w:tblGrid><w:tr><w:tc><w:tcPr>` +
+        `<w:tcW w:w="${boxW}" w:type="dxa"/>` +
         (fill ? `<w:shd w:val="clear" w:color="auto" w:fill="${fill}"/>` : '') +
         `</w:tcPr>${inner.join('')}</w:tc></w:tr></w:tbl>`,
       para('', '<w:spacing w:after="0"/>')
@@ -284,13 +291,15 @@ export async function documentDocx(
     }
     switch (b.kind) {
       case 'heading':
-        body.push(para(await inline(b.text), `<w:pStyle w:val="Heading${b.level}"/>`))
+        body.push(
+          para(await inline(b.text), `<w:pStyle w:val="Heading${b.level}"/>${paraJc(b.align)}`)
+        )
         break
       case 'paragraph':
-        body.push(para(await inline(b.text)))
+        body.push(para(await inline(b.text), paraJc(b.align)))
         break
       case 'quote':
-        body.push(para(await inline(b.text), '<w:pStyle w:val="Quote"/>'))
+        body.push(para(await inline(b.text), `<w:pStyle w:val="Quote"/>${paraJc(b.align)}`))
         break
       case 'rule':
         body.push(

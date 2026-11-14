@@ -1,11 +1,12 @@
 import { useContext, useState } from 'react'
-import { DEFAULT_BOX_STYLE, type BoxStyle } from '../../../shared/model/docBox'
+import { DEFAULT_BOX_STYLE, type BoxAlign, type BoxStyle } from '../../../shared/model/docBox'
 import { palette, resolveColor } from '../../../shared/model/variables'
 import { Dialog } from '../editor/dialogs'
 import { ColorField, NumberField } from '../editor/fields'
 import { useI18n } from '../i18n/context'
 import { VariablesContext } from '../render/assets'
 import { useUndo } from './useUndo'
+import Segmented from './Segmented'
 import WrapField from './WrapField'
 
 /**
@@ -96,6 +97,19 @@ export default function BoxDialog({
           unit="%"
           onChange={(n) => change({ width: n >= 100 ? null : Math.max(10, n) / 100 })}
         />
+        <label title={t('documents.boxAlignHint')}>
+          {t('documents.boxAlign')}
+          <Segmented<BoxAlign>
+            value={style.align}
+            disabled={!!style.wrap || !style.width || style.width >= 1}
+            options={[
+              ['left', t('align.left')],
+              ['center', t('align.center')],
+              ['right', t('align.right')]
+            ]}
+            onChange={(align) => change({ align })}
+          />
+        </label>
         <WrapField
           value={style.wrap}
           // un riquadro a tutta riga non lascia posto al testo: si parte da metà

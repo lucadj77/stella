@@ -1,9 +1,11 @@
 export default function Segmented<T extends string>({
   value,
   options,
+  disabled,
   onChange
 }: {
   value: T
+  disabled?: boolean
   /** Valore, etichetta e suggerimento facoltativo */
   options: [T, string, string?][]
   onChange(v: T): void
@@ -16,6 +18,7 @@ export default function Segmented<T extends string>({
           title={hint}
           className={v === value ? 'active' : ''}
           aria-pressed={v === value}
+          disabled={disabled}
           onClick={() => onChange(v)}
         >
           {label}

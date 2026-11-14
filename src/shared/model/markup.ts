@@ -245,7 +245,7 @@ export function parseAttrs(src: string, offset = 0): { attrs: Attrs; problems: M
 }
 
 /** Le graffe a inizio riga sono attributi del paragrafo se ogni parola lo sembra */
-function looksLikeAttrs(src: string): boolean {
+export function looksLikeAttrs(src: string): boolean {
   const tokens = src.trim().split(/\s+/)
   return (
     tokens.length > 0 &&

@@ -630,3 +630,30 @@ describe("punto delle etichette dell'anatomia", () => {
     expect(out).toContain('- tipo (right, label 25%): Tipo')
   })
 })
+
+describe('allineamento dei paragrafi', () => {
+  it('{center} a inizio paragrafo, titolo e citazione', () => {
+    const blocks = parseDocument(
+      '{center} Il castello\n\n## {right} Titolo\n\n> {justify} Nota\n\nNormale'
+    )
+    expect(blocks.map((b) => ('align' in b ? b.align : undefined))).toEqual([
+      'center',
+      'right',
+      'justify',
+      undefined
+    ])
+    expect(blocks.map((b) => ('text' in b ? b.text : ''))).toEqual([
+      'Il castello',
+      'Titolo',
+      'Nota',
+      'Normale'
+    ])
+  })
+
+  it('gli stili valgono per tutto il paragrafo; una variabile a inizio riga resta', () => {
+    const [a, b] = parseDocument('{.flavor center} *Notte.*\n\n{cuore} due')
+    expect(a).toMatchObject({ kind: 'paragraph', align: 'center', text: '[*Notte.*]{.flavor}' })
+    expect(b).toMatchObject({ kind: 'paragraph', text: '{cuore} due' })
+    expect('align' in b && b.align).toBeFalsy()
+  })
+})

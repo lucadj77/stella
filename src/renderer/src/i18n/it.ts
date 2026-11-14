@@ -1953,6 +1953,9 @@ export const it: Record<MessageKey, string> = {
   'documents.boxBorder': 'Bordo',
   'documents.boxBorderWidth': 'Spessore del bordo',
   'documents.boxPadding': 'Spazio interno',
+  'documents.boxAlign': 'Posizione',
+  'documents.boxAlignHint':
+    'Dove sta nella riga un riquadro più stretto della riga, quando il testo non gli scorre accanto',
   'documents.boxWidth': 'Larghezza',
   'documents.clear': 'Riparti sotto',
   'documents.clearHint':
