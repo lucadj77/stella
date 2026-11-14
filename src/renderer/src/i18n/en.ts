@@ -1870,7 +1870,7 @@ export const en = {
   'documents.outlineHint':
     'List of the headings: click one to jump there in the text and in the preview',
   'documents.outlineEmpty': 'No headings yet. Lines starting with #, ## or ### appear here.',
-  'documents.page': 'Page',
+  'documents.page': 'Settings',
   'documents.pageButtonHint': 'Page size, margins, fonts, line spacing and colors of this document',
   'documents.pageSize': 'Size',
   'documents.margin': 'Margins',

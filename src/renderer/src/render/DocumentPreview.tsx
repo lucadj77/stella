@@ -64,6 +64,11 @@ interface Props {
   zoom?: number
   /** Segna dove cominciano le pagine del PDF */
   pages?: boolean
+  /**
+   * La pagina si può rimpicciolire o segnare le pagine: resta sempre nel contenitore, così non
+   * si ricrea quando cambiano zoom o pagine
+   */
+  scalable?: boolean
   /** Posizione nel testo del blocco su cui si è fatto clic */
   onPick?(from: number): void
   /** Lingua delle carte del documento (documentLocalization); nessuna per la principale */
@@ -115,6 +120,7 @@ export default function DocumentPreview({
   templates,
   zoom = 1,
   pages = false,
+  scalable = false,
   onPick,
   localization
 }: Props): React.JSX.Element {
@@ -137,12 +143,12 @@ export default function DocumentPreview({
   const blocks = useMemo(() => parseDocument(text), [text])
   const settings = useMemo(() => documentSettings(text).settings, [text])
   const page = useRef<HTMLDivElement>(null)
-  const breaks = usePageBreaks(page, pages, settings, text)
-  const height = usePageHeight(page)
+  const scaled = scalable || zoom !== 1 || pages
+  const height = usePageHeight(page, scaled)
+  const breaks = usePageBreaks(page, pages, settings, text, scaled)
   // con lo zoom la pagina si impagina a grandezza vera e poi si rimpicciolisce (transform): con
   // `zoom` il testo si impaginerebbe con i caratteri più piccoli, e su alcuni sistemi le righe
   // andrebbero a capo in punti diversi dal PDF
-  const scaled = zoom !== 1 || pages
   const sheet = (
     <div
       className="doc-page"
@@ -196,11 +202,12 @@ export default function DocumentPreview({
           }}
         >
           {sheet}
-          {breaks.map((y, i) => (
-            <div key={i} className="page-break-mark" style={{ top: `${y * 100}%` }}>
-              <span>{t('documents.pageNumber', { n: i + 2 })}</span>
-            </div>
-          ))}
+          {pages &&
+            breaks.map((y, i) => (
+              <div key={i} className="page-break-mark" style={{ top: `${y * 100}%` }}>
+                <span>{t('documents.pageNumber', { n: i + 2 })}</span>
+              </div>
+            ))}
         </div>
       ) : (
         sheet
@@ -210,16 +217,19 @@ export default function DocumentPreview({
 }
 
 /** L'altezza della pagina senza zoom, che cresce col testo */
-function usePageHeight(page: React.RefObject<HTMLDivElement | null>): number {
+function usePageHeight(page: React.RefObject<HTMLDivElement | null>, scaled: boolean): number {
   const [height, setHeight] = useState(0)
   useEffect(() => {
     const el = page.current
     if (!el) return undefined
-    const observer = new ResizeObserver(() => setHeight(el.offsetHeight))
-    // la prima misura arriva subito, appena si osserva
+    // una pagina tolta dalla finestra misura 0: non è più quella da seguire
+    const observer = new ResizeObserver(() => {
+      if (el.isConnected) setHeight(el.offsetHeight)
+    })
+    // la prima misura arriva subito, appena si osserva; la pagina cambia passando dal contenitore
     observer.observe(el)
     return () => observer.disconnect()
-  }, [page])
+  }, [page, scaled])
   return height
 }
 
@@ -231,7 +241,8 @@ function usePageBreaks(
   page: React.RefObject<HTMLDivElement | null>,
   on: boolean,
   settings: DocSettings,
-  text: string
+  text: string,
+  scaled: boolean
 ): number[] {
   const [breaks, setBreaks] = useState<number[]>([])
   useEffect(() => {
@@ -242,6 +253,7 @@ function usePageBreaks(
     const measure = (): void => {
       window.clearTimeout(timer)
       timer = window.setTimeout(() => {
+        if (!el.isConnected) return
         const next = pageBreaks(el, settings)
         setBreaks((old) =>
           old.length === next.length && old.every((y, i) => Math.abs(y - next[i]) < 1e-4)
@@ -257,7 +269,7 @@ function usePageBreaks(
       window.clearTimeout(timer)
       observer.disconnect()
     }
-  }, [page, on, settings, text])
+  }, [page, on, settings, text, scaled])
   return breaks
 }
 

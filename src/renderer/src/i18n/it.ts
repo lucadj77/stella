@@ -1898,7 +1898,7 @@ export const it: Record<MessageKey, string> = {
     "Elenco dei titoli: un clic porta a quel punto nel testo e nell'anteprima",
   'documents.outlineEmpty':
     'Ancora nessun titolo. Qui compaiono le righe che iniziano con #, ## o ###.',
-  'documents.page': 'Pagina',
+  'documents.page': 'Impostazioni',
   'documents.pageButtonHint':
     'Formato, margini, caratteri, interlinea e colori di questo documento',
   'documents.pageSize': 'Formato',

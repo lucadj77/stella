@@ -753,6 +753,7 @@ export default function DocumentView({
               templates={templates}
               zoom={zoom}
               pages={showPages}
+              scalable
               localization={localization}
               onPick={(from) => {
                 const el = editor.current
