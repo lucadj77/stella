@@ -1998,16 +1998,17 @@ export const it: Record<MessageKey, string> = {
   'documents.insertAnatomy': 'Anatomia del componente',
   'documents.editAnatomy': "Modifica l'anatomia del componente",
   'documents.anatomyHint':
-    "Spunta le parti del componente da spiegare e scrivi le etichette. Ogni etichetta va dal lato più vicino alla sua parte. Trascina un punto sul disegno per spostare dove arriva la sua linea (un doppio clic lo rimette a posto); fai doppio clic su un'etichetta per cambiarne il testo.",
+    "Spunta le parti del componente da spiegare e scrivi le etichette. Ogni etichetta va dal lato più vicino alla sua parte. Trascina un punto sul disegno per spostare dove arriva la sua linea (un doppio clic lo rimette a posto); trascina un'etichetta in su o in giù per sceglierne l'altezza (le altre si spostano per farle posto; riportala all'altezza del punto per tornare automatica); fai doppio clic su un'etichetta per cambiarne il testo. Puoi anche modificare il codice qui sotto.",
   'documents.anatomy.dragPoint':
     'Trascina per spostare il punto; un doppio clic lo rimette a posto',
-  'documents.anatomy.editLabel': 'Doppio clic per cambiare il testo',
+  'documents.anatomy.editLabel':
+    "Trascina in su o in giù per spostare l'etichetta; doppio clic per cambiare il testo",
   'documents.anatomy.enlarge': 'Ingrandisci',
   'documents.anatomy.enlargeHint':
-    "Mostra l'anatomia in grande: trascina i punti e fai doppio clic su un'etichetta per cambiarla",
+    "Mostra l'anatomia in grande: trascina i punti e le etichette, fai doppio clic su un'etichetta per cambiarla",
   'documents.anatomy.enlarged': 'Anatomia',
   'documents.anatomy.bigHint':
-    "Trascina un punto per spostare dove arriva la sua linea (un doppio clic lo rimette a posto). Fai doppio clic su un'etichetta per cambiarne il testo: Invio conferma, Esc annulla.",
+    "Trascina un punto per spostare dove arriva la sua linea (un doppio clic lo rimette a posto). Trascina un'etichetta in su o in giù per sceglierne l'altezza. Fai doppio clic su un'etichetta per cambiarne il testo: Invio conferma, Esc annulla.",
   'documents.anatomyLabel': 'Etichetta',
   'documents.saveAnatomy': 'Salva',
   'documents.setup': 'Schema tavolo',
@@ -2038,6 +2039,9 @@ export const it: Record<MessageKey, string> = {
   'documents.setupDelete': 'Elimina',
   'documents.setupTable': 'Tavolo',
   'documents.setupFixedSize': 'Misura del tavolo fissa',
+  'documents.codeHint':
+    'Il codice di questo blocco: puoi modificarlo qui. Vale quando esci dal campo o premi ⌘↵ / Ctrl+Invio; Esc annulla la modifica.',
+  'documents.codeBad': 'Questo codice non si capisce: correggilo o premi Esc per tornare indietro.',
   'documents.setupHint':
     'Clicca un elemento per sceglierlo e trascinalo per spostarlo. Maiuscolo o ⌘/Ctrl + clic aggiunge elementi alla scelta, come trascinare un riquadro su uno spazio vuoto; ⌘A / Ctrl+A li sceglie tutti, ⌘C, ⌘X e ⌘V / Ctrl+C, Ctrl+X e Ctrl+V copiano, tagliano e incollano, ⌘D / Ctrl+D duplica. Le frecce della tastiera spostano la scelta di 1 mm (5 con Maiusc) e Canc la elimina. Senza misura fissa il disegno si adatta agli elementi (contorno tratteggiato).',
   'documents.setupZoomFitHint': 'Adatta tutto il disegno alla finestra (⌘0 / Ctrl+0)',

@@ -61,24 +61,47 @@ interface Placed {
   /** Punto indicato sulla carta, in mm del disegno */
   ax: number
   ay: number
+  /** Altezza voluta del centro dell'etichetta: quella del punto o quella scelta (labelY) */
+  ty: number
+  /** Altezza scelta da chi scrive (labelY): l'etichetta non si sposta */
+  fixed: boolean
   /** Alto dell'etichetta */
   y: number
   h: number
 }
 
-/** Mette le etichette di un lato all'altezza dei loro punti, spostandole se si sovrappongono */
+/**
+ * Mette le etichette di un lato all'altezza dei loro punti, spostandole se si sovrappongono.
+ * Quelle con un'altezza scelta (fixed) restano dove sono: si spostano le altre, senza cambiare
+ * il loro ordine.
+ */
 function stack(items: Omit<Placed, 'y'>[], top: number, bottom: number): Placed[] {
-  const sorted = [...items].sort((a, b) => a.ay - b.ay)
-  const out = sorted.map((it) => ({ ...it, y: it.ay - it.h / 2 }))
-  for (let i = 0; i < out.length; i++)
-    out[i].y = Math.max(out[i].y, i ? out[i - 1].y + out[i - 1].h + SPACING : top)
-  // se escono in fondo si risale, senza superare l'alto; se non ci stanno, scendono sotto la carta
-  bottom = Math.max(bottom, top + out.reduce((n, p) => n + p.h + SPACING, -SPACING))
-  for (let i = out.length - 1; i >= 0; i--) {
-    const limit = i === out.length - 1 ? bottom : out[i + 1].y - SPACING
-    out[i].y = Math.max(top, Math.min(out[i].y, limit - out[i].h))
+  const fixed = items.filter((it) => it.fixed).map((it) => ({ ...it, y: it.ty - it.h / 2 }))
+  const free = items
+    .filter((it) => !it.fixed)
+    .sort((a, b) => a.ty - b.ty)
+    .map((it) => ({ ...it, y: it.ty - it.h / 2 }))
+  const hits = (y: number, h: number): Placed | undefined =>
+    fixed.find((f) => y < f.y + f.h + SPACING && y + h + SPACING > f.y)
+  // verso il basso: ognuna sotto la precedente e fuori dalle etichette ferme
+  const down = free.map((it) => ({ ...it }))
+  for (let i = 0; i < down.length; i++) {
+    let y = Math.max(down[i].y, i ? down[i - 1].y + down[i - 1].h + SPACING : top)
+    for (let f = hits(y, down[i].h); f; f = hits(y, down[i].h)) y = f.y + f.h + SPACING
+    down[i].y = y
   }
-  return out
+  const last = down[down.length - 1]
+  if (!last || last.y + last.h <= bottom) return [...fixed, ...down]
+  // se escono in fondo si risale, senza superare l'alto né toccare le ferme; se non si può,
+  // restano sotto la carta
+  const up = down.map((it) => ({ ...it }))
+  for (let i = up.length - 1; i >= 0; i--) {
+    const limit = i === up.length - 1 ? bottom : up[i + 1].y - SPACING
+    let y = Math.min(up[i].y, limit - up[i].h)
+    for (let f = hits(y, up[i].h); f; f = hits(y, up[i].h)) y = f.y - SPACING - up[i].h
+    up[i].y = y
+  }
+  return [...fixed, ...(up[0].y >= top ? up : down)]
 }
 
 export default function AnatomyDiagram({
@@ -92,7 +115,8 @@ export default function AnatomyDiagram({
   onMovePoint,
   dragHint = '',
   onEditLabel,
-  editHint = ''
+  editHint = '',
+  onMoveLabel
 }: {
   anatomy: Anatomy
   sets: LoadedSet[]
@@ -114,6 +138,8 @@ export default function AnatomyDiagram({
   /** Doppio clic su un'etichetta: l'indice in anatomy.callouts e il suo testo sullo schermo */
   onEditLabel?(index: number, el: HTMLElement): void
   editHint?: string
+  /** Etichetta trascinata in su o in giù: labelY, undefined se torna all'altezza del punto */
+  onMoveLabel?(index: number, y: number | undefined): void
 }): React.JSX.Element | null {
   const card = useBoundCard(anatomyCardSource(anatomy.card), sets, templates, project)
   if (!card) return null
@@ -171,12 +197,23 @@ export default function AnatomyDiagram({
       : faceX(f.face) + (side === 'left' ? b.x * s + inset : (b.x + b.w) * s - inset)
     const ay = (at ? b.y + at.y * b.h : b.y + b.h / 2) * s
     const h = lines(f.c.label, labelW, font) * font * LINE
-    sides[side].push({ label: f.c.label, index: f.index, ax, ay, h })
+    const ty = f.c.labelY !== undefined ? f.c.labelY * t.height * s : ay
+    sides[side].push({
+      label: f.c.label,
+      index: f.index,
+      ax,
+      ay,
+      ty,
+      h,
+      fixed: f.c.labelY !== undefined
+    })
   }
   const right = sides.right.length ? labelW + GAP : 0
   const placedL = stack(sides.left, 0, height)
   const placedR = stack(sides.right, 0, height)
-  const total = Math.max(height, ...[...placedL, ...placedR].map((p) => p.y + p.h))
+  // un'etichetta alzata sopra la carta allarga il disegno in alto
+  const above = Math.max(0, ...[...placedL, ...placedR].map((p) => -p.y))
+  const total = above + Math.max(height, ...[...placedL, ...placedR].map((p) => p.y + p.h))
   const w = cardsEnd + right
 
   /** Trascinando un punto: la posizione nell'area del livello, in frazioni, al massimo mezza area fuori */
@@ -196,6 +233,36 @@ export default function AnatomyDiagram({
         x: clamp(((pt.x - faceX(f.face)) / s - b.x) / Math.max(b.w, 0.01)),
         y: clamp((pt.y / s - b.y) / Math.max(b.h, 0.01))
       })
+    }
+    const up = (): void => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+      window.removeEventListener('pointercancel', up)
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+    window.addEventListener('pointercancel', up)
+  }
+
+  /**
+   * Trascinando un'etichetta in su o in giù: la sua altezza in frazioni dell'altezza della carta;
+   * riportata all'altezza del punto torna a seguirlo. Senza movimento resta un clic (e il doppio
+   * clic che la modifica).
+   */
+  const startLabelDrag = (e: React.PointerEvent<HTMLElement>, index: number, ay: number): void => {
+    const svg = e.currentTarget.closest('svg')
+    if (!svg || !onMoveLabel || e.button !== 0) return
+    const y0 = e.clientY
+    let moved = false
+    const move = (ev: PointerEvent): void => {
+      if (!moved && Math.abs(ev.clientY - y0) < 4) return
+      moved = true
+      const m = svg.getScreenCTM()
+      if (!m) return
+      const y = new DOMPoint(ev.clientX, ev.clientY).matrixTransform(m.inverse()).y
+      const snap = Math.abs(y - ay) < height * 0.025
+      const f = Math.round(Math.max(-0.2, Math.min(1.2, y / height)) * 100) / 100
+      onMoveLabel(index, snap ? undefined : f)
     }
     const up = (): void => {
       window.removeEventListener('pointermove', move)
@@ -258,6 +325,7 @@ export default function AnatomyDiagram({
               className={onEditLabel ? 'anatomy-label-text' : undefined}
               title={onEditLabel ? editHint : undefined}
               onDoubleClick={onEditLabel ? (e) => onEditLabel(p.index, e.currentTarget) : undefined}
+              onPointerDown={onMoveLabel ? (e) => startLabelDrag(e, p.index, p.ay) : undefined}
               style={{
                 fontSize: font * ZOOM,
                 lineHeight: LINE,
@@ -278,7 +346,7 @@ export default function AnatomyDiagram({
       xmlns="http://www.w3.org/2000/svg"
       width={w * unit}
       height={total * unit}
-      viewBox={`0 0 ${w} ${total}`}
+      viewBox={`0 ${-above} ${w} ${total}`}
       style={{ display: 'block', overflow: 'visible' }}
     >
       {faces.map((face) => (

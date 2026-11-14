@@ -1968,15 +1968,16 @@ export const en = {
   'documents.insertAnatomy': 'Component anatomy',
   'documents.editAnatomy': 'Edit component anatomy',
   'documents.anatomyHint':
-    'Tick the parts of the component to explain and write their labels. Labels go on the side nearest to each part. Drag a point on the drawing to move where its line ends (double-click puts it back); double-click a label to change its text.',
+    'Tick the parts of the component to explain and write their labels. Labels go on the side nearest to each part. Drag a point on the drawing to move where its line ends (double-click puts it back); drag a label up or down to choose its height (the other labels move out of its way; bring it back level with its point to make it automatic again); double-click a label to change its text. You can also edit the code below.',
   'documents.anatomy.dragPoint': 'Drag to move the point; double-click puts it back',
-  'documents.anatomy.editLabel': 'Double-click to change the text',
+  'documents.anatomy.editLabel':
+    'Drag up or down to move the label; double-click to change the text',
   'documents.anatomy.enlarge': 'Enlarge',
   'documents.anatomy.enlargeHint':
-    'Show the anatomy large: drag the points and double-click a label to change it',
+    'Show the anatomy large: drag the points and the labels, double-click a label to change it',
   'documents.anatomy.enlarged': 'Anatomy',
   'documents.anatomy.bigHint':
-    'Drag a point to move where its line ends (double-click puts it back). Double-click a label to change its text: Enter confirms, Esc cancels.',
+    'Drag a point to move where its line ends (double-click puts it back). Drag a label up or down to choose its height. Double-click a label to change its text: Enter confirms, Esc cancels.',
   'documents.anatomyLabel': 'Label',
   'documents.saveAnatomy': 'Save',
   'documents.setup': 'Table setup',
@@ -2007,6 +2008,9 @@ export const en = {
   'documents.setupDelete': 'Delete',
   'documents.setupTable': 'Table',
   'documents.setupFixedSize': 'Fixed table size',
+  'documents.codeHint':
+    'The code of this block: you can edit it here. It applies when you leave the field or press ⌘↵ / Ctrl+Enter; Esc undoes the edit.',
+  'documents.codeBad': 'This code is not understood: fix it or press Esc to go back.',
   'documents.setupHint':
     'Click an element to select it and drag it to move it. Shift or ⌘/Ctrl + click adds elements to the selection, and so does dragging a box on an empty spot; ⌘A / Ctrl+A selects everything, ⌘C, ⌘X and ⌘V / Ctrl+C, Ctrl+X and Ctrl+V copy, cut and paste, ⌘D / Ctrl+D duplicates. The arrow keys nudge the selection by 1 mm (5 with Shift) and Delete removes it. Without a fixed size the drawing fits its elements (dashed outline).',
   'documents.setupZoomFitHint': 'Fit the whole drawing in the window (⌘0 / Ctrl+0)',

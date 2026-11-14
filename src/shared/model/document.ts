@@ -106,6 +106,11 @@ export interface Callout {
    * destra; `at 20% 80%`); di base vicino al bordo dalla parte dell'etichetta, a metà altezza
    */
   at?: { x: number; y: number }
+  /**
+   * Altezza del centro dell'etichetta, in frazione dell'altezza della carta (`label 30%`); di base
+   * all'altezza del punto. Un'etichetta con l'altezza scelta resta ferma: si spostano le altre.
+   */
+  labelY?: number
   /** Posizione della riga nel testo */
   from: number
   to: number
@@ -135,8 +140,9 @@ export interface Anatomy {
 /** Il blocco ```anatomy: le sue righe sono card: … e - livello: etichetta */
 export const ANATOMY_FENCE = 'anatomy'
 const AT = String.raw`at\s*-?\d+(?:\.\d+)?\s*%\s*,?\s*-?\d+(?:\.\d+)?\s*%`
+const LABEL_Y = String.raw`label\s*-?\d+(?:\.\d+)?\s*%`
 const CALLOUT_LINE = new RegExp(
-  String.raw`^\s*[-*]\s*(.+?)(?:\s*\(((?:\s*(?:left|right|front|back|cell\s*\d+|${AT})\s*,?)+)\))?\s*:\s*(.*)$`
+  String.raw`^\s*[-*]\s*(.+?)(?:\s*\(((?:\s*(?:left|right|front|back|cell\s*\d+|${AT}|${LABEL_Y})\s*,?)+)\))?\s*:\s*(.*)$`
 )
 /** Il punto `at 20% 80%` delle opzioni di un'etichetta, in frazioni dell'area del livello */
 function atOption(opts: string): { x: number; y: number } | undefined {
@@ -195,9 +201,11 @@ function parseAnatomy(lines: string[], starts: number[]): Anatomy {
     if (m) {
       const cellOpt = /cell\s*(\d+)/.exec(m[2] ?? '')
       const at = atOption(m[2] ?? '')
+      const labelY = /label\s*(-?\d+(?:\.\d+)?)\s*%/.exec(m[2] ?? '')
       const opts = (m[2] ?? '')
         .replace(/cell\s*\d+/, '')
         .replace(new RegExp(AT), '')
+        .replace(new RegExp(LABEL_Y), '')
         .split(/[\s,]+/)
       const side = opts.find((o) => o === 'left' || o === 'right') as 'left' | 'right' | undefined
       const face = opts.find((o) => o === 'front' || o === 'back') as Side | undefined
@@ -209,6 +217,7 @@ function parseAnatomy(lines: string[], starts: number[]): Anatomy {
         ...(face ? { face } : {}),
         ...(cell > 1 ? { cell } : {}),
         ...(at ? { at } : {}),
+        ...(labelY ? { labelY: Number(labelY[1]) / 100 } : {}),
         from,
         to
       })
@@ -235,7 +244,8 @@ export function anatomySource(
       both && c.face === 'back' ? 'back' : '',
       !both && c.side ? c.side : '',
       c.cell && c.cell > 1 ? `cell ${c.cell}` : '',
-      c.at ? `at ${Math.round(c.at.x * 100)}% ${Math.round(c.at.y * 100)}%` : ''
+      c.at ? `at ${Math.round(c.at.x * 100)}% ${Math.round(c.at.y * 100)}%` : '',
+      c.labelY !== undefined ? `label ${Math.round(c.labelY * 100)}%` : ''
     ].filter(Boolean)
     return list.length ? ` (${list.join(', ')})` : ''
   }

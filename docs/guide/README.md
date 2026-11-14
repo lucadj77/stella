@@ -1087,9 +1087,15 @@ Elements inside a grid can be explained too: in the list of layers they appear u
 
 ![The ability's point moved further right by dragging it](img/anatomia-punto.png)
 
+**Moving the label.** By default each label sits level with its point, and labels that would touch move apart a little. To raise or lower one, drag it up or down on the drawing: it keeps the height you chose, and the other labels on the same side move out of its way. Brought back level with its point, it becomes automatic again. In the text it is `label` with a percentage of the component's height (`0%` top, `100%` bottom), for example `- strength (label 30%): …`.
+
 **Editing on the drawing.** Double-clicking a label on the drawing opens a field with its text over it: Enter confirms, Esc cancels. **⤢ Enlarge**, at the top right of the preview, shows the anatomy large in a separate window, where you drag the points and change the labels in the same way; **Close** goes back to the anatomy window with the changes.
 
 ![The enlarged anatomy, with a label being edited](img/anatomia-grande.png)
+
+**Editing the code.** Under the two columns is the block as it will be written in the document, and you can edit it there too: the change applies when you leave the field or press ⌘↵ / Ctrl+Enter, and Esc cancels it. If the code is not understood, the window says so and keeps the anatomy as it was.
+
+![The strength label raised and the code edited in the window](img/anatomia-codice.png)
 
 ### 12.5 Table setup
 
@@ -1103,7 +1109,7 @@ With several elements selected, dragging one moves them all, and the panel on th
 
 On the right you change position and sizes in millimetres, the label (or the text, with the same formatting bar as the anatomy; texts are centered in their box, and below you can align them left or right), the number of cards in a deck and the rotation in steps of 90°; **Order** brings the element to the front, forward, backward or to the back among the elements of the same kind: zones always stay below components, decks and images, and texts and arrows above. **Duplicate** and **Delete** do what they say. **Image** and **Change image…** also offer the image variables, which in the drawing keep their tint, rotation, flip, opacity and background.
 
-With nothing selected, **Fixed table size** gives the drawing a size in millimetres; without it, the drawing fits its elements. In the document the drawing shrinks to fit the page, and the labels stay readable; **Width (% of line)** narrows it further, down to that share of the line width, and **Captions (%)** changes the size of the captions. With the cursor inside a table setup, the same button opens it for editing. In the text it is a block like this, which you can also write by hand:
+With nothing selected, **Fixed table size** gives the drawing a size in millimetres; without it, the drawing fits its elements. In the document the drawing shrinks to fit the page, and the labels stay readable; **Width (% of line)** narrows it further, down to that share of the line width, and **Captions (%)** changes the size of the captions. With the cursor inside a table setup, the same button opens it for editing. In the text it is a block like this, which you can also write by hand, also in the field under the drawing in the window (it applies when you leave the field or press ⌘↵ / Ctrl+Enter, Esc cancels):
 
 ![The table setup window](img/schema-tavolo.png)
 

@@ -613,6 +613,7 @@ describe("punto delle etichette dell'anatomia", () => {
       '- forza (left, at 20% 80%): Forza',
       '- nome (at 12.5%,-10%): Nome',
       '- costo: Costo',
+      '- tipo (right, label 25%): Tipo',
       '```'
     ].join('\n')
     const [b] = parseDocument(src)
@@ -625,5 +626,7 @@ describe("punto delle etichette dell'anatomia", () => {
     expect(out).toContain('- forza (left, at 20% 80%): Forza')
     expect(out).toContain('- nome (at 13% -10%): Nome')
     expect(out).toContain('- costo: Costo')
+    expect(b.callouts[3]).toMatchObject({ side: 'right', labelY: 0.25 })
+    expect(out).toContain('- tipo (right, label 25%): Tipo')
   })
 })

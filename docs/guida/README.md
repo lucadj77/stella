@@ -1087,9 +1087,15 @@ Anche gli elementi dentro una griglia si possono spiegare: nell'elenco dei livel
 
 ![Il punto dell'abilità spostato più a destra trascinandolo](img/anatomia-punto.png)
 
+**Spostare l'etichetta.** Di base ogni etichetta sta all'altezza del suo punto, e le etichette che si toccherebbero si allontanano un po'. Per alzarla o abbassarla, trascinala in su o in giù sul disegno: la sua altezza resta quella scelta, e le altre etichette dello stesso lato si spostano per farle posto. Riportata all'altezza del punto torna automatica. Nel testo è `label` con una percentuale dell'altezza del componente (`0%` in alto, `100%` in basso), per esempio `- forza (label 30%): …`.
+
 **Modificare sul disegno.** Un doppio clic su un'etichetta del disegno apre sopra di essa un campo con il suo testo: Invio conferma, Esc annulla. **⤢ Ingrandisci**, in alto a destra dell'anteprima, mostra l'anatomia in grande in una finestra a parte, dove si trascinano i punti e si cambiano le etichette allo stesso modo; **Chiudi** torna alla finestra dell'anatomia con le modifiche.
 
 ![L'anatomia ingrandita, con il testo di un'etichetta in modifica](img/anatomia-grande.png)
+
+**Modificare il codice.** Sotto le due colonne c'è il blocco come verrà scritto nel documento, e si può modificare anche lì: la modifica vale quando esci dal campo o premi ⌘↵ / Ctrl+Invio, ed Esc la annulla. Se il codice non si capisce la finestra lo segnala e tiene l'anatomia com'era.
+
+![L'etichetta della forza alzata e il codice modificato nella finestra](img/anatomia-codice.png)
 
 ### 12.5 Schema del tavolo
 
@@ -1103,7 +1109,7 @@ Con più elementi scelti, trascinandone uno si spostano tutti, e il pannello a d
 
 A destra si cambiano posizione e misure in millimetri, l'etichetta (o il testo, con la stessa barra di formattazione dell'anatomia; i testi sono centrati nel loro riquadro, e sotto si possono allineare a sinistra o a destra), il numero di carte di un mazzo e la rotazione di 90° in 90°; **Ordine** porta l'elemento in primo piano, avanti, indietro o sullo sfondo rispetto agli elementi dello stesso tipo: le zone restano sempre sotto componenti, mazzi e immagini, e testi e frecce sopra. **Duplica** ed **Elimina** fanno quel che dicono. **Immagine** e **Cambia immagine…** propongono anche le variabili immagine, che nello schema mantengono tinta, rotazione, ribaltamento, opacità e sfondo.
 
-Senza elemento scelto, **Misura del tavolo fissa** dà allo schema una misura in millimetri; senza, lo schema si adatta agli elementi. Nel documento lo schema si riduce per stare nella pagina, e le didascalie restano leggibili; **Larghezza (% riga)** lo restringe ancora, fino a quella parte della larghezza della riga, e **Didascalie (%)** cambia il corpo delle didascalie. Con il cursore dentro uno schema, lo stesso tasto lo apre per modificarlo. Nel testo è un blocco come questo, che si può anche scrivere a mano:
+Senza elemento scelto, **Misura del tavolo fissa** dà allo schema una misura in millimetri; senza, lo schema si adatta agli elementi. Nel documento lo schema si riduce per stare nella pagina, e le didascalie restano leggibili; **Larghezza (% riga)** lo restringe ancora, fino a quella parte della larghezza della riga, e **Didascalie (%)** cambia il corpo delle didascalie. Con il cursore dentro uno schema, lo stesso tasto lo apre per modificarlo. Nel testo è un blocco come questo, che si può anche scrivere a mano, anche nel campo sotto il disegno della finestra (vale quando esci dal campo o premi ⌘↵ / Ctrl+Invio, Esc annulla):
 
 ![La finestra dello schema del tavolo](img/schema-tavolo.png)
 

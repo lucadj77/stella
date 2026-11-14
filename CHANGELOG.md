@@ -14,6 +14,8 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Random formulas**: new functions `RAND()` (a number from 0 to 1) and `RANDBETWEEN(from; to)` (a whole number). Like `DEAL` and `{cell.random}`, they give the same result every time a card is drawn and change with the set's seed. Sets without a seed keep the numbers they had.
 - **Generate remembers**: after a random generation (at random or with a shuffled sequence) the set keeps the settings, so Regenerate writes the same rows again with another seed and **Generate…** opens with those settings.
 - **Anatomy points**: in the anatomy window you can drag the point where a label's line ends, and a double-click puts it back. In the text it is written `(at 30% 80%)`, a position in the layer's area, so it follows the layer when the template changes. The preview in that window is larger, a double-click on a label changes its text right on the drawing, and **⤢ Enlarge** shows the anatomy large, with the same editing.
+- **Anatomy labels**: drag a label up or down to choose its height (`(label 30%)` in the text); the other labels move out of its way instead of overlapping it.
+- **Editable code**: the anatomy and table setup windows show the block's code in a field you can edit; the drawing follows the change.
 
 ### Italiano
 
@@ -22,6 +24,8 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Formule a caso**: nuove funzioni `RAND()` (un numero da 0 a 1) e `RANDBETWEEN(da; a)` (un numero intero). Come `DEAL` e `{cell.random}` danno lo stesso risultato a ogni disegno della carta e cambiano con il seed del set. I set senza seed tengono i numeri che avevano.
 - **Genera ricorda**: dopo una generazione a caso (a caso o in sequenza mescolata) il set conserva le impostazioni, così Rigenera riscrive le stesse righe con un altro seed e **Genera…** si riapre con quelle impostazioni.
 - **Punti dell'anatomia**: nella finestra dell'anatomia si trascina il punto dove arriva la linea di un'etichetta, e un doppio clic lo rimette a posto. Nel testo si scrive `(at 30% 80%)`, una posizione nell'area del livello, così segue il livello quando il template cambia. L'anteprima della finestra è più grande, un doppio clic su un'etichetta ne cambia il testo direttamente sul disegno e **⤢ Ingrandisci** mostra l'anatomia in grande, con le stesse modifiche.
+- **Etichette dell'anatomia**: si trascina un'etichetta in su o in giù per sceglierne l'altezza (`(label 30%)` nel testo); le altre si spostano per farle posto invece di sovrapporsi.
+- **Codice modificabile**: le finestre dell'anatomia e dello schema del tavolo mostrano il codice del blocco in un campo modificabile; il disegno segue la modifica.
 
 ## 1.11.0-beta.3
 

@@ -18,6 +18,7 @@ export default function AnatomyCanvas({
   maxWidth,
   font,
   onMovePoint,
+  onMoveLabel,
   onLabel
 }: {
   anatomy: Anatomy
@@ -28,6 +29,7 @@ export default function AnatomyCanvas({
   maxWidth: number
   font: number
   onMovePoint(index: number, at: { x: number; y: number } | undefined): void
+  onMoveLabel(index: number, y: number | undefined): void
   /** Nuovo testo dell'etichetta `index` di anatomy.callouts */
   onLabel(index: number, text: string): void
 }): React.JSX.Element {
@@ -56,6 +58,7 @@ export default function AnatomyCanvas({
         font={font}
         dragHint={t('documents.anatomy.dragPoint')}
         onMovePoint={onMovePoint}
+        onMoveLabel={onMoveLabel}
         editHint={t('documents.anatomy.editLabel')}
         onEditLabel={(index, el) => {
           const c = anatomy.callouts[index]

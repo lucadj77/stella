@@ -8928,7 +8928,9 @@ button.wide {
   max-width: 100%;
 }
 .anatomy-label-text {
-  cursor: text;
+  /* si trascina in su e in giù; il doppio clic ne cambia il testo */
+  cursor: ns-resize;
+  user-select: none;
 }
 .anatomy-label-text:hover {
   background: rgba(47, 111, 222, 0.08);
@@ -8946,6 +8948,10 @@ button.wide {
   top: 6px;
   right: 6px;
 }
+/* il tasto Ingrandisci sta sopra il disegno, senza coprire le etichette */
+.anatomy-detail .anatomy-card {
+  padding-top: 40px;
+}
 .dialog:has(.anatomy-big) {
   max-width: none;
   width: min(1400px, 96vw);
@@ -8961,4 +8967,30 @@ button.wide {
 }
 .anatomy-big .anatomy-card svg {
   max-height: 78vh;
+}
+
+/* il codice del blocco, modificabile nella finestra dell'anatomia e dello schema del tavolo */
+.block-code {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.block-code textarea.insert-card-code {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  color: inherit;
+  border: 1px solid var(--border);
+  resize: vertical;
+  max-height: none;
+}
+.block-code p {
+  margin: 0;
+}
+.anatomy-mode .block-code textarea.insert-card-code {
+  max-height: 8lh;
+}
+.setup-code textarea.insert-card-code {
+  max-height: 6lh;
 }

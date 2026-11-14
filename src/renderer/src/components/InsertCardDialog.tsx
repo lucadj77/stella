@@ -25,6 +25,7 @@ import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import CardSvg from '../render/CardSvg'
 import AnatomyCanvas from './AnatomyCanvas'
+import BlockCodeField from './BlockCodeField'
 import { useBindContext } from '../render/assets'
 import Segmented from './Segmented'
 import WrapField, { type WrapSide } from './WrapField'
@@ -182,6 +183,38 @@ export default function InsertCardDialog({
         ) ?? []
       )
   )
+  /** Altezze scelte delle etichette (label N%), per labelKey */
+  const [heights, setHeights] = useState<Map<string, number>>(
+    () =>
+      new Map(
+        initial?.callouts.flatMap((c) =>
+          c.labelY !== undefined
+            ? [
+                [
+                  labelKey(calloutFace(initial, c, start?.ref.side ?? 'front'), c.layer, c.cell),
+                  c.labelY
+                ] as [string, number]
+              ]
+            : []
+        ) ?? []
+      )
+  )
+  /** Lato scelto delle etichette (left/right), per labelKey */
+  const [sides, setSides] = useState<Map<string, 'left' | 'right'>>(
+    () =>
+      new Map(
+        initial?.callouts.flatMap((c) =>
+          c.side
+            ? [
+                [
+                  labelKey(calloutFace(initial, c, start?.ref.side ?? 'front'), c.layer, c.cell),
+                  c.side
+                ] as [string, 'left' | 'right']
+              ]
+            : []
+        ) ?? []
+      )
+  )
   const [caption, setCaption] = useState<string | null>(initial ? initial.caption : null)
   /** Didascalia sopra il disegno invece che sotto */
   const [captionTop, setCaptionTop] = useState(initial?.captionTop ?? false)
@@ -193,7 +226,20 @@ export default function InsertCardDialog({
     if (w && anatomy && Number(blockWidth) >= 100) setBlockWidth('50')
   }
   useUndo(
-    [setName, row, keyChoice, side, both, width, labels, caption, captionTop, points],
+    [
+      setName,
+      row,
+      keyChoice,
+      side,
+      both,
+      width,
+      labels,
+      caption,
+      captionTop,
+      points,
+      heights,
+      sides
+    ],
     (s) => {
       setSetName(s[0])
       setRow(s[1])
@@ -205,6 +251,8 @@ export default function InsertCardDialog({
       setCaption(s[7])
       setCaptionTop(s[8])
       setPoints(s[9])
+      setHeights(s[10])
+      setSides(s[11])
     }
   )
   /** L'ultima etichetta dell'anatomia in cui si è scritto: la barra di formattazione agisce lì */
@@ -253,9 +301,9 @@ export default function InsertCardDialog({
                   layer: l.name,
                   label: labels.get(key)!.trim() || l.name,
                   face,
-                  side: initial?.callouts.find((c) => c.layer === l.name && (c.cell ?? 1) === cell)
-                    ?.side,
+                  side: sides.get(key),
                   ...(points.has(key) ? { at: points.get(key) } : {}),
+                  ...(heights.has(key) ? { labelY: heights.get(key) } : {}),
                   ...(cell > 1 ? { cell } : {})
                 }))
               )
@@ -270,6 +318,40 @@ export default function InsertCardDialog({
             }
           )
         : `![${alt.replace(/[[\]]/g, '')}](${cardRefSource(ref)})`
+
+  /** Il codice ```anatomy scritto a mano: rimette la finestra come dice; false se non si capisce */
+  const applyCode = (code: string): boolean => {
+    const a = parseDocument(code.trim())[0]
+    if (a?.kind !== 'anatomy' || a.bad.length) return false
+    const r = parseCardRef(anatomyCardSource(a.card))
+    if (isMessage(r)) return false
+    const found = findCard(r, sets)
+    if (isMessage(found)) return false
+    const face = r.side ?? 'front'
+    const map = <V,>(value: (c: Anatomy['callouts'][number]) => V | undefined): Map<string, V> =>
+      new Map(
+        a.callouts.flatMap((c) => {
+          const v = value(c)
+          return v === undefined ? [] : [[labelKey(calloutFace(a, c, face), c.layer, c.cell), v]]
+        })
+      )
+    setSetName(found.set.name)
+    setRow(found.row)
+    setKey(r.field ?? '')
+    setSide(face)
+    setBoth(a.both)
+    setWidth(r.width ? String(r.width) : '')
+    setBlockWidth(String(Math.round((a.width ?? 1) * 100)))
+    setBlockFont(String(Math.round((a.font ?? 1) * 100)))
+    setLabels(map((c) => c.label))
+    setPoints(map((c) => c.at))
+    setHeights(map((c) => c.labelY))
+    setSides(map((c) => c.side))
+    setCaption(a.caption)
+    setCaptionTop(a.captionTop)
+    setWrapSide(a.wrap ?? null)
+    return true
+  }
 
   // l'anatomia come uscirà nel documento, aggiornata mentre si scelgono livelli ed etichette
   const block = anatomy && text ? parseDocument(text)[0] : undefined
@@ -298,6 +380,16 @@ export default function InsertCardDialog({
           setPoints((m) => {
             const next = new Map(m)
             if (at) next.set(key, at)
+            else next.delete(key)
+            return next
+          })
+        }}
+        onMoveLabel={(index, y) => {
+          const key = keyOf(index)
+          if (!key) return
+          setHeights((m) => {
+            const next = new Map(m)
+            if (y !== undefined) next.set(key, y)
             else next.delete(key)
             return next
           })
@@ -604,7 +696,7 @@ export default function InsertCardDialog({
                 {layerList}
               </div>
             </div>
-            <code className="insert-card-code">{text}</code>
+            <BlockCodeField value={text} onApply={applyCode} />
             {enlarged && preview && (
               <Dialog title={t('documents.anatomy.enlarged')} onClose={() => setEnlarged(false)}>
                 <div className="anatomy-big">
