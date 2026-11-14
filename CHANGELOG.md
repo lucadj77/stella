@@ -10,10 +10,12 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 ### English
 
 - **Anatomy labels**: dragging a label no longer moves the other labels around it, so it follows the mouse without jumps. It moves from where it is drawn, not from the mouse position. Labels with a chosen height stay where you put them; remove `label` from the code to make one automatic again.
+- **Same anatomy everywhere**: the anatomy window and its enlarged view lay out the anatomy with the page width and text size of the document, so card, labels and line breaks are as in the rulebook, only larger or smaller.
 
 ### Italiano
 
 - **Etichette dell'anatomia**: trascinare un'etichetta non sposta più le altre attorno, così segue il mouse senza sobbalzi. Si sposta da dov'è disegnata, non dalla posizione del mouse. Le etichette con un'altezza scelta restano dove le metti; togli `label` dal codice per farne tornare una automatica.
+- **Anatomia uguale ovunque**: la finestra dell'anatomia e la vista ingrandita dispongono l'anatomia con la larghezza della pagina e il corpo del testo del documento, così carta, etichette e a capo sono come nel regolamento, solo più grandi o più piccoli.
 
 ## 1.11.0-beta.4
 

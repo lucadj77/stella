@@ -19,7 +19,7 @@ import {
   type Anatomy,
   type CardRef
 } from '../../../shared/model/document'
-import { BLOCK_FONT, BLOCK_WIDTH } from '../../../shared/model/setup'
+import { BLOCK_FONT, BLOCK_WIDTH, WRAP_WIDTH } from '../../../shared/model/setup'
 import { gridSize } from '../../../shared/model/grid'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
@@ -93,6 +93,8 @@ export default function InsertCardDialog({
   initial,
   pick,
   bare = false,
+  pageWidth = 174,
+  pageFont = (11 * 0.88 * 25.4) / 72,
   onInsert,
   onClose
 }: {
@@ -106,6 +108,12 @@ export default function InsertCardDialog({
   pick?: string
   /** Con pick: senza larghezza e senza il riferimento scritto, come per la copertina */
   bare?: boolean
+  /**
+   * Larghezza del testo della pagina e corpo di base delle etichette, in mm, come nel documento:
+   * l'anatomia nella finestra è disposta come nel regolamento, solo più grande o più piccola
+   */
+  pageWidth?: number
+  pageFont?: number
   /** Il testo da inserire: ![didascalia](card:…) o il blocco ```anatomy */
   onInsert(text: string): void
   onClose(): void
@@ -364,7 +372,7 @@ export default function InsertCardDialog({
     return preview && c ? labelKey(calloutFace(preview, c, side), c.layer, c.cell) : null
   }
   /** L'anatomia da modificare sul disegno, grande `unit` pixel per mm */
-  const canvas = (unit: number, maxWidth: number): React.JSX.Element | null =>
+  const canvas = (unit: number): React.JSX.Element | null =>
     preview ? (
       <AnatomyCanvas
         anatomy={preview}
@@ -372,8 +380,8 @@ export default function InsertCardDialog({
         templates={templates}
         project={project}
         unit={unit}
-        maxWidth={maxWidth * (preview.width ?? 1)}
-        font={3.2 * (preview.font ?? 1)}
+        maxWidth={pageWidth * (preview.width ?? (preview.wrap ? WRAP_WIDTH : 1))}
+        font={pageFont * (preview.font ?? 1)}
         onMovePoint={(index, at) => {
           const key = keyOf(index)
           if (!key) return
@@ -682,7 +690,7 @@ export default function InsertCardDialog({
               <div className="anatomy-detail">
                 {preview && (
                   <div className="anatomy-card">
-                    {canvas(4.5, 160)}
+                    {canvas(4.5)}
                     <button
                       type="button"
                       className="anatomy-enlarge"
@@ -701,7 +709,7 @@ export default function InsertCardDialog({
               <Dialog title={t('documents.anatomy.enlarged')} onClose={() => setEnlarged(false)}>
                 <div className="anatomy-big">
                   <p className="muted small">{t('documents.anatomy.bigHint')}</p>
-                  <div className="anatomy-card">{canvas(8, 200)}</div>
+                  <div className="anatomy-card">{canvas(8)}</div>
                   <div className="dialog-buttons">
                     <button className="primary" onClick={() => setEnlarged(false)}>
                       {t('dialog.close')}
