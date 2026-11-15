@@ -279,6 +279,8 @@ function Item({
     case 'arrow': {
       const { control: c, mid } = arrowCurve(it)
       const k = it.size ?? 1
+      // lo spessore scritto vale da solo; senza, segue la misura come le punte
+      const line = it.thickness ?? 0.5 * k
       const heads = it.heads ?? 'end'
       const atEnd = heads === 'end' || heads === 'both'
       const atStart = heads === 'start' || heads === 'both'
@@ -321,17 +323,17 @@ function Item({
             d={`M${p0.x},${p0.y} Q${c.x},${c.y} ${p2.x},${p2.y}`}
             fill="none"
             stroke="transparent"
-            strokeWidth={Math.max(3, 2 * k)}
+            strokeWidth={Math.max(3, line * 3)}
             pointerEvents="stroke"
           />
           {/* alone chiaro sotto la freccia: resta visibile anche sopra carte e plance scure */}
           <g stroke={HALO} strokeOpacity={0.85} strokeLinecap="round" strokeLinejoin="round">
-            <path d={d} fill="none" strokeWidth={0.9 * k + 0.5} />
+            <path d={d} fill="none" strokeWidth={line * 1.8 + 0.5} />
             {tips.map((tip, n) => (
               <polygon key={n} points={tip} fill={HALO} fillOpacity={0.85} strokeWidth={0.9} />
             ))}
           </g>
-          <path d={d} fill="none" stroke={INK} strokeWidth={0.5 * k} strokeLinecap="round" />
+          <path d={d} fill="none" stroke={INK} strokeWidth={line} strokeLinecap="round" />
           {tips.map((tip, n) => (
             <polygon key={n} points={tip} fill={INK} />
           ))}

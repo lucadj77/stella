@@ -213,4 +213,11 @@ describe('didascalia dello schema', () => {
     expect(setupLine(it as SetupItem)).toBe('arrow 0,0 -> 20,0 bend=5 shift=4')
     expect(parse('zone 0,0 10x10 shift=4').items).toHaveLength(0)
   })
+
+  it('lo spessore della freccia si scrive a parte', () => {
+    const it = parse('arrow 0,0 -> 20,0 size=150% thickness=1.2').items[0]
+    expect(it).toMatchObject({ size: 1.5, thickness: 1.2 })
+    expect(setupLine(it as SetupItem)).toBe('arrow 0,0 -> 20,0 size=150% thickness=1.2')
+    expect(parse('text 0,0 thickness=1 "a"').items).toHaveLength(0)
+  })
 })

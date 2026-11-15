@@ -2078,6 +2078,7 @@ export const it: Record<MessageKey, string> = {
   'documents.setupHeadsStart': "All'inizio",
   'documents.setupHeadsBoth': 'Entrambe',
   'documents.setupHeadsNone': 'Nessuna',
+  'documents.setupThickness': 'Spessore (mm)',
   'documents.setupShift': 'Spostamento curva (mm)',
   'documents.setupBendHint':
     'Trascina la maniglia dove vuoi: lontano dalla retta per curvare la freccia, lungo la freccia per spostare il centro della curva. Riportata sulla retta torna dritta',

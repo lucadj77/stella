@@ -12,6 +12,7 @@
 //   arrow 40,50 -> 60,80 bend=8                        (curva: il centro si scosta di 8 mm)
 //   arrow 40,50 -> 60,80 bend=8 shift=5                (e si sposta di 5 mm verso la punta)
 //   arrow 40,50 -> 60,80 heads=both size=150%          (punte: end, start, both, none; misura)
+//   arrow 40,50 -> 60,80 thickness=1                   (spessore della linea in mm)
 //   image icons/moneta.png 200,20 width=10
 //
 // Con `width 60%` lo schema occupa al massimo il 60% della riga, con `font 90%` le didascalie
@@ -61,6 +62,8 @@ export type SetupItem = { from: number; to: number } & (
       heads?: ArrowHeads
       /** Misura di linea e punta rispetto a quella di base: 1 = 100%; assente = 1 */
       size?: number
+      /** Spessore della linea in mm, al posto di quello che viene dalla misura; assente = 0,5 × misura */
+      thickness?: number
     }
   | { kind: 'image'; src: string; x: number; y: number; w: number; rotate: number }
 )
@@ -233,7 +236,7 @@ function parseItem(line: string, from: number): SetupItem | null {
     }
     const pair = PAIR.exec(p.text)
     const sz = SIZE.exec(p.text)
-    const opt = /^(rotate|count|width|bend|shift)=(-?\d+(?:[.,]\d+)?)$/i.exec(p.text)
+    const opt = /^(rotate|count|width|bend|shift|thickness)=(-?\d+(?:[.,]\d+)?)$/i.exec(p.text)
     const al = /^align=(left|center|right)$/i.exec(p.text)
     const hd = /^heads=(end|start|both|none)$/i.exec(p.text)
     const sc = /^size=(\d+(?:[.,]\d+)?)%$/i.exec(p.text)
@@ -249,7 +252,11 @@ function parseItem(line: string, from: number): SetupItem | null {
   }
   const at = { from, to: from + line.length }
   if (align && kind !== 'text') return null
-  if ((heads || scale !== null || opts.shift !== undefined) && kind !== 'arrow') return null
+  if (
+    (heads || scale !== null || opts.shift !== undefined || opts.thickness !== undefined) &&
+    kind !== 'arrow'
+  )
+    return null
   const [x, y] = pairs[0] ?? [NaN, NaN]
   if (!Number.isFinite(x) || !Number.isFinite(y)) return null
   const rotate = ((Math.round(opts.rotate ?? 0) % 360) + 360) % 360
@@ -294,6 +301,7 @@ function parseItem(line: string, from: number): SetupItem | null {
         label: label ?? '',
         ...(opts.bend ? { bend: opts.bend } : {}),
         ...(opts.bend && opts.shift ? { shift: opts.shift } : {}),
+        ...(opts.thickness && opts.thickness > 0 ? { thickness: opts.thickness } : {}),
         ...(heads && heads !== 'end' ? { heads } : {}),
         ...(scale !== null && scale > 0 && scale !== 1 ? { size: scale } : {}),
         ...at
@@ -374,7 +382,7 @@ export function setupLine(it: SetupItem): string {
     case 'text':
       return `text ${r(it.x)},${r(it.y)} width=${r(it.w)}${it.align && it.align !== 'center' ? ` align=${it.align}` : ''} ${quote(it.text.replace(/\n/g, ' '))}`
     case 'arrow':
-      return `arrow ${r(it.x)},${r(it.y)} -> ${r(it.x2)},${r(it.y2)}${it.bend ? ` bend=${r(it.bend)}` : ''}${it.bend && it.shift ? ` shift=${r(it.shift)}` : ''}${it.heads && it.heads !== 'end' ? ` heads=${it.heads}` : ''}${it.size && it.size !== 1 ? ` size=${Math.round(it.size * 100)}%` : ''}${text(it.label)}`
+      return `arrow ${r(it.x)},${r(it.y)} -> ${r(it.x2)},${r(it.y2)}${it.bend ? ` bend=${r(it.bend)}` : ''}${it.bend && it.shift ? ` shift=${r(it.shift)}` : ''}${it.heads && it.heads !== 'end' ? ` heads=${it.heads}` : ''}${it.size && it.size !== 1 ? ` size=${Math.round(it.size * 100)}%` : ''}${it.thickness ? ` thickness=${r(it.thickness)}` : ''}${text(it.label)}`
     case 'image':
       return `image ${it.src.replace(/%/g, '%25').replace(/ /g, '%20')} ${r(it.x)},${r(it.y)} width=${r(it.w)}${rot(it.rotate)}`
   }

@@ -915,6 +915,12 @@ export default function SetupDialog({
                       (n) => change({ size: n > 0 && n !== 100 ? n / 100 : undefined }),
                       20
                     )}
+                    {num(
+                      t('documents.setupThickness'),
+                      sel.thickness ?? 0.5 * (sel.size ?? 1),
+                      (n) => change({ thickness: n > 0 ? n : undefined }),
+                      0.1
+                    )}
                     <div className="setup-text">
                       <span>{t('documents.setupHeads')}</span>
                       <Segmented<ArrowHeads>

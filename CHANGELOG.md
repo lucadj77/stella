@@ -13,7 +13,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Edit points**: the points of a shape can be moved one by one on the canvas: **Edit points** in the properties, or a double-click on the shape. Curves have their own handles; a double-click on the outline adds a point, Delete removes the chosen one.
 - **Curved lines and arrows**: the round handle in the middle of a line curves it, and moves in any direction, so the curve can also be lopsided (**Curve** and **Curve shift** in the properties). In the table setup the same handle curves arrows (`bend=8 shift=3` in the text).
 - **Rounded corners everywhere**: **Corner radius** now also works on paths and on combined shapes, inner corners included, and while editing points **Corner of this point** rounds just the chosen point.
-- **Arrows in the table setup**: tips at the end, at the start, at both ends or none (**Arrowheads**, `heads=both`), and a **Size** for line and tips (`size=150%`).
+- **Arrows in the table setup**: tips at the end, at the start, at both ends or none (**Arrowheads**, `heads=both`), a **Size** for line and tips (`size=150%`) and a **Thickness** for the line alone (`thickness=1`).
 - **Table setup fixes**: the window wraps texts with the document font, as the page does; arrows are chosen with a click near the line, and a text's selection box is as tall as its lines.
 
 ### Italiano
@@ -22,7 +22,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Modifica punti**: i punti di una forma si spostano uno per uno sulla tela: **Modifica punti** nelle proprietà, o un doppio clic sulla forma. Le curve hanno le loro maniglie; un doppio clic sul contorno aggiunge un punto, Canc toglie quello scelto.
 - **Linee e frecce curve**: la maniglia tonda al centro di una linea la curva, e si muove in ogni direzione, così la curva può anche essere sbilanciata (**Curva** e **Spostamento curva** nelle proprietà). Nello schema del tavolo la stessa maniglia curva le frecce (`bend=8 shift=3` nel testo).
 - **Angoli arrotondati ovunque**: **Raggio angoli** ora vale anche per i tracciati e per le forme combinate, angoli rientranti compresi, e mentre si modificano i punti **Angolo di questo punto** arrotonda solo il punto scelto.
-- **Frecce nello schema del tavolo**: punte alla fine, all'inizio, a entrambe le estremità o nessuna (**Punte**, `heads=both`), e una **Misura** per linea e punte (`size=150%`).
+- **Frecce nello schema del tavolo**: punte alla fine, all'inizio, a entrambe le estremità o nessuna (**Punte**, `heads=both`), una **Misura** per linea e punte (`size=150%`) e uno **Spessore** per la sola linea (`thickness=1`).
 - **Correzioni allo schema del tavolo**: la finestra manda a capo i testi con il carattere del documento, come la pagina; le frecce si scelgono con un clic vicino alla linea, e il riquadro scelto di un testo è alto quanto le sue righe.
 
 ## 1.11.1-beta.4

@@ -2047,6 +2047,7 @@ export const en = {
   'documents.setupHeadsStart': 'At the start',
   'documents.setupHeadsBoth': 'Both',
   'documents.setupHeadsNone': 'None',
+  'documents.setupThickness': 'Thickness (mm)',
   'documents.setupShift': 'Curve shift (mm)',
   'documents.setupBendHint':
     'Drag the handle anywhere: away from the straight line to curve the arrow, along it to move the middle of the curve. Back on the straight line it becomes straight again',
