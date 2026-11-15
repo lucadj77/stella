@@ -6,6 +6,8 @@ import {
   parseSegments,
   pathHandles,
   removePathPoint,
+  roundedCorners,
+  shiftCorners,
   segmentsToPath,
   shapeAsPath,
   withSegments
@@ -72,7 +74,7 @@ describe('modifica dei punti', () => {
 
   it('aggiunge e toglie punti', () => {
     const segs = parseSegments('M0,0 L10,0 L10,10 L0,10 Z')
-    const more = insertPathPoint(segs, { x: 5, y: 0.2 }, 1)!
+    const more = insertPathPoint(segs, { x: 5, y: 0.2 }, 1)!.segs
     expect(more.filter((s) => s.c === 'L').length).toBe(4)
     expect(more[1].pts[0].x).toBeCloseTo(5, 0)
     expect(insertPathPoint(segs, { x: 5, y: 5 }, 1)).toBeNull()
@@ -85,9 +87,29 @@ describe('modifica dei punti', () => {
 
   it('divide una curva senza cambiarne la forma', () => {
     const segs = parseSegments('M0,0 C0,10 10,10 10,0')
-    const split = insertPathPoint(segs, { x: 5, y: 7.5 }, 0.5)!
+    const split = insertPathPoint(segs, { x: 5, y: 7.5 }, 0.5)!.segs
     expect(split.map((s) => s.c)).toEqual(['M', 'C', 'C'])
     expect(split[1].pts[2].x).toBeCloseTo(5, 1)
     expect(split[1].pts[2].y).toBeCloseTo(7.5, 1)
+  })
+
+  it('arrotonda solo i punti tra due lati dritti', () => {
+    const segs = parseSegments('M0,0 L10,0 L10,10 L0,10 Z')
+    const out = roundedCorners(segs, { '1': 2 })
+    expect(out.filter((s) => s.c === 'A').length).toBe(1)
+    const arc = out.find((s) => s.c === 'A')!
+    expect(arc.pts[0].x).toBeCloseTo(10, 6)
+    expect(arc.pts[0].y).toBeCloseTo(2, 6)
+    // un raggio troppo grande si riduce a metà del lato
+    const big = roundedCorners(segs, { '1': 50 }).find((s) => s.c === 'A')!
+    expect(big.pts[0].y).toBeCloseTo(5, 6)
+    // il punto di arrivo di una curva resta com'è
+    const curve = parseSegments('M0,0 C0,5 5,10 10,10 L10,0 Z')
+    expect(roundedCorners(curve, { '1': 2 }).some((s) => s.c === 'A')).toBe(false)
+  })
+
+  it('aggiungendo e togliendo punti gli angoli seguono il loro punto', () => {
+    expect(shiftCorners({ '1': 2, '3': 1 }, 2, 1)).toEqual({ '1': 2, '4': 1 })
+    expect(shiftCorners({ '1': 2, '3': 1 }, 2, -1)).toEqual({ '1': 2, '2': 1 })
   })
 })

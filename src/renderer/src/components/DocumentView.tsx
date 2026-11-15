@@ -29,6 +29,7 @@ import {
   VariablesContext
 } from '../render/assets'
 import DocumentPreview, { DOC_UNIT } from '../render/DocumentPreview'
+import { docFontFamily } from '../render/docFont'
 import DocumentSettingsPanel from './DocumentSettingsPanel'
 import type { DocExportKind } from './DocumentExportDialog'
 import { printHtml } from '../export/printHtml'
@@ -853,6 +854,7 @@ export default function DocumentView({
               project={meta}
               maxWidth={DOC_PAGES[settings.page][0] - 2 * settings.margin}
               font={(settings.size * 0.88 * 25.4) / 72}
+              fontFamily={docFontFamily(settings.font, variables)}
               display={(s) =>
                 documentText(s, {
                   project: shownProject,
@@ -878,6 +880,7 @@ export default function DocumentView({
             initial={anatomyEdit.value}
             pageWidth={DOC_PAGES[settings.page][0] - 2 * settings.margin}
             pageFont={(settings.size * 0.88 * 25.4) / 72}
+            pageFamily={docFontFamily(settings.font, variables)}
             sets={sets}
             templates={templates}
             project={meta}

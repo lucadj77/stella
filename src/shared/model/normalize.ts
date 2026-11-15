@@ -96,7 +96,8 @@ const SHAPE_DEFAULTS: Omit<ShapeLayer, keyof LayerBase | 'type'> = {
   sides: 6,
   innerRatio: 0.5,
   path: '',
-  bend: 0
+  bend: 0,
+  bendShift: 0
 }
 
 const GRID_DEFAULTS: Omit<GridLayer, keyof LayerBase | 'type'> = {
@@ -208,6 +209,7 @@ function normalizeLayerProps(raw: RawLayer, index: number): Layer {
         ...base,
         ...SHAPE_DEFAULTS,
         ...(raw as Partial<ShapeLayer>),
+        corners: cleanCorners(raw.corners),
         id: base.id,
         type: 'shape'
       }
@@ -273,6 +275,7 @@ const COMBINE_VALUES: GroupCombine[] = ['none', 'union', 'intersect', 'subtract'
 const GROUP_DEFAULTS = {
   clip: false,
   combine: 'none',
+  radius: 0,
   layout: 'none',
   gap: 2,
   columns: 3,
@@ -429,6 +432,17 @@ function tidy(v: unknown): unknown {
 }
 
 /** Inverso di normalizeLayer: solo le proprietà diverse dai default, senza id */
+/** Gli angoli dei singoli punti: solo raggi positivi, con indici interi */
+function cleanCorners(v: unknown): Record<string, number> | undefined {
+  if (!v || typeof v !== 'object') return undefined
+  const out = Object.fromEntries(
+    Object.entries(v as Record<string, unknown>).filter(
+      ([k, r]) => /^\d+$/.test(k) && typeof r === 'number' && r > 0
+    )
+  ) as Record<string, number>
+  return Object.keys(out).length ? out : undefined
+}
+
 export function denormalizeLayer(l: Layer): RawLayer {
   const defaults: Record<string, unknown> = { ...BASE_DEFAULTS, ...TYPE_DEFAULTS[l.type] }
   const out: RawLayer = { type: l.type, name: l.name }

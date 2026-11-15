@@ -7,7 +7,6 @@ import {
   imageVariable,
   palette,
   resolveColor,
-  resolveFont,
   type Variables
 } from '../../../shared/model/variables'
 import { msg } from '../../../shared/messages'
@@ -19,6 +18,7 @@ import SetupDiagram from './SetupDiagram'
 import { setupView, setupWithText } from './setupGeometry'
 import { useBoundCard } from './useBoundCard'
 import { pageBreaks } from './pageBreaks'
+import { docFontFamily } from './docFont'
 import {
   anatomyCardSource,
   DOC_PAGES,
@@ -95,8 +95,7 @@ function cardProject(ctx: DocumentContext): ProjectMeta {
 /** Lo stile della pagina dalle impostazioni in testa al documento */
 function pageStyle(s: DocSettings, variables: DocumentContext['variables']): React.CSSProperties {
   const pal = palette(variables)
-  const family = (f: string): string | undefined =>
-    f.trim() ? `'${resolveFont(f, variables)}', sans-serif` : undefined
+  const family = (f: string): string | undefined => docFontFamily(f, variables)
   return {
     width: `${DOC_PAGES[s.page][0]}mm`,
     padding: `${s.margin}mm`,

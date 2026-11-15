@@ -373,7 +373,11 @@ const lerp = (a: Point, b: Point, t: number): Point => ({
  * Aggiunge un punto sul segmento più vicino a p, entro `reach` mm. Le curve si dividono in due
  * senza cambiare forma; un arco diventa due tratti dritti. null se nessun segmento è vicino
  */
-export function insertPathPoint(segs: Segment[], p: Point, reach: number): Segment[] | null {
+export function insertPathPoint(
+  segs: Segment[],
+  p: Point,
+  reach: number
+): { segs: Segment[]; at: number } | null {
   let best: { i: number; t: number; d: number } | null = null
   let start: Point = { x: 0, y: 0 }
   let cur: Point = { x: 0, y: 0 }
@@ -424,5 +428,114 @@ export function insertPathPoint(segs: Segment[], p: Point, reach: number): Segme
     const e = s.pts[s.pts.length - 1]
     out.splice(i, 1, { c: 'L', pts: [lerp(p0, e, t)] }, { c: 'L', pts: [e] })
   }
+  return { segs: out, at: i }
+}
+
+/**
+ * Il tracciato con gli angoli arrotondati dei punti in `corners` (indice del segmento del punto →
+ * raggio in mm). Si arrotonda solo un punto tra due tratti dritti; un raggio troppo grande per i
+ * lati si riduce, come nei poligoni
+ */
+export function roundedCorners(segs: Segment[], corners: Record<string, number>): Segment[] {
+  if (!Object.values(corners).some((r) => r > 0)) return segs
+  const out: Segment[] = []
+  let i = 0
+  while (i < segs.length) {
+    if (segs[i].c !== 'M') {
+      out.push(segs[i++])
+      continue
+    }
+    // un sottotracciato: da M fino al prossimo M, Z compreso
+    let j = i + 1
+    while (j < segs.length && segs[j].c !== 'M' && segs[j].c !== 'Z') j++
+    const closed = segs[j]?.c === 'Z'
+    const body = segs.slice(i, j)
+    out.push(...roundSubpath(body, i, closed, corners))
+    if (closed) out.push({ c: 'Z', pts: [] })
+    i = closed ? j + 1 : j
+  }
   return out
+}
+
+interface Vertex {
+  p: Point
+  /** Il segmento che arriva al punto (per il primo di un tracciato chiuso, quello che lo chiude) */
+  seg: Segment
+  index: number
+}
+
+function roundSubpath(
+  body: Segment[],
+  start: number,
+  closed: boolean,
+  corners: Record<string, number>
+): Segment[] {
+  const end = (s: Segment): Point => s.pts[s.pts.length - 1]
+  const verts: Vertex[] = body.map((s, k) => ({ p: end(s), seg: s, index: start + k }))
+  // un tracciato chiuso che torna al punto di partenza con un segmento: quel segmento chiude
+  let closing: Segment = { c: 'L', pts: [verts[0].p] }
+  if (closed && verts.length > 2 && same(verts[verts.length - 1].p, verts[0].p)) {
+    closing = verts.pop()!.seg
+  }
+  const n = verts.length
+  if (n < 3 && closed) return body
+  const incoming = (k: number): Segment => (k === 0 ? closing : verts[k].seg)
+  const outgoing = (k: number): Segment | null =>
+    k + 1 < n ? verts[k + 1].seg : closed ? closing : null
+  const straight = (s: Segment | null): boolean => !!s && (s.c === 'L' || s.c === 'M')
+  const arcs = verts.map((v, k) => {
+    const r = corners[String(v.index)] ?? 0
+    if (r <= 0) return null
+    if (!closed && (k === 0 || k === n - 1)) return null
+    const inSeg = incoming(k)
+    if (!straight(inSeg.c === 'M' ? null : inSeg) || !straight(outgoing(k))) return null
+    const a = verts[(k - 1 + n) % n].p
+    const p = v.p
+    const b = verts[(k + 1) % n].p
+    const la = Math.hypot(a.x - p.x, a.y - p.y)
+    const lb = Math.hypot(b.x - p.x, b.y - p.y)
+    if (!la || !lb) return null
+    const ua = { x: (a.x - p.x) / la, y: (a.y - p.y) / la }
+    const ub = { x: (b.x - p.x) / lb, y: (b.y - p.y) / lb }
+    const theta = Math.acos(Math.max(-1, Math.min(1, ua.x * ub.x + ua.y * ub.y)))
+    const tan = Math.tan(theta / 2)
+    if (tan < 1e-9) return null
+    const d = Math.min(r / tan, la / 2, lb / 2)
+    const radius = d * tan
+    const cross = (p.x - a.x) * (b.y - p.y) - (p.y - a.y) * (b.x - p.x)
+    return {
+      p1: { x: p.x + ua.x * d, y: p.y + ua.y * d },
+      p2: { x: p.x + ub.x * d, y: p.y + ub.y * d },
+      arc: [radius, radius, 0, 0, cross > 0 ? 1 : 0] as Segment['arc']
+    }
+  })
+  const out: Segment[] = []
+  const first = arcs[0]
+  out.push({ c: 'M', pts: [first ? first.p2 : verts[0].p] })
+  for (let k = 1; k < n; k++) {
+    const r = arcs[k]
+    if (r) out.push({ c: 'L', pts: [r.p1] }, { c: 'A', pts: [r.p2], arc: r.arc })
+    else out.push(verts[k].seg)
+  }
+  if (closed) {
+    if (first) out.push({ c: 'L', pts: [first.p1] }, { c: 'A', pts: [first.p2], arc: first.arc })
+    else if (closing.c !== 'L') out.push(closing)
+  }
+  return out
+}
+
+/** Gli angoli dei punti dopo un punto aggiunto (+1) o tolto (−1) al segmento `at` */
+export function shiftCorners(
+  corners: Record<string, number> | undefined,
+  at: number,
+  by: 1 | -1
+): Record<string, number> | undefined {
+  if (!corners) return corners
+  const out: Record<string, number> = {}
+  for (const [k, r] of Object.entries(corners)) {
+    const i = Number(k)
+    if (by < 0 && i === at) continue
+    out[String(i >= at ? i + by : i)] = r
+  }
+  return Object.keys(out).length ? out : undefined
 }

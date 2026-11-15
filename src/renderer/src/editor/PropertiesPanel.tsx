@@ -1,4 +1,5 @@
 import CombineButtons from './CombineButtons'
+import { shapeAsPath } from '../../../shared/model/pathEdit'
 import {
   createContext,
   lazy,
@@ -274,6 +275,7 @@ export default function PropertiesPanel({
               <PointsContext.Provider
                 value={{
                   active: state.points === layer.id,
+                  point: state.points === layer.id ? state.point : null,
                   toggle: () =>
                     dispatch({ type: 'points', id: state.points === layer.id ? null : layer.id })
                 }}
@@ -1030,6 +1032,19 @@ function GroupProperties({
           onPick={(op) => set({ combine: op === l.combine ? 'none' : op })}
         />
       </Inherit>
+      {l.combine !== 'none' && (
+        <Inherit keys={['radius']}>
+          <NumberField
+            label={t('prop.radius')}
+            hint={t('editor.pathRadiusHint')}
+            value={l.radius}
+            min={0}
+            step={0.5}
+            unit="mm"
+            onChange={(radius) => set({ radius })}
+          />
+        </Inherit>
+      )}
       {l.combine === 'none' && (
         <Inherit keys={['clip']}>
           <CheckField
@@ -1988,7 +2003,46 @@ function ValueProperties({
 const SHAPES: ShapeKind[] = ['rect', 'ellipse', 'polygon', 'star', 'line', 'path']
 
 /** Modifica dei punti della forma selezionata sulla tela: se è attiva e come cambiarla */
-const PointsContext = createContext<{ active: boolean; toggle: () => void } | null>(null)
+const PointsContext = createContext<{
+  active: boolean
+  /** Il punto scelto sulla tela (indice del segmento), se ce n'è uno */
+  point: number | null
+  toggle: () => void
+} | null>(null)
+
+/** Il raggio dell'angolo del punto scelto sulla tela, mentre si modificano i punti */
+function PointCornerField({
+  l,
+  set
+}: {
+  l: ShapeLayer
+  set: SetFn<ShapeLayer>
+}): React.JSX.Element | null {
+  const { t } = useI18n()
+  const points = useContext(PointsContext)
+  if (!points?.active || points.point === null) return null
+  const key = String(points.point)
+  return (
+    <NumberField
+      label={t('prop.pointRadius')}
+      hint={t('editor.pointRadiusHint')}
+      value={l.corners?.[key] ?? 0}
+      min={0}
+      step={0.5}
+      unit="mm"
+      onChange={(r) => {
+        const corners = { ...l.corners }
+        if (r > 0) corners[key] = r
+        else delete corners[key]
+        const next = Object.keys(corners).length ? corners : undefined
+        // una forma regolare diventa un tracciato, come quando si sposta un punto
+        if (l.shape !== 'path')
+          set({ shape: 'path', path: shapeAsPath(l), radius: 0, corners: next })
+        else set({ corners: next })
+      }}
+    />
+  )
+}
 
 /** Il pulsante grande che apre e chiude la modifica dei punti sulla tela */
 function EditPointsButton(): React.JSX.Element | null {
@@ -2052,6 +2106,7 @@ function ShapeProperties({
           />
         </P>
         {l.shape !== 'line' && !l.locked && <EditPointsButton />}
+        {l.shape !== 'line' && !l.locked && <PointCornerField l={l} set={set} />}
         <P id="stroke">
           <StrokeField
             label={t('prop.stroke')}
@@ -2070,13 +2125,29 @@ function ShapeProperties({
               unit="mm"
               onChange={(bend) => set({ bend })}
             />
+            {l.bend !== 0 && (
+              <NumberField
+                label={t('prop.bendShift')}
+                hint={`${t('editor.bendShiftHint')} ${col('bendShift')}`}
+                value={l.bendShift}
+                unit="mm"
+                onChange={(bendShift) => set({ bendShift })}
+              />
+            )}
           </P>
         )}
-        {(l.shape === 'rect' || l.shape === 'polygon' || l.shape === 'star') && (
+        {(l.shape === 'rect' ||
+          l.shape === 'polygon' ||
+          l.shape === 'star' ||
+          l.shape === 'path') && (
           <P id="radius">
             <NumberField
               label={t('prop.radius')}
-              hint={col('radius')}
+              hint={
+                l.shape === 'path'
+                  ? `${t('editor.pathRadiusHint')} ${col('radius')}`
+                  : col('radius')
+              }
               value={l.radius}
               min={0}
               unit="mm"

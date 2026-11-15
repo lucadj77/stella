@@ -59,17 +59,47 @@ const HIT_PAD = 0.6
  * un certo ingrandimento la calcola dai pixel, così una linea si prende anche da lontano.
  * Nei gruppi disposti o ripetuti contano i figli dove sono disegnati.
  */
+/**
+ * La curva di una linea, una quadratica nel sistema del livello: `mid` è il punto della curva a
+ * metà, dove sta la maniglia (a `bend` mm dalla retta e `bendShift` mm lungo la linea)
+ */
+export function lineCurve(l: {
+  x: number
+  y: number
+  w: number
+  h: number
+  bend: number
+  bendShift?: number
+}): {
+  from: Point
+  control: Point
+  to: Point
+  mid: Point
+} {
+  const cy = l.y + l.h / 2
+  const shift = l.bend ? (l.bendShift ?? 0) : 0
+  const mid = { x: l.x + l.w / 2 + shift, y: cy + l.bend }
+  return {
+    from: { x: l.x, y: cy },
+    to: { x: l.x + l.w, y: cy },
+    // il punto a metà di una quadratica sta a metà tra la corda e il punto di controllo
+    control: { x: l.x + l.w / 2 + shift * 2, y: cy + l.bend * 2 },
+    mid
+  }
+}
+
 export function hitTest(l: Layer, p: Point, pad = HIT_PAD): boolean {
   if (!l.visible || l.type === 'value') return false
   const q = toLocal(l, p)
   if (l.type === 'group') return arrangeGroup(l).children.some((c) => hitTest(c, q, pad))
   if (l.type === 'shape' && l.shape === 'line' && l.bend) {
     // una linea curva si prende vicino alla curva
-    const cy = l.y + l.h / 2
+    const { from, control: c, to } = lineCurve(l)
     for (let k = 0; k <= 32; k++) {
       const t = k / 32
-      const x = l.x + l.w * t
-      const y = cy + 4 * l.bend * t * (1 - t)
+      const u = 1 - t
+      const x = u * u * from.x + 2 * u * t * c.x + t * t * to.x
+      const y = u * u * from.y + 2 * u * t * c.y + t * t * to.y
       if (Math.hypot(q.x - x, q.y - y) <= Math.max(pad, l.h / 2)) return true
     }
     return false

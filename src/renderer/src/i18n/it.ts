@@ -1069,7 +1069,10 @@ export const it: Record<MessageKey, string> = {
   'prop.clip': 'Livello in fondo come maschera',
   'prop.bend': 'Curva',
   'editor.bendHint':
-    'Di quanti mm il centro della linea si scosta dalla retta: trascina la maniglia tonda al centro della linea. 0 = dritta.',
+    'Di quanti mm il centro della linea si scosta dalla retta: trascina la maniglia tonda in qualsiasi direzione. 0 = dritta.',
+  'prop.bendShift': 'Spostamento curva',
+  'editor.bendShiftHint':
+    'Di quanti mm il centro della curva si sposta lungo la linea (verso la fine se positivo). 0 = a metà.',
   'editor.pointHint': 'Trascina per spostare il punto; fai clic e premi Canc per toglierlo',
   'editor.editPoints': 'Modifica punti',
   'editor.editPointsDone': 'Fine modifica punti',
@@ -1077,6 +1080,10 @@ export const it: Record<MessageKey, string> = {
     'Sposta i singoli punti della forma sulla tela (o fai doppio clic sulla forma). La forma diventa un tracciato quando sposti un punto.',
   'editor.editPointsHelp':
     'Trascina un quadrato per spostare un punto, un cerchio per cambiare una curva. Doppio clic sul contorno per aggiungere un punto; fai clic su un punto e premi Canc per toglierlo. Esc per finire.',
+  'prop.pointRadius': 'Angolo di questo punto',
+  'editor.pointRadiusHint':
+    'Arrotonda il punto scelto, in mm. Vale solo per un punto tra due lati dritti.',
+  'editor.pathRadiusHint': 'Arrotonda tutti gli angoli del contorno, in mm.',
   'combine.title': 'Combina forme',
   'combine.union': 'Unisci',
   'combine.intersect': 'Interseca',
@@ -2065,8 +2072,15 @@ export const it: Record<MessageKey, string> = {
   'documents.setupH': 'Altezza (mm)',
   'documents.setupCount': 'Quanti nel mazzo',
   'documents.setupBend': 'Curva (mm)',
+  'documents.setupArrowSize': 'Misura (%)',
+  'documents.setupHeads': 'Punte',
+  'documents.setupHeadsEnd': 'Alla fine',
+  'documents.setupHeadsStart': "All'inizio",
+  'documents.setupHeadsBoth': 'Entrambe',
+  'documents.setupHeadsNone': 'Nessuna',
+  'documents.setupShift': 'Spostamento curva (mm)',
   'documents.setupBendHint':
-    'Trascina di lato per curvare la freccia; riportata sulla retta torna dritta',
+    'Trascina la maniglia dove vuoi: lontano dalla retta per curvare la freccia, lungo la freccia per spostare il centro della curva. Riportata sulla retta torna dritta',
   'documents.setupRotation': 'Rotazione (°)',
   'documents.setupRotate90': '+90°',
   'documents.setupRotateHandle': 'Trascina per ruotare; con Maiuscolo a scatti di 15°',

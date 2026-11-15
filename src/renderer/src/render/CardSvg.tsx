@@ -1,12 +1,13 @@
 import { D4_TURNS, d4Wedge, dieOf, insetPolygon, pathPolygon } from '../../../shared/model/dice'
 import { Fragment, useCallback, useContext, useId, useLayoutEffect, useRef, useState } from 'react'
 import { arrangeGroup } from '../../../shared/model/arrange'
-import { combinedShape, isCombinable } from '../../../shared/model/combine'
+import { combinedShape, isCombinable, roundedPathD } from '../../../shared/model/combine'
 import { smoothStops } from './smoothGradient'
 import { isRemoteImage, resolveAsset } from '../../../shared/model/assets'
 import {
   anchorPoint,
   hexagonPoints,
+  lineCurve,
   polygonVertices,
   shapeFrame,
   roundedPolygonPath
@@ -488,6 +489,14 @@ function GradientDef({
   )
 }
 
+const roundedCache = new WeakMap<ShapeLayer, string | null>()
+/** Il tracciato arrotondato di una forma `path`, calcolato una volta per livello */
+function roundedD(l: ShapeLayer): string | null {
+  if (!(l.radius > 0) && !l.corners) return null
+  if (!roundedCache.has(l)) roundedCache.set(l, roundedPathD(l))
+  return roundedCache.get(l)!
+}
+
 function ShapeView({ layer: l, id }: { layer: ShapeLayer; id: string }): React.JSX.Element {
   const gradient = isGradient(l.fill) ? parseGradient(l.fill) : null
   // il tracciato è in coordinate 0-1: la sfumatura si calcola nello stesso spazio
@@ -495,7 +504,7 @@ function ShapeView({ layer: l, id }: { layer: ShapeLayer; id: string }): React.J
     <GradientDef
       id={`${id}-fill`}
       gradient={gradient}
-      box={l.shape === 'path' && !l.combined ? { x: 0, y: 0, w: 1, h: 1 } : l}
+      box={l.shape === 'path' && !l.combined && !roundedD(l) ? { x: 0, y: 0, w: 1, h: 1 } : l}
     />
   )
   const fill = gradient ? `url(#${id}-fill)` : (l.fill ?? 'none')
@@ -527,19 +536,19 @@ function ShapeBody({ layer: l, fill }: { layer: ShapeLayer; fill: string }): Rea
       )
       const cy = l.y + l.h / 2
       // curva: una quadratica con il centro a `bend` mm dalla retta
+      const { from, control: c, to } = lineCurve(l)
       if (l.bend)
         return (
-          <path
-            d={`M${l.x},${cy} Q${l.x + l.w / 2},${cy + l.bend * 2} ${l.x + l.w},${cy}`}
-            fill="none"
-            {...ink}
-          />
+          <path d={`M${from.x},${from.y} Q${c.x},${c.y} ${to.x},${to.y}`} fill="none" {...ink} />
         )
       return <line x1={l.x} y1={cy} x2={l.x + l.w} y2={cy} {...ink} />
     }
     case 'path': {
       // il risultato di un gruppo combinato è già in mm
       if (l.combined) return <path d={l.combined} strokeLinejoin="round" {...paint} />
+      // angoli arrotondati: il tracciato si ricalcola in mm
+      const rounded = roundedD(l)
+      if (rounded) return <path d={rounded} strokeLinejoin="round" {...paint} />
       // il tracciato è in coordinate 0-1: lo spessore si riporta in mm dividendo per la scala
       const sw = l.stroke ? l.stroke.width : 0
       const k = (l.w + l.h) / 2

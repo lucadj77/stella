@@ -1057,7 +1057,10 @@ export const en = {
   'prop.clip': 'Bottom layer is a mask',
   'prop.bend': 'Curve',
   'editor.bendHint':
-    'How far the middle of the line moves away from the straight line, in mm: drag the round handle in the middle of the line. 0 = straight.',
+    'How far the middle of the line moves away from the straight line, in mm: drag the round handle in any direction. 0 = straight.',
+  'prop.bendShift': 'Curve shift',
+  'editor.bendShiftHint':
+    'How far the middle of the curve moves along the line, in mm (toward the end if positive). 0 = halfway.',
   'editor.pointHint': 'Drag to move the point; click it and press Delete to remove it',
   'editor.editPoints': 'Edit points',
   'editor.editPointsDone': 'Done editing points',
@@ -1065,6 +1068,10 @@ export const en = {
     'Move the single points of the shape on the canvas (or double-click the shape). The shape becomes a path when you move a point.',
   'editor.editPointsHelp':
     'Drag a square to move a point, a circle to change a curve. Double-click the outline to add a point; click a point and press Delete to remove it. Esc to finish.',
+  'prop.pointRadius': 'Corner of this point',
+  'editor.pointRadiusHint':
+    'Rounds the selected point, in mm. Only works on a point between two straight sides.',
+  'editor.pathRadiusHint': 'Rounds every corner of the outline, in mm.',
   'combine.title': 'Combine shapes',
   'combine.union': 'Union',
   'combine.intersect': 'Intersect',
@@ -2034,8 +2041,15 @@ export const en = {
   'documents.setupH': 'Height (mm)',
   'documents.setupCount': 'How many in the deck',
   'documents.setupBend': 'Curve (mm)',
+  'documents.setupArrowSize': 'Size (%)',
+  'documents.setupHeads': 'Arrowheads',
+  'documents.setupHeadsEnd': 'At the end',
+  'documents.setupHeadsStart': 'At the start',
+  'documents.setupHeadsBoth': 'Both',
+  'documents.setupHeadsNone': 'None',
+  'documents.setupShift': 'Curve shift (mm)',
   'documents.setupBendHint':
-    'Drag sideways to curve the arrow; back on the straight line it becomes straight again',
+    'Drag the handle anywhere: away from the straight line to curve the arrow, along it to move the middle of the curve. Back on the straight line it becomes straight again',
   'documents.setupRotation': 'Rotation (°)',
   'documents.setupRotate90': '+90°',
   'documents.setupRotateHandle': 'Drag to rotate; with Shift in 15° steps',

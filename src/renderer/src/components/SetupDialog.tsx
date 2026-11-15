@@ -20,6 +20,8 @@ import {
   reorderSetupItem,
   setupLine,
   setupSource,
+  WRAP_WIDTH,
+  type ArrowHeads,
   type Setup,
   type SetupAlign,
   type SetupItem,
@@ -129,6 +131,7 @@ export default function SetupDialog({
   project,
   maxWidth,
   font,
+  fontFamily,
   display,
   onSave,
   onClose
@@ -141,6 +144,8 @@ export default function SetupDialog({
   /** Larghezza del testo della pagina e corpo delle didascalie, in mm, come nel documento */
   maxWidth: number
   font: number
+  /** Famiglia di caratteri del documento: i testi vanno a capo come nella pagina */
+  fontFamily?: string
   /** Il testo come si vede nel documento, con le variabili risolte */
   display(text: string): string
   /** Il blocco ```setup */
@@ -153,7 +158,8 @@ export default function SetupDialog({
   /** Margine intorno all'area automatica, in mm; null = quello di base */
   const [margin, setMargin] = useState<number | null>(initial?.margin ?? null)
   /** Larghezza massima nel documento e corpo delle didascalie, in frazione (width: e font:) */
-  const [blockWidth, setBlockWidth] = useState(initial?.width ?? 1)
+  // come nel documento: uno schema con il testo accanto e senza larghezza ne prende metà
+  const [blockWidth, setBlockWidth] = useState(initial?.width ?? (initial?.wrap ? WRAP_WIDTH : 1))
   const [blockFont, setBlockFont] = useState(initial?.font ?? 1)
   const [caption, setCaption] = useState(initial?.caption ?? '')
   const [captionTop, setCaptionTop] = useState(initial?.captionTop ?? false)
@@ -525,8 +531,13 @@ export default function SetupDialog({
       patch = { x2: snap(o.x2 + dx), y2: snap(o.y2 + dy) }
     else if (d.handle === 'bend' && o.kind === 'arrow') {
       // vicino alla retta torna dritta
-      const bend = bendTowards(o, p)
-      patch = { bend: Math.abs(bend) < 1 ? undefined : bend }
+      // la maniglia va dove si vuole: lontano dalla retta curva, lungo la freccia sposta il centro
+      const { bend, shift } = bendTowards(o, p)
+      const straight = Math.abs(bend) < 1
+      patch = {
+        bend: straight ? undefined : bend,
+        shift: straight || Math.abs(shift) < 1 ? undefined : shift
+      }
     } else if (d.handle === 'size' && o.kind === 'zone')
       patch = { w: Math.max(5, snap(o.w + dx)), h: Math.max(5, snap(o.h + dy)) }
     else if (d.handle === 'size' && (o.kind === 'image' || o.kind === 'text'))
@@ -799,7 +810,7 @@ export default function SetupDialog({
             onPointerCancel={onPointerUp}
             onKeyDown={onKeyDown}
           >
-            <div className="setup-stage" style={{ padding: FIT_PAD }}>
+            <div className="setup-stage" style={{ padding: FIT_PAD, fontFamily }}>
               <SetupDiagram
                 setup={setupWithText(setup, display)}
                 view={{ ...view, area }}
@@ -888,9 +899,35 @@ export default function SetupDialog({
                       {num('x2', sel.x2, (x2) => change({ x2 }))}
                       {num('y2', sel.y2, (y2) => change({ y2 }))}
                     </div>
-                    {num(t('documents.setupBend'), sel.bend ?? 0, (n) =>
-                      change({ bend: n ? n : undefined })
+                    <div className="dialog-row">
+                      {num(t('documents.setupBend'), sel.bend ?? 0, (n) =>
+                        change({ bend: n ? n : undefined, ...(n ? {} : { shift: undefined }) })
+                      )}
+                      {sel.bend
+                        ? num(t('documents.setupShift'), sel.shift ?? 0, (n) =>
+                            change({ shift: n ? n : undefined })
+                          )
+                        : null}
+                    </div>
+                    {num(
+                      t('documents.setupArrowSize'),
+                      (sel.size ?? 1) * 100,
+                      (n) => change({ size: n > 0 && n !== 100 ? n / 100 : undefined }),
+                      20
                     )}
+                    <div className="setup-text">
+                      <span>{t('documents.setupHeads')}</span>
+                      <Segmented<ArrowHeads>
+                        value={sel.heads ?? 'end'}
+                        onChange={(h) => change({ heads: h === 'end' ? undefined : h })}
+                        options={[
+                          ['end', t('documents.setupHeadsEnd')],
+                          ['start', t('documents.setupHeadsStart')],
+                          ['both', t('documents.setupHeadsBoth')],
+                          ['none', t('documents.setupHeadsNone')]
+                        ]}
+                      />
+                    </div>
                   </>
                 )}
                 {sel.kind === 'zone' && (

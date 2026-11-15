@@ -18,6 +18,7 @@ import {
   DECK_STEP,
   itemCardSize,
   SETUP_LINE as LINE,
+  textHeight,
   type Box,
   type SetupView
 } from './setupGeometry'
@@ -139,15 +140,17 @@ function Label({
       <foreignObject
         width={w * ZOOM}
         height={font * LINE * 6 * ZOOM}
-        style={{ overflow: 'visible' }}
+        // il riquadro è alto sei righe: fuori dalle parole il clic passa a ciò che sta sotto
+        style={{ overflow: 'visible', pointerEvents: 'none' }}
       >
         <div style={{ fontSize: font * ZOOM, lineHeight: LINE, textAlign: align }}>
           <span
-            style={
-              background
+            style={{
+              pointerEvents: 'auto',
+              ...(background
                 ? { background: 'rgba(255,255,255,0.85)', padding: `0 ${font * 0.3 * ZOOM}px` }
-                : undefined
-            }
+                : {})
+            }}
           >
             <MarkupInline text={text} unit={ZOOM} />
           </span>
@@ -260,48 +263,78 @@ function Item({
     case 'text':
       return (
         <g data-item={i}>
+          {/* il riquadro del testo, righe comprese, si sceglie con un clic anche tra le parole */}
+          <rect
+            x={it.x}
+            y={it.y}
+            width={it.w}
+            height={textHeight(it.text, it.w, font)}
+            fill="transparent"
+          />
           <Label x={it.x} y={it.y} w={it.w} font={font} text={it.text} align={it.align} />
         </g>
       )
     case 'image':
       return <ImageItem i={i} it={it} />
     case 'arrow': {
-      const { control, mid } = arrowCurve(it)
-      // direzione della punta: la tangente alla fine, dal punto di controllo (o dalla coda)
-      const curved = !!it.bend
-      const from = curved ? control : { x: it.x, y: it.y }
-      const dx = it.x2 - from.x
-      const dy = it.y2 - from.y
-      const tan = Math.hypot(dx, dy) || 1
-      const ux = dx / tan
-      const uy = dy / tan
-      const len = Math.hypot(it.x2 - it.x, it.y2 - it.y) || 1
-      const head = Math.min(3.5, len / 2)
-      const bx = it.x2 - ux * head
-      const by = it.y2 - uy * head
-      const w = head * 0.55
-      const tip = `${it.x2},${it.y2} ${bx - uy * w},${by + ux * w} ${bx + uy * w},${by - ux * w}`
-      // la curva finisce alla base della punta: la quadratica si taglia a t, con de Casteljau
-      let d = `M${it.x},${it.y} L${bx},${by}`
-      if (curved) {
-        const t = Math.max(0.5, 1 - head / quadLength(it, control))
-        const c1 = { x: it.x + (control.x - it.x) * t, y: it.y + (control.y - it.y) * t }
-        const c2 = {
-          x: control.x + (it.x2 - control.x) * t,
-          y: control.y + (it.y2 - control.y) * t
-        }
-        const end = { x: c1.x + (c2.x - c1.x) * t, y: c1.y + (c2.y - c1.y) * t }
-        d = `M${it.x},${it.y} Q${c1.x},${c1.y} ${end.x},${end.y}`
+      const { control: c, mid } = arrowCurve(it)
+      const k = it.size ?? 1
+      const heads = it.heads ?? 'end'
+      const atEnd = heads === 'end' || heads === 'both'
+      const atStart = heads === 'start' || heads === 'both'
+      const p0 = { x: it.x, y: it.y }
+      const p2 = { x: it.x2, y: it.y2 }
+      const len = quadLength(it, c)
+      const head = Math.min(3.5 * k, len / (atStart && atEnd ? 3 : 2))
+      // la linea finisce alla base delle punte: si prende il tratto della quadratica tra a e b
+      const a = atStart ? head / len : 0
+      const b = atEnd ? 1 - head / len : 1
+      const blossom = (u: number, v: number): { x: number; y: number } => ({
+        x: (1 - u) * (1 - v) * p0.x + ((1 - u) * v + u * (1 - v)) * c.x + u * v * p2.x,
+        y: (1 - u) * (1 - v) * p0.y + ((1 - u) * v + u * (1 - v)) * c.y + u * v * p2.y
+      })
+      const s0 = blossom(a, a)
+      const s1 = blossom(a, b)
+      const s2 = blossom(b, b)
+      const d = `M${s0.x},${s0.y} Q${s1.x},${s1.y} ${s2.x},${s2.y}`
+      // una punta in `tip`, nella direzione da `from` (la tangente alla curva in quel punto)
+      const tipAt = (tip: { x: number; y: number }, from: { x: number; y: number }): string => {
+        const dx = tip.x - from.x
+        const dy = tip.y - from.y
+        const l = Math.hypot(dx, dy) || 1
+        const ux = dx / l
+        const uy = dy / l
+        const bx = tip.x - ux * head
+        const by = tip.y - uy * head
+        const w = head * 0.55
+        return `${tip.x},${tip.y} ${bx - uy * w},${by + ux * w} ${bx + uy * w},${by - ux * w}`
       }
+      // con la curva la tangente agli estremi va verso il punto di controllo; dritta, verso l'altro
+      const tips = [
+        ...(atEnd ? [tipAt(p2, it.bend ? c : p0)] : []),
+        ...(atStart ? [tipAt(p0, it.bend ? c : p2)] : [])
+      ]
       return (
         <g data-item={i}>
+          {/* una fascia invisibile larga qualche mm: la freccia si prende anche senza mirare */}
+          <path
+            d={`M${p0.x},${p0.y} Q${c.x},${c.y} ${p2.x},${p2.y}`}
+            fill="none"
+            stroke="transparent"
+            strokeWidth={Math.max(3, 2 * k)}
+            pointerEvents="stroke"
+          />
           {/* alone chiaro sotto la freccia: resta visibile anche sopra carte e plance scure */}
           <g stroke={HALO} strokeOpacity={0.85} strokeLinecap="round" strokeLinejoin="round">
-            <path d={d} fill="none" strokeWidth={1.4} />
-            <polygon points={tip} fill={HALO} fillOpacity={0.85} strokeWidth={0.9} />
+            <path d={d} fill="none" strokeWidth={0.9 * k + 0.5} />
+            {tips.map((tip, n) => (
+              <polygon key={n} points={tip} fill={HALO} fillOpacity={0.85} strokeWidth={0.9} />
+            ))}
           </g>
-          <path d={d} fill="none" stroke={INK} strokeWidth={0.5} strokeLinecap="round" />
-          <polygon points={tip} fill={INK} />
+          <path d={d} fill="none" stroke={INK} strokeWidth={0.5 * k} strokeLinecap="round" />
+          {tips.map((tip, n) => (
+            <polygon key={n} points={tip} fill={INK} />
+          ))}
           {it.label && (
             <Label
               x={mid.x - 25}

@@ -29,6 +29,8 @@ export interface EditorState {
    * finché è l'unica selezionata
    */
   points: string | null
+  /** Il punto scelto della forma in modifica: l'indice del suo segmento (model/pathEdit.ts) */
+  point: number | null
 }
 
 export type EditorAction =
@@ -38,7 +40,7 @@ export type EditorAction =
   | { type: 'gestureEnd' }
   | { type: 'select'; ids: string[]; scope?: string | null }
   | { type: 'side'; side: Side }
-  | { type: 'points'; id: string | null }
+  | { type: 'points'; id: string | null; point?: number | null }
   /** Template cambiato fuori dall'editor (annulla, ripristina): nessun passo nuovo */
   | { type: 'load'; template: Template; side?: Side; selection?: string[] }
 
@@ -53,7 +55,11 @@ function existing(t: Template, side: Side, ids: string[]): string[] {
 
 /** La modifica dei punti resta solo se la forma è ancora l'unica selezionata */
 const keepPoints = (s: EditorState): EditorState =>
-  s.points && (s.selection.length !== 1 || s.selection[0] !== s.points) ? { ...s, points: null } : s
+  s.points && (s.selection.length !== 1 || s.selection[0] !== s.points)
+    ? { ...s, points: null, point: null }
+    : !s.points && s.point !== null
+      ? { ...s, point: null }
+      : s
 
 function reducer(s: EditorState, a: EditorAction): EditorState {
   return keepPoints(step(s, a))
@@ -62,7 +68,12 @@ function reducer(s: EditorState, a: EditorAction): EditorState {
 function step(s: EditorState, a: EditorAction): EditorState {
   switch (a.type) {
     case 'points':
-      return { ...s, points: a.id, selection: a.id ? [a.id] : s.selection }
+      return {
+        ...s,
+        points: a.id,
+        point: a.id === s.points && a.point === undefined ? s.point : (a.point ?? null),
+        selection: a.id ? [a.id] : s.selection
+      }
     case 'change':
       return {
         ...s,
@@ -134,7 +145,8 @@ export function useEditor(
       gesture: null,
       gestureId: 0,
       before: { side, selection: [] },
-      points: null
+      points: null,
+      point: null
     }
   })
 }

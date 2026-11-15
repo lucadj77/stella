@@ -207,10 +207,20 @@ export interface ShapeLayer extends LayerBase {
    */
   bend: number
   /**
+   * Con la curva: di quanti mm il centro della curva si sposta lungo la linea, verso la fine
+   * (verso l'inizio se negativo); 0 = a metà
+   */
+  bendShift: number
+  /**
    * Solo sulla carta disegnata: il risultato di un gruppo combinato, tracciato in mm sulla carta
    * (model/combine.ts). Si disegna al posto di `path`
    */
   combined?: string
+  /**
+   * Angoli arrotondati dei singoli punti di un tracciato (shape = 'path'): indice del segmento del
+   * punto → raggio in mm (model/pathEdit.ts). `radius` arrotonda invece tutta la forma
+   */
+  corners?: Record<string, number>
 }
 
 /** Forma delle caselle di una griglia */
@@ -342,6 +352,8 @@ export interface GroupLayer extends LayerBase {
    * gli altri livelli si disegnano sopra. Con combine, clip non conta
    */
   combine: GroupCombine
+  /** Raggio in mm degli angoli del risultato di una combinazione; 0 = angoli vivi */
+  radius: number
   children: Layer[]
   /** Disposizione automatica dei figli dentro il riquadro del gruppo */
   layout: GroupLayout

@@ -1,4 +1,15 @@
-import { differenceD, FillRule, intersectD, unionD, xorD, type PathsD } from 'clipper2-ts'
+import {
+  differenceD,
+  EndType,
+  FillRule,
+  inflatePathsD,
+  intersectD,
+  JoinType,
+  unionD,
+  xorD,
+  type PathsD
+} from 'clipper2-ts'
+import { layerSegments, roundedCorners, segmentsToPath } from './pathEdit'
 import {
   anchorPoint,
   polygonVertices,
@@ -265,7 +276,7 @@ export function shapeOutline(l: ShapeLayer): Point[][] {
       rings = flattenPath(roundedPolygonPath(polygonVertices(l), l.radius))
       break
     case 'path':
-      rings = flattenPath(l.path, l.w, l.h, l.x, l.y)
+      rings = pathRings(l)
       break
     case 'line':
       rings = []
@@ -324,7 +335,7 @@ function groupRotated(g: GroupLayer, rings: Point[][]): Point[][] {
  * rotazione del gruppo). I figli devono già essere al loro posto (arrangeGroup).
  */
 export function combinedRings(g: GroupLayer): Point[][] {
-  return combineRings(g.combine, operands(g.children))
+  return roundRings(combineRings(g.combine, operands(g.children)), g.radius ?? 0)
 }
 
 export function combineRings(op: GroupCombine, shapes: PathsD[]): Point[][] {
@@ -511,4 +522,37 @@ export function combineLayers(
     name: uniqueName(r.template, 'shape')
   })
   return { template: named, groupId: r.groupId }
+}
+
+/**
+ * Angoli arrotondati di un contorno qualsiasi, di raggio r mm: prima quelli rientranti (si allarga
+ * e si restringe), poi quelli sporgenti (si restringe e si allarga), con giunzioni tonde
+ */
+export function roundRings(rings: Point[][], r: number): Point[][] {
+  if (!(r > 0) || !rings.length) return rings
+  const grow = (p: PathsD, d: number): PathsD =>
+    inflatePathsD(p, d, JoinType.Round, EndType.Polygon, 2, PRECISION, FLATNESS)
+  const closed = grow(grow(rings, r), -r)
+  return grow(grow(closed, -r), r)
+}
+
+/**
+ * Il contorno di una forma `path` in mm, nel sistema del livello non ruotato: con gli angoli dei
+ * singoli punti (`corners`) e quello di tutta la forma (`radius`)
+ */
+export function pathRings(l: ShapeLayer): Point[][] {
+  const segs = layerSegments(l)
+  const cornered = l.corners ? roundedCorners(segs, l.corners) : segs
+  return roundRings(flattenPath(segmentsToPath(cornered)), l.radius)
+}
+
+/**
+ * Il tracciato in mm di una forma `path` con angoli arrotondati, da disegnare al posto del
+ * tracciato 0-1; null se non ne ha. Con i soli angoli dei punti restano archi veri
+ */
+export function roundedPathD(l: ShapeLayer): string | null {
+  const corners = l.corners && Object.values(l.corners).some((r) => r > 0)
+  if (!corners && !(l.radius > 0)) return null
+  if (!(l.radius > 0)) return segmentsToPath(roundedCorners(layerSegments(l), l.corners!))
+  return ringsToPath(pathRings(l))
 }

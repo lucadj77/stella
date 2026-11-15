@@ -171,6 +171,11 @@ export function textBoxes(setup: Setup, boxes: Box[], font: number): Box[] {
   })
 }
 
+/** Altezza di un testo dello schema: le sue righe, almeno una */
+export function textHeight(text: string, width: number, font: number): number {
+  return Math.max(1, textExtent(text, width, font).lines) * font * SETUP_LINE
+}
+
 /** Interlinea delle didascalie */
 export const SETUP_LINE = 1.25
 
@@ -201,7 +206,11 @@ export function setupView(
   let area = setupArea(setup, [...boxes, ...textBoxes(setup, boxes, f)])
   f = font / Math.min(1, maxWidth / Math.max(1, area.w))
   area = setupArea(setup, [...boxes, ...textBoxes(setup, boxes, f)])
-  return { area, boxes, font: f }
+  // un testo è alto quanto le sue righe, con il corpo con cui si disegna
+  const sized = setup.items.map((it, i) =>
+    it.kind === 'text' ? { ...boxes[i], h: textHeight(it.text, it.w, f) } : boxes[i]
+  )
+  return { area, boxes: sized, font: f }
 }
 
 /** Lo schema con i testi trasformati, per esempio con le variabili del progetto risolte */

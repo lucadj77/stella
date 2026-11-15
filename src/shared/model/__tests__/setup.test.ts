@@ -8,6 +8,7 @@ import {
   moveSetupItem,
   parseSetup,
   reorderSetupItem,
+  setupLine,
   setupSource,
   type SetupItem
 } from '../setup'
@@ -82,6 +83,7 @@ describe('schema del tavolo', () => {
       'text 5,5 width=50 "Un \\"testo\\""',
       'arrow 1,2 -> 3,4',
       'arrow 1,2 -> 30,4 bend=-6.5 "gira"',
+      'arrow 1,2 -> 30,4 heads=both size=150%',
       'image icone/a%20b.png 7,8 width=12',
       '```'
     ].join('\n')
@@ -196,7 +198,19 @@ describe('didascalia dello schema', () => {
     // verso destra sullo schermo, la destra di chi cammina è in basso
     expect(arrowCurve(a).mid).toEqual({ x: 10, y: 5 })
     expect(arrowCurve(a).control).toEqual({ x: 10, y: 10 })
-    expect(bendTowards(a, { x: 12, y: -3.33 })).toBe(-3.3)
+    expect(bendTowards(a, { x: 12, y: -3.33 })).toEqual({ bend: -3.3, shift: 2 })
     expect(parse('arrow 0,0 -> 20,0 bend=5').items[0]).toMatchObject({ bend: 5 })
+  })
+
+  it('il centro della curva si sposta lungo la freccia', () => {
+    const a = { x: 0, y: 0, x2: 20, y2: 0, bend: 5, shift: 4 }
+    expect(arrowCurve(a).mid).toEqual({ x: 14, y: 5 })
+    expect(arrowCurve(a).control).toEqual({ x: 18, y: 10 })
+    // senza curva lo spostamento non conta
+    expect(arrowCurve({ ...a, bend: 0 }).mid).toEqual({ x: 10, y: 0 })
+    const it = parse('arrow 0,0 -> 20,0 bend=5 shift=4').items[0]
+    expect(it).toMatchObject({ bend: 5, shift: 4 })
+    expect(setupLine(it as SetupItem)).toBe('arrow 0,0 -> 20,0 bend=5 shift=4')
+    expect(parse('zone 0,0 10x10 shift=4').items).toHaveLength(0)
   })
 })

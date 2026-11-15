@@ -17,6 +17,7 @@ import {
   lineEnds,
   lineFromEnds,
   normalizeAngle,
+  lineCurve,
   resizeWithHandle,
   snap,
   toFrame,
@@ -36,6 +37,7 @@ import {
   pathHandles,
   removePathPoint,
   shapeAsPath,
+  shiftCorners,
   withSegments
 } from '../../../shared/model/pathEdit'
 import {
@@ -282,14 +284,13 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     pointsLayer?.type === 'shape' && pointsLayer.shape !== 'line' && !pointsLayer.locked
       ? pointsLayer.shape === 'path'
         ? pointsLayer
-        : { ...pointsLayer, shape: 'path', path: shapeAsPath(pointsLayer) }
+        : { ...pointsLayer, shape: 'path', path: shapeAsPath(pointsLayer), radius: 0 }
       : null
   const editingId = editing?.id ?? null
-  // il punto scelto vale solo per la forma in cui lo si è scelto
-  const [chosenPoint, setChosenPoint] = useState<{ id: string; seg: number } | null>(null)
-  const activeSeg = chosenPoint && chosenPoint.id === editingId ? chosenPoint.seg : null
-  const setActiveSeg = (seg: number | null): void =>
-    setChosenPoint(seg === null || !editingId ? null : { id: editingId, seg })
+  const activeSeg = editing ? state.point : null
+  const setActiveSeg = (seg: number | null): void => {
+    if (editingId) dispatch({ type: 'points', id: editingId, point: seg })
+  }
   const editingRef = useRef({ editing, activeSeg, tpl, side })
   useEffect(() => {
     editingRef.current = { editing, activeSeg, tpl, side }
@@ -310,11 +311,11 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
         e.stopPropagation()
         if (cur.activeSeg === null) return
         const segs = removePathPoint(layerSegments(cur.editing), cur.activeSeg)
-        dispatch({
-          type: 'change',
-          template: replace(cur.tpl, cur.side, cur.editing.id, withSegments(cur.editing, segs))
-        })
-        setChosenPoint(null)
+        const corners = shiftCorners(cur.editing.corners, cur.activeSeg, -1)
+        const next = { ...withSegments(cur.editing, segs), corners }
+        if (!corners) delete next.corners
+        dispatch({ type: 'change', template: replace(cur.tpl, cur.side, cur.editing.id, next) })
+        dispatch({ type: 'points', id: cur.editing.id, point: null })
       }
     }
     window.addEventListener('keydown', onKey, true)
@@ -433,10 +434,14 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     if (g.kind === 'bend') {
       // a passi di mezzo mm; vicino alla retta torna dritta
       const local = toLocal(g.layer, q)
+      // la maniglia va in ogni direzione: di lato curva, lungo la linea sposta il centro
       const raw = local.y - (g.layer.y + g.layer.h / 2)
-      const bend =
-        Math.abs(raw) < 0.5 ? 0 : e.altKey ? Math.round(raw * 100) / 100 : snap(raw, SNAP)
-      next = replace(g.start, side, g.layer.id, { ...g.layer, bend })
+      const along = local.x - (g.layer.x + g.layer.w / 2)
+      const step = (n: number): number =>
+        Math.abs(n) < 0.5 ? 0 : e.altKey ? Math.round(n * 100) / 100 : snap(n, SNAP)
+      const bend = step(raw)
+      const bendShift = bend ? step(along) : 0
+      next = replace(g.start, side, g.layer.id, { ...g.layer, bend, bendShift })
     } else if (g.kind === 'point') {
       const local = toLocal(g.layer, q)
       const to = { x: snap(local.x, stepX), y: snap(local.y, stepY) }
@@ -643,12 +648,13 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     const p = cardPoint(e)
     if (editing) {
       const local = toLocal(editing, toFrame(p, frameOf(editing.id)))
-      const segs = insertPathPoint(layerSegments(editing), local, (HIT_PX * 2) / scale)
-      if (segs) {
-        dispatch({
-          type: 'change',
-          template: replace(tpl, side, editing.id, withSegments(editing, segs))
-        })
+      const added = insertPathPoint(layerSegments(editing), local, (HIT_PX * 2) / scale)
+      if (added) {
+        const corners = shiftCorners(editing.corners, added.at, 1)
+        const next = { ...withSegments(editing, added.segs), corners }
+        if (!corners) delete next.corners
+        dispatch({ type: 'change', template: replace(tpl, side, editing.id, next) })
+        setActiveSeg(added.at)
         return
       }
     }
@@ -818,8 +824,8 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
                 {selected.length === 1 && !l.locked && l.type === 'shape' && l.shape === 'line' && (
                   <>
                     <circle
-                      cx={l.x + l.w / 2}
-                      cy={l.y + l.h / 2 + l.bend}
+                      cx={lineCurve(l).mid.x}
+                      cy={lineCurve(l).mid.y}
                       r={(HANDLE_PX / 2) * px}
                       className="handle line-bend"
                       vectorEffect="non-scaling-stroke"

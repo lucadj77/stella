@@ -5,6 +5,8 @@ import {
   combinedShape,
   convertToPath,
   flattenPath,
+  roundRings,
+  roundedPathD,
   shapeOutline
 } from '../combine'
 import type { Point } from '../geometry'
@@ -96,6 +98,51 @@ describe('forme combinate', () => {
     const inner = group('union', [top, base])
     const cut = shape({ x: 0, y: 0, w: 15, h: 5 })
     expect(area(combinedRings(group('intersect', [cut, inner])))).toBeCloseTo(75, 3)
+  })
+})
+
+describe('angoli arrotondati', () => {
+  it('arrotonda tutti gli angoli di un contorno qualsiasi', () => {
+    const square = [
+      [
+        { x: 0, y: 0 },
+        { x: 10, y: 0 },
+        { x: 10, y: 10 },
+        { x: 0, y: 10 }
+      ]
+    ]
+    expect(area(roundRings(square, 2))).toBeCloseTo(100 - (4 - Math.PI) * 4, 0)
+    expect(roundRings(square, 0)).toBe(square)
+  })
+
+  it('arrotonda anche gli angoli rientranti', () => {
+    // una L: cinque angoli sporgenti e uno rientrante
+    const l = [
+      [
+        { x: 0, y: 0 },
+        { x: 10, y: 0 },
+        { x: 10, y: 5 },
+        { x: 5, y: 5 },
+        { x: 5, y: 10 },
+        { x: 0, y: 10 }
+      ]
+    ]
+    const out = roundRings(l, 1)
+    const corner = (1 - Math.PI / 4) * 1
+    expect(area(out)).toBeCloseTo(75 - 5 * corner + corner, 1)
+  })
+
+  it('un gruppo combinato arrotonda il risultato', () => {
+    const g = { ...group('union', [top, base]), radius: 1 }
+    expect(area(combinedRings(g))).toBeCloseTo(150 - (4 - Math.PI), 1)
+  })
+
+  it('un tracciato disegna archi solo con gli angoli dei punti', () => {
+    const p = { ...shape({ x: 0, y: 0, w: 10, h: 10 }), shape: 'path' as const }
+    const sq = { ...p, path: 'M0,0 L1,0 L1,1 L0,1 Z' }
+    expect(roundedPathD(sq)).toBeNull()
+    expect(roundedPathD({ ...sq, corners: { '2': 2 } })).toMatch(/A2 2 /)
+    expect(roundedPathD({ ...sq, radius: 2 })).toMatch(/^M/)
   })
 })
 
