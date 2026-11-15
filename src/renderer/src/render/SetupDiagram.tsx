@@ -6,8 +6,14 @@ import { anatomyCardSource } from '../../../shared/model/document'
 import { arrowCurve, type Setup, type SetupItem } from '../../../shared/model/setup'
 import { resolveAsset } from '../../../shared/model/assets'
 import { backdropInner, imageBackdrop } from '../../../shared/model/shapes'
-import { imageVariable, palette, resolveColor } from '../../../shared/model/variables'
+import {
+  imageStrokeWidth,
+  imageVariable,
+  palette,
+  resolveColor
+} from '../../../shared/model/variables'
 import { SvgBackdrop } from './backdrop'
+import { TextOutline } from './outline'
 import CardSvg, { CardOutline } from './CardSvg'
 import Edged from './Edged'
 import { MarkupInline } from './MarkupText'
@@ -399,6 +405,8 @@ function ImageItem({
   const backdrop = imageBackdrop(v, variables)
   const inner = backdrop ? backdropInner(box, backdrop) : box
   const tint = v?.tint ? resolveColor(v.tint, palette(variables)) : null
+  // il contorno della variabile, in mm o in % del lato dell'immagine
+  const outline = v?.stroke ? imageStrokeWidth(v.stroke, it.w) : 0
   const flip = v?.flip
   const turn = [
     v?.rotate ? `rotate(${v.rotate} ${c.x} ${c.y})` : '',
@@ -418,25 +426,45 @@ function ImageItem({
         <>
           {/* un riquadro trasparente: l'immagine si sceglie anche cliccando dove è vuota */}
           <rect x={it.x} y={it.y} width={it.w} height={it.w} fill="transparent" />
-          {backdrop && <SvgBackdrop box={box} backdrop={backdrop} />}
-          {tint && (
+          {outline > 0 && v?.stroke && (
             <defs>
-              <filter id={`${id}-tint`}>
-                <feFlood floodColor={tint} />
-                <feComposite in2="SourceAlpha" operator="in" />
+              <filter
+                id={`${id}-outline`}
+                x="-100%"
+                y="-100%"
+                width="300%"
+                height="300%"
+                primitiveUnits="userSpaceOnUse"
+              >
+                <TextOutline
+                  r={outline}
+                  color={resolveColor(v.stroke.color, palette(variables))}
+                  soft={outline * 0.3}
+                />
               </filter>
             </defs>
           )}
-          <g transform={turn || undefined}>
-            <image
-              href={assetUrl(r.path)}
-              x={inner.x}
-              y={inner.y}
-              width={inner.w}
-              height={inner.h}
-              preserveAspectRatio="xMidYMid meet"
-              filter={tint ? `url(#${id}-tint)` : undefined}
-            />
+          <g filter={outline > 0 ? `url(#${id}-outline)` : undefined}>
+            {backdrop && <SvgBackdrop box={box} backdrop={backdrop} />}
+            {tint && (
+              <defs>
+                <filter id={`${id}-tint`}>
+                  <feFlood floodColor={tint} />
+                  <feComposite in2="SourceAlpha" operator="in" />
+                </filter>
+              </defs>
+            )}
+            <g transform={turn || undefined}>
+              <image
+                href={assetUrl(r.path)}
+                x={inner.x}
+                y={inner.y}
+                width={inner.w}
+                height={inner.h}
+                preserveAspectRatio="xMidYMid meet"
+                filter={tint ? `url(#${id}-tint)` : undefined}
+              />
+            </g>
           </g>
         </>
       ) : (

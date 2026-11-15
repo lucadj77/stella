@@ -18,7 +18,7 @@ import {
 import { BUILTIN_SHAPES } from '../../../shared/model/markup'
 import { BACKDROP_PAD } from '../../../shared/model/shapes'
 import { Dialog } from '../editor/dialogs'
-import { ColorField, NumberField, TextField } from '../editor/fields'
+import { ColorField, NumberField, StrokeField, TextField } from '../editor/fields'
 import { useI18n } from '../i18n/context'
 import MarkupText from '../render/MarkupText'
 import { AssetsContext, VariablesContext } from '../render/assets'
@@ -241,6 +241,14 @@ export default function VariableDialog({
                 unit="%"
                 onChange={(opacity) => setV({ ...v, opacity })}
               />
+              <StrokeField
+                label={t('variable.stroke')}
+                hint={t('variable.strokeHint')}
+                value={v.stroke ?? null}
+                allowPercent
+                widthTitle={t('variable.strokeWidth')}
+                onChange={(stroke) => setV({ ...v, stroke: stroke ?? undefined })}
+              />
               <TextField
                 label={t('variable.bg')}
                 hint={t('variable.bgHint')}
@@ -396,6 +404,7 @@ function clean(v: Variable): Variable {
   if (v.rotate) out.rotate = v.rotate
   if (v.flip) out.flip = v.flip
   if (v.opacity !== undefined && v.opacity !== 1) out.opacity = v.opacity
+  if (v.stroke) out.stroke = { color: v.stroke.color, width: v.stroke.width }
   if (v.bg?.trim()) {
     out.bg = v.bg.trim()
     if (v.bgColor) out.bgColor = v.bgColor

@@ -102,6 +102,24 @@ describe('image attributes', () => {
     expect(parseImageAttrs(' due parole')).toBeNull()
   })
 
+  it('reads the outline of an inline image', () => {
+    expect(parseImageAttrs('stroke=white/0.4')?.settings).toEqual({
+      stroke: { color: 'white', width: 0.4 }
+    })
+    expect(parseImageAttrs('stroke=rosso/8%')?.settings).toEqual({
+      stroke: { color: 'rosso', width: '8%' }
+    })
+    expect(parseImageAttrs('stroke=#FFFFFF')?.settings).toEqual({
+      stroke: { color: '#FFFFFF', width: 0.3 }
+    })
+    expect(parseImageAttrs('stroke=none')?.settings).toEqual({ stroke: null })
+    expect(parseImageAttrs('stroke=white/0')?.bad).toEqual(['stroke=white/0'])
+    expect(parseImageAttrs('stroke=white/abc')?.bad).toEqual(['stroke=white/abc'])
+    expect(mergeImageSettings({ stroke: { color: 'red', width: 1 } }, { stroke: null })).toEqual({
+      stroke: null
+    })
+  })
+
   it('lets inline attributes override the variable, including none', () => {
     expect(mergeImageSettings({ tint: 'red', flip: 'h' }, { tint: null, flip: undefined })).toEqual(
       { tint: null, flip: undefined }

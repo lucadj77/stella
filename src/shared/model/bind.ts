@@ -22,6 +22,7 @@ import {
   combineFlip,
   imageVariable,
   palette,
+  imageStrokeWidth,
   parseImageAttrs,
   resolveColor,
   variableFields,
@@ -392,6 +393,13 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
                 flipH,
                 flipV,
                 opacity: out.opacity * (v.opacity ?? 1),
+                // il contorno della variabile, se il livello non ne ha uno suo; in % vale
+                // dell'altezza del livello
+                stroke:
+                  out.stroke ??
+                  (v.stroke
+                    ? { color: v.stroke.color, width: imageStrokeWidth(v.stroke, out.h) }
+                    : null),
                 ...(backdrop ? { backdrop } : {})
               }
             }

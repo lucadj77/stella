@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.12.0-beta.2
+
+### English
+
+- **Outline for image variables**: an image variable has an **Outline** (color and width, in mm or in % of the image height) that follows the shape of the icon, like the outline of layers. It shows wherever the variable is used: in texts, image layers (unless the layer has its own outline), documents and table setups. In text it can be set for a single use: `{sword stroke=white/0.3}`, `{sword stroke=white/8%}`, or `stroke=none` to remove the variable's. The Word export of documents shows icons without outline.
+
+### Italiano
+
+- **Contorno per le variabili immagine**: una variabile immagine ha un **Contorno** (colore e spessore, in mm o in % dell'altezza dell'immagine) che segue la sagoma dell'icona, come il contorno dei livelli. Si vede ovunque si usi la variabile: nei testi, nei livelli immagine (se il livello non ha un contorno suo), nei documenti e nello schema del tavolo. Nel testo si può dare per un solo uso: `{spada stroke=white/0.3}`, `{spada stroke=white/8%}`, oppure `stroke=none` per togliere quello della variabile. L'export Word dei documenti mostra le icone senza contorno.
+
 ## 1.12.0-beta.1
 
 ### English

@@ -590,7 +590,8 @@ export function StrokeField({
   value,
   onChange,
   allowPercent,
-  dashable
+  dashable,
+  widthTitle
 }: Base & {
   value: Stroke | null
   onChange(v: Stroke | null): void
@@ -598,6 +599,8 @@ export function StrokeField({
   allowPercent?: boolean
   /** Linea continua, tratteggiata o a punti (non per il contorno del testo) */
   dashable?: boolean
+  /** Spiegazione dello spessore, se non è quella del testo (con allowPercent) */
+  widthTitle?: string
 }): React.JSX.Element {
   const { t } = useI18n()
   const isPercent = (s: string): boolean => !!allowPercent && /^\d+([.,]\d+)?%$/.test(s.trim())
@@ -623,7 +626,9 @@ export function StrokeField({
           <ColorInput value={value.color} onChange={(color) => onChange({ ...value, color })} />
           <input
             className="num narrow"
-            title={allowPercent ? t('field.strokeWidthPercent') : t('field.strokeWidth')}
+            title={
+              widthTitle ?? (allowPercent ? t('field.strokeWidthPercent') : t('field.strokeWidth'))
+            }
             {...width.bind}
             onKeyDown={blurOnEnter}
           />

@@ -15,6 +15,16 @@ export interface ImageSettings {
   flip?: Flip
   /** 0-1 */
   opacity?: number
+  /**
+   * Contorno che segue la sagoma dell'immagine: spessore in mm, oppure in % dell'altezza
+   * dell'immagine se termina con %. null (stroke=none) toglie quello della variabile
+   */
+  stroke?: ImageStroke | null
+}
+
+export interface ImageStroke {
+  color: string
+  width: number | string
 }
 
 export type Flip = 'h' | 'v' | 'hv'
@@ -177,7 +187,8 @@ export const IMAGE_ATTRIBUTES = {
   raise: 'number',
   rotate: 'number',
   flip: 'flip',
-  opacity: 'size'
+  opacity: 'size',
+  stroke: 'stroke'
 } as const
 
 const number = (s: string): number | null => {
@@ -238,12 +249,46 @@ export function parseImageAttrs(src: string): { settings: ImageSettings; bad: st
         if (ok) settings.opacity = n!
         break
       }
+      case 'stroke': {
+        // stroke=white/0.3 (mm), stroke=white/8% (dell'altezza), stroke=white, stroke=none
+        if (value === 'none') {
+          settings.stroke = null
+          break
+        }
+        const stroke = parseImageStroke(value)
+        ok = !!stroke
+        if (stroke) settings.stroke = stroke
+        break
+      }
       default:
         ok = false
     }
     if (!ok) bad.push(p)
   }
   return { settings, bad }
+}
+
+/** "white/0.3", "white/8%" o "white" (0,3 mm): il contorno di un'immagine nel testo */
+export function parseImageStroke(value: string): ImageStroke | null {
+  const slash = value.lastIndexOf('/')
+  const color = (slash < 0 ? value : value.slice(0, slash)).trim()
+  const w =
+    slash < 0
+      ? ''
+      : value
+          .slice(slash + 1)
+          .trim()
+          .replace(',', '.')
+  if (!color) return null
+  if (!w) return { color, width: 0.3 }
+  if (/^\d+(\.\d+)?%$/.test(w)) return parseFloat(w) > 0 ? { color, width: w } : null
+  const n = number(w)
+  return n !== null && n > 0 ? { color, width: n } : null
+}
+
+/** Spessore del contorno in mm, per un'immagine alta `height` mm */
+export function imageStrokeWidth(s: ImageStroke, height: number): number {
+  return typeof s.width === 'string' ? (parseFloat(s.width) / 100) * height : s.width
 }
 
 /** Le impostazioni scritte nel testo prevalgono su quelle della variabile */

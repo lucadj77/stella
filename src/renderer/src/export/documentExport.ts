@@ -148,7 +148,9 @@ async function inlineUrls(root: HTMLElement): Promise<void> {
     if (el.closest('svg')) continue
     let style = el.getAttribute('style') ?? ''
     for (const m of [...style.matchAll(/url\("([^"]+)"\)/g)])
-      if (!m[1].startsWith('data:')) style = style.replace(m[1], await dataUri(m[1]))
+      // url(#...) è un filtro della pagina (il contorno delle icone), non un file
+      if (!m[1].startsWith('data:') && !m[1].startsWith('#'))
+        style = style.replace(m[1], await dataUri(m[1]))
     el.setAttribute('style', style)
   }
 }

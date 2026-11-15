@@ -1421,6 +1421,8 @@ export const en = {
   'markupHelp.attr.image.rotate': 'Rotation in degrees, clockwise: rotate=90',
   'markupHelp.attr.image.flip': 'Mirror horizontally (h), vertically (v) or both (hv): flip=h',
   'markupHelp.attr.image.opacity': 'Opacity from 0% to 100%: opacity=50%',
+  'markupHelp.attr.image.stroke':
+    'Outline that follows the shape: color/width in mm or in % of the image height, none removes it: stroke=white/0.3',
   'markupHelp.attr.bold': 'Bold',
   'markupHelp.attr.italic': 'Italic',
   'markupHelp.attr.underline': 'Underlined',
@@ -2160,6 +2162,10 @@ export const en = {
   'variable.flip.v': 'Vertical',
   'variable.flip.hv': 'Both',
   'variable.opacity': 'Opacity',
+  'variable.stroke': 'Outline',
+  'variable.strokeHint':
+    'Outline that follows the shape of the image, in texts, image layers and documents (not in Word)',
+  'variable.strokeWidth': 'Width in mm, or in % of the image height (e.g. 8%)',
   'variable.bg': 'Background',
   'variable.bgHint':
     'A shape (circle, square, rounded, hexagon, diamond), an image or another image variable behind the image, wherever the variable is used: in texts, image layers and documents',
@@ -2169,7 +2175,7 @@ export const en = {
   'variable.bgPad': 'Space around',
   'variable.bgPadHint': 'Space between the image and the edge of the background, on each side',
   'variable.attrsHint':
-    'In text these can be changed for a single use: {spada tint=red size=150% rotate=90 flip=h opacity=50%}',
+    'In text these can be changed for a single use: {spada tint=red size=150% rotate=90 flip=h opacity=50% stroke=white/0.3}',
   'variable.text': 'Text',
   'variable.textHint':
     'Replaces {name}; it can use formatting and other variables. {1}, {2} are parameters: {name:3:1}. {1|card|cards} picks singular or plural',

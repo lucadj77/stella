@@ -586,6 +586,42 @@ describe('contenuto della griglia', () => {
   })
 })
 
+describe('contorno della variabile immagine', () => {
+  const variables = {
+    goccia: {
+      type: 'image' as const,
+      src: 'icons/goccia',
+      stroke: { color: 'rosso', width: '10%' }
+    },
+    rosso: { type: 'color' as const, color: '#A33A2A' }
+  }
+
+  it('passa al livello immagine, in % della sua altezza e con il colore risolto', () => {
+    const tpl = normalizeTemplate({
+      name: 't',
+      front: [{ type: 'image', name: 'img', src: 'goccia', h: 20 }]
+    })
+    const img = bindCard(tpl, rowToCard([], []), { variables }).template.front[0]
+    expect(img).toMatchObject({ stroke: { color: '#A33A2A', width: 2 } })
+  })
+
+  it('non prende il posto del contorno del livello', () => {
+    const tpl = normalizeTemplate({
+      name: 't',
+      front: [
+        {
+          type: 'image',
+          name: 'img',
+          src: '{goccia}',
+          stroke: { color: '#000000', width: 0.5 }
+        }
+      ]
+    })
+    const img = bindCard(tpl, rowToCard([], []), { variables }).template.front[0]
+    expect(img).toMatchObject({ stroke: { color: '#000000', width: 0.5 } })
+  })
+})
+
 describe('formula con risultato vuoto', () => {
   const tpl = normalizeTemplate({
     name: 't',
