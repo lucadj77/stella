@@ -1,4 +1,13 @@
-import { useContext, useLayoutEffect, useMemo, type CSSProperties } from 'react'
+import {
+  useContext,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode
+} from 'react'
 import { resolveAsset } from '../../../shared/model/assets'
 import {
   BLOCK_STYLE,
@@ -29,6 +38,7 @@ import {
 } from './assets'
 import { useImageSize } from './imageSize'
 import { imageBackdrop, shapePath } from '../../../shared/model/shapes'
+import { TextOutline } from './outline'
 
 // Disegna il markup del testo (docs/specifica.md, 2.1) come HTML dentro il foreignObject del
 // livello. Le misure sono nel sistema scalato del livello: `unit` pixel per millimetro.
@@ -153,7 +163,16 @@ function Inlines({
           case 'br':
             return <br key={i} />
           case 'ref':
-            return <Ref key={i} name={n.name} count={n.count} raw={n.raw} image={n.image} />
+            return (
+              <Ref
+                key={i}
+                name={n.name}
+                count={n.count}
+                raw={n.raw}
+                image={n.image}
+                unit={k.unit}
+              />
+            )
           default:
             return (
               <SpanView key={i} attrs={resolveStyles(n.attrs, styles)} k={k} styles={styles}>
@@ -320,13 +339,16 @@ function Ref({
   name,
   count,
   raw,
-  image
+  image,
+  unit
 }: {
   name: string
   count: number
   raw: string
   /** Attributi scritti nel testo, che prevalgono su quelli della variabile */
   image?: ImageSettings
+  /** Pixel per millimetro, per il contorno in mm */
+  unit: number
 }): React.JSX.Element {
   const assets = useContext(AssetsContext)
   const variables = useContext(VariablesContext)
@@ -375,8 +397,20 @@ function Ref({
     verticalAlign: `${-0.22 * scale + (set.raise ?? 0) / 100}em`,
     margin: INLINE_MARGIN,
     transform: transform || undefined,
-    opacity: set.opacity
+    // con il contorno l'opacità va al contenitore, così si attenua anche il contorno
+    opacity: set.stroke ? undefined : set.opacity
   }
+  const outlined = (icons: ReactNode): React.JSX.Element => (
+    <ImageOutline
+      stroke={set.stroke}
+      height={height}
+      unit={unit}
+      opacity={set.opacity}
+      pal={palette(variables)}
+    >
+      {icons}
+    </ImageOutline>
+  )
   const tint = set.tint ? resolveColor(set.tint, palette(variables)) : null
   const backdrop = imageBackdrop(v, variables)
   if (backdrop) {
@@ -395,7 +429,7 @@ function Ref({
       height: `${inner}em`,
       transform: transform || undefined
     }
-    return (
+    return outlined(
       <>
         {Array.from({ length: count }, (_, i) => (
           <span key={i} style={one}>
@@ -423,7 +457,7 @@ function Ref({
       </>
     )
   }
-  return (
+  return outlined(
     <>
       {Array.from({ length: count }, (_, i) =>
         tint ? (
@@ -443,6 +477,69 @@ function Ref({
           <img key={i} src={url} alt="" style={{ ...style, width: 'auto' }} />
         )
       )}
+    </>
+  )
+}
+
+/**
+ * Il contorno di un'immagine nel testo: un filtro che allarga la sagoma, come quello dei livelli.
+ * Sta su un contenitore e non sull'icona, perché il filtro viene prima della maschera che dà la
+ * tinta e il contorno resterebbe nascosto. Gli attributi data- servono all'esportazione in SVG.
+ */
+function ImageOutline({
+  stroke,
+  height,
+  unit,
+  opacity,
+  pal,
+  children
+}: {
+  stroke: ImageSettings['stroke']
+  /** Altezza dell'icona in em */
+  height: number
+  unit: number
+  opacity?: number
+  pal: Record<string, string>
+  children: ReactNode
+}): React.JSX.Element {
+  const id = `gc-io${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
+  const box = useRef<HTMLSpanElement>(null)
+  // lo spessore in % dipende dall'altezza dell'icona, che è in em: serve il corpo del testo
+  const [fontPx, setFontPx] = useState(0)
+  const percent = typeof stroke?.width === 'string'
+  useLayoutEffect(() => {
+    if (percent && box.current) setFontPx(parseFloat(getComputedStyle(box.current).fontSize) || 0)
+  }, [percent])
+  if (!stroke) return <>{children}</>
+  const r =
+    typeof stroke.width === 'string'
+      ? (parseFloat(stroke.width) / 100) * height * fontPx
+      : stroke.width * unit
+  const color = resolveColor(stroke.color, pal)
+  return (
+    <>
+      {r > 0 && (
+        <svg width={0} height={0} style={{ position: 'absolute' }} aria-hidden data-gc-defs="">
+          <filter
+            id={id}
+            x="-100%"
+            y="-100%"
+            width="300%"
+            height="300%"
+            primitiveUnits="userSpaceOnUse"
+          >
+            <TextOutline r={r} color={color} />
+          </filter>
+        </svg>
+      )}
+      <span
+        ref={box}
+        data-gc-outline={r > 0 ? color : undefined}
+        data-gc-outline-r={r > 0 ? r : undefined}
+        style={{ filter: r > 0 ? `url(#${id})` : undefined, opacity }}
+      >
+        {children}
+      </span>
     </>
   )
 }

@@ -4,12 +4,13 @@ import { renameInDefinitions, renameInSheet, renameInTemplate, renameInText } fr
 
 describe('rinomina nei testi', () => {
   it('variabili: richiami, ripetizioni, attributi e immagini con attributi', () => {
-    const src = 'Bonus {spada} {spada*3} {spada*forza tint=rosso} [x]{color=rosso border=rosso/0.3}'
+    const src =
+      'Bonus {spada} {spada*3} {spada*forza tint=rosso stroke=rosso/8%} [x]{color=rosso border=rosso/0.3}'
     expect(renameInText(src, 'variable', 'spada', 'lama')).toBe(
-      'Bonus {lama} {lama*3} {lama*forza tint=rosso} [x]{color=rosso border=rosso/0.3}'
+      'Bonus {lama} {lama*3} {lama*forza tint=rosso stroke=rosso/8%} [x]{color=rosso border=rosso/0.3}'
     )
     expect(renameInText(src, 'variable', 'rosso', 'red')).toBe(
-      'Bonus {spada} {spada*3} {spada*forza tint=red} [x]{color=red border=red/0.3}'
+      'Bonus {spada} {spada*3} {spada*forza tint=red stroke=red/8%} [x]{color=red border=red/0.3}'
     )
   })
   it('lascia stare i nomi simili, le graffe con la barra e gli stili', () => {
@@ -73,7 +74,7 @@ describe('rinomina nei template e nei fogli', () => {
     const d = renameInDefinitions(
       {
         frase: { type: 'text', text: 'con {spada}' },
-        spada: { type: 'image', src: 'spada' },
+        spada: { type: 'image', src: 'spada', stroke: { color: 'rosso', width: 0.3 } },
         scuro: { type: 'color', color: 'rosso' }
       },
       { keyword: 'color=rosso bold' },
@@ -82,6 +83,7 @@ describe('rinomina nei template e nei fogli', () => {
       'red'
     )
     expect(d.variables.scuro).toEqual({ type: 'color', color: 'red' })
+    expect(d.variables.spada).toMatchObject({ stroke: { color: 'red', width: 0.3 } })
     expect(d.styles.keyword).toBe('color=red bold')
     const v = renameInDefinitions(
       { spada: { type: 'image', src: 'spada' } },

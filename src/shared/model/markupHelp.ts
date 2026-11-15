@@ -201,15 +201,19 @@ function imageAttributes(
   const items =
     key === 'tint'
       ? [...list(['none', 'currentColor']), ...values('color', typed, ctx)]
-      : key === 'flip'
-        ? list(['h', 'v', 'hv', 'none'])
-        : key === 'size'
-          ? list(['80%', '120%', '150%', '200%'])
-          : key === 'rotate'
-            ? list(['90', '180', '-90', '45'])
-            : key === 'opacity'
-              ? list(['25%', '50%', '75%'])
-              : []
+      : key === 'stroke'
+        ? typed.includes('/')
+          ? []
+          : [...list(['none']), ...values('color', typed, ctx)]
+        : key === 'flip'
+          ? list(['h', 'v', 'hv', 'none'])
+          : key === 'size'
+            ? list(['80%', '120%', '150%', '200%'])
+            : key === 'rotate'
+              ? list(['90', '180', '-90', '45'])
+              : key === 'opacity'
+                ? list(['25%', '50%', '75%'])
+                : []
   return { from: from + eq + 1, to: end, items }
 }
 

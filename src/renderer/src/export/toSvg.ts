@@ -1,5 +1,6 @@
 import type { ProjectFont } from '../../../shared/project'
 import { assetUrl } from '../render/assets'
+import { outlineFilterElement } from '../render/outlineFilter'
 
 // Esportazione in SVG di una carta disegnata nella finestra nascosta. I testi sono HTML dentro
 // <foreignObject>, che i programmi di grafica non leggono: si misurano come li ha impaginati il
@@ -153,6 +154,21 @@ function walk(
     out.appendChild(target)
   }
   const tag = el.tagName.toLowerCase()
+  // il filtro del contorno di un'immagine nel testo: si ricrea qui sotto, nel gruppo
+  if (tag === 'svg' && el.hasAttribute('data-gc-defs')) return
+  const outline = el.getAttribute('data-gc-outline')
+  const radius = Number(el.getAttribute('data-gc-outline-r'))
+  if (outline && radius > 0) {
+    // le misure sono quelle del contenuto del foreignObject, come il raggio
+    const id = `io${Math.random().toString(36).slice(2, 9)}`
+    const defs = document.createElementNS(SVG_NS, 'defs')
+    defs.appendChild(outlineFilterElement(id, radius, outline))
+    target.appendChild(defs)
+    const g = document.createElementNS(SVG_NS, 'g')
+    g.setAttribute('filter', `url(#${id})`)
+    target.appendChild(g)
+    target = g
+  }
   if (tag === 'svg') {
     // forma di sfondo di un riquadro: si copia, nel posto dove è disegnata
     const b = local(el.getBoundingClientRect())

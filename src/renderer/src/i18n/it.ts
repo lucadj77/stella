@@ -1444,6 +1444,8 @@ export const it: Record<MessageKey, string> = {
   'markupHelp.attr.image.flip':
     'Ribalta in orizzontale (h), in verticale (v) o in entrambi i sensi (hv): flip=h',
   'markupHelp.attr.image.opacity': 'Opacità da 0% a 100%: opacity=50%',
+  'markupHelp.attr.image.stroke':
+    "Contorno che segue la sagoma: colore/spessore in mm o in % dell'altezza dell'immagine, none lo toglie: stroke=white/0.3",
   'markupHelp.attr.bold': 'Grassetto',
   'markupHelp.attr.italic': 'Corsivo',
   'markupHelp.attr.underline': 'Sottolineato',
@@ -2191,6 +2193,10 @@ export const it: Record<MessageKey, string> = {
   'variable.flip.v': 'Verticale',
   'variable.flip.hv': 'Entrambi',
   'variable.opacity': 'Opacità',
+  'variable.stroke': 'Contorno',
+  'variable.strokeHint':
+    "Contorno che segue la sagoma dell'immagine, nei testi, nei livelli immagine e nei documenti (non in Word)",
+  'variable.strokeWidth': "Spessore in mm, o in % dell'altezza dell'immagine (es. 8%)",
   'variable.bg': 'Sfondo',
   'variable.bgHint':
     "Una forma (circle, square, rounded, hexagon, diamond), un'immagine o un'altra variabile immagine dietro l'immagine, ovunque si usi la variabile: nei testi, nei livelli immagine e nei documenti",
@@ -2200,7 +2206,7 @@ export const it: Record<MessageKey, string> = {
   'variable.bgPad': 'Spazio attorno',
   'variable.bgPadHint': "Spazio tra l'immagine e il bordo dello sfondo, per ogni lato",
   'variable.attrsHint':
-    'Nel testo si possono cambiare per un singolo uso: {spada tint=red size=150% rotate=90 flip=h opacity=50%}',
+    'Nel testo si possono cambiare per un singolo uso: {spada tint=red size=150% rotate=90 flip=h opacity=50% stroke=white/0.3}',
   'variable.text': 'Testo',
   'variable.textHint':
     'Sostituisce {nome}; può avere formattazione e altre variabili. {1}, {2} sono parametri: {nome:3:1}. {1|carta|carte} sceglie singolare o plurale',

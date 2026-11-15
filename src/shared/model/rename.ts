@@ -185,6 +185,8 @@ export function renameInDefinitions(
         if (v.tint) out.tint = renameValue(v.tint, true, kind, from, to)
         if (v.bgColor) out.bgColor = renameValue(v.bgColor, true, kind, from, to)
         if (v.bg) out.bg = renameValue(v.bg, true, kind, from, to)
+        if (v.stroke)
+          out.stroke = { ...v.stroke, color: renameValue(v.stroke.color, true, kind, from, to) }
         return [k, out]
       }
       return [k, v]
