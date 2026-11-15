@@ -287,10 +287,32 @@ function Item({
       const p0 = { x: it.x, y: it.y }
       const p2 = { x: it.x2, y: it.y2 }
       const len = quadLength(it, c)
-      const head = Math.min(3.5 * k, len / (atStart && atEnd ? 3 : 2))
-      // la linea finisce alla base delle punte: si prende il tratto della quadratica tra a e b
-      const a = atStart ? head / len : 0
-      const b = atEnd ? 1 - head / len : 1
+      // la punta cresce con la linea, così una linea spessa non la copre
+      const head = Math.min(Math.max(3.5 * k, line * 2.5), len / (atStart && atEnd ? 3 : 2))
+      const at = (t: number): { x: number; y: number } => {
+        const u = 1 - t
+        return {
+          x: u * u * p0.x + 2 * u * t * c.x + t * t * p2.x,
+          y: u * u * p0.y + 2 * u * t * c.y + t * t * p2.y
+        }
+      }
+      /** Il parametro del punto della curva a `dist` mm (in linea d'aria) da un estremo */
+      const reach = (fromEnd: boolean, dist: number): number => {
+        const end = fromEnd ? p2 : p0
+        let lo = 0
+        let hi = 0.5
+        for (let n = 0; n < 30; n++) {
+          const m = (lo + hi) / 2
+          const q = at(fromEnd ? 1 - m : m)
+          if (Math.hypot(q.x - end.x, q.y - end.y) < dist) lo = m
+          else hi = m
+        }
+        return fromEnd ? 1 - lo : lo
+      }
+      // la punta va dall'estremo al punto della curva distante quanto è lunga; la linea entra un po'
+      // dentro la punta, così non resta uno spazio tra le due quando la curva è stretta
+      const a = atStart ? reach(false, head * 0.6) : 0
+      const b = atEnd ? reach(true, head * 0.6) : 1
       const blossom = (u: number, v: number): { x: number; y: number } => ({
         x: (1 - u) * (1 - v) * p0.x + ((1 - u) * v + u * (1 - v)) * c.x + u * v * p2.x,
         y: (1 - u) * (1 - v) * p0.y + ((1 - u) * v + u * (1 - v)) * c.y + u * v * p2.y
@@ -299,7 +321,7 @@ function Item({
       const s1 = blossom(a, b)
       const s2 = blossom(b, b)
       const d = `M${s0.x},${s0.y} Q${s1.x},${s1.y} ${s2.x},${s2.y}`
-      // una punta in `tip`, nella direzione da `from` (la tangente alla curva in quel punto)
+      // una punta in `tip`, nella direzione da `from`
       const tipAt = (tip: { x: number; y: number }, from: { x: number; y: number }): string => {
         const dx = tip.x - from.x
         const dy = tip.y - from.y
@@ -311,10 +333,10 @@ function Item({
         const w = head * 0.55
         return `${tip.x},${tip.y} ${bx - uy * w},${by + ux * w} ${bx + uy * w},${by - ux * w}`
       }
-      // con la curva la tangente agli estremi va verso il punto di controllo; dritta, verso l'altro
+      // la punta segue la corda fino al punto della curva alla sua base: resta allineata alla linea
       const tips = [
-        ...(atEnd ? [tipAt(p2, it.bend ? c : p0)] : []),
-        ...(atStart ? [tipAt(p0, it.bend ? c : p2)] : [])
+        ...(atEnd ? [tipAt(p2, at(reach(true, head)))] : []),
+        ...(atStart ? [tipAt(p0, at(reach(false, head)))] : [])
       ]
       return (
         <g data-item={i}>
