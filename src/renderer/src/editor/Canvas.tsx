@@ -17,6 +17,7 @@ import {
   lineEnds,
   lineFromEnds,
   normalizeAngle,
+  lineCurve,
   resizeWithHandle,
   snap,
   toFrame,
@@ -30,10 +31,21 @@ import { linesOf, nearest, snapBox, type SnapLines } from '../../../shared/model
 import { snapPoints } from '../../../shared/model/ttsSnap'
 import { walkLayers } from '../../../shared/model/normalize'
 import {
+  insertPathPoint,
+  layerSegments,
+  movePathPoint,
+  pathHandles,
+  removePathPoint,
+  shapeAsPath,
+  shiftCorners,
+  withSegments
+} from '../../../shared/model/pathEdit'
+import {
   innerLayers,
   isDrawn,
   type GridLayer,
   type Layer,
+  type ShapeLayer,
   type Template
 } from '../../../shared/model/template'
 import { gridGeometry } from '../../../shared/model/grid'
@@ -95,6 +107,10 @@ type Gesture =
       lines: SnapLines
     }
   | { kind: 'rotate'; start: Template; layer: Layer; frame: Layer[]; a0: number }
+  /** La curva di una linea, dalla maniglia al suo centro */
+  | { kind: 'bend'; start: Template; layer: ShapeLayer; frame: Layer[] }
+  /** Un punto di una forma, in modifica dei punti; `layer` è già un tracciato */
+  | { kind: 'point'; start: Template; layer: ShapeLayer; frame: Layer[]; seg: number; pt: number }
   | { kind: 'guide'; start: Template; axis: 'x' | 'y'; index: number; frame: Layer[] }
   | {
       kind: 'end'
@@ -261,6 +277,51 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     return { x: [...lines.x, ...(tpl.guides?.x ?? [])], y: [...lines.y, ...(tpl.guides?.y ?? [])] }
   }
 
+  // forma di cui si modificano i punti, già come tracciato: diventa un tracciato davvero solo
+  // quando si sposta un punto
+  const pointsLayer = state.points ? findLayer(layers, state.points) : null
+  const editing: ShapeLayer | null =
+    pointsLayer?.type === 'shape' && pointsLayer.shape !== 'line' && !pointsLayer.locked
+      ? pointsLayer.shape === 'path'
+        ? pointsLayer
+        : { ...pointsLayer, shape: 'path', path: shapeAsPath(pointsLayer), radius: 0 }
+      : null
+  const editingId = editing?.id ?? null
+  const activeSeg = editing ? state.point : null
+  const setActiveSeg = (seg: number | null): void => {
+    if (editingId) dispatch({ type: 'points', id: editingId, point: seg })
+  }
+  const editingRef = useRef({ editing, activeSeg, tpl, side })
+  useEffect(() => {
+    editingRef.current = { editing, activeSeg, tpl, side }
+  })
+  useEffect(() => {
+    if (!editingId) return
+    // prima delle scorciatoie dell'editor: Esc esce dalla modifica, Canc toglie il punto scelto
+    const onKey = (e: KeyboardEvent): void => {
+      const el = e.target as HTMLElement | null
+      if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return
+      const cur = editingRef.current
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        e.stopPropagation()
+        dispatch({ type: 'points', id: null })
+      } else if ((e.key === 'Delete' || e.key === 'Backspace') && cur.editing) {
+        e.preventDefault()
+        e.stopPropagation()
+        if (cur.activeSeg === null) return
+        const segs = removePathPoint(layerSegments(cur.editing), cur.activeSeg)
+        const corners = shiftCorners(cur.editing.corners, cur.activeSeg, -1)
+        const next = { ...withSegments(cur.editing, segs), corners }
+        if (!corners) delete next.corners
+        dispatch({ type: 'change', template: replace(cur.tpl, cur.side, cur.editing.id, next) })
+        dispatch({ type: 'points', id: cur.editing.id, point: null })
+      }
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [editingId, dispatch])
+
   const begin = (e: React.PointerEvent, g: Gesture): void => {
     gesture.current = g
     setFrozen(stage)
@@ -370,7 +431,23 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
       y: [...(magnet ? base.y : []), ...gl.y]
     })
     let next: Template
-    if (g.kind === 'end') {
+    if (g.kind === 'bend') {
+      // a passi di mezzo mm; vicino alla retta torna dritta
+      const local = toLocal(g.layer, q)
+      // la maniglia va in ogni direzione: di lato curva, lungo la linea sposta il centro
+      const raw = local.y - (g.layer.y + g.layer.h / 2)
+      const along = local.x - (g.layer.x + g.layer.w / 2)
+      const step = (n: number): number =>
+        Math.abs(n) < 0.5 ? 0 : e.altKey ? Math.round(n * 100) / 100 : snap(n, SNAP)
+      const bend = step(raw)
+      const bendShift = bend ? step(along) : 0
+      next = replace(g.start, side, g.layer.id, { ...g.layer, bend, bendShift })
+    } else if (g.kind === 'point') {
+      const local = toLocal(g.layer, q)
+      const to = { x: snap(local.x, stepX), y: snap(local.y, stepY) }
+      const segs = movePathPoint(layerSegments(g.layer), g.seg, g.pt, to)
+      next = replace(g.start, side, g.layer.id, withSegments(g.layer, segs))
+    } else if (g.kind === 'end') {
       // l'estremo di una linea: si aggancia a oggetti e griglia, Maiuscolo tiene l'angolo a 15°
       const ends = lineEnds(g.layer)
       const fixed = ends[1 - g.end]
@@ -563,10 +640,29 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     dispatch({ type: 'select', ids: [child?.id ?? group.id], scope: child ? group.id : grid.id })
   }
 
-  /** Doppio clic su un gruppo: si entra nel gruppo e si seleziona il figlio sotto il puntatore */
+  /**
+   * Doppio clic su un gruppo: si entra nel gruppo e si seleziona il figlio sotto il puntatore.
+   * Su una forma si modificano i suoi punti; già in modifica, aggiunge un punto sul contorno
+   */
   const onDoubleClick = (e: React.MouseEvent): void => {
     const p = cardPoint(e)
+    if (editing) {
+      const local = toLocal(editing, toFrame(p, frameOf(editing.id)))
+      const added = insertPathPoint(layerSegments(editing), local, (HIT_PX * 2) / scale)
+      if (added) {
+        const corners = shiftCorners(editing.corners, added.at, 1)
+        const next = { ...withSegments(editing, added.segs), corners }
+        if (!corners) delete next.corners
+        dispatch({ type: 'change', template: replace(tpl, side, editing.id, next) })
+        setActiveSeg(added.at)
+        return
+      }
+    }
     const { hit } = pick(p)
+    if (hit?.type === 'shape' && hit.shape !== 'line' && !hit.locked) {
+      dispatch({ type: 'points', id: hit.id })
+      return
+    }
     if (hit?.type === 'grid') return enterGrid(hit, p)
     if (!hit || hit.type !== 'group') return
     const q = toFrame(p, [...frameOf(hit.id), hit])
@@ -727,6 +823,20 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
                 <Outline b={l} className={l.locked ? 'sel-outline locked' : 'sel-outline'} />
                 {selected.length === 1 && !l.locked && l.type === 'shape' && l.shape === 'line' && (
                   <>
+                    <circle
+                      cx={lineCurve(l).mid.x}
+                      cy={lineCurve(l).mid.y}
+                      r={(HANDLE_PX / 2) * px}
+                      className="handle line-bend"
+                      vectorEffect="non-scaling-stroke"
+                      onPointerDown={(e) => {
+                        if (e.button !== 0) return
+                        e.stopPropagation()
+                        begin(e, { kind: 'bend', start: tpl, layer: l, frame: frameOf(l.id) })
+                      }}
+                    >
+                      <title>{t('editor.bendHint')}</title>
+                    </circle>
                     {[l.x, l.x + l.w].map((x, i) => (
                       <circle
                         key={i}
@@ -751,8 +861,29 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
                     ))}
                   </>
                 )}
+                {editing && editing.id === l.id && (
+                  <PointHandles
+                    layer={editing}
+                    px={px}
+                    active={activeSeg}
+                    onDown={(e, seg, pt, anchor) => {
+                      if (e.button !== 0) return
+                      e.stopPropagation()
+                      if (anchor) setActiveSeg(seg)
+                      begin(e, {
+                        kind: 'point',
+                        start: tpl,
+                        layer: editing,
+                        frame: frameOf(l.id),
+                        seg,
+                        pt
+                      })
+                    }}
+                  />
+                )}
                 {selected.length === 1 &&
                   !l.locked &&
+                  !(editing && editing.id === l.id) &&
                   !(l.type === 'shape' && l.shape === 'line') && (
                     <>
                       <line
@@ -1150,6 +1281,77 @@ function intersects(a: Bounds, b: Bounds): boolean {
 
 function applyBounds(l: Layer, b: Bounds): Layer {
   return l.type === 'group' || l.type === 'grid' ? transformInto(l, b) : ({ ...l, ...b } as Layer)
+}
+
+/**
+ * I punti di una forma in modifica: quadrati per i punti del contorno, cerchi per i controlli
+ * delle curve, legati con una linea al loro punto
+ */
+function PointHandles({
+  layer,
+  px,
+  active,
+  onDown
+}: {
+  layer: ShapeLayer
+  px: number
+  active: number | null
+  onDown: (e: React.PointerEvent, seg: number, pt: number, anchor: boolean) => void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const handles = pathHandles(layerSegments(layer))
+  const s = HANDLE_PX * px
+  return (
+    <g className="point-handles">
+      <rect
+        x={layer.x}
+        y={layer.y}
+        width={layer.w}
+        height={layer.h}
+        className="points-outline"
+        vectorEffect="non-scaling-stroke"
+      />
+      {handles
+        .filter((h) => h.kind === 'control' && h.to)
+        .map((h) => (
+          <line
+            key={`l${h.seg}-${h.pt}`}
+            x1={h.to!.x}
+            y1={h.to!.y}
+            x2={h.at.x}
+            y2={h.at.y}
+            className="control-line"
+            vectorEffect="non-scaling-stroke"
+          />
+        ))}
+      {handles.map((h) =>
+        h.kind === 'control' ? (
+          <circle
+            key={`c${h.seg}-${h.pt}`}
+            cx={h.at.x}
+            cy={h.at.y}
+            r={s / 2.6}
+            className="handle point-control"
+            vectorEffect="non-scaling-stroke"
+            onPointerDown={(e) => onDown(e, h.seg, h.pt, false)}
+          />
+        ) : (
+          <rect
+            key={`a${h.seg}`}
+            x={h.at.x - s / 2}
+            y={h.at.y - s / 2}
+            width={s}
+            height={s}
+            className={h.seg === active ? 'handle point-anchor active' : 'handle point-anchor'}
+            vectorEffect="non-scaling-stroke"
+            onPointerDown={(e) => onDown(e, h.seg, h.pt, true)}
+          >
+            <title>{t('editor.pointHint')}</title>
+          </rect>
+        )
+      )}
+    </g>
+  )
 }
 
 function replace(t: Template, side: 'front' | 'back', id: string, layer: Layer): Template {

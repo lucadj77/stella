@@ -9,6 +9,10 @@
 //   card Personaggi/nome=Mago 60,10 rotate=90 "Il mago"
 //   text 140,30 width=50 "Pesca **2** carte"            (align=left o align=right; di base al centro)
 //   arrow 40,50 -> 60,80 "pesca"
+//   arrow 40,50 -> 60,80 bend=8                        (curva: il centro si scosta di 8 mm)
+//   arrow 40,50 -> 60,80 bend=8 shift=5                (e si sposta di 5 mm verso la punta)
+//   arrow 40,50 -> 60,80 heads=both size=150%          (punte: end, start, both, none; misura)
+//   arrow 40,50 -> 60,80 thickness=1                   (spessore della linea in mm)
 //   image icons/moneta.png 200,20 width=10
 //
 // Con `width 60%` lo schema occupa al massimo il 60% della riga, con `font 90%` le didascalie
@@ -37,11 +41,37 @@ export type SetupItem = { from: number; to: number } & (
       /** Allineamento nel riquadro largo w; di base al centro */
       align?: SetupTextAlign
     }
-  | { kind: 'arrow'; x: number; y: number; x2: number; y2: number; label: string }
+  | {
+      kind: 'arrow'
+      x: number
+      y: number
+      x2: number
+      y2: number
+      label: string
+      /**
+       * Curva: di quanti mm il centro della freccia si scosta dalla retta, a destra di chi va
+       * dalla coda alla punta (a sinistra se negativo); assente o 0 = dritta
+       */
+      bend?: number
+      /**
+       * Con la curva: di quanti mm il centro si sposta lungo la freccia, verso la punta (verso la
+       * coda se negativo); assente o 0 = a metà
+       */
+      shift?: number
+      /** Dove stanno le punte; assente = solo alla fine */
+      heads?: ArrowHeads
+      /** Misura di linea e punta rispetto a quella di base: 1 = 100%; assente = 1 */
+      size?: number
+      /** Spessore della linea in mm, al posto di quello che viene dalla misura; assente = 0,5 × misura */
+      thickness?: number
+    }
   | { kind: 'image'; src: string; x: number; y: number; w: number; rotate: number }
 )
 
 export type SetupKind = SetupItem['kind']
+
+/** Le punte di una freccia: alla fine (di base), all'inizio, a tutte e due, a nessuna */
+export type ArrowHeads = 'end' | 'start' | 'both' | 'none'
 
 export type SetupTextAlign = 'left' | 'center' | 'right'
 
@@ -196,6 +226,8 @@ function parseItem(line: string, from: number): SetupItem | null {
   let label: string | null = null
   const opts: Record<string, number> = {}
   let align: SetupTextAlign | null = null
+  let heads: ArrowHeads | null = null
+  let scale: number | null = null
   for (const p of parts.slice(1)) {
     if (p.quoted) {
       if (label !== null) return null
@@ -204,10 +236,14 @@ function parseItem(line: string, from: number): SetupItem | null {
     }
     const pair = PAIR.exec(p.text)
     const sz = SIZE.exec(p.text)
-    const opt = /^(rotate|count|width)=(-?\d+(?:[.,]\d+)?)$/i.exec(p.text)
+    const opt = /^(rotate|count|width|bend|shift|thickness)=(-?\d+(?:[.,]\d+)?)$/i.exec(p.text)
     const al = /^align=(left|center|right)$/i.exec(p.text)
+    const hd = /^heads=(end|start|both|none)$/i.exec(p.text)
+    const sc = /^size=(\d+(?:[.,]\d+)?)%$/i.exec(p.text)
     if (p.text === '->') continue
     if (al && !align) align = al[1].toLowerCase() as SetupTextAlign
+    else if (hd && !heads) heads = hd[1].toLowerCase() as ArrowHeads
+    else if (sc && scale === null) scale = num(sc[1]) / 100
     else if (pair) pairs.push([num(pair[1]), num(pair[2])])
     else if (sz && !size) size = [num(sz[1]), num(sz[2])]
     else if (opt) opts[opt[1].toLowerCase()] = num(opt[2])
@@ -216,6 +252,11 @@ function parseItem(line: string, from: number): SetupItem | null {
   }
   const at = { from, to: from + line.length }
   if (align && kind !== 'text') return null
+  if (
+    (heads || scale !== null || opts.shift !== undefined || opts.thickness !== undefined) &&
+    kind !== 'arrow'
+  )
+    return null
   const [x, y] = pairs[0] ?? [NaN, NaN]
   if (!Number.isFinite(x) || !Number.isFinite(y)) return null
   const rotate = ((Math.round(opts.rotate ?? 0) % 360) + 360) % 360
@@ -251,7 +292,20 @@ function parseItem(line: string, from: number): SetupItem | null {
       }
     case 'arrow':
       if (name || size || pairs.length !== 2) return null
-      return { kind, x, y, x2: pairs[1][0], y2: pairs[1][1], label: label ?? '', ...at }
+      return {
+        kind,
+        x,
+        y,
+        x2: pairs[1][0],
+        y2: pairs[1][1],
+        label: label ?? '',
+        ...(opts.bend ? { bend: opts.bend } : {}),
+        ...(opts.bend && opts.shift ? { shift: opts.shift } : {}),
+        ...(opts.thickness && opts.thickness > 0 ? { thickness: opts.thickness } : {}),
+        ...(heads && heads !== 'end' ? { heads } : {}),
+        ...(scale !== null && scale > 0 && scale !== 1 ? { size: scale } : {}),
+        ...at
+      }
     case 'image':
       if (!name || size || pairs.length !== 1 || label !== null) return null
       return { kind, src: decode(name), x, y, w: opts.width ?? SETUP_IMAGE_W, rotate, ...at }
@@ -328,7 +382,7 @@ export function setupLine(it: SetupItem): string {
     case 'text':
       return `text ${r(it.x)},${r(it.y)} width=${r(it.w)}${it.align && it.align !== 'center' ? ` align=${it.align}` : ''} ${quote(it.text.replace(/\n/g, ' '))}`
     case 'arrow':
-      return `arrow ${r(it.x)},${r(it.y)} -> ${r(it.x2)},${r(it.y2)}${text(it.label)}`
+      return `arrow ${r(it.x)},${r(it.y)} -> ${r(it.x2)},${r(it.y2)}${it.bend ? ` bend=${r(it.bend)}` : ''}${it.bend && it.shift ? ` shift=${r(it.shift)}` : ''}${it.heads && it.heads !== 'end' ? ` heads=${it.heads}` : ''}${it.size && it.size !== 1 ? ` size=${Math.round(it.size * 100)}%` : ''}${it.thickness ? ` thickness=${r(it.thickness)}` : ''}${text(it.label)}`
     case 'image':
       return `image ${it.src.replace(/%/g, '%25').replace(/ /g, '%20')} ${r(it.x)},${r(it.y)} width=${r(it.w)}${rot(it.rotate)}`
   }
@@ -369,6 +423,63 @@ export function moveSetupItem(it: SetupItem, dx: number, dy: number): SetupItem 
   return moved.kind === 'arrow'
     ? { ...moved, x2: tenth(moved.x2 + dx), y2: tenth(moved.y2 + dy) }
     : moved
+}
+
+interface Pt {
+  x: number
+  y: number
+}
+
+/**
+ * La curva di una freccia, una Bézier quadratica: `control` è il punto di controllo, `mid` il
+ * centro della curva (dove sta la didascalia e la maniglia della curva), `normal` la direzione in
+ * cui una curva positiva si scosta
+ */
+export function arrowCurve(it: {
+  x: number
+  y: number
+  x2: number
+  y2: number
+  bend?: number
+  shift?: number
+}): {
+  control: Pt
+  mid: Pt
+  normal: Pt
+} {
+  const dx = it.x2 - it.x
+  const dy = it.y2 - it.y
+  const len = Math.hypot(dx, dy) || 1
+  const along = { x: dx / len, y: dy / len }
+  // a destra di chi va dalla coda alla punta, con le y verso il basso
+  const normal = { x: -along.y, y: along.x }
+  const b = it.bend ?? 0
+  const s = b ? (it.shift ?? 0) : 0
+  const cx = (it.x + it.x2) / 2
+  const cy = (it.y + it.y2) / 2
+  const ox = normal.x * b + along.x * s
+  const oy = normal.y * b + along.y * s
+  return {
+    // il centro di una quadratica sta a metà tra la corda e il punto di controllo
+    control: { x: cx + ox * 2, y: cy + oy * 2 },
+    mid: { x: cx + ox, y: cy + oy },
+    normal
+  }
+}
+
+/**
+ * La curva di una freccia che passa per un punto: di quanto il punto si scosta dalla retta e di
+ * quanto dal centro lungo la freccia, al decimo
+ */
+export function bendTowards(
+  it: { x: number; y: number; x2: number; y2: number },
+  p: Pt
+): { bend: number; shift: number } {
+  const { normal } = arrowCurve(it)
+  const rx = p.x - (it.x + it.x2) / 2
+  const ry = p.y - (it.y + it.y2) / 2
+  const r = (n: number): number => Math.round(n * 10) / 10
+  return { bend: r(rx * normal.x + ry * normal.y), shift: r(rx * normal.y - ry * normal.x) }
 }
 
 export type SetupAlign = 'left' | 'hcenter' | 'right' | 'top' | 'vcenter' | 'bottom'

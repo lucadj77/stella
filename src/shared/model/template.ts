@@ -201,6 +201,26 @@ export interface ShapeLayer extends LayerBase {
   innerRatio: number
   /** Tracciato SVG in coordinate 0-1 rispetto al riquadro, per shape = 'path' */
   path: string
+  /**
+   * Curva di una linea: di quanti mm il suo centro si scosta dalla retta, verso il basso del
+   * riquadro (verso l'alto se negativo); 0 = dritta
+   */
+  bend: number
+  /**
+   * Con la curva: di quanti mm il centro della curva si sposta lungo la linea, verso la fine
+   * (verso l'inizio se negativo); 0 = a metà
+   */
+  bendShift: number
+  /**
+   * Solo sulla carta disegnata: il risultato di un gruppo combinato, tracciato in mm sulla carta
+   * (model/combine.ts). Si disegna al posto di `path`
+   */
+  combined?: string
+  /**
+   * Angoli arrotondati dei singoli punti di un tracciato (shape = 'path'): indice del segmento del
+   * punto → raggio in mm (model/pathEdit.ts). `radius` arrotonda invece tutta la forma
+   */
+  corners?: Record<string, number>
 }
 
 /** Forma delle caselle di una griglia */
@@ -319,11 +339,21 @@ export interface CellLook {
 }
 
 export type GroupLayout = 'none' | 'row' | 'column' | 'grid'
+/** Operazione tra le forme di un gruppo combinato (model/combine.ts) */
+export type GroupCombine = 'none' | 'union' | 'intersect' | 'subtract' | 'exclude'
 export type LayoutAlign = 'start' | 'center' | 'end'
 
 export interface GroupLayer extends LayerBase {
   type: 'group'
   clip: boolean
+  /**
+   * Le forme del gruppo si disegnano come una sola: unione, intersezione, differenza (dalla forma
+   * in fondo, la base, si tolgono le altre) o esclusione. Il risultato ha l'aspetto della base;
+   * gli altri livelli si disegnano sopra. Con combine, clip non conta
+   */
+  combine: GroupCombine
+  /** Raggio in mm degli angoli del risultato di una combinazione; 0 = angoli vivi */
+  radius: number
   children: Layer[]
   /** Disposizione automatica dei figli dentro il riquadro del gruppo */
   layout: GroupLayout

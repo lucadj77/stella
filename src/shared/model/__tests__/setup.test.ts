@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
   alignSetupItems,
+  arrowCurve,
+  bendTowards,
   canReorderSetupItem,
   distributeSetupItems,
   moveSetupItem,
   parseSetup,
   reorderSetupItem,
+  setupLine,
   setupSource,
   type SetupItem
 } from '../setup'
@@ -79,6 +82,8 @@ describe('schema del tavolo', () => {
       'deck Mazzo%20base/1 10,10 count=8 rotate=90 "Pesca"',
       'text 5,5 width=50 "Un \\"testo\\""',
       'arrow 1,2 -> 3,4',
+      'arrow 1,2 -> 30,4 bend=-6.5 "gira"',
+      'arrow 1,2 -> 30,4 heads=both size=150%',
       'image icone/a%20b.png 7,8 width=12',
       '```'
     ].join('\n')
@@ -186,5 +191,33 @@ describe('didascalia dello schema', () => {
     const s = parseSetup(lines, [0, 22])
     expect(s).toMatchObject({ caption: 'Preparazione', captionTop: true, bad: [] })
     expect(parseSetup(['caption-position: middle'], [0]).bad).toHaveLength(1)
+  })
+
+  it('curva le frecce: il centro si scosta della curva, a destra di chi va verso la punta', () => {
+    const a = { x: 0, y: 0, x2: 20, y2: 0, bend: 5 }
+    // verso destra sullo schermo, la destra di chi cammina è in basso
+    expect(arrowCurve(a).mid).toEqual({ x: 10, y: 5 })
+    expect(arrowCurve(a).control).toEqual({ x: 10, y: 10 })
+    expect(bendTowards(a, { x: 12, y: -3.33 })).toEqual({ bend: -3.3, shift: 2 })
+    expect(parse('arrow 0,0 -> 20,0 bend=5').items[0]).toMatchObject({ bend: 5 })
+  })
+
+  it('il centro della curva si sposta lungo la freccia', () => {
+    const a = { x: 0, y: 0, x2: 20, y2: 0, bend: 5, shift: 4 }
+    expect(arrowCurve(a).mid).toEqual({ x: 14, y: 5 })
+    expect(arrowCurve(a).control).toEqual({ x: 18, y: 10 })
+    // senza curva lo spostamento non conta
+    expect(arrowCurve({ ...a, bend: 0 }).mid).toEqual({ x: 10, y: 0 })
+    const it = parse('arrow 0,0 -> 20,0 bend=5 shift=4').items[0]
+    expect(it).toMatchObject({ bend: 5, shift: 4 })
+    expect(setupLine(it as SetupItem)).toBe('arrow 0,0 -> 20,0 bend=5 shift=4')
+    expect(parse('zone 0,0 10x10 shift=4').items).toHaveLength(0)
+  })
+
+  it('lo spessore della freccia si scrive a parte', () => {
+    const it = parse('arrow 0,0 -> 20,0 size=150% thickness=1.2').items[0]
+    expect(it).toMatchObject({ size: 1.5, thickness: 1.2 })
+    expect(setupLine(it as SetupItem)).toBe('arrow 0,0 -> 20,0 size=150% thickness=1.2')
+    expect(parse('text 0,0 thickness=1 "a"').items).toHaveLength(0)
   })
 })

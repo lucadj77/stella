@@ -24,6 +24,7 @@ Bundled in the app, all under permissive licenses compatible with the GPL:
 | JSZip                                              | MIT or GPL-3.0-or-later (used under MIT)                                   |
 | Papa Parse                                         | MIT                                                                        |
 | fflate                                             | MIT                                                                        |
+| clipper2-ts (Clipper2 by Angus Johnson)            | Boost Software License 1.0                                                 |
 | buffer, path-browserify (web version)              | MIT                                                                        |
 | @electron-toolkit/preload, @electron-toolkit/utils | MIT                                                                        |
 

@@ -901,7 +901,7 @@ export const it: Record<MessageKey, string> = {
     "La forma prende il contorno di un'immagine del progetto (PNG con trasparenza o SVG; nelle immagini senza trasparenza, le parti scure). L'altezza segue le proporzioni dell'immagine.",
   'editor.cardOutlineHint':
     "Il componente prende il contorno di un'immagine del progetto (PNG con trasparenza o SVG; nelle immagini senza trasparenza, le parti scure), adattato alla sua dimensione: imposta larghezza e altezza con le proporzioni dell'immagine.",
-  'shape.path': "Da un'immagine",
+  'shape.path': 'Tracciato o sagoma da immagine',
   'cardShape.path': "Da un'immagine",
   'prop.cornerRadius': 'Raggio angoli',
   'prop.w': 'L',
@@ -1067,6 +1067,41 @@ export const it: Record<MessageKey, string> = {
   'editor.arrangedHint':
     "Il riquadro del gruppo resta dove lo metti e i figli si dispongono al suo interno: trascina le maniglie per spostare o ridimensionare l'area.",
   'prop.clip': 'Livello in fondo come maschera',
+  'prop.bend': 'Curva',
+  'editor.bendHint':
+    'Di quanti mm il centro della linea si scosta dalla retta: trascina la maniglia tonda in qualsiasi direzione. 0 = dritta.',
+  'prop.bendShift': 'Spostamento curva',
+  'editor.bendShiftHint':
+    'Di quanti mm il centro della curva si sposta lungo la linea (verso la fine se positivo). 0 = a metà.',
+  'editor.pointHint': 'Trascina per spostare il punto; fai clic e premi Canc per toglierlo',
+  'editor.editPoints': 'Modifica punti',
+  'editor.editPointsDone': 'Fine modifica punti',
+  'editor.editPointsHint':
+    'Sposta i singoli punti della forma sulla tela (o fai doppio clic sulla forma). La forma diventa un tracciato quando sposti un punto.',
+  'editor.editPointsHelp':
+    'Trascina un quadrato per spostare un punto, un cerchio per cambiare una curva. Doppio clic sul contorno per aggiungere un punto; fai clic su un punto e premi Canc per toglierlo. Esc per finire.',
+  'prop.pointRadius': 'Angolo di questo punto',
+  'editor.pointRadiusHint':
+    'Arrotonda il punto scelto, in mm. Vale solo per un punto tra due lati dritti.',
+  'editor.pathRadiusHint': 'Arrotonda tutti gli angoli del contorno, in mm.',
+  'combine.title': 'Combina forme',
+  'combine.union': 'Unisci',
+  'combine.intersect': 'Interseca',
+  'combine.subtract': 'Sottrai',
+  'combine.exclude': 'Escludi',
+  'combine.unionHint': 'Una forma sola che copre tutte le forme',
+  'combine.intersectHint': 'Solo la parte comune a tutte le forme',
+  'combine.subtractHint': "La forma in fondo all'elenco dei livelli, meno le forme sopra",
+  'combine.excludeHint': 'Le parti coperte da una forma sola: le sovrapposizioni diventano buchi',
+  'combine.selectionHint':
+    'Fa delle forme selezionate una forma sola. Vanno in un gruppo e restano modificabili: se le sposti o le ridimensioni il risultato le segue. Il risultato prende riempimento, contorno e ombra della forma in fondo.',
+  'combine.groupHint':
+    'Disegna le forme di questo gruppo come una forma sola. Testi, immagini e linee si disegnano sopra, così come sono.',
+  'combine.activeHint':
+    "Le forme si disegnano come una sola, con l'aspetto della forma in fondo. Fai di nuovo clic sul pulsante attivo per disegnarle separate.",
+  'combine.convert': 'Converti in tracciato',
+  'combine.convertHint':
+    'Congela il risultato in una forma tracciato sola: le forme separate spariscono e non segue più i dati',
   'anchor.top-left': 'In alto a sinistra',
   'anchor.top': 'In alto',
   'anchor.top-right': 'In alto a destra',
@@ -2036,6 +2071,17 @@ export const it: Record<MessageKey, string> = {
   'documents.setupW': 'Larghezza (mm)',
   'documents.setupH': 'Altezza (mm)',
   'documents.setupCount': 'Quanti nel mazzo',
+  'documents.setupBend': 'Curva (mm)',
+  'documents.setupArrowSize': 'Misura (%)',
+  'documents.setupHeads': 'Punte',
+  'documents.setupHeadsEnd': 'Alla fine',
+  'documents.setupHeadsStart': "All'inizio",
+  'documents.setupHeadsBoth': 'Entrambe',
+  'documents.setupHeadsNone': 'Nessuna',
+  'documents.setupThickness': 'Spessore (mm)',
+  'documents.setupShift': 'Spostamento curva (mm)',
+  'documents.setupBendHint':
+    'Trascina la maniglia dove vuoi: lontano dalla retta per curvare la freccia, lungo la freccia per spostare il centro della curva. Riportata sulla retta torna dritta',
   'documents.setupRotation': 'Rotazione (°)',
   'documents.setupRotate90': '+90°',
   'documents.setupRotateHandle': 'Trascina per ruotare; con Maiuscolo a scatti di 15°',

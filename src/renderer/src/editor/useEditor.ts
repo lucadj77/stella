@@ -24,6 +24,13 @@ export interface EditorState {
   gestureId: number
   /** Lato e selezione prima dell'ultima modifica: annullandola si torna lì */
   before: { side: Side; selection: string[] }
+  /**
+   * Forma di cui si modificano i punti sulla tela (con il doppio clic o "Modifica punti"): resta
+   * finché è l'unica selezionata
+   */
+  points: string | null
+  /** Il punto scelto della forma in modifica: l'indice del suo segmento (model/pathEdit.ts) */
+  point: number | null
 }
 
 export type EditorAction =
@@ -33,6 +40,7 @@ export type EditorAction =
   | { type: 'gestureEnd' }
   | { type: 'select'; ids: string[]; scope?: string | null }
   | { type: 'side'; side: Side }
+  | { type: 'points'; id: string | null; point?: number | null }
   /** Template cambiato fuori dall'editor (annulla, ripristina): nessun passo nuovo */
   | { type: 'load'; template: Template; side?: Side; selection?: string[] }
 
@@ -45,8 +53,27 @@ function existing(t: Template, side: Side, ids: string[]): string[] {
   return ids.filter((id) => findLayer(t[side], id))
 }
 
+/** La modifica dei punti resta solo se la forma è ancora l'unica selezionata */
+const keepPoints = (s: EditorState): EditorState =>
+  s.points && (s.selection.length !== 1 || s.selection[0] !== s.points)
+    ? { ...s, points: null, point: null }
+    : !s.points && s.point !== null
+      ? { ...s, point: null }
+      : s
+
 function reducer(s: EditorState, a: EditorAction): EditorState {
+  return keepPoints(step(s, a))
+}
+
+function step(s: EditorState, a: EditorAction): EditorState {
   switch (a.type) {
+    case 'points':
+      return {
+        ...s,
+        points: a.id,
+        point: a.id === s.points && a.point === undefined ? s.point : (a.point ?? null),
+        selection: a.id ? [a.id] : s.selection
+      }
     case 'change':
       return {
         ...s,
@@ -75,7 +102,7 @@ function reducer(s: EditorState, a: EditorAction): EditorState {
         lastKey: null
       }
     case 'side':
-      return { ...s, side: a.side, selection: [], scope: null }
+      return { ...s, side: a.side, selection: [], scope: null, points: null }
     case 'load': {
       const side = a.side ?? s.side
       return {
@@ -117,7 +144,9 @@ export function useEditor(
       lastKey: null,
       gesture: null,
       gestureId: 0,
-      before: { side, selection: [] }
+      before: { side, selection: [] },
+      points: null,
+      point: null
     }
   })
 }

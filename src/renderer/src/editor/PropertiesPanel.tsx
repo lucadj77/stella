@@ -1,4 +1,7 @@
+import CombineButtons from './CombineButtons'
+import { shapeAsPath } from '../../../shared/model/pathEdit'
 import {
+  createContext,
   lazy,
   Suspense,
   useContext,
@@ -246,6 +249,13 @@ export default function PropertiesPanel({
                   {t('layers.delete')}
                 </button>
               </div>
+              {cmd.canCombine && (
+                <>
+                  <h3>{t('combine.title')}</h3>
+                  <p className="muted small">{t('combine.selectionHint')}</p>
+                  <CombineButtons value={null} onPick={cmd.combine} />
+                </>
+              )}
               {first && (
                 <>
                   <p className="muted small">{t('editor.multiEdit', { name: first.name })}</p>
@@ -262,21 +272,35 @@ export default function PropertiesPanel({
             </>
           ) : layer ? (
             <>
-              <LayerProperties
-                key={layer.id}
-                layer={layer}
-                state={state}
-                dispatch={dispatch}
-                sheets={sheets}
-                base={base}
-                fxFor={fxFor}
-                setFxFor={setFxFor}
-              />
+              <PointsContext.Provider
+                value={{
+                  active: state.points === layer.id,
+                  point: state.points === layer.id ? state.point : null,
+                  toggle: () =>
+                    dispatch({ type: 'points', id: state.points === layer.id ? null : layer.id })
+                }}
+              >
+                <LayerProperties
+                  key={layer.id}
+                  layer={layer}
+                  state={state}
+                  dispatch={dispatch}
+                  sheets={sheets}
+                  base={base}
+                  fxFor={fxFor}
+                  setFxFor={setFxFor}
+                />
+              </PointsContext.Provider>
               {layer.type === 'group' && (
                 <div className="selection-actions">
                   <button onClick={cmd.ungroup} title={t('tip.ungroup')}>
                     {t('layers.ungroup')}
                   </button>
+                  {layer.combine !== 'none' && (
+                    <button onClick={cmd.convertToPath} title={t('combine.convertHint')}>
+                      {t('combine.convert')}
+                    </button>
+                  )}
                 </div>
               )}
             </>
@@ -998,14 +1022,39 @@ function GroupProperties({
   const arranged = l.layout !== 'none' || l.repeat.trim() !== '1'
   return (
     <>
-      <Inherit keys={['clip']}>
-        <CheckField
-          label={t('prop.clip')}
-          hint={t('editor.clipHint')}
-          value={l.clip}
-          onChange={(clip) => set({ clip })}
+      <h3>{t('combine.title')}</h3>
+      <p className="muted small">
+        {t(l.combine === 'none' ? 'combine.groupHint' : 'combine.activeHint')}
+      </p>
+      <Inherit keys={['combine']}>
+        <CombineButtons
+          value={l.combine}
+          onPick={(op) => set({ combine: op === l.combine ? 'none' : op })}
         />
       </Inherit>
+      {l.combine !== 'none' && (
+        <Inherit keys={['radius']}>
+          <NumberField
+            label={t('prop.radius')}
+            hint={t('editor.pathRadiusHint')}
+            value={l.radius}
+            min={0}
+            step={0.5}
+            unit="mm"
+            onChange={(radius) => set({ radius })}
+          />
+        </Inherit>
+      )}
+      {l.combine === 'none' && (
+        <Inherit keys={['clip']}>
+          <CheckField
+            label={t('prop.clip')}
+            hint={t('editor.clipHint')}
+            value={l.clip}
+            onChange={(clip) => set({ clip })}
+          />
+        </Inherit>
+      )}
       <h3>{t('editor.layout')}</h3>
       <Inherit keys={['layout']}>
         <SelectField<GroupLayout>
@@ -1953,6 +2002,73 @@ function ValueProperties({
 
 const SHAPES: ShapeKind[] = ['rect', 'ellipse', 'polygon', 'star', 'line', 'path']
 
+/** Modifica dei punti della forma selezionata sulla tela: se è attiva e come cambiarla */
+const PointsContext = createContext<{
+  active: boolean
+  /** Il punto scelto sulla tela (indice del segmento), se ce n'è uno */
+  point: number | null
+  toggle: () => void
+} | null>(null)
+
+/** Il raggio dell'angolo del punto scelto sulla tela, mentre si modificano i punti */
+function PointCornerField({
+  l,
+  set
+}: {
+  l: ShapeLayer
+  set: SetFn<ShapeLayer>
+}): React.JSX.Element | null {
+  const { t } = useI18n()
+  const points = useContext(PointsContext)
+  if (!points?.active || points.point === null) return null
+  const key = String(points.point)
+  return (
+    <NumberField
+      label={t('prop.pointRadius')}
+      hint={t('editor.pointRadiusHint')}
+      value={l.corners?.[key] ?? 0}
+      min={0}
+      step={0.5}
+      unit="mm"
+      onChange={(r) => {
+        const corners = { ...l.corners }
+        if (r > 0) corners[key] = r
+        else delete corners[key]
+        const next = Object.keys(corners).length ? corners : undefined
+        // una forma regolare diventa un tracciato, come quando si sposta un punto
+        if (l.shape !== 'path')
+          set({ shape: 'path', path: shapeAsPath(l), radius: 0, corners: next })
+        else set({ corners: next })
+      }}
+    />
+  )
+}
+
+/** Il pulsante grande che apre e chiude la modifica dei punti sulla tela */
+function EditPointsButton(): React.JSX.Element | null {
+  const { t } = useI18n()
+  const points = useContext(PointsContext)
+  if (!points) return null
+  return (
+    <>
+      <div className="selection-actions">
+        <button
+          type="button"
+          className={points.active ? 'primary' : undefined}
+          aria-pressed={points.active}
+          title={t('editor.editPointsHint')}
+          onClick={points.toggle}
+        >
+          {t(points.active ? 'editor.editPointsDone' : 'editor.editPoints')}
+        </button>
+      </div>
+      <p className="muted small">
+        {t(points.active ? 'editor.editPointsHelp' : 'editor.editPointsHint')}
+      </p>
+    </>
+  )
+}
+
 function ShapeProperties({
   l,
   set: setLayer,
@@ -1989,6 +2105,8 @@ function ShapeProperties({
             onChange={(shape) => set({ shape })}
           />
         </P>
+        {l.shape !== 'line' && !l.locked && <EditPointsButton />}
+        {l.shape !== 'line' && !l.locked && <PointCornerField l={l} set={set} />}
         <P id="stroke">
           <StrokeField
             label={t('prop.stroke')}
@@ -1998,11 +2116,38 @@ function ShapeProperties({
             onChange={(stroke) => set({ stroke })}
           />
         </P>
-        {(l.shape === 'rect' || l.shape === 'polygon' || l.shape === 'star') && (
+        {l.shape === 'line' && (
+          <P id="bend">
+            <NumberField
+              label={t('prop.bend')}
+              hint={`${t('editor.bendHint')} ${col('bend')}`}
+              value={l.bend}
+              unit="mm"
+              onChange={(bend) => set({ bend })}
+            />
+            {l.bend !== 0 && (
+              <NumberField
+                label={t('prop.bendShift')}
+                hint={`${t('editor.bendShiftHint')} ${col('bendShift')}`}
+                value={l.bendShift}
+                unit="mm"
+                onChange={(bendShift) => set({ bendShift })}
+              />
+            )}
+          </P>
+        )}
+        {(l.shape === 'rect' ||
+          l.shape === 'polygon' ||
+          l.shape === 'star' ||
+          l.shape === 'path') && (
           <P id="radius">
             <NumberField
               label={t('prop.radius')}
-              hint={col('radius')}
+              hint={
+                l.shape === 'path'
+                  ? `${t('editor.pathRadiusHint')} ${col('radius')}`
+                  : col('radius')
+              }
               value={l.radius}
               min={0}
               unit="mm"

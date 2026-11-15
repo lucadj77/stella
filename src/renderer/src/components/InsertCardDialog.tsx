@@ -95,6 +95,7 @@ export default function InsertCardDialog({
   bare = false,
   pageWidth = 174,
   pageFont = (11 * 0.88 * 25.4) / 72,
+  pageFamily,
   onInsert,
   onClose
 }: {
@@ -114,6 +115,8 @@ export default function InsertCardDialog({
    */
   pageWidth?: number
   pageFont?: number
+  /** Famiglia di caratteri del documento: le etichette vanno a capo come nella pagina */
+  pageFamily?: string
   /** Il testo da inserire: ![didascalia](card:…) o il blocco ```anatomy */
   onInsert(text: string): void
   onClose(): void
@@ -374,39 +377,41 @@ export default function InsertCardDialog({
   /** L'anatomia da modificare sul disegno, grande `unit` pixel per mm */
   const canvas = (unit: number): React.JSX.Element | null =>
     preview ? (
-      <AnatomyCanvas
-        anatomy={preview}
-        sets={sets}
-        templates={templates}
-        project={project}
-        unit={unit}
-        maxWidth={pageWidth * (preview.width ?? (preview.wrap ? WRAP_WIDTH : 1))}
-        font={pageFont * (preview.font ?? 1)}
-        onMovePoint={(index, at) => {
-          const key = keyOf(index)
-          if (!key) return
-          setPoints((m) => {
-            const next = new Map(m)
-            if (at) next.set(key, at)
-            else next.delete(key)
-            return next
-          })
-        }}
-        onMoveLabel={(index, y) => {
-          const key = keyOf(index)
-          if (!key) return
-          setHeights((m) => {
-            const next = new Map(m)
-            if (y !== undefined) next.set(key, y)
-            else next.delete(key)
-            return next
-          })
-        }}
-        onLabel={(index, text) => {
-          const key = keyOf(index)
-          if (key) setLabels((m) => new Map(m).set(key, text))
-        }}
-      />
+      <div style={{ fontFamily: pageFamily, display: 'contents' }}>
+        <AnatomyCanvas
+          anatomy={preview}
+          sets={sets}
+          templates={templates}
+          project={project}
+          unit={unit}
+          maxWidth={pageWidth * (preview.width ?? (preview.wrap ? WRAP_WIDTH : 1))}
+          font={pageFont * (preview.font ?? 1)}
+          onMovePoint={(index, at) => {
+            const key = keyOf(index)
+            if (!key) return
+            setPoints((m) => {
+              const next = new Map(m)
+              if (at) next.set(key, at)
+              else next.delete(key)
+              return next
+            })
+          }}
+          onMoveLabel={(index, y) => {
+            const key = keyOf(index)
+            if (!key) return
+            setHeights((m) => {
+              const next = new Map(m)
+              if (y !== undefined) next.set(key, y)
+              else next.delete(key)
+              return next
+            })
+          }}
+          onLabel={(index, text) => {
+            const key = keyOf(index)
+            if (key) setLabels((m) => new Map(m).set(key, text))
+          }}
+        />
+      </div>
     ) : null
 
   const choose = set && (

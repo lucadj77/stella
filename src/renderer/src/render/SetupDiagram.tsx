@@ -3,7 +3,7 @@ import { useContext, useId } from 'react'
 import type { LoadedSet } from '../../../shared/project'
 import type { Template } from '../../../shared/model/template'
 import { anatomyCardSource } from '../../../shared/model/document'
-import type { Setup, SetupItem } from '../../../shared/model/setup'
+import { arrowCurve, type Setup, type SetupItem } from '../../../shared/model/setup'
 import { resolveAsset } from '../../../shared/model/assets'
 import { backdropInner, imageBackdrop } from '../../../shared/model/shapes'
 import { imageVariable, palette, resolveColor } from '../../../shared/model/variables'
@@ -18,6 +18,7 @@ import {
   DECK_STEP,
   itemCardSize,
   SETUP_LINE as LINE,
+  textHeight,
   type Box,
   type SetupView
 } from './setupGeometry'
@@ -139,15 +140,17 @@ function Label({
       <foreignObject
         width={w * ZOOM}
         height={font * LINE * 6 * ZOOM}
-        style={{ overflow: 'visible' }}
+        // il riquadro è alto sei righe: fuori dalle parole il clic passa a ciò che sta sotto
+        style={{ overflow: 'visible', pointerEvents: 'none' }}
       >
         <div style={{ fontSize: font * ZOOM, lineHeight: LINE, textAlign: align }}>
           <span
-            style={
-              background
+            style={{
+              pointerEvents: 'auto',
+              ...(background
                 ? { background: 'rgba(255,255,255,0.85)', padding: `0 ${font * 0.3 * ZOOM}px` }
-                : undefined
-            }
+                : {})
+            }}
           >
             <MarkupInline text={text} unit={ZOOM} />
           </span>
@@ -260,43 +263,106 @@ function Item({
     case 'text':
       return (
         <g data-item={i}>
+          {/* il riquadro del testo, righe comprese, si sceglie con un clic anche tra le parole */}
+          <rect
+            x={it.x}
+            y={it.y}
+            width={it.w}
+            height={textHeight(it.text, it.w, font)}
+            fill="transparent"
+          />
           <Label x={it.x} y={it.y} w={it.w} font={font} text={it.text} align={it.align} />
         </g>
       )
     case 'image':
       return <ImageItem i={i} it={it} />
     case 'arrow': {
-      const dx = it.x2 - it.x
-      const dy = it.y2 - it.y
-      const len = Math.hypot(dx, dy) || 1
-      const ux = dx / len
-      const uy = dy / len
-      const head = Math.min(3.5, len / 2)
-      const bx = it.x2 - ux * head
-      const by = it.y2 - uy * head
-      const w = head * 0.55
-      const tip = `${it.x2},${it.y2} ${bx - uy * w},${by + ux * w} ${bx + uy * w},${by - ux * w}`
+      const { control: c, mid } = arrowCurve(it)
+      const k = it.size ?? 1
+      // lo spessore scritto vale da solo; senza, segue la misura come le punte
+      const line = it.thickness ?? 0.5 * k
+      const heads = it.heads ?? 'end'
+      const atEnd = heads === 'end' || heads === 'both'
+      const atStart = heads === 'start' || heads === 'both'
+      const p0 = { x: it.x, y: it.y }
+      const p2 = { x: it.x2, y: it.y2 }
+      const len = quadLength(it, c)
+      // la punta cresce con la linea, così una linea spessa non la copre
+      const head = Math.min(Math.max(3.5 * k, line * 2.5), len / (atStart && atEnd ? 3 : 2))
+      const at = (t: number): { x: number; y: number } => {
+        const u = 1 - t
+        return {
+          x: u * u * p0.x + 2 * u * t * c.x + t * t * p2.x,
+          y: u * u * p0.y + 2 * u * t * c.y + t * t * p2.y
+        }
+      }
+      /** Il parametro del punto della curva a `dist` mm (in linea d'aria) da un estremo */
+      const reach = (fromEnd: boolean, dist: number): number => {
+        const end = fromEnd ? p2 : p0
+        let lo = 0
+        let hi = 0.5
+        for (let n = 0; n < 30; n++) {
+          const m = (lo + hi) / 2
+          const q = at(fromEnd ? 1 - m : m)
+          if (Math.hypot(q.x - end.x, q.y - end.y) < dist) lo = m
+          else hi = m
+        }
+        return fromEnd ? 1 - lo : lo
+      }
+      // la punta va dall'estremo al punto della curva distante quanto è lunga; la linea entra un po'
+      // dentro la punta, così non resta uno spazio tra le due quando la curva è stretta
+      const a = atStart ? reach(false, head * 0.6) : 0
+      const b = atEnd ? reach(true, head * 0.6) : 1
+      const blossom = (u: number, v: number): { x: number; y: number } => ({
+        x: (1 - u) * (1 - v) * p0.x + ((1 - u) * v + u * (1 - v)) * c.x + u * v * p2.x,
+        y: (1 - u) * (1 - v) * p0.y + ((1 - u) * v + u * (1 - v)) * c.y + u * v * p2.y
+      })
+      const s0 = blossom(a, a)
+      const s1 = blossom(a, b)
+      const s2 = blossom(b, b)
+      const d = `M${s0.x},${s0.y} Q${s1.x},${s1.y} ${s2.x},${s2.y}`
+      // una punta in `tip`, nella direzione da `from`
+      const tipAt = (tip: { x: number; y: number }, from: { x: number; y: number }): string => {
+        const dx = tip.x - from.x
+        const dy = tip.y - from.y
+        const l = Math.hypot(dx, dy) || 1
+        const ux = dx / l
+        const uy = dy / l
+        const bx = tip.x - ux * head
+        const by = tip.y - uy * head
+        const w = head * 0.55
+        return `${tip.x},${tip.y} ${bx - uy * w},${by + ux * w} ${bx + uy * w},${by - ux * w}`
+      }
+      // la punta segue la corda fino al punto della curva alla sua base: resta allineata alla linea
+      const tips = [
+        ...(atEnd ? [tipAt(p2, at(reach(true, head)))] : []),
+        ...(atStart ? [tipAt(p0, at(reach(false, head)))] : [])
+      ]
       return (
         <g data-item={i}>
+          {/* una fascia invisibile larga qualche mm: la freccia si prende anche senza mirare */}
+          <path
+            d={`M${p0.x},${p0.y} Q${c.x},${c.y} ${p2.x},${p2.y}`}
+            fill="none"
+            stroke="transparent"
+            strokeWidth={Math.max(3, line * 3)}
+            pointerEvents="stroke"
+          />
           {/* alone chiaro sotto la freccia: resta visibile anche sopra carte e plance scure */}
           <g stroke={HALO} strokeOpacity={0.85} strokeLinecap="round" strokeLinejoin="round">
-            <line x1={it.x} y1={it.y} x2={bx} y2={by} strokeWidth={1.4} />
-            <polygon points={tip} fill={HALO} fillOpacity={0.85} strokeWidth={0.9} />
+            <path d={d} fill="none" strokeWidth={line * 1.8 + 0.5} />
+            {tips.map((tip, n) => (
+              <polygon key={n} points={tip} fill={HALO} fillOpacity={0.85} strokeWidth={0.9} />
+            ))}
           </g>
-          <line
-            x1={it.x}
-            y1={it.y}
-            x2={bx}
-            y2={by}
-            stroke={INK}
-            strokeWidth={0.5}
-            strokeLinecap="round"
-          />
-          <polygon points={tip} fill={INK} />
+          <path d={d} fill="none" stroke={INK} strokeWidth={line} strokeLinecap="round" />
+          {tips.map((tip, n) => (
+            <polygon key={n} points={tip} fill={INK} />
+          ))}
           {it.label && (
             <Label
-              x={(it.x + it.x2) / 2 - 25}
-              y={(it.y + it.y2) / 2 - (font * LINE) / 2}
+              x={mid.x - 25}
+              y={mid.y - (font * LINE) / 2}
               w={50}
               font={font}
               text={it.label}
@@ -387,4 +453,24 @@ function ImageItem({
       )}
     </g>
   )
+}
+
+/** Lunghezza di una quadratica, da una spezzata di 16 tratti */
+function quadLength(
+  a: { x: number; y: number; x2: number; y2: number },
+  c: { x: number; y: number }
+): number {
+  let len = 0
+  let px = a.x
+  let py = a.y
+  for (let k = 1; k <= 16; k++) {
+    const t = k / 16
+    const u = 1 - t
+    const x = u * u * a.x + 2 * u * t * c.x + t * t * a.x2
+    const y = u * u * a.y + 2 * u * t * c.y + t * t * a.y2
+    len += Math.hypot(x - px, y - py)
+    px = x
+    py = y
+  }
+  return len || 1
 }

@@ -890,7 +890,7 @@ export const en = {
     'The shape takes the outline of a project image (PNG with transparency or SVG; in images without transparency, the dark parts). The height follows the image proportions.',
   'editor.cardOutlineHint':
     'The component takes the outline of a project image (PNG with transparency or SVG; in images without transparency, the dark parts), stretched to its size: set width and height with the image proportions.',
-  'shape.path': 'From an image',
+  'shape.path': 'Path or image outline',
   'cardShape.path': 'From an image',
   'prop.cornerRadius': 'Corner radius',
   'prop.w': 'W',
@@ -1055,6 +1055,41 @@ export const en = {
   'editor.arrangedHint':
     'The group box stays where you put it and the children are placed inside it: drag its handles to move or resize the area.',
   'prop.clip': 'Bottom layer is a mask',
+  'prop.bend': 'Curve',
+  'editor.bendHint':
+    'How far the middle of the line moves away from the straight line, in mm: drag the round handle in any direction. 0 = straight.',
+  'prop.bendShift': 'Curve shift',
+  'editor.bendShiftHint':
+    'How far the middle of the curve moves along the line, in mm (toward the end if positive). 0 = halfway.',
+  'editor.pointHint': 'Drag to move the point; click it and press Delete to remove it',
+  'editor.editPoints': 'Edit points',
+  'editor.editPointsDone': 'Done editing points',
+  'editor.editPointsHint':
+    'Move the single points of the shape on the canvas (or double-click the shape). The shape becomes a path when you move a point.',
+  'editor.editPointsHelp':
+    'Drag a square to move a point, a circle to change a curve. Double-click the outline to add a point; click a point and press Delete to remove it. Esc to finish.',
+  'prop.pointRadius': 'Corner of this point',
+  'editor.pointRadiusHint':
+    'Rounds the selected point, in mm. Only works on a point between two straight sides.',
+  'editor.pathRadiusHint': 'Rounds every corner of the outline, in mm.',
+  'combine.title': 'Combine shapes',
+  'combine.union': 'Union',
+  'combine.intersect': 'Intersect',
+  'combine.subtract': 'Subtract',
+  'combine.exclude': 'Exclude',
+  'combine.unionHint': 'One shape that covers all the shapes',
+  'combine.intersectHint': 'Only the area the shapes have in common',
+  'combine.subtractHint': 'The bottom shape in the layer list, minus the shapes above it',
+  'combine.excludeHint': 'The areas covered by only one shape: overlaps become holes',
+  'combine.selectionHint':
+    'Turn the selected shapes into one. They go into a group and stay editable: move or resize them and the result follows. The result takes the fill, stroke and shadow of the bottom shape.',
+  'combine.groupHint':
+    'Draw the shapes of this group as one shape. Texts, images and lines are drawn on top, as they are.',
+  'combine.activeHint':
+    'The shapes are drawn as one, with the look of the bottom shape. Click the active button again to draw them separately.',
+  'combine.convert': 'Convert to path',
+  'combine.convertHint':
+    'Freeze the result into a single path shape: the separate shapes are gone and it no longer follows the data',
   'anchor.top-left': 'Top left',
   'anchor.top': 'Top',
   'anchor.top-right': 'Top right',
@@ -2005,6 +2040,17 @@ export const en = {
   'documents.setupW': 'Width (mm)',
   'documents.setupH': 'Height (mm)',
   'documents.setupCount': 'How many in the deck',
+  'documents.setupBend': 'Curve (mm)',
+  'documents.setupArrowSize': 'Size (%)',
+  'documents.setupHeads': 'Arrowheads',
+  'documents.setupHeadsEnd': 'At the end',
+  'documents.setupHeadsStart': 'At the start',
+  'documents.setupHeadsBoth': 'Both',
+  'documents.setupHeadsNone': 'None',
+  'documents.setupThickness': 'Thickness (mm)',
+  'documents.setupShift': 'Curve shift (mm)',
+  'documents.setupBendHint':
+    'Drag the handle anywhere: away from the straight line to curve the arrow, along it to move the middle of the curve. Back on the straight line it becomes straight again',
   'documents.setupRotation': 'Rotation (°)',
   'documents.setupRotate90': '+90°',
   'documents.setupRotateHandle': 'Drag to rotate; with Shift in 15° steps',
