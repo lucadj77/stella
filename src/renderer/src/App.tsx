@@ -3769,6 +3769,7 @@ function SetView({
   const lastPick = useRef<{ x: number; y: number; row: number; column: string } | null>(null)
   const [rowView, setRowView] = useState<RowView>(NO_VIEW)
   const [previewWidth, setPreviewWidth] = usePanelWidth('preview.v2', 380)
+  const windowHeight = useWindowHeight()
   const [previewSide, togglePreviewSide] = usePanelSide('preview', 'right')
   // dimensione delle miniature: pixel per millimetro
   const [thumb, setThumb] = usePanelWidth('thumbScale', 2.6)
@@ -4218,6 +4219,16 @@ function SetView({
     />
   )
 
+  // la scala si adatta al pannello: una plancia larga si riduce invece di uscire dai lati,
+  // una striscia alta non supera una parte dell'altezza della finestra
+  const previewScale = card
+    ? Math.min(
+        PREVIEW_SCALE,
+        Math.max(0.5, (previewWidth - PREVIEW_SIDE_ROOM) / card.template.width),
+        Math.max(PREVIEW_SCALE * 88, windowHeight * 0.6) / card.template.height
+      )
+    : PREVIEW_SCALE
+
   const preview = (
     <aside className="preview" data-side={previewSide} style={{ width: previewWidth }}>
       <div className="preview-header">
@@ -4245,7 +4256,7 @@ function SetView({
               <button onClick={() => setBig(false)}>{t('preview.closeBig')}</button>
             </div>
           ) : (
-            cardStage(PREVIEW_SCALE)
+            cardStage(previewScale)
           )}
           <div className="preview-buttons">
             <button
@@ -4819,6 +4830,19 @@ function SetView({
 }
 
 const PREVIEW_SCALE = 4.4
+/** Pixel del pannello anteprima non usati dalla carta: margini, bordo, barra di scorrimento e ombra */
+const PREVIEW_SIDE_ROOM = 60
+
+/** Altezza della finestra, aggiornata quando cambia */
+function useWindowHeight(): number {
+  const [h, setH] = useState(() => window.innerHeight)
+  useEffect(() => {
+    const on = (): void => setH(window.innerHeight)
+    window.addEventListener('resize', on)
+    return () => window.removeEventListener('resize', on)
+  }, [])
+  return h
+}
 
 /** Il progetto con i riferimenti a una variabile o a uno stile rinominati ovunque */
 /** Dove cerca il cerca e sostituisci nel progetto */
