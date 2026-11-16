@@ -1653,24 +1653,48 @@ export const it: Record<MessageKey, string> = {
   'export.duplexLong': 'Rilegatura lato lungo',
   'export.duplexShort': 'Rilegatura lato corto',
   'export.offset': 'Spostamento retri',
-  'export.offsetHint': 'Sposta i retri per compensare una stampante che non allinea i due lati',
-  'export.duplexTest': 'Pagina di prova',
+  'export.offsetHint':
+    'Se i retri non escono esattamente dietro i fronti, scrivi qui di quanti millimetri spostarli. La pagina di prova lo misura per te: apri i passi qui sotto.',
   'export.duplexTestHint':
-    'Un PDF di due pagine con croci sul fronte e scale sul retro: stampato fronte-retro, dice di quanto spostare i retri',
+    'Salva duplex-test.pdf: un foglio da stampare fronte-retro che mostra di quanto la stampante sposta i retri',
   'duplexTest.front': 'Prova del fronte-retro: fronte',
   'duplexTest.back': 'Prova del fronte-retro: retro',
   'duplexTest.frontHint':
-    'Stampa questo PDF fronte-retro a grandezza reale. Le scale da leggere sono sul retro di questo foglio.',
+    'Stampa questo PDF fronte-retro al 100% (senza Adatta alla pagina). Poi gira il foglio: le istruzioni sono sul retro.',
   'duplexTest.step1':
-    "1. Stampa a grandezza reale (100%, senza Adatta alla pagina), fronte-retro, con la rilegatura scelta nell'esportazione.",
+    '1. Guarda il foglio controluce con questo lato verso di te: le croci del fronte si vedono attraverso la carta.',
   'duplexTest.step2':
-    '2. Guarda il foglio controluce con questo lato verso di te: le croci del fronte si vedono in trasparenza.',
+    "2. Guarda solo la croce 1, al centro. Sul righello sotto di lei leggi il numero dove passa la linea verticale della croce: è x. Sul righello alla sua destra leggi il numero dove passa la linea orizzontale: è y. Tieni il segno meno, se c'è.",
   'duplexTest.step3':
-    '3. Su ogni scala numerata leggi dove cade la croce: x sulla scala orizzontale, y su quella verticale (i numeri positivi sono a destra e in basso, guardando questo lato).',
+    "3. In Stella, nell'esportazione del PDF apri Pagine e file: somma x e y ai numeri già scritti in Spostamento retri (0 la prima volta). Poi stampa di nuovo questa prova: le croci dovrebbero cadere sullo 0.",
   'duplexTest.step4':
-    "4. Somma i numeri letti sulla scala 1 a Spostamento retri x e y nell'esportazione, poi stampa di nuovo questa prova: le croci dovrebbero cadere sullo 0.",
-  'duplexTest.step5':
-    "Se le scale danno numeri diversi, la stampante ridimensiona la pagina: controlla che stampi al 100%. Se una croce è lontana dalla sua scala, prova l'altra rilegatura.",
+    "La croce 1 è sullo 0 ma quelle negli angoli no? La stampante ridimensiona la pagina: stampa al 100%. Croci lontane dai righelli? Il foglio è stato girato sull'altro lato: usa lo stesso lato in Stella e nella stampante.",
+  'export.duplexOnHint':
+    'Scegli lo stesso lato anche nelle impostazioni della stampante. Se i retri escono spostati, correggili con Spostamento retri in Pagine e file.',
+  'export.offsetHelp': 'Come misurare lo spostamento, passo per passo',
+  'export.offsetHelp1':
+    'Scegli il lato del fronte-retro (lungo o corto) che userai anche nella stampante.',
+  'export.offsetHelp2':
+    "Premi Pagina di prova: Stella salva duplex-test.pdf nella cartella dell'esportazione.",
+  'export.offsetHelp3': 'Stampalo fronte-retro al 100%, con Adatta alla pagina spento.',
+  'export.offsetHelp4':
+    "Guarda il foglio controluce con il lato dei righelli verso di te. Le cinque croci dell'altro lato si vedono attraverso la carta.",
+  'export.offsetHelp5':
+    'Guarda solo la croce 1, al centro. Sul righello sotto di lei leggi il numero dove passa la linea verticale della croce: è x. Sul righello alla sua destra leggi il numero dove passa la linea orizzontale: è y.',
+  'export.offsetHelp6':
+    "Scrivi i due numeri in x e y, con il segno meno se ce l'hanno. Se i campi non erano a 0, somma la lettura a quello che c'è: 0,5 e una lettura di −1 fanno −0,5.",
+  'export.offsetHelp7':
+    'Stampa di nuovo la pagina di prova: le croci dovrebbero cadere sullo 0. Stella ricorda lo spostamento per le prossime esportazioni di questo progetto.',
+  'export.offsetHelpExample':
+    'Esempio: la linea della croce passa a 1,5 sul righello, quindi x è 1,5',
+  'export.offsetHelpTrouble': 'Se qualcosa non torna',
+  'export.offsetHelpScale':
+    'La croce 1 è sullo 0 ma quelle negli angoli no: la stampante rimpicciolisce o ingrandisce la pagina. Stampa al 100%; nessuno spostamento può correggerlo.',
+  'export.offsetHelpFlip':
+    "Le croci cadono lontano dai righelli, o capovolte: il foglio è stato girato sull'altro lato. Usa lo stesso lato qui e nella stampante.",
+  'export.offsetHelpSame':
+    "Le letture cambiano da una stampa all'altra: la stampante trascina la carta in modo irregolare e lo spostamento corregge solo la media. Lascia qualche millimetro di abbondanza o un bordo bianco intorno ai retri.",
+  'export.duplexTest': 'Pagina di prova',
   'export.files': 'File',
   'export.splitSingle': 'Un file',
   'export.splitSet': 'Uno per set',

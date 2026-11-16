@@ -921,11 +921,27 @@ Il PDF è vettoriale, con i font incorporati. Tra le scelte che contano ci sono 
 - **Piegatura**: fronte e retro affiancati, da piegare.
 - **Dadi**: compare quando si esporta un set di facce di dado. **Facce** le mette una accanto all'altra come le carte; **Da piegare** stampa ogni dado aperto, da ritagliare, piegare e incollare (vedi sotto). Con **Facce** ogni riga di un d3 si stampa due volte, una per ognuna delle sue facce, e le facce triangolari (d4, d8, d20) si incastrano una in su e una in giù, così occupano metà spazio: senza abbondanza due facce vicine hanno lo stesso taglio, con l'abbondanza tra i lati resta lo spazio per entrambe.
 - **Segni di taglio**: agli angoli o a linee intere, con lunghezza, spessore e colore.
-- **Fronte-retro**: retri su pagine alternate, girando il foglio sul lato lungo o corto, con una correzione dello spostamento per le stampanti che non allineano i due lati. Per trovare la correzione giusta usa **Pagina di prova**, accanto a **Spostamento retri** in **Pagine e file**: crea `duplex-test.pdf`, due pagine con cinque croci sul fronte e, sul retro, due scale in millimetri per ogni croce. Stampalo fronte-retro al 100%, guarda il foglio controluce dal retro e leggi dove cadono le croci sulle scale della croce 1: somma i due numeri a **Spostamento retri** x e y, poi stampa di nuovo la prova per controllare che le croci cadano sullo 0. Se le cinque croci danno numeri diversi, la stampante ridimensiona la pagina. Il **Foglio di prova** serve a controllare i componenti in piccolo prima di consumare carta.
+- **Fronte-retro**: retri su pagine alternate, girando il foglio sul lato lungo o corto. Scegli lo stesso lato nelle impostazioni della stampante. Se i retri escono spostati rispetto ai fronti, **Spostamento retri** in **Pagine e file** li sposta: vedi _Allineare fronti e retri_ qui sotto.
 - **Pagine**: con **Uno dopo l'altro sulla stessa pagina** un set comincia subito dopo il precedente invece che su una pagina nuova (10 + 8 carte con 9 per pagina stanno in 2 pagine invece di 3). Un set con componenti di un'altra misura comincia su una riga nuova, se nella pagina c'è posto. I componenti partono dall'alto della pagina, anche quando non la riempiono, così il taglio comincia sempre dallo stesso bordo.
 - **Inchiostro**: solo in **Stampare a casa**. **Bianco e nero** stampa i componenti in grigi; **Bozza** li stampa in grigi più chiari, anche il nero, per consumare meno inchiostro nelle prime prove. In queste due scelte le pagine del PDF sono immagini a 300 DPI, mentre i segni di taglio restano neri.
 - **Foglio di prova**: un PDF a parte con tutti i componenti in piccolo.
 - **Converti in CMYK**: richiede Ghostscript installato sul computer.
+
+**Allineare fronti e retri.** Molte stampanti stampano il retro di un foglio spostato di un millimetro o due rispetto al fronte. **Spostamento retri** sposta tutti i retri per compensare, e il tasto **Pagina di prova** accanto misura di quanto:
+
+1. In **Fronte-retro** scegli il lato (lungo o corto) che userai anche nella stampante.
+2. Premi **Pagina di prova**: Stella salva `duplex-test.pdf` nella cartella dell'esportazione. Ha due pagine: cinque croci numerate sul fronte e, sul retro, due piccoli righelli accanto a dove ogni croce dovrebbe cadere.
+3. Stampalo fronte-retro al 100%, con **Adatta alla pagina** spento.
+4. Guarda il foglio controluce con i righelli verso di te: le croci del fronte si vedono attraverso la carta.
+5. Guarda solo la croce 1, al centro. Sul righello sotto di lei leggi il numero dove passa la linea verticale della croce: è **x**. Sul righello alla sua destra leggi il numero dove passa la linea orizzontale: è **y**. Tieni il segno meno se c'è: −1 vuol dire che la croce è 1 mm più a sinistra (per x) o più in alto (per y).
+6. Scrivi i due numeri in **Spostamento retri** x e y. Se i campi non erano a 0, somma la lettura a quello che c'è: 0,5 e una lettura di −1 fanno −0,5.
+7. Stampa di nuovo la pagina di prova: ora le croci dovrebbero cadere sullo 0. Stella ricorda lo spostamento per le prossime esportazioni del progetto.
+
+Se qualcosa non torna:
+
+- La croce 1 è sullo 0 ma quelle negli angoli no: la stampante rimpicciolisce o ingrandisce la pagina. Stampa al 100%; nessuno spostamento può correggerlo.
+- Le croci cadono lontano dai righelli, o capovolte: il foglio è stato girato sull'altro lato. Usa lo stesso lato in Stella e nella stampante.
+- Le letture cambiano da una stampa all'altra: la stampante trascina la carta in modo irregolare e lo spostamento corregge solo la media. Lascia qualche millimetro di abbondanza, o un bordo bianco, intorno ai retri.
 
 **Dadi da piegare.** Con **Da piegare** ogni N righe del set fanno un dado, nell'ordine del foglio: 4 righe per il d4, 6 per il d6, 8 per il d8 e così via, con la riga 1 sulla faccia 1. Il dado è grande quanto il template (una faccia di 20 mm fa un dado di 20 mm); per il d6 e il d3 la faccia deve essere quadrata. Si piegano tutti i dadi tranne il d2, la moneta, che esce come facce da ritagliare e incollare schiena contro schiena.
 

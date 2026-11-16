@@ -921,11 +921,27 @@ The PDF is vector, with embedded fonts. The choices that matter are the paper (p
 - **Fold**: front and back side by side, to fold.
 - **Dice**: shows up when you export a set of die faces. **Faces** places them side by side like cards; **To fold** prints each die opened out, to cut, fold and glue (see below). With **Faces** each row of a d3 is printed twice, once for each of its faces, and triangle faces (d4, d8, d20) interlock, one up and one down, so they take half the space: without bleed two neighbouring faces share the same cut, with bleed there is room for both between the edges.
 - **Crop marks**: at the corners or as full lines, with length, width and color.
-- **Duplex**: backs on alternate pages, flipping on the long or short edge, with an offset for printers that do not align the two sides. To find the right offset use **Test page**, next to **Back offset** in **Pages and files**: it writes `duplex-test.pdf`, two pages with five crosses on the front and, on the back, two millimetre scales for each cross. Print it double-sided at 100%, hold the sheet against a light from the back and read where cross 1 falls on its scales: add the two numbers to **Back offset** x and y, then print the test again to check that the crosses fall on 0. If the five crosses give different numbers, the printer is resizing the page. The **Proof sheet** lets you check all the components small before using up paper.
+- **Duplex**: backs on alternate pages, flipping the sheet on the long or short edge. Choose the same edge in the printer's settings. If the backs come out shifted from the fronts, **Back offset** in **Pages and files** moves them: see _Aligning fronts and backs_ below.
 - **Pages**: with **One after another on the same page** a set starts right after the previous one instead of on a new page (10 + 8 cards with 9 per page fit on 2 pages instead of 3). A set with components of another size starts on a new row, if there is room on the page. The components start from the top of the page, even when they do not fill it, so cutting always starts from the same edge.
 - **Ink**: only in **Print at home**. **Black and white** prints the components in grays; **Draft** prints them in lighter grays, black too, to use less ink in the first tests. With these two choices the PDF pages are 300 DPI images, while the crop marks stay black.
 - **Proof sheet**: a separate PDF with every component small.
 - **Convert to CMYK**: needs Ghostscript installed on the computer.
+
+**Aligning fronts and backs.** Many printers print the back of a sheet a millimetre or two off from the front. **Back offset** moves all the backs to make up for it, and the **Test page** button next to it measures how far:
+
+1. In **Duplex**, choose the edge (long or short) that you will also use in the printer.
+2. Click **Test page**: Stella saves `duplex-test.pdf` in the export folder. It has two pages: five numbered crosses on the front and, on the back, two small rulers next to where each cross should fall.
+3. Print it double-sided at 100%, with **Fit to page** turned off.
+4. Hold the sheet up to a light with the rulers facing you: the crosses of the front show through the paper.
+5. Look only at cross 1, in the middle. On the ruler below it, read the number where the vertical line of the cross passes: that is **x**. On the ruler to its right, read the number where the horizontal line passes: that is **y**. Keep the minus sign if there is one: −1 means the cross is 1 mm to the left (for x) or above (for y).
+6. Write the two numbers in **Back offset** x and y. If the fields were not at 0, add the reading to what is there: 0.5 and a reading of −1 make −0.5.
+7. Print the test page again: now the crosses should fall on 0. Stella keeps the offset for the next exports of the project.
+
+If something does not add up:
+
+- Cross 1 is on 0 but the crosses in the corners are not: the printer is shrinking or enlarging the page. Print at 100%; no offset can fix this.
+- The crosses fall far from the rulers, or upside down: the sheet was flipped on the other edge. Use the same edge in Stella and in the printer.
+- The readings change from one print to the next: the printer pulls the paper unevenly and the offset can only correct the average. Leave a few millimetres of bleed, or a white border, around the backs.
 
 **Folding dice.** With **To fold** every N rows of the set make one die, in sheet order: 4 rows for the d4, 6 for the d6, 8 for the d8 and so on, with row 1 on face 1. The die is as large as the template (a 20 mm face makes a 20 mm die); for the d6 and d3 the face must be square. Every die folds except the d2, the coin, which comes out as faces to cut out and glue back to back.
 

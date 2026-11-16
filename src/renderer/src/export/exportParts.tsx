@@ -72,13 +72,16 @@ export function Row({
   children,
   hint,
   disabled,
-  reason
+  reason,
+  help
 }: {
   label: string
   children: React.ReactNode
   hint?: string
   disabled?: boolean
   reason?: string
+  /** Una spiegazione più lunga sotto il suggerimento, di solito da aprire */
+  help?: React.ReactNode
 }): React.JSX.Element {
   return (
     <div className={'export-row' + (disabled ? ' disabled' : '')}>
@@ -89,6 +92,7 @@ export function Row({
         {disabled && reason && <span className="export-reason">{reason}</span>}
       </div>
       {hint && !disabled && <p className="export-hint">{hint}</p>}
+      {help && !disabled && <div className="export-row-help">{help}</div>}
     </div>
   )
 }

@@ -5,6 +5,18 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## Next version
+
+### English
+
+- **Aligning fronts and backs**: the PDF export explains step by step how to measure **Back offset** with the **Test page** (under **Pages and files**, open _How to measure the offset, step by step_), with an example of how to read the ruler and what to do when something does not add up. The test page itself has clearer instructions on its back, and the **Duplex** choice reminds you to pick the same edge in the printer. The test page also saves the PDF options, so a measured offset is not lost.
+- **Back offset fields**: x and y are now compact like the other measures, and accept negative numbers with the arrow keys too. The other number fields of the export window are compact as well.
+
+### Italiano
+
+- **Allineare fronti e retri**: l'esportazione del PDF spiega passo per passo come misurare **Spostamento retri** con la **Pagina di prova** (in **Pagine e file**, apri _Come misurare lo spostamento, passo per passo_), con un esempio di come leggere il righello e cosa fare se qualcosa non torna. Anche la pagina di prova ha istruzioni più chiare sul retro, e la scelta **Fronte-retro** ricorda di usare lo stesso lato nella stampante. La pagina di prova salva anche le opzioni del PDF, così uno spostamento misurato non si perde.
+- **Campi dello spostamento retri**: x e y sono ora stretti come le altre misure e accettano numeri negativi anche con le frecce. Sono stretti anche gli altri campi numerici della finestra di esportazione.
+
 ## 1.12.0-beta.3
 
 ### English
