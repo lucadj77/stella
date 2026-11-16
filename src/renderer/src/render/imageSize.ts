@@ -40,6 +40,28 @@ function load(url: string): Promise<ImageSize | null> {
         return null
       })
   }
+  // nella versione web le immagini del progetto sono URL blob: senza estensione; un SVG si
+  // riconosce dal tipo del file e va misurato come sull'app (96 dpi, viewBox), altrimenti il
+  // browser gli darebbe una misura di ripiego (150 px) letta a 300 dpi
+  if (url.startsWith('blob:')) {
+    return fetch(url)
+      .then((r) => (r.ok ? r.blob() : Promise.reject()))
+      .then(async (blob) => {
+        // senza tipo (raro) si guarda l'inizio del file
+        const svg =
+          blob.type === 'image/svg+xml' ||
+          (!blob.type && /<svg[\s>]/i.test(await blob.slice(0, 1024).text()))
+        return svg ? parseSvgSize(await blob.text()) : raster(url)
+      })
+      .catch(() => {
+        failed.add(url)
+        return null
+      })
+  }
+  return raster(url)
+}
+
+function raster(url: string): Promise<ImageSize | null> {
   return new Promise((resolve) => {
     const img = new Image()
     img.onload = () =>
