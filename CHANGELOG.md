@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.12.0-beta.3
+
+### English
+
+- **Web version, repeated SVG images**: an SVG image set to **Tile** (or **Original size**) now has the same size as in the desktop app. Before, SVGs without width and height came out about ten times smaller on the web, so a pattern looked much denser.
+
+### Italiano
+
+- **Versione web, immagini SVG ripetute**: un'immagine SVG con **Ripeti** (o **Dimensione originale**) ha ora la stessa misura dell'app desktop. Prima, gli SVG senza larghezza e altezza venivano circa dieci volte più piccoli sul web, e il motivo risultava molto più fitto.
+
 ## 1.12.0-beta.2
 
 ### English
