@@ -2293,6 +2293,31 @@ button.danger:hover:not(:disabled) {
   font-weight: 600;
 }
 
+.offset-reading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin: 6px 0 2px;
+  padding: 8px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+}
+
+.offset-reading input.num {
+  width: 64px;
+}
+
+.offset-reading-label {
+  font-weight: 600;
+}
+
+.offset-reading-now {
+  flex-basis: 100%;
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .offset-example {
   margin: 6px 0 2px;
 }

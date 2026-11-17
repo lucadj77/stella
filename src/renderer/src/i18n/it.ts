@@ -1666,7 +1666,7 @@ export const it: Record<MessageKey, string> = {
   'duplexTest.step2':
     "2. Guarda solo la croce 1, al centro. Sul righello sotto di lei leggi il numero dove passa la linea verticale della croce: è x. Sul righello alla sua destra leggi il numero dove passa la linea orizzontale: è y. Tieni il segno meno, se c'è.",
   'duplexTest.step3':
-    "3. In Stella, nell'esportazione del PDF apri Pagine e file: somma x e y ai numeri già scritti in Spostamento retri (0 la prima volta). Poi stampa di nuovo questa prova: le croci dovrebbero cadere sullo 0.",
+    "3. In Stella, nell'esportazione del PDF apri Pagine e file, poi Come misurare lo spostamento: scrivi x e y nei campi del passo 6 e premi Correggi. Poi stampa di nuovo questa prova: le croci dovrebbero cadere sullo 0.",
   'duplexTest.step4':
     "La croce 1 è sullo 0 ma quelle negli angoli no? La stampante ridimensiona la pagina: stampa al 100%. Croci lontane dai righelli? Il foglio è stato girato sull'altro lato: usa lo stesso lato in Stella e nella stampante.",
   'export.duplexOnHint':
@@ -1682,9 +1682,12 @@ export const it: Record<MessageKey, string> = {
   'export.offsetHelp5':
     'Guarda solo la croce 1, al centro. Sul righello sotto di lei leggi il numero dove passa la linea verticale della croce: è x. Sul righello alla sua destra leggi il numero dove passa la linea orizzontale: è y.',
   'export.offsetHelp6':
-    "Scrivi i due numeri in x e y, con il segno meno se ce l'hanno. Se i campi non erano a 0, somma la lettura a quello che c'è: 0,5 e una lettura di −1 fanno −0,5.",
+    "Scrivi i due numeri letti nei campi qui sotto, con il segno meno se c'è, e premi Correggi. Stella sposta i retri di quella misura, partendo da quello che c'è già in Spostamento retri: non serve fare somme.",
   'export.offsetHelp7':
-    'Stampa di nuovo la pagina di prova: le croci dovrebbero cadere sullo 0. Stella ricorda lo spostamento per le prossime esportazioni di questo progetto.',
+    'Stampa di nuovo la pagina di prova per controllare: ora le croci dovrebbero cadere sullo 0. Se non è così, ripeti dal passo 2. Stella ricorda lo spostamento per le prossime esportazioni di questo progetto.',
+  'export.offsetHelpRead': 'Letto sulla croce 1',
+  'export.offsetHelpApply': 'Correggi',
+  'export.offsetHelpNow': 'Spostamento retri adesso: x {x} mm, y {y} mm',
   'export.offsetHelpExample':
     'Esempio: la linea della croce passa a 1,5 sul righello, quindi x è 1,5',
   'export.offsetHelpTrouble': 'Se qualcosa non torna',

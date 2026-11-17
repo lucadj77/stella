@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import NumInput from '../components/NumInput'
 import { useI18n } from '../i18n/context'
 import type { MessageKey } from '../i18n/en'
 
@@ -45,8 +47,71 @@ function RulerExample(): React.JSX.Element {
   )
 }
 
+/**
+ * I numeri letti sulla croce 1 si scrivono qui e Stella li somma allo spostamento che c'è:
+ * chi stampa la prova non deve fare conti, nemmeno la seconda volta
+ */
+function ReadingForm({
+  offsetX,
+  offsetY,
+  onCorrect
+}: {
+  offsetX: number
+  offsetY: number
+  onCorrect(dx: number, dy: number): void
+}): React.JSX.Element {
+  const { t, lang } = useI18n()
+  const [x, setX] = useState('')
+  const [y, setY] = useState('')
+  const parse = (v: string): number => {
+    const n = parseFloat(v.replace(',', '.').replace('−', '-'))
+    return Number.isFinite(n) ? n : 0
+  }
+  const fmt = (n: number): string =>
+    (Math.round(n * 100) / 100).toLocaleString(lang, { maximumFractionDigits: 2 })
+  const ready = x.trim() !== '' || y.trim() !== ''
+  return (
+    <div className="offset-reading">
+      <span className="offset-reading-label">{t('export.offsetHelpRead')}</span>
+      <span className="export-pair">
+        <span className="unit">x</span>
+        <NumInput className="num" allowEmpty value={x} onChange={(e) => setX(e.target.value)} />
+      </span>
+      <span className="export-pair">
+        <span className="unit">y</span>
+        <NumInput className="num" allowEmpty value={y} onChange={(e) => setY(e.target.value)} />
+        <span className="unit">mm</span>
+      </span>
+      <button
+        className="primary"
+        disabled={!ready}
+        onClick={() => {
+          onCorrect(parse(x), parse(y))
+          setX('')
+          setY('')
+        }}
+      >
+        {t('export.offsetHelpApply')}
+      </button>
+      <span className="offset-reading-now">
+        {t('export.offsetHelpNow', { x: fmt(offsetX), y: fmt(offsetY) })}
+      </span>
+    </div>
+  )
+}
+
 /** I passi per misurare lo spostamento dei retri con la pagina di prova, da aprire */
-export default function OffsetHelp(): React.JSX.Element {
+export default function OffsetHelp({
+  offsetX,
+  offsetY,
+  onCorrect
+}: {
+  /** Lo spostamento di ora, in mm */
+  offsetX: number
+  offsetY: number
+  /** Somma ai retri la lettura della croce 1, in mm */
+  onCorrect(dx: number, dy: number): void
+}): React.JSX.Element {
   const { t } = useI18n()
   const steps = [1, 2, 3, 4, 5, 6, 7].map((n) => t(`export.offsetHelp${n}` as MessageKey))
   return (
@@ -57,6 +122,7 @@ export default function OffsetHelp(): React.JSX.Element {
           <li key={i}>
             {s}
             {i === 4 && <RulerExample />}
+            {i === 5 && <ReadingForm offsetX={offsetX} offsetY={offsetY} onCorrect={onCorrect} />}
           </li>
         ))}
       </ol>

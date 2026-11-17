@@ -1641,7 +1641,7 @@ export const en = {
   'duplexTest.step2':
     '2. Look only at cross 1, in the middle. On the ruler below it, read the number where the vertical line of the cross passes: that is x. On the ruler to its right, read the number where the horizontal line passes: that is y. Keep the minus sign if there is one.',
   'duplexTest.step3':
-    '3. In Stella, in the PDF export, open Pages and files and add x and y to the numbers in Back offset (0 the first time). Then print this test again: the crosses should fall on 0.',
+    '3. In Stella, in the PDF export, open Pages and files, then How to measure the offset: write x and y in the fields of step 6 and click Correct. Then print this test again: the crosses should fall on 0.',
   'duplexTest.step4':
     'Corners not on 0 when cross 1 is? The printer is resizing the page: print at 100%. Crosses far from the rulers? The sheet was flipped on the other edge: use the same edge in Stella and in the printer.',
   'export.duplexOnHint':
@@ -1656,9 +1656,12 @@ export const en = {
   'export.offsetHelp5':
     'Look only at cross 1, in the middle. On the ruler below it, read the number where the vertical line of the cross passes: that is x. On the ruler to its right, read the number where the horizontal line passes: that is y.',
   'export.offsetHelp6':
-    'Write the two numbers in x and y, with their minus sign if they have one. If the fields were not at 0, add the reading to what is there: 0.5 and a reading of −1 make −0.5.',
+    'Write the two numbers you read in the fields below, with the minus sign if there is one, and click Correct. Stella moves the backs by that much, starting from what is already in Back offset: no sums to do.',
   'export.offsetHelp7':
-    'Print the test page again: the crosses should fall on 0. Stella keeps the offset for the next exports of this project.',
+    'Print the test page again to check: the crosses should now fall on 0. If they do not, repeat from step 2. Stella keeps the offset for the next exports of this project.',
+  'export.offsetHelpRead': 'Read on cross 1',
+  'export.offsetHelpApply': 'Correct',
+  'export.offsetHelpNow': 'Back offset now: x {x} mm, y {y} mm',
   'export.offsetHelpExample':
     'Example: the line of the cross passes at 1.5 on the ruler, so x is 1.5',
   'export.offsetHelpTrouble': 'If something does not add up',

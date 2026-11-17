@@ -927,15 +927,15 @@ Il PDF è vettoriale, con i font incorporati. Tra le scelte che contano ci sono 
 - **Foglio di prova**: un PDF a parte con tutti i componenti in piccolo.
 - **Converti in CMYK**: richiede Ghostscript installato sul computer.
 
-**Allineare fronti e retri.** Molte stampanti stampano il retro di un foglio spostato di un millimetro o due rispetto al fronte. **Spostamento retri** sposta tutti i retri per compensare, e il tasto **Pagina di prova** accanto misura di quanto:
+**Allineare fronti e retri.** Molte stampanti stampano il retro di un foglio spostato di un millimetro o due rispetto al fronte. **Spostamento retri** sposta tutti i retri per compensare, e il tasto **Pagina di prova** accanto misura di quanto. I passi sono anche nell'app: sotto **Spostamento retri** apri _Come misurare lo spostamento, passo per passo_.
 
 1. In **Fronte-retro** scegli il lato (lungo o corto) che userai anche nella stampante.
 2. Premi **Pagina di prova**: Stella salva `duplex-test.pdf` nella cartella dell'esportazione. Ha due pagine: cinque croci numerate sul fronte e, sul retro, due piccoli righelli accanto a dove ogni croce dovrebbe cadere.
 3. Stampalo fronte-retro al 100%, con **Adatta alla pagina** spento.
 4. Guarda il foglio controluce con i righelli verso di te: le croci del fronte si vedono attraverso la carta.
 5. Guarda solo la croce 1, al centro. Sul righello sotto di lei leggi il numero dove passa la linea verticale della croce: è **x**. Sul righello alla sua destra leggi il numero dove passa la linea orizzontale: è **y**. Tieni il segno meno se c'è: −1 vuol dire che la croce è 1 mm più a sinistra (per x) o più in alto (per y).
-6. Scrivi i due numeri in **Spostamento retri** x e y. Se i campi non erano a 0, somma la lettura a quello che c'è: 0,5 e una lettura di −1 fanno −0,5.
-7. Stampa di nuovo la pagina di prova: ora le croci dovrebbero cadere sullo 0. Stella ricorda lo spostamento per le prossime esportazioni del progetto.
+6. Nell'app questo passo ha due campi, **Letto sulla croce 1**: scrivi lì i due numeri, con il segno meno se c'è, e premi **Correggi**. Stella sposta i retri di quella misura, partendo da quello che c'è già in **Spostamento retri**, quindi non serve fare somme. Sotto i campi vedi il nuovo **Spostamento retri**.
+7. Stampa di nuovo la pagina di prova: ora le croci dovrebbero cadere sullo 0; se non è così, ripeti dal passo 2. Stella ricorda lo spostamento per le prossime esportazioni del progetto.
 
 Se qualcosa non torna:
 

@@ -853,7 +853,18 @@ export default function ExportDialog({
           hint={t('export.offsetHint')}
           disabled={pdf.fold || pdf.duplex === 'none'}
           reason={pdf.fold ? foldReason : t('export.onlyDuplex')}
-          help={<OffsetHelp />}
+          help={
+            <OffsetHelp
+              offsetX={pdf.offsetX}
+              offsetY={pdf.offsetY}
+              onCorrect={(dx, dy) =>
+                patch({
+                  offsetX: Math.round((pdf.offsetX + dx) * 100) / 100,
+                  offsetY: Math.round((pdf.offsetY + dy) * 100) / 100
+                })
+              }
+            />
+          }
         >
           <span className="export-pair">
             <span className="unit">x</span>

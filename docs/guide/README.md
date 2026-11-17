@@ -927,15 +927,15 @@ The PDF is vector, with embedded fonts. The choices that matter are the paper (p
 - **Proof sheet**: a separate PDF with every component small.
 - **Convert to CMYK**: needs Ghostscript installed on the computer.
 
-**Aligning fronts and backs.** Many printers print the back of a sheet a millimetre or two off from the front. **Back offset** moves all the backs to make up for it, and the **Test page** button next to it measures how far:
+**Aligning fronts and backs.** Many printers print the back of a sheet a millimetre or two off from the front. **Back offset** moves all the backs to make up for it, and the **Test page** button next to it measures how far. The steps are also in the app: under **Back offset**, open _How to measure the offset, step by step_.
 
 1. In **Duplex**, choose the edge (long or short) that you will also use in the printer.
 2. Click **Test page**: Stella saves `duplex-test.pdf` in the export folder. It has two pages: five numbered crosses on the front and, on the back, two small rulers next to where each cross should fall.
 3. Print it double-sided at 100%, with **Fit to page** turned off.
 4. Hold the sheet up to a light with the rulers facing you: the crosses of the front show through the paper.
 5. Look only at cross 1, in the middle. On the ruler below it, read the number where the vertical line of the cross passes: that is **x**. On the ruler to its right, read the number where the horizontal line passes: that is **y**. Keep the minus sign if there is one: −1 means the cross is 1 mm to the left (for x) or above (for y).
-6. Write the two numbers in **Back offset** x and y. If the fields were not at 0, add the reading to what is there: 0.5 and a reading of −1 make −0.5.
-7. Print the test page again: now the crosses should fall on 0. Stella keeps the offset for the next exports of the project.
+6. In the app this step has two fields, **Read on cross 1**: write the two numbers there, with the minus sign if there is one, and click **Correct**. Stella moves the backs by that much, starting from what is already in **Back offset**, so there are no sums to do. Below the fields you see the new **Back offset**.
+7. Print the test page again: now the crosses should fall on 0; if they do not, repeat from step 2. Stella keeps the offset for the next exports of the project.
 
 If something does not add up:
 
