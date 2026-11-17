@@ -34,6 +34,7 @@ import type {
 import type { IconifySet } from './iconify'
 import type {
   AssetsUpdate,
+  Sources,
   CatalogUpdate,
   FontCatalog,
   SystemFontFamily,
@@ -286,6 +287,21 @@ export interface Api {
   dropImages(
     files: { name: string; data: Uint8Array }[]
   ): Promise<{ update: AssetsUpdate; paths: string[] }>
+  /** I byte di file sotto assets/, per i pacchetti di template e set */
+  readAssetFiles(paths: string[]): Promise<{ path: string; data: Uint8Array }[]>
+  /**
+   * Scrive file sotto assets/ importati da un pacchetto; `replaced` sono immagini del progetto
+   * che vanno nel cestino perché un file con un altro nome le sostituisce
+   */
+  writeAssetFiles(
+    files: { path: string; data: Uint8Array }[],
+    replaced: string[],
+    sources: Sources
+  ): Promise<AssetsUpdate>
+  /** Salva un pacchetto (.zip); restituisce dove, null se l'utente annulla */
+  savePackage(name: string, data: Uint8Array): Promise<string | null>
+  /** Sceglie un pacchetto da importare; null se l'utente annulla */
+  openPackage(): Promise<{ name: string; data: Uint8Array } | null>
   /** Sposta immagini di assets/ nel cestino del progetto (deleted/assets/) */
   trashImages(paths: string[]): Promise<AssetsUpdate>
   /** Sposta immagini in una cartella sotto assets/ ('' per la radice), creandola se manca */

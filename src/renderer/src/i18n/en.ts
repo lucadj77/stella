@@ -3889,7 +3889,47 @@ export const en = {
   'images.where.cover': 'Project cover',
   'images.where.none': 'Not used anywhere.',
   'trash.kind.image': 'Image',
-  'trash.restoreImages': 'Restore all images ({n})'
+  'trash.restoreImages': 'Restore all images ({n})',
+  'package.exportMenu': 'Export package…',
+  'package.exportTemplateHint':
+    'Saves the template in a ZIP with the images, fonts, variables and styles it uses, to import it in another project',
+  'package.exportSetHint':
+    'Saves the set, with its data and template, in a ZIP with the images, fonts, variables and styles it uses, to import it in another project',
+  'package.importMenu': 'Import package…',
+  'package.importHint': 'Adds templates and sets exported from another project as a package (ZIP)',
+  'package.saved': 'Package of "{name}" saved',
+  'package.savedDetail':
+    '{file}: {templates} {templates:template|templates} and {files} {files:file|files} (images and fonts).',
+  'package.backupLabel': 'Before importing the package {name}',
+  'package.renamedTitle': 'Imported with a new name',
+  'package.importTitle': 'Import package "{name}"',
+  'package.templates': 'Templates',
+  'package.sets': 'Sets (cards)',
+  'package.files': 'Files',
+  'package.filesCount': '{images} {images:image|images}, {fonts} {fonts:font|fonts}',
+  'package.variables': 'Variables',
+  'package.styles': 'Styles',
+  'package.noConflicts': 'Nothing in the package is already in the project.',
+  'package.conflictsHint':
+    '{n} {n:item is|items are} already in the project with different content. Choose what to do:',
+  'package.forAll': 'For all:',
+  'package.choice.rename': 'Keep both (new name)',
+  'package.choice.replace': "Replace the project's",
+  'package.choice.keep': "Keep the project's",
+  'package.kind.template': 'Template',
+  'package.kind.set': 'Set',
+  'package.kind.variable': 'Variable',
+  'package.kind.style': 'Style',
+  'package.kind.asset': 'File',
+  'package.existing': 'in the project: {file}',
+  'package.choicesHint':
+    "Keeping both gives the template or set a number; the imported sets then use the renamed template. Identical items are not asked about: the project's are used. A replaced image goes to the project trash.",
+  'package.backupHint':
+    'Before importing Stella makes a backup of the project. Templates, sets, variables and styles are changes to save (⌘Z undoes them); images and fonts are copied into assets right away.',
+  'package.import': 'Import',
+  'package.notZip': '{file} is not a ZIP file',
+  'package.notPackage': '{file} is not a Stella package, or comes from a newer version',
+  'package.badFile': 'The package contains a file with an invalid path: {file}'
 }
 
 export type MessageKey = keyof typeof en

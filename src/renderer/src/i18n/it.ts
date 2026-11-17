@@ -3939,5 +3939,46 @@ export const it: Record<MessageKey, string> = {
   'images.where.cover': 'Copertina del progetto',
   'images.where.none': 'Non è usata da nessuna parte.',
   'trash.kind.image': 'Immagine',
-  'trash.restoreImages': 'Ripristina tutte le immagini ({n})'
+  'trash.restoreImages': 'Ripristina tutte le immagini ({n})',
+  'package.exportMenu': 'Esporta pacchetto…',
+  'package.exportTemplateHint':
+    'Salva il template in uno ZIP con le immagini, i font, le variabili e gli stili che usa, da importare in un altro progetto',
+  'package.exportSetHint':
+    'Salva il set, con i dati e il template, in uno ZIP con le immagini, i font, le variabili e gli stili che usa, da importare in un altro progetto',
+  'package.importMenu': 'Importa pacchetto…',
+  'package.importHint':
+    'Aggiunge template e set esportati da un altro progetto come pacchetto (ZIP)',
+  'package.saved': 'Pacchetto di «{name}» salvato',
+  'package.savedDetail':
+    '{file}: {templates} template e {files} {files:file|file} (immagini e font).',
+  'package.backupLabel': 'Prima di importare il pacchetto {name}',
+  'package.renamedTitle': 'Importati con un nome nuovo',
+  'package.importTitle': 'Importa il pacchetto «{name}»',
+  'package.templates': 'Template',
+  'package.sets': 'Set (carte)',
+  'package.files': 'File',
+  'package.filesCount': '{images} {images:immagine|immagini}, {fonts} font',
+  'package.variables': 'Variabili',
+  'package.styles': 'Stili',
+  'package.noConflicts': 'Niente del pacchetto è già nel progetto.',
+  'package.conflictsHint':
+    '{n} {n:elemento è|elementi sono} già nel progetto con un contenuto diverso. Scegli cosa fare:',
+  'package.forAll': 'Per tutti:',
+  'package.choice.rename': 'Tieni entrambi (nome nuovo)',
+  'package.choice.replace': 'Sostituisci quello del progetto',
+  'package.choice.keep': 'Tieni quello del progetto',
+  'package.kind.template': 'Template',
+  'package.kind.set': 'Set',
+  'package.kind.variable': 'Variabile',
+  'package.kind.style': 'Stile',
+  'package.kind.asset': 'File',
+  'package.existing': 'nel progetto: {file}',
+  'package.choicesHint':
+    "Tenere entrambi dà al template o al set un numero; i set importati usano allora il template rinominato. Gli elementi uguali non si chiedono: si usano quelli del progetto. Un'immagine sostituita va nel cestino del progetto.",
+  'package.backupHint':
+    'Prima di importare Stella fa un backup del progetto. Template, set, variabili e stili sono modifiche da salvare (⌘Z le annulla); immagini e font si copiano subito in assets.',
+  'package.import': 'Importa',
+  'package.notZip': '{file} non è un file ZIP',
+  'package.notPackage': '{file} non è un pacchetto di Stella, o viene da una versione più nuova',
+  'package.badFile': 'Il pacchetto contiene un file con un percorso non valido: {file}'
 }

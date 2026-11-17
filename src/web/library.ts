@@ -218,3 +218,28 @@ export async function addImages(folder: string): Promise<AssetsUpdate | null> {
   }
   return assetsUpdate(folder)
 }
+
+/** Sceglie un pacchetto .zip di template o set; null se l'utente annulla */
+export async function openPackage(): Promise<{ name: string; data: Uint8Array } | null> {
+  let handles: FileSystemFileHandle[]
+  try {
+    handles = await (window as PickerWindow).showOpenFilePicker!({
+      id: 'stella-packages',
+      types: [{ description: 'Stella package', accept: { 'application/zip': ['.zip'] } }]
+    })
+  } catch (e) {
+    if ((e as DOMException).name === 'AbortError') return null
+    throw e
+  }
+  const file = await handles[0].getFile()
+  return { name: file.name, data: new Uint8Array(await file.arrayBuffer()) }
+}
+
+/** Nel browser il pacchetto va in export/ dentro la cartella del progetto */
+export async function savePackage(folder: string, name: string, data: Uint8Array): Promise<string> {
+  const dir = join(folder, 'export')
+  await mkdir(dir, { recursive: true })
+  const target = join(dir, `${name.replace(/[<>:"/\\|?*]/g, '_')}.zip`)
+  await writeFile(target, data)
+  return target
+}

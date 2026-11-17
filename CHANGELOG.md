@@ -10,10 +10,12 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 ### English
 
 - **Project images**: **Project ▾ › Project images…** (or **Manage…** in the image chooser) shows every image with where it is used, and filters them: in templates, only in sets, in documents, unused. Select several with ⌘/Ctrl+click, ⇧+click or a rectangle, then **Delete** them (they go to the project trash, from where you can restore them) or **Move** them to a folder, new or existing. **Group by template…** puts the images used by a single template in a folder named after it. References keep working.
+- **Packages of templates and sets**: **Export package…** in the menu of a template or a set saves a ZIP with the template, the cards of the set, and the images, fonts, variables and styles they use. **Project ▾ › Import package…** adds it to another project; for anything already there with different content you choose whether to keep both (the new one gets a number), replace or keep the project's.
 
 ### Italiano
 
 - **Immagini del progetto**: **Progetto ▾ › Immagini del progetto…** (o **Gestisci…** nella scelta delle immagini) mostra tutte le immagini con dove sono usate, e le filtra: nei template, solo nei set, nei documenti, non usate. Se ne selezionano più di una con ⌘/Ctrl+clic, ⇧+clic o un rettangolo, poi si **eliminano** (vanno nel cestino del progetto, da cui si ripristinano) o si **spostano** in una cartella, nuova o esistente. **Raggruppa per template…** mette in una cartella con il nome del template le immagini usate solo da quello. I riferimenti continuano a funzionare.
+- **Pacchetti di template e set**: **Esporta pacchetto…** nel menu di un template o di un set salva uno ZIP con il template, le carte del set e le immagini, i font, le variabili e gli stili che usano. **Progetto ▾ › Importa pacchetto…** lo aggiunge a un altro progetto; per quello che c'è già con un contenuto diverso scegli se tenere entrambi (il nuovo prende un numero), sostituire o tenere quello del progetto.
 
 ## 1.12.0-beta.5
 

@@ -426,6 +426,24 @@ Nei campi numerici del pannello delle proprietà, trascinare l'etichetta a destr
 - **Aggiungi in fondo** accoda le righe a quelle del set; **Sostituisci le carte** cancella prima le righe esistenti, dopo una conferma. **Aggiorna le carte** (solo se il set ha già carte) scrive le colonne generate nelle righe presenti, una carta generata per riga nell'ordine del foglio, senza toccare le altre colonne né `amount`: per esempio, dopo aver generato 30 carte da 6 semi e i numeri 1-5, si riempie la colonna del ritratto con le 30 immagini di una cartella. Le carte generate in più si aggiungono in fondo; se sono meno, le ultime righe restano come sono. Le colonne che mancano nel foglio si aggiungono in fondo. ⌘Z annulla.
 - **Generazioni salvate.** **Salva come** dà un nome alla generazione: generando, il set la salva in `generations` (stella.json) con `name`, `spec`, `mode` e le scelte della finestra che non stanno in `spec` (`wholeSet`, `rounds` in sequenza, `allSet` con tutte le combinazioni). Senza nome non si salva. Lo stesso nome, senza badare alle maiuscole, sostituisce quella salvata al suo posto. **Generazioni salvate** in cima alla finestra ne richiama una: tutti i campi, compreso il seed, partono da quella. **Elimina** la toglie subito dal set (dopo una conferma) senza toccare le righe. È indipendente da `generator`, che resta l'ultima generazione a caso per Rigenera.
 
+### 8.4 Pacchetti di template e set
+
+**Esporta pacchetto…**, nel menu di un template o di un set (tasto destro o ⋯ nella barra laterale), salva uno ZIP da importare in un altro progetto (`model/package.ts`, `renderer/src/package/`). Contiene `stella-package.json` (formato 1) e i file sotto `assets/`:
+
+- il template, come nel suo file; un derivato porta con sé i suoi base. Per un set: la definizione (senza il nome del foglio), le intestazioni e le righe del foglio come testo, il template del set e quelli scelti riga per riga dalla colonna `template`, con i loro base;
+- le variabili e gli stili richiamati dai template e dal set, anche attraverso altre variabili o altri stili (stessa ricerca di "dove è usato");
+- le immagini usate (3.2: nei template, nelle carte del set, nelle variabili e negli stili presi) e i file dei font scritti nei livelli e nel markup, con le loro voci di `sources.json`.
+
+Nell'app per computer si sceglie dove salvarlo (si propone `export/<nome>.zip`); nell'app web va in `export/` del progetto.
+
+**Progetto ▾ › Importa pacchetto…** legge lo ZIP e mostra cosa contiene. Un elemento uguale a quello del progetto non si chiede: resta quello del progetto. Per quelli diversi si sceglie, uno per uno o per tutti:
+
+- template e set con lo stesso nome: **Tieni entrambi** (proposta: il nuovo prende un numero, "Eroe 2"; i set e i derivati del pacchetto, e la colonna `template`, seguono il nome nuovo), **Sostituisci quello del progetto**, **Tieni quello del progetto**;
+- variabili e stili con lo stesso nome: **Tieni quello del progetto** (proposta) o **Sostituisci**;
+- file: un'immagine con lo stesso nome in qualunque cartella (anche con un'altra estensione, perché le carte la cercano per nome) o un font con lo stesso percorso. **Tieni quello del progetto** (proposta) o **Sostituisci**: il file va nella cartella di quello del progetto e, se aveva un altro nome, quello va nel cestino.
+
+Prima di importare Stella fa un backup. I file si scrivono subito in `assets/`; template, set, variabili e stili sono modifiche da salvare, che ⌘Z annulla. I set non si importano in un progetto con i dati in un file .csv (un solo foglio) o in sola lettura. Alla fine Stella dice quali elementi hanno preso un nome nuovo.
+
 ## 9. Esportazione
 
 Le esportazioni si salvano come profili nel progetto, così si possono rilanciare. Ogni profilo indica i set da includere e se rispettare le copie.

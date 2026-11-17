@@ -65,6 +65,11 @@ const api: Api = {
   copySystemFont: (family) => ipcRenderer.invoke('library:copy-system-font', family),
   addImages: () => ipcRenderer.invoke('library:add-images'),
   trashImages: (paths: string[]) => ipcRenderer.invoke('images:trash', paths),
+  readAssetFiles: (paths: string[]) => ipcRenderer.invoke('package:read-assets', paths),
+  writeAssetFiles: (files, replaced, sources) =>
+    ipcRenderer.invoke('package:write-assets', files, replaced, sources),
+  savePackage: (name: string, data: Uint8Array) => ipcRenderer.invoke('package:save', name, data),
+  openPackage: () => ipcRenderer.invoke('package:open'),
   moveImages: (paths: string[], folder: string) => ipcRenderer.invoke('images:move', paths, folder),
   restoreImages: (files: string[]) => ipcRenderer.invoke('images:restore', files),
   dropImages: (files: { name: string; data: Uint8Array }[]) =>
