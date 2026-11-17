@@ -932,15 +932,15 @@ Il PDF è vettoriale, con i font incorporati. Tra le scelte che contano ci sono 
 1. In **Fronte-retro** scegli il lato (lungo o corto) che userai anche nella stampante.
 2. Premi **Pagina di prova**: Stella salva `duplex-test.pdf` nella cartella dell'esportazione. Ha due pagine: cinque croci numerate sul fronte e, sul retro, due piccoli righelli accanto a dove ogni croce dovrebbe cadere.
 3. Stampalo fronte-retro al 100%, con **Adatta alla pagina** spento.
-4. Guarda il foglio controluce con i righelli verso di te: le croci del fronte si vedono attraverso la carta.
+4. Guarda il foglio controluce con i righelli verso di te: le croci del fronte si vedono attraverso la carta. Prima controlla che accanto al righello 2 ci sia la croce 2. Se c'è la croce 5, nell'angolo opposto, il foglio è stato girato sull'altro lato: cambia il lato nella stampante o in Stella e stampa di nuovo. La croce al centro sembra uguale in entrambi i casi, ma la correzione andrebbe nel verso sbagliato.
 5. Guarda solo la croce 1, al centro. Sul righello sotto di lei leggi il numero dove passa la linea verticale della croce: è **x**. Sul righello alla sua destra leggi il numero dove passa la linea orizzontale: è **y**. Tieni il segno meno se c'è: −1 vuol dire che la croce è 1 mm più a sinistra (per x) o più in alto (per y).
 6. Nell'app questo passo ha due campi, **Letto sulla croce 1**: scrivi lì i due numeri, con il segno meno se c'è, e premi **Correggi**. Stella sposta i retri di quella misura, partendo da quello che c'è già in **Spostamento retri**, quindi non serve fare somme. Sotto i campi vedi il nuovo **Spostamento retri**.
-7. Stampa di nuovo la pagina di prova: ora le croci dovrebbero cadere sullo 0; se non è così, ripeti dal passo 2. Stella ricorda lo spostamento per le prossime esportazioni del progetto.
+7. Stampa di nuovo la pagina di prova per controllare. Esce con la correzione che hai appena inserito, quindi ora le croci dovrebbero cadere sullo 0. Se non è così, quello che leggi è la piccola correzione che manca ancora: scrivila in **Letto sulla croce 1** e premi di nuovo **Correggi**, senza rimettere a 0. Stella ricorda lo spostamento per le prossime esportazioni del progetto.
 
 Se qualcosa non torna:
 
 - La croce 1 è sullo 0 ma quelle negli angoli no: la stampante rimpicciolisce o ingrandisce la pagina. Stampa al 100%; nessuno spostamento può correggerlo.
-- Le croci cadono lontano dai righelli, o capovolte: il foglio è stato girato sull'altro lato. Usa lo stesso lato in Stella e nella stampante.
+- Dopo la correzione la lettura aumenta invece di andare a 0 (per esempio da −1 a −2): il foglio è girato sull'altro lato. Controlla il passo 4.
 - Le letture cambiano da una stampa all'altra: la stampante trascina la carta in modo irregolare e lo spostamento corregge solo la media. Lascia qualche millimetro di abbondanza, o un bordo bianco, intorno ai retri.
 
 **Dadi da piegare.** Con **Da piegare** ogni N righe del set fanno un dado, nell'ordine del foglio: 4 righe per il d4, 6 per il d6, 8 per il d8 e così via, con la riga 1 sulla faccia 1. Il dado è grande quanto il template (una faccia di 20 mm fa un dado di 20 mm); per il d6 e il d3 la faccia deve essere quadrata. Si piegano tutti i dadi tranne il d2, la moneta, che esce come facce da ritagliare e incollare schiena contro schiena.

@@ -932,15 +932,15 @@ The PDF is vector, with embedded fonts. The choices that matter are the paper (p
 1. In **Duplex**, choose the edge (long or short) that you will also use in the printer.
 2. Click **Test page**: Stella saves `duplex-test.pdf` in the export folder. It has two pages: five numbered crosses on the front and, on the back, two small rulers next to where each cross should fall.
 3. Print it double-sided at 100%, with **Fit to page** turned off.
-4. Hold the sheet up to a light with the rulers facing you: the crosses of the front show through the paper.
+4. Hold the sheet up to a light with the rulers facing you: the crosses of the front show through the paper. First check that next to ruler 2 you see cross 2. If you see cross 5, in the opposite corner, the sheet was flipped on the other edge: change the edge in the printer or in Stella and print again. The cross in the middle looks the same either way, but the correction would go the wrong way.
 5. Look only at cross 1, in the middle. On the ruler below it, read the number where the vertical line of the cross passes: that is **x**. On the ruler to its right, read the number where the horizontal line passes: that is **y**. Keep the minus sign if there is one: −1 means the cross is 1 mm to the left (for x) or above (for y).
 6. In the app this step has two fields, **Read on cross 1**: write the two numbers there, with the minus sign if there is one, and click **Correct**. Stella moves the backs by that much, starting from what is already in **Back offset**, so there are no sums to do. Below the fields you see the new **Back offset**.
-7. Print the test page again: now the crosses should fall on 0; if they do not, repeat from step 2. Stella keeps the offset for the next exports of the project.
+7. Print the test page again to check. It comes out with the correction you just entered, so the crosses should now fall on 0. If they do not, what you read is the small correction still missing: write it in **Read on cross 1** and click **Correct** again, without going back to 0. Stella keeps the offset for the next exports of the project.
 
 If something does not add up:
 
 - Cross 1 is on 0 but the crosses in the corners are not: the printer is shrinking or enlarging the page. Print at 100%; no offset can fix this.
-- The crosses fall far from the rulers, or upside down: the sheet was flipped on the other edge. Use the same edge in Stella and in the printer.
+- After the correction the reading gets bigger instead of going to 0 (for example from −1 to −2): the sheet is flipped on the other edge. Check step 4.
 - The readings change from one print to the next: the printer pulls the paper unevenly and the offset can only correct the average. Leave a few millimetres of bleed, or a white border, around the backs.
 
 **Folding dice.** With **To fold** every N rows of the set make one die, in sheet order: 4 rows for the d4, 6 for the d6, 8 for the d8 and so on, with row 1 on face 1. The die is as large as the template (a 20 mm face makes a 20 mm die); for the d6 and d3 the face must be square. Every die folds except the d2, the coin, which comes out as faces to cut out and glue back to back.
