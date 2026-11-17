@@ -22,6 +22,7 @@ import MarkupText from '../render/MarkupText'
 import IconBrowser from './IconBrowser'
 import UrlImageDialog from './UrlImageDialog'
 import QrDialog from './QrDialog'
+import { canOpenImagesDialog, openImagesDialog } from './imagesDialogOpen'
 
 const SIZE_KEY = 'assetPickerSize'
 const DARK_KEY = 'assetPickerDark'
@@ -95,7 +96,16 @@ export default function AssetPicker({
 
   const images = useMemo(() => assets.filter(isImageAsset), [assets])
   const folders = useMemo(
-    () => [...new Set(images.filter((a) => a.includes('/')).map((a) => a.split('/')[0]))].sort(),
+    // tutte le cartelle, anche quelle dentro le altre (images/Eroi): ognuna mostra anche le sue
+    () =>
+      [
+        ...new Set(
+          images.flatMap((a) => {
+            const parts = a.split('/').slice(0, -1)
+            return parts.map((_, i) => parts.slice(0, i + 1).join('/'))
+          })
+        )
+      ].sort(),
     [images]
   )
   const current = useMemo(() => {
@@ -225,6 +235,17 @@ export default function AssetPicker({
           <button onClick={() => setQr(true)} title={t('assetPicker.qrHint')}>
             {t('assetPicker.qr')}
           </button>
+          {canOpenImagesDialog() && (
+            <button
+              onClick={() => {
+                onClose()
+                openImagesDialog()
+              }}
+              title={t('images.menuHint')}
+            >
+              {t('images.manage')}
+            </button>
+          )}
         </div>
         {error && <div className="banner error">{t(error)}</div>}
         {link && (

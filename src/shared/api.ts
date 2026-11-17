@@ -286,6 +286,15 @@ export interface Api {
   dropImages(
     files: { name: string; data: Uint8Array }[]
   ): Promise<{ update: AssetsUpdate; paths: string[] }>
+  /** Sposta immagini di assets/ nel cestino del progetto (deleted/assets/) */
+  trashImages(paths: string[]): Promise<AssetsUpdate>
+  /** Sposta immagini in una cartella sotto assets/ ('' per la radice), creandola se manca */
+  moveImages(
+    paths: string[],
+    folder: string
+  ): Promise<{ update: AssetsUpdate; moves: { from: string; to: string }[] }>
+  /** Rimette al loro posto immagini del cestino (DeletedItem.file) */
+  restoreImages(files: string[]): Promise<{ update: AssetsUpdate; paths: string[] }>
   /** Scarica un'immagine da internet in assets/images/<name> e ne ricorda l'indirizzo */
   downloadImage(url: string, name: string): Promise<{ update: AssetsUpdate; path: string }>
   /** Riscarica dallo stesso indirizzo un'immagine scaricata con downloadImage */

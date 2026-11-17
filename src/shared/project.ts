@@ -151,10 +151,10 @@ export interface PrintedState {
 
 /** Un elemento del cestino del progetto (deleted/) */
 export interface DeletedItem {
-  /** Nome del file in deleted/ */
+  /** Nome del file in deleted/; per le immagini `assets/<data e ora>/<percorso in assets>` */
   file: string
-  kind: 'template' | 'note' | 'document' | 'sheet'
-  /** Nome del template, della nota, del documento o del foglio */
+  kind: 'template' | 'note' | 'document' | 'sheet' | 'image'
+  /** Nome del template, della nota, del documento o del foglio; percorso dell'immagine */
   name: string
   /** Quando è stato eliminato, ISO */
   date: string

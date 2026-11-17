@@ -11,6 +11,7 @@ import { saveDocument, saveNote, trashDocument, trashNote } from './project/note
 import { writeDocumentExport } from './project/docExport'
 import { htmlToPdf, previewPdf } from './export/docPdf'
 import { dropDeleted, listDeleted, readDeleted } from './project/trash'
+import { moveImages, restoreImages, trashImages } from './project/imageFiles'
 import { readBackupVersion, readPrinted, savePrinted } from './project/versions'
 import { fetchGoogleSheet } from './project/googleSheets'
 import {
@@ -608,6 +609,22 @@ function registerIpc(): void {
     if (result.canceled || !result.filePaths.length) return null
     await copyImages(folder, result.filePaths)
     return assetsUpdate(folder)
+  })
+
+  ipcMain.handle('images:trash', async (_, paths: string[]) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    return trashImages(folder, paths)
+  })
+  ipcMain.handle('images:move', async (_, paths: string[], target: string) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    return moveImages(folder, paths, target)
+  })
+  ipcMain.handle('images:restore', async (_, files: string[]) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    return restoreImages(folder, files)
   })
 
   ipcMain.handle('library:drop-images', async (_, files: { name: string; data: Uint8Array }[]) => {

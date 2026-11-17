@@ -214,6 +214,23 @@ Ovunque si indichi un'immagine (livello, campo, formula, variabile, `bg=`) basta
 
 Immagini da internet: nella scelta delle immagini **Da internet…** chiede un indirizzo e propone due modi. **Scarica nel progetto** salva il file in `assets/images/<nome>` (PNG, JPG, WebP o SVG, al massimo 50 MB; il nome si propone dall'indirizzo) e lo registra in `assets/sources.json` con `kind: "image"`, il sito e l'indirizzo: i crediti lo citano e la scelta delle immagini, con quel file selezionato, offre **Riscarica**. **Usa il collegamento** scrive l'indirizzo al posto del nome: l'app desktop scarica l'immagine la prima volta e ne tiene una copia nella cartella dell'app su quel computer (non nel progetto), che poi usa anche senza rete; con un collegamento scritto nel campo, la scelta delle immagini mostra **Riscarica** per aggiornarla. Un collegamento che non si raggiunge e non è nella copia si disegna come un'immagine mancante («non raggiungibile») ed è segnalato all'esportazione. I crediti citano anche le immagini collegate usate dalle carte. Nell'app web le immagini collegate si caricano dal sito e restano nella cache del browser; scaricarle nel progetto, ed esportarle, funziona solo con i siti che lo permettono (CORS). Per Tabletop Simulator non cambia nulla: le immagini finiscono nei fogli esportati.
 
+### 3.2 Immagini del progetto
+
+**Progetto ▾ › Immagini del progetto…** (anche **Gestisci…** nella scelta delle immagini) mostra le immagini di `assets/` con dove sono usate. L'uso si calcola nel renderer (`model/imageUsage.ts`):
+
+- **template**: l'immagine è scritta nei livelli del template (sorgente di un livello immagine, sfondo della variabile immagine, `{nome}` e `bg=` nel testo, anche come valore d'esempio che una colonna sostituisce);
+- **set**: le carte del set la disegnano, legando ogni riga, quindi conta anche quando la sceglie una colonna o una formula;
+- **documenti**: `![testo](nome)`, `{nome}` e `bg=` nei documenti;
+- variabili immagine, stili con `bg=` e copertina del progetto.
+
+I filtri sono **Tutte**, **Nei template**, **Solo nei set** (usate dalle carte e da nessun template), **Nei documenti** e **Non usate** (nessuno degli usi sopra). Le miniature si raggruppano per cartella, per template (quelli che la usano direttamente o con i loro set) o non si raggruppano. Si selezionano con clic, ⌘/Ctrl+clic, ⇧+clic e con un rettangolo trascinato da uno spazio vuoto; ⌘A / Ctrl+A le seleziona tutte.
+
+- **Elimina** (anche Canc / ⌫ e il menu del tasto destro) chiede conferma, avvisando se qualcuna è ancora usata, e sposta i file in `deleted/assets/<data e ora>/<percorso in assets>`, con le loro voci di `sources.json` in `sources.json` accanto. Il cestino del progetto le elenca come **Immagine** e le rimette al loro posto (con un numero nel nome se nel frattempo c'è un altro file), con la licenza; **Ripristina tutte le immagini** le rimette tutte. Le cartelle rimaste vuote si tolgono.
+- **Sposta in cartella…** sposta i file in una cartella sotto `assets/`, esistente o nuova, anche annidata (`images/Eroi`). Non sposta niente se nella cartella c'è già un file con lo stesso nome. I riferimenti con il solo nome continuano a funzionare (3.1); quelli scritti con la cartella (`images/spada`, `images/spada.png`, `assets/images/spada`) si riscrivono in template, celle, documenti, variabili, stili e copertina, come una modifica che si salva e si annulla con ⌘Z (i file restano spostati). Le voci di `sources.json` seguono i file.
+- **Raggruppa per template…** propone di spostare in `<cartella principale>/<template>` (per esempio `icons/personaggio`) le immagini usate da un solo template, con i suoi set, e da nient'altro; prima di spostare dice quante immagini e in quali cartelle.
+
+Nella scelta delle immagini il filtro per cartella elenca anche le cartelle annidate.
+
 ## 4. Forma
 
 | Proprietà     | Valori                                                                                                     |

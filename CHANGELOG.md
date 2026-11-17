@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## Next version
+
+### English
+
+- **Project images**: **Project ▾ › Project images…** (or **Manage…** in the image chooser) shows every image with where it is used, and filters them: in templates, only in sets, in documents, unused. Select several with ⌘/Ctrl+click, ⇧+click or a rectangle, then **Delete** them (they go to the project trash, from where you can restore them) or **Move** them to a folder, new or existing. **Group by template…** puts the images used by a single template in a folder named after it. References keep working.
+
+### Italiano
+
+- **Immagini del progetto**: **Progetto ▾ › Immagini del progetto…** (o **Gestisci…** nella scelta delle immagini) mostra tutte le immagini con dove sono usate, e le filtra: nei template, solo nei set, nei documenti, non usate. Se ne selezionano più di una con ⌘/Ctrl+clic, ⇧+clic o un rettangolo, poi si **eliminano** (vanno nel cestino del progetto, da cui si ripristinano) o si **spostano** in una cartella, nuova o esistente. **Raggruppa per template…** mette in una cartella con il nome del template le immagini usate solo da quello. I riferimenti continuano a funzionare.
+
 ## 1.12.0-beta.5
 
 ### English

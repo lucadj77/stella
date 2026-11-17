@@ -2856,10 +2856,10 @@ export const en = {
   'export.onlyChanged': 'Changed components',
   'export.onlyChangedHint': 'Only the components new or changed in the comparison ({n})',
   'app.trash': 'Trash…',
-  'tip.trash': 'Deleted templates, sets and notes of the project: put them back',
+  'tip.trash': 'Deleted templates, sets, notes and images of the project: put them back',
   'trash.title': 'Trash',
   'trash.hint':
-    "Deleted templates, sets, notes and documents stay in the project's deleted folder. Restore puts them back; a set needs its template. Restored templates and sets leave the trash when you save.",
+    "Deleted templates, sets, notes, documents and images stay in the project's deleted folder. Restore puts them back; a set needs its template. Restored templates and sets leave the trash when you save.",
   'trash.loading': 'Reading the trash…',
   'trash.empty': 'The trash is empty.',
   'trash.restore': 'Restore',
@@ -3817,7 +3817,79 @@ export const en = {
   'fx.arg.compareLeft': 'This value',
   'fx.arg.compareRight': 'Compared with',
   'fx.arg.first': 'First value',
-  'fx.arg.second': 'Second value'
+  'fx.arg.second': 'Second value',
+  'images.menu': 'Project images…',
+  'images.menuHint':
+    'Where each image is used, delete the ones you no longer need, sort them into folders',
+  'images.manage': 'Manage…',
+  'images.title': 'Project images',
+  'images.hint':
+    'Click to select, ⌘/Ctrl+click or ⇧+click to add, drag a rectangle to select several. Del deletes, right click for the menu. Deleted images go to the project trash.',
+  'images.filter.all': 'All',
+  'images.filter.all.hint': 'Every image in assets',
+  'images.filter.templates': 'In templates',
+  'images.filter.templates.hint':
+    'Images written in a template (also as the example value a column replaces)',
+  'images.filter.sets': 'Only in sets',
+  'images.filter.sets.hint':
+    'Images that only the data of the sets choose (a column or a formula): no template contains them',
+  'images.filter.documents': 'In documents',
+  'images.filter.documents.hint': 'Images shown in the documents',
+  'images.filter.unused': 'Unused',
+  'images.filter.unused.hint': 'Images no template, card, document, variable, style or cover uses',
+  'images.groupBy': 'Group by',
+  'images.groupBy.none': 'Nothing',
+  'images.groupBy.folder': 'Folder',
+  'images.groupBy.template': 'Template',
+  'images.group.template': 'Template {name}',
+  'images.group.documents': 'Only in documents',
+  'images.group.other': 'Variables, styles and cover',
+  'images.group.unused': 'Unused',
+  'images.group.nothing': 'Every image used by a single template is already in its folder.',
+  'images.groupByTemplate': 'Group by template…',
+  'images.groupByTemplate.hint':
+    'Moves each image used by a single template (with its sets) to a folder named after the template',
+  'images.groupByTemplate.title':
+    'Move {n} {n:image|images} into {folders} {folders:folder|folders}?',
+  'images.groupByTemplate.message':
+    'Only images used by one template and nothing else move. References with just the name keep working; those written with the folder are updated.',
+  'images.groupByTemplate.ok': 'Move',
+  'images.badge.templates': '{n} {n:template|templates}',
+  'images.badge.sets': '{n} {n:set|sets}',
+  'images.badge.documents': '{n} {n:document|documents}',
+  'images.badge.definitions': 'variables/styles',
+  'images.badge.cover': 'cover',
+  'images.badge.unused': 'unused',
+  'images.delete': 'Delete {n:image|images}',
+  'images.deleteKey': 'Del',
+  'images.delete.titleOne': 'Delete "{name}"?',
+  'images.delete.titleMany': 'Delete {n} images?',
+  'images.delete.used':
+    '{n} {n:image is|images are} still used ({names}): where {n:it is|they are} used you will see a missing image. You can restore {n:it|them} from the trash.',
+  'images.delete.unused':
+    'Nothing uses {n:it|them}: {n:it goes|they go} to the project trash, from where you can restore {n:it|them}.',
+  'images.delete.ok': 'Delete',
+  'images.move': 'Move to folder…',
+  'images.moveTitle': 'Move {n} {n:image|images} to a folder',
+  'images.moveHint':
+    'Choose a folder or write a new one, also inside another (images/Heroes). References with just the name keep working; those written with the folder are updated.',
+  'images.folder': 'Folder',
+  'images.moveOk': 'Move',
+  'images.badFolder': '"{folder}" is not a valid folder name',
+  'images.exists': 'There is already a file {file}: rename one of the two before moving',
+  'images.notFound': '{file} is not an image of the project',
+  'images.selected': '{n} images selected',
+  'images.selectHint': 'Select an image to see where it is used.',
+  'images.noneHere': 'No image matches.',
+  'images.where.templates': 'Templates',
+  'images.where.sets': 'Sets',
+  'images.where.documents': 'Documents',
+  'images.where.variables': 'Variables',
+  'images.where.styles': 'Styles',
+  'images.where.cover': 'Project cover',
+  'images.where.none': 'Not used anywhere.',
+  'trash.kind.image': 'Image',
+  'trash.restoreImages': 'Restore all images ({n})'
 }
 
 export type MessageKey = keyof typeof en

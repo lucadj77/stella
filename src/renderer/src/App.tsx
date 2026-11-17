@@ -13,6 +13,9 @@ import { colorKeys, keyColor, keyOf, type ColorKey } from '../../shared/model/se
 import SplitImageDialog from './components/SplitImageDialog'
 import GoogleSheetsDialog, { type SheetImport } from './components/GoogleSheetsDialog'
 import TrashDialog from './components/TrashDialog'
+import ImagesDialog from './components/ImagesDialog'
+import { onOpenImagesDialog } from './components/imagesDialogOpen'
+import { movedRefs, retargetImageRefs } from '../../shared/model/imageUsage'
 import CompareDialog, { type CompareBase } from './components/CompareDialog'
 import {
   isRandomSpec,
@@ -405,6 +408,8 @@ function App(): React.JSX.Element {
   const [exportedIn, setExportedIn] = useState<string | null>(null)
   const [backingUp, setBackingUp] = useState(false)
   const [trashOpen, setTrashOpen] = useState(false)
+  const [imagesOpen, setImagesOpen] = useState(false)
+  useEffect(() => onOpenImagesDialog(() => setImagesOpen(true)), [])
   const [sheetsOpen, setSheetsOpen] = useState(false)
   const [languagesOpen, setLanguagesOpen] = useState(false)
   const [infoOpen, setInfoOpen] = useState(false)
@@ -1390,6 +1395,71 @@ function App(): React.JSX.Element {
     }
     if (variablesChanged) setFileDirty(true)
     return r.count
+  }
+  /**
+   * Dopo lo spostamento di immagini in un'altra cartella: i riferimenti scritti con la cartella
+   * (images/spada) si aggiornano; quelli con il solo nome continuano a funzionare. Si annulla con
+   * ⌘Z come le altre modifiche, ma i file restano dove sono.
+   */
+  const retargetImages = (moves: { from: string; to: string }[]): void => {
+    if (!project) return
+    for (const d of project.documents ?? []) documents.flush(d.name)
+    const docs = project.documents ?? []
+    const r = retargetImageRefs(
+      {
+        templates: project.templates,
+        sets: project.sets,
+        documents: docs,
+        variables: project.file.variables ?? {},
+        styles: project.file.styles ?? {},
+        cover: project.file.cover
+      },
+      movedRefs(moves)
+    )
+    if (!r.count) return
+    r.documents.forEach((d, i) => d !== docs[i] && documents.change(d.name, d.text))
+    const fileChanged =
+      r.variables !== (project.file.variables ?? {}) ||
+      r.styles !== (project.file.styles ?? {}) ||
+      r.cover !== project.file.cover
+    if (r.sets === project.sets && r.templates === project.templates && !fileChanged) return
+    const synced = syncDerived(project.templates, r.templates)
+    setHistory((h) => ({
+      past: [
+        ...h.past.slice(-99),
+        {
+          sets: project.sets,
+          file: project.file,
+          templates: r.templates !== project.templates ? project.templates : undefined
+        }
+      ],
+      future: [],
+      at: 0
+    }))
+    setProject(
+      (p) =>
+        p && {
+          ...p,
+          sets: r.sets,
+          templates: synced.templates,
+          file: fileChanged
+            ? { ...p.file, variables: r.variables, styles: r.styles, cover: r.cover }
+            : p.file
+        }
+    )
+    const sheets = r.sets.flatMap((x, i) =>
+      x.data && x.data !== project.sets[i].data ? [x.data.name] : []
+    )
+    if (sheets.length) setDirtySheets((d) => new Set([...d, ...sheets]))
+    const templates = r.templates
+      .filter((x, i) => x !== project.templates[i])
+      .map((x) => x.name)
+      .concat(synced.changed)
+    if (templates.length) {
+      setDirty((d) => new Set([...d, ...templates]))
+      setEditorRev((v) => v + 1)
+    }
+    if (fileChanged) setFileDirty(true)
   }
   /** Apre il punto di un risultato del cerca nel progetto */
   const openFound = (place: FindPlace): void => {
@@ -2731,6 +2801,7 @@ function App(): React.JSX.Element {
     { label: t('findAll.menu'), title: t('findAll.menuHint'), onClick: () => setFindingAll(true) },
     'sep',
     { label: t('app.backup'), title: t('tip.backup'), onClick: () => setBackingUp(true) },
+    { label: t('images.menu'), title: t('images.menuHint'), onClick: () => setImagesOpen(true) },
     { label: t('app.trash'), title: t('tip.trash'), onClick: () => setTrashOpen(true) },
     {
       label: t('app.googleSheets'),
@@ -2771,6 +2842,7 @@ function App(): React.JSX.Element {
     backup: () => setBackingUp(true),
     findAll: () => project && setFindingAll(true),
     trash: () => setTrashOpen(true),
+    images: () => project && setImagesOpen(true),
     sheets: () => setSheetsOpen(true),
     languages: () => setLanguagesOpen(true),
     projectInfo: () => project && setInfoOpen(true),
@@ -2829,6 +2901,7 @@ function App(): React.JSX.Element {
           { id: 'projectInfo', label: t('projectInfo.menu'), enabled: hasProject },
           sep,
           { id: 'backup', label: t('app.backup'), enabled: hasProject },
+          { id: 'images', label: t('images.menu'), enabled: hasProject },
           { id: 'trash', label: t('app.trash'), enabled: hasProject },
           { id: 'sheets', label: t('app.googleSheets'), enabled: hasProject },
           { id: 'languages', label: t('app.languages'), enabled: hasProject },
@@ -3570,6 +3643,13 @@ function App(): React.JSX.Element {
                           project={project}
                           onImport={importGoogleSheet}
                           onClose={() => setSheetsOpen(false)}
+                        />
+                      )}
+                      {imagesOpen && project && (
+                        <ImagesDialog
+                          project={project}
+                          onMoved={retargetImages}
+                          onClose={() => setImagesOpen(false)}
                         />
                       )}
                       {trashOpen && project && (

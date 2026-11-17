@@ -10,6 +10,7 @@ import { saveTemplate, trashTemplate } from '../main/project/templates'
 import { saveDocument, saveNote, trashDocument, trashNote } from '../main/project/notes'
 import { writeDocumentExport } from '../main/project/docExport'
 import { dropDeleted, listDeleted, readDeleted } from '../main/project/trash'
+import { moveImages, restoreImages, trashImages } from '../main/project/imageFiles'
 import { readBackupVersion, readPrinted, savePrinted } from '../main/project/versions'
 import { fetchGoogleSheet } from '../main/project/googleSheets'
 import { createProject } from '../main/project/create'
@@ -230,6 +231,9 @@ export const webApi: Api = {
   systemFonts: () => systemFonts(),
   copySystemFont: (family) => copySystemFont(projectFolder(), family),
   addImages: () => addImages(projectFolder()),
+  trashImages: (paths) => trashImages(projectFolder(), paths),
+  moveImages: (paths, folder) => moveImages(projectFolder(), paths, folder),
+  restoreImages: (files) => restoreImages(projectFolder(), files),
   // nel browser l'immagine si scarica solo dai siti che lo permettono (CORS)
   downloadImage: (url, name) => downloadImage(projectFolder(), url, name),
   redownloadImage: (path) => redownloadImage(projectFolder(), path),
