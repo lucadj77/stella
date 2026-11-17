@@ -28,6 +28,7 @@ import { readRealPath, writeRealPath } from '../../../shared/realPath'
 import { exportSummary, previewItems } from '../../../shared/exportPreview'
 import { Dialog } from '../editor/dialogs'
 import CreditsDialog from './CreditsDialog'
+import OffsetHelp from './OffsetHelp'
 import ExportPreview from './ExportPreview'
 import ComponentPicker, { type PickedRows } from './ComponentPicker'
 import LivePreview from './LivePreview'
@@ -319,6 +320,11 @@ export default function ExportDialog({
     setError(null)
     setResult(null)
     setProgress({ done: 0, total: 0 })
+    // le opzioni del PDF restano anche se si chiude la finestra dopo la prova: lo spostamento
+    // misurato serve alla prossima esportazione
+    const profiles: ExportProfiles = { ...saved, pdf }
+    window.api.saveExportProfiles(profiles).catch(() => undefined)
+    onProfiles(profiles)
     try {
       setResult(
         await window.api.runExport(
@@ -331,7 +337,7 @@ export default function ExportDialog({
               front: t('duplexTest.front'),
               back: t('duplexTest.back'),
               frontHint: t('duplexTest.frontHint'),
-              steps: [1, 2, 3, 4, 5].map((n) => t(`duplexTest.step${n}` as MessageKey))
+              steps: [1, 2, 3, 4].map((n) => t(`duplexTest.step${n}` as MessageKey))
             }
           },
           { assets: [], fonts: [], styles: {} }
@@ -388,12 +394,12 @@ export default function ExportDialog({
     </select>
   )
   /** Misura in mm, mostrata e scritta nell'unità scelta nelle impostazioni */
-  const mm = (value: number, onChange: (v: number) => void): React.JSX.Element => (
+  const mm = (value: number, onChange: (v: number) => void, signed = false): React.JSX.Element => (
     <>
       <NumInput
         className="num"
         step={unitStep(0.5, lengthUnit)}
-        min={0}
+        min={signed ? undefined : 0}
         value={toUnit(value, lengthUnit)}
         onChange={(e) => {
           const v = parseFloat(e.target.value.replace(',', '.'))
@@ -604,6 +610,9 @@ export default function ExportDialog({
         />
       )}
       {goal === 'shop' && <p className="export-hint">{t('export.shopDuplexHint')}</p>}
+      {goal !== 'shop' && !pdf.fold && pdf.duplex !== 'none' && (
+        <p className="export-hint">{t('export.duplexOnHint')}</p>
+      )}
       <Choice
         label={t('export.marks')}
         value={pdf.marks}
@@ -844,12 +853,29 @@ export default function ExportDialog({
           hint={t('export.offsetHint')}
           disabled={pdf.fold || pdf.duplex === 'none'}
           reason={pdf.fold ? foldReason : t('export.onlyDuplex')}
+          help={
+            <OffsetHelp
+              offsetX={pdf.offsetX}
+              offsetY={pdf.offsetY}
+              onCorrect={(dx, dy) =>
+                patch({
+                  offsetX: Math.round((pdf.offsetX + dx) * 100) / 100,
+                  offsetY: Math.round((pdf.offsetY + dy) * 100) / 100
+                })
+              }
+            />
+          }
         >
-          <span className="unit">x</span>
-          {mm(pdf.offsetX, (offsetX) => patch({ offsetX }))}
-          <span className="unit">y</span>
-          {mm(pdf.offsetY, (offsetY) => patch({ offsetY }))}
+          <span className="export-pair">
+            <span className="unit">x</span>
+            {mm(pdf.offsetX, (offsetX) => patch({ offsetX }), true)}
+          </span>
+          <span className="export-pair">
+            <span className="unit">y</span>
+            {mm(pdf.offsetY, (offsetY) => patch({ offsetY }), true)}
+          </span>
           <button
+            className="export-test-btn"
             title={t('export.duplexTestHint')}
             disabled={pdf.fold || pdf.duplex === 'none' || !!progress}
             onClick={() => void runDuplexTest()}

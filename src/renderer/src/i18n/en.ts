@@ -1628,24 +1628,50 @@ export const en = {
   'export.duplexLong': 'Flip on long edge',
   'export.duplexShort': 'Flip on short edge',
   'export.offset': 'Back offset',
-  'export.offsetHint': 'Moves the backs to make up for a printer that does not align the two sides',
-  'export.duplexTest': 'Test page',
+  'export.offsetHint':
+    'If the backs do not come out exactly behind the fronts, write here how many millimetres to move them. The test page measures it for you: open the steps below.',
   'export.duplexTestHint':
-    'A two-page PDF with crosses on the front and scales on the back: printed double-sided, it tells how much to move the backs',
+    'Saves duplex-test.pdf: a sheet to print double-sided that shows how far your printer moves the backs',
   'duplexTest.front': 'Duplex test: front',
   'duplexTest.back': 'Duplex test: back',
   'duplexTest.frontHint':
-    'Print this PDF double-sided at actual size. The scales to read are on the back of this sheet.',
+    'Print this PDF double-sided at 100% (Fit to page off). Then turn the sheet over: the instructions are on the back.',
   'duplexTest.step1':
-    '1. Print at actual size (100%, no Fit to page), double-sided, flipping on the edge chosen in the export.',
+    '1. Hold this sheet up to a light with this side facing you: the crosses of the front show through. First check the numbers: next to ruler 2 you must see cross 2. If you see cross 5 (the opposite corner), the sheet was flipped on the other edge: change the edge in the printer or in Stella and print again. Measuring now would give the wrong sign.',
   'duplexTest.step2':
-    '2. Hold the sheet against a light with this side towards you: the crosses of the front show through.',
+    '2. Look only at cross 1, in the middle. On the ruler below it, read the number where the vertical line of the cross passes: that is x. On the ruler to its right, read the number where the horizontal line passes: that is y. Keep the minus sign if there is one.',
   'duplexTest.step3':
-    '3. On each numbered scale read where the cross falls: x on the horizontal scale, y on the vertical one (positive numbers are right and down, looking at this side).',
+    '3. In Stella, in the PDF export, open Pages and files, then How to measure the offset: write x and y in the fields of step 6 and click Correct. Then print this test again. It comes out with the correction already applied, so the crosses should fall on 0. If not, what you read is the small correction still missing: enter it the same way.',
   'duplexTest.step4':
-    '4. Add the readings of scale 1 to Back offset x and y in the export, then print this test again: the crosses should fall on 0.',
-  'duplexTest.step5':
-    'If the scales give different readings, the printer is resizing the page: check that it prints at 100%. If a cross is far from its scale, try flipping on the other edge.',
+    'Cross 1 on 0 but the corners not? The printer is resizing the page: print at 100%.',
+  'export.duplexOnHint':
+    "Choose the same edge in your printer's settings too. If the backs come out shifted, correct them with Back offset in Pages and files.",
+  'export.offsetHelp': 'How to measure the offset, step by step',
+  'export.offsetHelp1':
+    'Choose the duplex edge (long or short) that you will also use in the printer.',
+  'export.offsetHelp2': 'Click Test page: Stella saves duplex-test.pdf in the export folder.',
+  'export.offsetHelp3': 'Print it double-sided at 100%, with Fit to page turned off.',
+  'export.offsetHelp4':
+    'Hold the sheet up to a light with the side with the rulers facing you: the five crosses of the other side show through the paper. First check that next to ruler 2 you see cross 2: if you see cross 5, in the opposite corner, the sheet was flipped on the other edge. Change the edge in the printer or here and print again, otherwise the correction goes the wrong way.',
+  'export.offsetHelp5':
+    'Look only at cross 1, in the middle. On the ruler below it, read the number where the vertical line of the cross passes: that is x. On the ruler to its right, read the number where the horizontal line passes: that is y.',
+  'export.offsetHelp6':
+    'Write the two numbers you read in the fields below, with the minus sign if there is one, and click Correct. Stella moves the backs by that much, starting from what is already in Back offset: no sums to do.',
+  'export.offsetHelp7':
+    'Print the test page again to check. It comes out with the correction you just entered, so the crosses should now fall on 0. If they do not, what you read is the small correction still missing: write it in the fields of step 6 and click Correct again, without going back to 0. Stella keeps the offset for the next exports of this project.',
+  'export.offsetHelpRead': 'Read on cross 1',
+  'export.offsetHelpApply': 'Correct',
+  'export.offsetHelpNow': 'Back offset now: x {x} mm, y {y} mm',
+  'export.offsetHelpExample':
+    'Example: the line of the cross passes at 1.5 on the ruler, so x is 1.5',
+  'export.offsetHelpTrouble': 'If something does not add up',
+  'export.offsetHelpScale':
+    'Cross 1 is on 0 but the corner crosses are not: the printer is shrinking or enlarging the page. Print at 100%; no offset can fix this.',
+  'export.offsetHelpFlip':
+    'After the correction the reading gets bigger instead of 0 (for example from −1 to −2): the sheet is flipped on the other edge, and the cross in the middle cannot show it. Check that cross 2 is next to ruler 2 (step 4).',
+  'export.offsetHelpSame':
+    'The readings change from one print to the next: the printer pulls the paper unevenly, and the offset can only correct the average. Leave a few millimetres of bleed or a white border around the backs.',
+  'export.duplexTest': 'Test page',
   'export.files': 'Files',
   'export.splitSingle': 'One file',
   'export.splitSet': 'One per set',

@@ -115,8 +115,8 @@ export function duplexTestPages(o: PdfOptions, text: DuplexTestText): ScenePage[
     backLabels.push({ x: vx - 1, y: b.y - RANGE - 2.5, text: 'y', size: TEXT })
     backLabels.push({ x: b.x - RANGE - 4, y: b.y - RANGE, text: String(i + 1), size: TEXT * 1.4 })
   })
-  backLabels.push(centered(w / 2, MARGIN + 25, text.back, 5))
-  let y = MARGIN + 34
+  backLabels.push(centered(w / 2, MARGIN + 20, text.back, 5))
+  let y = MARGIN + 28
   for (const step of text.steps) {
     for (const l of wrap(step, w - 2 * MARGIN, TEXT)) {
       backLabels.push({ x: MARGIN, y, text: l, size: TEXT })

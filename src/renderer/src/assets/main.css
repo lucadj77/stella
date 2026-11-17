@@ -2240,6 +2240,109 @@ button.danger:hover:not(:disabled) {
   padding-left: 130px;
 }
 
+/* i numeri delle esportazioni: stretti come nelle proprietà, non larghi quanto un testo */
+.export-row-control input.num {
+  width: 64px;
+}
+
+.export-row-control input.num.narrow {
+  width: 48px;
+}
+
+/* un'etichetta corta (x, y) con il suo campo e l'unità: non vanno mai a capo separati */
+.export-pair {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.export-row-help {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.offset-help {
+  font-size: 12.5px;
+  line-height: 1.45;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-top: 2px;
+}
+
+.offset-help > summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.offset-help ol,
+.offset-help ul {
+  margin: 6px 0;
+  padding-left: 20px;
+}
+
+.offset-help li + li {
+  margin-top: 4px;
+}
+
+.offset-help-title {
+  margin: 8px 0 0;
+  font-weight: 600;
+}
+
+.offset-reading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin: 6px 0 2px;
+  padding: 8px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+}
+
+.offset-reading input.num {
+  width: 64px;
+}
+
+.offset-reading-label {
+  font-weight: 600;
+}
+
+.offset-reading-now {
+  flex-basis: 100%;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.offset-example {
+  margin: 6px 0 2px;
+}
+
+.offset-example figcaption {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.offset-example .ruler-ink {
+  stroke: var(--text);
+  stroke-width: 1;
+}
+
+.offset-example .ruler-num {
+  fill: var(--text);
+  font-size: 11px;
+}
+
+.offset-example .ruler-cross {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  opacity: 0.75;
+}
+
 .export-choices {
   display: flex;
   flex-wrap: wrap;
