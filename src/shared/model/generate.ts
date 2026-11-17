@@ -589,6 +589,35 @@ export interface SetGenerator {
   from: number
 }
 
+/**
+ * Una generazione salvata con un nome nel set: richiamata in Genera, ne compila tutti i campi,
+ * poi la si rilancia così o la si cambia. Oltre alle impostazioni del generatore tiene come
+ * entrano le carte nel set e le scelte della finestra che non stanno nel modello.
+ */
+export interface SavedGeneration {
+  name: string
+  spec: GeneratorSpec
+  mode: GenerateMode
+  /** In sequenza: tutti i componenti del set invece di un numero di giri */
+  wholeSet?: boolean
+  /** In sequenza: quanti giri, se non tutto il set */
+  rounds?: number
+  /** Tutte le combinazioni: si ricomincia finché il set non è pieno */
+  allSet?: boolean
+}
+
+/** Il nome di una generazione salvata, per confrontarlo: senza spazi ai lati né maiuscole */
+export function generationKey(name: string): string {
+  return name.trim().toLocaleLowerCase()
+}
+
+/** L'elenco con la generazione salvata: una con lo stesso nome viene sostituita, al suo posto */
+export function saveGeneration(list: SavedGeneration[], g: SavedGeneration): SavedGeneration[] {
+  const entry = { ...g, name: g.name.trim() }
+  const i = list.findIndex((x) => generationKey(x.name) === generationKey(entry.name))
+  return i < 0 ? [...list, entry] : list.map((x, j) => (j === i ? entry : x))
+}
+
 /** Il generatore usa il caso: carte a caso o sequenza mescolata */
 export function isRandomSpec(spec: GeneratorSpec): boolean {
   return !!spec.random || (!!spec.sequence && spec.sequence.shuffle !== 'none')

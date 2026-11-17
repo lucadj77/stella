@@ -3118,6 +3118,23 @@ export const en = {
   'generate.replace': 'Replace the components',
   'generate.replaceConfirm':
     'The {n} components of the set are replaced by the generated ones. You can undo with ⌘Z.',
+  'generate.saved': 'Saved generations',
+  'generate.savedHint': 'Fills the window with the settings of a generation saved in this set',
+  'generate.savedNone': 'New generation',
+  'generate.deleteSaved': 'Delete',
+  'generate.deleteSavedHint':
+    'Removes this saved generation from the set; the components stay as they are',
+  'generate.deleteSavedConfirm':
+    'The saved generation “{name}” is removed from the set. The components it created stay as they are.',
+  'generate.deleteSavedConfirm.title': 'Delete the saved generation?',
+  'generate.deleteSavedConfirm.ok': 'Delete',
+  'generate.name': 'Save as',
+  'generate.nameHint':
+    'With a name, these settings are saved in the set and can be called back from Saved generations',
+  'generate.namePlaceholder': 'name (optional)',
+  'generate.nameNotSaved': 'Without a name the settings are not saved.',
+  'generate.nameSaved': 'The settings are saved in the set with this name.',
+  'generate.nameReplaces': 'Replaces the saved generation “{name}”.',
   'generate.replaceConfirm.title': 'Replace the components?',
   'generate.replaceConfirm.ok': 'Replace',
   'generate.create': 'Generate {n} components',

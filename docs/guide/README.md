@@ -853,6 +853,8 @@ On a **grid** layer the formula applies to the whole grid (for example the cell 
 
 The preview shows how many components will be created and the first rows. **Add at the end** appends them, **Replace the components** takes the place of the existing ones. **Update the components** writes only the generated columns into the existing components, one per row, leaving the other columns as they are: for example, first generate 30 cards from 6 suits and the numbers 1-5, then use **From a folder…** to assign 30 portraits to the portrait column. If more components are generated, the extra ones are added at the end. ⌘Z / Ctrl+Z undoes.
 
+**Saved generations.** To use the same settings again later, write a name in **Save as** before generating: the settings (value sets, filter, copies, how, how many, seed and add/update/replace) are saved in the set with that name. Without a name nothing is saved. Next time, **Saved generations** at the top of the window fills every field with the settings of the one you choose: you can generate again as they are or change them first. Generating with the same name updates the saved generation; **Delete** removes it from the set, and the components it created stay as they are.
+
 ![The generator: three resources, two per component, with repetition](img/genera.png)
 
 **Random.** At the top of the window, **How** switches from **Every combination** to **Random**: instead of every combination you get as many components as you want (**How many**), with values drawn at random. A value set can fill several columns with **+ Column**, and each column gets one value drawn (or more, with **Values per column**): for example the numbers `1-4` on text1, text2, text3 and text4 give each component four random numbers from 1 to 4.

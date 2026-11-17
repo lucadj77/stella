@@ -3161,6 +3161,24 @@ export const it: Record<MessageKey, string> = {
   'generate.replace': 'Sostituisci i componenti',
   'generate.replaceConfirm':
     'I {n} componenti del set vengono sostituiti da quelli generati. Puoi annullare con ⌘Z.',
+  'generate.saved': 'Generazioni salvate',
+  'generate.savedHint':
+    'Compila la finestra con le impostazioni di una generazione salvata in questo set',
+  'generate.savedNone': 'Nuova generazione',
+  'generate.deleteSaved': 'Elimina',
+  'generate.deleteSavedHint':
+    'Toglie dal set questa generazione salvata; i componenti restano come sono',
+  'generate.deleteSavedConfirm':
+    'La generazione salvata «{name}» viene tolta dal set. I componenti che ha creato restano come sono.',
+  'generate.deleteSavedConfirm.title': 'Eliminare la generazione salvata?',
+  'generate.deleteSavedConfirm.ok': 'Elimina',
+  'generate.name': 'Salva come',
+  'generate.nameHint':
+    'Con un nome, queste impostazioni si salvano nel set e si possono richiamare da Generazioni salvate',
+  'generate.namePlaceholder': 'nome (facoltativo)',
+  'generate.nameNotSaved': 'Senza nome le impostazioni non si salvano.',
+  'generate.nameSaved': 'Le impostazioni si salvano nel set con questo nome.',
+  'generate.nameReplaces': 'Sostituisce la generazione salvata «{name}».',
   'generate.replaceConfirm.title': 'Sostituire i componenti?',
   'generate.replaceConfirm.ok': 'Sostituisci',
   'generate.create': 'Genera {n} componenti',

@@ -18,8 +18,11 @@ import {
   type GeneratorColumn,
   type RandomOptions,
   type SequenceOptions,
+  type SavedGeneration,
   type SequenceShuffle,
-  type SetGenerator
+  type SetGenerator,
+  generationKey,
+  saveGeneration
 } from '../../../shared/model/generate'
 import { walkLayers } from '../../../shared/model/normalize'
 import { templateColumns } from '../../../shared/model/sheet'
@@ -46,26 +49,64 @@ interface Draft extends GeneratorColumn {
   text: string
 }
 
-export default function GenerateDialog({
-  sheet,
-  template,
-  seed: setSeed0,
-  generator,
-  onApply,
-  onClose
-}: {
+/**
+ * Cosa cambia nel set oltre alle carte: il seme e le impostazioni per Rigenera (generator null:
+ * non ci sono più carte a caso da rigenerare; undefined: restano quelle di prima) e l'elenco
+ * delle generazioni salvate, se la generazione ha un nome
+ */
+export interface GenerateChanges {
+  seed: number | undefined
+  generator: SetGenerator | null | undefined
+  generations?: SavedGeneration[]
+}
+
+interface Props {
   sheet: Sheet
   template: Template | null
   /** Seme del set: si parte da quello */
   seed?: number
   /** Ultima generazione a caso del set: la finestra riparte da quelle impostazioni */
   generator?: SetGenerator
-  /**
-   * Le carte generate; `random` cambia il seme del set e le impostazioni salvate per Rigenera
-   * (generator null: non ci sono più carte a caso da rigenerare)
-   */
-  onApply(sheet: Sheet, random?: { seed: number | undefined; generator: SetGenerator | null }): void
+  /** Generazioni salvate con un nome nel set */
+  generations?: SavedGeneration[]
+  /** Le carte generate e, se cambiano, seme, Rigenera e generazioni salvate */
+  onApply(sheet: Sheet, changes?: GenerateChanges): void
+  /** Toglie una generazione salvata: l'elenco senza quella, che il set salva subito */
+  onDeleteGeneration(generations: SavedGeneration[]): void
   onClose(): void
+}
+
+/**
+ * La finestra riparte da capo quando si richiama una generazione salvata: tutti i campi prendono
+ * i valori di quella
+ */
+export default function GenerateDialog(props: Props): React.JSX.Element {
+  const [loaded, setLoaded] = useState<{ n: number; saved?: SavedGeneration }>({ n: 0 })
+  return (
+    <GenerateForm
+      key={loaded.n}
+      {...props}
+      initial={loaded.saved}
+      onLoad={(saved) => setLoaded((l) => ({ n: l.n + 1, saved }))}
+    />
+  )
+}
+
+function GenerateForm({
+  sheet,
+  template,
+  seed: setSeed0,
+  generator,
+  generations = [],
+  initial,
+  onLoad,
+  onApply,
+  onDeleteGeneration,
+  onClose
+}: Props & {
+  /** La generazione salvata richiamata: i campi partono da quella */
+  initial?: SavedGeneration
+  onLoad(saved: SavedGeneration | undefined): void
 }): React.JSX.Element {
   const { t } = useI18n()
   const assets = useContext(AssetsContext)
@@ -108,7 +149,8 @@ export default function GenerateDialog({
     icons: !imageColumns.has(column),
     text: ''
   })
-  const last = generator?.spec
+  // si parte dalla generazione richiamata o, se non c'è, dall'ultima a caso del set
+  const last = initial ? initial.spec : generator?.spec
   const [list, setList] = useState<Draft[]>(() =>
     last?.columns.length
       ? last.columns.map((c) => ({ ...c, text: (c as Partial<Draft>).text ?? c.values.join('\n') }))
@@ -117,7 +159,9 @@ export default function GenerateDialog({
   const [filter, setFilter] = useState(last?.filter ?? '')
   const [copies, setCopies] = useState(last?.copies ?? 1)
   const [assistant, setAssistant] = useState(false)
-  const [mode, setMode] = useState<GenerateMode>(sheet.rows.length ? 'append' : 'replace')
+  const [mode, setMode] = useState<GenerateMode>(() =>
+    !sheet.rows.length ? 'replace' : (initial?.mode ?? 'append')
+  )
   const [kind, setKind] = useState<Kind>(
     last?.random ? 'random' : last?.sequence ? 'sequence' : 'all'
   )
@@ -125,15 +169,20 @@ export default function GenerateDialog({
   const isSequence = kind === 'sequence'
   const [count, setCount] = useState(last?.random?.count ?? Math.max(1, sheet.rows.length || 20))
   const [unique, setUnique] = useState(last?.random?.unique ?? false)
-  const [seed, setSeed] = useState(() => setSeed0 ?? newSeed())
+  const [seed, setSeed] = useState(
+    () => initial?.spec.random?.seed ?? initial?.spec.sequence?.seed ?? setSeed0 ?? newSeed()
+  )
   const random: RandomOptions | undefined = isRandom ? { count, seed, unique } : undefined
   // in sequenza: tutti i componenti del set o un numero di giri
-  const [wholeSet, setWholeSet] = useState(sheet.rows.length > 0)
-  const [rounds, setRounds] = useState(2)
+  const [wholeSet, setWholeSet] = useState(sheet.rows.length > 0 && (initial?.wholeSet ?? true))
+  const [rounds, setRounds] = useState(initial?.rounds ?? 2)
   const [order, setOrder] = useState<SequenceShuffle>(last?.sequence?.shuffle ?? 'none')
   // tutte le combinazioni: un giro o più, o tanti giri quanti ne servono per tutto il set
-  const [allSet, setAllSet] = useState(false)
-  const [allRounds, setAllRounds] = useState(1)
+  const [allSet, setAllSet] = useState(initial?.allSet ?? false)
+  const [allRounds, setAllRounds] = useState(initial?.spec.rounds ?? 1)
+  // con un nome la generazione si salva nel set e si può richiamare; vuoto non si salva
+  const [name, setName] = useState(initial?.name ?? '')
+  const sameName = generations.find((g) => generationKey(g.name) === generationKey(name))
   const isAll = !isRandom && !isSequence
   const repeatTo = isAll && allSet && sheet.rows.length ? sheet.rows.length : undefined
   const round = sequenceRound(list)
@@ -218,6 +267,50 @@ export default function GenerateDialog({
   return (
     <Dialog title={t('generate.title')} onClose={onClose} guide="generate">
       <div className="generate-dialog">
+        {generations.length > 0 && (
+          <div className="generate-row generate-saved">
+            <label>
+              {t('generate.saved')}
+              <select
+                value={initial ? initial.name : ''}
+                title={t('generate.savedHint')}
+                onChange={(e) =>
+                  onLoad(generations.find((g) => g.name === e.target.value) ?? undefined)
+                }
+              >
+                <option value="">{t('generate.savedNone')}</option>
+                {generations.map((g) => (
+                  <option key={g.name} value={g.name}>
+                    {g.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {initial && (
+              <button
+                className="danger"
+                title={t('generate.deleteSavedHint')}
+                onClick={async () => {
+                  if (
+                    !(await confirmKey(
+                      t,
+                      'generate.deleteSavedConfirm',
+                      { name: initial.name },
+                      { danger: true }
+                    ))
+                  )
+                    return
+                  onDeleteGeneration(
+                    generations.filter((g) => generationKey(g.name) !== generationKey(initial.name))
+                  )
+                  onLoad(undefined)
+                }}
+              >
+                {t('generate.deleteSaved')}
+              </button>
+            )}
+          </div>
+        )}
         <div className="generate-row">
           <span>{t('generate.kind')}</span>
           <Segmented<Kind>
@@ -720,6 +813,24 @@ export default function GenerateDialog({
             {added > 0 && ' ' + t('generate.updateExtra', { n: added })}
           </p>
         )}
+        <div className="generate-row generate-name">
+          <label title={t('generate.nameHint')}>
+            {t('generate.name')}
+            <input
+              type="text"
+              value={name}
+              placeholder={t('generate.namePlaceholder')}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </label>
+          <span className="muted small">
+            {!name.trim()
+              ? t('generate.nameNotSaved')
+              : sameName
+                ? t('generate.nameReplaces', { name: sameName.name })
+                : t('generate.nameSaved')}
+          </span>
+        </div>
         <div className="dialog-buttons">
           <Segmented<GenerateMode>
             value={mode}
@@ -766,14 +877,26 @@ export default function GenerateDialog({
                 rounds: isAll ? allRounds : undefined,
                 decimalComma
               }
+              const saved = name.trim()
+                ? saveGeneration(generations, {
+                    name,
+                    spec,
+                    mode,
+                    ...(isSequence ? { wholeSet, rounds } : {}),
+                    ...(isAll && allSet ? { allSet } : {})
+                  })
+                : undefined
+              const keep = saved ? { generations: saved } : {}
               if (isRandomSpec(spec))
                 // il set ricorda le impostazioni: Rigenera riscrive queste righe con un altro seme
                 onApply(out, {
                   seed,
-                  generator: { spec, from: mode === 'append' ? sheet.rows.length : 0 }
+                  generator: { spec, from: mode === 'append' ? sheet.rows.length : 0 },
+                  ...keep
                 })
               else if (generator && mode !== 'append')
-                onApply(out, { seed: setSeed0, generator: null })
+                onApply(out, { seed: setSeed0, generator: null, ...keep })
+              else if (saved) onApply(out, { seed: setSeed0, generator: undefined, ...keep })
               else onApply(out)
             }}
           >

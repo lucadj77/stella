@@ -8,7 +8,7 @@ import type { Variables } from './model/variables'
 import type { ListOrder } from './model/order'
 import type { NumberStyle } from './model/numberFormat'
 import type { SetColors } from './model/setColors'
-import type { SetGenerator } from './model/generate'
+import type { SavedGeneration, SetGenerator } from './model/generate'
 
 export const PROJECT_FILE = 'stella.json'
 /** Nomi del file dei progetti creati quando l'app si chiamava Naibi e, prima, GameCreator */
@@ -42,6 +42,8 @@ export interface SetDefinition {
   seed?: number
   /** Ultima generazione a caso (Strumenti > Genera), per rigenerare con un altro seme */
   generator?: SetGenerator
+  /** Generazioni salvate con un nome (Strumenti > Genera): richiamarle compila la finestra */
+  generations?: SavedGeneration[]
 }
 
 /**

@@ -4106,6 +4106,19 @@ button.big {
   flex: 1;
 }
 
+.generate-saved {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.generate-saved select {
+  min-width: 220px;
+}
+
+.generate-name input {
+  width: 240px;
+}
+
 .generate-row .spacer-left {
   margin-left: auto;
 }
