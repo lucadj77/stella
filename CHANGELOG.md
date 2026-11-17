@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## Next version
+
+### English
+
+- **Saved generations**: in **Generate…** you can write a name in **Save as** before generating, and the settings are saved in the set. Next time, **Saved generations** at the top of the window fills every field with them: generate again as they are or change them first. Without a name nothing is saved; **Delete** removes a saved generation you no longer need.
+
+### Italiano
+
+- **Generazioni salvate**: in **Genera…** puoi scrivere un nome in **Salva come** prima di generare, e le impostazioni si salvano nel set. La volta dopo, **Generazioni salvate** in cima alla finestra compila tutti i campi con quelle: generi di nuovo così come sono o le cambi prima. Senza nome non si salva niente; **Elimina** toglie una generazione salvata che non serve più.
+
 ## 1.12.0-beta.4
 
 ### English

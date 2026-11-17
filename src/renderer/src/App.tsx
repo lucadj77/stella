@@ -18,6 +18,7 @@ import {
   isRandomSpec,
   regenerateSheet,
   withSeed,
+  type SavedGeneration,
   type SetGenerator
 } from '../../shared/model/generate'
 import { randomSeed, setUsesRandom } from '../../shared/model/random'
@@ -952,7 +953,10 @@ function App(): React.JSX.Element {
   /** Colonne mostrate nel set: è una preferenza, salvata nel progetto ma fuori dall'annulla */
   const setColumnsView = (
     index: number,
-    view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed' | 'pinnedProperties' | 'colors'>
+    view: Pick<
+      SetDefinition,
+      'hiddenColumns' | 'showComputed' | 'pinnedProperties' | 'colors' | 'generations'
+    >
   ): void => {
     if (!project) return
     const patch = <T extends SetDefinition>(x: T): T => {
@@ -961,6 +965,7 @@ function App(): React.JSX.Element {
       if (!next.showComputed) delete next.showComputed
       if (!next.pinnedProperties?.length) delete next.pinnedProperties
       if (!next.colors) delete next.colors
+      if (!next.generations?.length) delete next.generations
       return next
     }
     setProject({
@@ -978,7 +983,11 @@ function App(): React.JSX.Element {
   const changeRandom = (
     index: number,
     seed: number | undefined,
-    generated?: { sheet: Sheet; generator?: SetGenerator | null }
+    generated?: {
+      sheet: Sheet
+      generator?: SetGenerator | null
+      generations?: SavedGeneration[]
+    }
   ): void => {
     const set = project?.sets[index]
     if (!project || !set) return
@@ -1003,6 +1012,7 @@ function App(): React.JSX.Element {
       if (seed === undefined) delete next.seed
       if (nextGen) next.generator = nextGen
       else delete next.generator
+      if (generated?.generations) next.generations = generated.generations
       return next
     }
     setHistory((h) => ({
@@ -3702,11 +3712,18 @@ function SetView({
   /** Nuovo seme dei numeri a caso; con `generated` le carte appena scritte da Genera */
   onChangeRandom(
     seed: number | undefined,
-    generated?: { sheet: Sheet; generator?: SetGenerator | null }
+    generated?: {
+      sheet: Sheet
+      generator?: SetGenerator | null
+      generations?: SavedGeneration[]
+    }
   ): void
   /** Colonne nascoste, livelli calcolati mostrati, colori della tabella */
   onChangeColumns(
-    view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed' | 'pinnedProperties' | 'colors'>
+    view: Pick<
+      SetDefinition,
+      'hiddenColumns' | 'showComputed' | 'pinnedProperties' | 'colors' | 'generations'
+    >
   ): void
   /** Apre nell'editor un template: quello del set o quello di una carta */
   /** row: la carta da mostrare nell'editor */
@@ -4794,11 +4811,18 @@ function SetView({
             template={template}
             seed={set.seed}
             generator={set.generator}
-            onApply={(s, random) => {
-              if (random) onChangeRandom(random.seed, { sheet: s, generator: random.generator })
+            generations={set.generations}
+            onApply={(s, changes) => {
+              if (changes)
+                onChangeRandom(changes.seed, {
+                  sheet: s,
+                  generator: changes.generator,
+                  generations: changes.generations
+                })
               else onChange(s)
               setGenerating(false)
             }}
+            onDeleteGeneration={(generations) => onChangeColumns({ generations })}
             onClose={() => setGenerating(false)}
           />
         </Suspense>
