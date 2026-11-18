@@ -254,14 +254,14 @@ In the desktop app the same commands are also in the app menu (on the Mac in the
 
 Each tab has a list with search and filters. A click selects an item and shows its details and actions on the right; ⌘/Ctrl+click and ⇧+click select more than one, ⌘A / Ctrl+A all of them. A double-click opens the item, a right-click shows the menu with the same actions.
 
-- **Variables**: type, value, group and where each variable is used (templates, components of the sets, documents, other variables and styles). The filters split them by type and show the **Unused** ones. **Edit…** opens the variable window, **Duplicate** makes a copy, **Delete** (also on several variables, or with Del / ⌫) warns first if any is still used; ⌘Z / Ctrl+Z undoes it.
+- **Variables**: type, value, group and where each variable is used (templates, components of the sets, documents, notes, other variables and styles). The filters split them by type and show the **Unused** ones. **Edit…** opens the variable window, **Duplicate** makes a copy, **Delete** (also on several variables, or with Del / ⌫) warns first if any is still used; ⌘Z / Ctrl+Z undoes it.
 - **Styles**: a sample sentence with the style, the definition and where it is used. Built-in styles cannot be deleted; if the project has its own version of one, **Back to the built-in style** removes it.
 - **Templates**: thumbnail, kind, size, the template it derives from and the sets that use it, with the variables, styles and images it refers to. **Open in the editor** and the commands of the template menu (rename, duplicate, derive, export package, delete).
 - **Sets**: thumbnail of the first card, template, rows and components; on the right the first cards and what they use. **Open the grid** and the commands of the set menu.
 - **Images**: the same view described in [8.1](#81-project-images).
 - **Documents** and **Notes**: name and beginning of the text; a double-click opens them.
 
-Names in blue are links: a click takes you to the item in its tab. For example, from a template you go to one of the sets that use it, from there to a variable used by its cards, and then to the other cards that use it. In the tabs with thumbnails (templates, sets and images) the background can be **No background**, **Light** or **Dark**, as in the image chooser.
+Names in blue are links: a click takes you to the item in its tab. For example, from a template you go to one of the sets that use it, from there to a variable used by its cards, and then to the other cards that use it. In the tabs with previews (sets, templates, styles, variables and images) the background can be **No background**, **Light** or **Dark**, as in the image chooser.
 
 ## 4. Designing a template
 

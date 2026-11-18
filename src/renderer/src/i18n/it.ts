@@ -4051,7 +4051,7 @@ export const it: Record<MessageKey, string> = {
   'manage.col.start': 'Inizio',
   'manage.col.words': 'Parole',
   'manage.variables.hint':
-    'Dove è usata ogni variabile: nei template, nelle carte dei set, nei documenti, in altre variabili e negli stili.',
+    'Dove è usata ogni variabile: nei template, nelle carte dei set, nei documenti e nelle note, in altre variabili e negli stili.',
   'manage.variables.new': '+ Nuova variabile',
   'manage.variables.empty': 'Il progetto non ha ancora variabili.',
   'manage.variable.deleteOne': 'Eliminare la variabile {name}?',
@@ -4081,5 +4081,8 @@ export const it: Record<MessageKey, string> = {
   'manage.notes.new': '+ Nuova nota',
   'manage.notes.empty': 'Il progetto non ha ancora note.',
   'manage.notes.deleteOne': 'Eliminare la nota {name}?',
-  'manage.notes.deleteMany': 'Eliminare {n} note?'
+  'manage.notes.deleteMany': 'Eliminare {n} note?',
+  'usages.notes': 'Note: {names}',
+  'manage.where.notes': 'Note',
+  'manage.sum.notes': '{n} {n:nota|note}'
 }

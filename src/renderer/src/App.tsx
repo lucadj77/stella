@@ -2516,7 +2516,8 @@ function App(): React.JSX.Element {
               sets: project.sets,
               variables: project.file.variables ?? {},
               styles: project.file.styles ?? {},
-              documents: project.documents
+              documents: project.documents,
+              notes: project.notes
             },
             kind,
             name

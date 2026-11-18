@@ -10,6 +10,8 @@ import { askConfirm } from '../components/confirm'
 import { VariableBody } from '../components/SidebarPreview'
 import { VariableSwatch } from '../components/VariableDialog'
 import { useContextMenu } from '../components/useContextMenu'
+import ThumbBackgroundSwitch from '../components/ThumbBackgroundSwitch'
+import { thumbClass, useThumbBackground } from '../components/thumbBackground'
 import { useI18n } from '../i18n/context'
 import { delLabel } from './summary'
 import { VariablesContext } from '../render/assets'
@@ -76,6 +78,7 @@ export function VariablesPane({
 }): React.JSX.Element {
   const { t } = useI18n()
   const menu = useContextMenu()
+  const [bg, setBg] = useThumbBackground()
   const variables = project.file.variables ?? {}
   const order = project.file.order
   const [filter, setFilter] = useState<string>('all')
@@ -118,10 +121,14 @@ export function VariablesPane({
         hint={t('manage.variables.hint')}
         filters={<Filters filters={filters} value={filter} onChange={setFilter} />}
         tools={
-          <button className="primary" onClick={() => actions.editVariable('')}>
-            {t('manage.variables.new')}
-          </button>
+          <>
+            <ThumbBackgroundSwitch value={bg} onChange={setBg} />
+            <button className="primary" onClick={() => actions.editVariable('')}>
+              {t('manage.variables.new')}
+            </button>
+          </>
         }
+        tableClass={thumbClass(bg).trim()}
         query={query}
         onQuery={setQuery}
         columns={[
@@ -140,7 +147,9 @@ export function VariablesPane({
             className: isUnused(u) ? 'unused' : undefined,
             cells: [
               v.type === 'color' || v.type === 'image' ? (
-                <VariableSwatch key="s" v={v} variables={variables} />
+                <span key="s" className={v.type === 'image' ? 'manage-thumb' : undefined}>
+                  <VariableSwatch v={v} variables={variables} />
+                </span>
               ) : null,
               <code key="n">{`{${n}}`}</code>,
               t(`variable.type.${v.type}`),
@@ -181,8 +190,10 @@ export function VariablesPane({
           ) : single ? (
             <div className="images-details">
               <h3 className="manage-title">{`{${single}}`}</h3>
-              <div className="manage-preview">
-                <VariableBody name={single} variables={variables} />
+              <div className={'manage-preview' + thumbClass(bg)}>
+                <span className="manage-thumb manage-big">
+                  <VariableBody name={single} variables={variables} />
+                </span>
               </div>
               <p className="muted small">
                 {t(`variable.type.${variables[single].type}`)}
@@ -237,6 +248,7 @@ export function StylesPane({
 }): React.JSX.Element {
   const { t } = useI18n()
   const menu = useContextMenu()
+  const [bg, setBg] = useThumbBackground()
   const own = project.file.styles ?? {}
   const order = project.file.order
   const [filter, setFilter] = useState<string>('all')
@@ -275,11 +287,11 @@ export function StylesPane({
     count: names.filter((n) => matches(n, f)).length
   }))
   const sample = (n: string, big = false): React.JSX.Element => (
-    <span className={big ? 'manage-style-sample big' : 'manage-style-sample'}>
+    <span className={'manage-thumb manage-style-sample' + (big ? ' big' : '')}>
       <VariablesContext.Provider value={project.file.variables ?? {}}>
         <MarkupText
           text={`[${t('sidebarPreview.sample')}]{.${n}}`}
-          unit={big ? 4 : 3}
+          unit={big ? 5 : 3}
           ratio={1}
           paragraphSpacing={0}
         />
@@ -295,10 +307,14 @@ export function StylesPane({
         hint={t('manage.styles.hint')}
         filters={<Filters filters={filters} value={filter} onChange={setFilter} />}
         tools={
-          <button className="primary" onClick={() => actions.editStyle('')}>
-            {t('manage.styles.new')}
-          </button>
+          <>
+            <ThumbBackgroundSwitch value={bg} onChange={setBg} />
+            <button className="primary" onClick={() => actions.editStyle('')}>
+              {t('manage.styles.new')}
+            </button>
+          </>
         }
+        tableClass={thumbClass(bg).trim()}
         query={query}
         onQuery={setQuery}
         columns={[
@@ -357,7 +373,7 @@ export function StylesPane({
           ) : single ? (
             <div className="images-details">
               <h3 className="manage-title">.{single}</h3>
-              <div className="manage-preview">{sample(single, true)}</div>
+              <div className={'manage-preview' + thumbClass(bg)}>{sample(single, true)}</div>
               <code>{styles[single]}</code>
               {builtin(single) && <p className="muted small">{t('manage.style.builtinHint')}</p>}
               <UsagesLinks usages={usages.get(single)!} />

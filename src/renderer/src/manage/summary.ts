@@ -8,6 +8,7 @@ export function usageSummary(u: Usages, t: ReturnType<typeof useI18n>['t']): str
   if (u.templates.length) parts.push(t('manage.sum.templates', { n: u.templates.length }))
   if (cards) parts.push(t('manage.sum.cards', { n: cards }))
   if (u.documents.length) parts.push(t('manage.sum.documents', { n: u.documents.length }))
+  if (u.notes.length) parts.push(t('manage.sum.notes', { n: u.notes.length }))
   if (u.variables.length + u.styles.length)
     parts.push(t('manage.sum.definitions', { n: u.variables.length + u.styles.length }))
   return parts.join(' · ')

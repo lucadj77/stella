@@ -254,14 +254,14 @@ Nell'app per computer gli stessi comandi stanno anche nel menu dell'app (sul Mac
 
 Ogni scheda ha un elenco con ricerca e filtri. Un clic seleziona una voce e mostra a destra i dettagli e le azioni; ⌘/Ctrl+clic e ⇧+clic ne selezionano più di una, ⌘A / Ctrl+A tutte. Il doppio clic apre la voce, il tasto destro mostra il menu con le stesse azioni.
 
-- **Variabili**: tipo, valore, gruppo e dove è usata ogni variabile (template, componenti dei set, documenti, altre variabili e stili). I filtri dividono per tipo e mostrano quelle **Non usate**. **Modifica…** apre la finestra della variabile, **Duplica** ne fa una copia, **Elimina** (anche su più variabili, o con Canc / ⌫) avvisa prima se qualcuna è ancora usata; ⌘Z / Ctrl+Z annulla.
+- **Variabili**: tipo, valore, gruppo e dove è usata ogni variabile (template, componenti dei set, documenti, note, altre variabili e stili). I filtri dividono per tipo e mostrano quelle **Non usate**. **Modifica…** apre la finestra della variabile, **Duplica** ne fa una copia, **Elimina** (anche su più variabili, o con Canc / ⌫) avvisa prima se qualcuna è ancora usata; ⌘Z / Ctrl+Z annulla.
 - **Stili**: una frase di prova con lo stile, la definizione e dove è usato. Gli stili predefiniti non si eliminano; se il progetto ne ha una versione propria, **Torna allo stile predefinito** la toglie.
 - **Template**: miniatura, tipo, misure, template da cui deriva e set che lo usano, con le variabili, gli stili e le immagini che richiama. **Apri nell'editor** e i comandi del menu del template (rinomina, duplica, deriva, esporta pacchetto, elimina).
 - **Set**: miniatura della prima carta, template, righe e componenti; a destra le prime carte e cosa usano. **Apri la griglia** e i comandi del menu del set.
 - **Immagini**: la stessa vista descritta in [8.1](#81-immagini-del-progetto).
 - **Documenti** e **Note**: nome e inizio del testo; si aprono con un doppio clic.
 
-I nomi in azzurro sono collegamenti: un clic porta all'elemento nella sua scheda. Per esempio, da un template si va a uno dei set che lo usano, da lì a una variabile usata dalle sue carte, e poi alle altre carte che la usano. Nelle schede con le miniature (template, set e immagini) lo sfondo si sceglie tra **Nessuno sfondo**, **Chiaro** e **Scuro**, come nella scelta delle immagini.
+I nomi in azzurro sono collegamenti: un clic porta all'elemento nella sua scheda. Per esempio, da un template si va a uno dei set che lo usano, da lì a una variabile usata dalle sue carte, e poi alle altre carte che la usano. Nelle schede con le anteprime (set, template, stili, variabili e immagini) lo sfondo si sceglie tra **Nessuno sfondo**, **Chiaro** e **Scuro**, come nella scelta delle immagini.
 
 ## 4. Disegnare un template
 

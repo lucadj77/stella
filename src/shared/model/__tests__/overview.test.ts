@@ -37,7 +37,8 @@ const project = {
     libero: { type: 'value' as const, value: '3' }
   },
   styles: { titolo: 'weight=800', nota: 'italic' },
-  documents: [{ name: 'Regole', text: '# Regole\n\nOgni {oro} vale [uno]{.nota}.' }]
+  documents: [{ name: 'Regole', text: '# Regole\n\nOgni {oro} vale [uno]{.nota}.' }],
+  notes: [{ name: 'Idee', text: 'Prezzo {libero}' }]
 }
 
 describe('gestisci il progetto', () => {
@@ -49,6 +50,8 @@ describe('gestisci il progetto', () => {
     expect(vars.get('oro')!.templates.map((x) => x.name)).toEqual(['carta'])
     expect(vars.get('rosso')!.sets.map((x) => x.name)).toEqual(['Mercato'])
     expect(vars.get('libero')!.documents).toEqual([])
+    expect(vars.get('libero')!.notes).toEqual(['Idee'])
+    expect(vars.get('oro')!.notes).toEqual([])
     expect(styles.get('nota')!.documents).toEqual(['Regole'])
   })
 

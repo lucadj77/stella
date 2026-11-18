@@ -46,6 +46,11 @@ export function UsagesLinks({ usages: u }: { usages: Usages }): React.JSX.Elemen
           u.documents.length > 0
         ],
         [
+          t('manage.where.notes'),
+          <LinkList key="n" items={u.notes} onClick={(n) => go('notes', n)} />,
+          u.notes.length > 0
+        ],
+        [
           t('manage.where.variables'),
           <LinkList
             key="v"

@@ -4000,7 +4000,7 @@ export const en = {
   'manage.col.start': 'Beginning',
   'manage.col.words': 'Words',
   'manage.variables.hint':
-    'Where each variable is used: in templates, in the cards of the sets, in documents, in other variables and styles.',
+    'Where each variable is used: in templates, in the cards of the sets, in documents and notes, in other variables and styles.',
   'manage.variables.new': '+ New variable',
   'manage.variables.empty': 'The project has no variables yet.',
   'manage.variable.deleteOne': 'Delete the variable {name}?',
@@ -4030,7 +4030,10 @@ export const en = {
   'manage.notes.new': '+ New note',
   'manage.notes.empty': 'The project has no notes yet.',
   'manage.notes.deleteOne': 'Delete the note {name}?',
-  'manage.notes.deleteMany': 'Delete {n} notes?'
+  'manage.notes.deleteMany': 'Delete {n} notes?',
+  'usages.notes': 'Notes: {names}',
+  'manage.where.notes': 'Notes',
+  'manage.sum.notes': '{n} {n:note|notes}'
 }
 
 export type MessageKey = keyof typeof en

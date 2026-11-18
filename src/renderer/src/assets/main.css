@@ -9672,8 +9672,7 @@ button.wide {
 
 .manage-style-sample {
   display: inline-block;
-  max-width: 160px;
-  overflow: hidden;
+  white-space: nowrap;
 }
 
 .manage-style-sample.big {
@@ -9744,4 +9743,13 @@ button.wide {
   height: 18px;
   border-radius: 4px;
   border: 1px solid var(--border);
+}
+
+.manage-thumb.manage-big {
+  padding: 10px 16px;
+}
+
+.manage-style-sample.manage-thumb {
+  display: inline-block;
+  padding: 2px 6px;
 }

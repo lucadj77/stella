@@ -54,6 +54,7 @@ export default function UsagesSection({
         {u.documents.length > 0 && (
           <li>{t('usages.documents', { names: u.documents.join(', ') })}</li>
         )}
+        {u.notes.length > 0 && <li>{t('usages.notes', { names: u.notes.join(', ') })}</li>}
       </ul>
     </details>
   )

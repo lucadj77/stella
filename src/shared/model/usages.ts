@@ -26,6 +26,8 @@ export interface Usages {
   styles: string[]
   /** Documenti che lo richiamano nel testo */
   documents: string[]
+  /** Note che lo richiamano: anche le note si mostrano con il markup */
+  notes: string[]
 }
 
 export function findUsages(
@@ -35,6 +37,7 @@ export function findUsages(
     variables: Variables
     styles: Record<string, string>
     documents?: { name: string; text: string }[]
+    notes?: { name: string; text: string }[]
   },
   kind: RefKind,
   name: string
@@ -65,10 +68,16 @@ export function findUsages(
   const styles = Object.keys(project.styles).filter(
     (k) => !(kind === 'style' && k === name) && defs.styles[k] !== project.styles[k]
   )
-  const documents = (project.documents ?? [])
-    .filter((d) => renameInText(d.text, kind, name, PROBE) !== d.text)
-    .map((d) => d.name)
-  return { templates, sets, variables, styles, documents }
+  const inText = (list: { name: string; text: string }[] = []): string[] =>
+    list.filter((d) => renameInText(d.text, kind, name, PROBE) !== d.text).map((d) => d.name)
+  return {
+    templates,
+    sets,
+    variables,
+    styles,
+    documents: inText(project.documents),
+    notes: inText(project.notes)
+  }
 }
 
 /** Nessun riferimento */
@@ -77,7 +86,8 @@ export const isUnused = (u: Usages): boolean =>
   !u.sets.length &&
   !u.variables.length &&
   !u.styles.length &&
-  !u.documents.length
+  !u.documents.length &&
+  !u.notes.length
 
 /** Numeri di carta come intervalli: 1, 3, 5–7 */
 export function cardRanges(cards: number[]): string {

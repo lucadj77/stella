@@ -14,6 +14,7 @@ export interface OverviewProject {
   variables: Variables
   styles: Record<string, string>
   documents?: ProjectNote[]
+  notes?: ProjectNote[]
 }
 
 /** Dove è usato ogni nome (variabili o stili) */
@@ -27,7 +28,8 @@ export function definitionUsages(
     sets: p.sets,
     variables: p.variables,
     styles: p.styles,
-    documents: p.documents
+    documents: p.documents,
+    notes: p.notes
   }
   return new Map(names.map((n) => [n, findUsages(scope, kind, n)]))
 }

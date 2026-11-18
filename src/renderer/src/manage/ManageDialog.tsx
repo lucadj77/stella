@@ -91,7 +91,8 @@ export default function ManageDialog({
       sets: project.sets,
       variables: project.file.variables ?? {},
       styles: project.file.styles ?? {},
-      documents: project.documents
+      documents: project.documents,
+      notes: project.notes
     }
     const variables = definitionUsages(scope, 'variable', Object.keys(scope.variables))
     const styleUse = definitionUsages(scope, 'style', Object.keys(styles))
