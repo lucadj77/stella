@@ -1348,10 +1348,18 @@ function App(): React.JSX.Element {
     const prev = refsBefore.current
     refsBefore.current = { folder: project.folder, snap }
     if (!prev || prev.folder !== project.folder) return
-    const { changed, count } = followInDocuments(project.documents ?? [], prev.snap, snap)
-    if (!changed.length) return
-    for (const d of changed) documents.change(d.name, d.text)
-    setRefsNotice(t('doc.refsUpdated', { n: count, docs: changed.map((d) => d.name).join(', ') }))
+    const docs = followInDocuments(project.documents ?? [], prev.snap, snap)
+    // anche le note mostrano variabili, stili e carte: seguono le stesse rinomine
+    const notes = followInDocuments(project.notes ?? [], prev.snap, snap)
+    if (!docs.changed.length && !notes.changed.length) return
+    for (const d of docs.changed) documents.change(d.name, d.text)
+    for (const n of notes.changed) changeNote(n.name, n.text)
+    setRefsNotice(
+      t('doc.refsUpdated', {
+        n: docs.count + notes.count,
+        docs: [...docs.changed, ...notes.changed].map((d) => d.name).join(', ')
+      })
+    )
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     project?.folder,

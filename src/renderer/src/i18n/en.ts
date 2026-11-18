@@ -1264,7 +1264,7 @@ export const en = {
     'Invalid document name: "{name}". It cannot start with a dot or contain \\ / : * ? " < > |',
   'document.exists': 'A document named "{name}" already exists',
   'doc.refsUpdated':
-    'Documents updated: {n} {n:reference follows|references follow} the new name ({docs})',
+    'References updated: {n} {n:reference follows|references follow} the new name ({docs})',
   'doc.card.badRef':
     '"{ref}" is not a component: write card:Set/number or card:Set/column=value, for example card:Characters/name=Wizard',
   'doc.card.badOption':

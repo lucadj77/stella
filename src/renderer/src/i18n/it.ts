@@ -1278,7 +1278,7 @@ export const it: Record<MessageKey, string> = {
     'Nome di documento non valido: "{name}". Non può cominciare con un punto né contenere \\ / : * ? " < > |',
   'document.exists': 'Esiste già un documento "{name}"',
   'doc.refsUpdated':
-    'Documenti aggiornati: {n} {n:riferimento|riferimenti} seguono il nome nuovo ({docs})',
+    'Riferimenti aggiornati: {n} {n:riferimento segue|riferimenti seguono} il nome nuovo ({docs})',
   'doc.card.badRef':
     '"{ref}" non è un componente: scrivi card:Set/numero o card:Set/colonna=valore, per esempio card:Personaggi/nome=Mago',
   'doc.card.badOption':
