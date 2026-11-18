@@ -9491,3 +9491,265 @@ button.wide {
 .images-folders-tool p {
   margin: 0;
 }
+
+/* Gestisci il progetto */
+.dialog:has(> .manage-dialog) {
+  max-width: min(1180px, 96vw);
+  width: 1180px;
+}
+
+.manage-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.manage-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  border-bottom: 1px solid var(--border);
+}
+
+.manage-tabs button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  border-radius: 6px 6px 0 0;
+  background: transparent;
+  font-size: 14px;
+}
+
+.manage-tabs button:hover {
+  background: var(--accent-soft);
+}
+
+.manage-tabs button.on {
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+.manage-tabs .section-icon {
+  display: inline-flex;
+}
+
+.manage-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.manage-pane:focus {
+  outline: none;
+}
+
+.manage-pane > p {
+  margin: 0;
+}
+
+.manage-pane .asset-picker-bar .primary {
+  margin-left: auto;
+}
+
+.manage-table-wrap {
+  height: 58vh;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.manage-table-wrap > p {
+  margin: 12px;
+}
+
+.manage-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  user-select: none;
+}
+
+.manage-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--panel);
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.manage-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.manage-table tr {
+  cursor: default;
+}
+
+.manage-table tbody tr:hover {
+  background: var(--accent-soft);
+}
+
+.manage-table tbody tr.on {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.manage-table tr.unused td:last-child {
+  color: #e5484d;
+}
+
+.manage-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.manage-table td.manage-value {
+  max-width: 280px;
+}
+
+.manage-ellipsis {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.manage-table td.manage-swatch,
+.manage-table td.manage-thumb-cell {
+  width: 1%;
+}
+
+.manage-table td.manage-sample {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.manage-thumb {
+  display: inline-grid;
+  place-items: center;
+  padding: 3px;
+  border-radius: 4px;
+  background: repeating-conic-gradient(var(--bg) 0 25%, var(--panel) 0 50%) 0 0 / 12px 12px;
+}
+
+.bg-dark .manage-thumb {
+  background: #2a2a2e;
+}
+
+.bg-light .manage-thumb {
+  background: #ffffff;
+}
+
+.manage-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.manage-title {
+  margin: 0;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.manage-preview {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.manage-style-sample {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.manage-style-sample.big {
+  max-width: none;
+}
+
+.manage-excerpt {
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.manage-count {
+  margin: 0;
+}
+
+.sidebar-bar .sidebar-manage {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  justify-content: center;
+  margin: 0 6px;
+  padding: 5px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar h2.with-action .section-manage {
+  margin-left: 2px;
+  display: inline-flex;
+}
+
+.manage-dialog button.link {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  cursor: pointer;
+  text-align: left;
+}
+
+.manage-dialog button.link:hover {
+  text-decoration: underline;
+}
+
+.dialog:has(> .manage-dialog) {
+  /* in alto, così passando da una scheda all'altra non si sposta */
+  align-self: start;
+  margin-top: 3vh;
+}
+
+.manage-dialog .images-body {
+  grid-template-columns: minmax(0, 1fr) 270px;
+}
+
+.manage-used {
+  white-space: nowrap;
+}
+
+.manage-table td.manage-swatch .variable-swatch {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.manage-thumb.manage-big {
+  padding: 10px 16px;
+}
+
+.manage-style-sample.manage-thumb {
+  display: inline-block;
+  padding: 2px 6px;
+}

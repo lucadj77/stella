@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { LoadedProject } from '../../../shared/project'
 import { isImageAsset } from '../../../shared/model/assets'
 import { fuzzyFilter } from '../../../shared/model/fuzzy'
@@ -7,7 +7,6 @@ import {
   cleanFolder,
   dirOf,
   groupByTemplate,
-  imageUsages,
   isUnusedImage,
   matchesFilter,
   type ImageFilter,
@@ -16,13 +15,15 @@ import {
 import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
+import { LinkList } from './ListPane'
+import { useManageNav, type ManageTab } from './manageTypes'
 import { assetUrl, publishAssetsUpdate } from '../render/assets'
-import { askConfirm } from './confirm'
-import { useContextMenu } from './useContextMenu'
-import ThumbBackgroundSwitch from './ThumbBackgroundSwitch'
-import { thumbClass, useThumbBackground } from './thumbBackground'
+import { askConfirm } from '../components/confirm'
+import { useContextMenu } from '../components/useContextMenu'
+import ThumbBackgroundSwitch from '../components/ThumbBackgroundSwitch'
+import { thumbClass, useThumbBackground } from '../components/thumbBackground'
 
-// Immagini del progetto (issue #198): dove è usata ogni immagine di assets/, con filtri e
+// Scheda Immagini di «Gestisci il progetto» (issue #198): dove è usata ogni immagine di assets/, con filtri e
 // raggruppamenti; si eliminano (nel cestino del progetto) e si spostano in cartelle. Vedi
 // docs/specifica.md, sezione 3.1.
 
@@ -49,15 +50,19 @@ function store(key: string, value: string): void {
   }
 }
 
-export default function ImagesDialog({
+export default function ImagesPane({
   project,
-  onMoved,
-  onClose
+  usages,
+  focus,
+  onMoved
 }: {
   project: LoadedProject
+  /** Dove è usata ogni immagine: vedi imageUsages */
+  usages: Map<string, ImageUsage>
+  /** Immagine da mostrare selezionata, arrivando da un collegamento */
+  focus?: string
   /** Dopo uno spostamento: riscrive i riferimenti che contengono la cartella */
   onMoved(moves: { from: string; to: string }[]): void
-  onClose(): void
 }): React.JSX.Element {
   const { t } = useI18n()
   const menu = useContextMenu()
@@ -75,14 +80,21 @@ export default function ImagesDialog({
       return 88
     }
   })
-  const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [anchor, setAnchor] = useState<string | null>(null)
+  const [selected, setSelected] = useState<Set<string>>(() => new Set(focus ? [focus] : []))
+  const [anchor, setAnchor] = useState<string | null>(focus ?? null)
   const [moving, setMoving] = useState<string[] | null>(null)
   const [error, setError] = useState<Message | null>(null)
   const [busy, setBusy] = useState(false)
   const grid = useRef<HTMLDivElement>(null)
   const tiles = useRef(new Map<string, { el: HTMLElement; path: string }>())
   const [rect, setRect] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null)
+
+  // l'immagine scelta da un collegamento si vede subito
+  useEffect(() => {
+    if (focus) tiles.current.get(focus)?.el.scrollIntoView({ block: 'nearest' })
+    // solo all'apertura
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const setGrouping = (g: Grouping): void => {
     setGroupingState(g)
@@ -93,19 +105,6 @@ export default function ImagesDialog({
     store(SIZE_KEY, String(n))
   }
 
-  const usages = useMemo(
-    () =>
-      imageUsages({
-        templates: project.templates,
-        sets: project.sets,
-        documents: project.documents,
-        assets: project.assets,
-        variables: project.file.variables,
-        styles: project.file.styles,
-        cover: project.file.cover
-      }),
-    [project]
-  )
   const images = useMemo(() => project.assets.filter(isImageAsset), [project.assets])
   const counts = useMemo(
     () =>
@@ -334,9 +333,9 @@ export default function ImagesDialog({
   }
 
   return (
-    <Dialog title={t('images.title')} onClose={onClose}>
+    <>
       <div
-        className="images-dialog asset-picker"
+        className="images-dialog asset-picker manage-pane"
         tabIndex={-1}
         onKeyDown={(e) => {
           if ((e.target as HTMLElement).tagName === 'INPUT') return
@@ -489,14 +488,9 @@ export default function ImagesDialog({
             </div>
           </aside>
         </div>
-        <div className="dialog-buttons">
-          <span className="muted small spacer-right">
-            {t('assetPicker.count', { n: shown.length, total: images.length })}
-          </span>
-          <button className="primary" onClick={onClose}>
-            {t('dialog.close')}
-          </button>
-        </div>
+        <p className="muted small manage-count">
+          {t('assetPicker.count', { n: shown.length, total: images.length })}
+        </p>
       </div>
       {menu.node}
       {moving && (
@@ -509,7 +503,7 @@ export default function ImagesDialog({
           onClose={() => setMoving(null)}
         />
       )}
-    </Dialog>
+    </>
   )
 }
 
@@ -525,12 +519,13 @@ function ownerTemplates(u: ImageUsage, project: LoadedProject): string[] {
 
 function Details({ path, usage }: { path: string; usage: ImageUsage }): React.JSX.Element {
   const { t } = useI18n()
-  const rows: [string, string[]][] = [
-    [t('images.where.templates'), usage.templates],
-    [t('images.where.sets'), usage.sets],
-    [t('images.where.documents'), usage.documents],
-    [t('images.where.variables'), usage.variables],
-    [t('images.where.styles'), usage.styles]
+  const { go } = useManageNav()
+  const rows: [string, string[], ManageTab, (n: string) => string][] = [
+    [t('images.where.templates'), usage.templates, 'templates', (n) => n],
+    [t('images.where.sets'), usage.sets, 'sets', (n) => n],
+    [t('images.where.documents'), usage.documents, 'documents', (n) => n],
+    [t('images.where.variables'), usage.variables, 'variables', (n) => `{${n}}`],
+    [t('images.where.styles'), usage.styles, 'styles', (n) => `.${n}`]
   ]
   return (
     <div className="images-details">
@@ -542,10 +537,12 @@ function Details({ path, usage }: { path: string; usage: ImageUsage }): React.JS
         <dl>
           {rows
             .filter(([, list]) => list.length)
-            .map(([label, list]) => (
+            .map(([label, list, tab, format]) => (
               <div key={label}>
                 <dt>{label}</dt>
-                <dd>{list.join(', ')}</dd>
+                <dd>
+                  <LinkList items={list} format={format} onClick={(n) => go(tab, n)} />
+                </dd>
               </div>
             ))}
           {usage.cover && (

@@ -1,4 +1,5 @@
-import { ChevronIcon } from './icons'
+import { useI18n } from '../i18n/context'
+import { ChevronIcon, ExpandIcon } from './icons'
 
 /** Sezione della barra laterale: il titolo apre e chiude l'elenco */
 export default function SidebarSection({
@@ -8,6 +9,7 @@ export default function SidebarSection({
   open,
   count,
   onToggle,
+  onManage,
   actions,
   children
 }: {
@@ -18,10 +20,13 @@ export default function SidebarSection({
   /** Numero di voci, mostrato accanto al titolo */
   count?: number
   onToggle(open: boolean): void
+  /** Apre la scheda della sezione in «Gestisci il progetto» */
+  onManage?(): void
   /** Pulsanti a destra del titolo, per esempio "+" */
   actions?: React.ReactNode
   children: React.ReactNode
 }): React.JSX.Element {
+  const { t } = useI18n()
   return (
     <section className={open ? 'sidebar-section' : 'sidebar-section closed'} id={`sidebar-${id}`}>
       <h2 className="with-action">
@@ -32,6 +37,16 @@ export default function SidebarSection({
           {count !== undefined && <span className="section-count">{count}</span>}
         </button>
         {actions}
+        {onManage && (
+          <button
+            className="icon-btn section-manage"
+            title={t('manage.sectionHint', { section: title })}
+            aria-label={t('manage.sectionHint', { section: title })}
+            onClick={onManage}
+          >
+            <ExpandIcon />
+          </button>
+        )}
       </h2>
       {open && children}
     </section>

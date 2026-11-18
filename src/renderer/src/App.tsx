@@ -13,11 +13,18 @@ import { colorKeys, keyColor, keyOf, type ColorKey } from '../../shared/model/se
 import SplitImageDialog from './components/SplitImageDialog'
 import GoogleSheetsDialog, { type SheetImport } from './components/GoogleSheetsDialog'
 import TrashDialog from './components/TrashDialog'
-import ImagesDialog from './components/ImagesDialog'
+import ManageDialog from './manage/ManageDialog'
 import ImportPackageDialog from './package/ImportPackageDialog'
 import { exportPackage, openPackage, type OpenedPackage } from './package/packageZip'
 import { planImport, type ConflictChoice } from '../../shared/model/package'
-import { onOpenImagesDialog } from './components/imagesDialogOpen'
+import {
+  lastManageTab,
+  onOpenManage,
+  openManage,
+  storeManageTab,
+  type ManageActions,
+  type ManageTab
+} from './manage/manageTypes'
 import { movedRefs, retargetImageRefs } from '../../shared/model/imageUsage'
 import CompareDialog, { type CompareBase } from './components/CompareDialog'
 import {
@@ -55,6 +62,7 @@ import {
 } from '../../shared/model/inherit'
 import type { GroupLayer, Layer, Side, Template } from '../../shared/model/template'
 import { hasNoBack, kindOf } from '../../shared/model/template'
+import { copyName as freeCopyName, countCards } from '../../shared/model/overview'
 import { KindIcon } from './export/exportIcons'
 import type { Bounds } from '../../shared/model/edit'
 import {
@@ -119,6 +127,7 @@ import {
 } from '../../shared/model/order'
 import {
   PanelIcon,
+  ExpandIcon,
   SetsIcon,
   StylesIcon,
   TemplateIcon,
@@ -412,9 +421,17 @@ function App(): React.JSX.Element {
   const [exportedIn, setExportedIn] = useState<string | null>(null)
   const [backingUp, setBackingUp] = useState(false)
   const [trashOpen, setTrashOpen] = useState(false)
-  const [imagesOpen, setImagesOpen] = useState(false)
+  /** Finestra «Gestisci il progetto», con la scheda e la voce da mostrare */
+  const [managing, setManaging] = useState<{ tab: ManageTab; focus?: string } | null>(null)
   const [importingPackage, setImportingPackage] = useState<OpenedPackage | null>(null)
-  useEffect(() => onOpenImagesDialog(() => setImagesOpen(true)), [])
+  useEffect(
+    () =>
+      onOpenManage((tab, focus) => {
+        if (tab) storeManageTab(tab)
+        setManaging({ tab: tab ?? lastManageTab(), focus })
+      }),
+    []
+  )
   const [sheetsOpen, setSheetsOpen] = useState(false)
   const [languagesOpen, setLanguagesOpen] = useState(false)
   const [infoOpen, setInfoOpen] = useState(false)
@@ -1331,10 +1348,18 @@ function App(): React.JSX.Element {
     const prev = refsBefore.current
     refsBefore.current = { folder: project.folder, snap }
     if (!prev || prev.folder !== project.folder) return
-    const { changed, count } = followInDocuments(project.documents ?? [], prev.snap, snap)
-    if (!changed.length) return
-    for (const d of changed) documents.change(d.name, d.text)
-    setRefsNotice(t('doc.refsUpdated', { n: count, docs: changed.map((d) => d.name).join(', ') }))
+    const docs = followInDocuments(project.documents ?? [], prev.snap, snap)
+    // anche le note mostrano variabili, stili e carte: seguono le stesse rinomine
+    const notes = followInDocuments(project.notes ?? [], prev.snap, snap)
+    if (!docs.changed.length && !notes.changed.length) return
+    for (const d of docs.changed) documents.change(d.name, d.text)
+    for (const n of notes.changed) changeNote(n.name, n.text)
+    setRefsNotice(
+      t('doc.refsUpdated', {
+        n: docs.count + notes.count,
+        docs: [...docs.changed, ...notes.changed].map((d) => d.name).join(', ')
+      })
+    )
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     project?.folder,
@@ -2498,17 +2523,21 @@ function App(): React.JSX.Element {
               templates: project.templates,
               sets: project.sets,
               variables: project.file.variables ?? {},
-              styles: project.file.styles ?? {}
+              styles: project.file.styles ?? {},
+              documents: project.documents,
+              notes: project.notes
             },
             kind,
             name
           ),
           openTemplate: (n) => {
+            setManaging(null)
             setEditingStyle(null)
             setEditingVariable(null)
             setSelected({ kind: 'template', name: n })
           },
           openSet: (index) => {
+            setManaging(null)
             setEditingStyle(null)
             setEditingVariable(null)
             setSelected({ kind: 'set', index })
@@ -2542,6 +2571,13 @@ function App(): React.JSX.Element {
         >
           <PanelIcon />
         </button>
+        <button
+          className="sidebar-icon"
+          title={t('manage.buttonHint')}
+          onClick={() => openManage()}
+        >
+          <ExpandIcon />
+        </button>
         {sidebarSections.map(([id, icon, title]) => (
           <button
             key={id}
@@ -2572,10 +2608,19 @@ function App(): React.JSX.Element {
             >
               <PanelIcon />
             </button>
+            <button
+              className="sidebar-manage"
+              title={t('manage.buttonHint')}
+              onClick={() => openManage()}
+            >
+              <ExpandIcon />
+              {t('manage.button')}
+            </button>
             <PanelSideButton side={sidebarSide} onToggle={toggleSidebarSide} />
           </div>
           <SidebarSection
             id="sets"
+            onManage={() => openManage('sets')}
             icon={<SetsIcon />}
             title={t('sidebar.sets')}
             open={!closedSections.has('sets')}
@@ -2631,6 +2676,7 @@ function App(): React.JSX.Element {
           </SidebarSection>
           <SidebarSection
             id="templates"
+            onManage={() => openManage('templates')}
             icon={<TemplateIcon />}
             title={t('sidebar.templates')}
             open={!closedSections.has('templates')}
@@ -2691,6 +2737,7 @@ function App(): React.JSX.Element {
           </SidebarSection>
           <SidebarSection
             id="styles"
+            onManage={() => openManage('styles')}
             icon={<StylesIcon />}
             title={t('sidebar.styles')}
             count={styleList.length}
@@ -2725,6 +2772,7 @@ function App(): React.JSX.Element {
           </SidebarSection>
           <SidebarSection
             id="variables"
+            onManage={() => openManage('variables')}
             icon={<VariablesIcon />}
             title={t('sidebar.variables')}
             count={variableList.length}
@@ -2765,6 +2813,7 @@ function App(): React.JSX.Element {
           </SidebarSection>
           <SidebarSection
             id="documents"
+            onManage={() => openManage('documents')}
             icon={<DocumentsIcon />}
             title={t('sidebar.documents')}
             open={!closedSections.has('documents')}
@@ -2811,6 +2860,7 @@ function App(): React.JSX.Element {
           </SidebarSection>
           <SidebarSection
             id="notes"
+            onManage={() => openManage('notes')}
             icon={<NotesIcon />}
             title={t('sidebar.notes')}
             open={!closedSections.has('notes')}
@@ -2924,6 +2974,88 @@ function App(): React.JSX.Element {
     }
   ]
 
+  /** Elimina più variabili o stili in un passo solo, che ⌘Z annulla */
+  const deleteDefinitions = (kind: RefKind, names: string[]): void => {
+    const key = kind === 'variable' ? 'variables' : 'styles'
+    setProject((p) => {
+      if (!p) return p
+      const defs: Record<string, unknown> = { ...(p.file[key] ?? {}) }
+      let order = p.file.order
+      for (const n of names) {
+        delete defs[n]
+        order = setGroup(order, key, n, '')
+      }
+      setHistory((h) => ({
+        past: [...h.past.slice(-99), { sets: p.sets, file: p.file }],
+        future: [],
+        at: 0
+      }))
+      return { ...p, file: { ...p.file, [key]: defs, order } }
+    })
+    setFileDirty(true)
+  }
+  /** Una copia della variabile o dello stile con un nome libero, nello stesso gruppo */
+  const duplicateDefinition = (kind: RefKind, name: string): string | null => {
+    if (!project) return null
+    if (kind === 'variable') {
+      const v = variables[name]
+      if (!v) return null
+      const copy = freeCopyName(name, Object.keys(variables), '-')
+      saveVariable(copy, v, undefined, groupOf(order, 'variables', name))
+      return copy
+    }
+    const def = allStyles[name]
+    if (def === undefined) return null
+    const copy = freeCopyName(name, Object.keys(allStyles), '-')
+    saveStyle(copy, def, undefined, groupOf(order, 'styles', name))
+    return copy
+  }
+  /** La finestra «Gestisci il progetto» usa le stesse funzioni della barra laterale */
+  const manageActions: ManageActions = {
+    openSet: (index) => {
+      setManaging(null)
+      setSelected({ kind: 'set', index })
+    },
+    openTemplate: (name) => {
+      setManaging(null)
+      setSelected({ kind: 'template', name })
+    },
+    openDocument: (name) => {
+      setManaging(null)
+      setSelected({ kind: 'document', name })
+    },
+    openNote: (name) => {
+      setManaging(null)
+      if (openNote && openNote !== name) flushNote(openNote)
+      setOpenNote(name)
+    },
+    setMenu,
+    templateMenu,
+    documentMenu,
+    newSet: () => setCreatingSet(true),
+    newTemplate: () => setCreating(true),
+    newDocument: () => {
+      setManaging(null)
+      void newDocument()
+    },
+    newNote: () => {
+      setManaging(null)
+      void newNote()
+    },
+    deleteNote: (name) => void deleteNote(name),
+    editVariable: (name) => {
+      setEditingVariable(name)
+      focusTopDialog()
+    },
+    editStyle: (name) => {
+      setEditingStyle(name)
+      focusTopDialog()
+    },
+    duplicateDefinition,
+    deleteDefinitions,
+    imagesMoved: retargetImages
+  }
+
   /** Comandi del progetto usati di rado: nel menu Progetto e nel menu dell'app */
   /** Il menu ▾ del pulsante Esporta: ripetere l'ultima esportazione o partire da un profilo */
   const lastExport = project?.file.export?.last
@@ -2966,7 +3098,6 @@ function App(): React.JSX.Element {
     { label: t('findAll.menu'), title: t('findAll.menuHint'), onClick: () => setFindingAll(true) },
     'sep',
     { label: t('app.backup'), title: t('tip.backup'), onClick: () => setBackingUp(true) },
-    { label: t('images.menu'), title: t('images.menuHint'), onClick: () => setImagesOpen(true) },
     { label: t('app.trash'), title: t('tip.trash'), onClick: () => setTrashOpen(true) },
     {
       label: t('package.importMenu'),
@@ -3012,7 +3143,7 @@ function App(): React.JSX.Element {
     backup: () => setBackingUp(true),
     findAll: () => project && setFindingAll(true),
     trash: () => setTrashOpen(true),
-    images: () => project && setImagesOpen(true),
+    manage: () => project && openManage(),
     importPackage: () => void chooseImportPackage(),
     sheets: () => setSheetsOpen(true),
     languages: () => setLanguagesOpen(true),
@@ -3072,7 +3203,7 @@ function App(): React.JSX.Element {
           { id: 'projectInfo', label: t('projectInfo.menu'), enabled: hasProject },
           sep,
           { id: 'backup', label: t('app.backup'), enabled: hasProject },
-          { id: 'images', label: t('images.menu'), enabled: hasProject },
+          { id: 'manage', label: t('manage.menu'), enabled: hasProject },
           { id: 'trash', label: t('app.trash'), enabled: hasProject },
           { id: 'importPackage', label: t('package.importMenu'), enabled: hasProject },
           { id: 'sheets', label: t('app.googleSheets'), enabled: hasProject },
@@ -3593,6 +3724,19 @@ function App(): React.JSX.Element {
                             onImportNandeck={() => setImporting('nandeck')}
                           />
                         )}
+                        {managing && project && (
+                          <ManageDialog
+                            project={project}
+                            tab={managing.tab}
+                            focus={managing.focus}
+                            styles={allStyles}
+                            styleNames={styleList}
+                            variableNames={variableList.map(([n]) => n)}
+                            templateNames={templateList.map((x) => x.name)}
+                            actions={manageActions}
+                            onClose={() => setManaging(null)}
+                          />
+                        )}
                         {renamingTemplate !== null && project && (
                           <DuplicateDialog
                             title={t('rename.templateTitle')}
@@ -3815,13 +3959,6 @@ function App(): React.JSX.Element {
                           project={project}
                           onImport={importGoogleSheet}
                           onClose={() => setSheetsOpen(false)}
-                        />
-                      )}
-                      {imagesOpen && project && (
-                        <ImagesDialog
-                          project={project}
-                          onMoved={retargetImages}
-                          onClose={() => setImagesOpen(false)}
                         />
                       )}
                       {importingPackage && project && (
@@ -5178,17 +5315,15 @@ function clampThumb(v: number): number {
   return Math.min(THUMB_MAX, Math.max(THUMB_MIN, v))
 }
 
-/** Numero di carte del set, sommando la colonna amount quando presente */
-function countCards(sheet: { headers: string[]; rows: string[][] }): number {
-  const col = sheet.headers.indexOf('amount')
-  if (col < 0) return sheet.rows.length
-  return sheet.rows.reduce((sum, r) => {
-    const n = parseInt(r[col], 10)
-    return sum + (Number.isFinite(n) && n >= 0 ? n : 1)
-  }, 0)
-}
-
 export default App
+
+/** Dopo aver aperto una finestra sopra un'altra: il fuoco va a quella nuova, così Esc la chiude */
+function focusTopDialog(): void {
+  requestAnimationFrame(() => {
+    const all = document.querySelectorAll<HTMLElement>('.dialog-backdrop')
+    all[all.length - 1]?.querySelector<HTMLElement>('input, select, textarea, button')?.focus()
+  })
+}
 
 /** Il seme del set: si applica uscendo dal campo o con Invio */
 function SeedField({

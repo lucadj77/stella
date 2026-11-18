@@ -182,6 +182,15 @@ export function PanelIcon(): React.JSX.Element {
   )
 }
 
+/** Due frecce verso gli angoli: apre una vista più grande */
+export function ExpandIcon(): React.JSX.Element {
+  return (
+    <Outline>
+      <path d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9" />
+    </Outline>
+  )
+}
+
 /** Freccia di una sezione: in basso se aperta, a destra se chiusa */
 export function ChevronIcon({ open }: { open: boolean }): React.JSX.Element {
   return (

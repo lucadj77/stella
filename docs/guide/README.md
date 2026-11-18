@@ -248,6 +248,23 @@ Changes stay in memory until you save. The **Save** button reads **Saved** when 
 
 In the desktop app the same commands are also in the app menu (on the Mac in the bar at the top of the screen, on Windows and Linux with the Alt key): **File** (open, save, export, backup, trash, Google Sheets, reload, close), **Edit**, **View** (interface size with ⌘+, ⌘− and ⌘0 / Ctrl+, Ctrl− and Ctrl+0, full screen) and **Help**.
 
+### 3.1 Managing the project
+
+**Manage the project**, the button at the top of the sidebar, opens a large window with a tab for each section of the sidebar: **Sets**, **Templates**, **Styles**, **Variables**, **Images**, **Documents** and **Notes**. The ⤢ button next to a section title opens the window straight on its tab. The sidebar stays as it is: the window helps when there are many items and you want to see where they are used.
+
+Each tab has a list with search and filters. A click selects an item and shows its details and actions on the right; ⌘/Ctrl+click and ⇧+click select more than one, ⌘A / Ctrl+A all of them. A double-click opens the item, a right-click shows the menu with the same actions.
+
+- **Variables**: type, value, group and where each variable is used (templates, components of the sets, documents, notes, other variables and styles). The filters split them by type and show the **Unused** ones. **Edit…** opens the variable window, **Duplicate** makes a copy, **Delete** (also on several variables, or with Del / ⌫) warns first if any is still used; ⌘Z / Ctrl+Z undoes it.
+- **Styles**: a sample sentence with the style, the definition and where it is used. Built-in styles cannot be deleted; if the project has its own version of one, **Back to the built-in style** removes it.
+- **Templates**: thumbnail, kind, size, the template it derives from and the sets that use it, with the variables, styles and images it refers to. **Open in the editor** and the commands of the template menu (rename, duplicate, derive, export package, delete).
+- **Sets**: thumbnail of the first card, template, rows and components; on the right the first cards and what they use. **Open the grid** and the commands of the set menu.
+- **Images**: the same view described in [8.1](#81-project-images).
+- **Documents** and **Notes**: name and beginning of the text; a double-click opens them.
+
+Names in blue are links: a click takes you to the item in its tab. For example, from a template you go to one of the sets that use it, from there to a variable used by its cards, and then to the other cards that use it. In the tabs with previews (sets, templates, styles, variables and images) the background can be **No background**, **Light** or **Dark**, as in the image chooser.
+
+Indirect uses count too. A variable is used also when it gets there through a field or a formula: if the value layer `campo` is `{alfa}` on some cards and a color reads `{campo}`, `alfa` is used on those cards; the same goes for a name in quotes in a formula, such as `=IF({forza}>2;"alfa";"beta")`. The `heading1`, `heading2` and `note` styles are used wherever paragraphs start with `#`, `##` and `>`, in component texts, text variables and notes. Document headings have the document's own settings instead. Renaming a variable does not change names written in quotes in formulas: fix those by hand.
+
 ## 4. Designing a template
 
 ### 4.1 Creating a template
@@ -714,7 +731,7 @@ In the web app only images from sites that allow it can be downloaded; for the o
 
 ![Choosing an image](img/scegli-immagine.png)
 
-**Project ▾ › Project images…**, or **Manage…** in the image chooser, shows every image with where it is used below it. At the top you filter them: **In templates** (written in a template), **Only in sets** (a column or a formula of the cards chooses them), **In documents** and **Unused**. **Show grouped by** splits them by folder or by template: only the view changes, the files stay where they are. Select an image to see on the right which templates, sets, documents and variables use it.
+The **Images** tab of **Manage the project** ([3.1](#31-managing-the-project)), also opened by **Manage…** in the image chooser, shows every image with where it is used below it. At the top you filter them: **In templates** (written in a template), **Only in sets** (a column or a formula of the cards chooses them), **In documents** and **Unused**. **Show grouped by** splits them by folder or by template: only the view changes, the files stay where they are. Select an image to see on the right which templates, sets, documents and variables use it.
 
 - To delete, select one or more images (⌘/Ctrl+click, ⇧+click or a rectangle dragged from an empty spot) and press **Delete** or Del / ⌫. If an image is still used the app tells you first. Deleted images go to the project trash (**Project ▾ › Trash…**), from where you put them back.
 - **Move to folder…** puts the images in a folder of `assets`, existing or new, also inside another one (`images/Heroes`). Cards keep finding them, because the name is enough; references written with the folder are updated by themselves.
@@ -1073,7 +1090,7 @@ Components are not copied into the document: Stella draws them from the project,
 
 By hand you write `card:Set/3` for the component on row 3, or `card:Set/column=value` for the one with that value in a column (`card:` works for every kind of component); after a `?` add `side=back` for the back and `width=40` for the width, joined by `&`, as in `card:Characters/name=Wizard?side=back&width=40`. A column value, like the name, is safer than the number, which changes when the rows are reordered. Several images on the same line of text sit side by side.
 
-References follow renames. If you change the name of a set, of a column, or the value that identifies a component (for example the name `BARRACKS` becomes `BARRACKS2`), Stella updates the components called in the documents by itself: in images, tables, table setups and anatomies. A bar at the top says how many references changed. A component's value is followed only if no other component in the set still has the old one. In the same way a layer renamed in the template changes in the anatomy labels, and a renamed variable or style changes in the text of the documents. Notes are left as they are.
+References follow renames. If you change the name of a set, of a column, or the value that identifies a component (for example the name `BARRACKS` becomes `BARRACKS2`), Stella updates the components called in the documents by itself: in images, tables, table setups and anatomies. A bar at the top says how many references changed. A component's value is followed only if no other component in the set still has the old one. In the same way a layer renamed in the template changes in the anatomy labels, and a renamed variable or style changes in the text of the documents. Notes follow the same renames.
 
 ![The Insert component window](img/inserisci-carta.png)
 

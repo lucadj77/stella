@@ -5,6 +5,30 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.12.0
+
+### English
+
+- **Manage the project**: a button at the top of the sidebar (and ⤢ next to each section title) opens a large window with a tab for sets, templates, styles, variables, images, documents and notes, with search, filters, multiple selection and the actions of the sidebar menus. It shows where variables and styles are used, also through fields, formulas and `#`/`##`/`>` paragraphs, and what templates, sets and documents use; names are links to the item in its tab. The **Images** tab deletes unused images (to the project trash) or moves them to folders, and references keep working.
+- **Combine shapes and edit points**: **Union**, **Intersect**, **Subtract** and **Exclude** draw two or more shapes as one, still editable; **Edit points** moves the points of a shape one by one, with curves. Lines and table setup arrows can be curved, **Corner radius** works on paths and combined shapes too, and arrows get tips at either end, size and thickness.
+- **Packages of templates and sets**: **Export package…** saves a ZIP with a template or a set and the images, fonts, variables and styles they use; **Project ▾ › Import package…** adds it to another project and asks what to do with what is already there.
+- **Outline for image variables**: an icon can have an **Outline** that follows its shape, in texts, image layers, documents and table setups; `{sword stroke=white/0.3}` sets it for a single use.
+- **Documents**: dashed lines show where each PDF page begins, the PDF is laid out in pages exactly like the preview (no heading left alone at the bottom), and **PDF preview** shows it page by page. `{center}` or `{right}` at the start of a paragraph, heading or note aligns it; boxes and tables narrower than the text can sit in the center or on the right.
+- **Saved generations**: **Generate…** can save its settings with a name in the set, and **Saved generations** fills the fields with them next time.
+- **Aligning fronts and backs**: the PDF export explains step by step how to measure **Back offset** with the **Test page**, and **Correct** adds what you read on the cross to the offset, with no sums to do.
+- **Thumbnail background** (**No background**, **Light**, **Dark**) in every window with thumbnails, notes that follow renames like documents, components outlined in anatomy and table setup, table setups that make room for every caption and arrow label, and the right size for repeated SVG images in the web version.
+
+### Italiano
+
+- **Gestisci il progetto**: un pulsante in cima alla barra laterale (e ⤢ accanto al titolo di ogni sezione) apre una finestra grande con una scheda per set, template, stili, variabili, immagini, documenti e note, con ricerca, filtri, selezione multipla e le azioni dei menu della barra. Mostra dove sono usati variabili e stili, anche attraverso campi, formule e paragrafi con `#`/`##`/`>`, e cosa usano template, set e documenti; i nomi portano all'elemento nella sua scheda. La scheda **Immagini** elimina le immagini non usate (nel cestino del progetto) o le sposta in cartelle, e i riferimenti continuano a funzionare.
+- **Combinare forme e modificare i punti**: **Unisci**, **Interseca**, **Sottrai** ed **Escludi** disegnano due o più forme come una sola, sempre modificabili; **Modifica punti** sposta i punti di una forma uno a uno, con le curve. Le linee e le frecce dello schema del tavolo si curvano, **Raggio angoli** vale anche per tracciati e forme combinate, e le frecce hanno punte a uno o due capi, dimensione e spessore.
+- **Pacchetti di template e set**: **Esporta pacchetto…** salva uno ZIP con un template o un set e le immagini, i font, le variabili e gli stili che usano; **Progetto ▾ › Importa pacchetto…** lo aggiunge a un altro progetto e chiede cosa fare con quello che c'è già.
+- **Contorno delle variabili immagine**: un'icona può avere un **Contorno** che ne segue la forma, nei testi, nei livelli immagine, nei documenti e negli schemi del tavolo; `{spada stroke=white/0.3}` lo imposta per un solo uso.
+- **Documenti**: linee tratteggiate mostrano dove inizia ogni pagina del PDF, il PDF è impaginato esattamente come l'anteprima (nessun titolo resta solo in fondo) e **Anteprima PDF** lo mostra pagina per pagina. `{center}` o `{right}` all'inizio di un paragrafo, titolo o nota lo allinea; riquadri e tabelle più stretti del testo possono stare al centro o a destra.
+- **Generazioni salvate**: **Genera…** può salvare le impostazioni con un nome nel set, e **Generazioni salvate** riempie i campi con quelle la volta dopo.
+- **Allineare fronti e retri**: l'esportazione PDF spiega passo per passo come misurare lo **Spostamento retri** con la **Pagina di prova**, e **Correggi** aggiunge allo spostamento quello che leggi sulla croce, senza somme da fare.
+- **Sfondo delle miniature** (**Nessuno sfondo**, **Chiaro**, **Scuro**) in tutte le finestre con miniature, note che seguono le rinomine come i documenti, componenti con il contorno nell'anatomia e nello schema del tavolo, schemi del tavolo che fanno spazio a tutte le didascalie e alle etichette delle frecce, e la giusta dimensione delle immagini SVG ripetute nella versione web.
+
 ## 1.12.0-beta.6
 
 ### English
