@@ -860,6 +860,24 @@ export const videos = [
       it: 'progetti/gilda.zip',
       en: 'progetti/guild.zip'
     }
+  },
+  {
+    n: 31,
+    it: 'Approfondimento: elenchi e varianti',
+    en: 'Deep dive: lists and variants',
+    about: {
+      it: 'Cornici, colori e ranghi scelti da un elenco deciso nel template, con miniature e campioni; le varianti del template, scelte carta per carta.',
+      en: 'Frames, colors and ranks picked from a list set in the template, with thumbnails and swatches; template variants, picked card by card.'
+    },
+    minutes: 9,
+    url: {
+      it: 'https://www.youtube.com/watch?v=MKPHaSY_oE8',
+      en: 'https://www.youtube.com/watch?v=O0851xdtCok'
+    },
+    project: {
+      it: 'progetti/torneo.zip',
+      en: 'progetti/tournament.zip'
+    }
   }
 ]
 
@@ -872,7 +890,7 @@ export const videoGroups = {
   data: [10, 12],
   table: [9, 3, 19, 5],
   tools: [6, 17, 18],
-  deep: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+  deep: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
 }
 
 export const playlists = {
