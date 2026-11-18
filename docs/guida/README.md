@@ -701,7 +701,7 @@ Sotto ci sono i colori del progetto: prima le variabili colore, segnate da un pu
 
 Le immagini stanno in `assets/`, anche in sottocartelle, nei formati SVG, PNG, WebP e JPG. Ovunque si indichi un'immagine basta il nome del file, senza cartella né estensione. Se due file hanno lo stesso nome (per esempio `spada.png` e `spada.svg`) l'app lo segnala e chiede di aggiungere l'estensione o la cartella.
 
-Il pulsante con l'immagine accanto ai campi apre le miniature degli asset, con ricerca e filtro per cartella. **Aggiungi immagini…** copia file dal computer in `assets/images` del progetto (un file con lo stesso nome non viene sovrascritto: la copia prende un numero). **Sfondo scuro** mostra le miniature su fondo scuro, per vedere le icone bianche; la scelta viene ricordata.
+Il pulsante con l'immagine accanto ai campi apre le miniature degli asset, con ricerca e filtro per cartella. **Aggiungi immagini…** copia file dal computer in `assets/images` del progetto (un file con lo stesso nome non viene sovrascritto: la copia prende un numero). Lo sfondo delle miniature si sceglie tra **Nessuno sfondo** (a scacchi, mostra la trasparenza), **Chiaro** e **Scuro** (per vedere le icone bianche); la scelta vale per tutte le finestre con le miniature e viene ricordata.
 
 **Da internet…** prende un'immagine da un indirizzo (PNG, JPG, WebP o SVG) in due modi:
 

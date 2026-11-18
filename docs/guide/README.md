@@ -701,7 +701,7 @@ Below are the project colors: first the color variables, marked by a dot in the 
 
 Images live in `assets/`, subfolders included, as SVG, PNG, WebP or JPG. Wherever you name an image, the file name is enough, without folder or extension. If two files share a name (for example `sword.png` and `sword.svg`) the app says so and asks you to add the extension or the folder.
 
-The image button next to the fields opens thumbnails of the assets, with search and a folder filter. **Add images…** copies files from the computer into the project's `assets/images` (a file with the same name is not overwritten: the copy gets a number). **Dark background** shows the thumbnails on a dark background, to see white icons; the choice is remembered.
+The image button next to the fields opens thumbnails of the assets, with search and a folder filter. **Add images…** copies files from the computer into the project's `assets/images` (a file with the same name is not overwritten: the copy gets a number). The thumbnail background is **No background** (checkered, shows the transparency), **Light** or **Dark** (to see white icons); the choice applies to every window with thumbnails and is remembered.
 
 **From the internet…** takes an image from an address (PNG, JPG, WebP or SVG) in two ways:
 

@@ -19,6 +19,8 @@ import { useI18n } from '../i18n/context'
 import { assetUrl, publishAssetsUpdate } from '../render/assets'
 import { askConfirm } from './confirm'
 import { useContextMenu } from './useContextMenu'
+import ThumbBackgroundSwitch from './ThumbBackgroundSwitch'
+import { thumbClass, useThumbBackground } from './thumbBackground'
 
 // Immagini del progetto (issue #198): dove è usata ogni immagine di assets/, con filtri e
 // raggruppamenti; si eliminano (nel cestino del progetto) e si spostano in cartelle. Vedi
@@ -59,6 +61,7 @@ export default function ImagesDialog({
 }): React.JSX.Element {
   const { t } = useI18n()
   const menu = useContextMenu()
+  const [bg, setBg] = useThumbBackground()
   const [filter, setFilter] = useState<ImageFilter>('all')
   const [grouping, setGroupingState] = useState<Grouping>(() =>
     stored(GROUP_KEY, ['none', 'folder', 'template'] as const, 'folder')
@@ -385,6 +388,7 @@ export default function ImagesDialog({
             title={t('assetPicker.size')}
             onChange={(e) => setSize(Number(e.target.value))}
           />
+          <ThumbBackgroundSwitch value={bg} onChange={setBg} />
         </div>
         {error && <div className="banner error">{t(error)}</div>}
         <div className="images-body">
@@ -407,7 +411,7 @@ export default function ImagesDialog({
                     </h3>
                   )}
                   <div
-                    className="asset-grid"
+                    className={'asset-grid' + thumbClass(bg)}
                     style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${size}px, 1fr))` }}
                   >
                     {s.paths.map((p) => {

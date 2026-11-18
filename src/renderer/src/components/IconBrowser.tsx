@@ -12,6 +12,8 @@ import { resolveAsset } from '../../../shared/model/assets'
 import { fuzzyScore } from '../../../shared/model/fuzzy'
 import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
+import ThumbBackgroundSwitch from './ThumbBackgroundSwitch'
+import { thumbClass, useThumbBackground } from './thumbBackground'
 import { useI18n } from '../i18n/context'
 import { ICON_GROUPS_IT, ICON_TAG_WORDS_IT, ICON_TAGS_IT } from '../i18n/iconTags'
 import { AssetsContext, publishAssetsUpdate } from '../render/assets'
@@ -96,7 +98,7 @@ export default function IconBrowser({
   /** Pagine mostrate: si torna alla prima quando cambiano ricerca o filtro */
   const [more, setMore] = useState({ view: '', limit: PAGE })
   const [tint, setTintState] = useState(loadTint)
-  const [dark, setDark] = useState(false)
+  const [bg, setBg] = useThumbBackground()
   /** chiave → icona e nome del file scelto; si possono scegliere icone di più raccolte */
   const [chosen, setChosen] = useState<Map<string, { icon: Icon; name: string }>>(new Map())
   const [busy, setBusy] = useState(false)
@@ -340,9 +342,7 @@ export default function IconBrowser({
               <ColorSwatch value={tint} onChange={setTint} />
             </span>
           )}
-          <button className={dark ? 'small-btn on' : 'small-btn'} onClick={() => setDark(!dark)}>
-            {t('icons.darkBackground')}
-          </button>
+          <ThumbBackgroundSwitch value={bg} onChange={setBg} />
           {collection === 'game-icons' && !window.api.isWeb && (
             <button
               className="small-btn"
@@ -365,7 +365,7 @@ export default function IconBrowser({
           <IconifyPane
             query={query}
             tint={tint}
-            dark={dark}
+            background={bg}
             chosen={new Set([...chosen.values()].map((c) => c.icon.id))}
             onToggle={toggleIconify}
           />
@@ -393,7 +393,7 @@ export default function IconBrowser({
               {!current && !error && <p className="muted">{t('icons.loading')}</p>}
               {current && shown.length === 0 && <p className="muted">{t('assetPicker.noMatch')}</p>}
               <div
-                className={dark ? 'asset-grid icon-grid dark' : 'asset-grid icon-grid'}
+                className={'asset-grid icon-grid' + thumbClass(bg)}
                 style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(76px, 1fr))' }}
               >
                 {shown.slice(0, limit).map((i) => (

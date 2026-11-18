@@ -485,7 +485,6 @@ export const it: Record<MessageKey, string> = {
   'icons.title': 'Importa icone',
   'icons.search': 'Cerca per nome, categoria o autore',
   'icons.tint': "Colore dell'anteprima",
-  'icons.darkBackground': 'Sfondo scuro',
   'icons.allTags': 'Tutte le icone',
   'icons.loading': 'Caricamento del catalogo…',
   'icons.more': 'Mostra altre ({n} rimaste)',
@@ -3981,5 +3980,10 @@ export const it: Record<MessageKey, string> = {
   'package.import': 'Importa',
   'package.notZip': '{file} non è un file ZIP',
   'package.notPackage': '{file} non è un pacchetto di Stella, o viene da una versione più nuova',
-  'package.badFile': 'Il pacchetto contiene un file con un percorso non valido: {file}'
+  'package.badFile': 'Il pacchetto contiene un file con un percorso non valido: {file}',
+  'thumbBg.none': 'Nessuno sfondo',
+  'thumbBg.light': 'Chiaro',
+  'thumbBg.dark': 'Scuro',
+  'thumbBg.hint':
+    'Sfondo delle miniature: nessuno mostra la trasparenza, scuro fa vedere le icone bianche'
 }

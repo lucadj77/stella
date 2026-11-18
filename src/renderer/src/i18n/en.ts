@@ -482,7 +482,6 @@ export const en = {
   'icons.title': 'Import icons',
   'icons.search': 'Search by name, category or author',
   'icons.tint': 'Preview color',
-  'icons.darkBackground': 'Dark background',
   'icons.allTags': 'All icons',
   'icons.loading': 'Loading the catalog…',
   'icons.more': 'Show more ({n} left)',
@@ -3930,7 +3929,12 @@ export const en = {
   'package.import': 'Import',
   'package.notZip': '{file} is not a ZIP file',
   'package.notPackage': '{file} is not a Stella package, or comes from a newer version',
-  'package.badFile': 'The package contains a file with an invalid path: {file}'
+  'package.badFile': 'The package contains a file with an invalid path: {file}',
+  'thumbBg.none': 'No background',
+  'thumbBg.light': 'Light',
+  'thumbBg.dark': 'Dark',
+  'thumbBg.hint':
+    'Background of the thumbnails: none shows the transparency, dark shows white icons'
 }
 
 export type MessageKey = keyof typeof en

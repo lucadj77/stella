@@ -3067,9 +3067,16 @@ button.danger:hover:not(:disabled) {
   overflow: visible;
 }
 
-.asset-grid.dark .asset-thumb,
-.icon-grid.dark .asset-thumb {
+.asset-grid.bg-dark .asset-thumb {
   background: #2a2a2e;
+}
+
+.asset-grid.bg-light .asset-thumb {
+  background: #ffffff;
+}
+
+.thumb-bg .segmented button {
+  white-space: nowrap;
 }
 
 .icon-thumb {
