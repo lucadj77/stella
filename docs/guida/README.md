@@ -232,7 +232,9 @@ Il pulsante ⋯ accanto al nome del set o del template aperto apre un menu per r
 
 Rinominando un set cambia nome anche il suo foglio nel file dei dati. Se il foglio è già nel file, Stella prima chiede, perché le formule di altri fogli che lo citano si romperebbero. Rinominando un template cambia nome il suo file, e il nome nuovo va nei set, nei derivati e nella colonna `template` dei componenti che lo usano. I file cambiano nome quando si salva.
 
-**Eliminare e ripristinare.** Un template eliminato va nella cartella `deleted` del progetto. Anche il foglio di un set eliminato, al salvataggio, esce dal file dei dati e va in `deleted` come file a sé, così il suo nome torna libero. **Cestino…**, nel menu **Progetto**, elenca quello che c'è in `deleted` (template, set, note e documenti, dal più recente). **Ripristina** rimette un elemento nel progetto: un set prende il template scelto (Stella propone quello con più colonne in comune), un nome già usato riceve un numero. Template e set ripristinati escono dal cestino quando si salva.
+**Eliminare e ripristinare.** Un template eliminato va nella cartella `deleted` del progetto. Anche il foglio di un set eliminato, al salvataggio, esce dal file dei dati e va in `deleted` come file a sé, così il suo nome torna libero. **Cestino…**, nel menu **Progetto**, elenca quello che c'è in `deleted` (template, set, note, documenti e immagini, dal più recente). **Ripristina** rimette un elemento nel progetto: un set prende il template scelto (Stella propone quello con più colonne in comune), un nome già usato riceve un numero. Template e set ripristinati escono dal cestino quando si salva; le immagini tornano subito al loro posto in `assets`.
+
+**Portare template e set in un altro progetto.** **Esporta pacchetto…**, nel menu di un template o di un set (tasto destro o ⋯), salva un file ZIP con tutto quello che serve: il template (e il suo base, se è un derivato), per un set anche le carte, le immagini e i font che usano, le variabili e gli stili che richiamano. Nell'altro progetto **Progetto ▾ › Importa pacchetto…** mostra cosa contiene il pacchetto. Se qualcosa c'è già con lo stesso nome ma è diverso, scegli cosa fare: tenere entrambi (il nuovo prende un numero, "Eroe 2"), sostituire quello del progetto o tenere quello del progetto. Le cose uguali non vengono chieste. Prima di importare Stella fa un backup; il risultato si salva come le altre modifiche.
 
 **Stili e variabili.** Accanto ai loro titoli c'è il numero delle voci: con più di sei voci la sezione parte chiusa, e Stella ricorda per ogni progetto se l'hai aperta o chiusa. Si dividono in gruppi con il campo **Gruppo** della loro finestra: le voci di un gruppo stanno sotto il suo titolo, che si chiude e si apre con un clic, dopo quelle senza gruppo. Una voce trascinata sul titolo di un gruppo entra nel gruppo; trascinata su un'altra voce prende il gruppo di quella voce (anche nessuno). Con più di 12 voci compare sopra l'elenco un campo per filtrarle per nome. Nella finestra di uno stile o di una variabile, **Dove si usa** elenca i template (con i livelli), i set (con i numeri dei componenti) e le altre variabili e stili che lo richiamano; un clic su un template o su un set lo apre.
 
@@ -699,7 +701,7 @@ Sotto ci sono i colori del progetto: prima le variabili colore, segnate da un pu
 
 Le immagini stanno in `assets/`, anche in sottocartelle, nei formati SVG, PNG, WebP e JPG. Ovunque si indichi un'immagine basta il nome del file, senza cartella né estensione. Se due file hanno lo stesso nome (per esempio `spada.png` e `spada.svg`) l'app lo segnala e chiede di aggiungere l'estensione o la cartella.
 
-Il pulsante con l'immagine accanto ai campi apre le miniature degli asset, con ricerca e filtro per cartella. **Aggiungi immagini…** copia file dal computer in `assets/images` del progetto (un file con lo stesso nome non viene sovrascritto: la copia prende un numero). **Sfondo scuro** mostra le miniature su fondo scuro, per vedere le icone bianche; la scelta viene ricordata.
+Il pulsante con l'immagine accanto ai campi apre le miniature degli asset, con ricerca e filtro per cartella. **Aggiungi immagini…** copia file dal computer in `assets/images` del progetto (un file con lo stesso nome non viene sovrascritto: la copia prende un numero). Lo sfondo delle miniature si sceglie tra **Nessuno sfondo** (a scacchi, mostra la trasparenza), **Chiaro** e **Scuro** (per vedere le icone bianche); la scelta vale per tutte le finestre con le miniature e viene ricordata.
 
 **Da internet…** prende un'immagine da un indirizzo (PNG, JPG, WebP o SVG) in due modi:
 
@@ -711,6 +713,12 @@ Il pulsante con l'immagine accanto ai campi apre le miniature degli asset, con r
 Nell'app web si scaricano solo le immagini dei siti che lo permettono; per gli altri conviene salvare l'immagine sul computer e usare **Aggiungi immagini…**.
 
 ![La scelta di un'immagine](img/scegli-immagine.png)
+
+**Progetto ▾ › Immagini del progetto…**, o **Gestisci…** nella scelta delle immagini, mostra tutte le immagini con sotto dove sono usate. In alto si filtrano: **Nei template** (scritte in un template), **Solo nei set** (le sceglie una colonna o una formula delle carte), **Nei documenti** e **Non usate**. **Mostra raggruppate per** le divide per cartella o per template: cambia solo la vista, i file restano dove sono. Selezionando un'immagine si vede a destra in quali template, set, documenti e variabili compare.
+
+- Per eliminare, seleziona una o più immagini (⌘/Ctrl+clic, ⇧+clic o un rettangolo trascinato da uno spazio vuoto) e premi **Elimina** o Canc / ⌫. Se un'immagine è ancora usata l'app lo dice prima. Le immagini eliminate vanno nel cestino del progetto (**Progetto ▾ › Cestino…**), da cui si rimettono al loro posto.
+- **Sposta in cartella…** mette le immagini in una cartella di `assets`, già esistente o nuova, anche dentro un'altra (`images/Eroi`). Le carte continuano a trovarle, perché basta il nome; i riferimenti scritti con la cartella si aggiornano da soli.
+- **Crea cartelle per template…** propone di mettere in una cartella con il nome del template le immagini che usa solo quel template, e prima di spostarle dice quante sono e dove vanno.
 
 Le icone a un colore (SVG nere su fondo trasparente) si ricolorano con la proprietà **Colorazione** del livello o con la tinta della variabile. La colorazione si stende sopra l'immagine: un colore pieno la ricolora del tutto, un colore semitrasparente la tinge solo in parte. Per esempio nero al 20% (`#00000033`) scurisce un bosco, e l'immagine resta opaca.
 

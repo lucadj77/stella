@@ -232,7 +232,9 @@ The ⋯ button next to the name of the open set or template opens a menu to rena
 
 Renaming a set also renames its sheet in the data file. If the sheet is already in the file, Stella asks first, because formulas in other sheets that refer to it would break. Renaming a template renames its file, and the new name goes into the sets, derived templates and `template` column of the components that use it. Files are renamed when you save.
 
-**Deleting and restoring.** A deleted template goes to the project's `deleted` folder. The sheet of a deleted set also leaves the data file when you save and goes to `deleted` as a file of its own, so its name is free again. **Trash…**, in the **Project** menu, lists what is in `deleted` (templates, sets, notes and documents, newest first). **Restore** puts an item back in the project: a set gets the template you choose (Stella proposes the one with most columns in common), a name already taken gets a number. Restored templates and sets leave the trash when you save.
+**Deleting and restoring.** A deleted template goes to the project's `deleted` folder. The sheet of a deleted set also leaves the data file when you save and goes to `deleted` as a file of its own, so its name is free again. **Trash…**, in the **Project** menu, lists what is in `deleted` (templates, sets, notes, documents and images, newest first). **Restore** puts an item back in the project: a set gets the template you choose (Stella proposes the one with most columns in common), a name already taken gets a number. Restored templates and sets leave the trash when you save; images go straight back to their place in `assets`.
+
+**Taking templates and sets to another project.** **Export package…**, in the menu of a template or a set (right click or ⋯), saves a ZIP file with everything needed: the template (and its base, if it is derived), for a set also the cards, the images and fonts they use, the variables and styles they refer to. In the other project **Project ▾ › Import package…** shows what the package contains. If something with the same name is already there but different, choose what to do: keep both (the new one gets a number, "Hero 2"), replace the project's or keep the project's. Identical things are not asked about. Before importing Stella makes a backup; the result is saved like any other change.
 
 **Styles and variables.** Their headings show how many items they hold: with more than six items the section starts closed, and Stella remembers for each project whether you opened or closed it. They can be split into groups with the **Group** field of their window: the items of a group sit under its heading, which closes and opens with a click, after the items without a group. An item dragged onto a group heading joins that group; dragged onto another item, it takes that item's group (or none). With more than 12 items, a field above the list filters them by name. In the window of a style or variable, **Where it is used** lists the templates (with their layers), the sets (with component numbers) and the other variables and styles that refer to it; clicking a template or set opens it.
 
@@ -699,7 +701,7 @@ Below are the project colors: first the color variables, marked by a dot in the 
 
 Images live in `assets/`, subfolders included, as SVG, PNG, WebP or JPG. Wherever you name an image, the file name is enough, without folder or extension. If two files share a name (for example `sword.png` and `sword.svg`) the app says so and asks you to add the extension or the folder.
 
-The image button next to the fields opens thumbnails of the assets, with search and a folder filter. **Add images…** copies files from the computer into the project's `assets/images` (a file with the same name is not overwritten: the copy gets a number). **Dark background** shows the thumbnails on a dark background, to see white icons; the choice is remembered.
+The image button next to the fields opens thumbnails of the assets, with search and a folder filter. **Add images…** copies files from the computer into the project's `assets/images` (a file with the same name is not overwritten: the copy gets a number). The thumbnail background is **No background** (checkered, shows the transparency), **Light** or **Dark** (to see white icons); the choice applies to every window with thumbnails and is remembered.
 
 **From the internet…** takes an image from an address (PNG, JPG, WebP or SVG) in two ways:
 
@@ -711,6 +713,12 @@ The image button next to the fields opens thumbnails of the assets, with search 
 In the web app only images from sites that allow it can be downloaded; for the others, save the image on the computer and use **Add images…**.
 
 ![Choosing an image](img/scegli-immagine.png)
+
+**Project ▾ › Project images…**, or **Manage…** in the image chooser, shows every image with where it is used below it. At the top you filter them: **In templates** (written in a template), **Only in sets** (a column or a formula of the cards chooses them), **In documents** and **Unused**. **Show grouped by** splits them by folder or by template: only the view changes, the files stay where they are. Select an image to see on the right which templates, sets, documents and variables use it.
+
+- To delete, select one or more images (⌘/Ctrl+click, ⇧+click or a rectangle dragged from an empty spot) and press **Delete** or Del / ⌫. If an image is still used the app tells you first. Deleted images go to the project trash (**Project ▾ › Trash…**), from where you put them back.
+- **Move to folder…** puts the images in a folder of `assets`, existing or new, also inside another one (`images/Heroes`). Cards keep finding them, because the name is enough; references written with the folder are updated by themselves.
+- **Make template folders…** offers to put the images that only one template uses in a folder named after the template, and tells you how many and where before moving them.
 
 Single-color icons (black SVGs on a transparent background) are recolored with the layer's **Tint** property or with the variable's tint. The tint is laid over the image: a solid color recolors it completely, a semi-transparent one tints it only partly. For example black at 20% (`#00000033`) darkens a forest, and the image stays opaque.
 

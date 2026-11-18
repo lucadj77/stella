@@ -22,9 +22,11 @@ import MarkupText from '../render/MarkupText'
 import IconBrowser from './IconBrowser'
 import UrlImageDialog from './UrlImageDialog'
 import QrDialog from './QrDialog'
+import ThumbBackgroundSwitch from './ThumbBackgroundSwitch'
+import { thumbClass, useThumbBackground } from './thumbBackground'
+import { canOpenImagesDialog, openImagesDialog } from './imagesDialogOpen'
 
 const SIZE_KEY = 'assetPickerSize'
-const DARK_KEY = 'assetPickerDark'
 
 function loadSize(): number {
   try {
@@ -68,22 +70,7 @@ export default function AssetPicker({
   const [busy, setBusy] = useState(false)
   const sources = useContext(SourcesContext)
   const [error, setError] = useState<Message | null>(null)
-  // le icone bianche su sfondo chiaro non si vedono
-  const [dark, setDarkState] = useState(() => {
-    try {
-      return localStorage.getItem(DARK_KEY) === '1'
-    } catch {
-      return false
-    }
-  })
-  const setDark = (on: boolean): void => {
-    setDarkState(on)
-    try {
-      localStorage.setItem(DARK_KEY, on ? '1' : '0')
-    } catch {
-      // preferenza non essenziale
-    }
-  }
+  const [bg, setBg] = useThumbBackground()
   const setSize = (n: number): void => {
     setSizeState(n)
     try {
@@ -95,7 +82,16 @@ export default function AssetPicker({
 
   const images = useMemo(() => assets.filter(isImageAsset), [assets])
   const folders = useMemo(
-    () => [...new Set(images.filter((a) => a.includes('/')).map((a) => a.split('/')[0]))].sort(),
+    // tutte le cartelle, anche quelle dentro le altre (images/Eroi): ognuna mostra anche le sue
+    () =>
+      [
+        ...new Set(
+          images.flatMap((a) => {
+            const parts = a.split('/').slice(0, -1)
+            return parts.map((_, i) => parts.slice(0, i + 1).join('/'))
+          })
+        )
+      ].sort(),
     [images]
   )
   const current = useMemo(() => {
@@ -212,9 +208,7 @@ export default function AssetPicker({
             title={t('assetPicker.size')}
             onChange={(e) => setSize(Number(e.target.value))}
           />
-          <button className={dark ? 'small-btn on' : 'small-btn'} onClick={() => setDark(!dark)}>
-            {t('icons.darkBackground')}
-          </button>
+          <ThumbBackgroundSwitch value={bg} onChange={setBg} />
           <button onClick={addImages} title={t('assetPicker.addImagesHint')}>
             {t('assetPicker.addImages')}
           </button>
@@ -225,6 +219,17 @@ export default function AssetPicker({
           <button onClick={() => setQr(true)} title={t('assetPicker.qrHint')}>
             {t('assetPicker.qr')}
           </button>
+          {canOpenImagesDialog() && (
+            <button
+              onClick={() => {
+                onClose()
+                openImagesDialog()
+              }}
+              title={t('images.menuHint')}
+            >
+              {t('images.manage')}
+            </button>
+          )}
         </div>
         {error && <div className="banner error">{t(error)}</div>}
         {link && (
@@ -255,7 +260,7 @@ export default function AssetPicker({
           <p className="muted">{t('assetPicker.noMatch')}</p>
         ) : (
           <div
-            className={dark ? 'asset-grid dark' : 'asset-grid'}
+            className={'asset-grid' + thumbClass(bg)}
             style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${size}px, 1fr))` }}
           >
             {shapes.length > 0 && <h3 className="asset-grid-title">{t('assetPicker.shapes')}</h3>}

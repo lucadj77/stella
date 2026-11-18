@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { licenseClass, tintSvg, type IconifySet, type LicenseClass } from '../../../shared/iconify'
 import { fuzzyScore } from '../../../shared/model/fuzzy'
 import { messageFromError, type Message } from '../../../shared/messages'
+import { thumbClass, type ThumbBackground } from './thumbBackground'
 import { useI18n } from '../i18n/context'
 
 // Collezioni di Iconify nella finestra delle icone: elenco delle collezioni con la licenza a
@@ -50,13 +51,13 @@ const licenseBadge = (c: LicenseClass): string =>
 export default function IconifyPane({
   query,
   tint,
-  dark,
+  background,
   chosen,
   onToggle
 }: {
   query: string
   tint: string
-  dark: boolean
+  background: ThumbBackground
   /** id "prefisso:nome" delle icone scelte */
   chosen: Set<string>
   onToggle(icon: IconifyIcon): void
@@ -263,7 +264,7 @@ export default function IconifyPane({
         {sets && !query.trim() && !prefix && <p className="muted">{t('iconify.hint')}</p>}
         {current && ids.length === 0 && <p className="muted">{t('assetPicker.noMatch')}</p>}
         <div
-          className={dark ? 'asset-grid icon-grid dark' : 'asset-grid icon-grid'}
+          className={'asset-grid icon-grid' + thumbClass(background)}
           style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(76px, 1fr))' }}
         >
           {visible.map((id) => {

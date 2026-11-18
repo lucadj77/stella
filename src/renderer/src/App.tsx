@@ -13,6 +13,12 @@ import { colorKeys, keyColor, keyOf, type ColorKey } from '../../shared/model/se
 import SplitImageDialog from './components/SplitImageDialog'
 import GoogleSheetsDialog, { type SheetImport } from './components/GoogleSheetsDialog'
 import TrashDialog from './components/TrashDialog'
+import ImagesDialog from './components/ImagesDialog'
+import ImportPackageDialog from './package/ImportPackageDialog'
+import { exportPackage, openPackage, type OpenedPackage } from './package/packageZip'
+import { planImport, type ConflictChoice } from '../../shared/model/package'
+import { onOpenImagesDialog } from './components/imagesDialogOpen'
+import { movedRefs, retargetImageRefs } from '../../shared/model/imageUsage'
 import CompareDialog, { type CompareBase } from './components/CompareDialog'
 import {
   isRandomSpec,
@@ -162,6 +168,7 @@ import {
   VariablesContext,
   assetUrl,
   onAssetsUpdate,
+  publishAssetsUpdate,
   SourcesContext,
   useBindContext
 } from './render/assets'
@@ -405,6 +412,9 @@ function App(): React.JSX.Element {
   const [exportedIn, setExportedIn] = useState<string | null>(null)
   const [backingUp, setBackingUp] = useState(false)
   const [trashOpen, setTrashOpen] = useState(false)
+  const [imagesOpen, setImagesOpen] = useState(false)
+  const [importingPackage, setImportingPackage] = useState<OpenedPackage | null>(null)
+  useEffect(() => onOpenImagesDialog(() => setImagesOpen(true)), [])
   const [sheetsOpen, setSheetsOpen] = useState(false)
   const [languagesOpen, setLanguagesOpen] = useState(false)
   const [infoOpen, setInfoOpen] = useState(false)
@@ -1391,6 +1401,221 @@ function App(): React.JSX.Element {
     if (variablesChanged) setFileDirty(true)
     return r.count
   }
+  /**
+   * Dopo lo spostamento di immagini in un'altra cartella: i riferimenti scritti con la cartella
+   * (images/spada) si aggiornano; quelli con il solo nome continuano a funzionare. Si annulla con
+   * ⌘Z come le altre modifiche, ma i file restano dove sono.
+   */
+  const retargetImages = (moves: { from: string; to: string }[]): void => {
+    if (!project) return
+    for (const d of project.documents ?? []) documents.flush(d.name)
+    const docs = project.documents ?? []
+    const r = retargetImageRefs(
+      {
+        templates: project.templates,
+        sets: project.sets,
+        documents: docs,
+        variables: project.file.variables ?? {},
+        styles: project.file.styles ?? {},
+        cover: project.file.cover
+      },
+      movedRefs(moves)
+    )
+    if (!r.count) return
+    r.documents.forEach((d, i) => d !== docs[i] && documents.change(d.name, d.text))
+    const fileChanged =
+      r.variables !== (project.file.variables ?? {}) ||
+      r.styles !== (project.file.styles ?? {}) ||
+      r.cover !== project.file.cover
+    if (r.sets === project.sets && r.templates === project.templates && !fileChanged) return
+    const synced = syncDerived(project.templates, r.templates)
+    setHistory((h) => ({
+      past: [
+        ...h.past.slice(-99),
+        {
+          sets: project.sets,
+          file: project.file,
+          templates: r.templates !== project.templates ? project.templates : undefined
+        }
+      ],
+      future: [],
+      at: 0
+    }))
+    setProject(
+      (p) =>
+        p && {
+          ...p,
+          sets: r.sets,
+          templates: synced.templates,
+          file: fileChanged
+            ? { ...p.file, variables: r.variables, styles: r.styles, cover: r.cover }
+            : p.file
+        }
+    )
+    const sheets = r.sets.flatMap((x, i) =>
+      x.data && x.data !== project.sets[i].data ? [x.data.name] : []
+    )
+    if (sheets.length) setDirtySheets((d) => new Set([...d, ...sheets]))
+    const templates = r.templates
+      .filter((x, i) => x !== project.templates[i])
+      .map((x) => x.name)
+      .concat(synced.changed)
+    if (templates.length) {
+      setDirty((d) => new Set([...d, ...templates]))
+      setEditorRev((v) => v + 1)
+    }
+    if (fileChanged) setFileDirty(true)
+  }
+  /** Pacchetto di un template o di un set (ZIP con immagini, font, variabili e stili) */
+  const savePackage = async (kind: 'template' | 'set', name: string): Promise<void> => {
+    if (!project) return
+    try {
+      const r = await exportPackage(project, { kind, name })
+      if (r)
+        await showNotice(
+          t,
+          t('package.saved', { name }),
+          t('package.savedDetail', {
+            file: r.path,
+            templates: r.manifest.templates.length,
+            files: r.manifest.assets.length
+          })
+        )
+    } catch (e) {
+      setError(messageFromError(e))
+    }
+  }
+
+  const chooseImportPackage = async (): Promise<void> => {
+    if (!project) return
+    try {
+      const opened = await openPackage(project)
+      if (opened) setImportingPackage(opened)
+    } catch (e) {
+      setError(messageFromError(e))
+    }
+  }
+
+  /**
+   * Mette nel progetto il contenuto del pacchetto, con le scelte per quello che c'era già: prima
+   * un backup; file subito su disco, template, set, variabili e stili come modifiche da salvare
+   */
+  const importPackage = async (
+    opened: OpenedPackage,
+    choices: Record<string, ConflictChoice>
+  ): Promise<void> => {
+    if (!project) return
+    const plan = planImport(
+      opened.manifest,
+      {
+        templates: project.templates,
+        sets: project.sets,
+        assets: project.assets,
+        variables: project.file.variables ?? {},
+        styles: project.file.styles ?? {}
+      },
+      opened.conflicts,
+      choices
+    )
+    if (plan.sets.length) {
+      if (dataLocked()) return
+      if (project.file.dataFile.toLowerCase().endsWith('.csv')) {
+        setError({ key: 'save.csvOneSheet' })
+        return
+      }
+    }
+    setImportingPackage(null)
+    try {
+      await window.api.createBackup(t('package.backupLabel', { name: opened.manifest.name }))
+      if (plan.files.length)
+        publishAssetsUpdate(
+          await window.api.writeAssetFiles(
+            plan.files.map((f) => ({ path: f.to, data: opened.files.get(f.from)! })),
+            plan.files.flatMap((f) => (f.replaces ? [f.replaces] : [])),
+            plan.sources
+          )
+        )
+    } catch (e) {
+      setError(messageFromError(e))
+      return
+    }
+    const added = plan.templates.map((x) => {
+      const tpl = normalizeTemplate(x.raw)
+      const old = project.templates.find((o) => o.name === tpl.name)
+      return old?.file ? { ...tpl, file: old.file } : tpl
+    })
+    const names = new Set(added.map((x) => x.name))
+    const templatesChanged = added.length > 0
+    let sets = project.sets
+    let defs = project.file.sets
+    for (const { set, replace } of plan.sets) {
+      const def = { ...set.definition }
+      const data: Sheet = { name: def.name, headers: set.sheet.headers, rows: set.sheet.rows }
+      const i = replace ? sets.findIndex((x) => x.name === def.name) : -1
+      if (i >= 0) {
+        sets = sets.map((x, j) =>
+          j === i ? { ...def, data: { ...data, origin: x.data?.origin } } : x
+        )
+        defs = defs.map((x) => (x.name === def.name ? def : x))
+      } else {
+        sets = [...sets, { ...def, data }]
+        defs = [...defs, def]
+      }
+    }
+    const varsChanged = Object.keys(plan.variables).length > 0
+    const stylesChanged = Object.keys(plan.styles).length > 0
+    const fileChanged = plan.sets.length > 0 || varsChanged || stylesChanged
+    setHistory((h) => ({
+      past: [
+        ...h.past.slice(-99),
+        {
+          sets: project.sets,
+          file: project.file,
+          templates: templatesChanged ? project.templates : undefined
+        }
+      ],
+      future: [],
+      at: 0
+    }))
+    setProject(
+      (p) =>
+        p && {
+          ...p,
+          sets,
+          templates: templatesChanged
+            ? resolveTemplates([...p.templates.filter((x) => !names.has(x.name)), ...added])
+                .templates
+            : p.templates,
+          file: fileChanged
+            ? {
+                ...p.file,
+                sets: defs,
+                variables: { ...(p.file.variables ?? {}), ...plan.variables },
+                styles: { ...(p.file.styles ?? {}), ...plan.styles }
+              }
+            : p.file
+        }
+    )
+    if (templatesChanged) {
+      setDirty((d) => new Set([...d, ...names]))
+      setEditorRev((v) => v + 1)
+    }
+    if (plan.sets.length)
+      setDirtySheets((d) => new Set([...d, ...plan.sets.map((x) => x.set.definition.name)]))
+    if (fileChanged) setFileDirty(true)
+    if (plan.sets.length) {
+      const first = plan.sets[0].set.definition.name
+      const i = sets.findIndex((x) => x.name === first)
+      if (i >= 0) setSelected({ kind: 'set', index: i })
+    } else if (added.length) setSelected({ kind: 'template', name: added[added.length - 1].name })
+    if (plan.renamed.length)
+      await showNotice(
+        t,
+        t('package.renamedTitle'),
+        plan.renamed.map((r) => `${r.from} → ${r.to}`).join(', ')
+      )
+  }
+
   /** Apre il punto di un risultato del cerca nel progetto */
   const openFound = (place: FindPlace): void => {
     setFindingAll(false)
@@ -2656,6 +2881,11 @@ function App(): React.JSX.Element {
       title: t('tip.duplicateSet'),
       onClick: () => setDuplicating({ kind: 'set', index })
     },
+    {
+      label: t('package.exportMenu'),
+      title: t('package.exportSetHint'),
+      onClick: () => project && void savePackage('set', project.sets[index].name)
+    },
     'sep',
     {
       label: t('sidebar.delete'),
@@ -2679,6 +2909,11 @@ function App(): React.JSX.Element {
       label: t('inherit.deriveShort'),
       title: t('inherit.derive'),
       onClick: () => setDeriving(name)
+    },
+    {
+      label: t('package.exportMenu'),
+      title: t('package.exportTemplateHint'),
+      onClick: () => void savePackage('template', name)
     },
     'sep',
     {
@@ -2731,7 +2966,13 @@ function App(): React.JSX.Element {
     { label: t('findAll.menu'), title: t('findAll.menuHint'), onClick: () => setFindingAll(true) },
     'sep',
     { label: t('app.backup'), title: t('tip.backup'), onClick: () => setBackingUp(true) },
+    { label: t('images.menu'), title: t('images.menuHint'), onClick: () => setImagesOpen(true) },
     { label: t('app.trash'), title: t('tip.trash'), onClick: () => setTrashOpen(true) },
+    {
+      label: t('package.importMenu'),
+      title: t('package.importHint'),
+      onClick: () => void chooseImportPackage()
+    },
     {
       label: t('app.googleSheets'),
       title: t('tip.googleSheets'),
@@ -2771,6 +3012,8 @@ function App(): React.JSX.Element {
     backup: () => setBackingUp(true),
     findAll: () => project && setFindingAll(true),
     trash: () => setTrashOpen(true),
+    images: () => project && setImagesOpen(true),
+    importPackage: () => void chooseImportPackage(),
     sheets: () => setSheetsOpen(true),
     languages: () => setLanguagesOpen(true),
     projectInfo: () => project && setInfoOpen(true),
@@ -2829,7 +3072,9 @@ function App(): React.JSX.Element {
           { id: 'projectInfo', label: t('projectInfo.menu'), enabled: hasProject },
           sep,
           { id: 'backup', label: t('app.backup'), enabled: hasProject },
+          { id: 'images', label: t('images.menu'), enabled: hasProject },
           { id: 'trash', label: t('app.trash'), enabled: hasProject },
+          { id: 'importPackage', label: t('package.importMenu'), enabled: hasProject },
           { id: 'sheets', label: t('app.googleSheets'), enabled: hasProject },
           { id: 'languages', label: t('app.languages'), enabled: hasProject },
           sep,
@@ -3570,6 +3815,20 @@ function App(): React.JSX.Element {
                           project={project}
                           onImport={importGoogleSheet}
                           onClose={() => setSheetsOpen(false)}
+                        />
+                      )}
+                      {imagesOpen && project && (
+                        <ImagesDialog
+                          project={project}
+                          onMoved={retargetImages}
+                          onClose={() => setImagesOpen(false)}
+                        />
+                      )}
+                      {importingPackage && project && (
+                        <ImportPackageDialog
+                          opened={importingPackage}
+                          onImport={(choices) => void importPackage(importingPackage, choices)}
+                          onClose={() => setImportingPackage(null)}
                         />
                       )}
                       {trashOpen && project && (
