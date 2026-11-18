@@ -1,4 +1,4 @@
-import { useContext, useMemo } from 'react'
+import { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { findOption } from '../../../shared/model/template'
 import type { ListColumn } from '../../../shared/model/sheet'
 import { palette, resolveColor } from '../../../shared/model/variables'
@@ -27,6 +27,23 @@ export default function ListChoice({
   const { t } = useI18n()
   const variables = useContext(VariablesContext)
   const pal = useMemo(() => palette(variables), [variables])
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const boxRef = useRef<HTMLSpanElement>(null)
+  // un clic fuori chiude il menu
+  useEffect(() => {
+    if (!open) return
+    const down = (e: MouseEvent): void => {
+      if (!boxRef.current?.contains(e.target as Node)) {
+        setOpen(false)
+        setQuery('')
+      }
+    }
+    // il menu aperto in fondo al pannello si porta in vista
+    boxRef.current?.querySelector('.list-popover')?.scrollIntoView({ block: 'nearest' })
+    document.addEventListener('mousedown', down)
+    return () => document.removeEventListener('mousedown', down)
+  }, [open])
   const own = value?.trim() ?? ''
   const picked = own ? findOption(list.options, own) : undefined
   const outside = own && !picked ? own : null
@@ -83,11 +100,91 @@ export default function ListChoice({
       </button>
     )
   }
+  const warn = outside && (
+    <span className="small warn">{t('list.notInList', { value: outside })}</span>
+  )
+  // poche voci: tutte le miniature; tante: la scelta attuale e un menu con la ricerca
+  if (list.options.length <= MAX_TILES)
+    return (
+      <span className="list-choice tiles">
+        {tile(fallback, 'tpl')}
+        {list.options.map((o, i) => tile(o, i))}
+        {warn}
+      </span>
+    )
+  const q = query.trim().toLowerCase()
+  const shown = list.options
+    .map((o, i) => [o, i] as const)
+    .filter(([o]) => !q || o.toLowerCase().includes(q))
+  const close = (): void => {
+    setOpen(false)
+    setQuery('')
+  }
   return (
-    <span className="list-choice tiles">
-      {tile(fallback, 'tpl')}
-      {list.options.map((o, i) => tile(o, i))}
-      {outside && <span className="small warn">{t('list.notInList', { value: outside })}</span>}
+    <span className="list-choice menu" ref={boxRef}>
+      <button
+        type="button"
+        className="list-current"
+        data-column={column}
+        aria-expanded={open}
+        onClick={(e) => {
+          e.preventDefault()
+          setOpen(!open)
+        }}
+      >
+        {list.type === 'image' ? (
+          <OptionThumb name={picked ?? (own || fallback)} />
+        ) : (
+          <span
+            className="list-swatch"
+            style={{ background: resolveColor(picked ?? (own || fallback), pal) }}
+          />
+        )}
+        <span className="list-current-name">
+          {value === null
+            ? t('cardForm.mixed')
+            : own
+              ? own
+              : t('list.fromTemplate', { value: fallback })}
+        </span>
+        <span aria-hidden="true">▾</span>
+      </button>
+      {warn}
+      {open && (
+        <span
+          className="list-popover"
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              e.preventDefault()
+              e.stopPropagation()
+              close()
+            }
+          }}
+        >
+          <input
+            type="search"
+            autoFocus
+            placeholder={t('list.search', { n: String(list.options.length) })}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && shown.length) {
+                e.preventDefault()
+                onChange(shown[0][0])
+                close()
+              }
+            }}
+          />
+          <span className="list-popover-grid" onClick={close}>
+            {!q && tile(fallback, 'tpl')}
+            {shown.map(([o, i]) => tile(o, i))}
+            {!shown.length && <span className="small muted">{t('list.noMatch')}</span>}
+          </span>
+        </span>
+      )}
     </span>
   )
 }
+
+/** Oltre queste voci il campo mostra la scelta attuale e apre un menu con la ricerca */
+const MAX_TILES = 8

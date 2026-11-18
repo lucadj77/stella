@@ -9890,3 +9890,62 @@ button.wide {
 .data-table .cell-select {
   width: 100%;
 }
+
+/* elenco con tante voci: la scelta attuale e un menu con la ricerca */
+.list-choice.menu {
+  position: relative;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.list-current {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 3px 8px 3px 3px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.list-current .list-swatch {
+  width: 32px;
+  height: 24px;
+}
+
+.list-current-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list-popover {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.list-popover-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+}

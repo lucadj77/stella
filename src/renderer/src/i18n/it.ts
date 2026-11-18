@@ -803,6 +803,8 @@ export const it: Record<MessageKey, string> = {
   'source.defaultNotInList':
     "Il valore del template «{value}» non è nell'elenco: scegli una voce con il pallino.",
   'list.fromTemplate': 'Valore del template ({value})',
+  'list.search': 'Cerca tra {n} voci',
+  'list.noMatch': 'Nessuna voce corrisponde',
   'list.template': 'Template',
   'list.notInList': "«{value}» non è nell'elenco",
   'source.valueColumn': 'Nessun foglio ha una colonna “{column}”: vale il valore qui sotto.',
