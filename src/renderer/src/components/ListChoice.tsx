@@ -47,7 +47,10 @@ export default function ListChoice({
   const own = value?.trim() ?? ''
   const picked = own ? findOption(list.options, own) : undefined
   const outside = own && !picked ? own : null
-  const fallback = findOption(list.options, list.fallback) ?? list.fallback
+  // la voce del template: scelta, lascia la cella vuota. Una casella «Template» a parte serve
+  // solo se il valore del template non è tra le voci
+  const base = findOption(list.options, list.fallback)
+  const fallback = base ?? list.fallback
   const label = (o: string): string => plainText(o).replace(/\s+/g, ' ').trim() || '∅'
 
   if (list.type === 'text' || list.type === 'value')
@@ -56,7 +59,7 @@ export default function ListChoice({
         <select
           data-column={column}
           className={own ? undefined : 'from-template'}
-          value={value === null ? '\u0000' : (picked ?? own)}
+          value={value === null ? '\u0000' : picked === base ? '' : (picked ?? own)}
           onChange={(e) => onChange(e.target.value)}
         >
           {value === null && (
@@ -64,10 +67,12 @@ export default function ListChoice({
               {t('cardForm.mixed')}
             </option>
           )}
-          <option value="">{t('list.fromTemplate', { value: label(list.fallback) })}</option>
+          {!base && (
+            <option value="">{t('list.fromTemplate', { value: label(list.fallback) })}</option>
+          )}
           {list.options.map((o, i) => (
-            <option key={i} value={o}>
-              {label(o)}
+            <option key={i} value={o === base ? '' : o}>
+              {o === base ? t('list.baseOption', { value: label(o) }) : label(o)}
             </option>
           ))}
           {outside && <option value={outside}>{t('list.notInList', { value: outside })}</option>}
@@ -77,18 +82,19 @@ export default function ListChoice({
 
   const tile = (o: string, i: number | 'tpl'): React.JSX.Element => {
     const isTpl = i === 'tpl'
-    const on = value !== null && (isTpl ? !own : picked === o)
+    const isBase = isTpl || o === base
+    const on = value !== null && (isBase ? !own || picked === o : picked === o)
     return (
       <button
         key={i}
         type="button"
-        className={'list-tile' + (on ? ' on' : '') + (isTpl ? ' tpl' : '')}
+        className={'list-tile' + (on ? ' on' : '') + (isBase ? ' base' : '')}
         aria-pressed={on}
-        title={isTpl ? t('list.fromTemplate', { value: o }) : o}
+        title={isBase ? t('list.fromTemplate', { value: o }) : o}
         data-column={i === 0 ? column : undefined}
         onClick={(e) => {
           e.preventDefault()
-          onChange(isTpl ? '' : o)
+          onChange(isBase ? '' : o)
         }}
       >
         {list.type === 'image' ? (
@@ -97,6 +103,7 @@ export default function ListChoice({
           <span className="list-swatch" style={{ background: resolveColor(o, pal) }} />
         )}
         <span className="list-tile-name">{isTpl ? t('list.template') : o}</span>
+        {isBase && !isTpl && <span className="list-base">{t('list.base')}</span>}
       </button>
     )
   }
@@ -107,7 +114,7 @@ export default function ListChoice({
   if (list.options.length <= MAX_TILES)
     return (
       <span className="list-choice tiles">
-        {tile(fallback, 'tpl')}
+        {!base && tile(fallback, 'tpl')}
         {list.options.map((o, i) => tile(o, i))}
         {warn}
       </span>
@@ -145,7 +152,9 @@ export default function ListChoice({
             ? t('cardForm.mixed')
             : own
               ? own
-              : t('list.fromTemplate', { value: fallback })}
+              : base
+                ? t('list.baseOption', { value: base })
+                : t('list.fromTemplate', { value: fallback })}
         </span>
         <span aria-hidden="true">▾</span>
       </button>
@@ -176,7 +185,7 @@ export default function ListChoice({
             }}
           />
           <span className="list-popover-grid" onClick={close}>
-            {!q && tile(fallback, 'tpl')}
+            {!q && !base && tile(fallback, 'tpl')}
             {shown.map(([o, i]) => tile(o, i))}
             {!shown.length && <span className="small muted">{t('list.noMatch')}</span>}
           </span>

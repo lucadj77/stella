@@ -797,6 +797,8 @@ export const en = {
   'list.fromTemplate': 'Template value ({value})',
   'list.search': 'Search among {n} choices',
   'list.noMatch': 'No choice matches',
+  'list.base': 'default',
+  'list.baseOption': '{value} (default)',
   'list.template': 'Template',
   'list.notInList': '“{value}” is not in the list',
   'source.valueColumn': 'No sheet has a column “{column}”: the value below is used.',

@@ -9862,9 +9862,10 @@ button.wide {
   background: var(--accent-soft);
 }
 
-.list-tile.tpl .option-thumb,
-.list-tile.tpl .list-swatch {
-  opacity: 0.6;
+.list-base {
+  font-size: 10px;
+  line-height: 1;
+  color: var(--muted);
 }
 
 .list-tile-name {

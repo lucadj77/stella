@@ -496,12 +496,13 @@ function CellSelect({
   useEffect(() => ref.current?.focus(), [])
   const own = value.trim()
   const picked = own ? findOption(list.options, own) : undefined
+  const base = findOption(list.options, list.fallback)
   const label = (o: string): string => plainText(o).replace(/\s+/g, ' ').trim() || '∅'
   return (
     <select
       ref={ref}
       className="cell-editor cell-select"
-      value={picked ?? own}
+      value={picked === base ? '' : (picked ?? own)}
       onChange={(e) => onChange(e.target.value)}
       onBlur={() => onDone('blur')}
       onKeyDown={(e) => {
@@ -518,10 +519,10 @@ function CellSelect({
         }
       }}
     >
-      <option value="">{t('list.fromTemplate', { value: label(list.fallback) })}</option>
+      {!base && <option value="">{t('list.fromTemplate', { value: label(list.fallback) })}</option>}
       {list.options.map((o, i) => (
-        <option key={i} value={o}>
-          {label(o)}
+        <option key={i} value={o === base ? '' : o}>
+          {o === base ? t('list.baseOption', { value: label(o) }) : label(o)}
         </option>
       ))}
       {own && !picked && <option value={own}>{t('list.notInList', { value: own })}</option>}

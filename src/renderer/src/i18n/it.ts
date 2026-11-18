@@ -805,6 +805,8 @@ export const it: Record<MessageKey, string> = {
   'list.fromTemplate': 'Valore del template ({value})',
   'list.search': 'Cerca tra {n} voci',
   'list.noMatch': 'Nessuna voce corrisponde',
+  'list.base': 'di base',
+  'list.baseOption': '{value} (di base)',
   'list.template': 'Template',
   'list.notInList': "«{value}» non è nell'elenco",
   'source.valueColumn': 'Nessun foglio ha una colonna “{column}”: vale il valore qui sotto.',
