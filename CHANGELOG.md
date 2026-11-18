@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.12.1-beta.1
+
+### English
+
+- **Set preview fits the component**: a board or any other wide component is scaled down to fit the preview panel instead of being cut at the sides; a tall, narrow one stays within the window. Cards keep their usual size.
+
+### Italiano
+
+- **L'anteprima del set si adatta al componente**: una plancia o un altro componente largo viene ridotto per entrare nel pannello dell'anteprima invece di essere tagliato ai lati; uno alto e stretto resta dentro la finestra. Le carte mantengono la solita misura.
+
 ## 1.12.0
 
 ### English
