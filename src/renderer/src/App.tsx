@@ -68,6 +68,7 @@ import type { Bounds } from '../../shared/model/edit'
 import {
   addColumn,
   booleanColumns,
+  listColumns,
   duplicateRows,
   insertRow,
   isValidSheetName,
@@ -4296,6 +4297,8 @@ function SetView({
     () => (set.data ? booleanColumns(set.data, template) : new Map<string, boolean | null>()),
     [set.data, template]
   )
+  // colonne con l'elenco del livello: in tabella si scelgono da una tendina
+  const lists = useMemo(() => (template ? listColumns(template) : undefined), [template])
   // valori dei livelli fissi e con formula, solo quando si mostrano
   const showsComputed = columns.some((c) => c.computed)
   const computedRows = useMemo(
@@ -5047,6 +5050,7 @@ function SetView({
             sheet={sheet}
             columns={columns}
             booleans={booleans}
+            lists={lists}
             computed={computed}
             selected={selection}
             onSelect={setSelection}

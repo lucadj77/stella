@@ -3,7 +3,7 @@ import { isImageAsset, resolveAsset } from './assets'
 import { bindRow } from './bind'
 import { parseAttrs, parseMarkup, type Attrs, type Inline } from './markup'
 import { walkLayers } from './normalize'
-import type { Layer, Template } from './template'
+import { listOptions, type Layer, type Template } from './template'
 import { imageVariable, type Variables } from './variables'
 
 // Dove è usata ogni immagine di assets/: nei template (valore fisso dei livelli), nelle carte dei
@@ -112,8 +112,12 @@ export function imageUsages(p: UsageProject): Map<string, ImageUsage> {
     return names
   }
 
-  for (const t of p.templates)
+  for (const t of p.templates) {
     for (const n of layerNames([...t.front, ...t.back])) mark(n, 'templates', t.name)
+    // le voci dell'elenco appartengono al template, anche quelle che nessuna carta sceglie
+    for (const l of walkLayers([...t.front, ...t.back]))
+      if (l.type === 'image') for (const n of listOptions(l) ?? []) mark(n, 'templates', t.name)
+  }
 
   for (const set of p.sets) {
     const tpl = p.templates.find((x) => x.name === set.template)

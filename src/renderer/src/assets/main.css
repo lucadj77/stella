@@ -9753,3 +9753,140 @@ button.wide {
   display: inline-block;
   padding: 2px 6px;
 }
+
+/* fonte «Elenco»: le voci nel pannello delle proprietà */
+.list-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 6px 0;
+}
+
+.list-options ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.list-options li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.list-options .option-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.list-options .option-tools {
+  display: flex;
+  gap: 2px;
+}
+
+.list-options .option-pick {
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+}
+
+.list-options-add {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.option-thumb {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  overflow: hidden;
+}
+
+.option-thumb img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.small.warn,
+.list-choice .warn {
+  background: var(--warning-bg);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+/* fonte «Elenco»: la scelta nei campi della carta */
+.list-choice {
+  display: flex;
+  width: 100%;
+}
+
+.list-choice select {
+  width: 100%;
+}
+
+.list-choice.tiles {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.list-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 64px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: inherit;
+  cursor: pointer;
+}
+
+.list-tile .option-thumb {
+  width: 52px;
+  height: 52px;
+}
+
+.list-tile.on {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  background: var(--accent-soft);
+}
+
+.list-tile.tpl .option-thumb,
+.list-tile.tpl .list-swatch {
+  opacity: 0.6;
+}
+
+.list-tile-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.list-swatch {
+  display: block;
+  width: 40px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.data-table td.not-in-list {
+  background: var(--warning-bg);
+}
+
+.data-table .cell-select {
+  width: 100%;
+}

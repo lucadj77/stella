@@ -211,6 +211,7 @@ A template can be based on another one and store only its differences. The app a
 `source` decides where the layer's main value comes from on each card:
 
 - `{ "kind": "column", "column": null }` (default): the column with the layer's name (or `column` if set); without a cell, the template value.
+- `{ "kind": "column", "column": null, "options": ["gold", "silver", "copper"] }` ("List" in the app; text, image, shape and value layers): the same column, but each card should pick one of `options` (image names for images, colours for shapes, texts for text and value layers); the app offers only these in the card form and table. Keep the template value (`src`, `fill`, `text`, `value`) equal to one of the options: it is the value of empty cells. A cell outside the list is still drawn but `check` reports it. Use it when a template has several variants of a piece (frames, borders, band colours) chosen per card, instead of one derived template per combination; the option images belong to the template and travel in its package.
 - `{ "kind": "fixed" }`: always the template value; columns are ignored.
 - `{ "kind": "formula", "expr": "..." }`: computed (see Formulas).
 

@@ -353,9 +353,10 @@ In number fields you can drag the label right or left to change the value like a
 </tr>
 </table>
 
-At the top of every layer are its **name**, which is also the name of the sheet column, and its **value on components**, with the **fx** button of the formula assistant next to the heading and three choices below across the whole panel:
+At the top of every layer are its **name**, which is also the name of the sheet column, and its **value on components**, with the **fx** button of the formula assistant next to the heading and four choices below across the whole panel:
 
 - **Column**: the sheet column, by default the one with the same name as the layer. An empty cell keeps the value written in the template.
+- **List** (texts, images, shapes and value layers): like Column, but each component picks one of the **Choices** written in the template, and nothing else can be typed in the set. For an image the choices are project images (**Add image…**, or **From a folder…** to take them all), for a shape they are colors, for texts and values they are texts. The dot next to a choice makes it the default value, the one of empty cells. In the component form images and colors are picked with a click on the thumbnails, texts from a drop-down; in the table the cell opens a drop-down. A value in the sheet that is not in the list (for example from Excel) is still drawn, but reported as a problem of the component. The images of the choices belong to the template: they go into its package even if no component uses them. Example: a frame with the choices `gold`, `silver` and `copper` and a band with the colors `#2F5DA8`, `red` and `#3E8E41` are picked separately on each card, with no template for each combination.
 - **Fixed**: the same value on every component.
 - **Formula**: the value is calculated from the other fields of the component ([chapter 9](#9-formulas-and-calculated-fields)).
 

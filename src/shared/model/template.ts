@@ -63,7 +63,32 @@ export interface Shadow {
  * (di base quella con il nome del livello), il valore fisso del template o una formula.
  */
 export type ValueSource =
-  { kind: 'column'; column: string | null } | { kind: 'fixed' } | { kind: 'formula'; expr: string }
+  | {
+      kind: 'column'
+      column: string | null
+      /**
+       * Elenco: le sole voci che la carta può scegliere (nomi di immagini, colori, testi). La
+       * colonna si legge come sempre; una cella vuota vale il valore del template, una voce fuori
+       * elenco si disegna lo stesso ed è un problema della carta. Assente: colonna libera.
+       */
+      options?: string[]
+    }
+  | { kind: 'fixed' }
+  | { kind: 'formula'; expr: string }
+
+/** Le voci dell'elenco del livello, o null se la sua fonte non è un elenco */
+export function listOptions(l: { source: ValueSource }): string[] | null {
+  return l.source.kind === 'column' && Array.isArray(l.source.options) ? l.source.options : null
+}
+
+/** Una voce dell'elenco uguale al valore, senza badare a spazi e maiuscole */
+export function findOption(options: string[], value: string): string | undefined {
+  const v = value.trim().toLowerCase()
+  return options.find((o) => o.trim().toLowerCase() === v)
+}
+
+/** Tipi di livello che possono prendere il valore da un elenco */
+export const LIST_TYPES: readonly LayerType[] = ['text', 'image', 'shape', 'value']
 
 export interface LayerBase {
   id: string

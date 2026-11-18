@@ -168,7 +168,9 @@ function layerSummary(l: Layer): string {
       ? 'fixed'
       : src.kind === 'formula'
         ? `formula ${src.expr}`
-        : `column ${src.column || l.name}`
+        : src.options
+          ? `list ${src.column || l.name} [${src.options.join(', ')}]`
+          : `column ${src.column || l.name}`
   const main =
     l.type === 'text'
       ? ` text=${JSON.stringify(l.text)}`

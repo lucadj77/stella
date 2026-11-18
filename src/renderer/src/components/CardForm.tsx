@@ -1,10 +1,12 @@
 import { kindWords } from '../i18n/kinds'
 import { dragHasFiles, importDropped } from './dropImages'
-import { Fragment, useContext, useEffect, useRef, useState } from 'react'
+import { Fragment, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { Sheet } from '../../../shared/project'
 import {
   boolText,
   colorColumns,
+  listColumns,
+  type ListColumn,
   parseBool,
   propertyColumns,
   writeCells,
@@ -23,6 +25,7 @@ import { TEMPLATE_COLUMN } from '../../../shared/model/inherit'
 import { useI18n } from '../i18n/context'
 import MarkupTextarea from './MarkupTextarea'
 import AssetPicker from './AssetPicker'
+import ListChoice from './ListChoice'
 import { ColorSwatch } from './ColorPicker'
 import { EyeIcon, EyeOffIcon, ImageIcon, PinIcon, SlidersIcon } from './icons'
 import { colorPartOf, propControl, propLabel } from './cardProps'
@@ -103,6 +106,10 @@ function CardForm({
   const assets = useContext(AssetsContext)
 
   const colors = template ? colorColumns(template) : new Map<string, string | null>()
+  const lists = useMemo(
+    () => (template ? listColumns(template) : new Map<string, ListColumn>()),
+    [template]
+  )
 
   useEffect(() => {
     if (!focus) return
@@ -419,6 +426,20 @@ function CardForm({
         </label>
       )
     }
+    // un livello con l'elenco: si sceglie tra le voci, non si scrive
+    const list = !opts.prop && !calc ? lists.get(h) : undefined
+    if (list)
+      return (
+        <label key={h} className={className + ' list-field'}>
+          <span className="field-label" title={labelTitle}>
+            {label}
+          </span>
+          <span className="field-control">
+            <ListChoice list={list} value={value} column={h} onChange={(v) => write(h, v)} />
+          </span>
+          {tools}
+        </label>
+      )
     // contorno, bordo e ombra scritti come testo anche fuori dai dettagli: il colore è la prima parte
     const strokePart =
       dot > 0 && !colors.has(h) ? colorPartOf(propKey, common.value, fallback) : null
