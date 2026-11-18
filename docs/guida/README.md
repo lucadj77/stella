@@ -248,6 +248,21 @@ Le modifiche restano in memoria finché non si salva. Il pulsante **Salva** dive
 
 Nell'app per computer gli stessi comandi stanno anche nel menu dell'app (sul Mac nella barra in cima allo schermo, su Windows e Linux con il tasto Alt): **File** (apri, salva, esporta, backup, cestino, Google Sheets, ricarica, chiudi), **Modifica**, **Vista** (dimensione dell'interfaccia con ⌘+, ⌘− e ⌘0 / Ctrl+, Ctrl− e Ctrl+0, schermo intero) e **Aiuto**.
 
+### 3.1 Gestire il progetto
+
+**Gestisci il progetto**, il pulsante in cima alla barra laterale, apre una finestra grande con una scheda per ogni sezione della barra: **Set**, **Template**, **Stili**, **Variabili**, **Immagini**, **Documenti** e **Note**. Il pulsante ⤢ accanto al titolo di una sezione apre la finestra direttamente sulla sua scheda. La barra laterale resta com'è: la finestra serve quando gli elementi sono tanti e si vuole vedere dove sono usati.
+
+Ogni scheda ha un elenco con ricerca e filtri. Un clic seleziona una voce e mostra a destra i dettagli e le azioni; ⌘/Ctrl+clic e ⇧+clic ne selezionano più di una, ⌘A / Ctrl+A tutte. Il doppio clic apre la voce, il tasto destro mostra il menu con le stesse azioni.
+
+- **Variabili**: tipo, valore, gruppo e dove è usata ogni variabile (template, componenti dei set, documenti, altre variabili e stili). I filtri dividono per tipo e mostrano quelle **Non usate**. **Modifica…** apre la finestra della variabile, **Duplica** ne fa una copia, **Elimina** (anche su più variabili, o con Canc / ⌫) avvisa prima se qualcuna è ancora usata; ⌘Z / Ctrl+Z annulla.
+- **Stili**: una frase di prova con lo stile, la definizione e dove è usato. Gli stili predefiniti non si eliminano; se il progetto ne ha una versione propria, **Torna allo stile predefinito** la toglie.
+- **Template**: miniatura, tipo, misure, template da cui deriva e set che lo usano, con le variabili, gli stili e le immagini che richiama. **Apri nell'editor** e i comandi del menu del template (rinomina, duplica, deriva, esporta pacchetto, elimina).
+- **Set**: miniatura della prima carta, template, righe e componenti; a destra le prime carte e cosa usano. **Apri la griglia** e i comandi del menu del set.
+- **Immagini**: la stessa vista descritta in [8.1](#81-immagini-del-progetto).
+- **Documenti** e **Note**: nome e inizio del testo; si aprono con un doppio clic.
+
+I nomi in azzurro sono collegamenti: un clic porta all'elemento nella sua scheda. Per esempio, da un template si va a uno dei set che lo usano, da lì a una variabile usata dalle sue carte, e poi alle altre carte che la usano. Nelle schede con le miniature (template, set e immagini) lo sfondo si sceglie tra **Nessuno sfondo**, **Chiaro** e **Scuro**, come nella scelta delle immagini.
+
 ## 4. Disegnare un template
 
 ### 4.1 Creare un template
@@ -714,7 +729,7 @@ Nell'app web si scaricano solo le immagini dei siti che lo permettono; per gli a
 
 ![La scelta di un'immagine](img/scegli-immagine.png)
 
-**Progetto ▾ › Immagini del progetto…**, o **Gestisci…** nella scelta delle immagini, mostra tutte le immagini con sotto dove sono usate. In alto si filtrano: **Nei template** (scritte in un template), **Solo nei set** (le sceglie una colonna o una formula delle carte), **Nei documenti** e **Non usate**. **Mostra raggruppate per** le divide per cartella o per template: cambia solo la vista, i file restano dove sono. Selezionando un'immagine si vede a destra in quali template, set, documenti e variabili compare.
+La scheda **Immagini** di **Gestisci il progetto** ([3.1](#31-gestire-il-progetto)), che si apre anche con **Gestisci…** nella scelta delle immagini, mostra tutte le immagini con sotto dove sono usate. In alto si filtrano: **Nei template** (scritte in un template), **Solo nei set** (le sceglie una colonna o una formula delle carte), **Nei documenti** e **Non usate**. **Mostra raggruppate per** le divide per cartella o per template: cambia solo la vista, i file restano dove sono. Selezionando un'immagine si vede a destra in quali template, set, documenti e variabili compare.
 
 - Per eliminare, seleziona una o più immagini (⌘/Ctrl+clic, ⇧+clic o un rettangolo trascinato da uno spazio vuoto) e premi **Elimina** o Canc / ⌫. Se un'immagine è ancora usata l'app lo dice prima. Le immagini eliminate vanno nel cestino del progetto (**Progetto ▾ › Cestino…**), da cui si rimettono al loro posto.
 - **Sposta in cartella…** mette le immagini in una cartella di `assets`, già esistente o nuova, anche dentro un'altra (`images/Eroi`). Le carte continuano a trovarle, perché basta il nome; i riferimenti scritti con la cartella si aggiornano da soli.

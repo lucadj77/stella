@@ -131,7 +131,7 @@ export default function SidebarPreview({
   )
 }
 
-function VariableBody({
+export function VariableBody({
   name,
   variables
 }: {

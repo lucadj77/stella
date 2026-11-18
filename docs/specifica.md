@@ -216,7 +216,7 @@ Immagini da internet: nella scelta delle immagini **Da internet…** chiede un i
 
 ### 3.2 Immagini del progetto
 
-**Progetto ▾ › Immagini del progetto…** (anche **Gestisci…** nella scelta delle immagini) mostra le immagini di `assets/` con dove sono usate. L'uso si calcola nel renderer (`model/imageUsage.ts`):
+La scheda **Immagini** di **Gestisci il progetto** (3.3; anche **Gestisci…** nella scelta delle immagini) mostra le immagini di `assets/` con dove sono usate. L'uso si calcola nel renderer (`model/imageUsage.ts`):
 
 - **template**: l'immagine è scritta nei livelli del template (sorgente di un livello immagine, sfondo della variabile immagine, `{nome}` e `bg=` nel testo, anche come valore d'esempio che una colonna sostituisce);
 - **set**: le carte del set la disegnano, legando ogni riga, quindi conta anche quando la sceglie una colonna o una formula;
@@ -230,6 +230,16 @@ I filtri sono **Tutte**, **Nei template**, **Solo nei set** (usate dalle carte e
 - **Crea cartelle per template…** propone di spostare in `<cartella principale>/<template>` (per esempio `icons/personaggio`) le immagini usate da un solo template, con i suoi set, e da nient'altro; prima di spostare dice quante immagini e in quali cartelle.
 
 Nella scelta delle immagini il filtro per cartella elenca anche le cartelle annidate.
+
+### 3.3 Gestisci il progetto
+
+Il pulsante **Gestisci il progetto** in cima alla barra laterale (anche nella barra ridotta a icone e nel menu File dell'app per computer) apre una finestra con una scheda per sezione della barra: Set, Template, Stili, Variabili, Immagini, Documenti, Note. Il ⤢ nel titolo di ogni sezione apre la sua scheda; senza indicazione si apre l'ultima usata (ricordata nel browser, `localStorage`). La finestra usa le funzioni della barra laterale (`ManageActions` in `src/renderer/src/manage/`): non c'è un modello a parte.
+
+- Ogni scheda: ricerca, filtri con il conteggio, tabella con selezione multipla (clic, ⌘/Ctrl, ⇧, ⌘A), dettagli e azioni a destra, menu del tasto destro, doppio clic o Invio per aprire, Canc / ⌫ per eliminare dove si può eliminare più di una voce.
+- **Variabili** e **Stili**: dove sono usati con `findUsages` (la stessa ricerca della rinomina), che ora guarda anche il testo dei documenti. Filtri per tipo (variabili), del progetto / predefiniti (stili) e non usati. Modifica nella finestra di sempre, aperta sopra questa; duplica con un nome libero (`nome-2`) nello stesso gruppo; elimina più voci in un passo solo, annullabile, avvisando di quelle ancora usate. Gli stili predefiniti non si eliminano: si toglie solo la versione del progetto.
+- **Template** e **Set**: miniatura (con lo sfondo a scelta, come nella scelta delle immagini), misure, base, set che usano il template; righe e carte del set. Le azioni sono quelle del menu ⋯ della barra; **Apri nell'editor** e **Apri la griglia** chiudono la finestra.
+- Il contrario degli usi (`usesIndex` in `model/overview.ts`) dice per ogni template, set e documento quali variabili, stili e immagini richiama.
+- Ogni nome di un altro elemento è un collegamento alla sua scheda, con quell'elemento selezionato.
 
 ## 4. Forma
 

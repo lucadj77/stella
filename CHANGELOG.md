@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## Next version
+
+### English
+
+- **Manage the project**: a button at the top of the sidebar (and ⤢ next to each section title) opens a large window with a tab for sets, templates, styles, variables, images, documents and notes. Each tab lists everything with search, filters and multiple selection, shows where variables and styles are used and what templates, sets and documents use, and gives the same actions as the sidebar menus. Names are links to the item in its tab; templates and sets open in the editor or the grid. **Project images** is now its tab, and left the **Project** menu.
+
+### Italiano
+
+- **Gestisci il progetto**: un pulsante in cima alla barra laterale (e ⤢ accanto al titolo di ogni sezione) apre una finestra grande con una scheda per set, template, stili, variabili, immagini, documenti e note. Ogni scheda elenca tutto con ricerca, filtri e selezione multipla, mostra dove sono usati variabili e stili e cosa usano template, set e documenti, e offre le stesse azioni dei menu della barra. I nomi portano all'elemento nella sua scheda; template e set si aprono nell'editor o nella griglia. **Immagini del progetto** ora è una sua scheda, ed è uscita dal menu **Progetto**.
+
 ## 1.12.0-beta.6
 
 ### English

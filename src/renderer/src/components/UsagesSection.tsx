@@ -51,6 +51,9 @@ export default function UsagesSection({
         {u.styles.length > 0 && (
           <li>{t('usages.styles', { names: u.styles.map((n) => `.${n}`).join(', ') })}</li>
         )}
+        {u.documents.length > 0 && (
+          <li>{t('usages.documents', { names: u.documents.join(', ') })}</li>
+        )}
       </ul>
     </details>
   )

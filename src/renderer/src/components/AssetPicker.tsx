@@ -24,7 +24,7 @@ import UrlImageDialog from './UrlImageDialog'
 import QrDialog from './QrDialog'
 import ThumbBackgroundSwitch from './ThumbBackgroundSwitch'
 import { thumbClass, useThumbBackground } from './thumbBackground'
-import { canOpenImagesDialog, openImagesDialog } from './imagesDialogOpen'
+import { canOpenManage, openManage } from '../manage/manageTypes'
 
 const SIZE_KEY = 'assetPickerSize'
 
@@ -219,11 +219,11 @@ export default function AssetPicker({
           <button onClick={() => setQr(true)} title={t('assetPicker.qrHint')}>
             {t('assetPicker.qr')}
           </button>
-          {canOpenImagesDialog() && (
+          {canOpenManage() && (
             <button
               onClick={() => {
                 onClose()
-                openImagesDialog()
+                openManage('images')
               }}
               title={t('images.menuHint')}
             >

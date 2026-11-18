@@ -2,7 +2,13 @@ import type { Sheet } from '../project'
 import type { Template } from './template'
 import type { Variables } from './variables'
 import { walkLayers } from './normalize'
-import { renameInDefinitions, renameInSheet, renameInTemplate, type RefKind } from './rename'
+import {
+  renameInDefinitions,
+  renameInSheet,
+  renameInTemplate,
+  renameInText,
+  type RefKind
+} from './rename'
 
 // Dove sono usati una variabile o uno stile. Si usa la stessa ricerca della rinomina: un
 // riferimento c'è dove rinominare il nome cambierebbe qualcosa. Così le due cose trovano sempre
@@ -18,6 +24,8 @@ export interface Usages {
   sets: { name: string; index: number; cards: number[] }[]
   variables: string[]
   styles: string[]
+  /** Documenti che lo richiamano nel testo */
+  documents: string[]
 }
 
 export function findUsages(
@@ -26,6 +34,7 @@ export function findUsages(
     sets: { name: string; template: string; data?: Sheet | null }[]
     variables: Variables
     styles: Record<string, string>
+    documents?: { name: string; text: string }[]
   },
   kind: RefKind,
   name: string
@@ -56,12 +65,19 @@ export function findUsages(
   const styles = Object.keys(project.styles).filter(
     (k) => !(kind === 'style' && k === name) && defs.styles[k] !== project.styles[k]
   )
-  return { templates, sets, variables, styles }
+  const documents = (project.documents ?? [])
+    .filter((d) => renameInText(d.text, kind, name, PROBE) !== d.text)
+    .map((d) => d.name)
+  return { templates, sets, variables, styles, documents }
 }
 
 /** Nessun riferimento */
 export const isUnused = (u: Usages): boolean =>
-  !u.templates.length && !u.sets.length && !u.variables.length && !u.styles.length
+  !u.templates.length &&
+  !u.sets.length &&
+  !u.variables.length &&
+  !u.styles.length &&
+  !u.documents.length
 
 /** Numeri di carta come intervalli: 1, 3, 5–7 */
 export function cardRanges(cards: number[]): string {
