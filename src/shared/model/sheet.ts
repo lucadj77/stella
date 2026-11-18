@@ -2,7 +2,7 @@ import type { Sheet } from '../project'
 import { splitLanguage } from './language'
 import { plainText } from './markup'
 import { walkLayers } from './normalize'
-import type { Template } from './template'
+import { listOptions, PRIMARY_PROPERTY, type Layer, type Template } from './template'
 
 // Modifiche ai fogli dati. Tutte pure: restituiscono un nuovo foglio.
 
@@ -188,12 +188,43 @@ export function templateColumns(t: Template): string[] {
   const cols = ['amount']
   for (const l of walkLayers([...t.front, ...t.back])) {
     if (l.source.kind !== 'column') continue
-    // forme e gruppi (riempimento, visibilità) di solito sono decorazione: si aggiungono a mano
-    if (l.type === 'group' || l.type === 'shape' || l.type === 'grid' || l.type === 'snap') continue
+    // forme e gruppi (riempimento, visibilità) di solito sono decorazione: si aggiungono a mano,
+    // salvo una forma con l'elenco dei colori, che si sceglie apposta carta per carta
+    if (l.type === 'group' || l.type === 'grid' || l.type === 'snap') continue
+    if (l.type === 'shape' && !listOptions(l)) continue
     const col = l.source.column ?? l.name
     if (!cols.includes(col)) cols.push(col)
   }
   return cols
+}
+
+/** Colonna con l'elenco di un livello (fonte «Elenco») */
+export interface ListColumn {
+  /** Tipo del livello che la legge: dice come mostrare le voci */
+  type: Layer['type']
+  options: string[]
+  /** Valore del template, quello delle celle vuote */
+  fallback: string
+}
+
+/**
+ * Colonne che il template legge da un elenco: la cella si sceglie tra le voci. Se due livelli
+ * leggono la stessa colonna vale il primo con l'elenco.
+ */
+export function listColumns(t: Template): Map<string, ListColumn> {
+  const out = new Map<string, ListColumn>()
+  for (const l of walkLayers([...t.front, ...t.back])) {
+    const options = listOptions(l)
+    if (!options || l.source.kind !== 'column') continue
+    const column = l.source.column ?? l.name
+    if (!out.has(column))
+      out.set(column, {
+        type: l.type,
+        options,
+        fallback: String((l as unknown as Record<string, unknown>)[PRIMARY_PROPERTY[l.type]] ?? '')
+      })
+  }
+  return out
 }
 
 /** Colonne di testo che il template legge: quelle che si traducono con `nome@lingua` */

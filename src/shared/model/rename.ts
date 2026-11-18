@@ -22,7 +22,7 @@ const VALUE_KEYS = new Set([
 ])
 
 /** Proprietà dei livelli che possono contenere solo il nome di una variabile, senza graffe */
-const PLAIN_KEYS = new Set(['color', 'fill', 'tint', 'src'])
+const PLAIN_KEYS = new Set(['color', 'fill', 'tint', 'src', 'options'])
 
 /** Il contenuto di una coppia di graffe: `spada*3 tint=red`, `.flavor center`, `color=rosso` */
 function renameInBraces(

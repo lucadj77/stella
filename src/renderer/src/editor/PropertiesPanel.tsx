@@ -38,6 +38,8 @@ import {
   hasNoBack,
   isStandee,
   kindOf,
+  LIST_TYPES,
+  listOptions,
   type ComponentKind
 } from '../../../shared/model/template'
 import {
@@ -99,8 +101,10 @@ import {
   cardFields,
   cellFields,
   rowToCard,
+  sourceChoice,
   substituteFields,
-  switchSource
+  switchSource,
+  type SourceChoice
 } from '../../../shared/model/bind'
 import type { MessageKey } from '../i18n/en'
 import {
@@ -139,6 +143,7 @@ import type { Commands } from './commands'
 import PanelSideButton from '../components/PanelSideButton'
 import AlignSection from './AlignSection'
 import CellRules from './CellRules'
+import ListOptions from './ListOptions'
 import CellContentDialog, { type CellContentChoice } from './CellContentDialog'
 import type { PanelSide } from '../components/usePanelWidth'
 import { useRatioLock, type LockKind } from './ratioLock'
@@ -2580,6 +2585,7 @@ function ValueSource({
   const { t } = useI18n()
   const src = l.source
   const column = src.kind === 'column' && src.column ? src.column : l.name
+  const options = listOptions(l)
   const found = sheets.filter((s) => s.headers.includes(column)).map((s) => s.set)
   const others = [
     ...new Set(sheets.flatMap((s) => s.headers.filter((h) => h.startsWith(column + '.'))))
@@ -2642,10 +2648,19 @@ function ValueSource({
           {fx}
         </span>
         <span className="field-control">
-          <Segmented<ValueSourceKind>
-            value={src.kind}
+          <Segmented<SourceChoice>
+            value={sourceChoice(l)}
             options={[
               ['column', t('source.short.column'), t('source.kind.column')],
+              ...(LIST_TYPES.includes(l.type)
+                ? [
+                    ['list', t('source.kind.list'), t('source.listNote')] as [
+                      SourceChoice,
+                      string,
+                      string
+                    ]
+                  ]
+                : []),
               ['fixed', t('source.kind.fixed'), t('source.fixedNote')],
               ['formula', t('source.kind.formula'), t('source.formulaNote')]
             ]}
@@ -2661,13 +2676,22 @@ function ValueSource({
             placeholder={l.name}
             list={listId}
             hint={t('source.columnHint')}
-            onChange={(c) => set({ source: { kind: 'column', column: c.trim() || null } })}
+            onChange={(c) =>
+              set({
+                source: {
+                  kind: 'column',
+                  column: c.trim() || null,
+                  ...(options ? { options } : {})
+                }
+              })
+            }
           />
           <datalist id={listId}>
             {headers.map((h) => (
               <option key={h} value={h} />
             ))}
           </datalist>
+          {options && <ListOptions layer={l} options={options} set={set} />}
         </>
       )}
       {src.kind === 'formula' && (
@@ -2730,8 +2754,6 @@ function ValueSource({
     </div>
   )
 }
-
-type ValueSourceKind = Layer['source']['kind']
 
 /** Cosa dà la formula di un livello: il valore principale del suo tipo */
 const FORMULA_EXPECT: Record<Layer['type'], FormulaExpect> = {

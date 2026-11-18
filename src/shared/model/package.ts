@@ -4,7 +4,7 @@ import { isImageAsset } from './assets'
 import { bindRow } from './bind'
 import { markupFonts } from './fonts'
 import { imageUsages } from './imageUsage'
-import { TEMPLATE_COLUMN } from './inherit'
+import { TEMPLATE_COLUMN, variantsOf } from './inherit'
 import { denormalizeTemplate, walkLayers, type RawTemplate } from './normalize'
 import type { Template } from './template'
 import { findUsages } from './usages'
@@ -76,6 +76,9 @@ export function collectPackage(
       for (const r of s.data!.rows)
         if (r[col]?.trim()) withBases(r[col].trim(), p.templates, templates)
   }
+  // le varianti viaggiano con il loro template: sono parte di lui
+  for (const t of [...templates])
+    for (const v of variantsOf(p.templates, t.name)) withBases(v.name, p.templates, templates)
   const tNames = new Set(templates.map((t) => t.name))
   const sNames = new Set(sets.map((s) => s.name))
   const scope = {

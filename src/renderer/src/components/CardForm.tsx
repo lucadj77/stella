@@ -1,10 +1,12 @@
 import { kindWords } from '../i18n/kinds'
 import { dragHasFiles, importDropped } from './dropImages'
-import { Fragment, useContext, useEffect, useRef, useState } from 'react'
+import { Fragment, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { Sheet } from '../../../shared/project'
 import {
   boolText,
   colorColumns,
+  listColumns,
+  type ListColumn,
   parseBool,
   propertyColumns,
   writeCells,
@@ -23,10 +25,12 @@ import { TEMPLATE_COLUMN } from '../../../shared/model/inherit'
 import { useI18n } from '../i18n/context'
 import MarkupTextarea from './MarkupTextarea'
 import AssetPicker from './AssetPicker'
+import ListChoice from './ListChoice'
 import { ColorSwatch } from './ColorPicker'
 import { EyeIcon, EyeOffIcon, ImageIcon, PinIcon, SlidersIcon } from './icons'
 import { colorPartOf, propControl, propLabel } from './cardProps'
 import CropDialog from './CropDialog'
+import VariantChoice from './VariantChoice'
 import { cropText, parseCrop } from '../../../shared/model/crop'
 import { resolveAsset } from '../../../shared/model/assets'
 import { AssetsContext, assetUrl } from '../render/assets'
@@ -41,6 +45,11 @@ interface Props {
   templateChoices?: string[]
   /** Template del set: vale per le carte con la colonna template vuota */
   setTemplate?: string
+  /**
+   * Il template del set e le sue varianti, già legati ai dati della carta: si scelgono con le
+   * miniature. Vuoto se il template non ha varianti.
+   */
+  variants?: { name: string; template: Template }[]
   /** Colonne da mostrare, già senza quelle nascoste (vedi setColumns) */
   columns: ColumnInfo[]
   /** Colonne vero/falso, con il valore del template per le celle vuote */
@@ -69,6 +78,7 @@ function CardForm({
   template,
   templateChoices = [],
   setTemplate,
+  variants = [],
   columns,
   booleans,
   computed,
@@ -103,6 +113,10 @@ function CardForm({
   const assets = useContext(AssetsContext)
 
   const colors = template ? colorColumns(template) : new Map<string, string | null>()
+  const lists = useMemo(
+    () => (template ? listColumns(template) : new Map<string, ListColumn>()),
+    [template]
+  )
 
   useEffect(() => {
     if (!focus) return
@@ -288,6 +302,43 @@ function CardForm({
     if (h === TEMPLATE_COLUMN && templateChoices.length) {
       // il template della carta si sceglie tra quelli con le misure del set
       const own = value?.trim() ?? ''
+      // le varianti del template del set: miniature della carta con ciascuna
+      const family = variants.map((v) => v.name)
+      const others = templateChoices.filter((n) => n !== setTemplate && !family.includes(n))
+      if (family.length) {
+        const chosen = value === null ? null : own || setTemplate || ''
+        return (
+          <div key={h} className={className + ' variant-field'}>
+            <span className="field-label" title={t('cardForm.variantHint')}>
+              {t('cardForm.variant')}
+            </span>
+            <VariantChoice
+              variants={variants}
+              chosen={chosen}
+              column={h}
+              onPick={(n) => write(h, n === setTemplate ? '' : n)}
+            />
+            {(others.length > 0 || (own && !family.includes(own))) && (
+              <select
+                className={family.includes(own) || !own ? 'from-template' : undefined}
+                value={family.includes(own) ? '' : own}
+                title={t('cardForm.templateHint')}
+                onChange={(e) => write(h, e.target.value)}
+              >
+                <option value="">{t('cardForm.otherTemplate')}</option>
+                {others.map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+                {own && !family.includes(own) && !others.includes(own) && (
+                  <option value={own}>{own}</option>
+                )}
+              </select>
+            )}
+          </div>
+        )
+      }
       return (
         <label key={h} className={className} title={t('cardForm.templateHint')}>
           <span className="field-label">{t('cardForm.template')}</span>
@@ -419,6 +470,20 @@ function CardForm({
         </label>
       )
     }
+    // un livello con l'elenco: si sceglie tra le voci, non si scrive
+    const list = !opts.prop && !calc ? lists.get(h) : undefined
+    if (list)
+      return (
+        <label key={h} className={className + ' list-field'}>
+          <span className="field-label" title={labelTitle}>
+            {label}
+          </span>
+          <span className="field-control">
+            <ListChoice list={list} value={value} column={h} onChange={(v) => write(h, v)} />
+          </span>
+          {tools}
+        </label>
+      )
     // contorno, bordo e ombra scritti come testo anche fuori dai dettagli: il colore è la prima parte
     const strokePart =
       dot > 0 && !colors.has(h) ? colorPartOf(propKey, common.value, fallback) : null

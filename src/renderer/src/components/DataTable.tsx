@@ -1,6 +1,7 @@
 import { memo, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { dragHasFiles, importDropped } from './dropImages'
 import { confirmKey } from './confirm'
+import { TEMPLATE_COLUMN } from '../../../shared/model/inherit'
 import type { Sheet } from '../../../shared/project'
 import {
   boolText,
@@ -8,8 +9,11 @@ import {
   parseBool,
   removeColumn,
   writeCells,
-  type ColumnInfo
+  type ColumnInfo,
+  type ListColumn
 } from '../../../shared/model/sheet'
+import { findOption } from '../../../shared/model/template'
+import { plainText } from '../../../shared/model/markup'
 import { useI18n } from '../i18n/context'
 import MarkupTextarea from './MarkupTextarea'
 import MarkupText from '../render/MarkupText'
@@ -23,6 +27,8 @@ interface Props {
   columns: ColumnInfo[]
   /** Colonne vero/falso, mostrate come caselle, con il valore del template per le celle vuote */
   booleans: Map<string, boolean | null>
+  /** Colonne con l'elenco del livello: la cella si sceglie da una tendina */
+  lists?: Map<string, ListColumn>
   /** Valori dei livelli fissi e con formula di una riga */
   computed(row: number): Record<string, string>
   /** Righe selezionate; la prima è quella mostrata nell'anteprima */
@@ -61,6 +67,7 @@ function DataTable({
   sheet,
   columns,
   booleans,
+  lists,
   computed,
   selected,
   onSelect,
@@ -112,7 +119,8 @@ function DataTable({
   const startEdit = (c: Cell, replaceWith?: string): void => {
     if (isComputed(c.col)) return
     setEditing({ cell: c, original: value(c) })
-    if (replaceWith !== undefined) write(c, replaceWith)
+    // in una colonna con l'elenco la lettera scritta non diventa il valore: si apre la tendina
+    if (replaceWith !== undefined && !lists?.has(c.col)) write(c, replaceWith)
   }
 
   const move = (dr: number, dc: number): void => {
@@ -302,6 +310,12 @@ function DataTable({
                           isActive && 'active-cell',
                           calc && 'calc-cell',
                           bool && 'bool-cell',
+                          !calc &&
+                            raw.trim() &&
+                            lists?.has(h) &&
+                            h !== TEMPLATE_COLUMN &&
+                            !findOption(lists.get(h)!.options, raw) &&
+                            'not-in-list',
                           (tint || color) && 'tinted'
                         ]
                           .filter(Boolean)
@@ -330,6 +344,20 @@ function DataTable({
                           title={raw.trim() ? raw : t('table.boolDefault')}
                           checked={checked(c)}
                           onChange={() => toggle(c)}
+                        />
+                      ) : isEditing && lists?.has(h) ? (
+                        <CellSelect
+                          list={lists.get(h)!}
+                          value={raw}
+                          onChange={(v) => write(c, v)}
+                          onDone={(how) => {
+                            if (how === 'cancel') write(c, editing.original)
+                            setEditing(null)
+                            wrapRef.current?.focus()
+                            if (how === 'down') move(1, 0)
+                            if (how === 'right') move(0, 1)
+                            if (how === 'left') move(0, -1)
+                          }}
                         />
                       ) : isEditing ? (
                         <CellEditor
@@ -450,6 +478,57 @@ function CellEditor({
         }
       }}
     />
+  )
+}
+
+/** Cella di una colonna con l'elenco: una tendina con le voci, la prima vuota (template) */
+function CellSelect({
+  list,
+  value,
+  onChange,
+  onDone
+}: {
+  list: ListColumn
+  value: string
+  onChange(v: string): void
+  onDone(how: 'down' | 'right' | 'left' | 'cancel' | 'blur'): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const ref = useRef<HTMLSelectElement>(null)
+  useEffect(() => ref.current?.focus(), [])
+  const own = value.trim()
+  const picked = own ? findOption(list.options, own) : undefined
+  const base = findOption(list.options, list.fallback)
+  const label = (o: string): string => plainText(o).replace(/\s+/g, ' ').trim() || '∅'
+  return (
+    <select
+      ref={ref}
+      className="cell-editor cell-select"
+      value={picked === base ? '' : (picked ?? own)}
+      onChange={(e) => onChange(e.target.value)}
+      onBlur={() => onDone('blur')}
+      onKeyDown={(e) => {
+        e.stopPropagation()
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          onDone('down')
+        } else if (e.key === 'Tab') {
+          e.preventDefault()
+          onDone(e.shiftKey ? 'left' : 'right')
+        } else if (e.key === 'Escape') {
+          e.preventDefault()
+          onDone('cancel')
+        }
+      }}
+    >
+      {!base && <option value="">{t('list.fromTemplate', { value: label(list.fallback) })}</option>}
+      {list.options.map((o, i) => (
+        <option key={i} value={o === base ? '' : o}>
+          {o === base ? t('list.baseOption', { value: label(o) }) : label(o)}
+        </option>
+      ))}
+      {own && !picked && <option value={own}>{t('list.notInList', { value: own })}</option>}
+    </select>
   )
 }
 

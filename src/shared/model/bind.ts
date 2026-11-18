@@ -30,6 +30,8 @@ import {
 } from './variables'
 import {
   PRIMARY_PROPERTY,
+  findOption,
+  listOptions,
   type CellLook,
   type GridLayer,
   type GroupLayer,
@@ -292,6 +294,16 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
           const src = layer.source
           const column = src.kind === 'column' && src.column ? src.column : layer.name
           const props = new Map(overrides.get(column))
+          // un elenco: la voce scelta deve essere una delle sue (le traduzioni dei testi no)
+          const options = listOptions(layer)
+          const chosen = props.get('')
+          if (
+            options &&
+            chosen?.trim() &&
+            !(language && (layer.type === 'text' || layer.type === 'value')) &&
+            !findOption(options, chosen)
+          )
+            say(msg('bind.notInList', { layer: layer.name, value: chosen.trim() }))
           // il valore principale segue la fonte scelta; le colonne delle altre proprietà valgono sempre
           if (src.kind === 'fixed') {
             props.delete('')
@@ -599,11 +611,26 @@ export function defaultValue(l: Layer): string | null {
   }
 }
 
+/** La fonte come si sceglie nel pannello: l'elenco è una colonna con le voci */
+export type SourceChoice = ValueSource['kind'] | 'list'
+
+export const sourceChoice = (l: Layer): SourceChoice => (listOptions(l) ? 'list' : l.source.kind)
+
 /**
  * Fonte del livello dopo il cambio di tipo. Passando a formula si parte dal valore attuale,
  * così la carta non cambia; restando sullo stesso tipo non cambia nulla.
  */
-export function switchSource(l: Layer, kind: ValueSource['kind']): ValueSource {
+export function switchSource(l: Layer, kind: SourceChoice): ValueSource {
+  const options = listOptions(l)
+  if (kind === 'list') {
+    if (options) return l.source
+    // la colonna resta quella di prima; il valore del template è la prima voce
+    const column = l.source.kind === 'column' ? l.source.column : null
+    const v = defaultValue(l)?.trim()
+    return { kind: 'column', column, options: v && !v.startsWith('=') ? [v] : [] }
+  }
+  if (kind === 'column' && options && l.source.kind === 'column')
+    return { kind, column: l.source.column }
   if (l.source.kind === kind) return l.source
   if (kind === 'column') return { kind, column: null }
   if (kind === 'fixed') return { kind }

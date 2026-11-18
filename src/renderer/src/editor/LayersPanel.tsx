@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { findParent, isNameTaken, moveLayerTo, patchLayer } from '../../../shared/model/edit'
-import { switchSource } from '../../../shared/model/bind'
+import { sourceChoice, switchSource, type SourceChoice } from '../../../shared/model/bind'
 import {
   innerLayers,
+  LIST_TYPES,
+  listOptions,
   type GridLayer,
   type Layer,
-  type Template,
-  type ValueSource
+  type Template
 } from '../../../shared/model/template'
 import { layerStatus, revertLayer } from '../../../shared/model/inherit'
 import { useI18n } from '../i18n/context'
@@ -53,10 +54,18 @@ const ICONS: Record<string, React.ReactNode> = {
   snap: <SnapIcon />
 }
 
-const SOURCE_KINDS: ValueSource['kind'][] = ['column', 'fixed', 'formula']
+const SOURCE_KINDS: SourceChoice[] = ['column', 'list', 'fixed', 'formula']
 
-function SourceIcon({ kind }: { kind: ValueSource['kind'] }): React.ReactNode {
-  return kind === 'column' ? <ColumnIcon /> : kind === 'formula' ? 'ƒx' : <FixedIcon />
+function SourceIcon({ kind }: { kind: SourceChoice }): React.ReactNode {
+  return kind === 'column' ? (
+    <ColumnIcon />
+  ) : kind === 'formula' ? (
+    'ƒx'
+  ) : kind === 'list' ? (
+    '☰'
+  ) : (
+    <FixedIcon />
+  )
 }
 
 export default function LayersPanel({
@@ -94,7 +103,7 @@ export default function LayersPanel({
   }, [sourceMenu])
 
   // si seleziona il livello, così il pannello proprietà mostra la colonna o la formula
-  const changeSource = (l: Layer, kind: ValueSource['kind']): void => {
+  const changeSource = (l: Layer, kind: SourceChoice): void => {
     setSourceMenu(null)
     const source = switchSource(l, kind)
     const parent = findParent(layers, l.id)?.id ?? null
@@ -261,13 +270,15 @@ export default function LayersPanel({
             {l.type !== 'group' && (
               <span className="layer-source-wrap">
                 <button
-                  className={`layer-source ${l.source.kind}${sourceMenu === l.id ? ' open' : ''}`}
+                  className={`layer-source ${sourceChoice(l)}${sourceMenu === l.id ? ' open' : ''}`}
                   title={`${
-                    l.source.kind === 'column'
-                      ? t('layers.sourceColumn', { column: l.source.column ?? l.name })
-                      : l.source.kind === 'formula'
-                        ? t('layers.sourceFormula', { expr: l.source.expr })
-                        : t('layers.sourceFixed')
+                    listOptions(l)
+                      ? t('layers.sourceList', { n: String(listOptions(l)!.length) })
+                      : l.source.kind === 'column'
+                        ? t('layers.sourceColumn', { column: l.source.column ?? l.name })
+                        : l.source.kind === 'formula'
+                          ? t('layers.sourceFormula', { expr: l.source.expr })
+                          : t('layers.sourceFixed')
                   }\n${t('layers.sourceChange')}`}
                   onMouseDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
@@ -275,24 +286,26 @@ export default function LayersPanel({
                     setSourceMenu(sourceMenu === l.id ? null : l.id)
                   }}
                 >
-                  <SourceIcon kind={l.source.kind} />
+                  <SourceIcon kind={sourceChoice(l)} />
                 </button>
                 {sourceMenu === l.id && (
                   <div className="source-menu" role="menu" onClick={(e) => e.stopPropagation()}>
-                    {SOURCE_KINDS.map((kind) => (
-                      <button
-                        key={kind}
-                        role="menuitemradio"
-                        aria-checked={l.source.kind === kind}
-                        className={l.source.kind === kind ? 'on' : undefined}
-                        onClick={() => changeSource(l, kind)}
-                      >
-                        <span className={`layer-source ${kind}`}>
-                          <SourceIcon kind={kind} />
-                        </span>
-                        {t(`source.kind.${kind}`)}
-                      </button>
-                    ))}
+                    {SOURCE_KINDS.filter((k) => k !== 'list' || LIST_TYPES.includes(l.type)).map(
+                      (kind) => (
+                        <button
+                          key={kind}
+                          role="menuitemradio"
+                          aria-checked={sourceChoice(l) === kind}
+                          className={sourceChoice(l) === kind ? 'on' : undefined}
+                          onClick={() => changeSource(l, kind)}
+                        >
+                          <span className={`layer-source ${kind}`}>
+                            <SourceIcon kind={kind} />
+                          </span>
+                          {t(`source.kind.${kind}`)}
+                        </button>
+                      )
+                    )}
                   </div>
                 )}
               </span>

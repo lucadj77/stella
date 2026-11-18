@@ -353,9 +353,10 @@ In number fields you can drag the label right or left to change the value like a
 </tr>
 </table>
 
-At the top of every layer are its **name**, which is also the name of the sheet column, and its **value on components**, with the **fx** button of the formula assistant next to the heading and three choices below across the whole panel:
+At the top of every layer are its **name**, which is also the name of the sheet column, and its **value on components**, with the **fx** button of the formula assistant next to the heading and four choices below across the whole panel:
 
 - **Column**: the sheet column, by default the one with the same name as the layer. An empty cell keeps the value written in the template.
+- **List** (texts, images, shapes and value layers): like Column, but each component picks one of the **Choices** written in the template, and nothing else can be typed in the set. For an image the choices are project images (**Add image…**, or **From a folder…** to take them all), for a shape they are colors, for texts and values they are texts. The dot next to a choice makes it the default value, the one of empty cells: in the component form it is marked «default», and picking it leaves the cell empty. In the component form images and colors are picked with a click on the thumbnails, texts from a drop-down; with more than 8 choices the field shows only the current one and a click opens a menu with thumbnails and search; in the table the cell opens a drop-down. A value in the sheet that is not in the list (for example from Excel) is still drawn, but reported as a problem of the component. The images of the choices belong to the template: they go into its package even if no component uses them. Example: a frame with the choices `gold`, `silver` and `copper` and a band with the colors `#2F5DA8`, `red` and `#3E8E41` are picked separately on each card, with no template for each combination.
 - **Fixed**: the same value on every component.
 - **Formula**: the value is calculated from the other fields of the component ([chapter 9](#9-formulas-and-calculated-fields)).
 
@@ -409,6 +410,20 @@ You work as on a normal template, with a few differences:
 - The component size is the base's.
 
 **Make independent**, in the header, turns the derived template into a normal one with the values it has at that moment. A template that is the base of another cannot be deleted until its derived templates are made independent or deleted.
+
+#### Variants
+
+A variant is a derived template that stays inside its template: use it when the components of one type come in a few preset versions, for example a gold, silver or copper frame with a matching band color. **Variants…**, in the template's ⋯ menu, opens the variants window:
+
+- one row per variant, with its thumbnail and, in the first row, the default template;
+- one column for each layer the variants change: pick an image by clicking its thumbnail, a color with the swatch, type a text or a value; ↺ goes back to the template's value. **+ Layer…** adds the column of another layer (for a group, its visibility);
+- **Add variant** creates a new one identical to the template; **Open** opens it in the editor to change anything else, as in a derived template; ✕ deletes it.
+
+In the sidebar the template appears once, with the number of its variants (a click opens the window). In the editor, above the canvas, the names of the template and of its variants switch from one to another.
+
+In a card's form the **Variant** field shows the card drawn with the template and with each variant: a click picks one. With more than 8 variants the field shows the current choice, and a click opens a menu with thumbnails and search. The choice goes into the sheet's `template` column (empty: the set's template), as for any template; in the table the column is picked from a drop-down. Variants travel in their template's package.
+
+Variants or a list (4.4)? A list fits when each layer is picked on its own; variants fit when several layers change together, because the card picks the whole combination with one click.
 
 ### 4.8 The grid
 

@@ -140,6 +140,8 @@ export function resolveTemplate(
     extends: own.extends,
     changes: own.changes
   }
+  if (own.variant) template.variant = true
+  else delete template.variant
   // file e origin sono del derivato, mai del base: altrimenti una rinomina del base non ancora
   // salvata farebbe rinominare o spostare in deleted/ il file del base al posto di quello del derivato
   if (own.file) template.file = own.file
@@ -360,21 +362,44 @@ export function wouldCycle(list: Template[], name: string, base: string): boolea
 }
 
 /** Nuovo derivato vuoto: identico al base finché non lo si modifica */
-export function newDerived(base: Template, name: string): Template {
+export function newDerived(base: Template, name: string, variant = false): Template {
   return resolveTemplate(base, {
     ...base,
     name,
     file: undefined,
     origin: undefined,
     extends: base.name,
+    variant,
     changes: {}
   }).template
+}
+
+/** Le varianti di un template, nell'ordine dell'elenco */
+export function variantsOf(list: Template[], name: string): Template[] {
+  return list.filter((t) => t.variant && t.extends === name)
+}
+
+/** Una variante il cui base c'è: nella barra laterale sta dentro il base */
+export function isVariant(list: Template[], t: Template): boolean {
+  return !!t.variant && !!t.extends && list.some((x) => x.name === t.extends && !x.variant)
+}
+
+/**
+ * Il template base e le sue varianti, per il template di un set (base o variante che sia);
+ * vuoto se non ha varianti
+ */
+export function variantFamily(list: Template[], setTemplate: Template): Template[] {
+  const base = isVariant(list, setTemplate)
+    ? list.find((x) => x.name === setTemplate.extends)!
+    : setTemplate
+  const variants = variantsOf(list, base.name)
+  return variants.length ? [base, ...variants] : []
 }
 
 /** Rende indipendente un derivato: diventa un template normale con i valori che ha ora */
 export function detach(t: Template): Template {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { extends: _base, changes: _changes, ...plain } = t
+  const { extends: _base, changes: _changes, variant: _variant, ...plain } = t
   return plain
 }
 

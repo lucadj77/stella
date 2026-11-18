@@ -168,7 +168,9 @@ function layerSummary(l: Layer): string {
       ? 'fixed'
       : src.kind === 'formula'
         ? `formula ${src.expr}`
-        : `column ${src.column || l.name}`
+        : src.options
+          ? `list ${src.column || l.name} [${src.options.join(', ')}]`
+          : `column ${src.column || l.name}`
   const main =
     l.type === 'text'
       ? ` text=${JSON.stringify(l.text)}`
@@ -198,7 +200,7 @@ function templateOutline(t: Template): string[] {
   ]
   if (t.extends)
     out.push(
-      `extends ${t.extends}; changes: ${JSON.stringify({ ...t.changes, added: t.changes?.added?.map((a) => a.layer.name) })}`
+      `${t.variant ? 'variant of' : 'extends'} ${t.extends}; changes: ${JSON.stringify({ ...t.changes, added: t.changes?.added?.map((a) => a.layer.name) })}`
     )
   const walk = (layers: Layer[], depth: number): void => {
     for (const l of layers) {
@@ -238,6 +240,7 @@ async function info(p: Parsed): Promise<number> {
     templates: project.templates.map((t) => ({
       name: t.name,
       ...(t.extends ? { extends: t.extends } : {}),
+      ...(t.variant ? { variant: true } : {}),
       width: t.width,
       height: t.height,
       front: walkLayers(t.front).map((l) => `${l.name}:${l.type}`),
@@ -269,7 +272,7 @@ async function info(p: Parsed): Promise<number> {
   print('Templates:')
   for (const t of data.templates)
     print(
-      `  ${t.name}${t.extends ? ` (extends ${t.extends})` : ''}: ${t.width}×${t.height} mm; front: ${t.front.join(', ') || '(empty)'}; back: ${t.back.join(', ') || '(empty)'}`
+      `  ${t.name}${t.extends ? ` (${t.variant ? 'variant of' : 'extends'} ${t.extends})` : ''}: ${t.width}×${t.height} mm; front: ${t.front.join(', ') || '(empty)'}; back: ${t.back.join(', ') || '(empty)'}`
     )
   print('Variables:')
   for (const v of data.variables) {

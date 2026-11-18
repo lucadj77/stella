@@ -9753,3 +9753,392 @@ button.wide {
   display: inline-block;
   padding: 2px 6px;
 }
+
+/* fonte «Elenco»: le voci nel pannello delle proprietà */
+.list-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 6px 0;
+}
+
+.list-options ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.list-options li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.list-options .option-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.list-options .option-tools {
+  display: flex;
+  gap: 2px;
+}
+
+.list-options .option-pick {
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+}
+
+.list-options-add {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.option-thumb {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  overflow: hidden;
+}
+
+.option-thumb img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.small.warn,
+.list-choice .warn {
+  background: var(--warning-bg);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+/* fonte «Elenco»: la scelta nei campi della carta */
+.list-choice {
+  display: flex;
+  width: 100%;
+}
+
+.list-choice select {
+  width: 100%;
+}
+
+.list-choice.tiles {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.list-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 64px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: inherit;
+  cursor: pointer;
+}
+
+.list-tile .option-thumb {
+  width: 52px;
+  height: 52px;
+}
+
+.list-tile.on {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  background: var(--accent-soft);
+}
+
+.list-base {
+  font-size: 10px;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.list-tile-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.list-swatch {
+  display: block;
+  width: 40px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.data-table td.not-in-list {
+  background: var(--warning-bg);
+}
+
+.data-table .cell-select {
+  width: 100%;
+}
+
+/* elenco con tante voci: la scelta attuale e un menu con la ricerca */
+.list-choice.menu {
+  position: relative;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.list-current {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 3px 8px 3px 3px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.list-current .list-swatch {
+  width: 32px;
+  height: 24px;
+}
+
+.list-current-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list-popover {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.list-popover-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+/* varianti di un template: il conteggio accanto al nome nella barra laterale */
+.sidebar li button.variants-count {
+  width: auto;
+  flex-shrink: 0;
+  margin-left: 4px;
+  padding: 1px 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--bg);
+  white-space: nowrap;
+}
+
+.sidebar li button.variants-count:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+/* la finestra delle varianti */
+.dialog:has(> .variants-dialog) {
+  max-width: min(1100px, 94vw);
+}
+
+.variants-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: min(760px, 88vw);
+}
+
+.variants-scroll {
+  overflow: auto;
+  max-height: 60vh;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.variants-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.variants-table th,
+.variants-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.variants-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--panel, var(--bg));
+  font-size: 12px;
+  z-index: 1;
+}
+
+.variants-table tbody th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.variant-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.variants-table tr.variant-base > * {
+  background: var(--accent-soft);
+}
+
+.variants-table td.from-base {
+  color: var(--muted);
+}
+
+.variants-table td.changed input[type='text'] {
+  font-weight: 600;
+}
+
+.variants-table .option-thumb {
+  width: 44px;
+  height: 44px;
+}
+
+.variant-thumb {
+  display: inline-block;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px var(--border);
+  line-height: 0;
+}
+
+.variant-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.variant-cell input[type='text'] {
+  width: 120px;
+}
+
+.variant-tools {
+  white-space: nowrap;
+}
+
+.variants-add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.variants-add input {
+  flex: 0 1 260px;
+}
+
+/* scelta della variante nella scheda della carta */
+.variant-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.variant-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.variant-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: inherit;
+  cursor: pointer;
+  max-width: 110px;
+}
+
+.variant-tile.on {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  background: var(--accent-soft);
+}
+
+.variant-tile .list-tile-name {
+  max-width: 100px;
+}
+
+/* nell'editor: il template e le sue varianti, per passare dall'uno all'altro */
+.variant-switch {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.variant-chip {
+  padding: 2px 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  color: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.variant-chip.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 600;
+}
+
+.variant-field > .field-label {
+  text-align: left;
+}
+
+.variant-current svg {
+  flex-shrink: 0;
+  border-radius: 2px;
+}
+
+.list-popover-grid .variant-tile {
+  flex-shrink: 0;
+}

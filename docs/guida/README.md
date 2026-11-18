@@ -353,9 +353,10 @@ Nei campi numerici si può trascinare l'etichetta a destra o a sinistra per camb
 </tr>
 </table>
 
-In cima a ogni livello ci sono il **nome**, che è anche il nome della colonna del foglio, e il **valore sui componenti**, con il tasto **fx** dell'assistente formule accanto al titolo e sotto tre scelte su tutta la larghezza del pannello:
+In cima a ogni livello ci sono il **nome**, che è anche il nome della colonna del foglio, e il **valore sui componenti**, con il tasto **fx** dell'assistente formule accanto al titolo e sotto quattro scelte su tutta la larghezza del pannello:
 
 - **Colonna**: la colonna del foglio, di base quella con lo stesso nome del livello. Una cella vuota lascia il valore scritto nel template.
+- **Elenco** (testi, immagini, forme e livelli valore): come Colonna, ma ogni componente sceglie una delle **Voci** scritte nel template, e nel set non si scrive altro. Per un'immagine le voci sono immagini del progetto (**Aggiungi immagine…**, o **Da una cartella…** per prenderle tutte), per una forma sono colori, per testi e valori sono testi. Il pallino accanto a una voce la rende il valore di base, quello delle celle vuote: nel modulo del componente porta la scritta «di base», e sceglierla lascia la cella vuota. Nel modulo del componente le immagini e i colori si scelgono con un clic sulle miniature, i testi da una tendina; con più di 8 voci il campo mostra solo la scelta attuale e un clic apre un menu con le miniature e la ricerca; nella tabella la cella apre una tendina. Una voce scritta nel foglio che non è nell'elenco (per esempio da Excel) si disegna lo stesso, ma è segnalata come problema del componente. Le immagini delle voci appartengono al template: vanno nel suo pacchetto anche se nessun componente le usa. Esempio: una cornice con le voci `oro`, `argento` e `rame` e una banda con i colori `#2F5DA8`, `rosso` e `#3E8E41` si scelgono separatamente su ogni carta, senza un template per ogni combinazione.
 - **Fisso**: lo stesso valore su tutti i componenti.
 - **Formula**: il valore si calcola dagli altri campi del componente ([capitolo 9](#9-formule-e-campi-calcolati)).
 
@@ -409,6 +410,20 @@ Si lavora come su un template normale, con alcune differenze:
 - Le misure del componente sono quelle del base.
 
 **Rendi indipendente**, nell'intestazione, trasforma il derivato in un template normale con i valori che ha in quel momento. Un template che fa da base a un altro non si può eliminare finché i suoi derivati non sono indipendenti o eliminati.
+
+#### Varianti
+
+Una variante è un derivato che resta dentro il suo template: serve quando le carte dello stesso tipo si presentano in poche versioni preimpostate, per esempio una cornice d'oro, d'argento o di rame con il colore della banda abbinato. **Varianti…**, nel menu ⋯ del template, apre la finestra delle varianti:
+
+- una riga per variante, con la miniatura e, nella prima riga, il template di base;
+- una colonna per ogni livello che le varianti cambiano: l'immagine si sceglie con un clic sulla miniatura, un colore con il campione, un testo o un valore si scrive; ↺ torna al valore del template. **+ Livello…** aggiunge la colonna di un altro livello (per un gruppo, la sua visibilità);
+- **Aggiungi variante** ne crea una nuova uguale al template; **Apri** la apre nell'editor per cambiare qualunque altra cosa, come in un derivato; ✕ la elimina.
+
+Nella barra laterale il template compare una volta sola, con il numero delle sue varianti (un clic apre la finestra). Nell'editor, sopra la tela, i nomi del template e delle varianti passano dall'uno all'altro.
+
+Nella scheda di una carta il campo **Variante** mostra la carta disegnata con il template e con ciascuna variante: un clic sceglie. Oltre 8 varianti il campo mostra la scelta attuale, e un clic apre un menu con le miniature e la ricerca. La scelta va nella colonna `template` del foglio (vuota: il template del set), come per un template qualsiasi; nella tabella la colonna si sceglie da una tendina. Le varianti viaggiano nel pacchetto del loro template.
+
+Varianti o elenco (4.4)? L'elenco va bene quando ogni livello si sceglie per conto suo; le varianti quando più livelli cambiano insieme, perché la carta sceglie la combinazione con un clic.
 
 ### 4.8 La griglia
 
