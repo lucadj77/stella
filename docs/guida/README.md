@@ -411,6 +411,20 @@ Si lavora come su un template normale, con alcune differenze:
 
 **Rendi indipendente**, nell'intestazione, trasforma il derivato in un template normale con i valori che ha in quel momento. Un template che fa da base a un altro non si può eliminare finché i suoi derivati non sono indipendenti o eliminati.
 
+#### Varianti
+
+Una variante è un derivato che resta dentro il suo template: serve quando le carte dello stesso tipo si presentano in poche versioni preimpostate, per esempio una cornice d'oro, d'argento o di rame con il colore della banda abbinato. **Varianti…**, nel menu ⋯ del template, apre la finestra delle varianti:
+
+- una riga per variante, con la miniatura e, nella prima riga, il template di base;
+- una colonna per ogni livello che le varianti cambiano: l'immagine si sceglie con un clic sulla miniatura, un colore con il campione, un testo o un valore si scrive; ↺ torna al valore del template. **+ Livello…** aggiunge la colonna di un altro livello (per un gruppo, la sua visibilità);
+- **Aggiungi variante** ne crea una nuova uguale al template; **Apri** la apre nell'editor per cambiare qualunque altra cosa, come in un derivato; ✕ la elimina.
+
+Nella barra laterale il template compare una volta sola, con il numero delle sue varianti (un clic apre la finestra). Nell'editor, sopra la tela, i nomi del template e delle varianti passano dall'uno all'altro.
+
+Nella scheda di una carta il campo **Variante** mostra la carta disegnata con il template e con ciascuna variante: un clic sceglie. La scelta va nella colonna `template` del foglio (vuota: il template del set), come per un template qualsiasi; nella tabella la colonna si sceglie da una tendina. Le varianti viaggiano nel pacchetto del loro template.
+
+Varianti o elenco (4.4)? L'elenco va bene quando ogni livello si sceglie per conto suo; le varianti quando più livelli cambiano insieme, perché la carta sceglie la combinazione con un clic.
+
 ### 4.8 La griglia
 
 Il livello **griglia** (strumento con le caselle) disegna caselle uguali dentro il suo riquadro: serve per plance, tracciati del punteggio, mappe, tabelle da compilare a mano. Le caselle sono quadrate, tonde, esagonali, triangolari, a rombo o con la forma presa da un'immagine (il contorno della parte non trasparente, con le sue proporzioni), in righe e colonne con uno spazio tra l'una e l'altra. Lo spazio è uno solo per righe e colonne; con **Spaziatura diversa per righe e colonne** si scrivono a parte quello tra le colonne e quello tra le righe. Una spaziatura negativa sovrappone le caselle di quei millimetri.

@@ -510,6 +510,11 @@ export interface Template {
    */
   extends?: string
   changes?: TemplateChanges
+  /**
+   * Derivato che è una variante del suo base: nella barra laterale non compare da solo, e la
+   * carta lo sceglie tra le varianti del template del set, con le miniature
+   */
+  variant?: boolean
 }
 
 /** Proprietà del template che un derivato può cambiare; le misure della carta no */

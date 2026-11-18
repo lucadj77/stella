@@ -45,6 +45,10 @@ interface Props {
   onOpen?(name: string): void
   /** Rende il derivato un template normale */
   onDetach?(): void
+  /** Il template base e le sue varianti, se ne ha: si passa dall'uno all'altro */
+  variants?: string[]
+  /** Apre la finestra delle varianti */
+  onVariants?(): void
   /** Rinomina, duplica, deriva, elimina: il menu ⋯ accanto al nome */
   menu?: MenuItem[]
   /** Lato e selezione da rimettere dopo un annulla dell'app; onRestored dice che è fatto */
@@ -81,6 +85,8 @@ export default function TemplateEditor({
   base = null,
   onOpen,
   onDetach,
+  variants = [],
+  onVariants,
   menu,
   restore = null,
   onRestored,
@@ -422,7 +428,25 @@ export default function TemplateEditor({
       <div className="editor-toolbar">
         <h1>{state.template.name}</h1>
         {menu && <Menu className="more-button" label="⋯" title={t('app.more')} items={menu} />}
-        {state.template.extends && (
+        {variants.length > 0 && (
+          <span className="variant-switch" role="group" aria-label={t('variants.switch')}>
+            {variants.map((n, i) => (
+              <button
+                key={n}
+                className={'variant-chip' + (n === state.template.name ? ' on' : '')}
+                aria-pressed={n === state.template.name}
+                title={i === 0 ? t('variants.baseHint') : t('variants.openHint')}
+                onClick={() => n !== state.template.name && onOpen?.(n)}
+              >
+                {n}
+              </button>
+            ))}
+            <button className="small-btn" title={t('variants.menuHint')} onClick={onVariants}>
+              {t('variants.menu')}
+            </button>
+          </span>
+        )}
+        {state.template.extends && !(state.template.variant && variants.length) && (
           <span className="derived-from">
             {t('inherit.derivedFrom')}{' '}
             <button

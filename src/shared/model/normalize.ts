@@ -314,6 +314,7 @@ export function normalizeTemplate(raw: RawTemplate): Template {
       front: [],
       back: [],
       extends: raw.extends,
+      ...(raw.variant === true ? { variant: true } : {}),
       changes: {
         ...(c.template ? { template: c.template } : {}),
         ...(c.layers ? { layers: c.layers } : {}),
@@ -491,7 +492,12 @@ export function denormalizeTemplate(t: Template): RawTemplate {
         ? { added: c.added.map((a) => ({ ...a, layer: denormalizeLayer(a.layer) })) }
         : {})
     }
-    return { name: t.name, extends: t.extends, changes }
+    return {
+      name: t.name,
+      extends: t.extends,
+      ...(t.variant ? { variant: true } : {}),
+      changes
+    }
   }
   return {
     name: t.name,

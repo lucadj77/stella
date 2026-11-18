@@ -10,10 +10,12 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 ### English
 
 - **List as the source of a layer**: besides **Column**, **Fixed** and **Formula**, a text, image, shape or value layer can take its value from a **List** of choices written in the template, such as frames `gold`, `silver`, `copper` or band colors. Each component picks one: thumbnails for images, swatches for colors, a drop-down for texts, in the component form and in the table. **From a folder…** adds all the images of a folder; a value outside the list is still drawn and reported. The images of the choices belong to the template and travel in its package.
+- **Template variants**: **Variants…**, in a template's menu, makes preset versions of it, such as a gold, silver and copper frame each with its band color. A table shows one row per variant with its thumbnail and a column for each layer that changes; click to pick an image or a color. The template appears once in the sidebar, with the number of its variants, and each component picks its variant from thumbnails of the card itself. Variants are derived templates kept inside their template, and travel in its package.
 
 ### Italiano
 
 - **Elenco come fonte di un livello**: oltre a **Colonna**, **Fisso** e **Formula**, un livello di testo, immagine, forma o valore può prendere il valore da un **Elenco** di voci scritte nel template, come le cornici `oro`, `argento`, `rame` o i colori di una banda. Ogni componente ne sceglie una: miniature per le immagini, campioni per i colori, una tendina per i testi, nel modulo del componente e nella tabella. **Da una cartella…** aggiunge tutte le immagini di una cartella; un valore fuori elenco si disegna lo stesso ed è segnalato. Le immagini delle voci appartengono al template e viaggiano nel suo pacchetto.
+- **Varianti dei template**: **Varianti…**, nel menu di un template, ne crea versioni preimpostate, come una cornice d'oro, d'argento e di rame ciascuna con il colore della sua banda. Una tabella mostra una riga per variante con la miniatura e una colonna per ogni livello che cambia; un clic sceglie un'immagine o un colore. Nella barra laterale il template compare una volta sola, con il numero delle varianti, e ogni componente sceglie la sua variante dalle miniature della carta stessa. Le varianti sono template derivati tenuti dentro il loro template, e viaggiano nel suo pacchetto.
 
 ## 1.12.1-beta.1
 

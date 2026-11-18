@@ -1,6 +1,7 @@
 import { memo, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { dragHasFiles, importDropped } from './dropImages'
 import { confirmKey } from './confirm'
+import { TEMPLATE_COLUMN } from '../../../shared/model/inherit'
 import type { Sheet } from '../../../shared/project'
 import {
   boolText,
@@ -312,6 +313,7 @@ function DataTable({
                           !calc &&
                             raw.trim() &&
                             lists?.has(h) &&
+                            h !== TEMPLATE_COLUMN &&
                             !findOption(lists.get(h)!.options, raw) &&
                             'not-in-list',
                           (tint || color) && 'tinted'

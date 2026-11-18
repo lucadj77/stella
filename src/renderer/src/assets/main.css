@@ -9950,3 +9950,186 @@ button.wide {
   max-height: 260px;
   overflow-y: auto;
 }
+
+/* varianti di un template: il conteggio accanto al nome nella barra laterale */
+.sidebar li button.variants-count {
+  width: auto;
+  flex-shrink: 0;
+  margin-left: 4px;
+  padding: 1px 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--bg);
+  white-space: nowrap;
+}
+
+.sidebar li button.variants-count:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+/* la finestra delle varianti */
+.dialog:has(> .variants-dialog) {
+  max-width: min(1100px, 94vw);
+}
+
+.variants-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: min(760px, 88vw);
+}
+
+.variants-scroll {
+  overflow: auto;
+  max-height: 60vh;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.variants-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.variants-table th,
+.variants-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.variants-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--panel, var(--bg));
+  font-size: 12px;
+  z-index: 1;
+}
+
+.variants-table tbody th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.variant-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.variants-table tr.variant-base > * {
+  background: var(--accent-soft);
+}
+
+.variants-table td.from-base {
+  color: var(--muted);
+}
+
+.variants-table td.changed input[type='text'] {
+  font-weight: 600;
+}
+
+.variants-table .option-thumb {
+  width: 44px;
+  height: 44px;
+}
+
+.variant-thumb {
+  display: inline-block;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px var(--border);
+  line-height: 0;
+}
+
+.variant-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.variant-cell input[type='text'] {
+  width: 120px;
+}
+
+.variant-tools {
+  white-space: nowrap;
+}
+
+.variants-add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.variants-add input {
+  flex: 0 1 260px;
+}
+
+/* scelta della variante nella scheda della carta */
+.variant-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.variant-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.variant-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: inherit;
+  cursor: pointer;
+  max-width: 110px;
+}
+
+.variant-tile.on {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  background: var(--accent-soft);
+}
+
+.variant-tile .list-tile-name {
+  max-width: 100px;
+}
+
+/* nell'editor: il template e le sue varianti, per passare dall'uno all'altro */
+.variant-switch {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.variant-chip {
+  padding: 2px 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  color: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.variant-chip.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 600;
+}
+
+.variant-field > .field-label {
+  text-align: left;
+}

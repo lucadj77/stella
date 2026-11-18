@@ -411,6 +411,20 @@ You work as on a normal template, with a few differences:
 
 **Make independent**, in the header, turns the derived template into a normal one with the values it has at that moment. A template that is the base of another cannot be deleted until its derived templates are made independent or deleted.
 
+#### Variants
+
+A variant is a derived template that stays inside its template: use it when the components of one type come in a few preset versions, for example a gold, silver or copper frame with a matching band color. **Variants…**, in the template's ⋯ menu, opens the variants window:
+
+- one row per variant, with its thumbnail and, in the first row, the default template;
+- one column for each layer the variants change: pick an image by clicking its thumbnail, a color with the swatch, type a text or a value; ↺ goes back to the template's value. **+ Layer…** adds the column of another layer (for a group, its visibility);
+- **Add variant** creates a new one identical to the template; **Open** opens it in the editor to change anything else, as in a derived template; ✕ deletes it.
+
+In the sidebar the template appears once, with the number of its variants (a click opens the window). In the editor, above the canvas, the names of the template and of its variants switch from one to another.
+
+In a card's form the **Variant** field shows the card drawn with the template and with each variant: a click picks one. The choice goes into the sheet's `template` column (empty: the set's template), as for any template; in the table the column is picked from a drop-down. Variants travel in their template's package.
+
+Variants or a list (4.4)? A list fits when each layer is picked on its own; variants fit when several layers change together, because the card picks the whole combination with one click.
+
 ### 4.8 The grid
 
 The **grid** layer (the tool with the cells) draws equal cells inside its frame: for boards, score tracks, maps, tables to fill in by hand. Cells are square, round, hexagonal, triangular, diamond-shaped or take their shape from an image (the outline of its non-transparent part, with its proportions), in rows and columns with a gap between them. The gap is the same for rows and columns; with **Different gap for rows and columns** you set the gap between columns and the gap between rows separately. A negative gap makes the cells overlap by that many millimetres.

@@ -30,6 +30,7 @@ import { ColorSwatch } from './ColorPicker'
 import { EyeIcon, EyeOffIcon, ImageIcon, PinIcon, SlidersIcon } from './icons'
 import { colorPartOf, propControl, propLabel } from './cardProps'
 import CropDialog from './CropDialog'
+import CardSvg from '../render/CardSvg'
 import { cropText, parseCrop } from '../../../shared/model/crop'
 import { resolveAsset } from '../../../shared/model/assets'
 import { AssetsContext, assetUrl } from '../render/assets'
@@ -44,6 +45,11 @@ interface Props {
   templateChoices?: string[]
   /** Template del set: vale per le carte con la colonna template vuota */
   setTemplate?: string
+  /**
+   * Il template del set e le sue varianti, già legati ai dati della carta: si scelgono con le
+   * miniature. Vuoto se il template non ha varianti.
+   */
+  variants?: { name: string; template: Template }[]
   /** Colonne da mostrare, già senza quelle nascoste (vedi setColumns) */
   columns: ColumnInfo[]
   /** Colonne vero/falso, con il valore del template per le celle vuote */
@@ -72,6 +78,7 @@ function CardForm({
   template,
   templateChoices = [],
   setTemplate,
+  variants = [],
   columns,
   booleans,
   computed,
@@ -295,6 +302,61 @@ function CardForm({
     if (h === TEMPLATE_COLUMN && templateChoices.length) {
       // il template della carta si sceglie tra quelli con le misure del set
       const own = value?.trim() ?? ''
+      // le varianti del template del set: miniature della carta con ciascuna
+      const family = variants.map((v) => v.name)
+      const others = templateChoices.filter((n) => n !== setTemplate && !family.includes(n))
+      if (family.length) {
+        const chosen = value === null ? null : own || setTemplate
+        return (
+          <div key={h} className={className + ' variant-field'}>
+            <span className="field-label" title={t('cardForm.variantHint')}>
+              {t('cardForm.variant')}
+            </span>
+            <span className="variant-choice">
+              {variants.map((v, i) => {
+                const on = chosen === v.name
+                const scale = 72 / Math.max(v.template.height, 1)
+                return (
+                  <button
+                    key={v.name}
+                    type="button"
+                    className={'variant-tile' + (on ? ' on' : '')}
+                    aria-pressed={on}
+                    title={v.name}
+                    data-column={i === 0 ? h : undefined}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      write(h, v.name === setTemplate ? '' : v.name)
+                    }}
+                  >
+                    <CardSvg template={v.template} scale={scale} guides={false} />
+                    <span className="list-tile-name">{v.name}</span>
+                    {i === 0 && <span className="list-base">{t('list.base')}</span>}
+                  </button>
+                )
+              })}
+            </span>
+            {(others.length > 0 || (own && !family.includes(own))) && (
+              <select
+                className={family.includes(own) || !own ? 'from-template' : undefined}
+                value={family.includes(own) ? '' : own}
+                title={t('cardForm.templateHint')}
+                onChange={(e) => write(h, e.target.value)}
+              >
+                <option value="">{t('cardForm.otherTemplate')}</option>
+                {others.map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+                {own && !family.includes(own) && !others.includes(own) && (
+                  <option value={own}>{own}</option>
+                )}
+              </select>
+            )}
+          </div>
+        )
+      }
       return (
         <label key={h} className={className} title={t('cardForm.templateHint')}>
           <span className="field-label">{t('cardForm.template')}</span>

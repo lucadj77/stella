@@ -48,18 +48,30 @@ import type {
   Sheet
 } from '../../shared/project'
 import { messageFromError, msg, type Message } from '../../shared/messages'
-import { bindRow, computedValues, rowToCard, type BoundCard } from '../../shared/model/bind'
+import {
+  bindCard,
+  bindRow,
+  computedValues,
+  rowToCard,
+  type BoundCard
+} from '../../shared/model/bind'
 import { systemOfSet, type ProjectMeta } from '../../shared/model/system'
 import {
   baseOf,
   cardTemplate,
   derivedOf,
   detach,
+  isVariant,
   newDerived,
+  rebase,
   rediffDerived,
   resolveTemplates,
-  syncDerived
+  syncDerived,
+  TEMPLATE_COLUMN,
+  variantFamily,
+  variantsOf
 } from '../../shared/model/inherit'
+import VariantsDialog from './components/VariantsDialog'
 import type { GroupLayer, Layer, Side, Template } from '../../shared/model/template'
 import { hasNoBack, kindOf } from '../../shared/model/template'
 import { copyName as freeCopyName, countCards } from '../../shared/model/overview'
@@ -470,6 +482,8 @@ function App(): React.JSX.Element {
   const [renamingTemplate, setRenamingTemplate] = useState<string | null>(null)
   /** Template da cui si sta creando un derivato */
   const [deriving, setDeriving] = useState<string | null>(null)
+  /** Template di cui si guardano le varianti */
+  const [variantsFor, setVariantsFor] = useState<string | null>(null)
   /** Fogli modificati e non ancora salvati, per nome del foglio */
   const [dirtySheets, setDirtySheets] = useState<Set<string>>(new Set())
   /**
@@ -927,6 +941,21 @@ function App(): React.JSX.Element {
     setProject((p) => p && { ...p, templates: [...p.templates, tpl] })
     setDirty((d) => new Set(d).add(name))
     setSelected({ kind: 'template', name })
+  }
+
+  /** Nuova variante: un derivato che sta dentro il base e si sceglie carta per carta */
+  const addVariant = (from: string, name: string): void => {
+    const base = project?.templates.find((x) => x.name === from)
+    if (!base) return
+    const tpl = newDerived(base, name, true)
+    setProject((p) => p && { ...p, templates: [...p.templates, tpl] })
+    setDirty((d) => new Set(d).add(name))
+  }
+
+  /** Una variante cambiata nella finestra delle varianti: si salvano solo le differenze */
+  const changeVariant = (v: Template, key: string): void => {
+    const base = project?.templates.find((x) => x.name === v.extends)
+    if (base) updateTemplate(rebase(base, v), { key, side: 'front', selection: [] })
   }
 
   /** Il derivato diventa un template normale, con i valori che ha ora */
@@ -2424,10 +2453,10 @@ function App(): React.JSX.Element {
   const variableList = orderNames(Object.keys(variables), order?.variables).map(
     (n): [string, Variable] => [n, variables[n]]
   )
-  const templateList = orderNames(
-    project?.templates.map((x) => x.name) ?? [],
-    order?.templates
-  ).flatMap((n) => project?.templates.find((x) => x.name === n) ?? [])
+  const templateList = orderNames(project?.templates.map((x) => x.name) ?? [], order?.templates)
+    .flatMap((n) => project?.templates.find((x) => x.name === n) ?? [])
+    // le varianti stanno dentro il loro template
+    .filter((x) => !isVariant(project?.templates ?? [], x))
   // trascinando una voce si salva l'ordine dell'elenco come appare
   const dragSets = useDragReorder(moveSet)
   const dragTemplates = useDragReorder((a, b) =>
@@ -2699,41 +2728,63 @@ function App(): React.JSX.Element {
             }
           >
             <ul>
-              {templateList.map((tpl, i) => (
-                <li key={tpl.name} {...dragTemplates.itemProps(i)}>
-                  <button
-                    className={
-                      selected.kind === 'template' && selected.name === tpl.name ? 'active' : ''
-                    }
-                    onClick={() => setSelected({ kind: 'template', name: tpl.name })}
-                    onContextMenu={(e) => contextMenu.open(e, templateMenu(tpl.name))}
-                    {...sidebarPreview.bind({ kind: 'template', name: tpl.name })}
-                  >
-                    <span>
-                      <KindIcon kind={kindOf(tpl)} size={16} />
-                      {tpl.name}
-                      {dirty.has(tpl.name) && (
-                        <span className="dirty-dot" title={t('app.unsaved')} />
-                      )}
-                    </span>
-                    <span
-                      className={tpl.extends ? 'muted derived-base' : 'muted'}
-                      title={tpl.extends ? `${t('inherit.derivedFrom')} ${tpl.extends}` : undefined}
+              {templateList.map((tpl, i) => {
+                const variants = variantsOf(project.templates, tpl.name)
+                const onVariant =
+                  selected.kind === 'template' && variants.some((v) => v.name === selected.name)
+                return (
+                  <li key={tpl.name} {...dragTemplates.itemProps(i)}>
+                    <button
+                      className={
+                        (selected.kind === 'template' && selected.name === tpl.name) || onVariant
+                          ? 'active'
+                          : ''
+                      }
+                      onClick={() => setSelected({ kind: 'template', name: tpl.name })}
+                      onContextMenu={(e) => contextMenu.open(e, templateMenu(tpl.name))}
+                      {...sidebarPreview.bind({ kind: 'template', name: tpl.name })}
                     >
-                      {tpl.extends
-                        ? `↳ ${tpl.extends}`
-                        : `${toUnit(tpl.width, lengthUnit)}×${toUnit(tpl.height, lengthUnit)}`}
-                    </span>
-                  </button>
-                  <button
-                    className="icon-btn item-dup"
-                    title={t('app.more')}
-                    onClick={(e) => contextMenu.open(e, templateMenu(tpl.name))}
-                  >
-                    ⋯
-                  </button>
-                </li>
-              ))}
+                      <span>
+                        <KindIcon kind={kindOf(tpl)} size={16} />
+                        {tpl.name}
+                        {(dirty.has(tpl.name) || variants.some((v) => dirty.has(v.name))) && (
+                          <span className="dirty-dot" title={t('app.unsaved')} />
+                        )}
+                      </span>
+                      <span
+                        className={tpl.extends ? 'muted derived-base' : 'muted'}
+                        title={
+                          tpl.extends ? `${t('inherit.derivedFrom')} ${tpl.extends}` : undefined
+                        }
+                      >
+                        {tpl.extends
+                          ? `↳ ${tpl.extends}`
+                          : // con le varianti il conteggio prende il posto delle misure
+                            !variants.length &&
+                            `${toUnit(tpl.width, lengthUnit)}×${toUnit(tpl.height, lengthUnit)}`}
+                      </span>
+                    </button>
+                    {variants.length > 0 && (
+                      <button
+                        className="variants-count"
+                        title={t('variants.openDialog')}
+                        onClick={() => setVariantsFor(tpl.name)}
+                      >
+                        {variants.length === 1
+                          ? t('variants.count.one')
+                          : t('variants.count', { n: variants.length })}
+                      </button>
+                    )}
+                    <button
+                      className="icon-btn item-dup"
+                      title={t('app.more')}
+                      onClick={(e) => contextMenu.open(e, templateMenu(tpl.name))}
+                    >
+                      ⋯
+                    </button>
+                  </li>
+                )
+              })}
             </ul>
           </SidebarSection>
           <SidebarSection
@@ -2960,6 +3011,15 @@ function App(): React.JSX.Element {
       label: t('inherit.deriveShort'),
       title: t('inherit.derive'),
       onClick: () => setDeriving(name)
+    },
+    {
+      label: t('variants.menu'),
+      title: t('variants.menuHint'),
+      // le varianti di una variante sono quelle del suo base
+      onClick: () => {
+        const tpl = project?.templates.find((x) => x.name === name)
+        setVariantsFor(tpl && project && isVariant(project.templates, tpl) ? tpl.extends! : name)
+      }
     },
     {
       label: t('package.exportMenu'),
@@ -3588,6 +3648,13 @@ function App(): React.JSX.Element {
                                   base={baseOf(project.templates, editing)}
                                   onOpen={(name) => setSelected({ kind: 'template', name })}
                                   onDetach={() => detachTemplate(editing.name)}
+                                  variants={variantFamily(project.templates, editing).map(
+                                    (x) => x.name
+                                  )}
+                                  onVariants={() => {
+                                    const fam = variantFamily(project.templates, editing)
+                                    if (fam.length) setVariantsFor(fam[0].name)
+                                  }}
                                   menu={templateMenu(editing.name)}
                                   restore={editorRestore}
                                   onRestored={clearEditorRestore}
@@ -3835,6 +3902,31 @@ function App(): React.JSX.Element {
                             onClose={() => setDeriving(null)}
                           />
                         )}
+                        {variantsFor &&
+                          project &&
+                          (() => {
+                            const base = project.templates.find((x) => x.name === variantsFor)
+                            if (!base) return null
+                            return (
+                              <VariantsDialog
+                                base={base}
+                                variants={variantsOf(project.templates, base.name)}
+                                names={templateNames()}
+                                onAdd={(name) => addVariant(base.name, name)}
+                                onChange={changeVariant}
+                                onOpen={(name) => {
+                                  setVariantsFor(null)
+                                  setEditorRev((r) => r + 1)
+                                  setSelected({ kind: 'template', name })
+                                }}
+                                onDelete={(name) => void deleteTemplate(name)}
+                                onClose={() => {
+                                  setVariantsFor(null)
+                                  setEditorRev((r) => r + 1)
+                                }}
+                              />
+                            )
+                          })()}
                         {checkingData && project && (
                           <DataCheckDialog
                             project={project}
@@ -4298,7 +4390,34 @@ function SetView({
     [set.data, template]
   )
   // colonne con l'elenco del livello: in tabella si scelgono da una tendina
-  const lists = useMemo(() => (template ? listColumns(template) : undefined), [template])
+  // le varianti del template del set: si scelgono nella colonna template
+  const family = useMemo(
+    () => (template ? variantFamily(templates, template) : []),
+    [template, templates]
+  )
+  const lists = useMemo(() => {
+    if (!template) return undefined
+    const out = listColumns(template)
+    if (family.length)
+      out.set(TEMPLATE_COLUMN, {
+        type: 'text',
+        options: family.map((x) => x.name),
+        fallback: template.name
+      })
+    return out
+  }, [template, family])
+  // le miniature delle varianti con i dati della carta scelta
+  const variantRow = set.data?.rows[selection[0] ?? -1]
+  const variantThumbs = useMemo(
+    () =>
+      variantRow && set.data
+        ? family.map((x) => ({
+            name: x.name,
+            template: bindCard(x, rowToCard(set.data!.headers, variantRow), bindCtx).template
+          }))
+        : [],
+    [family, variantRow, set.data, bindCtx]
+  )
   // valori dei livelli fissi e con formula, solo quando si mostrano
   const showsComputed = columns.some((c) => c.computed)
   const computedRows = useMemo(
@@ -4605,6 +4724,7 @@ function SetView({
       rows={selection}
       template={rowTemplates[current] ?? template}
       setTemplate={set.template}
+      variants={variantThumbs}
       templateChoices={
         template
           ? templates
