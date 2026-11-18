@@ -714,11 +714,11 @@ In the web app only images from sites that allow it can be downloaded; for the o
 
 ![Choosing an image](img/scegli-immagine.png)
 
-**Project ▾ › Project images…**, or **Manage…** in the image chooser, shows every image with where it is used below it. At the top you filter them: **In templates** (written in a template), **Only in sets** (a column or a formula of the cards chooses them), **In documents** and **Unused**. You can group them by folder or by template. Select an image to see on the right which templates, sets, documents and variables use it.
+**Project ▾ › Project images…**, or **Manage…** in the image chooser, shows every image with where it is used below it. At the top you filter them: **In templates** (written in a template), **Only in sets** (a column or a formula of the cards chooses them), **In documents** and **Unused**. **Show grouped by** splits them by folder or by template: only the view changes, the files stay where they are. Select an image to see on the right which templates, sets, documents and variables use it.
 
 - To delete, select one or more images (⌘/Ctrl+click, ⇧+click or a rectangle dragged from an empty spot) and press **Delete** or Del / ⌫. If an image is still used the app tells you first. Deleted images go to the project trash (**Project ▾ › Trash…**), from where you put them back.
 - **Move to folder…** puts the images in a folder of `assets`, existing or new, also inside another one (`images/Heroes`). Cards keep finding them, because the name is enough; references written with the folder are updated by themselves.
-- **Group by template…** offers to put the images that only one template uses in a folder named after the template, and tells you how many and where before moving them.
+- **Make template folders…** offers to put the images that only one template uses in a folder named after the template, and tells you how many and where before moving them.
 
 Single-color icons (black SVGs on a transparent background) are recolored with the layer's **Tint** property or with the variable's tint. The tint is laid over the image: a solid color recolors it completely, a semi-transparent one tints it only partly. For example black at 20% (`#00000033`) darkens a forest, and the image stays opaque.
 

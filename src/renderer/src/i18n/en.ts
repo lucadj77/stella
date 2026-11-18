@@ -3837,7 +3837,8 @@ export const en = {
   'images.filter.documents.hint': 'Images shown in the documents',
   'images.filter.unused': 'Unused',
   'images.filter.unused.hint': 'Images no template, card, document, variable, style or cover uses',
-  'images.groupBy': 'Group by',
+  'images.groupBy': 'Show grouped by',
+  'images.groupBy.hint': 'Only the view: the files stay where they are',
   'images.groupBy.none': 'Nothing',
   'images.groupBy.folder': 'Folder',
   'images.groupBy.template': 'Template',
@@ -3846,9 +3847,9 @@ export const en = {
   'images.group.other': 'Variables, styles and cover',
   'images.group.unused': 'Unused',
   'images.group.nothing': 'Every image used by a single template is already in its folder.',
-  'images.groupByTemplate': 'Group by template…',
+  'images.groupByTemplate': 'Make template folders…',
   'images.groupByTemplate.hint':
-    'Moves each image used by a single template (with its sets) to a folder named after the template',
+    'Sorts the files: moves each image used by a single template (with its sets) to a folder named after the template. It asks first.',
   'images.groupByTemplate.title':
     'Move {n} {n:image|images} into {folders} {folders:folder|folders}?',
   'images.groupByTemplate.message':

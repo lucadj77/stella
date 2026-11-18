@@ -223,11 +223,11 @@ Immagini da internet: nella scelta delle immagini **Da internet…** chiede un i
 - **documenti**: `![testo](nome)`, `{nome}` e `bg=` nei documenti;
 - variabili immagine, stili con `bg=` e copertina del progetto.
 
-I filtri sono **Tutte**, **Nei template**, **Solo nei set** (usate dalle carte e da nessun template), **Nei documenti** e **Non usate** (nessuno degli usi sopra). Le miniature si raggruppano per cartella, per template (quelli che la usano direttamente o con i loro set) o non si raggruppano. Si selezionano con clic, ⌘/Ctrl+clic, ⇧+clic e con un rettangolo trascinato da uno spazio vuoto; ⌘A / Ctrl+A le seleziona tutte.
+I filtri sono **Tutte**, **Nei template**, **Solo nei set** (usate dalle carte e da nessun template), **Nei documenti** e **Non usate** (nessuno degli usi sopra). **Mostra raggruppate per** divide le miniature per cartella, per template (quelli che la usano direttamente o con i loro set) o non le divide: cambia solo la vista, i file restano dove sono. Si selezionano con clic, ⌘/Ctrl+clic, ⇧+clic e con un rettangolo trascinato da uno spazio vuoto; ⌘A / Ctrl+A le seleziona tutte.
 
 - **Elimina** (anche Canc / ⌫ e il menu del tasto destro) chiede conferma, avvisando se qualcuna è ancora usata, e sposta i file in `deleted/assets/<data e ora>/<percorso in assets>`, con le loro voci di `sources.json` in `sources.json` accanto. Il cestino del progetto le elenca come **Immagine** e le rimette al loro posto (con un numero nel nome se nel frattempo c'è un altro file), con la licenza; **Ripristina tutte le immagini** le rimette tutte. Le cartelle rimaste vuote si tolgono.
 - **Sposta in cartella…** sposta i file in una cartella sotto `assets/`, esistente o nuova, anche annidata (`images/Eroi`). Non sposta niente se nella cartella c'è già un file con lo stesso nome. I riferimenti con il solo nome continuano a funzionare (3.1); quelli scritti con la cartella (`images/spada`, `images/spada.png`, `assets/images/spada`) si riscrivono in template, celle, documenti, variabili, stili e copertina, come una modifica che si salva e si annulla con ⌘Z (i file restano spostati). Le voci di `sources.json` seguono i file.
-- **Raggruppa per template…** propone di spostare in `<cartella principale>/<template>` (per esempio `icons/personaggio`) le immagini usate da un solo template, con i suoi set, e da nient'altro; prima di spostare dice quante immagini e in quali cartelle.
+- **Crea cartelle per template…** propone di spostare in `<cartella principale>/<template>` (per esempio `icons/personaggio`) le immagini usate da un solo template, con i suoi set, e da nient'altro; prima di spostare dice quante immagini e in quali cartelle.
 
 Nella scelta delle immagini il filtro per cartella elenca anche le cartelle annidate.
 

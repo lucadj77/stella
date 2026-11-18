@@ -714,11 +714,11 @@ Nell'app web si scaricano solo le immagini dei siti che lo permettono; per gli a
 
 ![La scelta di un'immagine](img/scegli-immagine.png)
 
-**Progetto ▾ › Immagini del progetto…**, o **Gestisci…** nella scelta delle immagini, mostra tutte le immagini con sotto dove sono usate. In alto si filtrano: **Nei template** (scritte in un template), **Solo nei set** (le sceglie una colonna o una formula delle carte), **Nei documenti** e **Non usate**. Si possono raggruppare per cartella o per template. Selezionando un'immagine si vede a destra in quali template, set, documenti e variabili compare.
+**Progetto ▾ › Immagini del progetto…**, o **Gestisci…** nella scelta delle immagini, mostra tutte le immagini con sotto dove sono usate. In alto si filtrano: **Nei template** (scritte in un template), **Solo nei set** (le sceglie una colonna o una formula delle carte), **Nei documenti** e **Non usate**. **Mostra raggruppate per** le divide per cartella o per template: cambia solo la vista, i file restano dove sono. Selezionando un'immagine si vede a destra in quali template, set, documenti e variabili compare.
 
 - Per eliminare, seleziona una o più immagini (⌘/Ctrl+clic, ⇧+clic o un rettangolo trascinato da uno spazio vuoto) e premi **Elimina** o Canc / ⌫. Se un'immagine è ancora usata l'app lo dice prima. Le immagini eliminate vanno nel cestino del progetto (**Progetto ▾ › Cestino…**), da cui si rimettono al loro posto.
 - **Sposta in cartella…** mette le immagini in una cartella di `assets`, già esistente o nuova, anche dentro un'altra (`images/Eroi`). Le carte continuano a trovarle, perché basta il nome; i riferimenti scritti con la cartella si aggiornano da soli.
-- **Raggruppa per template…** propone di mettere in una cartella con il nome del template le immagini che usa solo quel template, e prima di spostarle dice quante sono e dove vanno.
+- **Crea cartelle per template…** propone di mettere in una cartella con il nome del template le immagini che usa solo quel template, e prima di spostarle dice quante sono e dove vanno.
 
 Le icone a un colore (SVG nere su fondo trasparente) si ricolorano con la proprietà **Colorazione** del livello o con la tinta della variabile. La colorazione si stende sopra l'immagine: un colore pieno la ricolora del tutto, un colore semitrasparente la tinge solo in parte. Per esempio nero al 20% (`#00000033`) scurisce un bosco, e l'immagine resta opaca.
 

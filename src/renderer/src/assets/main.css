@@ -9471,3 +9471,16 @@ button.wide {
   flex-direction: column;
   overflow-wrap: anywhere;
 }
+
+.images-folders-tool {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.images-folders-tool p {
+  margin: 0;
+}

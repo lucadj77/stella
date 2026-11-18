@@ -3887,7 +3887,8 @@ export const it: Record<MessageKey, string> = {
   'images.filter.unused': 'Non usate',
   'images.filter.unused.hint':
     'Immagini che nessun template, carta, documento, variabile, stile o copertina usa',
-  'images.groupBy': 'Raggruppa per',
+  'images.groupBy': 'Mostra raggruppate per',
+  'images.groupBy.hint': 'Solo la vista: i file restano dove sono',
   'images.groupBy.none': 'Niente',
   'images.groupBy.folder': 'Cartella',
   'images.groupBy.template': 'Template',
@@ -3896,9 +3897,9 @@ export const it: Record<MessageKey, string> = {
   'images.group.other': 'Variabili, stili e copertina',
   'images.group.unused': 'Non usate',
   'images.group.nothing': 'Le immagini usate da un solo template sono già nella sua cartella.',
-  'images.groupByTemplate': 'Raggruppa per template…',
+  'images.groupByTemplate': 'Crea cartelle per template…',
   'images.groupByTemplate.hint':
-    'Sposta ogni immagine usata da un solo template (con i suoi set) in una cartella con il nome del template',
+    'Ordina i file: sposta ogni immagine usata da un solo template (con i suoi set) in una cartella con il nome del template. Prima chiede conferma.',
   'images.groupByTemplate.title':
     'Spostare {n} {n:immagine|immagini} in {folders} {folders:cartella|cartelle}?',
   'images.groupByTemplate.message':

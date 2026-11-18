@@ -368,7 +368,7 @@ export default function ImagesDialog({
             placeholder={t('assetPicker.search')}
             onChange={(e) => setQuery(e.target.value)}
           />
-          <label className="images-group">
+          <label className="images-group" title={t('images.groupBy.hint')}>
             {t('images.groupBy')}
             <select value={grouping} onChange={(e) => setGrouping(e.target.value as Grouping)}>
               <option value="none">{t('images.groupBy.none')}</option>
@@ -385,9 +385,6 @@ export default function ImagesDialog({
             title={t('assetPicker.size')}
             onChange={(e) => setSize(Number(e.target.value))}
           />
-          <button disabled={busy} onClick={groupAll} title={t('images.groupByTemplate.hint')}>
-            {t('images.groupByTemplate')}
-          </button>
         </div>
         {error && <div className="banner error">{t(error)}</div>}
         <div className="images-body">
@@ -480,6 +477,12 @@ export default function ImagesDialog({
                 </div>
               </>
             )}
+            <div className="images-folders-tool">
+              <p className="muted small">{t('images.groupByTemplate.hint')}</p>
+              <button disabled={busy} onClick={groupAll}>
+                {t('images.groupByTemplate')}
+              </button>
+            </div>
           </aside>
         </div>
         <div className="dialog-buttons">
