@@ -421,7 +421,7 @@ A variant is a derived template that stays inside its template: use it when the 
 
 In the sidebar the template appears once, with the number of its variants (a click opens the window). In the editor, above the canvas, the names of the template and of its variants switch from one to another.
 
-In a card's form the **Variant** field shows the card drawn with the template and with each variant: a click picks one. The choice goes into the sheet's `template` column (empty: the set's template), as for any template; in the table the column is picked from a drop-down. Variants travel in their template's package.
+In a card's form the **Variant** field shows the card drawn with the template and with each variant: a click picks one. With more than 8 variants the field shows the current choice, and a click opens a menu with thumbnails and search. The choice goes into the sheet's `template` column (empty: the set's template), as for any template; in the table the column is picked from a drop-down. Variants travel in their template's package.
 
 Variants or a list (4.4)? A list fits when each layer is picked on its own; variants fit when several layers change together, because the card picks the whole combination with one click.
 

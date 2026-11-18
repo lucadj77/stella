@@ -826,6 +826,7 @@ export const it: Record<MessageKey, string> = {
   'variants.openDialog': 'Mostra le varianti',
   'variants.count': '{n} varianti',
   'variants.count.one': '1 variante',
+  'variants.search': 'Cerca tra {n} varianti',
   'variants.switch': 'Template e sue varianti',
   'cardForm.variant': 'Variante',
   'cardForm.variantHint': "L'aspetto di questo componente: il template o una delle sue varianti",

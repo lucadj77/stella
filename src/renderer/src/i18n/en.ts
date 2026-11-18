@@ -818,6 +818,7 @@ export const en = {
   'variants.openDialog': 'Show the variants',
   'variants.count': '{n} variants',
   'variants.count.one': '1 variant',
+  'variants.search': 'Search {n} variants',
   'variants.switch': 'Template and its variants',
   'cardForm.variant': 'Variant',
   'cardForm.variantHint': 'The look of this component: the template or one of its variants',

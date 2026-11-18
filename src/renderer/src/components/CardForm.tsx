@@ -30,7 +30,7 @@ import { ColorSwatch } from './ColorPicker'
 import { EyeIcon, EyeOffIcon, ImageIcon, PinIcon, SlidersIcon } from './icons'
 import { colorPartOf, propControl, propLabel } from './cardProps'
 import CropDialog from './CropDialog'
-import CardSvg from '../render/CardSvg'
+import VariantChoice from './VariantChoice'
 import { cropText, parseCrop } from '../../../shared/model/crop'
 import { resolveAsset } from '../../../shared/model/assets'
 import { AssetsContext, assetUrl } from '../render/assets'
@@ -306,36 +306,18 @@ function CardForm({
       const family = variants.map((v) => v.name)
       const others = templateChoices.filter((n) => n !== setTemplate && !family.includes(n))
       if (family.length) {
-        const chosen = value === null ? null : own || setTemplate
+        const chosen = value === null ? null : own || setTemplate || ''
         return (
           <div key={h} className={className + ' variant-field'}>
             <span className="field-label" title={t('cardForm.variantHint')}>
               {t('cardForm.variant')}
             </span>
-            <span className="variant-choice">
-              {variants.map((v, i) => {
-                const on = chosen === v.name
-                const scale = 72 / Math.max(v.template.height, 1)
-                return (
-                  <button
-                    key={v.name}
-                    type="button"
-                    className={'variant-tile' + (on ? ' on' : '')}
-                    aria-pressed={on}
-                    title={v.name}
-                    data-column={i === 0 ? h : undefined}
-                    onClick={(e) => {
-                      e.preventDefault()
-                      write(h, v.name === setTemplate ? '' : v.name)
-                    }}
-                  >
-                    <CardSvg template={v.template} scale={scale} guides={false} />
-                    <span className="list-tile-name">{v.name}</span>
-                    {i === 0 && <span className="list-base">{t('list.base')}</span>}
-                  </button>
-                )
-              })}
-            </span>
+            <VariantChoice
+              variants={variants}
+              chosen={chosen}
+              column={h}
+              onPick={(n) => write(h, n === setTemplate ? '' : n)}
+            />
             {(others.length > 0 || (own && !family.includes(own))) && (
               <select
                 className={family.includes(own) || !own ? 'from-template' : undefined}

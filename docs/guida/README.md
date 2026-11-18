@@ -421,7 +421,7 @@ Una variante è un derivato che resta dentro il suo template: serve quando le ca
 
 Nella barra laterale il template compare una volta sola, con il numero delle sue varianti (un clic apre la finestra). Nell'editor, sopra la tela, i nomi del template e delle varianti passano dall'uno all'altro.
 
-Nella scheda di una carta il campo **Variante** mostra la carta disegnata con il template e con ciascuna variante: un clic sceglie. La scelta va nella colonna `template` del foglio (vuota: il template del set), come per un template qualsiasi; nella tabella la colonna si sceglie da una tendina. Le varianti viaggiano nel pacchetto del loro template.
+Nella scheda di una carta il campo **Variante** mostra la carta disegnata con il template e con ciascuna variante: un clic sceglie. Oltre 8 varianti il campo mostra la scelta attuale, e un clic apre un menu con le miniature e la ricerca. La scelta va nella colonna `template` del foglio (vuota: il template del set), come per un template qualsiasi; nella tabella la colonna si sceglie da una tendina. Le varianti viaggiano nel pacchetto del loro template.
 
 Varianti o elenco (4.4)? L'elenco va bene quando ogni livello si sceglie per conto suo; le varianti quando più livelli cambiano insieme, perché la carta sceglie la combinazione con un clic.
 

@@ -10133,3 +10133,12 @@ button.wide {
 .variant-field > .field-label {
   text-align: left;
 }
+
+.variant-current svg {
+  flex-shrink: 0;
+  border-radius: 2px;
+}
+
+.list-popover-grid .variant-tile {
+  flex-shrink: 0;
+}
