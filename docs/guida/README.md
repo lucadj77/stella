@@ -263,6 +263,8 @@ Ogni scheda ha un elenco con ricerca e filtri. Un clic seleziona una voce e most
 
 I nomi in azzurro sono collegamenti: un clic porta all'elemento nella sua scheda. Per esempio, da un template si va a uno dei set che lo usano, da lì a una variabile usata dalle sue carte, e poi alle altre carte che la usano. Nelle schede con le anteprime (set, template, stili, variabili e immagini) lo sfondo si sceglie tra **Nessuno sfondo**, **Chiaro** e **Scuro**, come nella scelta delle immagini.
 
+Gli usi contano anche quelli indiretti. Una variabile è usata anche quando ci arriva da un campo o da una formula: se il livello valore `campo` vale `{alfa}` su alcune carte e un colore richiama `{campo}`, `alfa` risulta usata su quelle carte; lo stesso per un nome tra virgolette in una formula, come `=IF({forza}>2;"alfa";"beta")`. Gli stili `heading1`, `heading2` e `note` sono usati dove si scrivono paragrafi con `#`, `##` e `>`, nei testi dei componenti, nelle variabili di testo e nelle note. I titoli dei documenti hanno invece le impostazioni del documento. La rinomina di una variabile non cambia i nomi scritti tra virgolette nelle formule: vanno corretti a mano.
+
 ## 4. Disegnare un template
 
 ### 4.1 Creare un template

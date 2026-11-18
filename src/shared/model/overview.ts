@@ -1,6 +1,7 @@
 import type { LoadedSet, ProjectNote } from '../project'
 import type { ImageUsage } from './imageUsage'
 import type { Template } from './template'
+import { blockStyleUsages, computedVariableUsages, type ExtraUsage } from './computedUsage'
 import { findUsages, type Usages } from './usages'
 import type { Variables } from './variables'
 import type { RefKind } from './rename'
@@ -15,6 +16,8 @@ export interface OverviewProject {
   styles: Record<string, string>
   documents?: ProjectNote[]
   notes?: ProjectNote[]
+  /** Per legare le righe: le immagini scelte da un campo si risolvono come sulla carta */
+  assets?: string[]
 }
 
 /** Dove è usato ogni nome (variabili o stili) */
@@ -31,7 +34,41 @@ export function definitionUsages(
     documents: p.documents,
     notes: p.notes
   }
-  return new Map(names.map((n) => [n, findUsages(scope, kind, n)]))
+  // quello che la ricerca della rinomina non vede: valori calcolati, paragrafi con # e >
+  const extra = kind === 'variable' ? computedVariableUsages(p, names) : blockStyleUsages(p, names)
+  return new Map(
+    names.map((n) => {
+      const u = findUsages(scope, kind, n)
+      const x = extra.get(n)
+      return [n, x ? mergeUsages(u, x, p.sets) : u]
+    })
+  )
+}
+
+/** Aggiunge agli usi trovati dalla rinomina quelli trovati sulle carte legate */
+function mergeUsages(u: Usages, x: ExtraUsage, sets: OverviewProject['sets']): Usages {
+  const templates = [...u.templates]
+  for (const t of x.templates)
+    if (!templates.some((y) => y.name === t)) templates.push({ name: t, layers: [] })
+  const bySet = new Map(u.sets.map((s) => [s.name, s]))
+  for (const [name, cards] of x.sets) {
+    const index = sets.findIndex((s) => s.name === name)
+    if (index < 0) continue
+    const old = bySet.get(name)
+    const all = [...new Set([...(old?.cards ?? []), ...cards])].sort((a, b) => a - b)
+    bySet.set(name, { name, index, cards: all })
+  }
+  const add = (list: string[], more: Set<string>): string[] => [
+    ...list,
+    ...[...more].filter((n) => !list.includes(n))
+  ]
+  return {
+    ...u,
+    templates,
+    sets: [...bySet.values()].sort((a, b) => a.index - b.index),
+    variables: add(u.variables, x.variables),
+    notes: add(u.notes, x.notes)
+  }
 }
 
 /** Cosa usa un elemento del progetto */

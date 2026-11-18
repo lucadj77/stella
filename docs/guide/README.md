@@ -263,6 +263,8 @@ Each tab has a list with search and filters. A click selects an item and shows i
 
 Names in blue are links: a click takes you to the item in its tab. For example, from a template you go to one of the sets that use it, from there to a variable used by its cards, and then to the other cards that use it. In the tabs with previews (sets, templates, styles, variables and images) the background can be **No background**, **Light** or **Dark**, as in the image chooser.
 
+Indirect uses count too. A variable is used also when it gets there through a field or a formula: if the value layer `campo` is `{alfa}` on some cards and a color reads `{campo}`, `alfa` is used on those cards; the same goes for a name in quotes in a formula, such as `=IF({forza}>2;"alfa";"beta")`. The `heading1`, `heading2` and `note` styles are used wherever paragraphs start with `#`, `##` and `>`, in component texts, text variables and notes. Document headings have the document's own settings instead. Renaming a variable does not change names written in quotes in formulas: fix those by hand.
+
 ## 4. Designing a template
 
 ### 4.1 Creating a template

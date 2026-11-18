@@ -240,6 +240,8 @@ Il pulsante **Gestisci il progetto** in cima alla barra laterale (anche nella ba
 - Lo sfondo delle anteprime (nessuno, chiaro, scuro), come nella scelta delle immagini, vale per esempi degli stili, icone delle variabili, miniature di template, set e immagini.
 - **Template** e **Set**: miniatura, misure, base, set che usano il template; righe e carte del set. Le azioni sono quelle del menu ⋯ della barra; **Apri nell'editor** e **Apri la griglia** chiudono la finestra.
 - Il contrario degli usi (`usesIndex` in `model/overview.ts`) dice per ogni template, set e documento quali variabili, stili e immagini richiama.
+
+- Usi calcolati (`model/computedUsage.ts`), aggiunti a quelli di `findUsages`: per ogni riga di ogni set si lega la carta (`bindRow`) e si cercano nei valori dei livelli visibili `{nome}`, il nome da solo e, nelle formule, `"nome"`; un nome uguale a un campo del template o a una colonna non conta. `heading1`, `heading2` e `note` sono usati dai paragrafi `#`, `##` e `>` nei testi dei livelli, nelle celle delle colonne di testo, nelle variabili di testo e nelle note.
 - Ogni nome di un altro elemento è un collegamento alla sua scheda, con quell'elemento selezionato.
 
 ## 4. Forma

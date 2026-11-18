@@ -11,11 +11,13 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 
 - **Manage the project**: a button at the top of the sidebar (and ⤢ next to each section title) opens a large window with a tab for sets, templates, styles, variables, images, documents and notes. Each tab lists everything with search, filters and multiple selection, shows where variables and styles are used and what templates, sets and documents use, and gives the same actions as the sidebar menus. Names are links to the item in its tab; templates and sets open in the editor or the grid. **Project images** is now its tab, and left the **Project** menu.
 - **Notes follow renames**: renaming a variable, a style, a set, a column or a layer now updates the notes too, as it already did for documents.
+- **Indirect uses**: in **Manage the project**, a variable counts as used also when it reaches a card through a field or a formula (`{campo}` that is `{alfa}` on some cards, or `"alfa"` in a formula), and the `heading1`, `heading2` and `note` styles count where paragraphs start with `#`, `##` and `>`.
 
 ### Italiano
 
 - **Gestisci il progetto**: un pulsante in cima alla barra laterale (e ⤢ accanto al titolo di ogni sezione) apre una finestra grande con una scheda per set, template, stili, variabili, immagini, documenti e note. Ogni scheda elenca tutto con ricerca, filtri e selezione multipla, mostra dove sono usati variabili e stili e cosa usano template, set e documenti, e offre le stesse azioni dei menu della barra. I nomi portano all'elemento nella sua scheda; template e set si aprono nell'editor o nella griglia. **Immagini del progetto** ora è una sua scheda, ed è uscita dal menu **Progetto**.
 - **Le note seguono le rinomine**: rinominando una variabile, uno stile, un set, una colonna o un livello si aggiornano anche le note, come già succedeva nei documenti.
+- **Usi indiretti**: in **Gestisci il progetto** una variabile risulta usata anche quando arriva a una carta da un campo o da una formula (`{campo}` che su alcune carte vale `{alfa}`, o `"alfa"` in una formula), e gli stili `heading1`, `heading2` e `note` dove i paragrafi iniziano con `#`, `##` e `>`.
 
 ## 1.12.0-beta.6
 
