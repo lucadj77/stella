@@ -4,6 +4,8 @@ import { templateColumns } from '../../../shared/model/sheet'
 import type { Template } from '../../../shared/model/template'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
+import { publishAssetsUpdate } from '../render/assets'
+import { messageFromError, type Message } from '../../../shared/messages'
 
 /** Template con più colonne in comune con il foglio: il più probabile per ripristinarlo */
 function bestTemplate(columns: string[], templates: Template[]): string {
@@ -19,7 +21,7 @@ function bestTemplate(columns: string[], templates: Template[]): string {
   return best
 }
 
-/** Cestino del progetto: template, note e set eliminati, da rimettere nel progetto */
+/** Cestino del progetto: template, note, set e immagini eliminati, da rimettere nel progetto */
 export default function TrashDialog({
   templates,
   onRestore,
@@ -33,6 +35,20 @@ export default function TrashDialog({
   const { t, lang } = useI18n()
   const [items, setItems] = useState<DeletedItem[] | null>(null)
   const [chosen, setChosen] = useState<Record<string, string>>({})
+  const [error, setError] = useState<Message | null>(null)
+
+  // un'immagine torna subito al suo posto in assets/: la finestra resta aperta per le altre
+  const restoreImages = async (files: string[]): Promise<void> => {
+    setError(null)
+    try {
+      const r = await window.api.restoreImages(files)
+      publishAssetsUpdate(r.update)
+      setItems((list) => list && list.filter((x) => !files.includes(x.file)))
+    } catch (e) {
+      setError(messageFromError(e))
+    }
+  }
+  const images = (items ?? []).filter((x) => x.kind === 'image')
 
   useEffect(() => {
     void window.api.listDeleted().then(setItems, () => setItems([]))
@@ -75,7 +91,11 @@ export default function TrashDialog({
                 )}
                 <button
                   disabled={item.kind === 'sheet' && !templates.length}
-                  onClick={() => onRestore(item, templateOf(item))}
+                  onClick={() =>
+                    item.kind === 'image'
+                      ? void restoreImages([item.file])
+                      : onRestore(item, templateOf(item))
+                  }
                 >
                   {t('trash.restore')}
                 </button>
@@ -83,7 +103,13 @@ export default function TrashDialog({
             ))}
           </ul>
         )}
+        {error && <p className="field-error">{t(error)}</p>}
         <div className="dialog-buttons">
+          {images.length > 1 && (
+            <button onClick={() => void restoreImages(images.map((x) => x.file))}>
+              {t('trash.restoreImages', { n: images.length })}
+            </button>
+          )}
           <button className="primary" onClick={onClose}>
             {t('dialog.close')}
           </button>

@@ -232,7 +232,9 @@ The ⋯ button next to the name of the open set or template opens a menu to rena
 
 Renaming a set also renames its sheet in the data file. If the sheet is already in the file, Stella asks first, because formulas in other sheets that refer to it would break. Renaming a template renames its file, and the new name goes into the sets, derived templates and `template` column of the components that use it. Files are renamed when you save.
 
-**Deleting and restoring.** A deleted template goes to the project's `deleted` folder. The sheet of a deleted set also leaves the data file when you save and goes to `deleted` as a file of its own, so its name is free again. **Trash…**, in the **Project** menu, lists what is in `deleted` (templates, sets, notes and documents, newest first). **Restore** puts an item back in the project: a set gets the template you choose (Stella proposes the one with most columns in common), a name already taken gets a number. Restored templates and sets leave the trash when you save.
+**Deleting and restoring.** A deleted template goes to the project's `deleted` folder. The sheet of a deleted set also leaves the data file when you save and goes to `deleted` as a file of its own, so its name is free again. **Trash…**, in the **Project** menu, lists what is in `deleted` (templates, sets, notes, documents and images, newest first). **Restore** puts an item back in the project: a set gets the template you choose (Stella proposes the one with most columns in common), a name already taken gets a number. Restored templates and sets leave the trash when you save; images go straight back to their place in `assets`.
+
+**Taking templates and sets to another project.** **Export package…**, in the menu of a template or a set (right click or ⋯), saves a ZIP file with everything needed: the template (and its base, if it is derived), for a set also the cards, the images and fonts they use, the variables and styles they refer to. In the other project **Project ▾ › Import package…** shows what the package contains. If something with the same name is already there but different, choose what to do: keep both (the new one gets a number, "Hero 2"), replace the project's or keep the project's. Identical things are not asked about. Before importing Stella makes a backup; the result is saved like any other change.
 
 **Styles and variables.** Their headings show how many items they hold: with more than six items the section starts closed, and Stella remembers for each project whether you opened or closed it. They can be split into groups with the **Group** field of their window: the items of a group sit under its heading, which closes and opens with a click, after the items without a group. An item dragged onto a group heading joins that group; dragged onto another item, it takes that item's group (or none). With more than 12 items, a field above the list filters them by name. In the window of a style or variable, **Where it is used** lists the templates (with their layers), the sets (with component numbers) and the other variables and styles that refer to it; clicking a template or set opens it.
 
@@ -245,6 +247,23 @@ Drag the notes panel's left edge to widen it. The button next to the title detac
 Changes stay in memory until you save. The **Save** button reads **Saved** when there is nothing to write.
 
 In the desktop app the same commands are also in the app menu (on the Mac in the bar at the top of the screen, on Windows and Linux with the Alt key): **File** (open, save, export, backup, trash, Google Sheets, reload, close), **Edit**, **View** (interface size with ⌘+, ⌘− and ⌘0 / Ctrl+, Ctrl− and Ctrl+0, full screen) and **Help**.
+
+### 3.1 Managing the project
+
+**Manage the project**, the button at the top of the sidebar, opens a large window with a tab for each section of the sidebar: **Sets**, **Templates**, **Styles**, **Variables**, **Images**, **Documents** and **Notes**. The ⤢ button next to a section title opens the window straight on its tab. The sidebar stays as it is: the window helps when there are many items and you want to see where they are used.
+
+Each tab has a list with search and filters. A click selects an item and shows its details and actions on the right; ⌘/Ctrl+click and ⇧+click select more than one, ⌘A / Ctrl+A all of them. A double-click opens the item, a right-click shows the menu with the same actions.
+
+- **Variables**: type, value, group and where each variable is used (templates, components of the sets, documents, notes, other variables and styles). The filters split them by type and show the **Unused** ones. **Edit…** opens the variable window, **Duplicate** makes a copy, **Delete** (also on several variables, or with Del / ⌫) warns first if any is still used; ⌘Z / Ctrl+Z undoes it.
+- **Styles**: a sample sentence with the style, the definition and where it is used. Built-in styles cannot be deleted; if the project has its own version of one, **Back to the built-in style** removes it.
+- **Templates**: thumbnail, kind, size, the template it derives from and the sets that use it, with the variables, styles and images it refers to. **Open in the editor** and the commands of the template menu (rename, duplicate, derive, export package, delete).
+- **Sets**: thumbnail of the first card, template, rows and components; on the right the first cards and what they use. **Open the grid** and the commands of the set menu.
+- **Images**: the same view described in [8.1](#81-project-images).
+- **Documents** and **Notes**: name and beginning of the text; a double-click opens them.
+
+Names in blue are links: a click takes you to the item in its tab. For example, from a template you go to one of the sets that use it, from there to a variable used by its cards, and then to the other cards that use it. In the tabs with previews (sets, templates, styles, variables and images) the background can be **No background**, **Light** or **Dark**, as in the image chooser.
+
+Indirect uses count too. A variable is used also when it gets there through a field or a formula: if the value layer `campo` is `{alfa}` on some cards and a color reads `{campo}`, `alfa` is used on those cards; the same goes for a name in quotes in a formula, such as `=IF({forza}>2;"alfa";"beta")`. The `heading1`, `heading2` and `note` styles are used wherever paragraphs start with `#`, `##` and `>`, in component texts, text variables and notes. Document headings have the document's own settings instead. Renaming a variable does not change names written in quotes in formulas: fix those by hand.
 
 ## 4. Designing a template
 
@@ -699,7 +718,7 @@ Below are the project colors: first the color variables, marked by a dot in the 
 
 Images live in `assets/`, subfolders included, as SVG, PNG, WebP or JPG. Wherever you name an image, the file name is enough, without folder or extension. If two files share a name (for example `sword.png` and `sword.svg`) the app says so and asks you to add the extension or the folder.
 
-The image button next to the fields opens thumbnails of the assets, with search and a folder filter. **Add images…** copies files from the computer into the project's `assets/images` (a file with the same name is not overwritten: the copy gets a number). **Dark background** shows the thumbnails on a dark background, to see white icons; the choice is remembered.
+The image button next to the fields opens thumbnails of the assets, with search and a folder filter. **Add images…** copies files from the computer into the project's `assets/images` (a file with the same name is not overwritten: the copy gets a number). The thumbnail background is **No background** (checkered, shows the transparency), **Light** or **Dark** (to see white icons); the choice applies to every window with thumbnails and is remembered.
 
 **From the internet…** takes an image from an address (PNG, JPG, WebP or SVG) in two ways:
 
@@ -711,6 +730,12 @@ The image button next to the fields opens thumbnails of the assets, with search 
 In the web app only images from sites that allow it can be downloaded; for the others, save the image on the computer and use **Add images…**.
 
 ![Choosing an image](img/scegli-immagine.png)
+
+The **Images** tab of **Manage the project** ([3.1](#31-managing-the-project)), also opened by **Manage…** in the image chooser, shows every image with where it is used below it. At the top you filter them: **In templates** (written in a template), **Only in sets** (a column or a formula of the cards chooses them), **In documents** and **Unused**. **Show grouped by** splits them by folder or by template: only the view changes, the files stay where they are. Select an image to see on the right which templates, sets, documents and variables use it.
+
+- To delete, select one or more images (⌘/Ctrl+click, ⇧+click or a rectangle dragged from an empty spot) and press **Delete** or Del / ⌫. If an image is still used the app tells you first. Deleted images go to the project trash (**Project ▾ › Trash…**), from where you put them back.
+- **Move to folder…** puts the images in a folder of `assets`, existing or new, also inside another one (`images/Heroes`). Cards keep finding them, because the name is enough; references written with the folder are updated by themselves.
+- **Make template folders…** offers to put the images that only one template uses in a folder named after the template, and tells you how many and where before moving them.
 
 Single-color icons (black SVGs on a transparent background) are recolored with the layer's **Tint** property or with the variable's tint. The tint is laid over the image: a solid color recolors it completely, a semi-transparent one tints it only partly. For example black at 20% (`#00000033`) darkens a forest, and the image stays opaque.
 
@@ -853,6 +878,8 @@ On a **grid** layer the formula applies to the whole grid (for example the cell 
 
 The preview shows how many components will be created and the first rows. **Add at the end** appends them, **Replace the components** takes the place of the existing ones. **Update the components** writes only the generated columns into the existing components, one per row, leaving the other columns as they are: for example, first generate 30 cards from 6 suits and the numbers 1-5, then use **From a folder…** to assign 30 portraits to the portrait column. If more components are generated, the extra ones are added at the end. ⌘Z / Ctrl+Z undoes.
 
+**Saved generations.** To use the same settings again later, write a name in **Save as** before generating: the settings (value sets, filter, copies, how, how many, seed and add/update/replace) are saved in the set with that name. Without a name nothing is saved. Next time, **Saved generations** at the top of the window fills every field with the settings of the one you choose: you can generate again as they are or change them first. Generating with the same name updates the saved generation; **Delete** removes it from the set, and the components it created stay as they are.
+
 ![The generator: three resources, two per component, with repetition](img/genera.png)
 
 **Random.** At the top of the window, **How** switches from **Every combination** to **Random**: instead of every combination you get as many components as you want (**How many**), with values drawn at random. A value set can fill several columns with **+ Column**, and each column gets one value drawn (or more, with **Values per column**): for example the numbers `1-4` on text1, text2, text3 and text4 give each component four random numbers from 1 to 4.
@@ -921,11 +948,27 @@ The PDF is vector, with embedded fonts. The choices that matter are the paper (p
 - **Fold**: front and back side by side, to fold.
 - **Dice**: shows up when you export a set of die faces. **Faces** places them side by side like cards; **To fold** prints each die opened out, to cut, fold and glue (see below). With **Faces** each row of a d3 is printed twice, once for each of its faces, and triangle faces (d4, d8, d20) interlock, one up and one down, so they take half the space: without bleed two neighbouring faces share the same cut, with bleed there is room for both between the edges.
 - **Crop marks**: at the corners or as full lines, with length, width and color.
-- **Duplex**: backs on alternate pages, flipping on the long or short edge, with an offset for printers that do not align the two sides. To find the right offset use **Test page**, next to **Back offset** in **Pages and files**: it writes `duplex-test.pdf`, two pages with five crosses on the front and, on the back, two millimetre scales for each cross. Print it double-sided at 100%, hold the sheet against a light from the back and read where cross 1 falls on its scales: add the two numbers to **Back offset** x and y, then print the test again to check that the crosses fall on 0. If the five crosses give different numbers, the printer is resizing the page. The **Proof sheet** lets you check all the components small before using up paper.
+- **Duplex**: backs on alternate pages, flipping the sheet on the long or short edge. Choose the same edge in the printer's settings. If the backs come out shifted from the fronts, **Back offset** in **Pages and files** moves them: see _Aligning fronts and backs_ below.
 - **Pages**: with **One after another on the same page** a set starts right after the previous one instead of on a new page (10 + 8 cards with 9 per page fit on 2 pages instead of 3). A set with components of another size starts on a new row, if there is room on the page. The components start from the top of the page, even when they do not fill it, so cutting always starts from the same edge.
 - **Ink**: only in **Print at home**. **Black and white** prints the components in grays; **Draft** prints them in lighter grays, black too, to use less ink in the first tests. With these two choices the PDF pages are 300 DPI images, while the crop marks stay black.
 - **Proof sheet**: a separate PDF with every component small.
 - **Convert to CMYK**: needs Ghostscript installed on the computer.
+
+**Aligning fronts and backs.** Many printers print the back of a sheet a millimetre or two off from the front. **Back offset** moves all the backs to make up for it, and the **Test page** button next to it measures how far. The steps are also in the app: under **Back offset**, open _How to measure the offset, step by step_.
+
+1. In **Duplex**, choose the edge (long or short) that you will also use in the printer.
+2. Click **Test page**: Stella saves `duplex-test.pdf` in the export folder. It has two pages: five numbered crosses on the front and, on the back, two small rulers next to where each cross should fall.
+3. Print it double-sided at 100%, with **Fit to page** turned off.
+4. Hold the sheet up to a light with the rulers facing you: the crosses of the front show through the paper. First check that next to ruler 2 you see cross 2. If you see cross 5, in the opposite corner, the sheet was flipped on the other edge: change the edge in the printer or in Stella and print again. The cross in the middle looks the same either way, but the correction would go the wrong way.
+5. Look only at cross 1, in the middle. On the ruler below it, read the number where the vertical line of the cross passes: that is **x**. On the ruler to its right, read the number where the horizontal line passes: that is **y**. Keep the minus sign if there is one: −1 means the cross is 1 mm to the left (for x) or above (for y).
+6. In the app this step has two fields, **Read on cross 1**: write the two numbers there, with the minus sign if there is one, and click **Correct**. Stella moves the backs by that much, starting from what is already in **Back offset**, so there are no sums to do. Below the fields you see the new **Back offset**.
+7. Print the test page again to check. It comes out with the correction you just entered, so the crosses should now fall on 0. If they do not, what you read is the small correction still missing: write it in **Read on cross 1** and click **Correct** again, without going back to 0. Stella keeps the offset for the next exports of the project.
+
+If something does not add up:
+
+- Cross 1 is on 0 but the crosses in the corners are not: the printer is shrinking or enlarging the page. Print at 100%; no offset can fix this.
+- After the correction the reading gets bigger instead of going to 0 (for example from −1 to −2): the sheet is flipped on the other edge. Check step 4.
+- The readings change from one print to the next: the printer pulls the paper unevenly and the offset can only correct the average. Leave a few millimetres of bleed, or a white border, around the backs.
 
 **Folding dice.** With **To fold** every N rows of the set make one die, in sheet order: 4 rows for the d4, 6 for the d6, 8 for the d8 and so on, with row 1 on face 1. The die is as large as the template (a 20 mm face makes a 20 mm die); for the d6 and d3 the face must be square. Every die folds except the d2, the coin, which comes out as faces to cut out and glue back to back.
 
@@ -1047,7 +1090,7 @@ Components are not copied into the document: Stella draws them from the project,
 
 By hand you write `card:Set/3` for the component on row 3, or `card:Set/column=value` for the one with that value in a column (`card:` works for every kind of component); after a `?` add `side=back` for the back and `width=40` for the width, joined by `&`, as in `card:Characters/name=Wizard?side=back&width=40`. A column value, like the name, is safer than the number, which changes when the rows are reordered. Several images on the same line of text sit side by side.
 
-References follow renames. If you change the name of a set, of a column, or the value that identifies a component (for example the name `BARRACKS` becomes `BARRACKS2`), Stella updates the components called in the documents by itself: in images, tables, table setups and anatomies. A bar at the top says how many references changed. A component's value is followed only if no other component in the set still has the old one. In the same way a layer renamed in the template changes in the anatomy labels, and a renamed variable or style changes in the text of the documents. Notes are left as they are.
+References follow renames. If you change the name of a set, of a column, or the value that identifies a component (for example the name `BARRACKS` becomes `BARRACKS2`), Stella updates the components called in the documents by itself: in images, tables, table setups and anatomies. A bar at the top says how many references changed. A component's value is followed only if no other component in the set still has the old one. In the same way a layer renamed in the template changes in the anatomy labels, and a renamed variable or style changes in the text of the documents. Notes follow the same renames.
 
 ![The Insert component window](img/inserisci-carta.png)
 

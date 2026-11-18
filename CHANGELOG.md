@@ -5,6 +5,66 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.12.0
+
+### English
+
+- **Manage the project**: a button at the top of the sidebar (and ⤢ next to each section title) opens a large window with a tab for sets, templates, styles, variables, images, documents and notes, with search, filters, multiple selection and the actions of the sidebar menus. It shows where variables and styles are used, also through fields, formulas and `#`/`##`/`>` paragraphs, and what templates, sets and documents use; names are links to the item in its tab. The **Images** tab deletes unused images (to the project trash) or moves them to folders, and references keep working.
+- **Combine shapes and edit points**: **Union**, **Intersect**, **Subtract** and **Exclude** draw two or more shapes as one, still editable; **Edit points** moves the points of a shape one by one, with curves. Lines and table setup arrows can be curved, **Corner radius** works on paths and combined shapes too, and arrows get tips at either end, size and thickness.
+- **Packages of templates and sets**: **Export package…** saves a ZIP with a template or a set and the images, fonts, variables and styles they use; **Project ▾ › Import package…** adds it to another project and asks what to do with what is already there.
+- **Outline for image variables**: an icon can have an **Outline** that follows its shape, in texts, image layers, documents and table setups; `{sword stroke=white/0.3}` sets it for a single use.
+- **Documents**: dashed lines show where each PDF page begins, the PDF is laid out in pages exactly like the preview (no heading left alone at the bottom), and **PDF preview** shows it page by page. `{center}` or `{right}` at the start of a paragraph, heading or note aligns it; boxes and tables narrower than the text can sit in the center or on the right.
+- **Saved generations**: **Generate…** can save its settings with a name in the set, and **Saved generations** fills the fields with them next time.
+- **Aligning fronts and backs**: the PDF export explains step by step how to measure **Back offset** with the **Test page**, and **Correct** adds what you read on the cross to the offset, with no sums to do.
+- **Thumbnail background** (**No background**, **Light**, **Dark**) in every window with thumbnails, notes that follow renames like documents, components outlined in anatomy and table setup, table setups that make room for every caption and arrow label, and the right size for repeated SVG images in the web version.
+
+### Italiano
+
+- **Gestisci il progetto**: un pulsante in cima alla barra laterale (e ⤢ accanto al titolo di ogni sezione) apre una finestra grande con una scheda per set, template, stili, variabili, immagini, documenti e note, con ricerca, filtri, selezione multipla e le azioni dei menu della barra. Mostra dove sono usati variabili e stili, anche attraverso campi, formule e paragrafi con `#`/`##`/`>`, e cosa usano template, set e documenti; i nomi portano all'elemento nella sua scheda. La scheda **Immagini** elimina le immagini non usate (nel cestino del progetto) o le sposta in cartelle, e i riferimenti continuano a funzionare.
+- **Combinare forme e modificare i punti**: **Unisci**, **Interseca**, **Sottrai** ed **Escludi** disegnano due o più forme come una sola, sempre modificabili; **Modifica punti** sposta i punti di una forma uno a uno, con le curve. Le linee e le frecce dello schema del tavolo si curvano, **Raggio angoli** vale anche per tracciati e forme combinate, e le frecce hanno punte a uno o due capi, dimensione e spessore.
+- **Pacchetti di template e set**: **Esporta pacchetto…** salva uno ZIP con un template o un set e le immagini, i font, le variabili e gli stili che usano; **Progetto ▾ › Importa pacchetto…** lo aggiunge a un altro progetto e chiede cosa fare con quello che c'è già.
+- **Contorno delle variabili immagine**: un'icona può avere un **Contorno** che ne segue la forma, nei testi, nei livelli immagine, nei documenti e negli schemi del tavolo; `{spada stroke=white/0.3}` lo imposta per un solo uso.
+- **Documenti**: linee tratteggiate mostrano dove inizia ogni pagina del PDF, il PDF è impaginato esattamente come l'anteprima (nessun titolo resta solo in fondo) e **Anteprima PDF** lo mostra pagina per pagina. `{center}` o `{right}` all'inizio di un paragrafo, titolo o nota lo allinea; riquadri e tabelle più stretti del testo possono stare al centro o a destra.
+- **Generazioni salvate**: **Genera…** può salvare le impostazioni con un nome nel set, e **Generazioni salvate** riempie i campi con quelle la volta dopo.
+- **Allineare fronti e retri**: l'esportazione PDF spiega passo per passo come misurare lo **Spostamento retri** con la **Pagina di prova**, e **Correggi** aggiunge allo spostamento quello che leggi sulla croce, senza somme da fare.
+- **Sfondo delle miniature** (**Nessuno sfondo**, **Chiaro**, **Scuro**) in tutte le finestre con miniature, note che seguono le rinomine come i documenti, componenti con il contorno nell'anatomia e nello schema del tavolo, schemi del tavolo che fanno spazio a tutte le didascalie e alle etichette delle frecce, e la giusta dimensione delle immagini SVG ripetute nella versione web.
+
+## 1.12.0-beta.6
+
+### English
+
+- **Project images**: **Project ▾ › Project images…** (or **Manage…** in the image chooser) shows every image with where it is used, and filters them: in templates, only in sets, in documents, unused. Select several with ⌘/Ctrl+click, ⇧+click or a rectangle, then **Delete** them (they go to the project trash, from where you can restore them) or **Move** them to a folder, new or existing. **Make template folders…** puts the images used by a single template in a folder named after it. References keep working.
+- **Packages of templates and sets**: **Export package…** in the menu of a template or a set saves a ZIP with the template, the cards of the set, and the images, fonts, variables and styles they use. **Project ▾ › Import package…** adds it to another project; for anything already there with different content you choose whether to keep both (the new one gets a number), replace or keep the project's.
+- **Thumbnail background**: the image chooser, the icon import and **Project images** let you pick **No background**, **Light** or **Dark** for the thumbnails; the choice is shared and remembered.
+
+### Italiano
+
+- **Immagini del progetto**: **Progetto ▾ › Immagini del progetto…** (o **Gestisci…** nella scelta delle immagini) mostra tutte le immagini con dove sono usate, e le filtra: nei template, solo nei set, nei documenti, non usate. Se ne selezionano più di una con ⌘/Ctrl+clic, ⇧+clic o un rettangolo, poi si **eliminano** (vanno nel cestino del progetto, da cui si ripristinano) o si **spostano** in una cartella, nuova o esistente. **Crea cartelle per template…** mette in una cartella con il nome del template le immagini usate solo da quello. I riferimenti continuano a funzionare.
+- **Pacchetti di template e set**: **Esporta pacchetto…** nel menu di un template o di un set salva uno ZIP con il template, le carte del set e le immagini, i font, le variabili e gli stili che usano. **Progetto ▾ › Importa pacchetto…** lo aggiunge a un altro progetto; per quello che c'è già con un contenuto diverso scegli se tenere entrambi (il nuovo prende un numero), sostituire o tenere quello del progetto.
+- **Sfondo delle miniature**: la scelta delle immagini, l'importazione delle icone e **Immagini del progetto** permettono di scegliere **Nessuno sfondo**, **Chiaro** o **Scuro** per le miniature; la scelta è comune e viene ricordata.
+
+## 1.12.0-beta.5
+
+### English
+
+- **Saved generations**: in **Generate…** you can write a name in **Save as** before generating, and the settings are saved in the set. Next time, **Saved generations** at the top of the window fills every field with them: generate again as they are or change them first. Without a name nothing is saved; **Delete** removes a saved generation you no longer need.
+
+### Italiano
+
+- **Generazioni salvate**: in **Genera…** puoi scrivere un nome in **Salva come** prima di generare, e le impostazioni si salvano nel set. La volta dopo, **Generazioni salvate** in cima alla finestra compila tutti i campi con quelle: generi di nuovo così come sono o le cambi prima. Senza nome non si salva niente; **Elimina** toglie una generazione salvata che non serve più.
+
+## 1.12.0-beta.4
+
+### English
+
+- **Aligning fronts and backs**: the PDF export explains step by step how to measure **Back offset** with the **Test page** (under **Pages and files**, open _How to measure the offset, step by step_), with an example of how to read the ruler, two fields where you write what you read on cross 1 (**Correct** adds it to the current offset, so there are no sums to do) and what to do when something does not add up. The steps also say what to expect from a second test print (crosses on 0, or the small correction still missing) and how to spot a sheet flipped on the wrong edge, which the cross in the middle cannot show. The test page itself has clearer instructions on its back, and the **Duplex** choice reminds you to pick the same edge in the printer. The test page also saves the PDF options, so a measured offset is not lost.
+- **Back offset fields**: x and y are now compact like the other measures, and accept negative numbers with the arrow keys too. The other number fields of the export window are compact as well.
+
+### Italiano
+
+- **Allineare fronti e retri**: l'esportazione del PDF spiega passo per passo come misurare **Spostamento retri** con la **Pagina di prova** (in **Pagine e file**, apri _Come misurare lo spostamento, passo per passo_), con un esempio di come leggere il righello, due campi dove scrivere quello che leggi sulla croce 1 (**Correggi** lo somma allo spostamento di ora, quindi non servono conti) e cosa fare se qualcosa non torna. I passi dicono anche cosa aspettarsi da una seconda stampa di prova (croci sullo 0, o la piccola correzione che manca ancora) e come accorgersi di un foglio girato sul lato sbagliato, che la croce al centro non mostra. Anche la pagina di prova ha istruzioni più chiare sul retro, e la scelta **Fronte-retro** ricorda di usare lo stesso lato nella stampante. La pagina di prova salva anche le opzioni del PDF, così uno spostamento misurato non si perde.
+- **Campi dello spostamento retri**: x e y sono ora stretti come le altre misure e accettano numeri negativi anche con le frecce. Sono stretti anche gli altri campi numerici della finestra di esportazione.
+
 ## 1.12.0-beta.3
 
 ### English

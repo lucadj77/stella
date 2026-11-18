@@ -10,6 +10,8 @@ import { saveTemplate, trashTemplate } from '../main/project/templates'
 import { saveDocument, saveNote, trashDocument, trashNote } from '../main/project/notes'
 import { writeDocumentExport } from '../main/project/docExport'
 import { dropDeleted, listDeleted, readDeleted } from '../main/project/trash'
+import { moveImages, restoreImages, trashImages } from '../main/project/imageFiles'
+import { readAssetFiles, writeAssetFiles } from '../main/project/packageFiles'
 import { readBackupVersion, readPrinted, savePrinted } from '../main/project/versions'
 import { fetchGoogleSheet } from '../main/project/googleSheets'
 import { createProject } from '../main/project/create'
@@ -43,7 +45,15 @@ import { defaultNandeckTarget, importNandeck, scanNandeck } from '../main/import
 import { readRealPath, realPathMatches, toRealPath, virtualRoot } from '../shared/realPath'
 import { ensurePermission, hasPermission, pickFolder } from './fs/roots'
 import { assetChanged, assetUrl, openAssets } from './assets'
-import { addImages, copySystemFont, downloadGoogleFont, dropImages, systemFonts } from './library'
+import {
+  addImages,
+  copySystemFont,
+  downloadGoogleFont,
+  dropImages,
+  openPackage,
+  savePackage,
+  systemFonts
+} from './library'
 import { addRecent, hasThumbnail, listRecent, removeRecent, saveThumbnail } from './recent'
 import { FrameWindow, exportPageApi } from './exportFrame'
 import { prepareWebExample } from './example'
@@ -230,6 +240,14 @@ export const webApi: Api = {
   systemFonts: () => systemFonts(),
   copySystemFont: (family) => copySystemFont(projectFolder(), family),
   addImages: () => addImages(projectFolder()),
+  trashImages: (paths) => trashImages(projectFolder(), paths),
+  readAssetFiles: (paths) => readAssetFiles(projectFolder(), paths),
+  writeAssetFiles: (files, replaced, sources) =>
+    writeAssetFiles(projectFolder(), files, replaced, sources),
+  savePackage: (name, data) => savePackage(projectFolder(), name, data),
+  openPackage: () => openPackage(),
+  moveImages: (paths, folder) => moveImages(projectFolder(), paths, folder),
+  restoreImages: (files) => restoreImages(projectFolder(), files),
   // nel browser l'immagine si scarica solo dai siti che lo permettono (CORS)
   downloadImage: (url, name) => downloadImage(projectFolder(), url, name),
   redownloadImage: (path) => redownloadImage(projectFolder(), path),

@@ -10,6 +10,8 @@ import {
   parseValues,
   parseWeighted,
   sequenceRound,
+  saveGeneration,
+  generationKey,
   type GeneratorColumn,
   type GeneratorSpec
 } from '../generate'
@@ -345,5 +347,29 @@ describe('generatore in sequenza', () => {
     const oro = firsts(r).filter((v) => v === 'oro').length
     expect(oro).toBeGreaterThan(820)
     expect(oro).toBeLessThan(980)
+  })
+})
+
+describe('saveGeneration', () => {
+  const spec = { columns: [], filter: '', copies: 1 }
+  it('aggiunge in fondo una generazione con un nome nuovo', () => {
+    const a = saveGeneration([], { name: ' Mostri ', spec, mode: 'append' })
+    expect(a).toEqual([{ name: 'Mostri', spec, mode: 'append' }])
+    const b = saveGeneration(a, { name: 'Tesori', spec, mode: 'replace' })
+    expect(b.map((g) => g.name)).toEqual(['Mostri', 'Tesori'])
+  })
+  it('sostituisce al suo posto quella con lo stesso nome, senza badare alle maiuscole', () => {
+    const list = [
+      { name: 'Mostri', spec, mode: 'append' as const },
+      { name: 'Tesori', spec, mode: 'append' as const }
+    ]
+    const out = saveGeneration(list, {
+      name: 'mostri',
+      spec: { ...spec, copies: 3 },
+      mode: 'update'
+    })
+    expect(out.map((g) => g.name)).toEqual(['mostri', 'Tesori'])
+    expect(out[0].spec.copies).toBe(3)
+    expect(generationKey(' Mostri ')).toBe(generationKey('mostri'))
   })
 })

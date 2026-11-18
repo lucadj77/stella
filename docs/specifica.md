@@ -214,6 +214,36 @@ Ovunque si indichi un'immagine (livello, campo, formula, variabile, `bg=`) basta
 
 Immagini da internet: nella scelta delle immagini **Da internet…** chiede un indirizzo e propone due modi. **Scarica nel progetto** salva il file in `assets/images/<nome>` (PNG, JPG, WebP o SVG, al massimo 50 MB; il nome si propone dall'indirizzo) e lo registra in `assets/sources.json` con `kind: "image"`, il sito e l'indirizzo: i crediti lo citano e la scelta delle immagini, con quel file selezionato, offre **Riscarica**. **Usa il collegamento** scrive l'indirizzo al posto del nome: l'app desktop scarica l'immagine la prima volta e ne tiene una copia nella cartella dell'app su quel computer (non nel progetto), che poi usa anche senza rete; con un collegamento scritto nel campo, la scelta delle immagini mostra **Riscarica** per aggiornarla. Un collegamento che non si raggiunge e non è nella copia si disegna come un'immagine mancante («non raggiungibile») ed è segnalato all'esportazione. I crediti citano anche le immagini collegate usate dalle carte. Nell'app web le immagini collegate si caricano dal sito e restano nella cache del browser; scaricarle nel progetto, ed esportarle, funziona solo con i siti che lo permettono (CORS). Per Tabletop Simulator non cambia nulla: le immagini finiscono nei fogli esportati.
 
+### 3.2 Immagini del progetto
+
+La scheda **Immagini** di **Gestisci il progetto** (3.3; anche **Gestisci…** nella scelta delle immagini) mostra le immagini di `assets/` con dove sono usate. L'uso si calcola nel renderer (`model/imageUsage.ts`):
+
+- **template**: l'immagine è scritta nei livelli del template (sorgente di un livello immagine, sfondo della variabile immagine, `{nome}` e `bg=` nel testo, anche come valore d'esempio che una colonna sostituisce);
+- **set**: le carte del set la disegnano, legando ogni riga, quindi conta anche quando la sceglie una colonna o una formula;
+- **documenti**: `![testo](nome)`, `{nome}` e `bg=` nei documenti;
+- variabili immagine, stili con `bg=` e copertina del progetto.
+
+I filtri sono **Tutte**, **Nei template**, **Solo nei set** (usate dalle carte e da nessun template), **Nei documenti** e **Non usate** (nessuno degli usi sopra). **Mostra raggruppate per** divide le miniature per cartella, per template (quelli che la usano direttamente o con i loro set) o non le divide: cambia solo la vista, i file restano dove sono. Si selezionano con clic, ⌘/Ctrl+clic, ⇧+clic e con un rettangolo trascinato da uno spazio vuoto; ⌘A / Ctrl+A le seleziona tutte.
+
+- **Elimina** (anche Canc / ⌫ e il menu del tasto destro) chiede conferma, avvisando se qualcuna è ancora usata, e sposta i file in `deleted/assets/<data e ora>/<percorso in assets>`, con le loro voci di `sources.json` in `sources.json` accanto. Il cestino del progetto le elenca come **Immagine** e le rimette al loro posto (con un numero nel nome se nel frattempo c'è un altro file), con la licenza; **Ripristina tutte le immagini** le rimette tutte. Le cartelle rimaste vuote si tolgono.
+- **Sposta in cartella…** sposta i file in una cartella sotto `assets/`, esistente o nuova, anche annidata (`images/Eroi`). Non sposta niente se nella cartella c'è già un file con lo stesso nome. I riferimenti con il solo nome continuano a funzionare (3.1); quelli scritti con la cartella (`images/spada`, `images/spada.png`, `assets/images/spada`) si riscrivono in template, celle, documenti, variabili, stili e copertina, come una modifica che si salva e si annulla con ⌘Z (i file restano spostati). Le voci di `sources.json` seguono i file.
+- **Crea cartelle per template…** propone di spostare in `<cartella principale>/<template>` (per esempio `icons/personaggio`) le immagini usate da un solo template, con i suoi set, e da nient'altro; prima di spostare dice quante immagini e in quali cartelle.
+
+Nella scelta delle immagini il filtro per cartella elenca anche le cartelle annidate.
+
+### 3.3 Gestisci il progetto
+
+Il pulsante **Gestisci il progetto** in cima alla barra laterale (anche nella barra ridotta a icone e nel menu File dell'app per computer) apre una finestra con una scheda per sezione della barra: Set, Template, Stili, Variabili, Immagini, Documenti, Note. Il ⤢ nel titolo di ogni sezione apre la sua scheda; senza indicazione si apre l'ultima usata (ricordata nel browser, `localStorage`). La finestra usa le funzioni della barra laterale (`ManageActions` in `src/renderer/src/manage/`): non c'è un modello a parte.
+
+- Ogni scheda: ricerca, filtri con il conteggio, tabella con selezione multipla (clic, ⌘/Ctrl, ⇧, ⌘A), dettagli e azioni a destra, menu del tasto destro, doppio clic o Invio per aprire, Canc / ⌫ per eliminare dove si può eliminare più di una voce.
+- **Variabili** e **Stili**: dove sono usati con `findUsages` (la stessa ricerca della rinomina), che ora guarda anche il testo dei documenti e delle note (anche le note si mostrano con il markup, e seguono le rinomine come i documenti). Filtri per tipo (variabili), del progetto / predefiniti (stili) e non usati. Modifica nella finestra di sempre, aperta sopra questa; duplica con un nome libero (`nome-2`) nello stesso gruppo; elimina più voci in un passo solo, annullabile, avvisando di quelle ancora usate. Gli stili predefiniti non si eliminano: si toglie solo la versione del progetto.
+- Lo sfondo delle anteprime (nessuno, chiaro, scuro), come nella scelta delle immagini, vale per esempi degli stili, icone delle variabili, miniature di template, set e immagini.
+- **Template** e **Set**: miniatura, misure, base, set che usano il template; righe e carte del set. Le azioni sono quelle del menu ⋯ della barra; **Apri nell'editor** e **Apri la griglia** chiudono la finestra.
+- Il contrario degli usi (`usesIndex` in `model/overview.ts`) dice per ogni template, set e documento quali variabili, stili e immagini richiama.
+
+- Usi calcolati (`model/computedUsage.ts`), aggiunti a quelli di `findUsages`: per ogni riga di ogni set si lega la carta (`bindRow`) e si cercano nei valori dei livelli visibili `{nome}`, il nome da solo e, nelle formule, `"nome"`; un nome uguale a un campo del template o a una colonna non conta. `heading1`, `heading2` e `note` sono usati dai paragrafi `#`, `##` e `>` nei testi dei livelli, nelle celle delle colonne di testo, nelle variabili di testo e nelle note.
+- Ogni nome di un altro elemento è un collegamento alla sua scheda, con quell'elemento selezionato.
+
 ## 4. Forma
 
 | Proprietà     | Valori                                                                                                     |
@@ -407,6 +437,25 @@ Nei campi numerici del pannello delle proprietà, trascinare l'etichetta a destr
 - **In sequenza.** Terza scelta di **Come** (`spec.sequence`: `count`, `shuffle`, `seed`). Ogni insieme scrive la sua `sequence` nell'ordine, `pick` valori per carta, e ricomincia quando finisce; gli insiemi girano ognuno per conto suo. **Quanti**: tutti i componenti del set (count = righe del set, modo **Aggiorna**) o un numero di giri (count = giri × la sequenza più lunga in carte, `sequenceRound`). `shuffle`: `none` come scritto; `block` mescola ogni giro; `distinct` mescola ogni giro con un ordine non ancora usato, fino a n!/(k1!·k2!…) ordini (`countOrders`), poi ricomincia; `all` mescola i valori di tutti i giri insieme. Seed mulberry32 come a caso; nessun filtro.
 - **Anteprima.** Mostra quante carte nasceranno (e su quante combinazioni, se c'è un filtro) e le prime righe con le icone. Oltre 5000 carte la generazione si ferma e lo segnala.
 - **Aggiungi in fondo** accoda le righe a quelle del set; **Sostituisci le carte** cancella prima le righe esistenti, dopo una conferma. **Aggiorna le carte** (solo se il set ha già carte) scrive le colonne generate nelle righe presenti, una carta generata per riga nell'ordine del foglio, senza toccare le altre colonne né `amount`: per esempio, dopo aver generato 30 carte da 6 semi e i numeri 1-5, si riempie la colonna del ritratto con le 30 immagini di una cartella. Le carte generate in più si aggiungono in fondo; se sono meno, le ultime righe restano come sono. Le colonne che mancano nel foglio si aggiungono in fondo. ⌘Z annulla.
+- **Generazioni salvate.** **Salva come** dà un nome alla generazione: generando, il set la salva in `generations` (stella.json) con `name`, `spec`, `mode` e le scelte della finestra che non stanno in `spec` (`wholeSet`, `rounds` in sequenza, `allSet` con tutte le combinazioni). Senza nome non si salva. Lo stesso nome, senza badare alle maiuscole, sostituisce quella salvata al suo posto. **Generazioni salvate** in cima alla finestra ne richiama una: tutti i campi, compreso il seed, partono da quella. **Elimina** la toglie subito dal set (dopo una conferma) senza toccare le righe. È indipendente da `generator`, che resta l'ultima generazione a caso per Rigenera.
+
+### 8.4 Pacchetti di template e set
+
+**Esporta pacchetto…**, nel menu di un template o di un set (tasto destro o ⋯ nella barra laterale), salva uno ZIP da importare in un altro progetto (`model/package.ts`, `renderer/src/package/`). Contiene `stella-package.json` (formato 1) e i file sotto `assets/`:
+
+- il template, come nel suo file; un derivato porta con sé i suoi base. Per un set: la definizione (senza il nome del foglio), le intestazioni e le righe del foglio come testo, il template del set e quelli scelti riga per riga dalla colonna `template`, con i loro base;
+- le variabili e gli stili richiamati dai template e dal set, anche attraverso altre variabili o altri stili (stessa ricerca di "dove è usato");
+- le immagini usate (3.2: nei template, nelle carte del set, nelle variabili e negli stili presi) e i file dei font scritti nei livelli e nel markup, con le loro voci di `sources.json`.
+
+Nell'app per computer si sceglie dove salvarlo (si propone `export/<nome>.zip`); nell'app web va in `export/` del progetto.
+
+**Progetto ▾ › Importa pacchetto…** legge lo ZIP e mostra cosa contiene. Un elemento uguale a quello del progetto non si chiede: resta quello del progetto. Per quelli diversi si sceglie, uno per uno o per tutti:
+
+- template e set con lo stesso nome: **Tieni entrambi** (proposta: il nuovo prende un numero, "Eroe 2"; i set e i derivati del pacchetto, e la colonna `template`, seguono il nome nuovo), **Sostituisci quello del progetto**, **Tieni quello del progetto**;
+- variabili e stili con lo stesso nome: **Tieni quello del progetto** (proposta) o **Sostituisci**;
+- file: un'immagine con lo stesso nome in qualunque cartella (anche con un'altra estensione, perché le carte la cercano per nome) o un font con lo stesso percorso. **Tieni quello del progetto** (proposta) o **Sostituisci**: il file va nella cartella di quello del progetto e, se aveva un altro nome, quello va nel cestino.
+
+Prima di importare Stella fa un backup. I file si scrivono subito in `assets/`; template, set, variabili e stili sono modifiche da salvare, che ⌘Z annulla. I set non si importano in un progetto con i dati in un file .csv (un solo foglio) o in sola lettura. Alla fine Stella dice quali elementi hanno preso un nome nuovo.
 
 ## 9. Esportazione
 

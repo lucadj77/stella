@@ -13,11 +13,25 @@ import { colorKeys, keyColor, keyOf, type ColorKey } from '../../shared/model/se
 import SplitImageDialog from './components/SplitImageDialog'
 import GoogleSheetsDialog, { type SheetImport } from './components/GoogleSheetsDialog'
 import TrashDialog from './components/TrashDialog'
+import ManageDialog from './manage/ManageDialog'
+import ImportPackageDialog from './package/ImportPackageDialog'
+import { exportPackage, openPackage, type OpenedPackage } from './package/packageZip'
+import { planImport, type ConflictChoice } from '../../shared/model/package'
+import {
+  lastManageTab,
+  onOpenManage,
+  openManage,
+  storeManageTab,
+  type ManageActions,
+  type ManageTab
+} from './manage/manageTypes'
+import { movedRefs, retargetImageRefs } from '../../shared/model/imageUsage'
 import CompareDialog, { type CompareBase } from './components/CompareDialog'
 import {
   isRandomSpec,
   regenerateSheet,
   withSeed,
+  type SavedGeneration,
   type SetGenerator
 } from '../../shared/model/generate'
 import { randomSeed, setUsesRandom } from '../../shared/model/random'
@@ -48,6 +62,7 @@ import {
 } from '../../shared/model/inherit'
 import type { GroupLayer, Layer, Side, Template } from '../../shared/model/template'
 import { hasNoBack, kindOf } from '../../shared/model/template'
+import { copyName as freeCopyName, countCards } from '../../shared/model/overview'
 import { KindIcon } from './export/exportIcons'
 import type { Bounds } from '../../shared/model/edit'
 import {
@@ -112,6 +127,7 @@ import {
 } from '../../shared/model/order'
 import {
   PanelIcon,
+  ExpandIcon,
   SetsIcon,
   StylesIcon,
   TemplateIcon,
@@ -161,6 +177,7 @@ import {
   VariablesContext,
   assetUrl,
   onAssetsUpdate,
+  publishAssetsUpdate,
   SourcesContext,
   useBindContext
 } from './render/assets'
@@ -404,6 +421,17 @@ function App(): React.JSX.Element {
   const [exportedIn, setExportedIn] = useState<string | null>(null)
   const [backingUp, setBackingUp] = useState(false)
   const [trashOpen, setTrashOpen] = useState(false)
+  /** Finestra «Gestisci il progetto», con la scheda e la voce da mostrare */
+  const [managing, setManaging] = useState<{ tab: ManageTab; focus?: string } | null>(null)
+  const [importingPackage, setImportingPackage] = useState<OpenedPackage | null>(null)
+  useEffect(
+    () =>
+      onOpenManage((tab, focus) => {
+        if (tab) storeManageTab(tab)
+        setManaging({ tab: tab ?? lastManageTab(), focus })
+      }),
+    []
+  )
   const [sheetsOpen, setSheetsOpen] = useState(false)
   const [languagesOpen, setLanguagesOpen] = useState(false)
   const [infoOpen, setInfoOpen] = useState(false)
@@ -952,7 +980,10 @@ function App(): React.JSX.Element {
   /** Colonne mostrate nel set: è una preferenza, salvata nel progetto ma fuori dall'annulla */
   const setColumnsView = (
     index: number,
-    view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed' | 'pinnedProperties' | 'colors'>
+    view: Pick<
+      SetDefinition,
+      'hiddenColumns' | 'showComputed' | 'pinnedProperties' | 'colors' | 'generations'
+    >
   ): void => {
     if (!project) return
     const patch = <T extends SetDefinition>(x: T): T => {
@@ -961,6 +992,7 @@ function App(): React.JSX.Element {
       if (!next.showComputed) delete next.showComputed
       if (!next.pinnedProperties?.length) delete next.pinnedProperties
       if (!next.colors) delete next.colors
+      if (!next.generations?.length) delete next.generations
       return next
     }
     setProject({
@@ -978,7 +1010,11 @@ function App(): React.JSX.Element {
   const changeRandom = (
     index: number,
     seed: number | undefined,
-    generated?: { sheet: Sheet; generator?: SetGenerator | null }
+    generated?: {
+      sheet: Sheet
+      generator?: SetGenerator | null
+      generations?: SavedGeneration[]
+    }
   ): void => {
     const set = project?.sets[index]
     if (!project || !set) return
@@ -1003,6 +1039,7 @@ function App(): React.JSX.Element {
       if (seed === undefined) delete next.seed
       if (nextGen) next.generator = nextGen
       else delete next.generator
+      if (generated?.generations) next.generations = generated.generations
       return next
     }
     setHistory((h) => ({
@@ -1311,10 +1348,18 @@ function App(): React.JSX.Element {
     const prev = refsBefore.current
     refsBefore.current = { folder: project.folder, snap }
     if (!prev || prev.folder !== project.folder) return
-    const { changed, count } = followInDocuments(project.documents ?? [], prev.snap, snap)
-    if (!changed.length) return
-    for (const d of changed) documents.change(d.name, d.text)
-    setRefsNotice(t('doc.refsUpdated', { n: count, docs: changed.map((d) => d.name).join(', ') }))
+    const docs = followInDocuments(project.documents ?? [], prev.snap, snap)
+    // anche le note mostrano variabili, stili e carte: seguono le stesse rinomine
+    const notes = followInDocuments(project.notes ?? [], prev.snap, snap)
+    if (!docs.changed.length && !notes.changed.length) return
+    for (const d of docs.changed) documents.change(d.name, d.text)
+    for (const n of notes.changed) changeNote(n.name, n.text)
+    setRefsNotice(
+      t('doc.refsUpdated', {
+        n: docs.count + notes.count,
+        docs: [...docs.changed, ...notes.changed].map((d) => d.name).join(', ')
+      })
+    )
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     project?.folder,
@@ -1381,6 +1426,221 @@ function App(): React.JSX.Element {
     if (variablesChanged) setFileDirty(true)
     return r.count
   }
+  /**
+   * Dopo lo spostamento di immagini in un'altra cartella: i riferimenti scritti con la cartella
+   * (images/spada) si aggiornano; quelli con il solo nome continuano a funzionare. Si annulla con
+   * ⌘Z come le altre modifiche, ma i file restano dove sono.
+   */
+  const retargetImages = (moves: { from: string; to: string }[]): void => {
+    if (!project) return
+    for (const d of project.documents ?? []) documents.flush(d.name)
+    const docs = project.documents ?? []
+    const r = retargetImageRefs(
+      {
+        templates: project.templates,
+        sets: project.sets,
+        documents: docs,
+        variables: project.file.variables ?? {},
+        styles: project.file.styles ?? {},
+        cover: project.file.cover
+      },
+      movedRefs(moves)
+    )
+    if (!r.count) return
+    r.documents.forEach((d, i) => d !== docs[i] && documents.change(d.name, d.text))
+    const fileChanged =
+      r.variables !== (project.file.variables ?? {}) ||
+      r.styles !== (project.file.styles ?? {}) ||
+      r.cover !== project.file.cover
+    if (r.sets === project.sets && r.templates === project.templates && !fileChanged) return
+    const synced = syncDerived(project.templates, r.templates)
+    setHistory((h) => ({
+      past: [
+        ...h.past.slice(-99),
+        {
+          sets: project.sets,
+          file: project.file,
+          templates: r.templates !== project.templates ? project.templates : undefined
+        }
+      ],
+      future: [],
+      at: 0
+    }))
+    setProject(
+      (p) =>
+        p && {
+          ...p,
+          sets: r.sets,
+          templates: synced.templates,
+          file: fileChanged
+            ? { ...p.file, variables: r.variables, styles: r.styles, cover: r.cover }
+            : p.file
+        }
+    )
+    const sheets = r.sets.flatMap((x, i) =>
+      x.data && x.data !== project.sets[i].data ? [x.data.name] : []
+    )
+    if (sheets.length) setDirtySheets((d) => new Set([...d, ...sheets]))
+    const templates = r.templates
+      .filter((x, i) => x !== project.templates[i])
+      .map((x) => x.name)
+      .concat(synced.changed)
+    if (templates.length) {
+      setDirty((d) => new Set([...d, ...templates]))
+      setEditorRev((v) => v + 1)
+    }
+    if (fileChanged) setFileDirty(true)
+  }
+  /** Pacchetto di un template o di un set (ZIP con immagini, font, variabili e stili) */
+  const savePackage = async (kind: 'template' | 'set', name: string): Promise<void> => {
+    if (!project) return
+    try {
+      const r = await exportPackage(project, { kind, name })
+      if (r)
+        await showNotice(
+          t,
+          t('package.saved', { name }),
+          t('package.savedDetail', {
+            file: r.path,
+            templates: r.manifest.templates.length,
+            files: r.manifest.assets.length
+          })
+        )
+    } catch (e) {
+      setError(messageFromError(e))
+    }
+  }
+
+  const chooseImportPackage = async (): Promise<void> => {
+    if (!project) return
+    try {
+      const opened = await openPackage(project)
+      if (opened) setImportingPackage(opened)
+    } catch (e) {
+      setError(messageFromError(e))
+    }
+  }
+
+  /**
+   * Mette nel progetto il contenuto del pacchetto, con le scelte per quello che c'era già: prima
+   * un backup; file subito su disco, template, set, variabili e stili come modifiche da salvare
+   */
+  const importPackage = async (
+    opened: OpenedPackage,
+    choices: Record<string, ConflictChoice>
+  ): Promise<void> => {
+    if (!project) return
+    const plan = planImport(
+      opened.manifest,
+      {
+        templates: project.templates,
+        sets: project.sets,
+        assets: project.assets,
+        variables: project.file.variables ?? {},
+        styles: project.file.styles ?? {}
+      },
+      opened.conflicts,
+      choices
+    )
+    if (plan.sets.length) {
+      if (dataLocked()) return
+      if (project.file.dataFile.toLowerCase().endsWith('.csv')) {
+        setError({ key: 'save.csvOneSheet' })
+        return
+      }
+    }
+    setImportingPackage(null)
+    try {
+      await window.api.createBackup(t('package.backupLabel', { name: opened.manifest.name }))
+      if (plan.files.length)
+        publishAssetsUpdate(
+          await window.api.writeAssetFiles(
+            plan.files.map((f) => ({ path: f.to, data: opened.files.get(f.from)! })),
+            plan.files.flatMap((f) => (f.replaces ? [f.replaces] : [])),
+            plan.sources
+          )
+        )
+    } catch (e) {
+      setError(messageFromError(e))
+      return
+    }
+    const added = plan.templates.map((x) => {
+      const tpl = normalizeTemplate(x.raw)
+      const old = project.templates.find((o) => o.name === tpl.name)
+      return old?.file ? { ...tpl, file: old.file } : tpl
+    })
+    const names = new Set(added.map((x) => x.name))
+    const templatesChanged = added.length > 0
+    let sets = project.sets
+    let defs = project.file.sets
+    for (const { set, replace } of plan.sets) {
+      const def = { ...set.definition }
+      const data: Sheet = { name: def.name, headers: set.sheet.headers, rows: set.sheet.rows }
+      const i = replace ? sets.findIndex((x) => x.name === def.name) : -1
+      if (i >= 0) {
+        sets = sets.map((x, j) =>
+          j === i ? { ...def, data: { ...data, origin: x.data?.origin } } : x
+        )
+        defs = defs.map((x) => (x.name === def.name ? def : x))
+      } else {
+        sets = [...sets, { ...def, data }]
+        defs = [...defs, def]
+      }
+    }
+    const varsChanged = Object.keys(plan.variables).length > 0
+    const stylesChanged = Object.keys(plan.styles).length > 0
+    const fileChanged = plan.sets.length > 0 || varsChanged || stylesChanged
+    setHistory((h) => ({
+      past: [
+        ...h.past.slice(-99),
+        {
+          sets: project.sets,
+          file: project.file,
+          templates: templatesChanged ? project.templates : undefined
+        }
+      ],
+      future: [],
+      at: 0
+    }))
+    setProject(
+      (p) =>
+        p && {
+          ...p,
+          sets,
+          templates: templatesChanged
+            ? resolveTemplates([...p.templates.filter((x) => !names.has(x.name)), ...added])
+                .templates
+            : p.templates,
+          file: fileChanged
+            ? {
+                ...p.file,
+                sets: defs,
+                variables: { ...(p.file.variables ?? {}), ...plan.variables },
+                styles: { ...(p.file.styles ?? {}), ...plan.styles }
+              }
+            : p.file
+        }
+    )
+    if (templatesChanged) {
+      setDirty((d) => new Set([...d, ...names]))
+      setEditorRev((v) => v + 1)
+    }
+    if (plan.sets.length)
+      setDirtySheets((d) => new Set([...d, ...plan.sets.map((x) => x.set.definition.name)]))
+    if (fileChanged) setFileDirty(true)
+    if (plan.sets.length) {
+      const first = plan.sets[0].set.definition.name
+      const i = sets.findIndex((x) => x.name === first)
+      if (i >= 0) setSelected({ kind: 'set', index: i })
+    } else if (added.length) setSelected({ kind: 'template', name: added[added.length - 1].name })
+    if (plan.renamed.length)
+      await showNotice(
+        t,
+        t('package.renamedTitle'),
+        plan.renamed.map((r) => `${r.from} → ${r.to}`).join(', ')
+      )
+  }
+
   /** Apre il punto di un risultato del cerca nel progetto */
   const openFound = (place: FindPlace): void => {
     setFindingAll(false)
@@ -2263,17 +2523,21 @@ function App(): React.JSX.Element {
               templates: project.templates,
               sets: project.sets,
               variables: project.file.variables ?? {},
-              styles: project.file.styles ?? {}
+              styles: project.file.styles ?? {},
+              documents: project.documents,
+              notes: project.notes
             },
             kind,
             name
           ),
           openTemplate: (n) => {
+            setManaging(null)
             setEditingStyle(null)
             setEditingVariable(null)
             setSelected({ kind: 'template', name: n })
           },
           openSet: (index) => {
+            setManaging(null)
             setEditingStyle(null)
             setEditingVariable(null)
             setSelected({ kind: 'set', index })
@@ -2307,6 +2571,13 @@ function App(): React.JSX.Element {
         >
           <PanelIcon />
         </button>
+        <button
+          className="sidebar-icon"
+          title={t('manage.buttonHint')}
+          onClick={() => openManage()}
+        >
+          <ExpandIcon />
+        </button>
         {sidebarSections.map(([id, icon, title]) => (
           <button
             key={id}
@@ -2337,10 +2608,19 @@ function App(): React.JSX.Element {
             >
               <PanelIcon />
             </button>
+            <button
+              className="sidebar-manage"
+              title={t('manage.buttonHint')}
+              onClick={() => openManage()}
+            >
+              <ExpandIcon />
+              {t('manage.button')}
+            </button>
             <PanelSideButton side={sidebarSide} onToggle={toggleSidebarSide} />
           </div>
           <SidebarSection
             id="sets"
+            onManage={() => openManage('sets')}
             icon={<SetsIcon />}
             title={t('sidebar.sets')}
             open={!closedSections.has('sets')}
@@ -2396,6 +2676,7 @@ function App(): React.JSX.Element {
           </SidebarSection>
           <SidebarSection
             id="templates"
+            onManage={() => openManage('templates')}
             icon={<TemplateIcon />}
             title={t('sidebar.templates')}
             open={!closedSections.has('templates')}
@@ -2456,6 +2737,7 @@ function App(): React.JSX.Element {
           </SidebarSection>
           <SidebarSection
             id="styles"
+            onManage={() => openManage('styles')}
             icon={<StylesIcon />}
             title={t('sidebar.styles')}
             count={styleList.length}
@@ -2490,6 +2772,7 @@ function App(): React.JSX.Element {
           </SidebarSection>
           <SidebarSection
             id="variables"
+            onManage={() => openManage('variables')}
             icon={<VariablesIcon />}
             title={t('sidebar.variables')}
             count={variableList.length}
@@ -2530,6 +2813,7 @@ function App(): React.JSX.Element {
           </SidebarSection>
           <SidebarSection
             id="documents"
+            onManage={() => openManage('documents')}
             icon={<DocumentsIcon />}
             title={t('sidebar.documents')}
             open={!closedSections.has('documents')}
@@ -2576,6 +2860,7 @@ function App(): React.JSX.Element {
           </SidebarSection>
           <SidebarSection
             id="notes"
+            onManage={() => openManage('notes')}
             icon={<NotesIcon />}
             title={t('sidebar.notes')}
             open={!closedSections.has('notes')}
@@ -2646,6 +2931,11 @@ function App(): React.JSX.Element {
       title: t('tip.duplicateSet'),
       onClick: () => setDuplicating({ kind: 'set', index })
     },
+    {
+      label: t('package.exportMenu'),
+      title: t('package.exportSetHint'),
+      onClick: () => project && void savePackage('set', project.sets[index].name)
+    },
     'sep',
     {
       label: t('sidebar.delete'),
@@ -2670,6 +2960,11 @@ function App(): React.JSX.Element {
       title: t('inherit.derive'),
       onClick: () => setDeriving(name)
     },
+    {
+      label: t('package.exportMenu'),
+      title: t('package.exportTemplateHint'),
+      onClick: () => void savePackage('template', name)
+    },
     'sep',
     {
       label: t('sidebar.delete'),
@@ -2678,6 +2973,88 @@ function App(): React.JSX.Element {
       onClick: () => deleteTemplate(name)
     }
   ]
+
+  /** Elimina più variabili o stili in un passo solo, che ⌘Z annulla */
+  const deleteDefinitions = (kind: RefKind, names: string[]): void => {
+    const key = kind === 'variable' ? 'variables' : 'styles'
+    setProject((p) => {
+      if (!p) return p
+      const defs: Record<string, unknown> = { ...(p.file[key] ?? {}) }
+      let order = p.file.order
+      for (const n of names) {
+        delete defs[n]
+        order = setGroup(order, key, n, '')
+      }
+      setHistory((h) => ({
+        past: [...h.past.slice(-99), { sets: p.sets, file: p.file }],
+        future: [],
+        at: 0
+      }))
+      return { ...p, file: { ...p.file, [key]: defs, order } }
+    })
+    setFileDirty(true)
+  }
+  /** Una copia della variabile o dello stile con un nome libero, nello stesso gruppo */
+  const duplicateDefinition = (kind: RefKind, name: string): string | null => {
+    if (!project) return null
+    if (kind === 'variable') {
+      const v = variables[name]
+      if (!v) return null
+      const copy = freeCopyName(name, Object.keys(variables), '-')
+      saveVariable(copy, v, undefined, groupOf(order, 'variables', name))
+      return copy
+    }
+    const def = allStyles[name]
+    if (def === undefined) return null
+    const copy = freeCopyName(name, Object.keys(allStyles), '-')
+    saveStyle(copy, def, undefined, groupOf(order, 'styles', name))
+    return copy
+  }
+  /** La finestra «Gestisci il progetto» usa le stesse funzioni della barra laterale */
+  const manageActions: ManageActions = {
+    openSet: (index) => {
+      setManaging(null)
+      setSelected({ kind: 'set', index })
+    },
+    openTemplate: (name) => {
+      setManaging(null)
+      setSelected({ kind: 'template', name })
+    },
+    openDocument: (name) => {
+      setManaging(null)
+      setSelected({ kind: 'document', name })
+    },
+    openNote: (name) => {
+      setManaging(null)
+      if (openNote && openNote !== name) flushNote(openNote)
+      setOpenNote(name)
+    },
+    setMenu,
+    templateMenu,
+    documentMenu,
+    newSet: () => setCreatingSet(true),
+    newTemplate: () => setCreating(true),
+    newDocument: () => {
+      setManaging(null)
+      void newDocument()
+    },
+    newNote: () => {
+      setManaging(null)
+      void newNote()
+    },
+    deleteNote: (name) => void deleteNote(name),
+    editVariable: (name) => {
+      setEditingVariable(name)
+      focusTopDialog()
+    },
+    editStyle: (name) => {
+      setEditingStyle(name)
+      focusTopDialog()
+    },
+    duplicateDefinition,
+    deleteDefinitions,
+    imagesMoved: retargetImages
+  }
 
   /** Comandi del progetto usati di rado: nel menu Progetto e nel menu dell'app */
   /** Il menu ▾ del pulsante Esporta: ripetere l'ultima esportazione o partire da un profilo */
@@ -2723,6 +3100,11 @@ function App(): React.JSX.Element {
     { label: t('app.backup'), title: t('tip.backup'), onClick: () => setBackingUp(true) },
     { label: t('app.trash'), title: t('tip.trash'), onClick: () => setTrashOpen(true) },
     {
+      label: t('package.importMenu'),
+      title: t('package.importHint'),
+      onClick: () => void chooseImportPackage()
+    },
+    {
       label: t('app.googleSheets'),
       title: t('tip.googleSheets'),
       onClick: () => setSheetsOpen(true)
@@ -2761,6 +3143,8 @@ function App(): React.JSX.Element {
     backup: () => setBackingUp(true),
     findAll: () => project && setFindingAll(true),
     trash: () => setTrashOpen(true),
+    manage: () => project && openManage(),
+    importPackage: () => void chooseImportPackage(),
     sheets: () => setSheetsOpen(true),
     languages: () => setLanguagesOpen(true),
     projectInfo: () => project && setInfoOpen(true),
@@ -2819,7 +3203,9 @@ function App(): React.JSX.Element {
           { id: 'projectInfo', label: t('projectInfo.menu'), enabled: hasProject },
           sep,
           { id: 'backup', label: t('app.backup'), enabled: hasProject },
+          { id: 'manage', label: t('manage.menu'), enabled: hasProject },
           { id: 'trash', label: t('app.trash'), enabled: hasProject },
+          { id: 'importPackage', label: t('package.importMenu'), enabled: hasProject },
           { id: 'sheets', label: t('app.googleSheets'), enabled: hasProject },
           { id: 'languages', label: t('app.languages'), enabled: hasProject },
           sep,
@@ -3338,6 +3724,19 @@ function App(): React.JSX.Element {
                             onImportNandeck={() => setImporting('nandeck')}
                           />
                         )}
+                        {managing && project && (
+                          <ManageDialog
+                            project={project}
+                            tab={managing.tab}
+                            focus={managing.focus}
+                            styles={allStyles}
+                            styleNames={styleList}
+                            variableNames={variableList.map(([n]) => n)}
+                            templateNames={templateList.map((x) => x.name)}
+                            actions={manageActions}
+                            onClose={() => setManaging(null)}
+                          />
+                        )}
                         {renamingTemplate !== null && project && (
                           <DuplicateDialog
                             title={t('rename.templateTitle')}
@@ -3562,6 +3961,13 @@ function App(): React.JSX.Element {
                           onClose={() => setSheetsOpen(false)}
                         />
                       )}
+                      {importingPackage && project && (
+                        <ImportPackageDialog
+                          opened={importingPackage}
+                          onImport={(choices) => void importPackage(importingPackage, choices)}
+                          onClose={() => setImportingPackage(null)}
+                        />
+                      )}
                       {trashOpen && project && (
                         <TrashDialog
                           templates={project.templates}
@@ -3702,11 +4108,18 @@ function SetView({
   /** Nuovo seme dei numeri a caso; con `generated` le carte appena scritte da Genera */
   onChangeRandom(
     seed: number | undefined,
-    generated?: { sheet: Sheet; generator?: SetGenerator | null }
+    generated?: {
+      sheet: Sheet
+      generator?: SetGenerator | null
+      generations?: SavedGeneration[]
+    }
   ): void
   /** Colonne nascoste, livelli calcolati mostrati, colori della tabella */
   onChangeColumns(
-    view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed' | 'pinnedProperties' | 'colors'>
+    view: Pick<
+      SetDefinition,
+      'hiddenColumns' | 'showComputed' | 'pinnedProperties' | 'colors' | 'generations'
+    >
   ): void
   /** Apre nell'editor un template: quello del set o quello di una carta */
   /** row: la carta da mostrare nell'editor */
@@ -4805,11 +5218,18 @@ function SetView({
             template={template}
             seed={set.seed}
             generator={set.generator}
-            onApply={(s, random) => {
-              if (random) onChangeRandom(random.seed, { sheet: s, generator: random.generator })
+            generations={set.generations}
+            onApply={(s, changes) => {
+              if (changes)
+                onChangeRandom(changes.seed, {
+                  sheet: s,
+                  generator: changes.generator,
+                  generations: changes.generations
+                })
               else onChange(s)
               setGenerating(false)
             }}
+            onDeleteGeneration={(generations) => onChangeColumns({ generations })}
             onClose={() => setGenerating(false)}
           />
         </Suspense>
@@ -4919,17 +5339,15 @@ function clampThumb(v: number): number {
   return Math.min(THUMB_MAX, Math.max(THUMB_MIN, v))
 }
 
-/** Numero di carte del set, sommando la colonna amount quando presente */
-function countCards(sheet: { headers: string[]; rows: string[][] }): number {
-  const col = sheet.headers.indexOf('amount')
-  if (col < 0) return sheet.rows.length
-  return sheet.rows.reduce((sum, r) => {
-    const n = parseInt(r[col], 10)
-    return sum + (Number.isFinite(n) && n >= 0 ? n : 1)
-  }, 0)
-}
-
 export default App
+
+/** Dopo aver aperto una finestra sopra un'altra: il fuoco va a quella nuova, così Esc la chiude */
+function focusTopDialog(): void {
+  requestAnimationFrame(() => {
+    const all = document.querySelectorAll<HTMLElement>('.dialog-backdrop')
+    all[all.length - 1]?.querySelector<HTMLElement>('input, select, textarea, button')?.focus()
+  })
+}
 
 /** Il seme del set: si applica uscendo dal campo o con Invio */
 function SeedField({

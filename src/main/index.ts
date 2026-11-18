@@ -11,6 +11,8 @@ import { saveDocument, saveNote, trashDocument, trashNote } from './project/note
 import { writeDocumentExport } from './project/docExport'
 import { htmlToPdf, previewPdf } from './export/docPdf'
 import { dropDeleted, listDeleted, readDeleted } from './project/trash'
+import { moveImages, restoreImages, trashImages } from './project/imageFiles'
+import { readAssetFiles, writeAssetFiles } from './project/packageFiles'
 import { readBackupVersion, readPrinted, savePrinted } from './project/versions'
 import { fetchGoogleSheet } from './project/googleSheets'
 import {
@@ -97,7 +99,7 @@ import {
   readAgentLock,
   writeAppState
 } from './project/agentLock'
-import type { FontVariant, IconCollection, IconImport } from '../shared/library'
+import type { FontVariant, IconCollection, IconImport, Sources } from '../shared/library'
 import {
   defaultTtsFolder,
   type ExportContext,
@@ -608,6 +610,69 @@ function registerIpc(): void {
     if (result.canceled || !result.filePaths.length) return null
     await copyImages(folder, result.filePaths)
     return assetsUpdate(folder)
+  })
+
+  ipcMain.handle('package:read-assets', async (_, paths: string[]) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    return readAssetFiles(folder, paths)
+  })
+  ipcMain.handle(
+    'package:write-assets',
+    async (
+      _,
+      files: { path: string; data: Uint8Array }[],
+      replaced: string[],
+      sources: Sources
+    ) => {
+      const folder = getProjectFolder()
+      if (!folder) throw new MessageError(msg('template.noProject'))
+      return writeAssetFiles(folder, files, replaced, sources)
+    }
+  )
+  ipcMain.handle('package:save', async (event, name: string, data: Uint8Array) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    const win = BrowserWindow.fromWebContents(event.sender)
+    const options = {
+      defaultPath: join(folder, 'export', `${name.replace(/[<>:"/\\|?*]/g, '_')}.zip`),
+      filters: [{ name: 'Stella package', extensions: ['zip'] }]
+    }
+    await mkdir(join(folder, 'export'), { recursive: true })
+    const result = win
+      ? await dialog.showSaveDialog(win, options)
+      : await dialog.showSaveDialog(options)
+    if (result.canceled || !result.filePath) return null
+    await writeFile(result.filePath, data)
+    return result.filePath
+  })
+  ipcMain.handle('package:open', async (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    const options = {
+      properties: ['openFile' as const],
+      filters: [{ name: 'Stella package', extensions: ['zip'] }]
+    }
+    const result = win
+      ? await dialog.showOpenDialog(win, options)
+      : await dialog.showOpenDialog(options)
+    if (result.canceled || !result.filePaths.length) return null
+    const file = result.filePaths[0]
+    return { name: basename(file), data: new Uint8Array(await readFile(file)) }
+  })
+  ipcMain.handle('images:trash', async (_, paths: string[]) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    return trashImages(folder, paths)
+  })
+  ipcMain.handle('images:move', async (_, paths: string[], target: string) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    return moveImages(folder, paths, target)
+  })
+  ipcMain.handle('images:restore', async (_, files: string[]) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    return restoreImages(folder, files)
   })
 
   ipcMain.handle('library:drop-images', async (_, files: { name: string; data: Uint8Array }[]) => {

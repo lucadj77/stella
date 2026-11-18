@@ -4,6 +4,7 @@ import { MessageError, msg } from '../../shared/messages'
 import type { DeletedContent, DeletedItem } from '../../shared/project'
 import { normalizeTemplate } from '../../shared/model/normalize'
 import { readSpreadsheet } from './spreadsheet'
+import { dropDeletedImages, listDeletedImages, splitDeletedImage } from './imageFiles'
 
 // Cestino del progetto: template, note, documenti e fogli eliminati finiscono in deleted/ con data e ora nel
 // nome (deleted.ts); da qui si elencano, si leggono per ripristinarli e si tolgono una volta
@@ -39,9 +40,9 @@ export async function listDeleted(folder: string): Promise<DeletedItem[]> {
   try {
     files = await readdir(dir(folder))
   } catch {
-    return []
+    files = []
   }
-  const out: DeletedItem[] = []
+  const out: DeletedItem[] = await listDeletedImages(folder)
   for (const f of files) {
     const item = parse(f)
     if (!item) continue
@@ -79,7 +80,12 @@ export async function readDeleted(folder: string, file: string): Promise<Deleted
 
 /** Toglie dal cestino gli elementi ripristinati */
 export async function dropDeleted(folder: string, files: string[]): Promise<void> {
+  await dropDeletedImages(
+    folder,
+    files.filter((f) => splitDeletedImage(f))
+  )
   for (const f of files) {
+    if (splitDeletedImage(f)) continue
     checked(f)
     await unlink(join(dir(folder), f)).catch(() => undefined)
   }

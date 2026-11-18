@@ -232,7 +232,9 @@ Il pulsante ⋯ accanto al nome del set o del template aperto apre un menu per r
 
 Rinominando un set cambia nome anche il suo foglio nel file dei dati. Se il foglio è già nel file, Stella prima chiede, perché le formule di altri fogli che lo citano si romperebbero. Rinominando un template cambia nome il suo file, e il nome nuovo va nei set, nei derivati e nella colonna `template` dei componenti che lo usano. I file cambiano nome quando si salva.
 
-**Eliminare e ripristinare.** Un template eliminato va nella cartella `deleted` del progetto. Anche il foglio di un set eliminato, al salvataggio, esce dal file dei dati e va in `deleted` come file a sé, così il suo nome torna libero. **Cestino…**, nel menu **Progetto**, elenca quello che c'è in `deleted` (template, set, note e documenti, dal più recente). **Ripristina** rimette un elemento nel progetto: un set prende il template scelto (Stella propone quello con più colonne in comune), un nome già usato riceve un numero. Template e set ripristinati escono dal cestino quando si salva.
+**Eliminare e ripristinare.** Un template eliminato va nella cartella `deleted` del progetto. Anche il foglio di un set eliminato, al salvataggio, esce dal file dei dati e va in `deleted` come file a sé, così il suo nome torna libero. **Cestino…**, nel menu **Progetto**, elenca quello che c'è in `deleted` (template, set, note, documenti e immagini, dal più recente). **Ripristina** rimette un elemento nel progetto: un set prende il template scelto (Stella propone quello con più colonne in comune), un nome già usato riceve un numero. Template e set ripristinati escono dal cestino quando si salva; le immagini tornano subito al loro posto in `assets`.
+
+**Portare template e set in un altro progetto.** **Esporta pacchetto…**, nel menu di un template o di un set (tasto destro o ⋯), salva un file ZIP con tutto quello che serve: il template (e il suo base, se è un derivato), per un set anche le carte, le immagini e i font che usano, le variabili e gli stili che richiamano. Nell'altro progetto **Progetto ▾ › Importa pacchetto…** mostra cosa contiene il pacchetto. Se qualcosa c'è già con lo stesso nome ma è diverso, scegli cosa fare: tenere entrambi (il nuovo prende un numero, "Eroe 2"), sostituire quello del progetto o tenere quello del progetto. Le cose uguali non vengono chieste. Prima di importare Stella fa un backup; il risultato si salva come le altre modifiche.
 
 **Stili e variabili.** Accanto ai loro titoli c'è il numero delle voci: con più di sei voci la sezione parte chiusa, e Stella ricorda per ogni progetto se l'hai aperta o chiusa. Si dividono in gruppi con il campo **Gruppo** della loro finestra: le voci di un gruppo stanno sotto il suo titolo, che si chiude e si apre con un clic, dopo quelle senza gruppo. Una voce trascinata sul titolo di un gruppo entra nel gruppo; trascinata su un'altra voce prende il gruppo di quella voce (anche nessuno). Con più di 12 voci compare sopra l'elenco un campo per filtrarle per nome. Nella finestra di uno stile o di una variabile, **Dove si usa** elenca i template (con i livelli), i set (con i numeri dei componenti) e le altre variabili e stili che lo richiamano; un clic su un template o su un set lo apre.
 
@@ -245,6 +247,23 @@ Il pannello delle note si allarga trascinandone il bordo sinistro. Il pulsante a
 Le modifiche restano in memoria finché non si salva. Il pulsante **Salva** diventa **Salvato** quando non c'è nulla da scrivere.
 
 Nell'app per computer gli stessi comandi stanno anche nel menu dell'app (sul Mac nella barra in cima allo schermo, su Windows e Linux con il tasto Alt): **File** (apri, salva, esporta, backup, cestino, Google Sheets, ricarica, chiudi), **Modifica**, **Vista** (dimensione dell'interfaccia con ⌘+, ⌘− e ⌘0 / Ctrl+, Ctrl− e Ctrl+0, schermo intero) e **Aiuto**.
+
+### 3.1 Gestire il progetto
+
+**Gestisci il progetto**, il pulsante in cima alla barra laterale, apre una finestra grande con una scheda per ogni sezione della barra: **Set**, **Template**, **Stili**, **Variabili**, **Immagini**, **Documenti** e **Note**. Il pulsante ⤢ accanto al titolo di una sezione apre la finestra direttamente sulla sua scheda. La barra laterale resta com'è: la finestra serve quando gli elementi sono tanti e si vuole vedere dove sono usati.
+
+Ogni scheda ha un elenco con ricerca e filtri. Un clic seleziona una voce e mostra a destra i dettagli e le azioni; ⌘/Ctrl+clic e ⇧+clic ne selezionano più di una, ⌘A / Ctrl+A tutte. Il doppio clic apre la voce, il tasto destro mostra il menu con le stesse azioni.
+
+- **Variabili**: tipo, valore, gruppo e dove è usata ogni variabile (template, componenti dei set, documenti, note, altre variabili e stili). I filtri dividono per tipo e mostrano quelle **Non usate**. **Modifica…** apre la finestra della variabile, **Duplica** ne fa una copia, **Elimina** (anche su più variabili, o con Canc / ⌫) avvisa prima se qualcuna è ancora usata; ⌘Z / Ctrl+Z annulla.
+- **Stili**: una frase di prova con lo stile, la definizione e dove è usato. Gli stili predefiniti non si eliminano; se il progetto ne ha una versione propria, **Torna allo stile predefinito** la toglie.
+- **Template**: miniatura, tipo, misure, template da cui deriva e set che lo usano, con le variabili, gli stili e le immagini che richiama. **Apri nell'editor** e i comandi del menu del template (rinomina, duplica, deriva, esporta pacchetto, elimina).
+- **Set**: miniatura della prima carta, template, righe e componenti; a destra le prime carte e cosa usano. **Apri la griglia** e i comandi del menu del set.
+- **Immagini**: la stessa vista descritta in [8.1](#81-immagini-del-progetto).
+- **Documenti** e **Note**: nome e inizio del testo; si aprono con un doppio clic.
+
+I nomi in azzurro sono collegamenti: un clic porta all'elemento nella sua scheda. Per esempio, da un template si va a uno dei set che lo usano, da lì a una variabile usata dalle sue carte, e poi alle altre carte che la usano. Nelle schede con le anteprime (set, template, stili, variabili e immagini) lo sfondo si sceglie tra **Nessuno sfondo**, **Chiaro** e **Scuro**, come nella scelta delle immagini.
+
+Gli usi contano anche quelli indiretti. Una variabile è usata anche quando ci arriva da un campo o da una formula: se il livello valore `campo` vale `{alfa}` su alcune carte e un colore richiama `{campo}`, `alfa` risulta usata su quelle carte; lo stesso per un nome tra virgolette in una formula, come `=IF({forza}>2;"alfa";"beta")`. Gli stili `heading1`, `heading2` e `note` sono usati dove si scrivono paragrafi con `#`, `##` e `>`, nei testi dei componenti, nelle variabili di testo e nelle note. I titoli dei documenti hanno invece le impostazioni del documento. La rinomina di una variabile non cambia i nomi scritti tra virgolette nelle formule: vanno corretti a mano.
 
 ## 4. Disegnare un template
 
@@ -699,7 +718,7 @@ Sotto ci sono i colori del progetto: prima le variabili colore, segnate da un pu
 
 Le immagini stanno in `assets/`, anche in sottocartelle, nei formati SVG, PNG, WebP e JPG. Ovunque si indichi un'immagine basta il nome del file, senza cartella né estensione. Se due file hanno lo stesso nome (per esempio `spada.png` e `spada.svg`) l'app lo segnala e chiede di aggiungere l'estensione o la cartella.
 
-Il pulsante con l'immagine accanto ai campi apre le miniature degli asset, con ricerca e filtro per cartella. **Aggiungi immagini…** copia file dal computer in `assets/images` del progetto (un file con lo stesso nome non viene sovrascritto: la copia prende un numero). **Sfondo scuro** mostra le miniature su fondo scuro, per vedere le icone bianche; la scelta viene ricordata.
+Il pulsante con l'immagine accanto ai campi apre le miniature degli asset, con ricerca e filtro per cartella. **Aggiungi immagini…** copia file dal computer in `assets/images` del progetto (un file con lo stesso nome non viene sovrascritto: la copia prende un numero). Lo sfondo delle miniature si sceglie tra **Nessuno sfondo** (a scacchi, mostra la trasparenza), **Chiaro** e **Scuro** (per vedere le icone bianche); la scelta vale per tutte le finestre con le miniature e viene ricordata.
 
 **Da internet…** prende un'immagine da un indirizzo (PNG, JPG, WebP o SVG) in due modi:
 
@@ -711,6 +730,12 @@ Il pulsante con l'immagine accanto ai campi apre le miniature degli asset, con r
 Nell'app web si scaricano solo le immagini dei siti che lo permettono; per gli altri conviene salvare l'immagine sul computer e usare **Aggiungi immagini…**.
 
 ![La scelta di un'immagine](img/scegli-immagine.png)
+
+La scheda **Immagini** di **Gestisci il progetto** ([3.1](#31-gestire-il-progetto)), che si apre anche con **Gestisci…** nella scelta delle immagini, mostra tutte le immagini con sotto dove sono usate. In alto si filtrano: **Nei template** (scritte in un template), **Solo nei set** (le sceglie una colonna o una formula delle carte), **Nei documenti** e **Non usate**. **Mostra raggruppate per** le divide per cartella o per template: cambia solo la vista, i file restano dove sono. Selezionando un'immagine si vede a destra in quali template, set, documenti e variabili compare.
+
+- Per eliminare, seleziona una o più immagini (⌘/Ctrl+clic, ⇧+clic o un rettangolo trascinato da uno spazio vuoto) e premi **Elimina** o Canc / ⌫. Se un'immagine è ancora usata l'app lo dice prima. Le immagini eliminate vanno nel cestino del progetto (**Progetto ▾ › Cestino…**), da cui si rimettono al loro posto.
+- **Sposta in cartella…** mette le immagini in una cartella di `assets`, già esistente o nuova, anche dentro un'altra (`images/Eroi`). Le carte continuano a trovarle, perché basta il nome; i riferimenti scritti con la cartella si aggiornano da soli.
+- **Crea cartelle per template…** propone di mettere in una cartella con il nome del template le immagini che usa solo quel template, e prima di spostarle dice quante sono e dove vanno.
 
 Le icone a un colore (SVG nere su fondo trasparente) si ricolorano con la proprietà **Colorazione** del livello o con la tinta della variabile. La colorazione si stende sopra l'immagine: un colore pieno la ricolora del tutto, un colore semitrasparente la tinge solo in parte. Per esempio nero al 20% (`#00000033`) scurisce un bosco, e l'immagine resta opaca.
 
@@ -853,6 +878,8 @@ Su un livello **griglia** la formula vale per tutta la griglia (per esempio il c
 
 L'anteprima mostra quanti componenti nasceranno e le prime righe. **Aggiungi in fondo** li accoda, **Sostituisci i componenti** prende il posto di quelli esistenti. **Aggiorna i componenti** scrive solo le colonne generate nei componenti già presenti, una per riga, lasciando le altre colonne come sono: per esempio si generano prima 30 carte da 6 semi e i numeri 1-5, poi con **Da una cartella…** si assegnano 30 ritratti alla colonna del ritratto. Se i componenti generati sono di più, quelli in più si aggiungono in fondo. ⌘Z / Ctrl+Z annulla.
 
+**Generazioni salvate.** Per riusare le stesse impostazioni più avanti, scrivi un nome in **Salva come** prima di generare: le impostazioni (insiemi di valori, filtro, copie, come, quanti, seed e aggiungi/aggiorna/sostituisci) si salvano nel set con quel nome. Senza nome non si salva niente. La volta dopo, **Generazioni salvate** in cima alla finestra compila tutti i campi con le impostazioni di quella che scegli: puoi generare di nuovo così come sono o cambiarle prima. Generando con lo stesso nome la generazione salvata si aggiorna; **Elimina** la toglie dal set, e i componenti che aveva creato restano come sono.
+
 ![Il generatore: tre risorse, due per componente, con ripetizioni](img/genera.png)
 
 **A caso.** In cima alla finestra, **Come** passa da **Tutte le combinazioni** ad **A caso**: invece di tutte le combinazioni si generano quanti componenti si vuole (**Quanti**), estraendo i valori a caso. Un insieme può riempire più colonne con **+ Colonna**, e in ognuna si estrae un valore (o più, con **Valori per colonna**): per esempio i numeri `1-4` su text1, text2, text3 e text4 danno a ogni componente quattro numeri a caso tra 1 e 4.
@@ -921,11 +948,27 @@ Il PDF è vettoriale, con i font incorporati. Tra le scelte che contano ci sono 
 - **Piegatura**: fronte e retro affiancati, da piegare.
 - **Dadi**: compare quando si esporta un set di facce di dado. **Facce** le mette una accanto all'altra come le carte; **Da piegare** stampa ogni dado aperto, da ritagliare, piegare e incollare (vedi sotto). Con **Facce** ogni riga di un d3 si stampa due volte, una per ognuna delle sue facce, e le facce triangolari (d4, d8, d20) si incastrano una in su e una in giù, così occupano metà spazio: senza abbondanza due facce vicine hanno lo stesso taglio, con l'abbondanza tra i lati resta lo spazio per entrambe.
 - **Segni di taglio**: agli angoli o a linee intere, con lunghezza, spessore e colore.
-- **Fronte-retro**: retri su pagine alternate, girando il foglio sul lato lungo o corto, con una correzione dello spostamento per le stampanti che non allineano i due lati. Per trovare la correzione giusta usa **Pagina di prova**, accanto a **Spostamento retri** in **Pagine e file**: crea `duplex-test.pdf`, due pagine con cinque croci sul fronte e, sul retro, due scale in millimetri per ogni croce. Stampalo fronte-retro al 100%, guarda il foglio controluce dal retro e leggi dove cadono le croci sulle scale della croce 1: somma i due numeri a **Spostamento retri** x e y, poi stampa di nuovo la prova per controllare che le croci cadano sullo 0. Se le cinque croci danno numeri diversi, la stampante ridimensiona la pagina. Il **Foglio di prova** serve a controllare i componenti in piccolo prima di consumare carta.
+- **Fronte-retro**: retri su pagine alternate, girando il foglio sul lato lungo o corto. Scegli lo stesso lato nelle impostazioni della stampante. Se i retri escono spostati rispetto ai fronti, **Spostamento retri** in **Pagine e file** li sposta: vedi _Allineare fronti e retri_ qui sotto.
 - **Pagine**: con **Uno dopo l'altro sulla stessa pagina** un set comincia subito dopo il precedente invece che su una pagina nuova (10 + 8 carte con 9 per pagina stanno in 2 pagine invece di 3). Un set con componenti di un'altra misura comincia su una riga nuova, se nella pagina c'è posto. I componenti partono dall'alto della pagina, anche quando non la riempiono, così il taglio comincia sempre dallo stesso bordo.
 - **Inchiostro**: solo in **Stampare a casa**. **Bianco e nero** stampa i componenti in grigi; **Bozza** li stampa in grigi più chiari, anche il nero, per consumare meno inchiostro nelle prime prove. In queste due scelte le pagine del PDF sono immagini a 300 DPI, mentre i segni di taglio restano neri.
 - **Foglio di prova**: un PDF a parte con tutti i componenti in piccolo.
 - **Converti in CMYK**: richiede Ghostscript installato sul computer.
+
+**Allineare fronti e retri.** Molte stampanti stampano il retro di un foglio spostato di un millimetro o due rispetto al fronte. **Spostamento retri** sposta tutti i retri per compensare, e il tasto **Pagina di prova** accanto misura di quanto. I passi sono anche nell'app: sotto **Spostamento retri** apri _Come misurare lo spostamento, passo per passo_.
+
+1. In **Fronte-retro** scegli il lato (lungo o corto) che userai anche nella stampante.
+2. Premi **Pagina di prova**: Stella salva `duplex-test.pdf` nella cartella dell'esportazione. Ha due pagine: cinque croci numerate sul fronte e, sul retro, due piccoli righelli accanto a dove ogni croce dovrebbe cadere.
+3. Stampalo fronte-retro al 100%, con **Adatta alla pagina** spento.
+4. Guarda il foglio controluce con i righelli verso di te: le croci del fronte si vedono attraverso la carta. Prima controlla che accanto al righello 2 ci sia la croce 2. Se c'è la croce 5, nell'angolo opposto, il foglio è stato girato sull'altro lato: cambia il lato nella stampante o in Stella e stampa di nuovo. La croce al centro sembra uguale in entrambi i casi, ma la correzione andrebbe nel verso sbagliato.
+5. Guarda solo la croce 1, al centro. Sul righello sotto di lei leggi il numero dove passa la linea verticale della croce: è **x**. Sul righello alla sua destra leggi il numero dove passa la linea orizzontale: è **y**. Tieni il segno meno se c'è: −1 vuol dire che la croce è 1 mm più a sinistra (per x) o più in alto (per y).
+6. Nell'app questo passo ha due campi, **Letto sulla croce 1**: scrivi lì i due numeri, con il segno meno se c'è, e premi **Correggi**. Stella sposta i retri di quella misura, partendo da quello che c'è già in **Spostamento retri**, quindi non serve fare somme. Sotto i campi vedi il nuovo **Spostamento retri**.
+7. Stampa di nuovo la pagina di prova per controllare. Esce con la correzione che hai appena inserito, quindi ora le croci dovrebbero cadere sullo 0. Se non è così, quello che leggi è la piccola correzione che manca ancora: scrivila in **Letto sulla croce 1** e premi di nuovo **Correggi**, senza rimettere a 0. Stella ricorda lo spostamento per le prossime esportazioni del progetto.
+
+Se qualcosa non torna:
+
+- La croce 1 è sullo 0 ma quelle negli angoli no: la stampante rimpicciolisce o ingrandisce la pagina. Stampa al 100%; nessuno spostamento può correggerlo.
+- Dopo la correzione la lettura aumenta invece di andare a 0 (per esempio da −1 a −2): il foglio è girato sull'altro lato. Controlla il passo 4.
+- Le letture cambiano da una stampa all'altra: la stampante trascina la carta in modo irregolare e lo spostamento corregge solo la media. Lascia qualche millimetro di abbondanza, o un bordo bianco, intorno ai retri.
 
 **Dadi da piegare.** Con **Da piegare** ogni N righe del set fanno un dado, nell'ordine del foglio: 4 righe per il d4, 6 per il d6, 8 per il d8 e così via, con la riga 1 sulla faccia 1. Il dado è grande quanto il template (una faccia di 20 mm fa un dado di 20 mm); per il d6 e il d3 la faccia deve essere quadrata. Si piegano tutti i dadi tranne il d2, la moneta, che esce come facce da ritagliare e incollare schiena contro schiena.
 
@@ -1047,7 +1090,7 @@ I componenti non si copiano nel documento: Stella li disegna dal progetto, quind
 
 A mano si scrive `card:Set/3` per il componente della riga 3 oppure `card:Set/colonna=valore` per quello che ha quel valore in una colonna (`card:` vale per tutti i tipi di componente); dopo un `?` si aggiungono `side=back` per il retro e `width=40` per la larghezza, unite da `&`, come in `card:Personaggi/nome=Mago?side=back&width=40`. Il valore di una colonna, come il nome, è più sicuro del numero, che cambia se le righe si riordinano. Più immagini sulla stessa riga del testo stanno affiancate.
 
-I riferimenti seguono le rinomine. Se cambi il nome di un set, di una colonna o il valore che identifica un componente (per esempio il nome `CASERMA` diventa `CASERMA2`), Stella aggiorna da sola i componenti richiamati nei documenti: nelle immagini, nelle tabelle, negli schemi del tavolo e nelle anatomie. Una barra in alto dice quanti riferimenti sono cambiati. Il valore di un componente si segue solo se nessun altro componente del set ha ancora quello vecchio. Allo stesso modo un livello rinominato nel template cambia nelle etichette delle anatomie, e una variabile o uno stile rinominati cambiano nel testo dei documenti. Le note non si toccano.
+I riferimenti seguono le rinomine. Se cambi il nome di un set, di una colonna o il valore che identifica un componente (per esempio il nome `CASERMA` diventa `CASERMA2`), Stella aggiorna da sola i componenti richiamati nei documenti: nelle immagini, nelle tabelle, negli schemi del tavolo e nelle anatomie. Una barra in alto dice quanti riferimenti sono cambiati. Il valore di un componente si segue solo se nessun altro componente del set ha ancora quello vecchio. Allo stesso modo un livello rinominato nel template cambia nelle etichette delle anatomie, e una variabile o uno stile rinominati cambiano nel testo dei documenti. Le note seguono le stesse rinomine.
 
 ![La finestra Inserisci componente](img/inserisci-carta.png)
 
