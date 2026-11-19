@@ -1,3 +1,4 @@
+import { moveItem, useDragReorder } from '../components/useDragReorder'
 import { useContext, useMemo, useState } from 'react'
 import { assetRefName, isImageAsset, resolveAsset } from '../../../shared/model/assets'
 import { findOption, PRIMARY_PROPERTY, type Layer } from '../../../shared/model/template'
@@ -61,6 +62,7 @@ export default function ListOptions({
     write(next)
   }
   const remove = (i: number): void => write(options.filter((_, k) => k !== i))
+  const drag = useDragReorder((from, to) => write(moveItem(options, from, to)))
   const folders = useMemo(
     () =>
       [
@@ -88,7 +90,16 @@ export default function ListOptions({
       {options.length === 0 && <p className="small muted">{t('source.optionsEmpty')}</p>}
       <ul>
         {options.map((o, i) => (
-          <li key={i} className={o === isDefault ? 'is-default' : undefined}>
+          <li
+            key={i}
+            {...drag.itemProps(i)}
+            className={[o === isDefault ? 'is-default' : '', drag.itemProps(i).className ?? '']
+              .join(' ')
+              .trim()}
+          >
+            <span className="drag-handle" title={t('source.optionDrag')} aria-hidden="true">
+              ⠿
+            </span>
             <input
               type="radio"
               name={`default-${l.id}`}

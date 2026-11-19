@@ -315,6 +315,9 @@ export function normalizeTemplate(raw: RawTemplate): Template {
       back: [],
       extends: raw.extends,
       ...(raw.variant === true ? { variant: true } : {}),
+      ...(raw.variant === true && typeof raw.variantOrder === 'number' && raw.variantOrder > 0
+        ? { variantOrder: Math.round(raw.variantOrder) }
+        : {}),
       changes: {
         ...(c.template ? { template: c.template } : {}),
         ...(c.layers ? { layers: c.layers } : {}),
@@ -496,6 +499,7 @@ export function denormalizeTemplate(t: Template): RawTemplate {
       name: t.name,
       extends: t.extends,
       ...(t.variant ? { variant: true } : {}),
+      ...(t.variant && t.variantOrder ? { variantOrder: t.variantOrder } : {}),
       changes
     }
   }

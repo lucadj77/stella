@@ -5,6 +5,20 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## Next version
+
+### English
+
+- **Reorder variants**: in the variants window, drag a row or use the ↑ ↓ arrows; the order is the one of the thumbnails in the component form. A right click on a row opens Open, Move up, Move down and Delete, and Delete on the selected row removes the variant.
+- **List choices can be dragged** to change their order, besides the arrows.
+- **Deleting a template with variants or derived templates** now asks whether to delete them too or make them independent, instead of refusing.
+
+### Italiano
+
+- **Riordinare le varianti**: nella finestra delle varianti si trascina una riga o si usano le frecce ↑ ↓; l'ordine è quello delle miniature nel modulo del componente. Il tasto destro su una riga apre Apri, Sposta su, Sposta giù ed Elimina, e Canc sulla riga selezionata elimina la variante.
+- **Le voci di un elenco si trascinano** per cambiarne l'ordine, oltre che con le frecce.
+- **Eliminare un template con varianti o derivati** ora chiede se eliminarli insieme o renderli indipendenti, invece di rifiutare.
+
 ## 1.13.0-beta.1
 
 ### English

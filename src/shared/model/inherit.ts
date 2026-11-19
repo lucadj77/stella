@@ -142,6 +142,8 @@ export function resolveTemplate(
   }
   if (own.variant) template.variant = true
   else delete template.variant
+  if (own.variant && own.variantOrder) template.variantOrder = own.variantOrder
+  else delete template.variantOrder
   // file e origin sono del derivato, mai del base: altrimenti una rinomina del base non ancora
   // salvata farebbe rinominare o spostare in deleted/ il file del base al posto di quello del derivato
   if (own.file) template.file = own.file
@@ -362,7 +364,12 @@ export function wouldCycle(list: Template[], name: string, base: string): boolea
 }
 
 /** Nuovo derivato vuoto: identico al base finché non lo si modifica */
-export function newDerived(base: Template, name: string, variant = false): Template {
+export function newDerived(
+  base: Template,
+  name: string,
+  variant = false,
+  variantOrder?: number
+): Template {
   return resolveTemplate(base, {
     ...base,
     name,
@@ -370,13 +377,49 @@ export function newDerived(base: Template, name: string, variant = false): Templ
     origin: undefined,
     extends: base.name,
     variant,
+    ...(variant && variantOrder ? { variantOrder } : {}),
     changes: {}
   }).template
 }
 
-/** Le varianti di un template, nell'ordine dell'elenco */
+/** Le varianti di un template, nel loro ordine (quelle senza posto dopo, nell'ordine dell'elenco) */
 export function variantsOf(list: Template[], name: string): Template[] {
-  return list.filter((t) => t.variant && t.extends === name)
+  return list
+    .filter((t) => t.variant && t.extends === name)
+    .map((t, i) => ({ t, i }))
+    .sort((a, b) => (a.t.variantOrder ?? Infinity) - (b.t.variantOrder ?? Infinity) || a.i - b.i)
+    .map((x) => x.t)
+}
+
+/**
+ * Le varianti di `name` messe nell'ordine di `names` (le altre dopo): solo quelle il cui posto
+ * cambia, già con il posto nuovo
+ */
+export function reorderVariants(list: Template[], name: string, names: string[]): Template[] {
+  const current = variantsOf(list, name)
+  const ordered = [
+    ...names.map((n) => current.find((v) => v.name === n)).filter((v): v is Template => !!v),
+    ...current.filter((v) => !names.includes(v.name))
+  ]
+  const out: Template[] = []
+  ordered.forEach((v, i) => {
+    if (v.variantOrder !== i + 1) out.push({ ...v, variantOrder: i + 1 })
+  })
+  return out
+}
+
+/** I template che derivano da `name`, anche indirettamente */
+export function descendantsOf(list: Template[], name: string): Template[] {
+  const out: Template[] = []
+  const visit = (n: string): void => {
+    for (const t of derivedOf(list, n))
+      if (!out.includes(t)) {
+        out.push(t)
+        visit(t.name)
+      }
+  }
+  visit(name)
+  return out
 }
 
 /** Una variante il cui base c'è: nella barra laterale sta dentro il base */
@@ -399,7 +442,7 @@ export function variantFamily(list: Template[], setTemplate: Template): Template
 /** Rende indipendente un derivato: diventa un template normale con i valori che ha ora */
 export function detach(t: Template): Template {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { extends: _base, changes: _changes, variant: _variant, ...plain } = t
+  const { extends: _base, changes: _changes, variant: _variant, variantOrder: _order, ...plain } = t
   return plain
 }
 
