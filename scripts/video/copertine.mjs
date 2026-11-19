@@ -39,6 +39,10 @@ const SUBTITLES = {
   squadre: [
     'Approfondimento: template derivati o varianti?',
     'Deep dive: derived templates or variants?'
+  ],
+  gestisci: [
+    'Approfondimento: gestisci il progetto e le immagini',
+    'Deep dive: manage the project and its images'
   ]
 }
 if (!SUBTITLES[video]) throw new Error('video sconosciuto: ' + video)

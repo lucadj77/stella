@@ -58,6 +58,7 @@ Video tutorial su YouTube, senza voce ([tutta la playlist](https://www.youtube.c
 - 30 · [Approfondimento: variabili con parametri](https://www.youtube.com/watch?v=vm97xLxhHEw) (10 minuti), con il [progetto «Gilda» da scaricare](https://stella.lucadj.eu/progetti/gilda.zip)
 - 31 · [Approfondimento: elenchi e varianti](https://www.youtube.com/watch?v=MKPHaSY_oE8) (9 minuti), con il [progetto «Torneo» da scaricare](https://stella.lucadj.eu/progetti/torneo.zip)
 - 32 · [Approfondimento: template derivati o varianti?](https://www.youtube.com/watch?v=sML3oq7CRrQ) (9 minuti), con il [progetto «Campionato» da scaricare](https://stella.lucadj.eu/progetti/campionato.zip)
+- 33 · [Approfondimento: gestisci il progetto e le immagini](https://www.youtube.com/watch?v=AVGgWvpGRnc) (10 minuti), con il [progetto «Cripta» da scaricare](https://stella.lucadj.eu/progetti/cripta.zip)
 
 English version: [../guide/README.md](../guide/README.md).
 
