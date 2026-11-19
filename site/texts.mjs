@@ -878,6 +878,24 @@ export const videos = [
       it: 'progetti/torneo.zip',
       en: 'progetti/tournament.zip'
     }
+  },
+  {
+    n: 32,
+    it: 'Approfondimento: template derivati o varianti?',
+    en: 'Deep dive: derived templates or variants?',
+    about: {
+      it: 'Tre squadre di calcio: un mazzo per squadra con i template derivati e i set sullo stesso foglio, oppure un mazzo unico con le varianti. Quando scegliere l’uno o le altre.',
+      en: 'Three soccer teams: one deck per team with derived templates and sets on the same sheet, or a single deck with variants. When to choose one or the other.'
+    },
+    minutes: 9,
+    url: {
+      it: 'https://www.youtube.com/watch?v=sML3oq7CRrQ',
+      en: 'https://www.youtube.com/watch?v=4BpaDnG7CiQ'
+    },
+    project: {
+      it: 'progetti/campionato.zip',
+      en: 'progetti/league.zip'
+    }
   }
 ]
 
@@ -890,7 +908,7 @@ export const videoGroups = {
   data: [10, 12],
   table: [9, 3, 19, 5],
   tools: [6, 17, 18],
-  deep: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+  deep: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
 }
 
 export const playlists = {
