@@ -35,7 +35,11 @@ const SUBTITLES = {
   statistiche: ['Approfondimento: le statistiche del set', 'Deep dive: set statistics'],
   generare: ['Approfondimento: generare i componenti', 'Deep dive: generating components'],
   parametri: ['Approfondimento: variabili con parametri', 'Deep dive: variables with parameters'],
-  elenchi: ['Approfondimento: elenchi e varianti', 'Deep dive: lists and variants']
+  elenchi: ['Approfondimento: elenchi e varianti', 'Deep dive: lists and variants'],
+  squadre: [
+    'Approfondimento: template derivati o varianti?',
+    'Deep dive: derived templates or variants?'
+  ]
 }
 if (!SUBTITLES[video]) throw new Error('video sconosciuto: ' + video)
 const subtitle = SUBTITLES[video][it ? 0 : 1]
