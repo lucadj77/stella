@@ -354,7 +354,8 @@ export default function ImagesPane({
     )
   }
 
-  const chosen = order.filter((p) => selected.has(p))
+  // con il raggruppamento per template un'immagine può stare in più gruppi: conta una volta
+  const chosen = [...new Set(order)].filter((p) => selected.has(p))
   const single = chosen.length === 1 ? chosen[0] : null
 
   const tileMenu = (e: React.MouseEvent, p: string): void => {
