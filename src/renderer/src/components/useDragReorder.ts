@@ -7,7 +7,7 @@ import { useState } from 'react'
  */
 export function useDragReorder(onMove: (from: number, to: number, target: number) => void): {
   dragging: number | null
-  itemProps(i: number): React.LiHTMLAttributes<HTMLLIElement> & { draggable: boolean }
+  itemProps(i: number): React.HTMLAttributes<HTMLElement> & { draggable: boolean }
 } {
   const [dragging, setDragging] = useState<number | null>(null)
   const [drop, setDrop] = useState<{ index: number; after: boolean } | null>(null)
@@ -51,4 +51,12 @@ export function useDragReorder(onMove: (from: number, to: number, target: number
       }
     })
   }
+}
+
+/** L'elenco con la voce `from` spostata al posto `to` */
+export function moveItem<T>(list: T[], from: number, to: number): T[] {
+  const next = list.slice()
+  const [x] = next.splice(from, 1)
+  next.splice(to, 0, x)
+  return next
 }

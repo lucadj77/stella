@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { denormalizeTemplate, normalizeTemplate } from '../normalize'
 import { bindRow } from '../bind'
 import {
+  descendantsOf,
   detach,
   isVariant,
   newDerived,
   rebase,
+  reorderVariants,
   resolveTemplates,
   variantFamily,
   variantsOf
@@ -90,5 +92,41 @@ describe('varianti', () => {
       { kind: 'template', name: 'Carta' }
     )
     expect(pkg.templates.map((x) => x.name)).toEqual(['Carta', 'Carta blu'])
+  })
+
+  it('ordine: il posto nel file, le varianti senza posto dopo', () => {
+    const a = newDerived(carta, 'A', true, 2)
+    const b = newDerived(carta, 'B', true)
+    const c = newDerived(carta, 'C', true, 1)
+    const list = [carta, a, b, c]
+    expect(variantsOf(list, 'Carta').map((x) => x.name)).toEqual(['C', 'A', 'B'])
+    const raw = denormalizeTemplate(a) as unknown as Record<string, unknown>
+    expect(raw.variantOrder).toBe(2)
+    const again = resolveTemplates([carta, normalizeTemplate(raw as never)]).templates[1]
+    expect(again.variantOrder).toBe(2)
+    expect(detach(a)).not.toHaveProperty('variantOrder')
+    // un derivato normale non tiene il posto
+    expect(newDerived(carta, 'D', false, 3)).not.toHaveProperty('variantOrder')
+  })
+
+  it('riordinare: solo le varianti che cambiano posto', () => {
+    const a = newDerived(carta, 'A', true, 1)
+    const b = newDerived(carta, 'B', true, 2)
+    const c = newDerived(carta, 'C', true, 3)
+    const changed = reorderVariants([carta, a, b, c], 'Carta', ['A', 'C', 'B'])
+    expect(changed.map((x) => [x.name, x.variantOrder])).toEqual([
+      ['C', 2],
+      ['B', 3]
+    ])
+  })
+
+  it('discendenti: anche i derivati dei derivati', () => {
+    const d = newDerived(carta, 'D')
+    const e = newDerived(d, 'E')
+    expect(descendantsOf([carta, blu, d, e], 'Carta').map((x) => x.name)).toEqual([
+      'Carta blu',
+      'D',
+      'E'
+    ])
   })
 })

@@ -1,3 +1,5 @@
+import { getImagesFolder } from './imagesFolder'
+import ImagesFolderField from './ImagesFolderField'
 import { useContext, useMemo, useState } from 'react'
 import {
   assetRefName,
@@ -19,6 +21,7 @@ import {
   VariablesContext
 } from '../render/assets'
 import MarkupText from '../render/MarkupText'
+import { dragHasFiles, hasDroppedImages, importDropped } from './dropImages'
 import IconBrowser from './IconBrowser'
 import UrlImageDialog from './UrlImageDialog'
 import QrDialog from './QrDialog'
@@ -65,6 +68,7 @@ export default function AssetPicker({
   const [folder, setFolder] = useState<string | null>(null)
   const [size, setSizeState] = useState(loadSize)
   const [importing, setImporting] = useState(false)
+  const [dropping, setDropping] = useState(false)
   const [fromUrl, setFromUrl] = useState(false)
   const [qr, setQr] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -159,7 +163,7 @@ export default function AssetPicker({
   const addImages = async (): Promise<void> => {
     setError(null)
     try {
-      const u = await window.api.addImages()
+      const u = await window.api.addImages(getImagesFolder())
       if (u) publishAssetsUpdate(u)
     } catch (e) {
       setError(messageFromError(e))
@@ -189,7 +193,33 @@ export default function AssetPicker({
 
   return (
     <Dialog title={t('assetPicker.title')} onClose={onClose}>
-      <div className="asset-picker">
+      <div
+        className={'asset-picker' + (dropping ? ' dropping' : '')}
+        // immagini trascinate dal computer: entrano nel progetto; una sola si sceglie subito
+        onDragOver={(e) => {
+          if (!dragHasFiles(e)) return
+          e.preventDefault()
+          setDropping(true)
+        }}
+        onDragLeave={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node)) setDropping(false)
+        }}
+        onDrop={async (e) => {
+          setDropping(false)
+          if (!hasDroppedImages(e)) return
+          e.preventDefault()
+          setError(null)
+          try {
+            const names = await importDropped(e)
+            if (names.length === 1) {
+              onPick(names[0])
+              onClose()
+            }
+          } catch (err) {
+            setError(messageFromError(err))
+          }
+        }}
+      >
         <div className="asset-picker-bar">
           <input
             autoFocus
@@ -209,6 +239,7 @@ export default function AssetPicker({
             onChange={(e) => setSize(Number(e.target.value))}
           />
           <ThumbBackgroundSwitch value={bg} onChange={setBg} />
+          <ImagesFolderField />
           <button onClick={addImages} title={t('assetPicker.addImagesHint')}>
             {t('assetPicker.addImages')}
           </button>

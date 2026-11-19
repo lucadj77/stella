@@ -239,7 +239,7 @@ export const webApi: Api = {
   downloadFont: (family, variants) => downloadGoogleFont(projectFolder(), family, variants),
   systemFonts: () => systemFonts(),
   copySystemFont: (family) => copySystemFont(projectFolder(), family),
-  addImages: () => addImages(projectFolder()),
+  addImages: (to) => addImages(projectFolder(), to),
   trashImages: (paths) => trashImages(projectFolder(), paths),
   readAssetFiles: (paths) => readAssetFiles(projectFolder(), paths),
   writeAssetFiles: (files, replaced, sources) =>
@@ -249,11 +249,11 @@ export const webApi: Api = {
   moveImages: (paths, folder) => moveImages(projectFolder(), paths, folder),
   restoreImages: (files) => restoreImages(projectFolder(), files),
   // nel browser l'immagine si scarica solo dai siti che lo permettono (CORS)
-  downloadImage: (url, name) => downloadImage(projectFolder(), url, name),
+  downloadImage: (url, name, to) => downloadImage(projectFolder(), url, name, to),
   redownloadImage: (path) => redownloadImage(projectFolder(), path),
   // le immagini collegate le tiene la cache del browser
   forgetRemoteImages: async () => {},
-  dropImages: (files) => dropImages(projectFolder(), files),
+  dropImages: (files, to) => dropImages(projectFolder(), files, to),
   saveCredits: async (text) => {
     const dir = join(projectFolder(), 'export')
     await mkdir(dir, { recursive: true })

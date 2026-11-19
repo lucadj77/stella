@@ -63,7 +63,7 @@ const api: Api = {
   downloadFont: (family, variants) => ipcRenderer.invoke('library:download-font', family, variants),
   systemFonts: () => ipcRenderer.invoke('library:system-fonts'),
   copySystemFont: (family) => ipcRenderer.invoke('library:copy-system-font', family),
-  addImages: () => ipcRenderer.invoke('library:add-images'),
+  addImages: (to) => ipcRenderer.invoke('library:add-images', to),
   trashImages: (paths: string[]) => ipcRenderer.invoke('images:trash', paths),
   readAssetFiles: (paths: string[]) => ipcRenderer.invoke('package:read-assets', paths),
   writeAssetFiles: (files, replaced, sources) =>
@@ -72,9 +72,9 @@ const api: Api = {
   openPackage: () => ipcRenderer.invoke('package:open'),
   moveImages: (paths: string[], folder: string) => ipcRenderer.invoke('images:move', paths, folder),
   restoreImages: (files: string[]) => ipcRenderer.invoke('images:restore', files),
-  dropImages: (files: { name: string; data: Uint8Array }[]) =>
-    ipcRenderer.invoke('library:drop-images', files),
-  downloadImage: (url, name) => ipcRenderer.invoke('library:download-image', url, name),
+  dropImages: (files: { name: string; data: Uint8Array }[], to?: string) =>
+    ipcRenderer.invoke('library:drop-images', files, to),
+  downloadImage: (url, name, to) => ipcRenderer.invoke('library:download-image', url, name, to),
   redownloadImage: (path) => ipcRenderer.invoke('library:redownload-image', path),
   forgetRemoteImages: (urls) => ipcRenderer.invoke('library:forget-remote-images', urls),
   saveCredits: (text) => ipcRenderer.invoke('library:save-credits', text),

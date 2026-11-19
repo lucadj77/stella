@@ -1,5 +1,5 @@
 import { memo, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { dragHasFiles, importDropped } from './dropImages'
+import { dragHasFiles, hasDroppedImages, importDropped } from './dropImages'
 import { confirmKey } from './confirm'
 import { TEMPLATE_COLUMN } from '../../../shared/model/inherit'
 import type { Sheet } from '../../../shared/project'
@@ -328,7 +328,7 @@ function DataTable({
                         if (!calc && !bool && dragHasFiles(e)) e.preventDefault()
                       }}
                       onDrop={async (e) => {
-                        if (calc || bool || !dragHasFiles(e)) return
+                        if (calc || bool || !hasDroppedImages(e)) return
                         e.preventDefault()
                         e.stopPropagation()
                         const [name] = await importDropped(e)

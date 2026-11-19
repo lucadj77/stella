@@ -515,6 +515,8 @@ export interface Template {
    * carta lo sceglie tra le varianti del template del set, con le miniature
    */
   variant?: boolean
+  /** Posto della variante tra quelle del suo base, da 1; senza: dopo le altre, nell'ordine dei file */
+  variantOrder?: number
 }
 
 /** Proprietà del template che un derivato può cambiare; le misure della carta no */

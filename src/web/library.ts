@@ -1,8 +1,8 @@
+import { imagesTarget } from '../shared/model/imageUsage'
 import { mkdir, writeFile } from './shims/fs'
 import { join } from './shims/path'
 import {
   FONTS_FOLDER,
-  IMAGES_FOLDER,
   today,
   type AssetsUpdate,
   type FontVariant,
@@ -181,24 +181,26 @@ type PickerWindow = Window & {
   }) => Promise<FileSystemFileHandle[]>
 }
 
-/** Scrive in assets/images/ le immagini trascinate nella finestra */
+/** Scrive in assets/<to> (di base images) le immagini trascinate nella finestra */
 export async function dropImages(
   folder: string,
-  files: { name: string; data: Uint8Array }[]
+  files: { name: string; data: Uint8Array }[],
+  to?: string
 ): Promise<{ update: AssetsUpdate; paths: string[] }> {
-  const dir = join(folder, 'assets', IMAGES_FOLDER)
+  const sub = imagesTarget(to)
+  const dir = join(folder, 'assets', sub)
   await mkdir(dir, { recursive: true })
   const paths: string[] = []
   for (const f of files) {
     const target = await freeName(dir, f.name)
     await writeFile(target, f.data)
-    paths.push(`${IMAGES_FOLDER}/${target.slice(target.lastIndexOf('/') + 1)}`)
+    paths.push(`${sub}/${target.slice(target.lastIndexOf('/') + 1)}`)
   }
   return { update: await assetsUpdate(folder), paths }
 }
 
-/** Copia in assets/images/ le immagini scelte; null se l'utente annulla */
-export async function addImages(folder: string): Promise<AssetsUpdate | null> {
+/** Copia in assets/<to> (di base images) le immagini scelte; null se l'utente annulla */
+export async function addImages(folder: string, to?: string): Promise<AssetsUpdate | null> {
   let handles: FileSystemFileHandle[]
   try {
     handles = await (window as PickerWindow).showOpenFilePicker!({
@@ -210,7 +212,7 @@ export async function addImages(folder: string): Promise<AssetsUpdate | null> {
     if ((e as DOMException).name === 'AbortError') return null
     throw e
   }
-  const dir = join(folder, 'assets', IMAGES_FOLDER)
+  const dir = join(folder, 'assets', imagesTarget(to))
   await mkdir(dir, { recursive: true })
   for (const h of handles) {
     const file = await h.getFile()
@@ -239,7 +241,7 @@ export async function openPackage(): Promise<{ name: string; data: Uint8Array } 
 export async function savePackage(folder: string, name: string, data: Uint8Array): Promise<string> {
   const dir = join(folder, 'export')
   await mkdir(dir, { recursive: true })
-  const target = join(dir, `${name.replace(/[<>:"/\\|?*]/g, '_')}.zip`)
+  const target = join(dir, `${name.replace(/[<>:"/\\|?*]/g, '_')}.stella.zip`)
   await writeFile(target, data)
   return target
 }

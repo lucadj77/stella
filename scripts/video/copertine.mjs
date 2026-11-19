@@ -34,7 +34,8 @@ const SUBTITLES = {
   immagini: ['Approfondimento: immagini e forme', 'Deep dive: images and shapes'],
   statistiche: ['Approfondimento: le statistiche del set', 'Deep dive: set statistics'],
   generare: ['Approfondimento: generare i componenti', 'Deep dive: generating components'],
-  parametri: ['Approfondimento: variabili con parametri', 'Deep dive: variables with parameters']
+  parametri: ['Approfondimento: variabili con parametri', 'Deep dive: variables with parameters'],
+  elenchi: ['Approfondimento: elenchi e varianti', 'Deep dive: lists and variants']
 }
 if (!SUBTITLES[video]) throw new Error('video sconosciuto: ' + video)
 const subtitle = SUBTITLES[video][it ? 0 : 1]

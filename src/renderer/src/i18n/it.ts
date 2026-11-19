@@ -794,6 +794,7 @@ export const it: Record<MessageKey, string> = {
   'source.option': 'Voce {n}',
   'source.optionDefault': 'Vale quando la cella è vuota (valore del template)',
   'source.optionUp': 'Sposta su',
+  'source.optionDrag': 'Trascina per cambiare l’ordine',
   'source.optionDown': 'Sposta giù',
   'source.optionRemove': 'Togli la voce',
   'source.optionAdd': '+ Voce',
@@ -819,6 +820,12 @@ export const it: Record<MessageKey, string> = {
   'variants.openHint': "Apri questa variante nell'editor",
   'variants.baseHint': 'Il template da cui vengono le varianti',
   'variants.delete': 'Elimina questa variante',
+  'variants.deleteConfirm': 'Il file va nel cestino del progetto, da cui si può recuperare.',
+  'variants.deleteConfirm.title': 'Eliminare la variante "{name}"?',
+  'variants.deleteConfirm.ok': 'Elimina la variante',
+  'variants.up': 'Sposta su',
+  'variants.down': 'Sposta giù',
+  'variants.drag': 'Trascina per cambiare l’ordine',
   'variants.empty': 'Nessuna variante: dai un nome alla prima.',
   'variants.newName': 'Nome della nuova variante',
   'variants.add': 'Aggiungi variante',
@@ -1389,8 +1396,18 @@ export const it: Record<MessageKey, string> = {
   'inherit.derive': 'Nuovo template derivato da questo',
   'inherit.deriveTitle': 'Nuovo template derivato',
   'inherit.deriveOk': 'Crea',
-  'inherit.hasDerived':
-    'Il template "{name}" è il base di {list}: prima rendili indipendenti o eliminali',
+  'inherit.deleteWithVariants.title': 'Eliminare il template "{name}" e le sue varianti?',
+  'inherit.deleteWithVariants':
+    'Le varianti ({list}) si possono eliminare insieme al template, oppure rendere indipendenti: diventano template normali, con l’aspetto che hanno ora. I file eliminati vanno nel cestino del progetto.',
+  'inherit.deleteWithVariants.all': 'Elimina anche le varianti',
+  'inherit.deleteWithVariants.detach': 'Rendile indipendenti',
+  'inherit.deleteWithDerived.title': 'Eliminare il template "{name}"?',
+  'inherit.deleteWithDerived':
+    'Ne derivano altri template ({list}): si possono eliminare insieme a questo, oppure rendere indipendenti, con l’aspetto che hanno ora. I file eliminati vanno nel cestino del progetto.',
+  'inherit.deleteWithDerived.inUse':
+    'Ne derivano altri template ({list}) e i set {sets} ne usano qualcuno, quindi non si possono eliminare. Si possono rendere indipendenti, con l’aspetto che hanno ora, ed eliminare solo questo.',
+  'inherit.deleteWithDerived.all': 'Elimina anche i derivati',
+  'inherit.deleteWithDerived.detach': 'Rendili indipendenti',
   'inherit.baseMissing': 'Manca il template base "{base}": le modifiche qui non si possono salvare',
   'inherit.missingBase': 'Il template "{template}" deriva da "{base}", che non esiste',
   'inherit.cycle': 'Il template "{template}" deriva da se stesso attraverso altri template',
@@ -3922,6 +3939,10 @@ export const it: Record<MessageKey, string> = {
   'images.manage': 'Gestisci…',
   'images.hint':
     'Clic per selezionare, ⌘/Ctrl+clic o ⇧+clic per aggiungere, trascina un rettangolo per selezionarne più di una. Canc elimina, tasto destro per il menu. Le immagini eliminate vanno nel cestino del progetto.',
+  'images.addHint':
+    'Copia nel progetto immagini scelte dal computer; si possono anche trascinare qui',
+  'images.folderHint':
+    'Dove vanno le immagini nuove, sotto assets/: scelte dal computer, trascinate o scaricate. Scegline una o scrivi il nome di una nuova; vale per tutto il progetto',
   'images.filter.all': 'Tutte',
   'images.filter.all.hint': 'Tutte le immagini di assets',
   'images.filter.templates': 'Nei template',
@@ -4029,6 +4050,7 @@ export const it: Record<MessageKey, string> = {
   'package.import': 'Importa',
   'package.notZip': '{file} non è un file ZIP',
   'package.notPackage': '{file} non è un pacchetto di Stella, o viene da una versione più nuova',
+  'package.dropNoProject': 'Per importare un pacchetto apri prima il progetto in cui metterlo',
   'package.badFile': 'Il pacchetto contiene un file con un percorso non valido: {file}',
   'thumbBg.none': 'Nessuno sfondo',
   'thumbBg.light': 'Chiaro',

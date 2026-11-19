@@ -5,6 +5,8 @@ import { parseAttrs, parseMarkup, type Attrs, type Inline } from './markup'
 import { walkLayers } from './normalize'
 import { listOptions, type Layer, type Template } from './template'
 import { imageVariable, type Variables } from './variables'
+import { IMAGES_FOLDER } from '../library'
+import { MessageError, msg } from '../messages'
 
 // Dove è usata ogni immagine di assets/: nei template (valore fisso dei livelli), nelle carte dei
 // set (anche quando la sceglie una colonna o una formula: si legano tutte le righe), nei
@@ -241,6 +243,17 @@ export function cleanFolder(folder: string): string | null {
   if (parts.some((p) => p === '.' || p === '..' || /[<>:"|?*]/.test(p) || /[. ]$/.test(p)))
     return null
   return parts.join('/')
+}
+
+/**
+ * Cartella sotto assets/ dove vanno le immagini nuove (aggiunte, trascinate, scaricate): quella
+ * scelta nel progetto (ProjectFile.imagesFolder), o images. Un nome non valido è un errore
+ */
+export function imagesTarget(folder?: string | null): string {
+  if (!folder?.trim()) return IMAGES_FOLDER
+  const clean = cleanFolder(folder)
+  if (!clean) throw new MessageError(msg('images.badFolder', { folder }))
+  return clean
 }
 
 /**

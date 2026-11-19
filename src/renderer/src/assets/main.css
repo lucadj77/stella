@@ -10142,3 +10142,62 @@ button.wide {
 .list-popover-grid .variant-tile {
   flex-shrink: 0;
 }
+
+/* Riordino trascinando: la maniglia, la riga trascinata e il posto di arrivo */
+.drag-handle {
+  cursor: grab;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px;
+  user-select: none;
+  flex-shrink: 0;
+}
+.drag-handle:active {
+  cursor: grabbing;
+}
+.list-options li.dragging,
+.variants-table tr.dragging {
+  opacity: 0.4;
+}
+.list-options li.drop-before {
+  box-shadow: 0 -2px 0 var(--accent);
+}
+.list-options li.drop-after {
+  box-shadow: 0 2px 0 var(--accent);
+}
+.variants-table tr.drop-before > * {
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+.variants-table tr.drop-after > * {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.variants-table tbody tr.selected > th {
+  background: var(--accent-soft, rgba(37, 99, 235, 0.12));
+}
+.variants-scroll:focus {
+  outline: none;
+}
+
+/* Immagini trascinate dal computer sulla scheda Immagini o sul selettore */
+.images-body.dropping,
+.asset-picker.dropping {
+  outline: 3px dashed var(--accent);
+  outline-offset: -4px;
+}
+.images-grid-wrap section.drop-into {
+  outline: 2px dashed var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.images-folder {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.images-folder input {
+  width: 9em;
+}
+.images-folder input.invalid {
+  border-color: var(--danger, #c62828);
+}

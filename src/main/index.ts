@@ -588,10 +588,10 @@ function registerIpc(): void {
     return copySystemFont(folder, family)
   })
 
-  ipcMain.handle('library:download-image', async (_, url: string, name: string) => {
+  ipcMain.handle('library:download-image', async (_, url: string, name: string, to?: string) => {
     const folder = getProjectFolder()
     if (!folder) throw new MessageError(msg('template.noProject'))
-    return downloadImage(folder, url, name)
+    return downloadImage(folder, url, name, to)
   })
   ipcMain.handle('library:redownload-image', async (_, path: string) => {
     const folder = getProjectFolder()
@@ -600,7 +600,7 @@ function registerIpc(): void {
   })
   ipcMain.handle('library:forget-remote-images', (_, urls: string[]) => forgetRemoteImages(urls))
 
-  ipcMain.handle('library:add-images', async () => {
+  ipcMain.handle('library:add-images', async (_, to?: string) => {
     const folder = getProjectFolder()
     if (!folder) throw new MessageError(msg('template.noProject'))
     const result = await dialog.showOpenDialog({
@@ -608,7 +608,7 @@ function registerIpc(): void {
       filters: [{ name: 'Images', extensions: IMAGE_EXTENSIONS.map((e) => e.slice(1)) }]
     })
     if (result.canceled || !result.filePaths.length) return null
-    await copyImages(folder, result.filePaths)
+    await copyImages(folder, result.filePaths, to)
     return assetsUpdate(folder)
   })
 
@@ -635,7 +635,7 @@ function registerIpc(): void {
     if (!folder) throw new MessageError(msg('template.noProject'))
     const win = BrowserWindow.fromWebContents(event.sender)
     const options = {
-      defaultPath: join(folder, 'export', `${name.replace(/[<>:"/\\|?*]/g, '_')}.zip`),
+      defaultPath: join(folder, 'export', `${name.replace(/[<>:"/\\|?*]/g, '_')}.stella.zip`),
       filters: [{ name: 'Stella package', extensions: ['zip'] }]
     }
     await mkdir(join(folder, 'export'), { recursive: true })
@@ -675,13 +675,16 @@ function registerIpc(): void {
     return restoreImages(folder, files)
   })
 
-  ipcMain.handle('library:drop-images', async (_, files: { name: string; data: Uint8Array }[]) => {
-    const folder = getProjectFolder()
-    if (!folder) throw new MessageError(msg('template.noProject'))
-    const ok = files.filter((f) => IMAGE_EXTENSIONS.includes(extname(f.name).toLowerCase()))
-    const paths = await writeImages(folder, ok)
-    return { update: await assetsUpdate(folder), paths }
-  })
+  ipcMain.handle(
+    'library:drop-images',
+    async (_, files: { name: string; data: Uint8Array }[], to?: string) => {
+      const folder = getProjectFolder()
+      if (!folder) throw new MessageError(msg('template.noProject'))
+      const ok = files.filter((f) => IMAGE_EXTENSIONS.includes(extname(f.name).toLowerCase()))
+      const paths = await writeImages(folder, ok, to)
+      return { update: await assetsUpdate(folder), paths }
+    }
+  )
 
   ipcMain.handle('library:save-credits', async (_, text: string) => {
     const folder = getProjectFolder()

@@ -1,3 +1,4 @@
+import { onImagesFolderChange, setImagesFolderState } from './components/imagesFolder'
 import AiToolsDialog from './components/AiToolsDialog'
 import Menu, { type MenuItem } from './components/Menu'
 import { useContextMenu } from './components/useContextMenu'
@@ -15,7 +16,7 @@ import GoogleSheetsDialog, { type SheetImport } from './components/GoogleSheetsD
 import TrashDialog from './components/TrashDialog'
 import ManageDialog from './manage/ManageDialog'
 import ImportPackageDialog from './package/ImportPackageDialog'
-import { exportPackage, openPackage, type OpenedPackage } from './package/packageZip'
+import { exportPackage, openPackage, readPackage, type OpenedPackage } from './package/packageZip'
 import { planImport, type ConflictChoice } from '../../shared/model/package'
 import {
   lastManageTab,
@@ -60,11 +61,13 @@ import {
   baseOf,
   cardTemplate,
   derivedOf,
+  descendantsOf,
   detach,
   isVariant,
   newDerived,
   rebase,
   rediffDerived,
+  reorderVariants,
   resolveTemplates,
   syncDerived,
   TEMPLATE_COLUMN,
@@ -947,9 +950,25 @@ function App(): React.JSX.Element {
   const addVariant = (from: string, name: string): void => {
     const base = project?.templates.find((x) => x.name === from)
     if (!base) return
-    const tpl = newDerived(base, name, true)
+    const variants = variantsOf(project!.templates, from)
+    const last = variants.reduce((m, v, i) => Math.max(m, v.variantOrder ?? i + 1), 0)
+    const tpl = newDerived(base, name, true, last + 1)
     setProject((p) => p && { ...p, templates: [...p.templates, tpl] })
     setDirty((d) => new Set(d).add(name))
+  }
+
+  /** Nuovo ordine delle varianti di un template: si salvano quelle che cambiano posto */
+  const orderVariants = (from: string, names: string[]): void => {
+    if (!project) return
+    const changed = reorderVariants(project.templates, from, names)
+    if (!changed.length) return
+    const byName = new Map(changed.map((v) => [v.name, v]))
+    setProject((p) => p && { ...p, templates: p.templates.map((x) => byName.get(x.name) ?? x) })
+    setDirty((d) => {
+      const next = new Set(d)
+      for (const v of changed) next.add(v.name)
+      return next
+    })
   }
 
   /** Una variante cambiata nella finestra delle varianti: si salvano solo le differenze */
@@ -1551,6 +1570,48 @@ function App(): React.JSX.Element {
     }
   }
 
+  // la cartella delle immagini nuove: si legge dal progetto e si scrive nel progetto
+  const imagesFolder = project?.file.imagesFolder
+  useEffect(() => setImagesFolderState(imagesFolder), [imagesFolder])
+  useEffect(() => {
+    onImagesFolderChange((folder) => {
+      setProject((p) => {
+        if (!p) return p
+        const file: ProjectFile = { ...p.file, imagesFolder: folder }
+        if (!folder) delete file.imagesFolder
+        return { ...p, file }
+      })
+      setFileDirty(true)
+    })
+    return () => onImagesFolderChange(null)
+  }, [setProject])
+
+  // un pacchetto .zip lasciato cadere in un punto qualsiasi della finestra si apre come con
+  // Importa pacchetto…: le zone che accettano immagini lasciano passare gli .zip
+  useEffect(() => {
+    const onDrop = async (e: DragEvent): Promise<void> => {
+      const file = Array.from(e.dataTransfer?.files ?? []).find((f) =>
+        f.name.toLowerCase().endsWith('.zip')
+      )
+      if (!file) return
+      e.preventDefault()
+      const current = projectRef.current
+      if (!current) {
+        await showNotice(t, t('package.dropNoProject'))
+        return
+      }
+      try {
+        const data = new Uint8Array(await file.arrayBuffer())
+        setImportingPackage(await readPackage(current, { name: file.name, data }))
+      } catch (err) {
+        setError(messageFromError(err))
+      }
+    }
+    const listener = (e: DragEvent): void => void onDrop(e)
+    window.addEventListener('drop', listener)
+    return () => window.removeEventListener('drop', listener)
+  }, [t])
+
   /**
    * Mette nel progetto il contenuto del pacchetto, con le scelte per quello che c'era già: prima
    * un backup; file subito su disco, template, set, variabili e stili come modifiche da salvare
@@ -2126,28 +2187,96 @@ function App(): React.JSX.Element {
       await showNotice(t, t('sidebar.templateInUse', { name, sets: users.join(', ') }))
       return
     }
-    const derived = derivedOf(project.templates, name).map((x) => x.name)
-    if (derived.length) {
-      await showNotice(t, t('inherit.hasDerived', { name, list: derived.join(', ') }))
-      return
-    }
     const tpl = project.templates.find((x) => x.name === name)
-    if (!tpl || !(await confirmKey(t, 'sidebar.deleteTemplateConfirm', { name }, { danger: true })))
+    if (!tpl) return
+    // derivati e varianti, anche di secondo grado: si eliminano con il template o si rendono
+    // indipendenti (i diretti; quelli più in giù restano derivati di questi)
+    const derived = descendantsOf(project.templates, name)
+    const direct = derivedOf(project.templates, name)
+    let remove: Template[] = [tpl]
+    let detached: Template[] = []
+    if (derived.length) {
+      const list = derived.map((x) => x.name).join(', ')
+      const inUse = project.sets.filter((s) => derived.some((x) => x.name === s.template))
+      const onlyVariants = derived.every((x) => x.variant && x.extends === name)
+      const params = { name, list, n: derived.length }
+      if (inUse.length) {
+        // un derivato è il template di un set: si può solo renderli indipendenti
+        if (
+          !(await askConfirm({
+            title: t('inherit.deleteWithDerived.title', params),
+            message: t('inherit.deleteWithDerived.inUse', {
+              ...params,
+              sets: inUse.map((s) => s.name).join(', ')
+            }),
+            ok: t('inherit.deleteWithDerived.detach', params),
+            danger: true
+          }))
+        )
+          return
+        detached = direct
+      } else {
+        const choice = await askChoice({
+          title: t(
+            onlyVariants ? 'inherit.deleteWithVariants.title' : 'inherit.deleteWithDerived.title',
+            params
+          ),
+          message: t(
+            onlyVariants ? 'inherit.deleteWithVariants' : 'inherit.deleteWithDerived',
+            params
+          ),
+          ok: t(
+            onlyVariants ? 'inherit.deleteWithVariants.all' : 'inherit.deleteWithDerived.all',
+            params
+          ),
+          alt: t(
+            onlyVariants ? 'inherit.deleteWithVariants.detach' : 'inherit.deleteWithDerived.detach',
+            params
+          ),
+          danger: true
+        })
+        if (choice === 'cancel') return
+        if (choice === 'ok') remove = [tpl, ...derived]
+        else detached = direct
+      }
+    } else if (
+      !(await confirmKey(
+        t,
+        tpl.variant && tpl.extends ? 'variants.deleteConfirm' : 'sidebar.deleteTemplateConfirm',
+        { name },
+        { danger: true }
+      ))
+    )
       return
+    const gone: string[] = []
     try {
-      await window.api.deleteTemplate(tpl.origin ?? tpl.file ?? tpl.name)
+      for (const x of remove) {
+        await window.api.deleteTemplate(x.origin ?? x.file ?? x.name)
+        gone.push(x.name)
+      }
     } catch (e) {
       setError(messageFromError(e))
-      return
     }
-    setProject((p) => p && { ...p, templates: p.templates.filter((x) => x.name !== name) })
+    if (!gone.length) return
+    const free = new Map(detached.map((x) => [x.name, detach(x)]))
+    setProject(
+      (p) =>
+        p && {
+          ...p,
+          templates: p.templates
+            .filter((x) => !gone.includes(x.name))
+            .map((x) => free.get(x.name) ?? x)
+        }
+    )
     setDirty((d) => {
       const next = new Set(d)
-      next.delete(name)
+      for (const n of gone) next.delete(n)
+      for (const n of free.keys()) next.add(n)
       return next
     })
-    if (selected.kind === 'template' && selected.name === name)
+    if (selected.kind === 'template' && gone.includes(selected.name))
       setSelected({ kind: 'set', index: 0 })
+    if (free.size) setEditorRev((r) => r + 1)
   }
 
   /** Carte nuove o cambiate rispetto alla versione del confronto, per set; si aggiornano a ogni modifica */
@@ -3920,6 +4049,7 @@ function App(): React.JSX.Element {
                                   setSelected({ kind: 'template', name })
                                 }}
                                 onDelete={(name) => void deleteTemplate(name)}
+                                onReorder={(names) => orderVariants(base.name, names)}
                                 onClose={() => {
                                   setVariantsFor(null)
                                   setEditorRev((r) => r + 1)

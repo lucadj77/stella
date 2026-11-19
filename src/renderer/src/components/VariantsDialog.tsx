@@ -13,6 +13,8 @@ import { OptionThumb } from '../editor/ListOptions'
 import AssetPicker from './AssetPicker'
 import { ColorSwatch } from './ColorPicker'
 import { useI18n } from '../i18n/context'
+import { useContextMenu } from './useContextMenu'
+import { moveItem, useDragReorder } from './useDragReorder'
 
 /** Una colonna della tabella: il valore principale di un livello del base */
 interface Column {
@@ -45,6 +47,7 @@ export default function VariantsDialog({
   onChange,
   onOpen,
   onDelete,
+  onReorder,
   onClose
 }: {
   base: Template
@@ -56,12 +59,35 @@ export default function VariantsDialog({
   onChange(t: Template, key: string): void
   onOpen(name: string): void
   onDelete(name: string): void
+  /** Nuovo ordine delle varianti, per nome */
+  onReorder(names: string[]): void
   onClose(): void
 }): React.JSX.Element {
   const { t } = useI18n()
   const [name, setName] = useState('')
   const [extra, setExtra] = useState<string[]>([])
   const [picking, setPicking] = useState<{ variant: string; column: Column } | null>(null)
+  // la variante selezionata: Canc la elimina
+  const [selected, setSelected] = useState<string | null>(null)
+  const menu = useContextMenu()
+  const order = variants.map((v) => v.name)
+  const move = (from: number, to: number): void => {
+    if (to < 0 || to >= order.length || to === from) return
+    onReorder(moveItem(order, from, to))
+  }
+  const drag = useDragReorder(move)
+  const rowMenu = (v: Template, i: number): Parameters<typeof menu.open>[1] => [
+    { label: t('variants.open'), title: t('variants.openHint'), onClick: () => onOpen(v.name) },
+    'sep',
+    { label: t('variants.up'), disabled: i === 0, onClick: () => move(i, i - 1) },
+    {
+      label: t('variants.down'),
+      disabled: i === variants.length - 1,
+      onClick: () => move(i, i + 1)
+    },
+    'sep',
+    { label: t('variants.delete'), danger: true, onClick: () => onDelete(v.name) }
+  ]
 
   // i livelli del base che si possono cambiare da qui, nei due lati
   const all = useMemo<Column[]>(
@@ -178,7 +204,18 @@ export default function VariantsDialog({
     <Dialog title={t('variants.title', { name: base.name })} onClose={onClose} guide="variants">
       <div className="variants-dialog">
         <p className="small muted">{t('variants.intro')}</p>
-        <div className="variants-scroll">
+        <div
+          className="variants-scroll"
+          tabIndex={-1}
+          onKeyDown={(e) => {
+            const field = (e.target as HTMLElement).closest('input, select, textarea')
+            if (field || !selected || !variants.some((v) => v.name === selected)) return
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+              e.preventDefault()
+              onDelete(selected)
+            }
+          }}
+        >
           <table className="variants-table">
             <thead>
               <tr>
@@ -242,16 +279,55 @@ export default function VariantsDialog({
                   </button>
                 </td>
               </tr>
-              {variants.map((v) => (
-                <tr key={v.name}>
+              {variants.map((v, i) => (
+                <tr
+                  key={v.name}
+                  {...drag.itemProps(i)}
+                  className={[
+                    selected === v.name ? 'selected' : '',
+                    drag.itemProps(i).className ?? ''
+                  ]
+                    .join(' ')
+                    .trim()}
+                  onClick={(e) => {
+                    if ((e.target as HTMLElement).closest('input, select, button')) return
+                    setSelected(v.name)
+                    ;(e.currentTarget.closest('.variants-scroll') as HTMLElement | null)?.focus()
+                  }}
+                  onContextMenu={(e) => {
+                    setSelected(v.name)
+                    menu.open(e, rowMenu(v, i))
+                  }}
+                >
                   <th>
                     <span className="variant-head">
+                      <span className="drag-handle" title={t('variants.drag')} aria-hidden="true">
+                        ⠿
+                      </span>
                       {thumb(v)}
                       <span className="variant-name">{v.name}</span>
                     </span>
                   </th>
                   {columns.map((c) => cell(v, c))}
                   <td className="variant-tools">
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      title={t('variants.up')}
+                      disabled={i === 0}
+                      onClick={() => move(i, i - 1)}
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      title={t('variants.down')}
+                      disabled={i === variants.length - 1}
+                      onClick={() => move(i, i + 1)}
+                    >
+                      ↓
+                    </button>
                     <button
                       type="button"
                       className="small-btn"
@@ -301,6 +377,7 @@ export default function VariantsDialog({
           </button>
         </div>
       </div>
+      {menu.node}
       {picking && (
         <AssetPicker
           value={String(

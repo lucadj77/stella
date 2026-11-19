@@ -2,7 +2,8 @@ import { app, net } from 'electron'
 import { createHash } from 'crypto'
 import { mkdir, readFile, rm, stat, writeFile } from 'fs/promises'
 import { join } from 'path'
-import { IMAGES_FOLDER, isValidAssetName, today, type AssetsUpdate } from '../../shared/library'
+import { isValidAssetName, today, type AssetsUpdate } from '../../shared/library'
+import { imagesTarget } from '../../shared/model/imageUsage'
 import { isRemoteImage } from '../../shared/model/assets'
 import { MessageError, msg } from '../../shared/messages'
 import { IMAGE_MIME, imageExtension } from '../../shared/model/remoteUrl'
@@ -42,21 +43,23 @@ async function exists(file: string): Promise<boolean> {
   }
 }
 
-/** Scarica un'immagine in assets/images/<name> e ne ricorda l'indirizzo */
+/** Scarica un'immagine in assets/<cartella>/<name> (di base images) e ne ricorda l'indirizzo */
 export async function downloadImage(
   folder: string,
   url: string,
-  name: string
+  name: string,
+  target?: string
 ): Promise<{ update: AssetsUpdate; path: string }> {
   if (!isValidAssetName(name)) throw new MessageError(msg('icons.invalidName', { name }))
+  const sub = imagesTarget(target)
   const { data, ext } = await fetchImage(url.trim())
-  const path = `${IMAGES_FOLDER}/${name}${ext}`
+  const path = `${sub}/${name}${ext}`
   const file = join(folder, 'assets', path)
   const sources = await readSources(folder)
   // lo stesso file scaricato dallo stesso indirizzo si può sovrascrivere, un altro no
   if ((await exists(file)) && sources[path]?.url !== url.trim())
     throw new MessageError(msg('urlImage.exists', { name: path }))
-  await mkdir(join(folder, 'assets', IMAGES_FOLDER), { recursive: true })
+  await mkdir(join(folder, 'assets', sub), { recursive: true })
   await writeFile(file, data)
   const host = new URL(url).hostname
   const entries = {
