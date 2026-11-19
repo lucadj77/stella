@@ -138,6 +138,35 @@ describe('spostamenti', () => {
     expect(r.documents[0].text).toBe('![a](assets/images/Eroe/guerriero.png) images/guerriero-2')
   })
 
+  it('da assets senza cartella: non tocca il nome da solo né i testi uguali', () => {
+    const r = retargetImageRefs(
+      {
+        templates: project.templates,
+        sets: [
+          {
+            ...project.sets[0],
+            data: {
+              ...project.sets[0].data!,
+              rows: [
+                ['Goblin', 'goblin'],
+                ['x', 'assets/goblin.svg']
+              ]
+            }
+          }
+        ],
+        documents: [{ name: 'D', text: 'Il Goblin ruba. ![g](assets/goblin.svg)' }],
+        variables: {},
+        styles: {}
+      },
+      movedRefs([{ from: 'goblin.svg', to: 'mostro/goblin.svg' }])
+    )
+    expect(r.sets[0].data!.rows).toEqual([
+      ['Goblin', 'goblin'],
+      ['x', 'assets/mostro/goblin.svg']
+    ])
+    expect(r.documents[0].text).toBe('Il Goblin ruba. ![g](assets/mostro/goblin.svg)')
+  })
+
   it("cartelle scritte dall'utente", () => {
     expect(cleanFolder(' images / Eroi ')).toBe('images/Eroi')
     expect(cleanFolder('')).toBe('')

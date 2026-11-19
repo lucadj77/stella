@@ -57,6 +57,7 @@ Video tutorials on YouTube, no voice ([whole playlist](https://www.youtube.com/p
 - 29 · [Deep dive: generating components](https://www.youtube.com/watch?v=NH1moTH0Y6o) (10 minutes), with the ["Recruits" project to download](https://stella.lucadj.eu/progetti/recruits.zip)
 - 30 · [Deep dive: variables with parameters](https://www.youtube.com/watch?v=IeybeY3G3_o) (10 minutes), with the ["Guild" project to download](https://stella.lucadj.eu/progetti/guild.zip)
 - 31 · [Deep dive: lists and variants](https://www.youtube.com/watch?v=O0851xdtCok) (9 minutes), with the ["Tournament" project to download](https://stella.lucadj.eu/progetti/tournament.zip)
+- 32 · [Deep dive: derived templates or variants?](https://www.youtube.com/watch?v=4BpaDnG7CiQ) (9 minutes), with the ["League" project to download](https://stella.lucadj.eu/progetti/league.zip)
 
 Versione italiana: [../guida/README.md](../guida/README.md).
 

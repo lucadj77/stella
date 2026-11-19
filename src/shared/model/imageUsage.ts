@@ -288,10 +288,17 @@ export function retargetImageRefs(
 ): RetargetScope & { count: number } {
   let count = 0
   if (!refs.length) return { ...scope, count }
-  const rules = refs.map((r) => ({
-    re: new RegExp(`(?<![\\p{L}\\p{N}_.\\-])${escape(r.from)}(?![\\p{L}\\p{N}_\\-])`, 'giu'),
-    to: r.to
-  }))
+  // un'immagine che stava in assets senza cartella si richiama con il solo nome, che dopo lo
+  // spostamento funziona ancora: si riscrive solo la forma `assets/nome`. Il nome da solo può
+  // essere anche un testo qualsiasi («Goblin» nel nome di una carta) e non va toccato.
+  const rules = refs.map((r) => {
+    const root = !r.from.includes('/')
+    const from = root ? `assets/${r.from}` : r.from
+    return {
+      re: new RegExp(`(?<![\\p{L}\\p{N}_.\\-])${escape(from)}(?![\\p{L}\\p{N}_\\-])`, 'giu'),
+      to: root ? `assets/${r.to}` : r.to
+    }
+  })
   const swap = (s: string): string => {
     let out = s
     for (const r of rules)

@@ -111,7 +111,8 @@ export default function ManageDialog({
 
   const counts: Record<ManageTab, number> = {
     sets: project.sets.length,
-    templates: project.templates.length,
+    // le varianti stanno dentro il loro template, come nella barra laterale
+    templates: templateNames.length,
     styles: styleNames.length,
     variables: variableNames.length,
     images: project.assets.filter(isImageAsset).length,

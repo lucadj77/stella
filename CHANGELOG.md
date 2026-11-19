@@ -5,6 +5,20 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.13.0-beta.3
+
+### English
+
+- **Moving images no longer changes card texts.** Moving images that sat in `assets` without a folder (with **Move to folder…** or **Make template folders…**) rewrote every text equal to their name: a card named "Goblin" became "monster/goblin". Now only references written as `assets/name` change; the bare name keeps working after the move.
+- **Manage the project › Images, grouped by template**: clicking an image used by two templates no longer says "2 images selected" and now shows its details.
+- **Manage the project › Templates** no longer counts the variants in the tab, which lists them inside their template.
+
+### Italiano
+
+- **Spostare immagini non cambia più i testi delle carte.** Spostando immagini che stavano in `assets` senza cartella (con **Sposta in cartella…** o **Crea cartelle per template…**) l'app riscriveva ogni testo uguale al loro nome: una carta chiamata «Goblin» diventava «mostro/goblin». Ora cambiano solo i riferimenti scritti come `assets/nome`; il nome da solo continua a funzionare dopo lo spostamento.
+- **Gestisci il progetto › Immagini, raggruppate per template**: un clic su un'immagine usata da due template non dice più «2 immagini selezionate» e ne mostra i dettagli.
+- **Gestisci il progetto › Template** non conta più le varianti nella scheda, che le mostra dentro il loro template.
+
 ## 1.13.0-beta.2
 
 ### English
