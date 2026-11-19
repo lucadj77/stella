@@ -22,6 +22,8 @@ import { askConfirm } from '../components/confirm'
 import { useContextMenu } from '../components/useContextMenu'
 import ThumbBackgroundSwitch from '../components/ThumbBackgroundSwitch'
 import { thumbClass, useThumbBackground } from '../components/thumbBackground'
+import IconBrowser from '../components/IconBrowser'
+import { dragHasFiles, hasDroppedImages, importDropped } from '../components/dropImages'
 
 // Scheda Immagini di «Gestisci il progetto» (issue #198): dove è usata ogni immagine di assets/, con filtri e
 // raggruppamenti; si eliminano (nel cestino del progetto) e si spostano in cartelle. Vedi
@@ -88,6 +90,10 @@ export default function ImagesPane({
   const grid = useRef<HTMLDivElement>(null)
   const tiles = useRef(new Map<string, { el: HTMLElement; path: string }>())
   const [rect, setRect] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null)
+  const [importingIcons, setImportingIcons] = useState(false)
+  const [dropping, setDropping] = useState(false)
+  // immagini prima di un'aggiunta: quando il progetto le ha ricevute, le nuove restano selezionate
+  const before = useRef<Set<string> | null>(null)
 
   // l'immagine scelta da un collegamento si vede subito
   useEffect(() => {
@@ -106,6 +112,39 @@ export default function ImagesPane({
   }
 
   const images = useMemo(() => project.assets.filter(isImageAsset), [project.assets])
+  useEffect(() => {
+    const old = before.current
+    if (!old) return
+    const added = images.filter((p) => !old.has(p))
+    if (!added.length) return
+    before.current = null
+    // le nuove si vedono anche se il filtro o la ricerca le nasconderebbero
+    setFilter('all')
+    setQuery('')
+    setSelected(new Set(added))
+    setAnchor(added[0])
+    requestAnimationFrame(() => {
+      for (const { el, path } of tiles.current.values())
+        if (path === added[0]) el.scrollIntoView({ block: 'nearest' })
+    })
+  }, [images])
+
+  /** Aggiunge immagini al progetto (dal computer, dalle icone o lasciate cadere) */
+  const adding = async (run: () => Promise<void>): Promise<void> => {
+    setError(null)
+    before.current = new Set(images)
+    try {
+      await run()
+    } catch (e) {
+      before.current = null
+      setError(messageFromError(e))
+    }
+  }
+  const addImages = (): Promise<void> =>
+    adding(async () => {
+      const u = await window.api.addImages()
+      if (u) publishAssetsUpdate(u)
+    })
   const counts = useMemo(
     () =>
       Object.fromEntries(
@@ -388,9 +427,39 @@ export default function ImagesPane({
             onChange={(e) => setSize(Number(e.target.value))}
           />
           <ThumbBackgroundSwitch value={bg} onChange={setBg} />
+          <button onClick={() => void addImages()} title={t('images.addHint')}>
+            {t('assetPicker.addImages')}
+          </button>
+          <button
+            onClick={() => {
+              before.current = new Set(images)
+              setImportingIcons(true)
+            }}
+          >
+            {t('assetPicker.importIcons')}
+          </button>
         </div>
         {error && <div className="banner error">{t(error)}</div>}
-        <div className="images-body">
+        <div
+          className={'images-body' + (dropping ? ' dropping' : '')}
+          onDragOver={(e) => {
+            if (!dragHasFiles(e)) return
+            e.preventDefault()
+            setDropping(true)
+          }}
+          onDragLeave={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node)) setDropping(false)
+          }}
+          onDrop={(e) => {
+            setDropping(false)
+            // un pacchetto .zip passa alla finestra
+            if (!hasDroppedImages(e)) return
+            e.preventDefault()
+            void adding(async () => {
+              await importDropped(e)
+            })
+          }}
+        >
           <div
             ref={grid}
             className="images-grid-wrap"
@@ -493,6 +562,15 @@ export default function ImagesPane({
         </p>
       </div>
       {menu.node}
+      {importingIcons && (
+        <IconBrowser
+          onClose={() => {
+            setImportingIcons(false)
+            // nessuna icona importata: niente da selezionare alla prossima modifica
+            if (before.current && images.every((p) => before.current!.has(p))) before.current = null
+          }}
+        />
+      )}
       {moving && (
         <MoveDialog
           paths={moving}

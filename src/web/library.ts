@@ -239,7 +239,7 @@ export async function openPackage(): Promise<{ name: string; data: Uint8Array } 
 export async function savePackage(folder: string, name: string, data: Uint8Array): Promise<string> {
   const dir = join(folder, 'export')
   await mkdir(dir, { recursive: true })
-  const target = join(dir, `${name.replace(/[<>:"/\\|?*]/g, '_')}.zip`)
+  const target = join(dir, `${name.replace(/[<>:"/\\|?*]/g, '_')}.stella.zip`)
   await writeFile(target, data)
   return target
 }

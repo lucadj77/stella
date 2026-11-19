@@ -635,7 +635,7 @@ function registerIpc(): void {
     if (!folder) throw new MessageError(msg('template.noProject'))
     const win = BrowserWindow.fromWebContents(event.sender)
     const options = {
-      defaultPath: join(folder, 'export', `${name.replace(/[<>:"/\\|?*]/g, '_')}.zip`),
+      defaultPath: join(folder, 'export', `${name.replace(/[<>:"/\\|?*]/g, '_')}.stella.zip`),
       filters: [{ name: 'Stella package', extensions: ['zip'] }]
     }
     await mkdir(join(folder, 'export'), { recursive: true })

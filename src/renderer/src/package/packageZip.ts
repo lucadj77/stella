@@ -52,7 +52,17 @@ const equal = (a: Uint8Array, b: Uint8Array): boolean =>
 /** Sceglie e legge un pacchetto, con quello che c'è già nel progetto; null se annullato */
 export async function openPackage(project: LoadedProject): Promise<OpenedPackage | null> {
   const picked = await window.api.openPackage()
-  if (!picked) return null
+  return picked ? readPackage(project, picked) : null
+}
+
+/**
+ * Legge un pacchetto già in memoria (scelto o lasciato cadere sulla finestra), con quello che c'è
+ * già nel progetto. Si riconosce dal manifest, non dal nome: va bene ogni .zip che lo contiene
+ */
+export async function readPackage(
+  project: LoadedProject,
+  picked: { name: string; data: Uint8Array }
+): Promise<OpenedPackage> {
   let zip: JSZip
   try {
     zip = await JSZip.loadAsync(picked.data)

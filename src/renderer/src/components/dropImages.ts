@@ -10,6 +10,10 @@ const isImage = (f: File): boolean =>
 export const dragHasFiles = (e: React.DragEvent): boolean =>
   Array.from(e.dataTransfer.types).includes('Files')
 
+/** Tra i file lasciati cadere c'è almeno un'immagine (un pacchetto .zip va alla finestra) */
+export const hasDroppedImages = (e: React.DragEvent): boolean =>
+  Array.from(e.dataTransfer.files).some(isImage)
+
 /**
  * Copia nel progetto le immagini lasciate cadere e restituisce i nomi con cui richiamarle,
  * nell'ordine dei file; [] se nessun file è un'immagine

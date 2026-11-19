@@ -3890,6 +3890,7 @@ export const en = {
   'images.manage': 'Manage…',
   'images.hint':
     'Click to select, ⌘/Ctrl+click or ⇧+click to add, drag a rectangle to select several. Del deletes, right click for the menu. Deleted images go to the project trash.',
+  'images.addHint': 'Copy images from your computer into the project; you can also drag them here',
   'images.filter.all': 'All',
   'images.filter.all.hint': 'Every image in assets',
   'images.filter.templates': 'In templates',
@@ -3995,6 +3996,7 @@ export const en = {
   'package.import': 'Import',
   'package.notZip': '{file} is not a ZIP file',
   'package.notPackage': '{file} is not a Stella package, or comes from a newer version',
+  'package.dropNoProject': 'To import a package, first open the project to put it in',
   'package.badFile': 'The package contains a file with an invalid path: {file}',
   'thumbBg.none': 'No background',
   'thumbBg.light': 'Light',

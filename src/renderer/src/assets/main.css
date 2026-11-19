@@ -10178,3 +10178,10 @@ button.wide {
 .variants-scroll:focus {
   outline: none;
 }
+
+/* Immagini trascinate dal computer sulla scheda Immagini o sul selettore */
+.images-body.dropping,
+.asset-picker.dropping {
+  outline: 3px dashed var(--accent);
+  outline-offset: -4px;
+}

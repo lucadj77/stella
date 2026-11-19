@@ -3939,6 +3939,8 @@ export const it: Record<MessageKey, string> = {
   'images.manage': 'Gestisci…',
   'images.hint':
     'Clic per selezionare, ⌘/Ctrl+clic o ⇧+clic per aggiungere, trascina un rettangolo per selezionarne più di una. Canc elimina, tasto destro per il menu. Le immagini eliminate vanno nel cestino del progetto.',
+  'images.addHint':
+    'Copia nel progetto immagini scelte dal computer; si possono anche trascinare qui',
   'images.filter.all': 'Tutte',
   'images.filter.all.hint': 'Tutte le immagini di assets',
   'images.filter.templates': 'Nei template',
@@ -4046,6 +4048,7 @@ export const it: Record<MessageKey, string> = {
   'package.import': 'Importa',
   'package.notZip': '{file} non è un file ZIP',
   'package.notPackage': '{file} non è un pacchetto di Stella, o viene da una versione più nuova',
+  'package.dropNoProject': 'Per importare un pacchetto apri prima il progetto in cui metterlo',
   'package.badFile': 'Il pacchetto contiene un file con un percorso non valido: {file}',
   'thumbBg.none': 'Nessuno sfondo',
   'thumbBg.light': 'Chiaro',

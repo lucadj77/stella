@@ -15,7 +15,7 @@ import GoogleSheetsDialog, { type SheetImport } from './components/GoogleSheetsD
 import TrashDialog from './components/TrashDialog'
 import ManageDialog from './manage/ManageDialog'
 import ImportPackageDialog from './package/ImportPackageDialog'
-import { exportPackage, openPackage, type OpenedPackage } from './package/packageZip'
+import { exportPackage, openPackage, readPackage, type OpenedPackage } from './package/packageZip'
 import { planImport, type ConflictChoice } from '../../shared/model/package'
 import {
   lastManageTab,
@@ -1568,6 +1568,32 @@ function App(): React.JSX.Element {
       setError(messageFromError(e))
     }
   }
+
+  // un pacchetto .zip lasciato cadere in un punto qualsiasi della finestra si apre come con
+  // Importa pacchetto…: le zone che accettano immagini lasciano passare gli .zip
+  useEffect(() => {
+    const onDrop = async (e: DragEvent): Promise<void> => {
+      const file = Array.from(e.dataTransfer?.files ?? []).find((f) =>
+        f.name.toLowerCase().endsWith('.zip')
+      )
+      if (!file) return
+      e.preventDefault()
+      const current = projectRef.current
+      if (!current) {
+        await showNotice(t, t('package.dropNoProject'))
+        return
+      }
+      try {
+        const data = new Uint8Array(await file.arrayBuffer())
+        setImportingPackage(await readPackage(current, { name: file.name, data }))
+      } catch (err) {
+        setError(messageFromError(err))
+      }
+    }
+    const listener = (e: DragEvent): void => void onDrop(e)
+    window.addEventListener('drop', listener)
+    return () => window.removeEventListener('drop', listener)
+  }, [t])
 
   /**
    * Mette nel progetto il contenuto del pacchetto, con le scelte per quello che c'era già: prima
