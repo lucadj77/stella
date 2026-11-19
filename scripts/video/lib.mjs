@@ -338,7 +338,12 @@ export class Recorder {
   /** chiude l'app e restituisce il percorso del video grezzo (webm) */
   async finish() {
     const video = this.win.video()
-    await this.app.close()
+    // se la chiusura resta appesa (per esempio a una conferma), dopo 20 s si chiude il processo
+    const closed = await Promise.race([
+      this.app.close().then(() => true),
+      new Promise((r) => setTimeout(() => r(false), 20000))
+    ])
+    if (!closed) this.app.process().kill()
     return video.path()
   }
 }

@@ -896,6 +896,24 @@ export const videos = [
       it: 'progetti/campionato.zip',
       en: 'progetti/league.zip'
     }
+  },
+  {
+    n: 33,
+    it: 'Approfondimento: gestisci il progetto e le immagini',
+    en: 'Deep dive: manage the project and its images',
+    about: {
+      it: 'Dove è usato ogni set, template, stile, variabile e immagine; le immagini non usate da eliminare, le cartelle senza rompere le carte, le immagini nuove trascinate ovunque e i pacchetti trascinati sulla finestra.',
+      en: 'Where each set, template, style, variable and image is used; unused images to delete, folders without breaking the cards, new images dropped anywhere and packages dropped on the window.'
+    },
+    minutes: 10,
+    url: {
+      it: 'https://www.youtube.com/watch?v=AVGgWvpGRnc',
+      en: 'https://www.youtube.com/watch?v=BlM3cMkgkWQ'
+    },
+    project: {
+      it: 'progetti/cripta.zip',
+      en: 'progetti/crypt.zip'
+    }
   }
 ]
 
@@ -908,7 +926,7 @@ export const videoGroups = {
   data: [10, 12],
   table: [9, 3, 19, 5],
   tools: [6, 17, 18],
-  deep: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
+  deep: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]
 }
 
 export const playlists = {

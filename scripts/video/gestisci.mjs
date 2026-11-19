@@ -859,5 +859,8 @@ await r.title(
   )
 )
 await r.clear()
+// salva: con modifiche non salvate la chiusura chiede conferma e resta bloccata
+await r.win.keyboard.press('Control+s')
+await r.wait(1500)
 const raw = await r.finish()
 console.log(raw)
