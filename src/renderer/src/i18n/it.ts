@@ -3941,6 +3941,8 @@ export const it: Record<MessageKey, string> = {
     'Clic per selezionare, ⌘/Ctrl+clic o ⇧+clic per aggiungere, trascina un rettangolo per selezionarne più di una. Canc elimina, tasto destro per il menu. Le immagini eliminate vanno nel cestino del progetto.',
   'images.addHint':
     'Copia nel progetto immagini scelte dal computer; si possono anche trascinare qui',
+  'images.folderHint':
+    'Dove vanno le immagini nuove, sotto assets/: scelte dal computer, trascinate o scaricate. Scegline una o scrivi il nome di una nuova; vale per tutto il progetto',
   'images.filter.all': 'Tutte',
   'images.filter.all.hint': 'Tutte le immagini di assets',
   'images.filter.templates': 'Nei template',

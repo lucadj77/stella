@@ -1,3 +1,4 @@
+import { onImagesFolderChange, setImagesFolderState } from './components/imagesFolder'
 import AiToolsDialog from './components/AiToolsDialog'
 import Menu, { type MenuItem } from './components/Menu'
 import { useContextMenu } from './components/useContextMenu'
@@ -1568,6 +1569,22 @@ function App(): React.JSX.Element {
       setError(messageFromError(e))
     }
   }
+
+  // la cartella delle immagini nuove: si legge dal progetto e si scrive nel progetto
+  const imagesFolder = project?.file.imagesFolder
+  useEffect(() => setImagesFolderState(imagesFolder), [imagesFolder])
+  useEffect(() => {
+    onImagesFolderChange((folder) => {
+      setProject((p) => {
+        if (!p) return p
+        const file: ProjectFile = { ...p.file, imagesFolder: folder }
+        if (!folder) delete file.imagesFolder
+        return { ...p, file }
+      })
+      setFileDirty(true)
+    })
+    return () => onImagesFolderChange(null)
+  }, [setProject])
 
   // un pacchetto .zip lasciato cadere in un punto qualsiasi della finestra si apre come con
   // Importa pacchetto…: le zone che accettano immagini lasciano passare gli .zip

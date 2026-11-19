@@ -94,6 +94,11 @@ export interface ProjectFile {
   numberFormat?: NumberStyle
   /** Come si scrivono i numeri nelle altre lingue; assente: come si usa in quella lingua */
   numberFormats?: Record<string, NumberStyle>
+  /**
+   * Cartella sotto assets/ dove vanno le immagini nuove (scelte, trascinate, scaricate); assente:
+   * images
+   */
+  imagesFolder?: string
 }
 
 export interface Sheet {

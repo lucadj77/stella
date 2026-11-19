@@ -101,6 +101,12 @@ Un campo della carta con lo stesso nome di una variabile vince sulla variabile.
 "numberFormats": { "de": "fr" }
 ```
 
+`imagesFolder` (facoltativo) è la cartella sotto `assets/` dove l'app mette le immagini nuove: aggiunte, trascinate dal computer o scaricate. Può essere annidata (`images/eroi`); senza il campo è `images`. Le icone importate non la seguono.
+
+```json
+"imagesFolder": "images/eroi"
+```
+
 `order` (facoltativo) ricorda l'ordine scelto a mano trascinando le voci della barra laterale, con una chiave per elenco: `templates`, `styles`, `variables`. Senza la chiave l'elenco è in ordine alfabetico; i nomi che non compaiono vanno in fondo, in ordine alfabetico. L'ordine dei set è quello di `sets`. Sotto `groups` stanno i gruppi di stili e variabili nella barra laterale, per nome: `"groups": { "variables": { "oro": "Risorse" } }`; una voce assente non ha gruppo.
 
 ```json

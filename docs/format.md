@@ -92,6 +92,12 @@ A card field with the same name as a variable wins over the variable.
 "sets": [{ "name": "Heroes", "template": "hero", "names": { "it": "Eroi" } }]
 ```
 
+`imagesFolder` (optional) is the folder under `assets/` where the app puts new images: added, dragged from the computer or downloaded. It can be nested (`images/heroes`); without the field it is `images`. Imported icons do not follow it.
+
+```json
+"imagesFolder": "images/heroes"
+```
+
 `order` (optional) remembers the order chosen by hand by dragging the sidebar entries, with one key per list: `templates`, `styles`, `variables`. Without the key the list is alphabetical; names that do not appear go to the end, alphabetically. The order of the sets is that of `sets`. Under `groups` are the groups of styles and variables in the sidebar, by name: `"groups": { "variables": { "gold": "Resources" } }`; a missing entry has no group.
 
 ```json

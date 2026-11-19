@@ -3891,6 +3891,8 @@ export const en = {
   'images.hint':
     'Click to select, ⌘/Ctrl+click or ⇧+click to add, drag a rectangle to select several. Del deletes, right click for the menu. Deleted images go to the project trash.',
   'images.addHint': 'Copy images from your computer into the project; you can also drag them here',
+  'images.folderHint':
+    'Where new images go, under assets/: picked from your computer, dragged or downloaded. Pick one or type the name of a new one; it applies to the whole project',
   'images.filter.all': 'All',
   'images.filter.all.hint': 'Every image in assets',
   'images.filter.templates': 'In templates',

@@ -1,3 +1,5 @@
+import { getImagesFolder } from './imagesFolder'
+import ImagesFolderField from './ImagesFolderField'
 import { useContext, useMemo, useState } from 'react'
 import {
   assetRefName,
@@ -161,7 +163,7 @@ export default function AssetPicker({
   const addImages = async (): Promise<void> => {
     setError(null)
     try {
-      const u = await window.api.addImages()
+      const u = await window.api.addImages(getImagesFolder())
       if (u) publishAssetsUpdate(u)
     } catch (e) {
       setError(messageFromError(e))
@@ -237,6 +239,7 @@ export default function AssetPicker({
             onChange={(e) => setSize(Number(e.target.value))}
           />
           <ThumbBackgroundSwitch value={bg} onChange={setBg} />
+          <ImagesFolderField />
           <button onClick={addImages} title={t('assetPicker.addImagesHint')}>
             {t('assetPicker.addImages')}
           </button>

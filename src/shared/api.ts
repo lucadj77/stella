@@ -281,11 +281,15 @@ export interface Api {
   systemFonts(): Promise<SystemFontFamily[]>
   /** Copia i file di un font installato in assets/fonts/<famiglia>/ */
   copySystemFont(family: string): Promise<AssetsUpdate>
-  /** Copia in assets/images/ immagini scelte dal computer; null se l'utente annulla */
-  addImages(): Promise<AssetsUpdate | null>
-  /** Copia in assets/images/ immagini trascinate nella finestra; `paths` sono i loro percorsi in assets/ */
+  /**
+   * Copia in assets/<to> (di base images, vedi imagesTarget) immagini scelte dal computer; null se
+   * l'utente annulla
+   */
+  addImages(to?: string): Promise<AssetsUpdate | null>
+  /** Copia in assets/<to> immagini trascinate nella finestra; `paths` sono i loro percorsi in assets/ */
   dropImages(
-    files: { name: string; data: Uint8Array }[]
+    files: { name: string; data: Uint8Array }[],
+    to?: string
   ): Promise<{ update: AssetsUpdate; paths: string[] }>
   /** I byte di file sotto assets/, per i pacchetti di template e set */
   readAssetFiles(paths: string[]): Promise<{ path: string; data: Uint8Array }[]>
@@ -312,7 +316,11 @@ export interface Api {
   /** Rimette al loro posto immagini del cestino (DeletedItem.file) */
   restoreImages(files: string[]): Promise<{ update: AssetsUpdate; paths: string[] }>
   /** Scarica un'immagine da internet in assets/images/<name> e ne ricorda l'indirizzo */
-  downloadImage(url: string, name: string): Promise<{ update: AssetsUpdate; path: string }>
+  downloadImage(
+    url: string,
+    name: string,
+    to?: string
+  ): Promise<{ update: AssetsUpdate; path: string }>
   /** Riscarica dallo stesso indirizzo un'immagine scaricata con downloadImage */
   redownloadImage(path: string): Promise<AssetsUpdate>
   /** Toglie dalla cache le immagini collegate (https://...), che si riscaricano al bisogno */

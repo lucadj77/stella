@@ -1,3 +1,5 @@
+import { getImagesFolder } from './imagesFolder'
+import ImagesFolderField from './ImagesFolderField'
 import { useState } from 'react'
 import { isRemoteImage } from '../../../shared/model/assets'
 import { isValidAssetName } from '../../../shared/library'
@@ -32,7 +34,7 @@ export default function UrlImageDialog({
     setError(null)
     setBusy(true)
     try {
-      const r = await window.api.downloadImage(url.trim(), fileName.trim())
+      const r = await window.api.downloadImage(url.trim(), fileName.trim(), getImagesFolder())
       publishAssetsUpdate(r.update)
       onPick(fileName.trim())
       onClose()
@@ -68,6 +70,7 @@ export default function UrlImageDialog({
           />
           <span className="muted small">{t('urlImage.nameHint')}</span>
         </label>
+        <ImagesFolderField />
         {window.api.isWeb && <p className="muted small">{t('urlImage.webNote')}</p>}
         {error && <div className="banner error">{t(error)}</div>}
         <div className="url-image-choices">

@@ -10185,3 +10185,19 @@ button.wide {
   outline: 3px dashed var(--accent);
   outline-offset: -4px;
 }
+.images-grid-wrap section.drop-into {
+  outline: 2px dashed var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.images-folder {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.images-folder input {
+  width: 9em;
+}
+.images-folder input.invalid {
+  border-color: var(--danger, #c62828);
+}

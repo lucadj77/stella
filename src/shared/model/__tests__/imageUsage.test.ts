@@ -145,3 +145,13 @@ describe('spostamenti', () => {
     expect(cleanFolder('a:b')).toBeNull()
   })
 })
+
+describe('cartella delle immagini nuove', () => {
+  it('di base images, altrimenti la cartella scelta, ripulita', async () => {
+    const { imagesTarget } = await import('../imageUsage')
+    expect(imagesTarget(undefined)).toBe('images')
+    expect(imagesTarget('  ')).toBe('images')
+    expect(imagesTarget('images\\eroi/ ')).toBe('images/eroi')
+    expect(() => imagesTarget('../fuori')).toThrow()
+  })
+})

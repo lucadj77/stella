@@ -12,12 +12,18 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Reorder variants**: in the variants window, drag a row or use the ↑ ↓ arrows; the order is the one of the thumbnails in the component form. A right click on a row opens Open, Move up, Move down and Delete, and Delete on the selected row removes the variant.
 - **List choices can be dragged** to change their order, besides the arrows.
 - **Deleting a template with variants or derived templates** now asks whether to delete them too or make them independent, instead of refusing.
+- **Folder for new images**: a **Folder** field in the image chooser, in Manage the project › Images and in the web image window sets where new images go, however they arrive (added, dragged onto the canvas, table or form, downloaded). Pick an existing folder or type a new one; it is saved in the project. Default `images`.
+- **Drop a package ZIP on the window** to import it, as with Project › Import package…. Packages are now saved as `.stella.zip`; any ZIP made by Stella is still accepted.
+- **Manage the project › Images** has **Add images…** and **Import icons…**, and accepts images dragged from the computer (onto a folder group, they go into that folder). The new images stay selected. The image chooser accepts dragged images too.
 
 ### Italiano
 
 - **Riordinare le varianti**: nella finestra delle varianti si trascina una riga o si usano le frecce ↑ ↓; l'ordine è quello delle miniature nel modulo del componente. Il tasto destro su una riga apre Apri, Sposta su, Sposta giù ed Elimina, e Canc sulla riga selezionata elimina la variante.
 - **Le voci di un elenco si trascinano** per cambiarne l'ordine, oltre che con le frecce.
 - **Eliminare un template con varianti o derivati** ora chiede se eliminarli insieme o renderli indipendenti, invece di rifiutare.
+- **Cartella delle immagini nuove**: un campo **Cartella** nella scelta delle immagini, in Gestisci il progetto › Immagini e nella finestra delle immagini da internet decide dove vanno le immagini nuove, in qualunque modo arrivino (aggiunte, trascinate su tela, tabella o modulo, scaricate). Si sceglie una cartella che c'è o se ne scrive una nuova; resta salvata nel progetto. Di base `images`.
+- **Uno ZIP di un pacchetto lasciato cadere sulla finestra** si importa come con Progetto › Importa pacchetto…. I pacchetti ora si salvano come `.stella.zip`; ogni ZIP creato da Stella resta accettato.
+- **Gestisci il progetto › Immagini** ha **Aggiungi immagini…** e **Importa icone…**, e accetta immagini trascinate dal computer (su un gruppo di una cartella vanno in quella cartella). Le immagini nuove restano selezionate. Anche la scelta delle immagini accetta immagini trascinate.
 
 ## 1.13.0-beta.1
 

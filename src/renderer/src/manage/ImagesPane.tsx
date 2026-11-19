@@ -1,3 +1,5 @@
+import { getImagesFolder } from '../components/imagesFolder'
+import ImagesFolderField from '../components/ImagesFolderField'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { LoadedProject } from '../../../shared/project'
 import { isImageAsset } from '../../../shared/model/assets'
@@ -92,6 +94,8 @@ export default function ImagesPane({
   const [rect, setRect] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null)
   const [importingIcons, setImportingIcons] = useState(false)
   const [dropping, setDropping] = useState(false)
+  // gruppo di una cartella su cui si sta per lasciare delle immagini
+  const [dropFolder, setDropFolder] = useState<string | null>(null)
   // immagini prima di un'aggiunta: quando il progetto le ha ricevute, le nuove restano selezionate
   const before = useRef<Set<string> | null>(null)
 
@@ -142,7 +146,7 @@ export default function ImagesPane({
   }
   const addImages = (): Promise<void> =>
     adding(async () => {
-      const u = await window.api.addImages()
+      const u = await window.api.addImages(getImagesFolder())
       if (u) publishAssetsUpdate(u)
     })
   const counts = useMemo(
@@ -162,7 +166,7 @@ export default function ImagesPane({
     [images, usages, filter, query]
   )
 
-  const sections = useMemo((): { title: string; paths: string[] }[] => {
+  const sections = useMemo((): { title: string; paths: string[]; folder?: string }[] => {
     if (grouping === 'none') return [{ title: '', paths: shown }]
     const map = new Map<string, string[]>()
     const add = (key: string, p: string): void => {
@@ -173,7 +177,7 @@ export default function ImagesPane({
       for (const p of shown) add(dirOf(p), p)
       return [...map]
         .sort(([a], [b]) => a.localeCompare(b))
-        .map(([k, paths]) => ({ title: k ? `assets/${k}` : 'assets', paths }))
+        .map(([k, paths]) => ({ title: k ? `assets/${k}` : 'assets', paths, folder: k }))
     }
     // per template: quelli che la usano direttamente o con i loro set
     const other: string[] = []
@@ -427,6 +431,7 @@ export default function ImagesPane({
             onChange={(e) => setSize(Number(e.target.value))}
           />
           <ThumbBackgroundSwitch value={bg} onChange={setBg} />
+          <ImagesFolderField />
           <button onClick={() => void addImages()} title={t('images.addHint')}>
             {t('assetPicker.addImages')}
           </button>
@@ -472,7 +477,28 @@ export default function ImagesPane({
               <p className="muted">{t('images.noneHere')}</p>
             ) : (
               sections.map((s) => (
-                <section key={s.title || '-'}>
+                <section
+                  key={s.title || '-'}
+                  className={s.folder && dropFolder === s.folder ? 'drop-into' : undefined}
+                  // con il raggruppamento per cartella, le immagini lasciate su un gruppo vanno lì
+                  onDragOver={(e) => {
+                    if (s.folder && dragHasFiles(e)) setDropFolder(s.folder)
+                  }}
+                  onDragLeave={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget as Node)) setDropFolder(null)
+                  }}
+                  onDrop={(e) => {
+                    setDropFolder(null)
+                    if (!s.folder || !hasDroppedImages(e)) return
+                    e.preventDefault()
+                    e.stopPropagation()
+                    setDropping(false)
+                    const to = s.folder
+                    void adding(async () => {
+                      await importDropped(e, to)
+                    })
+                  }}
+                >
                   {s.title && (
                     <h3 className="asset-grid-title">
                       {s.title} <span className="muted small">{s.paths.length}</span>
