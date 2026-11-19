@@ -849,7 +849,7 @@ await r.title(
 await r.title(
   t(
     'Sposta in cartella, Crea cartelle per template e il cestino per mettere ordine senza rompere le carte',
-    'Move to folder, Create folders per template and the trash to tidy up without breaking the cards'
+    'Move to folder, Make template folders and the trash to tidy up without breaking the cards'
   )
 )
 await r.title(
