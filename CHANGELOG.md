@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## Next version
+
+### English
+
+- **Very large shrink-to-fit texts no longer crash the app.** A text with a large size in a small box (for example 113 pt in a 20 mm box, as in some projects imported from Tabletop Creator) lowered its size half a point at a time, with one update per step: past about fifty steps the page stopped with React error #185 or stayed blank (opening the set, Manage the project, export). The size is now found by halving the range, in a handful of steps, with the same result.
+
+### Italiano
+
+- **I testi molto grandi con «riduci per stare nel riquadro» non bloccano più l'app.** Un testo con un corpo grande in un riquadro piccolo (per esempio 113 pt in 20 mm, come in alcuni progetti importati da Tabletop Creator) scendeva di mezzo punto per volta, con un aggiornamento per passo: oltre una cinquantina di passi la pagina si fermava con l'errore React #185 o restava bianca (aprendo il set, Gestisci il progetto, esportazione). Ora il corpo si trova dimezzando l'intervallo, in pochi passi, con lo stesso risultato.
+
 ## 1.13.0-beta.3
 
 ### English
