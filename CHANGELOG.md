@@ -9,10 +9,20 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 
 ### English
 
+- **Open a project with a double-click.** When it opens a project, the desktop app writes a `<project name>.stella` file in its folder: double-click it to open the project in Stella. Works with the installed app on Windows, on Mac and with the Linux `.deb` package (not the portable version or the AppImage).
+- **Drag a project folder onto the start screen** to open it. The folder of a Tabletop Creator project opens the import, already filled in. Also in the web version.
+- **Delete several templates at once** in Manage the project › Templates (button, right-click menu or Delete key), with one confirmation. Templates used by a set are kept and listed; derived templates and variants of the chosen ones get one question for all.
+- **Load warnings can be closed** with the × on each banner (for example a template whose base is missing). They come back only when the project is reopened.
+- **Deleting a template and making its variants or derived templates independent** now saves them at once. Before, the base went to the trash immediately but the independent templates were only marked as changed: closing without saving left them pointing at a missing base, and they reopened empty.
 - **Very large shrink-to-fit texts no longer crash the app.** A text with a large size in a small box (for example 113 pt in a 20 mm box, as in some projects imported from Tabletop Creator) lowered its size half a point at a time, with one update per step: past about fifty steps the page stopped with React error #185 or stayed blank (opening the set, Manage the project, export). The size is now found by halving the range, in a handful of steps, with the same result.
 
 ### Italiano
 
+- **Aprire un progetto con un doppio clic.** Quando apre un progetto, l'app desktop scrive nella sua cartella un file `<nome progetto>.stella`: un doppio clic lo apre in Stella. Funziona con l'app installata su Windows, su Mac e con il pacchetto `.deb` di Linux (non con la versione portable né con l'AppImage).
+- **Trascinare la cartella di un progetto nella schermata di avvio** lo apre. La cartella di un progetto Tabletop Creator apre l'importazione, già compilata. Anche nella versione web.
+- **Eliminare più template insieme** in Gestisci il progetto › Template (pulsante, menu del tasto destro o tasto Canc), con una sola conferma. I template usati da un set restano e vengono elencati; per derivati e varianti di quelli scelti c'è una sola domanda per tutti.
+- **Gli avvisi del caricamento si chiudono** con la × di ogni avviso (per esempio un template il cui base manca). Tornano solo riaprendo il progetto.
+- **Eliminando un template e rendendo indipendenti varianti o derivati**, questi ora si salvano subito. Prima il base andava subito nel cestino, mentre i template resi indipendenti risultavano solo modificati: chiudendo senza salvare restavano legati a un base che non c'era più e si riaprivano vuoti.
 - **I testi molto grandi con «riduci per stare nel riquadro» non bloccano più l'app.** Un testo con un corpo grande in un riquadro piccolo (per esempio 113 pt in 20 mm, come in alcuni progetti importati da Tabletop Creator) scendeva di mezzo punto per volta, con un aggiornamento per passo: oltre una cinquantina di passi la pagina si fermava con l'errore React #185 o restava bianca (aprendo il set, Gestisci il progetto, esportazione). Ora il corpo si trova dimezzando l'intervallo, in pochi passi, con lo stesso risultato.
 
 ## 1.13.0-beta.3

@@ -43,7 +43,8 @@ import { backupDirFor, backupSettingsFile } from '../main/project/backupPaths'
 import { defaultTarget, importTtc } from '../main/import/ttc'
 import { defaultNandeckTarget, importNandeck, scanNandeck } from '../main/import/nandeck'
 import { readRealPath, realPathMatches, toRealPath, virtualRoot } from '../shared/realPath'
-import { ensurePermission, hasPermission, pickFolder } from './fs/roots'
+import { addRoot, ensurePermission, hasPermission, pickFolder } from './fs/roots'
+import { inspectDropped } from '../main/project/launcher'
 import { assetChanged, assetUrl, openAssets } from './assets'
 import {
   addImages,
@@ -145,6 +146,14 @@ export const webApi: Api = {
     if (!(await ensurePermission(parent))) throw new MessageError(msg('web.permissionDenied'))
     return createProject(name, parent, data)
   },
+  // una cartella trascinata diventa una delle cartelle concesse, come se fosse stata scelta;
+  // un file non dice in che cartella sta
+  droppedPath: async ({ handle }) =>
+    handle?.kind === 'directory' ? addRoot(handle as FileSystemDirectoryHandle) : null,
+  inspectDropped: (path) => inspectDropped(path),
+  // nel browser non ci sono file associati all'app
+  launchProject: async () => null,
+  onOpenProjectRequest: () => () => undefined,
   loadProject: async (f) => {
     // il browser chiede il permesso sulla cartella a ogni sessione
     if (!(await ensurePermission(f))) throw new MessageError(msg('web.permissionDenied'))

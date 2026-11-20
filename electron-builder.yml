@@ -12,6 +12,15 @@ files:
   - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+# doppio clic sul file .stella che l'app scrive nella cartella di ogni progetto (vedi
+# src/main/project/launcher.ts): installazione Windows, macOS e pacchetto deb; non AppImage e
+# versione portable, che non si installano
+fileAssociations:
+  - ext: stella
+    name: Stella project
+    description: Stella Game Center project
+    mimeType: application/x-stella-project
+    role: Editor
 asarUnpack:
   - resources/**
 win:

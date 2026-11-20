@@ -2360,6 +2360,15 @@ export const en = {
   'welcome.allVideos': 'All the video tutorials',
   'welcome.guide': 'Read the guide',
   'welcome.learnShort': 'New to Stella?',
+  'start.dropHint': 'Drop the project folder to open it',
+  'start.dropTip':
+    'You can also drag a project folder here to open it, or a Tabletop Creator project folder to import it.',
+  'start.dropTtc.title': 'Import this Tabletop Creator project?',
+  'start.dropTtc':
+    '{folder} is a Tabletop Creator project. Stella converts it into a new project folder and leaves the original as it is.',
+  'start.dropTtc.ok': 'Import…',
+  'start.dropNotProject':
+    'This is not a project folder. Drag the folder that contains stella.json (or a Tabletop Creator project folder).',
   'start.newProject': 'New project…',
   'start.openProject': 'Open project…',
   'start.importTtc': 'Import from Tabletop Creator…',
@@ -4025,6 +4034,18 @@ export const en = {
   'manage.selected': '{n} selected',
   'manage.selectHint':
     'Click an item to see its details. ⌘/Ctrl+click and ⇧+click select more than one; double-click opens it.',
+  'manage.templates.deleteMany.title': 'Delete {n} templates?',
+  'manage.templates.deleteMany':
+    "{list}. Their files go to the project's trash, from where you can get them back.",
+  'manage.templates.deleteMany.ok': 'Delete {n} templates',
+  'manage.templates.inUseSkipped': 'These stay because sets use them: {list}.',
+  'manage.templates.allInUse':
+    'Sets use all these templates, so none was deleted: {list}. Delete the sets first.',
+  'inherit.deleteManyWithDerived.title': 'Delete {n} templates?',
+  'inherit.deleteManyWithDerived':
+    'Other templates derive from them ({list}): they can be deleted along with these, or made independent, looking as they do now. Deleted files go to the project trash.',
+  'inherit.deleteManyWithDerived.inUse':
+    'Other templates derive from them ({list}) and the sets {sets} use some of them, so they cannot be deleted. They can be made independent, looking as they do now, and only the chosen ones deleted.',
   'manage.oneAtATime': 'Select a single item to see its details and actions.',
   'manage.edit': 'Edit…',
   'manage.open': 'Open',

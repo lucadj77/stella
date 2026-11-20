@@ -23,6 +23,12 @@ import {
   updateMode
 } from './updater'
 import { createProject } from './project/create'
+import {
+  ensureLauncher,
+  inspectDropped,
+  isLauncherFile,
+  launcherFromArgs
+} from './project/launcher'
 import { addRecent, hasThumbnail, listRecent, removeRecent, saveThumbnail } from './project/recent'
 import { prepareExample } from './project/example'
 import { saveData, type DataChanges } from './project/save'
@@ -133,6 +139,30 @@ async function pollAgentLock(): Promise<void> {
 /** Argomenti del comando stella: tutto ciò che segue --cli (vedi cli.ts) */
 const cliIndex = process.argv.indexOf('--cli')
 const cliArgs = cliIndex >= 0 ? process.argv.slice(cliIndex + 1) : null
+
+/**
+ * Progetto da aprire all'avvio: un file .stella aperto con un doppio clic. Windows e Linux lo
+ * passano tra gli argomenti; macOS con l'evento open-file, anche ad app già avviata. La finestra lo
+ * chiede quando è pronta (project:launch); dopo, i successivi le arrivano con project:open-request.
+ */
+let pendingLaunch: string | null = cliArgs ? null : launcherFromArgs(process.argv)
+let launchAsked = false
+if (!cliArgs)
+  app.on('open-file', (e, path) => {
+    if (!isLauncherFile(path)) return
+    e.preventDefault()
+    const folder = dirname(path)
+    const win = BrowserWindow.getAllWindows()[0]
+    if (launchAsked && win && !win.webContents.isDestroyed()) {
+      win.webContents.send('project:open-request', folder)
+      if (win.isMinimized()) win.restore()
+      win.focus()
+    } else {
+      pendingLaunch = folder
+      // su macOS l'app resta avviata senza finestre: se ne apre una, che chiederà il progetto
+      if (app.isReady() && !win) createWindow()
+    }
+  })
 
 // versione portable per Windows: i dati dell'app (recenti, preferenze, cataloghi) stanno accanto
 // al file .exe, così la cartella si porta su un'altra macchina o una chiavetta
@@ -288,6 +318,8 @@ function registerIpc(): void {
     const project = await loadProject(folder)
     setProjectFolder(folder)
     projectName = project.file.name || folder
+    // il file .stella che apre il progetto con un doppio clic; se non si può scrivere, pazienza
+    ensureLauncher(folder, project.file.name).catch((e) => console.error(e))
     // un cambiamento del file dati fatto fuori da Stella si segnala alla finestra
     const sender = event.sender
     await watchDataFile(join(folder, project.file.dataFile), () => {
@@ -385,6 +417,13 @@ function registerIpc(): void {
     }
   )
 
+  ipcMain.handle('project:inspect-dropped', (_, path: string) => inspectDropped(path))
+  ipcMain.handle('project:launch', () => {
+    launchAsked = true
+    const folder = pendingLaunch
+    pendingLaunch = null
+    return folder
+  })
   ipcMain.handle('project:default-parent', () => join(app.getPath('documents'), 'Stella'))
   ipcMain.handle(
     'project:create',

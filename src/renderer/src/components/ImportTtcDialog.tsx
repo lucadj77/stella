@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { TtcImportResult } from '../../../shared/api'
 import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
@@ -10,16 +10,19 @@ import type { MessageKey } from '../i18n/en'
 type Folder = 'source' | 'target' | 'icons'
 
 export default function ImportTtcDialog({
+  source,
   onOpen,
   onClose
 }: {
+  /** Cartella del progetto da importare già scelta (trascinata nella schermata di avvio) */
+  source?: string
   /** Apre il progetto appena creato */
   onOpen(folder: string): void
   onClose(): void
 }): React.JSX.Element {
   const { t } = useI18n()
   const [folders, setFolders] = useState<Record<Folder, string>>({
-    source: '',
+    source: source ?? '',
     target: '',
     icons: localStorage.getItem(ICONS_KEY) ?? ''
   })
@@ -34,6 +37,15 @@ export default function ImportTtcDialog({
       setFolders((f) => ({ ...f, target }))
     }
   }
+
+  // la cartella trascinata nella schermata di avvio: si propone dove mettere il progetto convertito
+  useEffect(() => {
+    if (!source) return
+    window.api.defaultTtcTarget(source).then(
+      (target) => setFolders((f) => (f.target ? f : { ...f, target })),
+      (e) => console.error(e)
+    )
+  }, [source])
 
   const choose = async (key: Folder): Promise<void> => {
     const f = await window.api.chooseFolder(folders[key] || folders.source || undefined)

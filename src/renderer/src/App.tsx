@@ -60,7 +60,6 @@ import { systemOfSet, type ProjectMeta } from '../../shared/model/system'
 import {
   baseOf,
   cardTemplate,
-  derivedOf,
   descendantsOf,
   detach,
   isVariant,
@@ -477,7 +476,8 @@ function App(): React.JSX.Element {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
-  const [importing, setImporting] = useState<false | 'ttc' | 'nandeck'>(false)
+  // { ttc }: una cartella Tabletop Creator trascinata nella schermata di avvio
+  const [importing, setImporting] = useState<false | 'ttc' | 'nandeck' | { ttc: string }>(false)
   const [duplicating, setDuplicating] = useState<Selected | null>(null)
   /** Set di cui si sta cambiando il nome */
   const [renamingSet, setRenamingSet] = useState<number | null>(null)
@@ -498,6 +498,12 @@ function App(): React.JSX.Element {
   const [fileDirty, setFileDirty] = useState(false)
   /** Il file dati è cambiato fuori da Stella e non si è ancora riletto */
   const [dataChanged, setDataChanged] = useState(false)
+  // avvisi del caricamento chiusi con ×: valgono finché il progetto non si ricarica, che dà
+  // un elenco di avvisi nuovo
+  const [closedWarnings, setClosedWarnings] = useState<{ of: unknown; idx: number[] }>({
+    of: null,
+    idx: []
+  })
   /** Finestra Controlla file dati aperta */
   const [checkingData, setCheckingData] = useState(false)
   /** Finestra per importare un foglio da un altro file aperta */
@@ -1965,6 +1971,23 @@ function App(): React.JSX.Element {
   })
   useEffect(() => window.api.onCloseRequest(() => void closeRequest.current()), [])
 
+  // un file .stella aperto con un doppio clic: all'avvio si apre il suo progetto; ad app già
+  // avviata (macOS) prima si chiede delle modifiche non salvate
+  const openRequest = useRef<(folder: string) => Promise<void>>(async () => undefined)
+  useEffect(() => {
+    openRequest.current = async (folder) => {
+      if (project?.folder === folder) return
+      if (await discardOk()) await load(folder)
+    }
+  })
+  useEffect(() => {
+    window.api.launchProject().then(
+      (folder) => folder && void openRequest.current(folder),
+      (e) => console.error(e)
+    )
+    return window.api.onOpenProjectRequest((folder) => void openRequest.current(folder))
+  }, [])
+
   // con modifiche non salvate se ne scrive una copia, qualche secondo dopo l'ultima modifica
   useEffect(() => {
     if (!project || window.api.isWeb) return undefined
@@ -2179,36 +2202,62 @@ function App(): React.JSX.Element {
       setSelected({ kind: 'template', name: to })
   }
 
-  /** Elimina un template non usato dai set: il file va in deleted/ nel progetto */
-  const deleteTemplate = async (name: string): Promise<void> => {
+  /**
+   * Elimina i template indicati: i file vanno in deleted/ nel progetto. Quelli usati da un set
+   * restano (si dice quali); derivati e varianti fuori dalla scelta si eliminano con loro o si
+   * rendono indipendenti, con una sola domanda per tutti.
+   */
+  const deleteTemplates = async (names: string[]): Promise<void> => {
     if (!project) return
-    const users = project.sets.filter((s) => s.template === name).map((s) => s.name)
-    if (users.length) {
-      await showNotice(t, t('sidebar.templateInUse', { name, sets: users.join(', ') }))
+    const setsOf = (n: string): string[] =>
+      project.sets.filter((s) => s.template === n).map((s) => s.name)
+    const skipped = names.filter((n) => setsOf(n).length)
+    const chosen = project.templates.filter(
+      (x) => names.includes(x.name) && !skipped.includes(x.name)
+    )
+    if (!chosen.length) {
+      if (names.length === 1)
+        await showNotice(
+          t,
+          t('sidebar.templateInUse', { name: names[0], sets: setsOf(names[0]).join(', ') })
+        )
+      else await showNotice(t, t('manage.templates.allInUse', { list: skipped.join(', ') }))
       return
     }
-    const tpl = project.templates.find((x) => x.name === name)
-    if (!tpl) return
-    // derivati e varianti, anche di secondo grado: si eliminano con il template o si rendono
-    // indipendenti (i diretti; quelli più in giù restano derivati di questi)
-    const derived = descendantsOf(project.templates, name)
-    const direct = derivedOf(project.templates, name)
-    let remove: Template[] = [tpl]
+    const many = chosen.length > 1
+    const name = chosen[0].name
+    const inChoice = (x: Template): boolean => chosen.includes(x)
+    // derivati e varianti, anche di secondo grado, che non sono nella scelta: si eliminano con i
+    // template o si rendono indipendenti (i diretti; quelli più in giù restano derivati di questi)
+    const derived = [
+      ...new Set(chosen.flatMap((x) => descendantsOf(project.templates, x.name)))
+    ].filter((x) => !inChoice(x))
+    const direct = derived.filter((x) => chosen.some((c) => c.name === x.extends))
+    const skippedNote = skipped.length
+      ? '\n\n' + t('manage.templates.inUseSkipped', { list: skipped.join(', ') })
+      : ''
+    let remove: Template[] = [...chosen]
     let detached: Template[] = []
     if (derived.length) {
       const list = derived.map((x) => x.name).join(', ')
       const inUse = project.sets.filter((s) => derived.some((x) => x.name === s.template))
-      const onlyVariants = derived.every((x) => x.variant && x.extends === name)
-      const params = { name, list, n: derived.length }
+      const onlyVariants = !many && derived.every((x) => x.variant && x.extends === name)
+      const params = { name, list, n: many ? chosen.length : derived.length }
+      const titleKey = many
+        ? 'inherit.deleteManyWithDerived.title'
+        : onlyVariants
+          ? 'inherit.deleteWithVariants.title'
+          : 'inherit.deleteWithDerived.title'
       if (inUse.length) {
         // un derivato è il template di un set: si può solo renderli indipendenti
         if (
           !(await askConfirm({
-            title: t('inherit.deleteWithDerived.title', params),
-            message: t('inherit.deleteWithDerived.inUse', {
-              ...params,
-              sets: inUse.map((s) => s.name).join(', ')
-            }),
+            title: t(titleKey, params),
+            message:
+              t(many ? 'inherit.deleteManyWithDerived.inUse' : 'inherit.deleteWithDerived.inUse', {
+                ...params,
+                sets: inUse.map((s) => s.name).join(', ')
+              }) + skippedNote,
             ok: t('inherit.deleteWithDerived.detach', params),
             danger: true
           }))
@@ -2217,14 +2266,16 @@ function App(): React.JSX.Element {
         detached = direct
       } else {
         const choice = await askChoice({
-          title: t(
-            onlyVariants ? 'inherit.deleteWithVariants.title' : 'inherit.deleteWithDerived.title',
-            params
-          ),
-          message: t(
-            onlyVariants ? 'inherit.deleteWithVariants' : 'inherit.deleteWithDerived',
-            params
-          ),
+          title: t(titleKey, params),
+          message:
+            t(
+              many
+                ? 'inherit.deleteManyWithDerived'
+                : onlyVariants
+                  ? 'inherit.deleteWithVariants'
+                  : 'inherit.deleteWithDerived',
+              params
+            ) + skippedNote,
           ok: t(
             onlyVariants ? 'inherit.deleteWithVariants.all' : 'inherit.deleteWithDerived.all',
             params
@@ -2236,18 +2287,63 @@ function App(): React.JSX.Element {
           danger: true
         })
         if (choice === 'cancel') return
-        if (choice === 'ok') remove = [tpl, ...derived]
+        if (choice === 'ok') remove = [...chosen, ...derived]
         else detached = direct
       }
+    } else if (many) {
+      if (
+        !(await askConfirm({
+          title: t('manage.templates.deleteMany.title', { n: chosen.length }),
+          message:
+            t('manage.templates.deleteMany', { list: chosen.map((x) => x.name).join(', ') }) +
+            skippedNote,
+          ok: t('manage.templates.deleteMany.ok', { n: chosen.length }),
+          danger: true
+        }))
+      )
+        return
+    } else if (skipped.length) {
+      if (
+        !(await askConfirm({
+          title: t(
+            chosen[0].variant && chosen[0].extends
+              ? 'variants.deleteConfirm.title'
+              : 'sidebar.deleteTemplateConfirm.title',
+            { name }
+          ),
+          message: t('sidebar.deleteTemplateConfirm') + skippedNote,
+          ok: t('sidebar.deleteTemplateConfirm.ok'),
+          danger: true
+        }))
+      )
+        return
     } else if (
       !(await confirmKey(
         t,
-        tpl.variant && tpl.extends ? 'variants.deleteConfirm' : 'sidebar.deleteTemplateConfirm',
+        chosen[0].variant && chosen[0].extends
+          ? 'variants.deleteConfirm'
+          : 'sidebar.deleteTemplateConfirm',
         { name },
         { danger: true }
       ))
     )
       return
+    // I template resi indipendenti si scrivono subito, prima di spostare il base nel cestino:
+    // altrimenti, chiudendo senza salvare, sul disco restavano derivati di un base che non c'è più
+    // e alla riapertura si caricavano vuoti.
+    const free = new Map(detached.map((x) => [x.name, detach(x)]))
+    try {
+      for (const x of free.values()) await window.api.saveTemplate(x)
+    } catch (e) {
+      setError(messageFromError(e))
+      return
+    }
+    for (const [n, x] of free) {
+      if (!x.origin) continue
+      const copy = { ...x }
+      delete copy.origin
+      free.set(n, copy)
+    }
     const gone: string[] = []
     try {
       for (const x of remove) {
@@ -2257,8 +2353,6 @@ function App(): React.JSX.Element {
     } catch (e) {
       setError(messageFromError(e))
     }
-    if (!gone.length) return
-    const free = new Map(detached.map((x) => [x.name, detach(x)]))
     setProject(
       (p) =>
         p && {
@@ -2271,13 +2365,15 @@ function App(): React.JSX.Element {
     setDirty((d) => {
       const next = new Set(d)
       for (const n of gone) next.delete(n)
-      for (const n of free.keys()) next.add(n)
+      // già scritti sul disco
+      for (const n of free.keys()) next.delete(n)
       return next
     })
     if (selected.kind === 'template' && gone.includes(selected.name))
       setSelected({ kind: 'set', index: 0 })
     if (free.size) setEditorRev((r) => r + 1)
   }
+  const deleteTemplate = (name: string): Promise<void> => deleteTemplates([name])
 
   /** Carte nuove o cambiate rispetto alla versione del confronto, per set; si aggiornano a ogni modifica */
   const changed = useMemo(
@@ -3233,6 +3329,7 @@ function App(): React.JSX.Element {
       void newNote()
     },
     deleteNote: (name) => void deleteNote(name),
+    deleteTemplates: (names) => deleteTemplates(names),
     editVariable: (name) => {
       setEditingVariable(name)
       focusTopDialog()
@@ -3695,11 +3792,27 @@ function App(): React.JSX.Element {
                             </button>
                           </div>
                         )}
-                        {project?.warnings.map((w, i) => (
-                          <div key={i} className="banner warning">
-                            {t(w)}
-                          </div>
-                        ))}
+                        {project?.warnings.map((w, i) =>
+                          closedWarnings.of === project.warnings &&
+                          closedWarnings.idx.includes(i) ? null : (
+                            <div key={i} className="banner warning closable">
+                              <span>{t(w)}</span>
+                              <button
+                                className="banner-close"
+                                title={t('dialog.close')}
+                                aria-label={t('dialog.close')}
+                                onClick={() =>
+                                  setClosedWarnings((c) => ({
+                                    of: project.warnings,
+                                    idx: c.of === project.warnings ? [...c.idx, i] : [i]
+                                  }))
+                                }
+                              >
+                                ×
+                              </button>
+                            </div>
+                          )
+                        )}
 
                         {project && (
                           <FirstSteps
@@ -3917,7 +4030,7 @@ function App(): React.JSX.Element {
                             settings={settings}
                             onOpen={load}
                             onChoose={open}
-                            onImport={() => setImporting('ttc')}
+                            onImport={(source) => setImporting(source ? { ttc: source } : 'ttc')}
                             onImportNandeck={() => setImporting('nandeck')}
                           />
                         )}
@@ -4121,8 +4234,11 @@ function App(): React.JSX.Element {
                           onClose={() => setImporting(false)}
                         />
                       )}
-                      {importing === 'ttc' && (
+                      {(importing === 'ttc' || (typeof importing === 'object' && importing)) && (
                         <ImportTtcDialog
+                          source={
+                            typeof importing === 'object' && importing ? importing.ttc : undefined
+                          }
                           onOpen={async (folder) => {
                             if (!(await discardOk())) return
                             setImporting(false)

@@ -173,10 +173,11 @@ The first time, when there are no recent projects yet, the screen welcomes you w
 ![The start screen with a recent project](img/ingresso.png)
 
 - **New project…** creates an empty folder with the structure of a project.
-- **Open project…** opens a folder that contains `stella.json`. Projects created when the app was called Naibi (`naibi.json`) or GameCreator (`gamecreator.json`) open too.
+- **Open project…** opens a folder that contains `stella.json`. Projects created when the app was called Naibi (`naibi.json`) or GameCreator (`gamecreator.json`) open too. It is quicker to drag the project folder onto the screen: it opens at once. Drag the folder of a Tabletop Creator project and Stella offers to import it.
 - **Import from Tabletop Creator…** converts a Tabletop Creator project ([chapter 14](#14-importing-from-tabletop-creator)).
 - **Import from nanDECK…** converts the scripts of a nanDECK game ([chapter 14](#importing-from-nandeck)).
 - **Open the example project** opens the project used in this guide and in the videos: three sets (Characters, Items, Market), icons, variables and styles. The first time it is copied into Documents/Stella/Example, where it can be changed freely; after that the copy is opened. In the web version the copy lives in the storage the browser keeps for the site: you change and save it without choosing a folder, but it stays in that browser only.
+- **Double-click the `.stella` file**: when it opens a project, the desktop app writes a file with the project's name and the `.stella` extension in its folder (for example `My_game.stella`). Double-click that file to open the project in Stella. It works with the installed app on Windows (not the portable version), on Mac and with the `.deb` package on Linux (not the AppImage).
 - **Recent projects** shows up to 24 projects, with their first component as thumbnail, or the cover chosen in **Project info…** ([chapter 3](#3-the-project-window)). The × removes a project from the list without deleting the folder.
 
 The ⚙ button at the top right, on every screen, opens the settings: the interface size, the **units** (millimeters, centimeters or inches) for positions, sizes and margins across the app (text stays in points, line widths in mm), the theme (light, dark or the system's), the language (English or Italian) and **AI tools…**, which prepares an AI agent to work on projects ([chapter 15](#15-working-with-an-ai-agent)).
@@ -259,7 +260,7 @@ Each tab has a list with search and filters. A click selects an item and shows i
 
 - **Variables**: type, value, group and where each variable is used (templates, components of the sets, documents, notes, other variables and styles). The filters split them by type and show the **Unused** ones. **Edit…** opens the variable window, **Duplicate** makes a copy, **Delete** (also on several variables, or with Del / ⌫) warns first if any is still used; ⌘Z / Ctrl+Z undoes it.
 - **Styles**: a sample sentence with the style, the definition and where it is used. Built-in styles cannot be deleted; if the project has its own version of one, **Back to the built-in style** removes it.
-- **Templates**: thumbnail, kind, size, the template it derives from and the sets that use it, with the variables, styles and images it refers to. **Open in the editor** and the commands of the template menu (rename, duplicate, derive, export package, delete).
+- **Templates**: thumbnail, kind, size, the template it derives from and the sets that use it, with the variables, styles and images it refers to. **Open in the editor** and the commands of the template menu (rename, duplicate, derive, export package, delete). **Delete** also works on several templates at once, or with Delete / ⌫, with a single confirmation: templates used by a set stay, and the confirmation says which. If other templates derive from the chosen ones, one question asks whether to delete them too or make them independent; independent ones are saved at once.
 - **Sets**: thumbnail of the first card, template, rows and components; on the right the first cards and what they use. **Open the grid** and the commands of the set menu.
 - **Images**: the same view described in [8.1](#81-project-images).
 - **Documents** and **Notes**: name and beginning of the text; a double-click opens them.

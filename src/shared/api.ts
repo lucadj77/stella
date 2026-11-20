@@ -201,6 +201,21 @@ export interface Api {
   /** Sceglie un file di dati che c'è già (.xlsx, .ods, .csv); null se l'utente annulla */
   chooseDataFile(): Promise<string | null>
   loadProject(folder: string): Promise<LoadedProject>
+  /**
+   * Percorso di una cartella o di un file lasciato cadere sulla finestra. Nell'app desktop viene
+   * dal file; nel web dalla cartella (handle, da chiedere durante l'evento drop), che diventa una
+   * delle cartelle concesse. null se non si può sapere.
+   */
+  droppedPath(drop: { file: File | null; handle: FileSystemHandle | null }): Promise<string | null>
+  /** Che cosa c'è nel percorso lasciato cadere: un progetto Stella, uno Tabletop Creator o altro */
+  inspectDropped(path: string): Promise<{ folder: string; kind: 'stella' | 'ttc' | null }>
+  /**
+   * Il progetto con cui è stata aperta l'app (doppio clic su un file .stella), una volta sola;
+   * null se è partita normalmente
+   */
+  launchProject(): Promise<string | null>
+  /** Un file .stella aperto mentre l'app è già avviata (macOS) */
+  onOpenProjectRequest(cb: (folder: string) => void): () => void
   /** Salva il template nel progetto aperto */
   saveTemplate(template: Template): Promise<void>
   /** Sposta il file del template in deleted/ nel progetto; restituisce il nuovo percorso */

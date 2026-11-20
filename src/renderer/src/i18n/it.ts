@@ -2394,6 +2394,15 @@ export const it: Record<MessageKey, string> = {
   'welcome.allVideos': 'Tutti i video tutorial',
   'welcome.guide': 'Leggi la guida',
   'welcome.learnShort': 'Ti serve una mano?',
+  'start.dropHint': 'Rilascia la cartella del progetto per aprirlo',
+  'start.dropTip':
+    'Puoi anche trascinare qui la cartella di un progetto per aprirlo, o quella di un progetto Tabletop Creator per importarlo.',
+  'start.dropTtc.title': 'Importare questo progetto Tabletop Creator?',
+  'start.dropTtc':
+    '{folder} è un progetto Tabletop Creator. Stella lo converte in una nuova cartella di progetto e lascia l’originale com’è.',
+  'start.dropTtc.ok': 'Importa…',
+  'start.dropNotProject':
+    'Questa non è la cartella di un progetto. Trascina la cartella che contiene stella.json (o quella di un progetto Tabletop Creator).',
   'start.newProject': 'Nuovo progetto…',
   'start.openProject': 'Apri progetto…',
   'start.importTtc': 'Importa da Tabletop Creator…',
@@ -4077,6 +4086,18 @@ export const it: Record<MessageKey, string> = {
   'manage.selected': '{n} selezionati',
   'manage.selectHint':
     'Fai clic su una voce per vederne i dettagli. ⌘/Ctrl+clic e ⇧+clic ne selezionano più di una; il doppio clic la apre.',
+  'manage.templates.deleteMany.title': 'Eliminare {n} template?',
+  'manage.templates.deleteMany':
+    '{list}. I file vanno nel cestino del progetto, da cui si possono recuperare.',
+  'manage.templates.deleteMany.ok': 'Elimina {n} template',
+  'manage.templates.inUseSkipped': 'Questi restano perché li usano dei set: {list}.',
+  'manage.templates.allInUse':
+    'Tutti questi template sono usati da dei set, quindi non ne è stato eliminato nessuno: {list}. Elimina prima i set.',
+  'inherit.deleteManyWithDerived.title': 'Eliminare {n} template?',
+  'inherit.deleteManyWithDerived':
+    'Ne derivano altri template ({list}): si possono eliminare insieme a questi, oppure rendere indipendenti, con l’aspetto che hanno ora. I file eliminati vanno nel cestino del progetto.',
+  'inherit.deleteManyWithDerived.inUse':
+    'Ne derivano altri template ({list}) e i set {sets} ne usano qualcuno, quindi non si possono eliminare. Si possono rendere indipendenti, con l’aspetto che hanno ora, ed eliminare solo quelli scelti.',
   'manage.oneAtATime': 'Seleziona una sola voce per vederne dettagli e azioni.',
   'manage.edit': 'Modifica…',
   'manage.open': 'Apri',

@@ -14,6 +14,12 @@ export const PROJECT_FILE = 'stella.json'
 /** Nomi del file dei progetti creati quando l'app si chiamava Naibi e, prima, GameCreator */
 export const LEGACY_PROJECT_FILES = ['naibi.json', 'gamecreator.json']
 export const FORMAT_VERSION = 1
+/**
+ * Estensione del file che apre il progetto con un doppio clic: l'app desktop lo scrive nella
+ * cartella del progetto (src/main/project/launcher.ts). stella.json non si può associare all'app,
+ * perché è un .json come tanti.
+ */
+export const LAUNCHER_EXT = '.stella'
 
 export interface SetDefinition {
   /** Nome del set, mostrato nell'interfaccia */
