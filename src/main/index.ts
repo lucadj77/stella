@@ -23,6 +23,7 @@ import {
   updateMode
 } from './updater'
 import { createProject } from './project/create'
+import { buildProjectZip, extractProjectZip, inspectProjectZip } from './project/projectZip'
 import {
   ensureLauncher,
   inspectDropped,
@@ -417,6 +418,27 @@ function registerIpc(): void {
     }
   )
 
+  ipcMain.handle('project:zip-export', async (event) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    const name = projectName || basename(folder)
+    const win = BrowserWindow.fromWebContents(event.sender)
+    const options = {
+      defaultPath: join(folder, 'export', `${projectFolderName(name) || 'project'}.zip`),
+      filters: [{ name: 'ZIP', extensions: ['zip'] }]
+    }
+    await mkdir(join(folder, 'export'), { recursive: true })
+    const result = win
+      ? await dialog.showSaveDialog(win, options)
+      : await dialog.showSaveDialog(options)
+    if (result.canceled || !result.filePath) return null
+    await writeFile(result.filePath, await buildProjectZip(folder, name))
+    return result.filePath
+  })
+  ipcMain.handle('project:zip-inspect', (_, data: Uint8Array) => inspectProjectZip(data))
+  ipcMain.handle('project:zip-extract', (_, data: Uint8Array, parent: string, name: string) =>
+    extractProjectZip(data, parent, name)
+  )
   ipcMain.handle('project:inspect-dropped', (_, path: string) => inspectDropped(path))
   ipcMain.handle('project:launch', () => {
     launchAsked = true

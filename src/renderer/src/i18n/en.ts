@@ -4005,6 +4005,40 @@ export const en = {
   'package.backupHint':
     'Before importing Stella makes a backup of the project. Templates, sets, variables and styles are changes to save (⌘Z undoes them); images and fonts are copied into assets right away.',
   'package.import': 'Import',
+  'projectZip.exportMenu': 'Export project as ZIP…',
+  'projectZip.exportHint':
+    'One ZIP file with the whole project (templates, data, images, fonts, documents, notes), to send to someone or move to another computer',
+  'projectZip.importMenu': 'Import project from ZIP…',
+  'projectZip.importHint':
+    'Extract a project ZIP into a new folder and open it. You can also drag the ZIP onto the window',
+  'projectZip.saveFirst.title': 'Save before exporting?',
+  'projectZip.saveFirst':
+    'The ZIP contains the project as it is saved on disk. Your unsaved changes are saved first.',
+  'projectZip.saveFirst.ok': 'Save and export',
+  'projectZip.exported': 'Project exported as ZIP',
+  'projectZip.extracted': 'The project was extracted here, but not opened',
+  'projectZip.notProject':
+    '{file} is neither a Stella project nor a package. To import a package, first open the project to put it in.',
+  'projectZip.notProjectZip': 'This ZIP does not contain a Stella project (stella.json)',
+  'projectZip.badName': 'Write a name for the project folder',
+  'projectZip.targetExists':
+    'The folder {folder} already exists and is not empty: choose another name or location',
+  'projectZip.importTitle': 'Import project "{name}"',
+  'projectZip.from':
+    'From {file}. Stella extracts it into a new folder and opens it; the ZIP stays as it is.',
+  'projectZip.sets': 'Sets',
+  'projectZip.templates': 'Templates',
+  'projectZip.data': 'Data file',
+  'projectZip.noData': 'none',
+  'projectZip.images': 'Images',
+  'projectZip.fonts': 'Fonts',
+  'projectZip.documents': 'Documents',
+  'projectZip.notes': 'Notes',
+  'projectZip.files': 'Files in all',
+  'projectZip.folderName': 'Folder name',
+  'projectZip.target': 'The project will be extracted into {folder}',
+  'projectZip.chooseFolder': 'Choose where to put the project folder',
+  'projectZip.extractOpen': 'Extract and open',
   'package.notZip': '{file} is not a ZIP file',
   'package.notPackage': '{file} is not a Stella package, or comes from a newer version',
   'package.dropNoProject': 'To import a package, first open the project to put it in',

@@ -1,6 +1,7 @@
 import { downloadSkill } from '../shared/skill'
 import { mkdir, onFileChange, readFile, writeFile } from './shims/fs'
 import { basename, dirname, join } from './shims/path'
+import { projectFolderName } from '../shared/model/projectName'
 import type { Api, BackupSettings, BackupState } from '../shared/api'
 import type { ExportProgress } from '../shared/export'
 import { MessageError, msg } from '../shared/messages'
@@ -45,6 +46,7 @@ import { defaultNandeckTarget, importNandeck, scanNandeck } from '../main/import
 import { readRealPath, realPathMatches, toRealPath, virtualRoot } from '../shared/realPath'
 import { addRoot, ensurePermission, hasPermission, pickFolder } from './fs/roots'
 import { inspectDropped } from '../main/project/launcher'
+import { buildProjectZip, extractProjectZip, inspectProjectZip } from '../main/project/projectZip'
 import { assetChanged, assetUrl, openAssets } from './assets'
 import {
   addImages,
@@ -154,6 +156,20 @@ export const webApi: Api = {
   // nel browser non ci sono file associati all'app
   launchProject: async () => null,
   onOpenProjectRequest: () => () => undefined,
+  // come i pacchetti: nel browser lo ZIP va in export/ dentro la cartella del progetto
+  exportProjectZip: async () => {
+    const f = projectFolder()
+    const dir = join(f, 'export')
+    await mkdir(dir, { recursive: true })
+    const target = join(dir, `${projectFolderName(projectName) || 'project'}.zip`)
+    await writeFile(target, await buildProjectZip(f, projectName))
+    return target
+  },
+  inspectProjectZip: (data) => inspectProjectZip(data),
+  extractProjectZip: async (data, parent, name) => {
+    if (!(await ensurePermission(parent))) throw new MessageError(msg('web.permissionDenied'))
+    return extractProjectZip(data, parent, name)
+  },
   loadProject: async (f) => {
     // il browser chiede il permesso sulla cartella a ogni sessione
     if (!(await ensurePermission(f))) throw new MessageError(msg('web.permissionDenied'))

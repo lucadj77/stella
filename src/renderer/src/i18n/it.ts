@@ -4057,6 +4057,40 @@ export const it: Record<MessageKey, string> = {
   'package.backupHint':
     'Prima di importare Stella fa un backup del progetto. Template, set, variabili e stili sono modifiche da salvare (⌘Z le annulla); immagini e font si copiano subito in assets.',
   'package.import': 'Importa',
+  'projectZip.exportMenu': 'Esporta il progetto in ZIP…',
+  'projectZip.exportHint':
+    'Un solo file ZIP con tutto il progetto (template, dati, immagini, font, documenti, note), da mandare a qualcuno o portare su un altro computer',
+  'projectZip.importMenu': 'Importa progetto da ZIP…',
+  'projectZip.importHint':
+    'Estrae lo ZIP di un progetto in una cartella nuova e lo apre. Puoi anche trascinare lo ZIP sulla finestra',
+  'projectZip.saveFirst.title': 'Salvare prima di esportare?',
+  'projectZip.saveFirst':
+    "Lo ZIP contiene il progetto com'è salvato sul disco. Le modifiche non salvate si salvano prima.",
+  'projectZip.saveFirst.ok': 'Salva ed esporta',
+  'projectZip.exported': 'Progetto esportato in ZIP',
+  'projectZip.extracted': 'Il progetto è stato estratto qui, ma non aperto',
+  'projectZip.notProject':
+    '{file} non è né un progetto Stella né un pacchetto. Per importare un pacchetto, apri prima il progetto in cui metterlo.',
+  'projectZip.notProjectZip': 'Questo ZIP non contiene un progetto Stella (stella.json)',
+  'projectZip.badName': 'Scrivi un nome per la cartella del progetto',
+  'projectZip.targetExists':
+    'La cartella {folder} esiste già e non è vuota: scegli un altro nome o un altro posto',
+  'projectZip.importTitle': 'Importa il progetto "{name}"',
+  'projectZip.from':
+    "Da {file}. Stella lo estrae in una cartella nuova e lo apre; lo ZIP resta com'è.",
+  'projectZip.sets': 'Set',
+  'projectZip.templates': 'Template',
+  'projectZip.data': 'File dei dati',
+  'projectZip.noData': 'nessuno',
+  'projectZip.images': 'Immagini',
+  'projectZip.fonts': 'Font',
+  'projectZip.documents': 'Documenti',
+  'projectZip.notes': 'Note',
+  'projectZip.files': 'File in tutto',
+  'projectZip.folderName': 'Nome della cartella',
+  'projectZip.target': 'Il progetto sarà estratto in {folder}',
+  'projectZip.chooseFolder': 'Scegli dove mettere la cartella del progetto',
+  'projectZip.extractOpen': 'Estrai e apri',
   'package.notZip': '{file} non è un file ZIP',
   'package.notPackage': '{file} non è un pacchetto di Stella, o viene da una versione più nuova',
   'package.dropNoProject': 'Per importare un pacchetto apri prima il progetto in cui metterlo',

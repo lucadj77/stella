@@ -150,6 +150,24 @@ export interface AppMenu {
   items: AppMenuItem[]
 }
 
+/** Che cosa contiene lo ZIP di un progetto intero (src/main/project/projectZip.ts) */
+export interface ProjectZipSummary {
+  /** Nome del progetto (da stella.json) */
+  name: string
+  /** Nome proposto per la cartella in cui estrarlo */
+  folderName: string
+  sets: string[]
+  templates: number
+  documents: number
+  notes: number
+  images: number
+  fonts: number
+  /** File dei dati, se c'è nello ZIP */
+  dataFile: string | null
+  /** Tutti i file */
+  files: number
+}
+
 export interface Api {
   /** Versione web (src/web): alcune funzioni ci sono solo nell'app desktop */
   readonly isWeb: boolean
@@ -214,6 +232,15 @@ export interface Api {
    * null se è partita normalmente
    */
   launchProject(): Promise<string | null>
+  /**
+   * Lo ZIP con tutto il progetto aperto, com'è salvato sul disco: l'app desktop chiede dove
+   * metterlo, il web lo scrive in export/. Restituisce il file, o null se annullato
+   */
+  exportProjectZip(): Promise<string | null>
+  /** Che cosa contiene lo ZIP; null se non è il progetto di Stella (per esempio un pacchetto) */
+  inspectProjectZip(data: Uint8Array): Promise<ProjectZipSummary | null>
+  /** Estrae lo ZIP di un progetto nella cartella nuova parent/name; restituisce la cartella */
+  extractProjectZip(data: Uint8Array, parent: string, name: string): Promise<string>
   /** Un file .stella aperto mentre l'app è già avviata (macOS) */
   onOpenProjectRequest(cb: (folder: string) => void): () => void
   /** Salva il template nel progetto aperto */

@@ -16,7 +16,8 @@ import GoogleSheetsDialog, { type SheetImport } from './components/GoogleSheetsD
 import TrashDialog from './components/TrashDialog'
 import ManageDialog from './manage/ManageDialog'
 import ImportPackageDialog from './package/ImportPackageDialog'
-import { exportPackage, openPackage, readPackage, type OpenedPackage } from './package/packageZip'
+import { exportPackage, readPackage, type OpenedPackage } from './package/packageZip'
+import ImportProjectZipDialog, { type OpenedProjectZip } from './package/ImportProjectZipDialog'
 import { planImport, type ConflictChoice } from '../../shared/model/package'
 import {
   lastManageTab,
@@ -439,6 +440,7 @@ function App(): React.JSX.Element {
   /** Finestra «Gestisci il progetto», con la scheda e la voce da mostrare */
   const [managing, setManaging] = useState<{ tab: ManageTab; focus?: string } | null>(null)
   const [importingPackage, setImportingPackage] = useState<OpenedPackage | null>(null)
+  const [importingZip, setImportingZip] = useState<OpenedProjectZip | null>(null)
   useEffect(
     () =>
       onOpenManage((tab, focus) => {
@@ -1566,11 +1568,59 @@ function App(): React.JSX.Element {
     }
   }
 
-  const chooseImportPackage = async (): Promise<void> => {
-    if (!project) return
+  /**
+   * Uno ZIP scelto o trascinato sulla finestra: il progetto intero (con stella.json) si estrae in
+   * una cartella nuova e si apre; un pacchetto va nel progetto aperto
+   */
+  const openZipRef = useRef<(picked: { name: string; data: Uint8Array }) => Promise<void>>(
+    async () => undefined
+  )
+  useEffect(() => {
+    openZipRef.current = async (picked) => {
+      try {
+        const summary = await window.api.inspectProjectZip(picked.data)
+        if (summary) {
+          setImportingZip({ file: picked.name, data: picked.data, summary })
+          return
+        }
+        const current = projectRef.current
+        if (!current) {
+          await showNotice(t, t('projectZip.notProject', { file: picked.name }))
+          return
+        }
+        setImportingPackage(await readPackage(current, picked))
+      } catch (err) {
+        setError(messageFromError(err))
+      }
+    }
+  })
+  const chooseZip = async (): Promise<void> => {
     try {
-      const opened = await openPackage(project)
-      if (opened) setImportingPackage(opened)
+      const picked = await window.api.openPackage()
+      if (picked) await openZipRef.current(picked)
+    } catch (e) {
+      setError(messageFromError(e))
+    }
+  }
+  const chooseImportPackage = (): Promise<void> => chooseZip()
+
+  /** Lo ZIP con tutto il progetto, com'è sul disco: le modifiche si salvano prima */
+  const exportProjectZip = async (): Promise<void> => {
+    if (!project) return
+    if (anyDirty) {
+      if (
+        !(await askConfirm({
+          title: t('projectZip.saveFirst.title'),
+          message: t('projectZip.saveFirst'),
+          ok: t('projectZip.saveFirst.ok')
+        }))
+      )
+        return
+      if (!(await saveAll())) return
+    }
+    try {
+      const path = await window.api.exportProjectZip()
+      if (path) await showNotice(t, t('projectZip.exported'), path)
     } catch (e) {
       setError(messageFromError(e))
     }
@@ -1601,14 +1651,9 @@ function App(): React.JSX.Element {
       )
       if (!file) return
       e.preventDefault()
-      const current = projectRef.current
-      if (!current) {
-        await showNotice(t, t('package.dropNoProject'))
-        return
-      }
       try {
         const data = new Uint8Array(await file.arrayBuffer())
-        setImportingPackage(await readPackage(current, { name: file.name, data }))
+        await openZipRef.current({ name: file.name, data })
       } catch (err) {
         setError(messageFromError(err))
       }
@@ -3392,6 +3437,16 @@ function App(): React.JSX.Element {
       onClick: () => void chooseImportPackage()
     },
     {
+      label: t('projectZip.exportMenu'),
+      title: t('projectZip.exportHint'),
+      onClick: () => void exportProjectZip()
+    },
+    {
+      label: t('projectZip.importMenu'),
+      title: t('projectZip.importHint'),
+      onClick: () => void chooseZip()
+    },
+    {
       label: t('app.googleSheets'),
       title: t('tip.googleSheets'),
       onClick: () => setSheetsOpen(true)
@@ -3432,6 +3487,8 @@ function App(): React.JSX.Element {
     trash: () => setTrashOpen(true),
     manage: () => project && openManage(),
     importPackage: () => void chooseImportPackage(),
+    exportProjectZip: () => void exportProjectZip(),
+    importProjectZip: () => void chooseZip(),
     sheets: () => setSheetsOpen(true),
     languages: () => setLanguagesOpen(true),
     projectInfo: () => project && setInfoOpen(true),
@@ -3493,6 +3550,8 @@ function App(): React.JSX.Element {
           { id: 'manage', label: t('manage.menu'), enabled: hasProject },
           { id: 'trash', label: t('app.trash'), enabled: hasProject },
           { id: 'importPackage', label: t('package.importMenu'), enabled: hasProject },
+          { id: 'exportProjectZip', label: t('projectZip.exportMenu'), enabled: hasProject },
+          { id: 'importProjectZip', label: t('projectZip.importMenu') },
           { id: 'sheets', label: t('app.googleSheets'), enabled: hasProject },
           { id: 'languages', label: t('app.languages'), enabled: hasProject },
           sep,
@@ -4032,6 +4091,7 @@ function App(): React.JSX.Element {
                             onChoose={open}
                             onImport={(source) => setImporting(source ? { ttc: source } : 'ttc')}
                             onImportNandeck={() => setImporting('nandeck')}
+                            onImportZip={() => void chooseZip()}
                           />
                         )}
                         {managing && project && (
@@ -4298,6 +4358,17 @@ function App(): React.JSX.Element {
                           project={project}
                           onImport={importGoogleSheet}
                           onClose={() => setSheetsOpen(false)}
+                        />
+                      )}
+                      {importingZip && (
+                        <ImportProjectZipDialog
+                          zip={importingZip}
+                          onOpen={async (folder) => {
+                            setImportingZip(null)
+                            if (await discardOk()) await load(folder)
+                            else await showNotice(t, t('projectZip.extracted'), folder)
+                          }}
+                          onClose={() => setImportingZip(null)}
                         />
                       )}
                       {importingPackage && project && (

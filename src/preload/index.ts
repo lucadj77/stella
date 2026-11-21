@@ -11,6 +11,10 @@ const api: Api = {
   droppedPath: async ({ file }) => (file ? webUtils.getPathForFile(file) || null : null),
   inspectDropped: (path) => ipcRenderer.invoke('project:inspect-dropped', path),
   launchProject: () => ipcRenderer.invoke('project:launch'),
+  exportProjectZip: () => ipcRenderer.invoke('project:zip-export'),
+  inspectProjectZip: (data) => ipcRenderer.invoke('project:zip-inspect', data),
+  extractProjectZip: (data, parent, name) =>
+    ipcRenderer.invoke('project:zip-extract', data, parent, name),
   onOpenProjectRequest: (cb) => {
     const listener = (_: unknown, folder: string): void => cb(folder)
     ipcRenderer.on('project:open-request', listener)

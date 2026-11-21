@@ -25,6 +25,7 @@ export default function StartScreen({
   onChoose,
   onImport,
   onImportNandeck,
+  onImportZip,
   onHelp
 }: {
   error: Message | null
@@ -37,6 +38,8 @@ export default function StartScreen({
   /** Importa un progetto Tabletop Creator; con source la cartella è già scelta */
   onImport(source?: string): void
   onImportNandeck(): void
+  /** Importa un progetto intero da uno ZIP */
+  onImportZip(): void
   onHelp(): void
 }): React.JSX.Element {
   const { t, lang } = useI18n()
@@ -157,6 +160,7 @@ export default function StartScreen({
             onChoose={onChoose}
             onImport={() => onImport()}
             onImportNandeck={onImportNandeck}
+            onImportZip={onImportZip}
             onHelp={onHelp}
           />
         ) : (
@@ -176,6 +180,9 @@ export default function StartScreen({
             </button>
             <button onClick={onImportNandeck} title={t('tip.importNandeck')}>
               {t('start.importNandeck')}
+            </button>
+            <button onClick={onImportZip} title={t('projectZip.importHint')}>
+              {t('projectZip.importMenu')}
             </button>
             <button disabled={loading} title={t('tip.example')} onClick={openExample}>
               {t('start.example')}
@@ -285,6 +292,7 @@ function Welcome({
   onChoose,
   onImport,
   onImportNandeck,
+  onImportZip,
   onHelp
 }: {
   loading: boolean
@@ -293,6 +301,7 @@ function Welcome({
   onChoose(): void
   onImport(): void
   onImportNandeck(): void
+  onImportZip(): void
   onHelp(): void
 }): React.JSX.Element {
   const { t, lang } = useI18n()
@@ -341,6 +350,9 @@ function Welcome({
         </button>
         <button onClick={onImportNandeck} title={t('tip.importNandeck')}>
           {t('start.importNandeck')}
+        </button>
+        <button onClick={onImportZip} title={t('projectZip.importHint')}>
+          {t('projectZip.importMenu')}
         </button>
         <button onClick={onHelp} title={t('tip.help')}>
           {t('app.help')}
