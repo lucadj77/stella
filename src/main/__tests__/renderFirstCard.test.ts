@@ -236,3 +236,47 @@ describe.skipIf(!canRun)('prima carta di un processo nuovo', () => {
     180000
   )
 })
+
+describe.skipIf(!canRun)('riduci per stare nel riquadro', () => {
+  // Un testo di 113 pt in un riquadro di 20 mm (un progetto importato da TTC) scendeva di
+  // mezzo punto per volta: più di duecento aggiornamenti di fila, oltre il limite di React
+  // (errore #185). La pagina restava bianca e il comando si fermava dopo 60 secondi.
+  it('un corpo molto grande in un riquadro stretto si riduce senza bloccare la pagina', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'stella-shrink-'))
+    try {
+      const project = join(dir, 'project')
+      await makeProject(project)
+      writeFileSync(
+        join(project, 'templates', 'influence.json'),
+        JSON.stringify({
+          name: 'influence',
+          width: 41,
+          height: 63,
+          bleed: 0,
+          front: [
+            {
+              type: 'text',
+              name: 'mov',
+              x: 18,
+              y: 3.5,
+              w: 20,
+              h: 12,
+              text: '{avi}{osc}',
+              size: 113.386,
+              letterSpacing: -500,
+              fit: 'shrink',
+              minSize: 5.669,
+              color: '#000000',
+              align: 'center',
+              valign: 'middle'
+            }
+          ]
+        })
+      )
+      render(project, join(dir, 'all'))
+      expect(existsSync(join(dir, 'all', 'influence', '3.png'))).toBe(true)
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  }, 180000)
+})

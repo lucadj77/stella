@@ -92,6 +92,8 @@ export function TemplatesPane({
   )
   const sel = useSelection(shown, focus)
   const single = sel.chosen.length === 1 ? sel.chosen[0] : null
+  // i template eliminati escono da sel.chosen da soli: non sono più nella lista
+  const remove = (list: string[]): Promise<void> => actions.deleteTemplates(list)
   const kinds = [...new Set(names.map((n) => kindOf(tpl(n))))]
   const filters = ['all', ...(kinds.length > 1 ? kinds : []), 'base', 'derived', 'unused'].map(
     (f) => ({
@@ -162,20 +164,38 @@ export function TemplatesPane({
         total={names.length}
         sel={sel}
         onOpen={actions.openTemplate}
+        onDelete={(list) => void remove(list)}
         onMenu={(e, list) =>
-          list.length === 1 &&
-          menu.open(e, [
-            { label: t('manage.openEditor'), onClick: () => actions.openTemplate(list[0]) },
-            'sep',
-            ...actions.templateMenu(list[0])
-          ])
+          menu.open(
+            e,
+            list.length === 1
+              ? [
+                  { label: t('manage.openEditor'), onClick: () => actions.openTemplate(list[0]) },
+                  'sep',
+                  ...actions.templateMenu(list[0])
+                ]
+              : [
+                  {
+                    label: delLabel(t, list.length),
+                    danger: true,
+                    onClick: () => void remove(list)
+                  }
+                ]
+          )
         }
         empty={t('manage.templates.empty')}
         side={
-          !single ? (
-            <p className="muted small">
-              {sel.chosen.length > 1 ? t('manage.oneAtATime') : t('manage.selectHint')}
-            </p>
+          sel.chosen.length > 1 ? (
+            <div className="images-actions">
+              <p>
+                <strong>{t('manage.selected', { n: sel.chosen.length })}</strong>
+              </p>
+              <button className="danger" onClick={() => void remove(sel.chosen)}>
+                {delLabel(t, sel.chosen.length)}
+              </button>
+            </div>
+          ) : !single ? (
+            <p className="muted small">{t('manage.selectHint')}</p>
           ) : (
             <div className="images-details">
               <h3 className="manage-title">{single}</h3>

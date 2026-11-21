@@ -6,6 +6,7 @@ import { DISCORD_URL, DONATE_URL, siteUrl, tutorialsUrl, videoUrl } from '../../
 import { guideLink } from '../guideLinks'
 import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
+import { askConfirm, showNotice } from './confirm'
 import { useI18n } from '../i18n/context'
 import appIcon from '../assets/app-icon.png'
 import DesktopFeaturesDialog from './DesktopFeaturesDialog'
@@ -24,6 +25,7 @@ export default function StartScreen({
   onChoose,
   onImport,
   onImportNandeck,
+  onImportZip,
   onHelp
 }: {
   error: Message | null
@@ -33,8 +35,11 @@ export default function StartScreen({
   onOpen(folder: string): void
   /** Sceglie una cartella di progetto e la apre */
   onChoose(): void
-  onImport(): void
+  /** Importa un progetto Tabletop Creator; con source la cartella è già scelta */
+  onImport(source?: string): void
   onImportNandeck(): void
+  /** Importa un progetto intero da uno ZIP */
+  onImportZip(): void
   onHelp(): void
 }): React.JSX.Element {
   const { t, lang } = useI18n()
@@ -65,6 +70,47 @@ export default function StartScreen({
     window.api.prepareExampleProject(lang).then(onOpen, (e) => console.error(e))
   }
 
+  // una cartella di progetto trascinata qui si apre; quella di un progetto Tabletop Creator si
+  // propone di importarla. Le cartelle si leggono durante l'evento: dopo non si può più.
+  const [dragging, setDragging] = useState(false)
+  const hasFiles = (e: React.DragEvent): boolean => e.dataTransfer.types.includes('Files')
+  const onDrop = (e: React.DragEvent): void => {
+    setDragging(false)
+    const item = Array.from(e.dataTransfer.items).find((i) => i.kind === 'file')
+    if (!item) return
+    // gli .zip vanno all'importazione dei pacchetti (App)
+    const file = item.getAsFile()
+    if (file?.name.toLowerCase().endsWith('.zip')) return
+    e.preventDefault()
+    const handle =
+      window.api.isWeb && 'getAsFileSystemHandle' in item
+        ? (
+            item as DataTransferItem & {
+              getAsFileSystemHandle(): Promise<FileSystemHandle | null>
+            }
+          ).getAsFileSystemHandle()
+        : Promise.resolve(null)
+    void (async () => {
+      try {
+        const path = await window.api.droppedPath({ file, handle: await handle })
+        const found = path ? await window.api.inspectDropped(path) : null
+        if (found?.kind === 'stella') onOpen(found.folder)
+        else if (found?.kind === 'ttc') {
+          if (
+            await askConfirm({
+              title: t('start.dropTtc.title'),
+              message: t('start.dropTtc', { folder: found.folder }),
+              ok: t('start.dropTtc.ok')
+            })
+          )
+            onImport(found.folder)
+        } else await showNotice(t, t('start.dropNotProject'))
+      } catch (err) {
+        await showNotice(t, t(messageFromError(err)))
+      }
+    })()
+  }
+
   const remove = async (folder: string): Promise<void> => {
     await window.api.removeRecentProject(folder)
     setRecent((list) => list && list.filter((p) => p.folder !== folder))
@@ -74,7 +120,20 @@ export default function StartScreen({
     new Date(ms).toLocaleDateString(lang, { day: 'numeric', month: 'short', year: 'numeric' })
 
   return (
-    <div className="start">
+    <div
+      className={'start' + (dragging ? ' start-dropping' : '')}
+      onDragOver={(e) => {
+        if (!hasFiles(e)) return
+        e.preventDefault()
+        e.dataTransfer.dropEffect = 'copy'
+        setDragging(true)
+      }}
+      onDragLeave={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDragging(false)
+      }}
+      onDrop={onDrop}
+    >
+      {dragging && <div className="start-drop-hint">{t('start.dropHint')}</div>}
       <header className="start-header">
         <img className="start-logo" src={appIcon} alt="" draggable={false} />
         <h1>Stella Game Center</h1>
@@ -99,8 +158,9 @@ export default function StartScreen({
             onCreate={() => setCreating(true)}
             onExample={openExample}
             onChoose={onChoose}
-            onImport={onImport}
+            onImport={() => onImport()}
             onImportNandeck={onImportNandeck}
+            onImportZip={onImportZip}
             onHelp={onHelp}
           />
         ) : (
@@ -115,11 +175,14 @@ export default function StartScreen({
             <button onClick={onChoose} title={t('tip.openProject')}>
               {t('start.openProject')}
             </button>
-            <button onClick={onImport} title={t('tip.importTtc')}>
+            <button onClick={() => onImport()} title={t('tip.importTtc')}>
               {t('start.importTtc')}
             </button>
             <button onClick={onImportNandeck} title={t('tip.importNandeck')}>
               {t('start.importNandeck')}
+            </button>
+            <button onClick={onImportZip} title={t('projectZip.importHint')}>
+              {t('projectZip.importMenu')}
             </button>
             <button disabled={loading} title={t('tip.example')} onClick={openExample}>
               {t('start.example')}
@@ -163,6 +226,9 @@ export default function StartScreen({
             </li>
           ))}
         </ul>
+        {!firstRun && recent !== null && (
+          <p className="start-drop-tip muted small">{t('start.dropTip')}</p>
+        )}
         {!firstRun && recent !== null && (
           <p className="start-learn muted">
             {t('welcome.learnShort')}{' '}
@@ -226,6 +292,7 @@ function Welcome({
   onChoose,
   onImport,
   onImportNandeck,
+  onImportZip,
   onHelp
 }: {
   loading: boolean
@@ -234,6 +301,7 @@ function Welcome({
   onChoose(): void
   onImport(): void
   onImportNandeck(): void
+  onImportZip(): void
   onHelp(): void
 }): React.JSX.Element {
   const { t, lang } = useI18n()
@@ -282,6 +350,9 @@ function Welcome({
         </button>
         <button onClick={onImportNandeck} title={t('tip.importNandeck')}>
           {t('start.importNandeck')}
+        </button>
+        <button onClick={onImportZip} title={t('projectZip.importHint')}>
+          {t('projectZip.importMenu')}
         </button>
         <button onClick={onHelp} title={t('tip.help')}>
           {t('app.help')}

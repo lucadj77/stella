@@ -2360,6 +2360,15 @@ export const en = {
   'welcome.allVideos': 'All the video tutorials',
   'welcome.guide': 'Read the guide',
   'welcome.learnShort': 'New to Stella?',
+  'start.dropHint': 'Drop the project folder to open it',
+  'start.dropTip':
+    'You can also drag a project folder here to open it, or a Tabletop Creator project folder to import it.',
+  'start.dropTtc.title': 'Import this Tabletop Creator project?',
+  'start.dropTtc':
+    '{folder} is a Tabletop Creator project. Stella converts it into a new project folder and leaves the original as it is.',
+  'start.dropTtc.ok': 'Import…',
+  'start.dropNotProject':
+    'This is not a project folder. Drag the folder that contains stella.json (or a Tabletop Creator project folder).',
   'start.newProject': 'New project…',
   'start.openProject': 'Open project…',
   'start.importTtc': 'Import from Tabletop Creator…',
@@ -3996,6 +4005,40 @@ export const en = {
   'package.backupHint':
     'Before importing Stella makes a backup of the project. Templates, sets, variables and styles are changes to save (⌘Z undoes them); images and fonts are copied into assets right away.',
   'package.import': 'Import',
+  'projectZip.exportMenu': 'Export project as ZIP…',
+  'projectZip.exportHint':
+    'One ZIP file with the whole project (templates, data, images, fonts, documents, notes), to send to someone or move to another computer',
+  'projectZip.importMenu': 'Import project from ZIP…',
+  'projectZip.importHint':
+    'Extract a project ZIP into a new folder and open it. You can also drag the ZIP onto the window',
+  'projectZip.saveFirst.title': 'Save before exporting?',
+  'projectZip.saveFirst':
+    'The ZIP contains the project as it is saved on disk. Your unsaved changes are saved first.',
+  'projectZip.saveFirst.ok': 'Save and export',
+  'projectZip.exported': 'Project exported as ZIP',
+  'projectZip.extracted': 'The project was extracted here, but not opened',
+  'projectZip.notProject':
+    '{file} is neither a Stella project nor a package. To import a package, first open the project to put it in.',
+  'projectZip.notProjectZip': 'This ZIP does not contain a Stella project (stella.json)',
+  'projectZip.badName': 'Write a name for the project folder',
+  'projectZip.targetExists':
+    'The folder {folder} already exists and is not empty: choose another name or location',
+  'projectZip.importTitle': 'Import project "{name}"',
+  'projectZip.from':
+    'From {file}. Stella extracts it into a new folder and opens it; the ZIP stays as it is.',
+  'projectZip.sets': 'Sets',
+  'projectZip.templates': 'Templates',
+  'projectZip.data': 'Data file',
+  'projectZip.noData': 'none',
+  'projectZip.images': 'Images',
+  'projectZip.fonts': 'Fonts',
+  'projectZip.documents': 'Documents',
+  'projectZip.notes': 'Notes',
+  'projectZip.files': 'Files in all',
+  'projectZip.folderName': 'Folder name',
+  'projectZip.target': 'The project will be extracted into {folder}',
+  'projectZip.chooseFolder': 'Choose where to put the project folder',
+  'projectZip.extractOpen': 'Extract and open',
   'package.notZip': '{file} is not a ZIP file',
   'package.notPackage': '{file} is not a Stella package, or comes from a newer version',
   'package.dropNoProject': 'To import a package, first open the project to put it in',
@@ -4025,6 +4068,18 @@ export const en = {
   'manage.selected': '{n} selected',
   'manage.selectHint':
     'Click an item to see its details. ⌘/Ctrl+click and ⇧+click select more than one; double-click opens it.',
+  'manage.templates.deleteMany.title': 'Delete {n} templates?',
+  'manage.templates.deleteMany':
+    "{list}. Their files go to the project's trash, from where you can get them back.",
+  'manage.templates.deleteMany.ok': 'Delete {n} templates',
+  'manage.templates.inUseSkipped': 'These stay because sets use them: {list}.',
+  'manage.templates.allInUse':
+    'Sets use all these templates, so none was deleted: {list}. Delete the sets first.',
+  'inherit.deleteManyWithDerived.title': 'Delete {n} templates?',
+  'inherit.deleteManyWithDerived':
+    'Other templates derive from them ({list}): they can be deleted along with these, or made independent, looking as they do now. Deleted files go to the project trash.',
+  'inherit.deleteManyWithDerived.inUse':
+    'Other templates derive from them ({list}) and the sets {sets} use some of them, so they cannot be deleted. They can be made independent, looking as they do now, and only the chosen ones deleted.',
   'manage.oneAtATime': 'Select a single item to see its details and actions.',
   'manage.edit': 'Edit…',
   'manage.open': 'Open',

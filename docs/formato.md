@@ -7,6 +7,7 @@ Un progetto Stella è una cartella:
 ```
 progetto/
   stella.json           # nome, file dati, elenco dei set
+  <nome>.stella         # apre il progetto con un doppio clic (lo scrive l'app desktop; vedi sotto)
   data/carte.xlsx       # un foglio per set (oppure un .csv per un solo set)
   templates/<nome>.json # i template delle carte
   notes/<nome>.md       # note del progetto in Markdown, scritte nell'app o con un editor qualsiasi
@@ -16,6 +17,8 @@ progetto/
   assets/fonts/         # font del progetto (ttf, otf, woff, woff2)
   assets/sources.json   # provenienza e licenza dei file importati dall'app
 ```
+
+Il file `.stella` contiene solo una spiegazione: l'app installata è associata a questa estensione e, con un doppio clic, apre la cartella che lo contiene. L'app desktop lo scrive quando apre un progetto che non ne ha uno (con il nome del progetto); si può cancellare o rinominare senza conseguenze.
 
 Le note in `notes/` sono appunti liberi: l'app le mostra nella sezione **Note** della barra laterale e le salva mentre si scrive; un'IA le legge con `stella notes` (vedi [cli.md](cli.md)). Una nota eliminata va in `deleted/`.
 
