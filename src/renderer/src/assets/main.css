@@ -1091,6 +1091,13 @@ textarea.invalid {
   margin: -2px 0 6px calc(var(--label-w, 88px) + 8px);
 }
 
+.field-note.legibility-warn {
+  color: inherit;
+  background: var(--warning-bg);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
 .field-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -6151,6 +6158,50 @@ details.usages button.link {
   background: var(--accent-soft);
 }
 
+.legibility-reduced {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 8px;
+}
+
+.legibility-sections {
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+.legibility-sections section + section {
+  margin-top: 12px;
+}
+
+.legibility-sections h4 {
+  margin: 0 0 4px;
+}
+
+.legibility-sections .text-check-list {
+  max-height: none;
+}
+
+.legibility-plain {
+  margin: 4px 0;
+  padding-left: 20px;
+  font-size: 13px;
+}
+
+.legibility-bad {
+  color: var(--danger, #c62828);
+  font-weight: 600;
+}
+
+.legibility-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  vertical-align: -1px;
+}
+
 .text-check-stage {
   position: fixed;
   left: -100000px;
@@ -6251,6 +6302,19 @@ body[data-vision='tritan'] {
 }
 body[data-vision='gray'] {
   --vision: url(#vision-gray);
+}
+body[data-vision='normal'] {
+  --vision: url(#vision-normal);
+}
+/* il componente girato di 180°, come lo vede chi sta dall'altra parte del tavolo */
+body[data-vision-flip] .card-cell > svg,
+body[data-vision-flip] .preview-card-inner > svg {
+  transform: rotate(180deg);
+}
+.vision-bar label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 /* solo l'SVG della carta, non quelli dentro, che altrimenti avrebbero il filtro due volte */
 body[data-vision] .card-cell > svg {

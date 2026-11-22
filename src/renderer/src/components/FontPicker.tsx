@@ -22,6 +22,7 @@ import type { MessageKey } from '../i18n/en'
 import { publishAssetsUpdate } from '../render/assets'
 import { APP_FONTS, useProjectFonts } from '../render/fonts'
 import Segmented from './Segmented'
+import { loadCatalog } from './fontCatalog'
 
 // Scelta del font con anteprima: i font del progetto, quelli di Google, che si scaricano in
 // assets/fonts/, e quelli installati sul computer, che si possono copiare nel progetto. I font
@@ -52,14 +53,6 @@ function saveList(key: string, list: string[]): void {
   } catch {
     // preferenza non essenziale
   }
-}
-
-let catalogPromise: Promise<FontCatalog> | null = null
-
-function loadCatalog(): Promise<FontCatalog> {
-  catalogPromise ??= window.api.fontCatalog()
-  catalogPromise.catch(() => (catalogPromise = null))
-  return catalogPromise
 }
 
 let systemPromise: Promise<SystemFontFamily[]> | null = null
@@ -157,8 +150,7 @@ export default function FontPicker({
     setError(null)
     try {
       const r = await window.api.updateCatalog('google-fonts')
-      catalogPromise = null
-      setCatalog(await loadCatalog())
+      setCatalog(await loadCatalog(true))
       setUpdating(r)
     } catch (e) {
       setUpdating(null)

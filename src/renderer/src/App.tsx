@@ -38,7 +38,7 @@ import {
 } from '../../shared/model/generate'
 import { randomSeed, setUsesRandom } from '../../shared/model/random'
 import { cardFingerprints, changedCards } from '../../shared/model/compare'
-import TextCheckDialog from './components/TextCheckDialog'
+import LegibilityDialog from './components/LegibilityDialog'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type {
   DeletedItem,
@@ -234,9 +234,13 @@ import { LENGTH_UNITS, toUnit, type LengthUnit } from '../../shared/model/units'
 import type { AgentLock, Theme } from '../../shared/api'
 import VisionFilters from './components/VisionFilters'
 import { VISIONS, type Vision } from '../../shared/vision'
+import { READING_DISTANCES, readingOf, visionBlurOf } from '../../shared/model/legibility'
 
 /** La visione dei colori scelta, che resta passando da un set all'altro finché l'app è aperta */
 let lastVision: Vision | null = null
+/** Distanza simulata nella stessa barra (0: nessuna sfocatura) e componente capovolto */
+let lastVisionDistance = 0
+let lastVisionFlip = false
 
 // finestre usate di rado: si caricano la prima volta che si aprono (la versione web parte prima)
 const GenerateDialog = lazy(() => import('./components/GenerateDialog'))
@@ -4575,6 +4579,16 @@ function SetView({
     lastVision = v
     setVisionState(v)
   }
+  const [visionDistance, setVisionDistanceState] = useState(lastVisionDistance)
+  const setVisionDistance = (cm: number): void => {
+    lastVisionDistance = cm
+    setVisionDistanceState(cm)
+  }
+  const [visionFlip, setVisionFlipState] = useState(lastVisionFlip)
+  const setVisionFlip = (v: boolean): void => {
+    lastVisionFlip = v
+    setVisionFlipState(v)
+  }
   const [colorsOpen, setColorsOpen] = useState(false)
   const [colorsFocus, setColorsFocus] = useState<string | null>(null)
   const [splitting, setSplitting] = useState(false)
@@ -4619,13 +4633,18 @@ function SetView({
 
   const template = templates.find((tpl) => tpl.name === set.template) ?? null
   // i filtri valgono per le carte di questo set: griglia, anteprima e carta grande
+  // con la sfocatura della distanza anche la visione normale ha un filtro
+  const visionBlur = vision && template ? visionBlurOf(template, visionDistance) : null
+  const blurred = visionBlur !== null
   useEffect(() => {
-    if (!vision || vision === 'normal' || !template) return
-    document.body.dataset.vision = vision
+    if (!vision || !template) return
+    if (vision !== 'normal' || blurred) document.body.dataset.vision = vision
+    if (visionFlip) document.body.dataset.visionFlip = ''
     return () => {
       delete document.body.dataset.vision
+      delete document.body.dataset.visionFlip
     }
-  }, [vision, template])
+  }, [vision, template, blurred, visionFlip])
   // le facce di dado hanno solo il fronte
   const frontOnly = hasNoBack(template)
   const side: Side = frontOnly ? 'front' : chosenSide
@@ -5412,13 +5431,39 @@ function SetView({
         )}
         {vision && template && (
           <div className="vision-bar set-hint">
-            <VisionFilters />
+            <VisionFilters blur={visionBlur} />
             <span>{t('vision.label')}</span>
             <Segmented<Vision>
               value={vision}
               options={VISIONS.map((v) => [v, t(`vision.${v}`), t(`vision.${v}.tip`)])}
               onChange={setVision}
             />
+            <label title={t('vision.distance.tip')}>
+              {t('vision.distance')}
+              <select
+                value={visionDistance}
+                onChange={(e) => setVisionDistance(Number(e.target.value))}
+              >
+                <option value={0}>{t('vision.distance.off')}</option>
+                {[...new Set([readingOf(template).cm, ...READING_DISTANCES.map((d) => d.cm)])].map(
+                  (cm) => (
+                    <option key={cm} value={cm}>
+                      {cm === readingOf(template).cm
+                        ? t('vision.distance.template', { cm })
+                        : `${cm} cm`}
+                    </option>
+                  )
+                )}
+              </select>
+            </label>
+            <label title={t('vision.flip.tip')}>
+              <input
+                type="checkbox"
+                checked={visionFlip}
+                onChange={(e) => setVisionFlip(e.target.checked)}
+              />
+              {t('vision.flip')}
+            </label>
             <button onClick={() => setVision(null)}>{t('vision.end')}</button>
           </div>
         )}
@@ -5632,7 +5677,7 @@ function SetView({
         </Dialog>
       )}
       {checkingText && (
-        <TextCheckDialog
+        <LegibilityDialog
           cards={cards}
           onPick={(row) => {
             setSelection([row])

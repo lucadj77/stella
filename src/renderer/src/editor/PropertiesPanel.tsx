@@ -1,4 +1,14 @@
 import CombineButtons from './CombineButtons'
+import {
+  COMFORT_DEG,
+  READING_DISTANCES,
+  readableUpToCm,
+  readingOf,
+  textVerdict,
+  xHeightMm,
+  type Reading
+} from '../../../shared/model/legibility'
+import { xRatio } from '../legibility/xRatio'
 import { shapeAsPath } from '../../../shared/model/pathEdit'
 import {
   createContext,
@@ -405,6 +415,43 @@ function TemplateProperties({
           />
         </Inherit>
       )}
+      <Inherit keys={['readingDistance']}>
+        <SelectField<number>
+          label={t('legibility.distance')}
+          help={t('legibility.distanceHelp')}
+          value={tpl.readingDistance ?? 0}
+          options={[
+            [0, t('legibility.byKind', { cm: readingOf({ kind: tpl.kind }).cm })],
+            ...READING_DISTANCES.map(
+              (d) => [d.cm, t(`legibility.dist.${d.id}`, { cm: d.cm })] as [number, string]
+            ),
+            ...(tpl.readingDistance && !READING_DISTANCES.some((d) => d.cm === tpl.readingDistance)
+              ? [[tpl.readingDistance, `${tpl.readingDistance} cm`] as [number, string]]
+              : [])
+          ]}
+          onChange={(cm) => set({ readingDistance: cm || undefined }, 'readingDistance')}
+        />
+      </Inherit>
+      <Inherit keys={['readUpsideDown']}>
+        <SelectField<'auto' | 'yes' | 'no'>
+          label={t('legibility.upsideDown')}
+          help={t('legibility.upsideDownHelp')}
+          value={tpl.readUpsideDown === undefined ? 'auto' : tpl.readUpsideDown ? 'yes' : 'no'}
+          options={[
+            [
+              'auto',
+              t('legibility.byKindBool', {
+                v: t(readingOf({ kind: tpl.kind }).upsideDown ? 'legibility.yes' : 'legibility.no')
+              })
+            ],
+            ['yes', t('legibility.yes')],
+            ['no', t('legibility.no')]
+          ]}
+          onChange={(v) =>
+            set({ readUpsideDown: v === 'auto' ? undefined : v === 'yes' }, 'readUpsideDown')
+          }
+        />
+      </Inherit>
       <Inherit keys={['ttsTags']}>
         <TextField
           label={t('prop.ttsTags')}
@@ -767,6 +814,7 @@ function LayerProperties({
           computed={computed}
           fields={labelChoices(tpl, sheets)}
           part="rest"
+          reading={readingOf(tpl)}
         />
       )}
       {same && l.type === 'image' && (
@@ -1381,6 +1429,8 @@ interface TypeProps<T> {
    * fonte; 'rest': tutto il resto, dopo posizione e dimensioni
    */
   part?: 'value' | 'rest'
+  /** Distanza da cui si legge il componente, per i testi */
+  reading?: Reading
 }
 
 function options<T extends string>(
@@ -1404,13 +1454,31 @@ const ANCHORS: Anchor[] = [
 ]
 const WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900]
 
+/**
+ * Sotto il corpo del testo: quanto è alta la x e fino a che distanza si legge comodamente; in
+ * arancione se è meno della distanza di lettura del template
+ */
+function SizeLegibility({ l, reading }: { l: TextLayer; reading: Reading }): React.JSX.Element {
+  const { t } = useI18n()
+  const mm = xHeightMm(l.size, xRatio(l.font, l.weight, l.italic))
+  const upTo = Math.floor(readableUpToCm(mm, COMFORT_DEG))
+  const verdict = textVerdict(mm, reading.cm)
+  return (
+    <p className={`field-note${verdict === 'ok' ? '' : ' legibility-warn'}`}>
+      {t('legibility.sizeHint', { mm: mm.toFixed(1), cm: upTo })}
+      {verdict !== 'ok' && ` ${t('legibility.sizeTooSmall', { cm: reading.cm })}`}
+    </p>
+  )
+}
+
 function TextProperties({
   l,
   set: setLayer,
   col,
   computed,
   fields,
-  part
+  part,
+  reading
 }: TypeProps<TextLayer>): React.JSX.Element {
   const { t } = useI18n()
   const set = setLayer as SetFn<TextLayer>
@@ -1482,6 +1550,7 @@ function TextProperties({
             unit="pt"
             onChange={(size) => set({ size })}
           />
+          {reading && <SizeLegibility l={l} reading={reading} />}
         </P>
         <P id="color">
           <ColorField

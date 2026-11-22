@@ -1173,6 +1173,8 @@ function TextView({ layer: l, id }: { layer: TextLayer; id: string }): React.JSX
   return (
     <g
       transform={`translate(${l.x} ${l.y}) scale(${1 / s})`}
+      data-text={l.name}
+      data-pt={size}
       data-overflow={over ? l.name : undefined}
       data-overflow-fixed={over && l.fit !== 'shrink' && l.fit !== 'grow' ? '' : undefined}
       filter={outline > 0 ? `url(#${id}-outline)` : undefined}

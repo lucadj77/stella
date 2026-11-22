@@ -441,6 +441,7 @@ function Ref({
             {tint ? (
               <span
                 data-gc-pending={pending}
+                data-gc-icon=""
                 style={{
                   ...icon,
                   display: 'inline-block',
@@ -450,7 +451,7 @@ function Ref({
                 }}
               />
             ) : (
-              <img src={url} alt="" style={{ ...icon, width: 'auto' }} />
+              <img src={url} alt="" data-gc-icon="" style={{ ...icon, width: 'auto' }} />
             )}
           </span>
         ))}
@@ -465,6 +466,7 @@ function Ref({
           <span
             key={i}
             data-gc-pending={pending}
+            data-gc-icon=""
             style={{
               ...style,
               display: 'inline-block',
@@ -474,7 +476,7 @@ function Ref({
             }}
           />
         ) : (
-          <img key={i} src={url} alt="" style={{ ...style, width: 'auto' }} />
+          <img key={i} src={url} alt="" data-gc-icon="" style={{ ...style, width: 'auto' }} />
         )
       )}
     </>
