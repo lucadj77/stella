@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import {
-  visionBlurOf,
   colorIsOnlySignal,
   confusedPairs,
   contrastRatio,
@@ -65,13 +64,5 @@ describe('leggibilità', () => {
     ).toBe(false)
     // un colore per carta: nessun gruppo da riconoscere
     expect(colorIsOnlySignal(['#f00', '#0f0'], { name: ['a', 'b'] })).toBe(false)
-  })
-
-  it('sfocatura della distanza come frazione del componente', () => {
-    expect(visionBlurOf({ width: 63, height: 88 }, 0)).toBeNull()
-    const [sx, sy] = visionBlurOf({ width: 63, height: 88 }, 40)!
-    // a 40 cm la x al limite è 0,7 mm: la deviazione è un quarto
-    expect(sx * 63).toBeCloseTo(0.175, 2)
-    expect(sy * 88).toBeCloseTo(sx * 63, 6)
   })
 })

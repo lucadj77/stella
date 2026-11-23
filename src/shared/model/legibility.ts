@@ -74,21 +74,6 @@ export function iconVerdict(mm: number, cm: number, reduced = false): SizeVerdic
   return textVerdict(mm / ICON_FACTOR, cm, reduced)
 }
 
-/**
- * Sfocatura che simula la distanza nella barra della visione: la deviazione della gaussiana è
- * un quarto dell'altezza della x al limite (0,1°), così i testi sotto il limite si impastano e
- * quelli comodi restano leggibili. Come frazione di larghezza e altezza del componente, che non
- * dipende da quanto è grande la miniatura; null senza distanza.
- */
-export function visionBlurOf(
-  t: Pick<Template, 'width' | 'height'>,
-  cm: number
-): [number, number] | null {
-  if (!(cm > 0) || !(t.width > 0) || !(t.height > 0)) return null
-  const sigma = minHeightMm(cm, LIMIT_DEG) / 4
-  return [sigma / t.width, sigma / t.height]
-}
-
 // --- colori ---
 
 /** Colore da un codice o da rgb(); null per i colori che non si leggono (sfumature, nomi) */

@@ -13,7 +13,6 @@ import {
   readingOf,
   textVerdict,
   upsideDownReading,
-  visionBlurOf,
   xHeightMm,
   type SizeVerdict
 } from '../../../shared/model/legibility'
@@ -26,8 +25,6 @@ import Segmented from './Segmented'
 import { loadCatalog } from './fontCatalog'
 import { xRatio } from '../legibility/xRatio'
 
-/** Un'immagine più piccola di così (il lato più lungo, in mm) si controlla come un'icona */
-const ICON_MAX_MM = 15
 /** Un testo più lungo di così è testo da leggere, non un titolo */
 const LONG_TEXT = 80
 
@@ -139,7 +136,10 @@ export default function LegibilityDialog({
   const usual = readingOf(cards[0]?.template ?? {})
   const [cm, setCm] = useState<number>(usual.cm)
   const [upsideDown, setUpsideDown] = useState(usual.upsideDown)
-  const [blur, setBlur] = useState(false)
+  /** Miniatura grande quanto il componente visto da quella distanza (schermo calibrato) */
+  const [real, setReal] = useState(false)
+  const [screen, setScreen] = useState(loadScreen)
+  const [calibrating, setCalibrating] = useState(false)
   /** Livello evidenziato sulla miniatura, al passaggio sull'elenco */
   const [hover, setHover] = useState<string | null>(null)
 
@@ -209,7 +209,7 @@ export default function LegibilityDialog({
         const cardW = card.template.width
         const cardH = card.template.height
         for (const l of layers)
-          if (l.type === 'image' && l.visible && l.src && Math.max(l.w, l.h) <= ICON_MAX_MM)
+          if (l.type === 'image' && l.visible && l.src.trim())
             icons.push({
               name: l.name,
               mm: Math.min(l.w, l.h),
@@ -384,7 +384,7 @@ export default function LegibilityDialog({
       })
     for (const x of here.texts) {
       const verdict = textVerdict(x.mm, cm, reduced)
-      if (verdict !== 'ok' && x.box)
+      if (x.box)
         out.push({
           key: `t-${x.name}`,
           name: x.name,
@@ -399,7 +399,7 @@ export default function LegibilityDialog({
     }
     here.icons.forEach((i, k) => {
       const verdict = iconVerdict(i.mm, cm, reduced)
-      if (verdict !== 'ok' && i.box)
+      if (i.box)
         out.push({
           key: `i-${i.name}-${k}`,
           name: i.name,
@@ -418,8 +418,9 @@ export default function LegibilityDialog({
       const known = by.get(m.name)
       if (!known || rank[m.verdict] > rank[known.verdict]) by.set(m.name, m)
     }
-    return [...by.values()]
+    return [...by.values()].sort((a, b) => rank[b.verdict] - rank[a.verdict])
   }, [marks])
+  const problems = markList.filter((m) => m.verdict !== 'ok')
 
   const overflow = measured?.filter((m) => m.overflow.length > 0) ?? []
   const nothing =
@@ -475,8 +476,13 @@ export default function LegibilityDialog({
 
   // la miniatura: grande quanto basta per vedere i segni, senza riempire la finestra
   const tpl = card?.template
-  const scale = tpl ? Math.min(300 / tpl.width, 380 / tpl.height, 6) : 1
-  const blurStd = blur && tpl ? visionBlurOf(tpl, cm) : null
+  // a grandezza reale: il componente occupa sullo schermo, da dove lo guardi, lo stesso angolo
+  // che occupa sul tavolo alla distanza scelta
+  const scale = !tpl
+    ? 1
+    : real
+      ? (screen.pxPerMm * screen.cm) / cm
+      : Math.min(300 / tpl.width, 380 / tpl.height, 6)
 
   return (
     <Dialog title={t('legibility.title')} onClose={onClose} className="legibility-dialog">
@@ -522,10 +528,13 @@ export default function LegibilityDialog({
                 />
                 {t('legibility.upsideDown')}
               </label>
-              <label title={t('legibility.blurHint')}>
-                <input type="checkbox" checked={blur} onChange={(e) => setBlur(e.target.checked)} />
-                {t('legibility.blur')}
+              <label title={t('legibility.realHint')}>
+                <input type="checkbox" checked={real} onChange={(e) => setReal(e.target.checked)} />
+                {t('legibility.real')}
               </label>
+              <button className="small-btn" onClick={() => setCalibrating((v) => !v)}>
+                {t('legibility.calibrate')}
+              </button>
               <label title={t('legibility.reducedHint')}>
                 <input
                   type="checkbox"
@@ -537,35 +546,47 @@ export default function LegibilityDialog({
             </div>
             {card && tpl && (
               <div className="legibility-preview">
-                {blurStd && (
-                  <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
-                    <filter id="legibility-blur" primitiveUnits="objectBoundingBox">
-                      <feGaussianBlur stdDeviation={`${blurStd[0]} ${blurStd[1]}`} />
-                    </filter>
-                  </svg>
+                {calibrating && (
+                  <Calibration
+                    screen={screen}
+                    onChange={(v) => {
+                      setScreen(v)
+                      saveScreen(v)
+                    }}
+                    onDone={() => setCalibrating(false)}
+                  />
+                )}
+                {real && (
+                  <p className="muted small">
+                    {t(screen.calibrated ? 'legibility.realNote' : 'legibility.realUncalibrated', {
+                      cm: screen.cm
+                    })}
+                  </p>
                 )}
                 <div
                   className={'legibility-card' + (upsideDown ? ' flipped' : '')}
                   style={{ width: tpl.width * scale, height: tpl.height * scale }}
                 >
-                  <div style={blurStd ? { filter: 'url(#legibility-blur)' } : undefined}>
+                  <div>
                     <CardSvg template={tpl} side={side} scale={scale} />
                   </div>
-                  {marks.map((m) => (
-                    <span
-                      key={m.key}
-                      className={
-                        `legibility-mark ${m.verdict}` + (hover === m.name ? ' hover' : '')
-                      }
-                      style={{
-                        left: `${m.box.x * 100}%`,
-                        top: `${m.box.y * 100}%`,
-                        width: `${m.box.w * 100}%`,
-                        height: `${m.box.h * 100}%`
-                      }}
-                      title={`${m.name}: ${m.detail}`}
-                    />
-                  ))}
+                  {marks
+                    .filter((m) => m.verdict !== 'ok')
+                    .map((m) => (
+                      <span
+                        key={m.key}
+                        className={
+                          `legibility-mark ${m.verdict}` + (hover === m.name ? ' hover' : '')
+                        }
+                        style={{
+                          left: `${m.box.x * 100}%`,
+                          top: `${m.box.y * 100}%`,
+                          width: `${m.box.w * 100}%`,
+                          height: `${m.box.h * 100}%`
+                        }}
+                        title={`${m.name}: ${m.detail}`}
+                      />
+                    ))}
                 </div>
                 <p className="legibility-legend small">
                   <span className="legibility-key tooSmall" /> {t('legibility.key.tooSmall')}{' '}
@@ -576,21 +597,26 @@ export default function LegibilityDialog({
             )}
             {here === null ? (
               <p className="muted">{t('textCheck.running', { n: cards.length })}</p>
-            ) : markList.length === 0 ? (
-              <p>{t('legibility.componentOk', { cm })}</p>
             ) : (
-              <ul className="text-check-list">
-                {markList.map((m) => (
-                  <li
-                    key={m.key}
-                    onMouseEnter={() => setHover(m.name)}
-                    onMouseLeave={() => setHover(null)}
-                  >
-                    <span className={`legibility-key ${m.verdict}`} /> <strong>{m.name}</strong>{' '}
-                    <span className="muted">({m.detail})</span>
-                  </li>
-                ))}
-              </ul>
+              <>
+                <p className={problems.length ? 'muted small' : undefined}>
+                  {problems.length
+                    ? t('legibility.componentChecked', { n: markList.length, cm })
+                    : t('legibility.componentOk', { cm, n: markList.length })}
+                </p>
+                <ul className="text-check-list legibility-checked">
+                  {markList.map((m) => (
+                    <li
+                      key={m.key}
+                      onMouseEnter={() => setHover(m.name)}
+                      onMouseLeave={() => setHover(null)}
+                    >
+                      <span className={`legibility-key ${m.verdict}`} /> <strong>{m.name}</strong>{' '}
+                      <span className="muted">({m.detail})</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
             )}
             <button onClick={() => onPick(row)} title={t('textCheck.pick')}>
               {t('legibility.selectInSet')}
@@ -721,4 +747,95 @@ export default function LegibilityDialog({
 
 function Swatch({ color }: { color: string }): React.JSX.Element {
   return <span className="legibility-swatch" style={{ background: color }} />
+}
+
+/** Schermo: pixel (CSS) per millimetro e distanza degli occhi in cm */
+interface Screen {
+  pxPerMm: number
+  cm: number
+  calibrated: boolean
+}
+
+const SCREEN_KEY = 'legibility.screen'
+/** Un pixel CSS vale 1/96 di pollice per definizione; gli schermi veri si discostano */
+const NOMINAL_PX_PER_MM = 96 / 25.4
+
+function loadScreen(): Screen {
+  try {
+    const v = JSON.parse(localStorage.getItem(SCREEN_KEY) ?? 'null') as Partial<Screen> | null
+    if (v && Number(v.pxPerMm) > 0 && Number(v.cm) > 0)
+      return { pxPerMm: Number(v.pxPerMm), cm: Number(v.cm), calibrated: !!v.calibrated }
+  } catch {
+    // preferenza non essenziale
+  }
+  return { pxPerMm: NOMINAL_PX_PER_MM, cm: 50, calibrated: false }
+}
+
+function saveScreen(v: Screen): void {
+  try {
+    localStorage.setItem(SCREEN_KEY, JSON.stringify(v))
+  } catch {
+    // preferenza non essenziale
+  }
+}
+
+/** Una carta di credito è 85,6 × 53,98 mm (ISO/IEC 7810 ID-1) */
+const CARD_MM = { w: 85.6, h: 53.98 }
+
+/**
+ * Calibrazione: si allarga il rettangolo finché è grande come una carta di credito appoggiata
+ * allo schermo, e si scrive a che distanza si tiene lo schermo
+ */
+function Calibration({
+  screen,
+  onChange,
+  onDone
+}: {
+  screen: Screen
+  onChange(v: Screen): void
+  onDone(): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const w = screen.pxPerMm * CARD_MM.w
+  return (
+    <div className="legibility-calibration">
+      <p className="small">{t('legibility.calibrateHint')}</p>
+      <div
+        className="legibility-calibration-card"
+        style={{
+          width: w,
+          height: screen.pxPerMm * CARD_MM.h,
+          borderRadius: screen.pxPerMm * 3.18
+        }}
+      />
+      <input
+        type="range"
+        min={150}
+        max={700}
+        step={1}
+        value={Math.round(w)}
+        aria-label={t('legibility.calibrateSize')}
+        onChange={(e) =>
+          onChange({ ...screen, pxPerMm: Number(e.target.value) / CARD_MM.w, calibrated: true })
+        }
+      />
+      <label>
+        {t('legibility.screenDistance')}
+        <input
+          type="number"
+          min={20}
+          max={200}
+          value={screen.cm}
+          onChange={(e) => {
+            const cm = Number(e.target.value)
+            if (cm > 0) onChange({ ...screen, cm })
+          }}
+        />{' '}
+        cm
+      </label>
+      <button className="primary" onClick={onDone}>
+        {t('legibility.calibrateDone')}
+      </button>
+    </div>
+  )
 }

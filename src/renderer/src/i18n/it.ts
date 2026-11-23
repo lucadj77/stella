@@ -2957,7 +2957,7 @@ export const it: Record<MessageKey, string> = {
   'tip.vision':
     'Mostra i componenti come li vede chi è daltonico, per controllare che i colori che hanno un significato restino distinti',
   'vision.label': 'Visti con:',
-  'vision.normal': 'Colori originali',
+  'vision.normal': 'Senza filtro',
   'vision.normal.tip': 'I componenti come sono',
   'vision.protan': 'Protanopia',
   'vision.protan.tip':
@@ -3005,16 +3005,12 @@ export const it: Record<MessageKey, string> = {
   'legibility.upsideDown': 'Capovolto',
   'legibility.upsideDownHint':
     "Gira la miniatura, come la vede chi sta dall'altra parte del tavolo, e segnala i numeri che diventano altri numeri (6 e 9)",
-  'legibility.blur': 'Sfoca',
-  'legibility.blurHint':
-    'Sfoca la miniatura come si vede dalla distanza scelta: i testi sotto il limite diventano una macchia',
   'legibility.reduced': 'Vista ridotta',
   'legibility.reducedHint': 'Per chi vede meno bene: tutte le misure minime più grandi della metà',
   'legibility.component': 'Componente',
   'legibility.key.tooSmall': 'difficile da leggere',
   'legibility.key.small': 'stanca',
   'legibility.key.overflow': 'non sta nel riquadro',
-  'legibility.componentOk': 'Su questa faccia tutto si legge comodamente da {cm} cm.',
   'legibility.selectInSet': 'Selezionalo nel set',
   'legibility.setTitle': 'In tutto il set ({n} componenti)',
   'legibility.showHint': 'Mostra questo componente nella miniatura',
@@ -3029,6 +3025,23 @@ export const it: Record<MessageKey, string> = {
   'legibility.verdict.ok': 'comodo',
   'legibility.verdict.small': 'stanca',
   'legibility.verdict.tooSmall': 'difficile da leggere',
+  'legibility.real': 'Grandezza reale',
+  'legibility.realHint':
+    'Mostra il componente grande come si vede dalla distanza scelta, se guardi lo schermo dalla distanza scritta in Calibra. Il resto lo fa il tuo occhio: quello che qui non leggi non lo leggerai al tavolo',
+  'legibility.realNote':
+    'Grande come si vede dalla distanza scelta, con lo schermo a {cm} cm dagli occhi.',
+  'legibility.realUncalibrated':
+    'Lo schermo non è ancora calibrato: la grandezza è approssimata. Usa Calibra e tieni gli occhi a {cm} cm dallo schermo.',
+  'legibility.calibrate': 'Calibra…',
+  'legibility.calibrateHint':
+    'Appoggia allo schermo una carta di credito (o una tessera dello stesso formato) e sposta il cursore finché il rettangolo è grande uguale. Poi scrivi a che distanza tieni gli occhi dallo schermo.',
+  'legibility.calibrateSize': 'Grandezza del rettangolo',
+  'legibility.screenDistance': 'Occhi dallo schermo',
+  'legibility.calibrateDone': 'Fatto',
+  'legibility.componentOk':
+    'Tutti i {n} elementi di questa faccia si leggono comodamente da {cm} cm.',
+  'legibility.componentChecked': '{n} elementi controllati da {cm} cm, dal peggiore:',
+  'legibility.key.ok': 'comodo',
   'legibility.title': 'Controllo della leggibilità',
   'legibility.dist.hand': 'In mano ({cm} cm)',
   'legibility.dist.front': 'Sul tavolo davanti a sé ({cm} cm)',
@@ -3037,7 +3050,7 @@ export const it: Record<MessageKey, string> = {
   'legibility.none': 'Nessun problema trovato nei {n} componenti.',
   'legibility.textItem': '{pt} pt, x {mm} mm, fino a {cm} cm',
   'legibility.iconsHint':
-    "Icone nel testo e immagini piccole: per riconoscerle devono essere alte almeno il doppio di un'altezza della x comoda.",
+    "Icone nel testo e immagini (fisse, da colonna o da formula): per riconoscerle devono essere alte almeno il doppio di un'altezza della x comoda.",
   'legibility.iconItem': '{mm} mm di altezza',
   'legibility.allComponents': 'tutti i {n} componenti',
   'legibility.contrast': 'Contrasto basso',

@@ -2918,7 +2918,7 @@ export const en = {
   'tip.vision':
     'Show the components as people with color blindness see them, to check that colors that carry meaning stay distinct',
   'vision.label': 'Seen with:',
-  'vision.normal': 'Original colors',
+  'vision.normal': 'No filter',
   'vision.normal.tip': 'The components as they are',
   'vision.protan': 'Protanopia',
   'vision.protan.tip':
@@ -2965,16 +2965,12 @@ export const en = {
   'legibility.upsideDown': 'Upside down',
   'legibility.upsideDownHint':
     'Turns the thumbnail around, as seen from the other side of the table, and reports the numbers that become other numbers (6 and 9)',
-  'legibility.blur': 'Blur',
-  'legibility.blurHint':
-    'Blurs the thumbnail as seen from the chosen distance: text under the limit becomes a smudge',
   'legibility.reduced': 'Reduced vision',
   'legibility.reducedHint': 'For people who see less well: every minimum size half again as large',
   'legibility.component': 'Component',
   'legibility.key.tooSmall': 'hard to read',
   'legibility.key.small': 'tiring',
   'legibility.key.overflow': 'does not fit',
-  'legibility.componentOk': 'On this side everything reads comfortably from {cm} cm.',
   'legibility.selectInSet': 'Select it in the set',
   'legibility.setTitle': 'In the whole set ({n} components)',
   'legibility.showHint': 'Show this component in the thumbnail',
@@ -2989,6 +2985,22 @@ export const en = {
   'legibility.verdict.ok': 'comfortable',
   'legibility.verdict.small': 'tiring',
   'legibility.verdict.tooSmall': 'hard to read',
+  'legibility.real': 'Real size',
+  'legibility.realHint':
+    'Shows the component as large as it looks from the chosen distance, when you look at the screen from the distance written in Calibrate. Your eye does the rest: what you cannot read here, you will not read at the table',
+  'legibility.realNote':
+    'As large as it looks from the chosen distance, with the screen {cm} cm from your eyes.',
+  'legibility.realUncalibrated':
+    'The screen is not calibrated yet: the size is approximate. Use Calibrate, and keep your eyes {cm} cm from the screen.',
+  'legibility.calibrate': 'Calibrate…',
+  'legibility.calibrateHint':
+    'Hold a credit card (or any ID-1 card) against the screen and move the slider until the rectangle is exactly as large. Then write how far your eyes are from the screen.',
+  'legibility.calibrateSize': 'Size of the rectangle',
+  'legibility.screenDistance': 'Eyes from the screen',
+  'legibility.calibrateDone': 'Done',
+  'legibility.componentOk': 'All {n} elements of this side read comfortably from {cm} cm.',
+  'legibility.componentChecked': '{n} elements checked from {cm} cm, worst first:',
+  'legibility.key.ok': 'comfortable',
   'legibility.title': 'Readability check',
   'legibility.dist.hand': 'In hand ({cm} cm)',
   'legibility.dist.front': 'On the table in front of you ({cm} cm)',
@@ -2997,7 +3009,7 @@ export const en = {
   'legibility.none': 'No problems found in the {n} components.',
   'legibility.textItem': '{pt} pt, x {mm} mm, up to {cm} cm',
   'legibility.iconsHint':
-    'Icons in the text and small images: to be recognized they should be at least twice as tall as a comfortable x-height.',
+    'Icons in the text and images (fixed, from a column or from a formula): to be recognized they should be at least twice as tall as a comfortable x-height.',
   'legibility.iconItem': '{mm} mm tall',
   'legibility.allComponents': 'all {n} components',
   'legibility.contrast': 'Low contrast',
