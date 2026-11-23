@@ -5,6 +5,28 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.13.0
+
+### English
+
+- **Template variants and lists**: **Variants…**, in a template's menu, makes preset versions of it (a gold, silver and copper frame, each with its band color), shown once in the sidebar; each component picks its variant from thumbnails. A layer can also take its value from a **List** of choices written in the template, picked with thumbnails, swatches or a drop-down. Variants can be reordered, made independent and travel in the template's package.
+- **Readability check**: Tools › **Check readability…** shows a component at a chosen distance (40 to 150 cm), marks text, icons and images too small to read from there and text that does not fit, can turn it **Upside down** (6 and 9) and show it at **Real size** after a one-time screen calibration. For the whole set it lists small text, low contrast, colors confused with color blindness and unsuitable fonts. Glasses next to a text's size tell how it reads from each distance.
+- **Projects travel more easily**: **Export project as ZIP…** and **Import project from ZIP…** (also by dragging the ZIP onto the window), a `<project name>.stella` file to open a project with a double-click (installed app), project folders dragged onto the start screen (Tabletop Creator projects open the import), package ZIPs dropped on the window.
+- **Faster editing of sets**: in the set grid Delete removes the selected components, ⌘D / Ctrl+D duplicates them and ⌘X/⌘C/⌘V / Ctrl+X/C/V cut, copy and paste them, also into another set or into Excel. Components are named by row number unless the template picks a field.
+- **Renaming a layer updates what uses it**: formulas and texts that call it, in the template, its derived templates and variants, and the columns of the sets that use them.
+- **Manage the project**: delete several sets, documents or templates at once, also with the Delete key; **Add images…**, **Import icons…** and images dragged from the computer; a **Folder** for new images saved in the project.
+- **Fixes**: very large shrink-to-fit texts (some Tabletop Creator imports) no longer stop the app with React error #185; moving images no longer changes card texts equal to their name; templates made independent when deleting their base are saved at once; load warnings can be closed; wide components fit the set preview; the color blindness preview says **No filter** and **Close preview**.
+
+### Italiano
+
+- **Varianti dei template ed elenchi**: **Varianti…**, nel menu di un template, ne crea versioni preimpostate (una cornice d'oro, d'argento e di rame, ciascuna con il colore della sua banda), che compaiono una volta sola nella barra laterale; ogni componente sceglie la sua variante dalle miniature. Un livello può anche prendere il valore da un **Elenco** di voci scritte nel template, scelte con miniature, campioni o una tendina. Le varianti si riordinano, si rendono indipendenti e viaggiano nel pacchetto del template.
+- **Controllo della leggibilità**: Strumenti › **Controlla leggibilità…** mostra un componente alla distanza scelta (da 40 a 150 cm), segna testi, icone e immagini troppo piccoli da lì e i testi che non stanno nel riquadro, lo gira **Capovolto** (6 e 9) e lo mostra in **Grandezza reale** dopo una calibrazione dello schermo da fare una volta. Per tutto il set elenca testi piccoli, contrasto basso, colori che si confondono con il daltonismo e font poco adatti. Gli occhiali accanto alla dimensione di un testo dicono come si legge da ogni distanza.
+- **I progetti si spostano più facilmente**: **Esporta il progetto in ZIP…** e **Importa progetto da ZIP…** (anche trascinando lo ZIP sulla finestra), un file `<nome progetto>.stella` per aprire un progetto con un doppio clic (app installata), cartelle di progetto trascinate nella schermata di avvio (i progetti Tabletop Creator aprono l'importazione), ZIP dei pacchetti lasciati cadere sulla finestra.
+- **Set più veloci da modificare**: nella griglia del set Canc elimina i componenti selezionati, ⌘D / Ctrl+D li duplica e ⌘X/⌘C/⌘V / Ctrl+X/C/V li tagliano, copiano e incollano, anche in un altro set o in Excel. I componenti si chiamano con il numero di riga, salvo che il template scelga un campo.
+- **Rinominare un livello aggiorna ciò che lo usa**: formule e testi che lo richiamano, nel template, nei derivati e nelle varianti, e le colonne dei set che li usano.
+- **Gestisci il progetto**: eliminare più set, documenti o template insieme, anche con Canc; **Aggiungi immagini…**, **Importa icone…** e immagini trascinate dal computer; una **Cartella** per le immagini nuove salvata nel progetto.
+- **Correzioni**: i testi molto grandi con «riduci per stare nel riquadro» (alcune importazioni da Tabletop Creator) non fermano più l'app con l'errore React #185; spostare immagini non cambia più i testi delle carte uguali al loro nome; i template resi indipendenti eliminando il loro base si salvano subito; gli avvisi del caricamento si chiudono; i componenti larghi entrano nell'anteprima del set; l'anteprima daltonismo dice **Senza filtro** e **Chiudi l'anteprima**.
+
 ## 1.13.0-beta.3
 
 ### English

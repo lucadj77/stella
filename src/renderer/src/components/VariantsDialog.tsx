@@ -47,6 +47,7 @@ export default function VariantsDialog({
   onChange,
   onOpen,
   onDelete,
+  onDetach,
   onReorder,
   onClose
 }: {
@@ -59,6 +60,8 @@ export default function VariantsDialog({
   onChange(t: Template, key: string): void
   onOpen(name: string): void
   onDelete(name: string): void
+  /** La variante diventa un template normale, con l'aspetto di adesso */
+  onDetach(name: string): void
   /** Nuovo ordine delle varianti, per nome */
   onReorder(names: string[]): void
   onClose(): void
@@ -86,6 +89,11 @@ export default function VariantsDialog({
       onClick: () => move(i, i + 1)
     },
     'sep',
+    {
+      label: t('inherit.detach'),
+      title: t('variants.detachHint'),
+      onClick: () => onDetach(v.name)
+    },
     { label: t('variants.delete'), danger: true, onClick: () => onDelete(v.name) }
   ]
 
@@ -335,6 +343,14 @@ export default function VariantsDialog({
                       onClick={() => onOpen(v.name)}
                     >
                       {t('variants.open')}
+                    </button>
+                    <button
+                      type="button"
+                      className="small-btn"
+                      title={t('variants.detachHint')}
+                      onClick={() => onDetach(v.name)}
+                    >
+                      {t('inherit.detach')}
                     </button>
                     <button
                       type="button"

@@ -16,7 +16,8 @@ import GoogleSheetsDialog, { type SheetImport } from './components/GoogleSheetsD
 import TrashDialog from './components/TrashDialog'
 import ManageDialog from './manage/ManageDialog'
 import ImportPackageDialog from './package/ImportPackageDialog'
-import { exportPackage, openPackage, readPackage, type OpenedPackage } from './package/packageZip'
+import { exportPackage, readPackage, type OpenedPackage } from './package/packageZip'
+import ImportProjectZipDialog, { type OpenedProjectZip } from './package/ImportProjectZipDialog'
 import { planImport, type ConflictChoice } from '../../shared/model/package'
 import {
   lastManageTab,
@@ -37,7 +38,7 @@ import {
 } from '../../shared/model/generate'
 import { randomSeed, setUsesRandom } from '../../shared/model/random'
 import { cardFingerprints, changedCards } from '../../shared/model/compare'
-import TextCheckDialog from './components/TextCheckDialog'
+import LegibilityDialog from './components/LegibilityDialog'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type {
   DeletedItem,
@@ -60,7 +61,6 @@ import { systemOfSet, type ProjectMeta } from '../../shared/model/system'
 import {
   baseOf,
   cardTemplate,
-  derivedOf,
   descendantsOf,
   detach,
   isVariant,
@@ -98,6 +98,15 @@ import {
   NO_VIEW,
   type RowView
 } from '../../shared/model/sheet'
+import {
+  copyRows,
+  lostColumns,
+  parseCopiedRows,
+  pasteRows,
+  rowsToTsv,
+  ROWS_MIME,
+  type CopiedRows
+} from '../../shared/model/rowClipboard'
 import {
   renameInDefinitions,
   renameInSheet,
@@ -173,6 +182,11 @@ import { renameSet } from '../../shared/model/renameSet'
 import { sharingSets, syncSharedSheets } from '../../shared/model/sharedSheets'
 import { changesData } from '../../shared/model/readOnlyData'
 import { renameTemplate } from '../../shared/model/renameTemplate'
+import {
+  layerRenames,
+  renameFieldInSheet,
+  renameFieldInTemplate
+} from '../../shared/model/renameLayer'
 import { followInDocuments, type RefSnapshot } from '../../shared/model/docRefs'
 import {
   replaceInProject,
@@ -305,6 +319,91 @@ function loadUiZoom(): number {
 }
 
 type View = 'table' | 'grid'
+
+/** Azioni sui componenti selezionati nella vista a griglia, per la tastiera e gli appunti */
+interface GridCommands {
+  /** C'è almeno un componente selezionato */
+  selected: boolean
+  /** Foglio in sola lettura: si può solo copiare */
+  readOnly: boolean
+  remove(cut?: boolean): Promise<void>
+  duplicate(): void
+  copy(): CopiedRows
+  paste(rows: CopiedRows): Promise<void>
+}
+
+/**
+ * Ultimi componenti copiati: se gli appunti non tengono il tipo di Stella (alcuni sistemi lo
+ * perdono), il testo uguale a quello copiato basta per riconoscerli
+ */
+let lastCopied: { text: string; rows: CopiedRows } | null = null
+
+/** Tastiera e appunti della vista a griglia: montato solo in quella vista */
+function GridShortcuts(props: GridCommands): null {
+  const latest = useRef(props)
+  useEffect(() => {
+    latest.current = props
+  })
+  // Canc elimina i componenti selezionati, ⌘D li duplica, ⌘X ⌘C ⌘V li
+  // tagliano, copiano e incollano (anche in un altro set)
+  useEffect(() => {
+    const busy = (e: Event): boolean => {
+      const target = e.target instanceof HTMLElement ? e.target : null
+      return (
+        !!target?.closest('input, textarea, select, [contenteditable], [role="dialog"]') ||
+        !!document.querySelector('[role="dialog"]')
+      )
+    }
+    const onKey = (e: KeyboardEvent): void => {
+      const g = latest.current
+      if (e.defaultPrevented || e.altKey || busy(e)) return
+      const mod = e.metaKey || e.ctrlKey
+      if (g.readOnly) return
+      if (!mod && (e.key === 'Delete' || e.key === 'Backspace') && g.selected) {
+        e.preventDefault()
+        void g.remove()
+      } else if (mod && !e.shiftKey && e.key.toLowerCase() === 'd' && g.selected) {
+        e.preventDefault()
+        g.duplicate()
+      }
+    }
+    const onClipboard = (e: ClipboardEvent): void => {
+      const g = latest.current
+      if (busy(e)) return
+      if (e.type === 'paste') {
+        if (g.readOnly) return
+        const data = e.clipboardData
+        const rows =
+          parseCopiedRows(data?.getData(ROWS_MIME) ?? '') ??
+          (lastCopied && data?.getData('text/plain') === lastCopied.text ? lastCopied.rows : null)
+        if (!rows) return
+        e.preventDefault()
+        void g.paste(rows)
+        return
+      }
+      // con del testo selezionato nella pagina vale la copia normale
+      if (!g.selected || window.getSelection()?.toString()) return
+      const rows = g.copy()
+      const text = rowsToTsv(rows)
+      lastCopied = { text, rows }
+      e.clipboardData?.setData('text/plain', text)
+      e.clipboardData?.setData(ROWS_MIME, JSON.stringify(rows))
+      e.preventDefault()
+      if (e.type === 'cut' && !g.readOnly) void g.remove(true)
+    }
+    window.addEventListener('keydown', onKey)
+    document.addEventListener('copy', onClipboard)
+    document.addEventListener('cut', onClipboard)
+    document.addEventListener('paste', onClipboard)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.removeEventListener('copy', onClipboard)
+      document.removeEventListener('cut', onClipboard)
+      document.removeEventListener('paste', onClipboard)
+    }
+  }, [])
+  return null
+}
 /** Una riga già legata, con la sua posizione nel foglio */
 interface BoundRow {
   index: number
@@ -440,6 +539,7 @@ function App(): React.JSX.Element {
   /** Finestra «Gestisci il progetto», con la scheda e la voce da mostrare */
   const [managing, setManaging] = useState<{ tab: ManageTab; focus?: string } | null>(null)
   const [importingPackage, setImportingPackage] = useState<OpenedPackage | null>(null)
+  const [importingZip, setImportingZip] = useState<OpenedProjectZip | null>(null)
   useEffect(
     () =>
       onOpenManage((tab, focus) => {
@@ -477,7 +577,8 @@ function App(): React.JSX.Element {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
-  const [importing, setImporting] = useState<false | 'ttc' | 'nandeck'>(false)
+  // { ttc }: una cartella Tabletop Creator trascinata nella schermata di avvio
+  const [importing, setImporting] = useState<false | 'ttc' | 'nandeck' | { ttc: string }>(false)
   const [duplicating, setDuplicating] = useState<Selected | null>(null)
   /** Set di cui si sta cambiando il nome */
   const [renamingSet, setRenamingSet] = useState<number | null>(null)
@@ -498,6 +599,12 @@ function App(): React.JSX.Element {
   const [fileDirty, setFileDirty] = useState(false)
   /** Il file dati è cambiato fuori da Stella e non si è ancora riletto */
   const [dataChanged, setDataChanged] = useState(false)
+  // avvisi del caricamento chiusi con ×: valgono finché il progetto non si ricarica, che dà
+  // un elenco di avvisi nuovo
+  const [closedWarnings, setClosedWarnings] = useState<{ of: unknown; idx: number[] }>({
+    of: null,
+    idx: []
+  })
   /** Finestra Controlla file dati aperta */
   const [checkingData, setCheckingData] = useState(false)
   /** Finestra per importare un foglio da un altro file aperta */
@@ -895,6 +1002,12 @@ function App(): React.JSX.Element {
       // ogni modifica dell'editor è un passo della cronologia del progetto; quelle ravvicinate
       // con la stessa chiave (e un trascinamento intero) diventano un solo passo
       const p0 = projectRef.current
+      // un livello rinominato: seguono i richiami ({img}) nel template e nei derivati, e le
+      // colonne nei fogli dei set; allora ⌘Z deve riportare indietro anche i fogli
+      const before = p0?.templates.find((x) => x.name === tpl.name)
+      const renames = before ? layerRenames(before, tpl) : []
+      if (renames.length)
+        for (const [from, to] of renames) tpl = renameFieldInTemplate(tpl, from, to)
       if (p0 && change) {
         const now = Date.now()
         setHistoryRaw((h) => {
@@ -902,6 +1015,7 @@ function App(): React.JSX.Element {
           const same =
             change.key !== undefined &&
             change.key === h.key &&
+            !renames.length &&
             last?.tplOnly &&
             last.where?.kind === 'template' &&
             last.where.name === tpl.name &&
@@ -911,7 +1025,7 @@ function App(): React.JSX.Element {
             sets: p0.sets,
             file: p0.file,
             templates: p0.templates,
-            tplOnly: true,
+            tplOnly: !renames.length,
             where: { kind: 'template', name: tpl.name },
             side: change.side,
             selection: change.selection,
@@ -923,13 +1037,43 @@ function App(): React.JSX.Element {
       }
       setProject((p) => {
         if (!p) return p
+        const family = new Set([
+          tpl.name,
+          ...descendantsOf(p.templates, tpl.name).map((x) => x.name)
+        ])
+        let next = p.templates.map((x) => (x.name === tpl.name ? tpl : x))
+        let sets = p.sets
+        if (renames.length) {
+          const touched: string[] = []
+          next = next.map((x) => {
+            if (x.name === tpl.name || !family.has(x.name)) return x
+            let y = x
+            for (const [from, to] of renames) y = renameFieldInTemplate(y, from, to)
+            if (y !== x) touched.push(x.name)
+            return y
+          })
+          if (touched.length) setDirty((d) => new Set([...d, ...touched]))
+          // i fogli dei set che usano il template o un suo derivato; un foglio condiviso una volta
+          const done = new Map<string, Sheet>()
+          sets = p.sets.map((x) => {
+            if (!x.data || !family.has(x.template)) return x
+            let data = done.get(x.data.name)
+            if (!data) {
+              data = x.data
+              for (const [from, to] of renames) data = renameFieldInSheet(data, from, to)
+              done.set(x.data.name, data)
+            }
+            return data === x.data ? x : { ...x, data }
+          })
+          const changedSheets = [...done.entries()]
+            .filter(([name, d]) => p.sets.some((x) => x.data?.name === name && x.data !== d))
+            .map(([name]) => name)
+          if (changedSheets.length) setDirtySheets((d) => new Set([...d, ...changedSheets]))
+        }
         // i derivati seguono subito il base; quelli che cambiano per una rinomina vanno salvati
-        const synced = syncDerived(
-          p.templates,
-          p.templates.map((x) => (x.name === tpl.name ? tpl : x))
-        )
+        const synced = syncDerived(p.templates, next)
         if (synced.changed.length) setDirty((d) => new Set([...d, ...synced.changed]))
-        return { ...p, templates: synced.templates }
+        return { ...p, sets, templates: synced.templates }
       })
       setDirty((d) => (d.has(tpl.name) ? d : new Set(d).add(tpl.name)))
     },
@@ -1560,11 +1704,59 @@ function App(): React.JSX.Element {
     }
   }
 
-  const chooseImportPackage = async (): Promise<void> => {
-    if (!project) return
+  /**
+   * Uno ZIP scelto o trascinato sulla finestra: il progetto intero (con stella.json) si estrae in
+   * una cartella nuova e si apre; un pacchetto va nel progetto aperto
+   */
+  const openZipRef = useRef<(picked: { name: string; data: Uint8Array }) => Promise<void>>(
+    async () => undefined
+  )
+  useEffect(() => {
+    openZipRef.current = async (picked) => {
+      try {
+        const summary = await window.api.inspectProjectZip(picked.data)
+        if (summary) {
+          setImportingZip({ file: picked.name, data: picked.data, summary })
+          return
+        }
+        const current = projectRef.current
+        if (!current) {
+          await showNotice(t, t('projectZip.notProject', { file: picked.name }))
+          return
+        }
+        setImportingPackage(await readPackage(current, picked))
+      } catch (err) {
+        setError(messageFromError(err))
+      }
+    }
+  })
+  const chooseZip = async (): Promise<void> => {
     try {
-      const opened = await openPackage(project)
-      if (opened) setImportingPackage(opened)
+      const picked = await window.api.openPackage()
+      if (picked) await openZipRef.current(picked)
+    } catch (e) {
+      setError(messageFromError(e))
+    }
+  }
+  const chooseImportPackage = (): Promise<void> => chooseZip()
+
+  /** Lo ZIP con tutto il progetto, com'è sul disco: le modifiche si salvano prima */
+  const exportProjectZip = async (): Promise<void> => {
+    if (!project) return
+    if (anyDirty) {
+      if (
+        !(await askConfirm({
+          title: t('projectZip.saveFirst.title'),
+          message: t('projectZip.saveFirst'),
+          ok: t('projectZip.saveFirst.ok')
+        }))
+      )
+        return
+      if (!(await saveAll())) return
+    }
+    try {
+      const path = await window.api.exportProjectZip()
+      if (path) await showNotice(t, t('projectZip.exported'), path)
     } catch (e) {
       setError(messageFromError(e))
     }
@@ -1595,14 +1787,9 @@ function App(): React.JSX.Element {
       )
       if (!file) return
       e.preventDefault()
-      const current = projectRef.current
-      if (!current) {
-        await showNotice(t, t('package.dropNoProject'))
-        return
-      }
       try {
         const data = new Uint8Array(await file.arrayBuffer())
-        setImportingPackage(await readPackage(current, { name: file.name, data }))
+        await openZipRef.current({ name: file.name, data })
       } catch (err) {
         setError(messageFromError(err))
       }
@@ -1760,6 +1947,16 @@ function App(): React.JSX.Element {
     if (!(await confirmKey(t, 'documents.deleteConfirm', { name }, { danger: true }))) return
     await documents.remove(name)
     if (openDocument === name) setSelected({ kind: 'set', index: 0 })
+  }
+  /** Più documenti in un passo, con una sola conferma (Gestisci il progetto) */
+  const deleteDocuments = async (names: string[]): Promise<void> => {
+    if (names.length === 1) return deleteDocument(names[0])
+    if (
+      !(await confirmKey(t, 'manage.documents.deleteMany', { n: names.length }, { danger: true }))
+    )
+      return
+    for (const name of names) await documents.remove(name)
+    if (openDocument && names.includes(openDocument)) setSelected({ kind: 'set', index: 0 })
   }
   /** Una copia del documento con un nome libero (Regolamento 2), che si apre */
   const duplicateDocument = async (name: string): Promise<void> => {
@@ -1965,6 +2162,23 @@ function App(): React.JSX.Element {
   })
   useEffect(() => window.api.onCloseRequest(() => void closeRequest.current()), [])
 
+  // un file .stella aperto con un doppio clic: all'avvio si apre il suo progetto; ad app già
+  // avviata (macOS) prima si chiede delle modifiche non salvate
+  const openRequest = useRef<(folder: string) => Promise<void>>(async () => undefined)
+  useEffect(() => {
+    openRequest.current = async (folder) => {
+      if (project?.folder === folder) return
+      if (await discardOk()) await load(folder)
+    }
+  })
+  useEffect(() => {
+    window.api.launchProject().then(
+      (folder) => folder && void openRequest.current(folder),
+      (e) => console.error(e)
+    )
+    return window.api.onOpenProjectRequest((folder) => void openRequest.current(folder))
+  }, [])
+
   // con modifiche non salvate se ne scrive una copia, qualche secondo dopo l'ultima modifica
   useEffect(() => {
     if (!project || window.api.isWeb) return undefined
@@ -2123,39 +2337,74 @@ function App(): React.JSX.Element {
     const set = project.sets[index]
     if (!(await confirmKey(t, 'sidebar.deleteSetConfirm', { name: set.name }, { danger: true })))
       return
+    removeSets([index])
+  }
+  /** Più set in un passo, con una sola conferma (Gestisci il progetto) */
+  const deleteSets = async (names: string[]): Promise<void> => {
+    if (!project) return
+    if (names.length === 1) {
+      const i = project.sets.findIndex((s) => s.name === names[0])
+      if (i >= 0) await deleteSet(i)
+      return
+    }
+    if (!(await confirmKey(t, 'manage.sets.deleteMany', { n: names.length }, { danger: true })))
+      return
+    removeSets(project.sets.flatMap((s, i) => (names.includes(s.name) ? [i] : [])))
+  }
+  const removeSets = (indexes: number[]): void => {
+    if (!project || !indexes.length) return
     setHistory((h) => ({
       past: [...h.past, { sets: project.sets, file: project.file }],
       future: [],
       at: 0
     }))
-    // un foglio che altri set usano ancora resta nel file
-    const shared = sharingSets(project.sets, index).length > 0
-    // in sola lettura il foglio resta nel file, tra quelli non collegati
-    const kept = !shared && project.file.dataReadOnly ? set.data : null
-    const sheet = shared || kept ? null : set.data
+    const gone = new Set(indexes)
+    const kept: Sheet[] = []
+    const trashed: Sheet[] = []
+    const seen = new Set<string>()
+    for (const index of indexes) {
+      const data = project.sets[index].data
+      if (!data || seen.has(data.name)) continue
+      seen.add(data.name)
+      // un foglio che altri set (non eliminati) usano ancora resta nel file
+      const shared = project.sets.some((s, i) => !gone.has(i) && s.data?.name === data.name)
+      if (shared) continue
+      // in sola lettura il foglio resta nel file, tra quelli non collegati
+      if (project.file.dataReadOnly) kept.push(data)
+      else trashed.push(data)
+    }
     setProject({
       ...project,
-      sets: project.sets.filter((_, i) => i !== index),
-      file: { ...project.file, sets: project.file.sets.filter((_, i) => i !== index) },
-      ...(kept
+      sets: project.sets.filter((_, i) => !gone.has(i)),
+      file: { ...project.file, sets: project.file.sets.filter((_, i) => !gone.has(i)) },
+      ...(kept.length
         ? {
-            unusedSheets: [...project.unusedSheets, kept.name],
-            unusedData: [...(project.unusedData ?? []), kept]
+            unusedSheets: [...project.unusedSheets, ...kept.map((k) => k.name)],
+            unusedData: [...(project.unusedData ?? []), ...kept]
           }
         : {})
     })
-    if (sheet) {
+    if (trashed.length) {
       setDirtySheets((d) => {
         const next = new Set(d)
-        next.delete(sheet.name)
+        trashed.forEach((sheet) => next.delete(sheet.name))
         return next
       })
       // il foglio sul disco ha ancora il nome di prima se il set era stato rinominato
-      setTrashedSheets((t) => new Set(t).add(sheet.origin ?? sheet.name))
+      setTrashedSheets((t) => {
+        const next = new Set(t)
+        trashed.forEach((sheet) => next.add(sheet.origin ?? sheet.name))
+        return next
+      })
     }
     setFileDirty(true)
-    if (selected.kind === 'set' && selected.index >= index && selected.index > 0)
-      setSelected({ kind: 'set', index: selected.index - 1 })
+    if (selected.kind === 'set') {
+      const before = indexes.filter((i) => i < selected.index).length
+      const index = gone.has(selected.index)
+        ? Math.max(0, selected.index - before - 1)
+        : selected.index - before
+      if (index !== selected.index) setSelected({ kind: 'set', index: Math.max(0, index) })
+    }
   }
 
   /**
@@ -2179,36 +2428,62 @@ function App(): React.JSX.Element {
       setSelected({ kind: 'template', name: to })
   }
 
-  /** Elimina un template non usato dai set: il file va in deleted/ nel progetto */
-  const deleteTemplate = async (name: string): Promise<void> => {
+  /**
+   * Elimina i template indicati: i file vanno in deleted/ nel progetto. Quelli usati da un set
+   * restano (si dice quali); derivati e varianti fuori dalla scelta si eliminano con loro o si
+   * rendono indipendenti, con una sola domanda per tutti.
+   */
+  const deleteTemplates = async (names: string[]): Promise<void> => {
     if (!project) return
-    const users = project.sets.filter((s) => s.template === name).map((s) => s.name)
-    if (users.length) {
-      await showNotice(t, t('sidebar.templateInUse', { name, sets: users.join(', ') }))
+    const setsOf = (n: string): string[] =>
+      project.sets.filter((s) => s.template === n).map((s) => s.name)
+    const skipped = names.filter((n) => setsOf(n).length)
+    const chosen = project.templates.filter(
+      (x) => names.includes(x.name) && !skipped.includes(x.name)
+    )
+    if (!chosen.length) {
+      if (names.length === 1)
+        await showNotice(
+          t,
+          t('sidebar.templateInUse', { name: names[0], sets: setsOf(names[0]).join(', ') })
+        )
+      else await showNotice(t, t('manage.templates.allInUse', { list: skipped.join(', ') }))
       return
     }
-    const tpl = project.templates.find((x) => x.name === name)
-    if (!tpl) return
-    // derivati e varianti, anche di secondo grado: si eliminano con il template o si rendono
-    // indipendenti (i diretti; quelli più in giù restano derivati di questi)
-    const derived = descendantsOf(project.templates, name)
-    const direct = derivedOf(project.templates, name)
-    let remove: Template[] = [tpl]
+    const many = chosen.length > 1
+    const name = chosen[0].name
+    const inChoice = (x: Template): boolean => chosen.includes(x)
+    // derivati e varianti, anche di secondo grado, che non sono nella scelta: si eliminano con i
+    // template o si rendono indipendenti (i diretti; quelli più in giù restano derivati di questi)
+    const derived = [
+      ...new Set(chosen.flatMap((x) => descendantsOf(project.templates, x.name)))
+    ].filter((x) => !inChoice(x))
+    const direct = derived.filter((x) => chosen.some((c) => c.name === x.extends))
+    const skippedNote = skipped.length
+      ? '\n\n' + t('manage.templates.inUseSkipped', { list: skipped.join(', ') })
+      : ''
+    let remove: Template[] = [...chosen]
     let detached: Template[] = []
     if (derived.length) {
       const list = derived.map((x) => x.name).join(', ')
       const inUse = project.sets.filter((s) => derived.some((x) => x.name === s.template))
-      const onlyVariants = derived.every((x) => x.variant && x.extends === name)
-      const params = { name, list, n: derived.length }
+      const onlyVariants = !many && derived.every((x) => x.variant && x.extends === name)
+      const params = { name, list, n: many ? chosen.length : derived.length }
+      const titleKey = many
+        ? 'inherit.deleteManyWithDerived.title'
+        : onlyVariants
+          ? 'inherit.deleteWithVariants.title'
+          : 'inherit.deleteWithDerived.title'
       if (inUse.length) {
         // un derivato è il template di un set: si può solo renderli indipendenti
         if (
           !(await askConfirm({
-            title: t('inherit.deleteWithDerived.title', params),
-            message: t('inherit.deleteWithDerived.inUse', {
-              ...params,
-              sets: inUse.map((s) => s.name).join(', ')
-            }),
+            title: t(titleKey, params),
+            message:
+              t(many ? 'inherit.deleteManyWithDerived.inUse' : 'inherit.deleteWithDerived.inUse', {
+                ...params,
+                sets: inUse.map((s) => s.name).join(', ')
+              }) + skippedNote,
             ok: t('inherit.deleteWithDerived.detach', params),
             danger: true
           }))
@@ -2217,14 +2492,16 @@ function App(): React.JSX.Element {
         detached = direct
       } else {
         const choice = await askChoice({
-          title: t(
-            onlyVariants ? 'inherit.deleteWithVariants.title' : 'inherit.deleteWithDerived.title',
-            params
-          ),
-          message: t(
-            onlyVariants ? 'inherit.deleteWithVariants' : 'inherit.deleteWithDerived',
-            params
-          ),
+          title: t(titleKey, params),
+          message:
+            t(
+              many
+                ? 'inherit.deleteManyWithDerived'
+                : onlyVariants
+                  ? 'inherit.deleteWithVariants'
+                  : 'inherit.deleteWithDerived',
+              params
+            ) + skippedNote,
           ok: t(
             onlyVariants ? 'inherit.deleteWithVariants.all' : 'inherit.deleteWithDerived.all',
             params
@@ -2236,18 +2513,63 @@ function App(): React.JSX.Element {
           danger: true
         })
         if (choice === 'cancel') return
-        if (choice === 'ok') remove = [tpl, ...derived]
+        if (choice === 'ok') remove = [...chosen, ...derived]
         else detached = direct
       }
+    } else if (many) {
+      if (
+        !(await askConfirm({
+          title: t('manage.templates.deleteMany.title', { n: chosen.length }),
+          message:
+            t('manage.templates.deleteMany', { list: chosen.map((x) => x.name).join(', ') }) +
+            skippedNote,
+          ok: t('manage.templates.deleteMany.ok', { n: chosen.length }),
+          danger: true
+        }))
+      )
+        return
+    } else if (skipped.length) {
+      if (
+        !(await askConfirm({
+          title: t(
+            chosen[0].variant && chosen[0].extends
+              ? 'variants.deleteConfirm.title'
+              : 'sidebar.deleteTemplateConfirm.title',
+            { name }
+          ),
+          message: t('sidebar.deleteTemplateConfirm') + skippedNote,
+          ok: t('sidebar.deleteTemplateConfirm.ok'),
+          danger: true
+        }))
+      )
+        return
     } else if (
       !(await confirmKey(
         t,
-        tpl.variant && tpl.extends ? 'variants.deleteConfirm' : 'sidebar.deleteTemplateConfirm',
+        chosen[0].variant && chosen[0].extends
+          ? 'variants.deleteConfirm'
+          : 'sidebar.deleteTemplateConfirm',
         { name },
         { danger: true }
       ))
     )
       return
+    // I template resi indipendenti si scrivono subito, prima di spostare il base nel cestino:
+    // altrimenti, chiudendo senza salvare, sul disco restavano derivati di un base che non c'è più
+    // e alla riapertura si caricavano vuoti.
+    const free = new Map(detached.map((x) => [x.name, detach(x)]))
+    try {
+      for (const x of free.values()) await window.api.saveTemplate(x)
+    } catch (e) {
+      setError(messageFromError(e))
+      return
+    }
+    for (const [n, x] of free) {
+      if (!x.origin) continue
+      const copy = { ...x }
+      delete copy.origin
+      free.set(n, copy)
+    }
     const gone: string[] = []
     try {
       for (const x of remove) {
@@ -2257,8 +2579,6 @@ function App(): React.JSX.Element {
     } catch (e) {
       setError(messageFromError(e))
     }
-    if (!gone.length) return
-    const free = new Map(detached.map((x) => [x.name, detach(x)]))
     setProject(
       (p) =>
         p && {
@@ -2271,13 +2591,15 @@ function App(): React.JSX.Element {
     setDirty((d) => {
       const next = new Set(d)
       for (const n of gone) next.delete(n)
-      for (const n of free.keys()) next.add(n)
+      // già scritti sul disco
+      for (const n of free.keys()) next.delete(n)
       return next
     })
     if (selected.kind === 'template' && gone.includes(selected.name))
       setSelected({ kind: 'set', index: 0 })
     if (free.size) setEditorRev((r) => r + 1)
   }
+  const deleteTemplate = (name: string): Promise<void> => deleteTemplates([name])
 
   /** Carte nuove o cambiate rispetto alla versione del confronto, per set; si aggiornano a ogni modifica */
   const changed = useMemo(
@@ -3155,6 +3477,16 @@ function App(): React.JSX.Element {
       title: t('package.exportTemplateHint'),
       onClick: () => void savePackage('template', name)
     },
+    // derivati e varianti tornano template normali, con l'aspetto di adesso
+    ...(project?.templates.find((x) => x.name === name)?.extends
+      ? [
+          {
+            label: t('inherit.detach'),
+            title: t('inherit.detachHint'),
+            onClick: () => void detachTemplate(name)
+          }
+        ]
+      : []),
     'sep',
     {
       label: t('sidebar.delete'),
@@ -3233,6 +3565,9 @@ function App(): React.JSX.Element {
       void newNote()
     },
     deleteNote: (name) => void deleteNote(name),
+    deleteTemplates: (names) => deleteTemplates(names),
+    deleteSets: (names) => deleteSets(names),
+    deleteDocuments: (names) => deleteDocuments(names),
     editVariable: (name) => {
       setEditingVariable(name)
       focusTopDialog()
@@ -3295,6 +3630,16 @@ function App(): React.JSX.Element {
       onClick: () => void chooseImportPackage()
     },
     {
+      label: t('projectZip.exportMenu'),
+      title: t('projectZip.exportHint'),
+      onClick: () => void exportProjectZip()
+    },
+    {
+      label: t('projectZip.importMenu'),
+      title: t('projectZip.importHint'),
+      onClick: () => void chooseZip()
+    },
+    {
       label: t('app.googleSheets'),
       title: t('tip.googleSheets'),
       onClick: () => setSheetsOpen(true)
@@ -3335,6 +3680,8 @@ function App(): React.JSX.Element {
     trash: () => setTrashOpen(true),
     manage: () => project && openManage(),
     importPackage: () => void chooseImportPackage(),
+    exportProjectZip: () => void exportProjectZip(),
+    importProjectZip: () => void chooseZip(),
     sheets: () => setSheetsOpen(true),
     languages: () => setLanguagesOpen(true),
     projectInfo: () => project && setInfoOpen(true),
@@ -3396,6 +3743,8 @@ function App(): React.JSX.Element {
           { id: 'manage', label: t('manage.menu'), enabled: hasProject },
           { id: 'trash', label: t('app.trash'), enabled: hasProject },
           { id: 'importPackage', label: t('package.importMenu'), enabled: hasProject },
+          { id: 'exportProjectZip', label: t('projectZip.exportMenu'), enabled: hasProject },
+          { id: 'importProjectZip', label: t('projectZip.importMenu') },
           { id: 'sheets', label: t('app.googleSheets'), enabled: hasProject },
           { id: 'languages', label: t('app.languages'), enabled: hasProject },
           sep,
@@ -3695,11 +4044,27 @@ function App(): React.JSX.Element {
                             </button>
                           </div>
                         )}
-                        {project?.warnings.map((w, i) => (
-                          <div key={i} className="banner warning">
-                            {t(w)}
-                          </div>
-                        ))}
+                        {project?.warnings.map((w, i) =>
+                          closedWarnings.of === project.warnings &&
+                          closedWarnings.idx.includes(i) ? null : (
+                            <div key={i} className="banner warning closable">
+                              <span>{t(w)}</span>
+                              <button
+                                className="banner-close"
+                                title={t('dialog.close')}
+                                aria-label={t('dialog.close')}
+                                onClick={() =>
+                                  setClosedWarnings((c) => ({
+                                    of: project.warnings,
+                                    idx: c.of === project.warnings ? [...c.idx, i] : [i]
+                                  }))
+                                }
+                              >
+                                ×
+                              </button>
+                            </div>
+                          )
+                        )}
 
                         {project && (
                           <FirstSteps
@@ -3917,8 +4282,9 @@ function App(): React.JSX.Element {
                             settings={settings}
                             onOpen={load}
                             onChoose={open}
-                            onImport={() => setImporting('ttc')}
+                            onImport={(source) => setImporting(source ? { ttc: source } : 'ttc')}
                             onImportNandeck={() => setImporting('nandeck')}
+                            onImportZip={() => void chooseZip()}
                           />
                         )}
                         {managing && project && (
@@ -4049,6 +4415,7 @@ function App(): React.JSX.Element {
                                   setSelected({ kind: 'template', name })
                                 }}
                                 onDelete={(name) => void deleteTemplate(name)}
+                                onDetach={(name) => void detachTemplate(name)}
                                 onReorder={(names) => orderVariants(base.name, names)}
                                 onClose={() => {
                                   setVariantsFor(null)
@@ -4121,8 +4488,11 @@ function App(): React.JSX.Element {
                           onClose={() => setImporting(false)}
                         />
                       )}
-                      {importing === 'ttc' && (
+                      {(importing === 'ttc' || (typeof importing === 'object' && importing)) && (
                         <ImportTtcDialog
+                          source={
+                            typeof importing === 'object' && importing ? importing.ttc : undefined
+                          }
                           onOpen={async (folder) => {
                             if (!(await discardOk())) return
                             setImporting(false)
@@ -4182,6 +4552,17 @@ function App(): React.JSX.Element {
                           project={project}
                           onImport={importGoogleSheet}
                           onClose={() => setSheetsOpen(false)}
+                        />
+                      )}
+                      {importingZip && (
+                        <ImportProjectZipDialog
+                          zip={importingZip}
+                          onOpen={async (folder) => {
+                            setImportingZip(null)
+                            if (await discardOk()) await load(folder)
+                            else await showNotice(t, t('projectZip.extracted'), folder)
+                          }}
+                          onClose={() => setImportingZip(null)}
                         />
                       )}
                       {importingPackage && project && (
@@ -4708,8 +5089,10 @@ function SetView({
     const sorted = [...new Set(selection)].sort((a, b) => a - b)
     setSelection(sorted.map((row, k) => row + k + 1))
   }
-  const remove = async (): Promise<void> => {
+  /** `cut`: tagliando non si chiede conferma, i componenti sono negli appunti */
+  const remove = async (cut = false): Promise<void> => {
     if (
+      !cut &&
       selection.length > 1 &&
       !(await confirmKey(
         t,
@@ -4721,6 +5104,18 @@ function SetView({
       return
     onChange(removeRows(sheet, selection))
     setSelection([Math.min(Math.min(...selection), sheet.rows.length - selection.length - 1)])
+  }
+  const paste = async (rows: CopiedRows): Promise<void> => {
+    const lost = lostColumns(sheet, rows)
+    if (
+      lost.length &&
+      !(await confirmKey(t, 'set.pasteLost', { columns: lost.join(', ') }, { cancel: false }))
+    )
+      return
+    const at = none ? sheet.rows.length : Math.max(...selection) + 1
+    const { sheet: next, added } = pasteRows(sheet, rows, at)
+    onChange(next)
+    setSelection(added)
   }
 
   /** Livelli con un campo sotto il puntatore, dal più in alto, con dove stanno sulla carta */
@@ -5002,6 +5397,16 @@ function SetView({
               </span>
             )}
           </span>
+          {view === 'grid' && (
+            <GridShortcuts
+              selected={!none}
+              readOnly={!!readOnly}
+              remove={remove}
+              duplicate={duplicate}
+              copy={() => copyRows(sheet, selection)}
+              paste={paste}
+            />
+          )}
           <span className="spacer" />
           {view === 'grid' && (
             <input
@@ -5128,7 +5533,7 @@ function SetView({
             <button
               className="danger"
               disabled={none}
-              onClick={remove}
+              onClick={() => void remove()}
               title={t('tip.deleteCards')}
             >
               {t('set.delete')}
@@ -5445,8 +5850,9 @@ function SetView({
         </Dialog>
       )}
       {checkingText && (
-        <TextCheckDialog
+        <LegibilityDialog
           cards={cards}
+          row={selection[0]}
           onPick={(row) => {
             setSelection([row])
             setCheckingText(false)

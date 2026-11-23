@@ -20,6 +20,9 @@ export const it: Record<MessageKey, string> = {
   'set.deleteConfirm': 'Puoi annullare con ⌘Z.',
   'set.deleteConfirm.title': 'Eliminare {what}?',
   'set.deleteConfirm.ok': 'Elimina',
+  'set.pasteLost': 'I loro valori non si incollano. Puoi annullare con ⌘Z.',
+  'set.pasteLost.title': 'Colonne che questo set non ha: {columns}',
+  'set.pasteLost.ok': 'Incolla comunque',
   'set.filter': 'Filtra…',
   'set.filterAll': 'in tutte le colonne',
   'set.sortNone': 'Ordine del foglio',
@@ -807,6 +810,8 @@ export const it: Record<MessageKey, string> = {
   'list.search': 'Cerca tra {n} voci',
   'list.noMatch': 'Nessuna voce corrisponde',
   'variants.menu': 'Varianti…',
+  'variants.detachHint':
+    "La variante diventa un template normale, con l'aspetto di adesso, e non è più fra le varianti di questo template",
   'variants.menuHint':
     'Versioni preimpostate di questo template, che ogni componente sceglie con una miniatura',
   'variants.title': 'Varianti di "{name}"',
@@ -864,7 +869,7 @@ export const it: Record<MessageKey, string> = {
   'editor.snapRotatedHint': "Anche l'oggetto che si aggancia prende questa rotazione",
   'prop.snapFollow': 'Stessa rotazione del livello',
   'prop.snapAngle': 'Angolo dello snap',
-  'editor.labelFieldAuto': 'Prima colonna',
+  'editor.labelFieldAuto': 'Numero di riga',
   'editor.valueHint':
     'Non si disegna sul componente. Usalo come {{name}} nelle formule e nei testi degli altri livelli; una colonna del foglio con lo stesso nome lo cambia componente per componente.',
   'layerType.group': 'Gruppo',
@@ -2394,6 +2399,15 @@ export const it: Record<MessageKey, string> = {
   'welcome.allVideos': 'Tutti i video tutorial',
   'welcome.guide': 'Leggi la guida',
   'welcome.learnShort': 'Ti serve una mano?',
+  'start.dropHint': 'Rilascia la cartella del progetto per aprirlo',
+  'start.dropTip':
+    'Puoi anche trascinare qui la cartella di un progetto per aprirlo, o quella di un progetto Tabletop Creator per importarlo.',
+  'start.dropTtc.title': 'Importare questo progetto Tabletop Creator?',
+  'start.dropTtc':
+    '{folder} è un progetto Tabletop Creator. Stella lo converte in una nuova cartella di progetto e lascia l’originale com’è.',
+  'start.dropTtc.ok': 'Importa…',
+  'start.dropNotProject':
+    'Questa non è la cartella di un progetto. Trascina la cartella che contiene stella.json (o quella di un progetto Tabletop Creator).',
   'start.newProject': 'Nuovo progetto…',
   'start.openProject': 'Apri progetto…',
   'start.importTtc': 'Importa da Tabletop Creator…',
@@ -2946,7 +2960,7 @@ export const it: Record<MessageKey, string> = {
   'tip.vision':
     'Mostra i componenti come li vede chi è daltonico, per controllare che i colori che hanno un significato restino distinti',
   'vision.label': 'Visti con:',
-  'vision.normal': 'Vista normale',
+  'vision.normal': 'Senza filtro',
   'vision.normal.tip': 'I componenti come sono',
   'vision.protan': 'Protanopia',
   'vision.protan.tip':
@@ -2959,7 +2973,7 @@ export const it: Record<MessageKey, string> = {
     'Senza coni del blu: blu e verdi si confondono, i gialli diventano rosati (raro)',
   'vision.gray': 'Scala di grigi',
   'vision.gray.tip': 'Solo la luminosità, come in una stampa in bianco e nero',
-  'vision.end': 'Torna normale',
+  'vision.end': "Chiudi l'anteprima",
   'export.onlyChanged': 'Componenti cambiati',
   'export.onlyChangedHint': 'Solo i componenti nuovi o cambiati nel confronto ({n})',
   'app.trash': 'Cestino…',
@@ -2976,9 +2990,9 @@ export const it: Record<MessageKey, string> = {
   'trash.kind.document': 'Documento',
   'trash.kind.sheet': 'Set',
   'trash.unknownFile': '"{file}" non è nel cestino del progetto',
-  'set.textCheck': 'Controlla testi…',
+  'set.textCheck': 'Controlla leggibilità…',
   'tip.textCheck':
-    'Trova i testi che non stanno nel loro riquadro, in tutti i componenti del set, fronte e retro',
+    'Trova testi e icone piccoli, contrasto basso, colori che si confondono, numeri che capovolti cambiano e testi che non stanno nel riquadro, in tutti i componenti del set, fronte e retro',
   'textCheck.title': 'Testi che non stanno nel riquadro',
   'textCheck.running': 'Controllo di {n} componenti…',
   'textCheck.none': 'Tutti i testi dei {n} componenti stanno nel loro riquadro.',
@@ -2988,6 +3002,78 @@ export const it: Record<MessageKey, string> = {
     "I testi con corpo fisso usano l'adattamento «Esce dal riquadro»: non vengono ridotti. Il controllo misura l'intera riga, compreso lo spazio sotto la riga per lettere come «g», e il margine interno toglie spazio al testo. Rimpicciolisci il testo, allarga il riquadro, togli margine interno o scegli «Riduci per stare nel riquadro».",
   'textCheck.fixedTag': 'corpo fisso',
   'textCheck.pick': 'Seleziona questo componente',
+  'legibility.distance': 'Distanza',
+  'legibility.distanceHint':
+    'Quanto è lontano il componente dagli occhi: ne dipendono i segni sulla miniatura e i testi piccoli del set',
+  'legibility.upsideDown': 'Capovolto',
+  'legibility.upsideDownHint':
+    "Gira la miniatura, come la vede chi sta dall'altra parte del tavolo, e segnala i numeri che diventano altri numeri (6 e 9)",
+  'legibility.reduced': 'Vista ridotta',
+  'legibility.reducedHint': 'Per chi vede meno bene: tutte le misure minime più grandi della metà',
+  'legibility.component': 'Componente',
+  'legibility.key.tooSmall': 'difficile da leggere',
+  'legibility.key.small': 'stanca',
+  'legibility.key.overflow': 'non sta nel riquadro',
+  'legibility.selectInSet': 'Selezionalo nel set',
+  'legibility.setTitle': 'In tutto il set ({n} componenti)',
+  'legibility.showHint': 'Mostra questo componente nella miniatura',
+  'legibility.markOverflow': 'non sta nel riquadro',
+  'legibility.small': 'Testi piccoli a {cm} cm',
+  'legibility.smallHint':
+    'Le minuscole più basse di 0,2° di vista stancano a leggerle; in rosso quelle sotto 0,1°, difficili da leggere del tutto. La dimensione è quella usata sul componente, dopo la riduzione per stare nel riquadro.',
+  'legibility.icons': 'Icone piccole a {cm} cm',
+  'legibility.tipLabel': 'Come si legge questo testo',
+  'legibility.tipHead': 'Altezza della x {mm} mm. Come si legge:',
+  'legibility.tipUpTo': 'Comodo fino a {cm} cm.',
+  'legibility.verdict.ok': 'comodo',
+  'legibility.verdict.small': 'stanca',
+  'legibility.verdict.tooSmall': 'difficile da leggere',
+  'legibility.real': 'Grandezza reale',
+  'legibility.realHint':
+    'Mostra il componente grande come si vede dalla distanza scelta, se guardi lo schermo dalla distanza scritta in Calibra. Il resto lo fa il tuo occhio: quello che qui non leggi non lo leggerai al tavolo',
+  'legibility.realNote':
+    'Grande come si vede dalla distanza scelta, con lo schermo a {cm} cm dagli occhi.',
+  'legibility.realUncalibrated':
+    'Lo schermo non è ancora calibrato: la grandezza è approssimata. Usa Calibra e tieni gli occhi a {cm} cm dallo schermo.',
+  'legibility.calibrate': 'Calibra…',
+  'legibility.calibrateHint':
+    'Appoggia allo schermo una carta di credito (o una tessera dello stesso formato) e sposta il cursore finché il rettangolo è grande uguale. Poi scrivi a che distanza tieni gli occhi dallo schermo.',
+  'legibility.calibrateSize': 'Grandezza del rettangolo',
+  'legibility.screenDistance': 'Occhi dallo schermo',
+  'legibility.calibrateDone': 'Fatto',
+  'legibility.componentOk':
+    'Tutti i {n} elementi di questa faccia si leggono comodamente da {cm} cm.',
+  'legibility.componentChecked': '{n} elementi controllati da {cm} cm, dal peggiore:',
+  'legibility.key.ok': 'comodo',
+  'legibility.title': 'Controllo della leggibilità',
+  'legibility.dist.hand': 'In mano ({cm} cm)',
+  'legibility.dist.front': 'Sul tavolo davanti a sé ({cm} cm)',
+  'legibility.dist.center': 'Al centro del tavolo ({cm} cm)',
+  'legibility.dist.across': "Dall'altra parte del tavolo ({cm} cm)",
+  'legibility.none': 'Nessun problema trovato nei {n} componenti.',
+  'legibility.textItem': '{pt} pt, x {mm} mm, fino a {cm} cm',
+  'legibility.iconsHint':
+    "Icone nel testo e immagini (fisse, da colonna o da formula): per riconoscerle devono essere alte almeno il doppio di un'altezza della x comoda.",
+  'legibility.iconItem': '{mm} mm di altezza',
+  'legibility.allComponents': 'tutti i {n} componenti',
+  'legibility.contrast': 'Contrasto basso',
+  'legibility.contrastHint':
+    "Contrasto fra il colore del testo e il colore pieno sotto (bianco se sotto non c'è niente): almeno 4,5, o 3 per i testi grandi. I testi sopra le immagini non si misurano.",
+  'legibility.contrastItem': '{ratio}, almeno {min}',
+  'legibility.pairs': 'Colori che si confondono',
+  'legibility.pairsHint':
+    'Colori dello stesso livello, diversi da carta a carta, che chi vede i colori in modo diverso confonde. Provali con Anteprima daltonismo nel menu Strumenti.',
+  'legibility.onlySignal': 'Il colore come unico segnale',
+  'legibility.onlySignalHint':
+    'I componenti si distinguono per il colore di questi livelli, e nessun testo o immagine dice la stessa cosa: aggiungi un simbolo, una parola o un motivo.',
+  'legibility.upside': 'Numeri che capovolti cambiano',
+  'legibility.upsideHint':
+    "Letti dall'altra parte del tavolo diventano un altro numero: sottolineali o aggiungi un punto (6. e 9.).",
+  'legibility.upsideItem': '{a} sembra {b}',
+  'legibility.fonts': 'Font difficili da leggere',
+  'legibility.fontDisplay': 'decorativo o scritto a mano, usato per testi lunghi ({name})',
+  'legibility.fontThin': 'peso sottile su testo piccolo ({name})',
+  'legibility.onlyWarnings': "Sono solo avvisi: l'esportazione funziona sempre.",
   'history.button': 'Cronologia delle modifiche',
   'history.title': 'Cronologia delle modifiche',
   'history.hint':
@@ -3359,7 +3445,7 @@ export const it: Record<MessageKey, string> = {
   'app.closeProjectLong': 'Chiudi progetto',
   'app.more': 'Altre azioni',
   'set.tools': 'Strumenti',
-  'tip.setTools': "Genera, dividi un'immagine, statistiche, confronto, controllo dei testi",
+  'tip.setTools': "Genera, dividi un'immagine, statistiche, confronto, controllo della leggibilità",
   'set.checks': 'Controlli',
   'tip.checks': 'Statistiche, confronto con una versione precedente, controllo dei testi',
   'documents.rename': 'Rinomina',
@@ -4048,6 +4134,40 @@ export const it: Record<MessageKey, string> = {
   'package.backupHint':
     'Prima di importare Stella fa un backup del progetto. Template, set, variabili e stili sono modifiche da salvare (⌘Z le annulla); immagini e font si copiano subito in assets.',
   'package.import': 'Importa',
+  'projectZip.exportMenu': 'Esporta il progetto in ZIP…',
+  'projectZip.exportHint':
+    'Un solo file ZIP con tutto il progetto (template, dati, immagini, font, documenti, note), da mandare a qualcuno o portare su un altro computer',
+  'projectZip.importMenu': 'Importa progetto da ZIP…',
+  'projectZip.importHint':
+    'Estrae lo ZIP di un progetto in una cartella nuova e lo apre. Puoi anche trascinare lo ZIP sulla finestra',
+  'projectZip.saveFirst.title': 'Salvare prima di esportare?',
+  'projectZip.saveFirst':
+    "Lo ZIP contiene il progetto com'è salvato sul disco. Le modifiche non salvate si salvano prima.",
+  'projectZip.saveFirst.ok': 'Salva ed esporta',
+  'projectZip.exported': 'Progetto esportato in ZIP',
+  'projectZip.extracted': 'Il progetto è stato estratto qui, ma non aperto',
+  'projectZip.notProject':
+    '{file} non è né un progetto Stella né un pacchetto. Per importare un pacchetto, apri prima il progetto in cui metterlo.',
+  'projectZip.notProjectZip': 'Questo ZIP non contiene un progetto Stella (stella.json)',
+  'projectZip.badName': 'Scrivi un nome per la cartella del progetto',
+  'projectZip.targetExists':
+    'La cartella {folder} esiste già e non è vuota: scegli un altro nome o un altro posto',
+  'projectZip.importTitle': 'Importa il progetto "{name}"',
+  'projectZip.from':
+    "Da {file}. Stella lo estrae in una cartella nuova e lo apre; lo ZIP resta com'è.",
+  'projectZip.sets': 'Set',
+  'projectZip.templates': 'Template',
+  'projectZip.data': 'File dei dati',
+  'projectZip.noData': 'nessuno',
+  'projectZip.images': 'Immagini',
+  'projectZip.fonts': 'Font',
+  'projectZip.documents': 'Documenti',
+  'projectZip.notes': 'Note',
+  'projectZip.files': 'File in tutto',
+  'projectZip.folderName': 'Nome della cartella',
+  'projectZip.target': 'Il progetto sarà estratto in {folder}',
+  'projectZip.chooseFolder': 'Scegli dove mettere la cartella del progetto',
+  'projectZip.extractOpen': 'Estrai e apri',
   'package.notZip': '{file} non è un file ZIP',
   'package.notPackage': '{file} non è un pacchetto di Stella, o viene da una versione più nuova',
   'package.dropNoProject': 'Per importare un pacchetto apri prima il progetto in cui metterlo',
@@ -4077,6 +4197,26 @@ export const it: Record<MessageKey, string> = {
   'manage.selected': '{n} selezionati',
   'manage.selectHint':
     'Fai clic su una voce per vederne i dettagli. ⌘/Ctrl+clic e ⇧+clic ne selezionano più di una; il doppio clic la apre.',
+  'manage.templates.deleteMany.title': 'Eliminare {n} template?',
+  'manage.templates.deleteMany':
+    '{list}. I file vanno nel cestino del progetto, da cui si possono recuperare.',
+  'manage.templates.deleteMany.ok': 'Elimina {n} template',
+  'manage.templates.inUseSkipped': 'Questi restano perché li usano dei set: {list}.',
+  'manage.templates.allInUse':
+    'Tutti questi template sono usati da dei set, quindi non ne è stato eliminato nessuno: {list}. Elimina prima i set.',
+  'inherit.deleteManyWithDerived.title': 'Eliminare {n} template?',
+  'inherit.deleteManyWithDerived':
+    'Ne derivano altri template ({list}): si possono eliminare insieme a questi, oppure rendere indipendenti, con l’aspetto che hanno ora. I file eliminati vanno nel cestino del progetto.',
+  'inherit.deleteManyWithDerived.inUse':
+    'Ne derivano altri template ({list}) e i set {sets} ne usano qualcuno, quindi non si possono eliminare. Si possono rendere indipendenti, con l’aspetto che hanno ora, ed eliminare solo quelli scelti.',
+  'manage.deleteKeyHint': 'Puoi anche premere Canc (⌫ su Mac).',
+  'manage.sets.deleteMany':
+    'Al salvataggio i loro fogli escono dal file dei dati e vanno nel cestino del progetto, da cui si possono recuperare. I fogli che altri set usano ancora restano.',
+  'manage.sets.deleteMany.title': 'Eliminare {n} set?',
+  'manage.sets.deleteMany.ok': 'Elimina {n} set',
+  'manage.documents.deleteMany': 'Vanno nel cestino del progetto, da cui si possono recuperare.',
+  'manage.documents.deleteMany.title': 'Eliminare {n} documenti?',
+  'manage.documents.deleteMany.ok': 'Elimina {n} documenti',
   'manage.oneAtATime': 'Seleziona una sola voce per vederne dettagli e azioni.',
   'manage.edit': 'Modifica…',
   'manage.open': 'Apri',

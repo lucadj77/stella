@@ -15,6 +15,7 @@ import type { LoadedProject } from '../../project'
 
 const template = normalizeTemplate({
   name: 't',
+  labelField: 'nome',
   front: [
     { type: 'text', name: 'nome', text: 'x' },
     { type: 'text', name: 'testo', text: '{nome}: {effetto}' },

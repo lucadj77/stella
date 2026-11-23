@@ -47,6 +47,22 @@ function MenuButtons({ items }: { items: MenuItem[] }): React.JSX.Element {
 
 const ROW_THUMB = 40
 
+/** Più elementi scelti: quanti sono e il pulsante per eliminarli insieme (anche con Canc) */
+function ManyChosen({ n, onDelete }: { n: number; onDelete(): void }): React.JSX.Element {
+  const { t } = useI18n()
+  return (
+    <div className="images-actions">
+      <p>
+        <strong>{t('manage.selected', { n })}</strong>
+      </p>
+      <button className="danger" onClick={onDelete}>
+        {delLabel(t, n)}
+      </button>
+      <p className="muted small">{t('manage.deleteKeyHint')}</p>
+    </div>
+  )
+}
+
 export function TemplatesPane({
   project,
   names,
@@ -92,6 +108,8 @@ export function TemplatesPane({
   )
   const sel = useSelection(shown, focus)
   const single = sel.chosen.length === 1 ? sel.chosen[0] : null
+  // i template eliminati escono da sel.chosen da soli: non sono più nella lista
+  const remove = (list: string[]): Promise<void> => actions.deleteTemplates(list)
   const kinds = [...new Set(names.map((n) => kindOf(tpl(n))))]
   const filters = ['all', ...(kinds.length > 1 ? kinds : []), 'base', 'derived', 'unused'].map(
     (f) => ({
@@ -162,20 +180,31 @@ export function TemplatesPane({
         total={names.length}
         sel={sel}
         onOpen={actions.openTemplate}
+        onDelete={(list) => void remove(list)}
         onMenu={(e, list) =>
-          list.length === 1 &&
-          menu.open(e, [
-            { label: t('manage.openEditor'), onClick: () => actions.openTemplate(list[0]) },
-            'sep',
-            ...actions.templateMenu(list[0])
-          ])
+          menu.open(
+            e,
+            list.length === 1
+              ? [
+                  { label: t('manage.openEditor'), onClick: () => actions.openTemplate(list[0]) },
+                  'sep',
+                  ...actions.templateMenu(list[0])
+                ]
+              : [
+                  {
+                    label: delLabel(t, list.length),
+                    danger: true,
+                    onClick: () => void remove(list)
+                  }
+                ]
+          )
         }
         empty={t('manage.templates.empty')}
         side={
-          !single ? (
-            <p className="muted small">
-              {sel.chosen.length > 1 ? t('manage.oneAtATime') : t('manage.selectHint')}
-            </p>
+          sel.chosen.length > 1 ? (
+            <ManyChosen n={sel.chosen.length} onDelete={() => void remove(sel.chosen)} />
+          ) : !single ? (
+            <p className="muted small">{t('manage.selectHint')}</p>
           ) : (
             <div className="images-details">
               <h3 className="manage-title">{single}</h3>
@@ -327,20 +356,34 @@ export function SetsPane({
         total={names.length}
         sel={sel}
         onOpen={(n) => actions.openSet(index(n))}
+        onDelete={(list) => void actions.deleteSets(list)}
         onMenu={(e, list) =>
-          list.length === 1 &&
-          menu.open(e, [
-            { label: t('manage.openGrid'), onClick: () => actions.openSet(index(list[0])) },
-            'sep',
-            ...actions.setMenu(index(list[0]))
-          ])
+          menu.open(
+            e,
+            list.length === 1
+              ? [
+                  { label: t('manage.openGrid'), onClick: () => actions.openSet(index(list[0])) },
+                  'sep',
+                  ...actions.setMenu(index(list[0]))
+                ]
+              : [
+                  {
+                    label: delLabel(t, list.length),
+                    danger: true,
+                    onClick: () => void actions.deleteSets(list)
+                  }
+                ]
+          )
         }
         empty={t('manage.sets.empty')}
         side={
-          !single ? (
-            <p className="muted small">
-              {sel.chosen.length > 1 ? t('manage.oneAtATime') : t('manage.selectHint')}
-            </p>
+          sel.chosen.length > 1 ? (
+            <ManyChosen
+              n={sel.chosen.length}
+              onDelete={() => void actions.deleteSets(sel.chosen)}
+            />
+          ) : !single ? (
+            <p className="muted small">{t('manage.selectHint')}</p>
           ) : (
             <div className="images-details">
               <h3 className="manage-title">{single}</h3>
@@ -444,20 +487,34 @@ export function DocumentsPane({
         total={docs.length}
         sel={sel}
         onOpen={actions.openDocument}
+        onDelete={(list) => void actions.deleteDocuments(list)}
         onMenu={(e, list) =>
-          list.length === 1 &&
-          menu.open(e, [
-            { label: t('manage.open'), onClick: () => actions.openDocument(list[0]) },
-            'sep',
-            ...actions.documentMenu(list[0])
-          ])
+          menu.open(
+            e,
+            list.length === 1
+              ? [
+                  { label: t('manage.open'), onClick: () => actions.openDocument(list[0]) },
+                  'sep',
+                  ...actions.documentMenu(list[0])
+                ]
+              : [
+                  {
+                    label: delLabel(t, list.length),
+                    danger: true,
+                    onClick: () => void actions.deleteDocuments(list)
+                  }
+                ]
+          )
         }
         empty={t('manage.documents.empty')}
         side={
-          !single ? (
-            <p className="muted small">
-              {sel.chosen.length > 1 ? t('manage.oneAtATime') : t('manage.selectHint')}
-            </p>
+          sel.chosen.length > 1 ? (
+            <ManyChosen
+              n={sel.chosen.length}
+              onDelete={() => void actions.deleteDocuments(sel.chosen)}
+            />
+          ) : !single ? (
+            <p className="muted small">{t('manage.selectHint')}</p>
           ) : (
             <div className="images-details">
               <h3 className="manage-title">{single}</h3>

@@ -1073,18 +1073,32 @@ function TextView({ layer: l, id }: { layer: TextLayer; id: string }): React.JSX
   const size = current ? current.size : l.fit === 'grow' ? growMax : l.size
   const growDone = l.fit === 'grow' && !!current?.done
 
-  // "riduci per stare nel riquadro": si scende di mezzo punto finché il testo non sta
+  // "riduci per stare nel riquadro": il corpo più grande, sceso di mezzo punto alla volta dal
+  // corpo del livello, che sta nel riquadro, senza andare sotto il minimo. Si cerca a metà tra
+  // i passi (lo = ultimo passo che non sta, hi = primo che sta): scendere di un passo per volta
+  // faceva un aggiornamento per passo, e un corpo di 113 pt in un riquadro stretto ne chiedeva
+  // più di duecento di fila, oltre il limite di React (errore #185, pagina bianca).
+  const shrinkSteps = Math.max(0, Math.floor((l.size - l.minSize) / 0.5 + 1e-9))
   useLayoutEffect(() => {
     const el = boxRef.current
-    if (!el || l.fit !== 'shrink') return
+    if (!el || l.fit !== 'shrink' || current?.done) return
     const overflows =
       el.scrollHeight > el.clientHeight + 0.5 || el.scrollWidth > el.clientWidth + 0.5
     if (measurePending(el)) {
       waiting.current = true
       return
     }
-    if (overflows && size - 0.5 >= l.minSize) setFitted({ key: fitKey, size: size - 0.5 })
-  }, [fitKey, size, l.fit, l.minSize])
+    const step = Math.round((l.size - size) / 0.5)
+    const lo = overflows ? step : (current?.lo ?? -1)
+    const hi = overflows ? (current?.hi ?? shrinkSteps + 1) : step
+    if (hi - lo <= 1) {
+      const last = Math.min(hi, shrinkSteps)
+      setFitted({ key: fitKey, size: l.size - last * 0.5, lo, hi, done: true })
+      return
+    }
+    const mid = Math.floor((lo + hi) / 2)
+    setFitted({ key: fitKey, size: l.size - mid * 0.5, lo, hi })
+  }, [fitKey, size, l.fit, l.size, shrinkSteps, current])
 
   // "ingrandisci o riduci per riempire il riquadro": ricerca a metà tra il corpo minimo e il
   // massimo, al mezzo punto; il testo prende il corpo più grande che sta nel riquadro
@@ -1159,6 +1173,8 @@ function TextView({ layer: l, id }: { layer: TextLayer; id: string }): React.JSX
   return (
     <g
       transform={`translate(${l.x} ${l.y}) scale(${1 / s})`}
+      data-text={l.name}
+      data-pt={size}
       data-overflow={over ? l.name : undefined}
       data-overflow-fixed={over && l.fit !== 'shrink' && l.fit !== 'grow' ? '' : undefined}
       filter={outline > 0 ? `url(#${id}-outline)` : undefined}

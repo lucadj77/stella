@@ -44,15 +44,8 @@ async function readJsonDir(dir: string, notes: Message[]): Promise<unknown[]> {
   return out
 }
 
-/** Una cartella è un progetto Tabletop Creator se ha data/blueprints o un file .tcp */
-export async function isTtcProject(folder: string): Promise<boolean> {
-  if (await exists(join(folder, 'data', 'blueprints'))) return true
-  try {
-    return (await readdir(folder)).some((n) => n.endsWith('.tcp'))
-  } catch {
-    return false
-  }
-}
+import { isTtcProject } from './ttcDetect'
+export { isTtcProject }
 
 /** Nome proposto per la cartella del progetto convertito: accanto all'originale */
 export function defaultTarget(source: string): string {

@@ -32,6 +32,8 @@ interface Base {
   /** Spiegazione di un campo tecnico, dietro un «?» accanto al controllo */
   help?: string
   disabled?: boolean
+  /** Accanto al controllo, prima del «?»: per esempio un'icona con un suggerimento */
+  extra?: React.ReactNode
 }
 
 export function Row({
@@ -39,6 +41,7 @@ export function Row({
   hint,
   help,
   disabled,
+  extra,
   labelProps,
   children
 }: Base & {
@@ -54,6 +57,7 @@ export function Row({
       </span>
       <span className="field-control">
         {children}
+        {extra}
         {help && <HelpTip text={help} />}
       </span>
     </div>
@@ -127,7 +131,8 @@ export function NumberField({
   factor: factorProp = 1,
   deferred,
   bound,
-  onBound
+  onBound,
+  extra
 }: Base & {
   value: number
   deferred?: boolean
@@ -207,6 +212,7 @@ export function NumberField({
     <Row
       label={label}
       hint={hint}
+      extra={extra}
       help={help}
       disabled={disabled}
       labelProps={
@@ -257,10 +263,13 @@ export function TextField({
   validate,
   placeholder,
   markupFields,
-  action
+  action,
+  deferred
 }: Base & {
   value: string
   onChange(v: string): void
+  /** Applica solo uscendo dal campo (o con Invio): per i nomi, che si portano dietro i richiami */
+  deferred?: boolean
   multiline?: boolean
   /** Testo con markup: aiuto alla scrittura con questi campi */
   markupFields?: string[]
@@ -275,7 +284,8 @@ export function TextField({
   const live = useLive(
     value,
     (t) => t !== value && onChange(t),
-    (t) => !validate || validate(t) === null
+    (t) => !validate || validate(t) === null,
+    deferred
   )
   const error = validate && live.text !== value ? validate(live.text) : null
   const common = {

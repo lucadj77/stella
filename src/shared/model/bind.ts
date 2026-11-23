@@ -532,7 +532,7 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
     },
     amount: card.amount,
     problems,
-    label: cardLabel(template, cells, front.shown)
+    label: cardLabel(template, front.shown)
   }
 }
 
@@ -580,18 +580,9 @@ function textProblems(layer: string, text: string, ctx: BindContext): Message[] 
   return out
 }
 
-function cardLabel(
-  template: Template,
-  cells: [string, string][],
-  fields: Record<string, string>
-): string {
-  if (template.labelField) return fields[template.labelField] ?? ''
-  // le celle tradotte sono in fondo: valgono quelle, al posto della colonna nella lingua principale
-  const byColumn = new Map(cells)
-  const first = [...byColumn].find(
-    ([h, v]) => h !== 'amount' && !h.includes('.') && v.trim() !== ''
-  )
-  return first?.[1] ?? ''
+function cardLabel(template: Template, fields: Record<string, string>): string {
+  // senza un campo scelto il nome è il numero della riga, che la vista mostra al posto del vuoto
+  return template.labelField ? (fields[template.labelField] ?? '') : ''
 }
 
 /** Valore principale di un livello come testo, quello che vale se la riga non lo cambia */

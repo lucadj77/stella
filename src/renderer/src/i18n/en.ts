@@ -20,6 +20,9 @@ export const en = {
   'set.deleteConfirm': 'You can undo with ⌘Z.',
   'set.deleteConfirm.title': 'Delete {what}?',
   'set.deleteConfirm.ok': 'Delete',
+  'set.pasteLost': 'Their values are not pasted. You can undo with ⌘Z.',
+  'set.pasteLost.title': 'Columns this set does not have: {columns}',
+  'set.pasteLost.ok': 'Paste anyway',
   'set.filter': 'Filter…',
   'set.filterAll': 'in all columns',
   'set.sortNone': 'Sheet order',
@@ -799,6 +802,8 @@ export const en = {
   'list.search': 'Search among {n} choices',
   'list.noMatch': 'No choice matches',
   'variants.menu': 'Variants…',
+  'variants.detachHint':
+    'The variant becomes a regular template that looks as it does now, no longer among the variants of this template',
   'variants.menuHint':
     'Preset versions of this template that each component picks with a thumbnail',
   'variants.title': 'Variants of "{name}"',
@@ -856,7 +861,7 @@ export const en = {
   'editor.snapRotatedHint': 'The object that snaps also takes this rotation',
   'prop.snapFollow': 'Same rotation as the layer',
   'prop.snapAngle': 'Snap angle',
-  'editor.labelFieldAuto': 'First column',
+  'editor.labelFieldAuto': 'Row number',
   'editor.valueHint':
     'Not drawn on the component. Use it as {{name}} in formulas and texts of other layers; a sheet column with the same name changes it per component.',
   'layerType.group': 'Group',
@@ -2360,6 +2365,15 @@ export const en = {
   'welcome.allVideos': 'All the video tutorials',
   'welcome.guide': 'Read the guide',
   'welcome.learnShort': 'New to Stella?',
+  'start.dropHint': 'Drop the project folder to open it',
+  'start.dropTip':
+    'You can also drag a project folder here to open it, or a Tabletop Creator project folder to import it.',
+  'start.dropTtc.title': 'Import this Tabletop Creator project?',
+  'start.dropTtc':
+    '{folder} is a Tabletop Creator project. Stella converts it into a new project folder and leaves the original as it is.',
+  'start.dropTtc.ok': 'Import…',
+  'start.dropNotProject':
+    'This is not a project folder. Drag the folder that contains stella.json (or a Tabletop Creator project folder).',
   'start.newProject': 'New project…',
   'start.openProject': 'Open project…',
   'start.importTtc': 'Import from Tabletop Creator…',
@@ -2907,7 +2921,7 @@ export const en = {
   'tip.vision':
     'Show the components as people with color blindness see them, to check that colors that carry meaning stay distinct',
   'vision.label': 'Seen with:',
-  'vision.normal': 'Normal vision',
+  'vision.normal': 'No filter',
   'vision.normal.tip': 'The components as they are',
   'vision.protan': 'Protanopia',
   'vision.protan.tip':
@@ -2919,7 +2933,7 @@ export const en = {
   'vision.tritan.tip': 'No blue cones: blues and greens look alike, yellows turn pink (rare)',
   'vision.gray': 'Grayscale',
   'vision.gray.tip': 'Only lightness, as in a black and white print',
-  'vision.end': 'Back to normal',
+  'vision.end': 'Close preview',
   'export.onlyChanged': 'Changed components',
   'export.onlyChangedHint': 'Only the components new or changed in the comparison ({n})',
   'app.trash': 'Trash…',
@@ -2936,9 +2950,9 @@ export const en = {
   'trash.kind.document': 'Document',
   'trash.kind.sheet': 'Set',
   'trash.unknownFile': '"{file}" is not in the project trash',
-  'set.textCheck': 'Check text…',
+  'set.textCheck': 'Check readability…',
   'tip.textCheck':
-    'Find the texts that do not fit in their box, on every component of the set, front and back',
+    'Find small text and icons, low contrast, colors that look alike, numbers that change upside down and text that does not fit, on every component of the set, front and back',
   'textCheck.title': 'Text that does not fit',
   'textCheck.running': 'Checking {n} components…',
   'textCheck.none': 'All texts of the {n} components fit in their boxes.',
@@ -2948,6 +2962,77 @@ export const en = {
     'Texts with a fixed size use the "Spill out of the box" fit: they are not shrunk. The check measures the whole line, including the room below it for letters like "g", and padding takes room from the text. Make the text smaller, enlarge the box, remove padding or choose "Shrink to fit".',
   'textCheck.fixedTag': 'fixed size',
   'textCheck.pick': 'Select this component',
+  'legibility.distance': 'Distance',
+  'legibility.distanceHint':
+    'How far the component is from the eyes: the marks on the thumbnail and the small text of the set depend on it',
+  'legibility.upsideDown': 'Upside down',
+  'legibility.upsideDownHint':
+    'Turns the thumbnail around, as seen from the other side of the table, and reports the numbers that become other numbers (6 and 9)',
+  'legibility.reduced': 'Reduced vision',
+  'legibility.reducedHint': 'For people who see less well: every minimum size half again as large',
+  'legibility.component': 'Component',
+  'legibility.key.tooSmall': 'hard to read',
+  'legibility.key.small': 'tiring',
+  'legibility.key.overflow': 'does not fit',
+  'legibility.selectInSet': 'Select it in the set',
+  'legibility.setTitle': 'In the whole set ({n} components)',
+  'legibility.showHint': 'Show this component in the thumbnail',
+  'legibility.markOverflow': 'does not fit in its box',
+  'legibility.small': 'Small text at {cm} cm',
+  'legibility.smallHint':
+    'Lowercase letters shorter than 0.2° of sight are tiring to read; in red the ones under 0.1°, hard to read at all. The size is the one used on the component, after shrinking to fit.',
+  'legibility.icons': 'Small icons at {cm} cm',
+  'legibility.tipLabel': 'How this text reads',
+  'legibility.tipHead': 'x-height {mm} mm. How it reads:',
+  'legibility.tipUpTo': 'Comfortable up to {cm} cm.',
+  'legibility.verdict.ok': 'comfortable',
+  'legibility.verdict.small': 'tiring',
+  'legibility.verdict.tooSmall': 'hard to read',
+  'legibility.real': 'Real size',
+  'legibility.realHint':
+    'Shows the component as large as it looks from the chosen distance, when you look at the screen from the distance written in Calibrate. Your eye does the rest: what you cannot read here, you will not read at the table',
+  'legibility.realNote':
+    'As large as it looks from the chosen distance, with the screen {cm} cm from your eyes.',
+  'legibility.realUncalibrated':
+    'The screen is not calibrated yet: the size is approximate. Use Calibrate, and keep your eyes {cm} cm from the screen.',
+  'legibility.calibrate': 'Calibrate…',
+  'legibility.calibrateHint':
+    'Hold a credit card (or any ID-1 card) against the screen and move the slider until the rectangle is exactly as large. Then write how far your eyes are from the screen.',
+  'legibility.calibrateSize': 'Size of the rectangle',
+  'legibility.screenDistance': 'Eyes from the screen',
+  'legibility.calibrateDone': 'Done',
+  'legibility.componentOk': 'All {n} elements of this side read comfortably from {cm} cm.',
+  'legibility.componentChecked': '{n} elements checked from {cm} cm, worst first:',
+  'legibility.key.ok': 'comfortable',
+  'legibility.title': 'Readability check',
+  'legibility.dist.hand': 'In hand ({cm} cm)',
+  'legibility.dist.front': 'On the table in front of you ({cm} cm)',
+  'legibility.dist.center': 'Center of the table ({cm} cm)',
+  'legibility.dist.across': 'Across the table ({cm} cm)',
+  'legibility.none': 'No problems found in the {n} components.',
+  'legibility.textItem': '{pt} pt, x {mm} mm, up to {cm} cm',
+  'legibility.iconsHint':
+    'Icons in the text and images (fixed, from a column or from a formula): to be recognized they should be at least twice as tall as a comfortable x-height.',
+  'legibility.iconItem': '{mm} mm tall',
+  'legibility.allComponents': 'all {n} components',
+  'legibility.contrast': 'Low contrast',
+  'legibility.contrastHint':
+    'Contrast between the text color and the solid color below it (white when there is nothing): at least 4.5, or 3 for large text. Text over images is not measured.',
+  'legibility.contrastItem': '{ratio}, at least {min}',
+  'legibility.pairs': 'Colors that look alike',
+  'legibility.pairsHint':
+    'Colors of the same layer, different from card to card, that people with a color vision deficiency confuse. Try them with Color blindness preview in the Tools menu.',
+  'legibility.onlySignal': 'Color as the only signal',
+  'legibility.onlySignalHint':
+    'The components differ by the color of these layers, and no text or image tells the same thing: add a symbol, a word or a pattern.',
+  'legibility.upside': 'Numbers that change upside down',
+  'legibility.upsideHint':
+    'Read from the other side of the table they become another number: underline them or add a dot (6. and 9.).',
+  'legibility.upsideItem': '{a} looks like {b}',
+  'legibility.fonts': 'Fonts that are hard to read',
+  'legibility.fontDisplay': 'decorative or handwritten, used for long text ({name})',
+  'legibility.fontThin': 'thin weight on small text ({name})',
+  'legibility.onlyWarnings': 'These are only warnings: export always works.',
   'history.button': 'History of changes',
   'history.title': 'History of changes',
   'history.hint':
@@ -3317,9 +3402,9 @@ export const en = {
   'app.closeProjectLong': 'Close project',
   'app.more': 'More actions',
   'set.tools': 'Tools',
-  'tip.setTools': 'Generate, split an image, statistics, compare, text check',
+  'tip.setTools': 'Generate, split an image, statistics, compare, readability check',
   'set.checks': 'Checks',
-  'tip.checks': 'Statistics, compare with a previous version, text check',
+  'tip.checks': 'Statistics, compare with a previous version, readability check',
   'documents.rename': 'Rename',
   'documents.deleteShort': 'Delete',
   'menu.file': 'File',
@@ -3996,6 +4081,40 @@ export const en = {
   'package.backupHint':
     'Before importing Stella makes a backup of the project. Templates, sets, variables and styles are changes to save (⌘Z undoes them); images and fonts are copied into assets right away.',
   'package.import': 'Import',
+  'projectZip.exportMenu': 'Export project as ZIP…',
+  'projectZip.exportHint':
+    'One ZIP file with the whole project (templates, data, images, fonts, documents, notes), to send to someone or move to another computer',
+  'projectZip.importMenu': 'Import project from ZIP…',
+  'projectZip.importHint':
+    'Extract a project ZIP into a new folder and open it. You can also drag the ZIP onto the window',
+  'projectZip.saveFirst.title': 'Save before exporting?',
+  'projectZip.saveFirst':
+    'The ZIP contains the project as it is saved on disk. Your unsaved changes are saved first.',
+  'projectZip.saveFirst.ok': 'Save and export',
+  'projectZip.exported': 'Project exported as ZIP',
+  'projectZip.extracted': 'The project was extracted here, but not opened',
+  'projectZip.notProject':
+    '{file} is neither a Stella project nor a package. To import a package, first open the project to put it in.',
+  'projectZip.notProjectZip': 'This ZIP does not contain a Stella project (stella.json)',
+  'projectZip.badName': 'Write a name for the project folder',
+  'projectZip.targetExists':
+    'The folder {folder} already exists and is not empty: choose another name or location',
+  'projectZip.importTitle': 'Import project "{name}"',
+  'projectZip.from':
+    'From {file}. Stella extracts it into a new folder and opens it; the ZIP stays as it is.',
+  'projectZip.sets': 'Sets',
+  'projectZip.templates': 'Templates',
+  'projectZip.data': 'Data file',
+  'projectZip.noData': 'none',
+  'projectZip.images': 'Images',
+  'projectZip.fonts': 'Fonts',
+  'projectZip.documents': 'Documents',
+  'projectZip.notes': 'Notes',
+  'projectZip.files': 'Files in all',
+  'projectZip.folderName': 'Folder name',
+  'projectZip.target': 'The project will be extracted into {folder}',
+  'projectZip.chooseFolder': 'Choose where to put the project folder',
+  'projectZip.extractOpen': 'Extract and open',
   'package.notZip': '{file} is not a ZIP file',
   'package.notPackage': '{file} is not a Stella package, or comes from a newer version',
   'package.dropNoProject': 'To import a package, first open the project to put it in',
@@ -4025,6 +4144,27 @@ export const en = {
   'manage.selected': '{n} selected',
   'manage.selectHint':
     'Click an item to see its details. ⌘/Ctrl+click and ⇧+click select more than one; double-click opens it.',
+  'manage.templates.deleteMany.title': 'Delete {n} templates?',
+  'manage.templates.deleteMany':
+    "{list}. Their files go to the project's trash, from where you can get them back.",
+  'manage.templates.deleteMany.ok': 'Delete {n} templates',
+  'manage.templates.inUseSkipped': 'These stay because sets use them: {list}.',
+  'manage.templates.allInUse':
+    'Sets use all these templates, so none was deleted: {list}. Delete the sets first.',
+  'inherit.deleteManyWithDerived.title': 'Delete {n} templates?',
+  'inherit.deleteManyWithDerived':
+    'Other templates derive from them ({list}): they can be deleted along with these, or made independent, looking as they do now. Deleted files go to the project trash.',
+  'inherit.deleteManyWithDerived.inUse':
+    'Other templates derive from them ({list}) and the sets {sets} use some of them, so they cannot be deleted. They can be made independent, looking as they do now, and only the chosen ones deleted.',
+  'manage.deleteKeyHint': 'You can also press Delete (⌫ on Mac).',
+  'manage.sets.deleteMany':
+    "When you save, their sheets leave the data file and go to the project's trash, from where they can be recovered. Sheets that other sets still use stay.",
+  'manage.sets.deleteMany.title': 'Delete {n} sets?',
+  'manage.sets.deleteMany.ok': 'Delete {n} sets',
+  'manage.documents.deleteMany':
+    "They go to the project's trash, from where they can be recovered.",
+  'manage.documents.deleteMany.title': 'Delete {n} documents?',
+  'manage.documents.deleteMany.ok': 'Delete {n} documents',
   'manage.oneAtATime': 'Select a single item to see its details and actions.',
   'manage.edit': 'Edit…',
   'manage.open': 'Open',

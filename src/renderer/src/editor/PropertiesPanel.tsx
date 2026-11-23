@@ -1,4 +1,13 @@
 import CombineButtons from './CombineButtons'
+import {
+  COMFORT_DEG,
+  READING_DISTANCES,
+  readableUpToCm,
+  readingOf,
+  textVerdict,
+  xHeightMm
+} from '../../../shared/model/legibility'
+import { xRatio } from '../legibility/xRatio'
 import { shapeAsPath } from '../../../shared/model/pathEdit'
 import {
   createContext,
@@ -714,6 +723,8 @@ function LayerProperties({
             disabled={!!from}
             value={l.name}
             validate={validateName}
+            // si applica uscendo dal campo: i richiami {nome} e la colonna seguono il nome finito
+            deferred
             onChange={(name) => set({ name })}
           />
           {base && !from && <p className="muted small">{t('inherit.addedLayer')}</p>}
@@ -767,6 +778,7 @@ function LayerProperties({
           computed={computed}
           fields={labelChoices(tpl, sheets)}
           part="rest"
+          readingCm={readingOf(tpl).cm}
         />
       )}
       {same && l.type === 'image' && (
@@ -1381,6 +1393,8 @@ interface TypeProps<T> {
    * fonte; 'rest': tutto il resto, dopo posizione e dimensioni
    */
   part?: 'value' | 'rest'
+  /** Distanza da cui si legge di solito il componente (dal tipo), per i testi */
+  readingCm?: number
 }
 
 function options<T extends string>(
@@ -1404,13 +1418,52 @@ const ANCHORS: Anchor[] = [
 ]
 const WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900]
 
+/**
+ * Occhiali accanto al corpo del testo: il suggerimento dice quanto è alta la x e come si legge
+ * da ogni distanza. Arancioni se il testo è piccolo per la distanza solita del componente
+ */
+function LegibilityTip({ l, cm }: { l: TextLayer; cm?: number }): React.JSX.Element {
+  const { t } = useI18n()
+  const mm = xHeightMm(l.size, xRatio(l.font, l.weight, l.italic))
+  const lines = [
+    t('legibility.tipHead', { mm: mm.toFixed(1) }),
+    ...READING_DISTANCES.map(
+      (d) =>
+        `${t(`legibility.dist.${d.id}`, { cm: d.cm })}: ${t(`legibility.verdict.${textVerdict(mm, d.cm)}`)}`
+    ),
+    t('legibility.tipUpTo', { cm: Math.floor(readableUpToCm(mm, COMFORT_DEG)) })
+  ]
+  const warn = cm !== undefined && textVerdict(mm, cm) !== 'ok'
+  return (
+    <span
+      className={'legibility-glasses' + (warn ? ' warn' : '')}
+      title={lines.join('\n')}
+      aria-label={t('legibility.tipLabel')}
+      role="img"
+    >
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+        <circle cx="6.5" cy="14" r="4" fill="none" stroke="currentColor" strokeWidth="1.8" />
+        <circle cx="17.5" cy="14" r="4" fill="none" stroke="currentColor" strokeWidth="1.8" />
+        <path
+          d="M10.5 13.5q1.5-1 3 0M2.5 13l1.5-6h2M21.5 13l-1.5-6h-2"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+      </svg>
+    </span>
+  )
+}
+
 function TextProperties({
   l,
   set: setLayer,
   col,
   computed,
   fields,
-  part
+  part,
+  readingCm
 }: TypeProps<TextLayer>): React.JSX.Element {
   const { t } = useI18n()
   const set = setLayer as SetFn<TextLayer>
@@ -1481,6 +1534,7 @@ function TextProperties({
             min={1}
             unit="pt"
             onChange={(size) => set({ size })}
+            extra={<LegibilityTip l={l} cm={readingCm} />}
           />
         </P>
         <P id="color">

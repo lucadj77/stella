@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer, webFrame } from 'electron'
+import { contextBridge, ipcRenderer, webFrame, webUtils } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import type { Api } from '../shared/api'
 
@@ -8,6 +8,18 @@ const api: Api = {
   relocateProject: (mode, text) => ipcRenderer.invoke('project:relocate', mode, text),
   renameProjectFolder: (name) => ipcRenderer.invoke('project:rename-folder', name),
   loadProject: (folder) => ipcRenderer.invoke('project:load', folder),
+  droppedPath: async ({ file }) => (file ? webUtils.getPathForFile(file) || null : null),
+  inspectDropped: (path) => ipcRenderer.invoke('project:inspect-dropped', path),
+  launchProject: () => ipcRenderer.invoke('project:launch'),
+  exportProjectZip: () => ipcRenderer.invoke('project:zip-export'),
+  inspectProjectZip: (data) => ipcRenderer.invoke('project:zip-inspect', data),
+  extractProjectZip: (data, parent, name) =>
+    ipcRenderer.invoke('project:zip-extract', data, parent, name),
+  onOpenProjectRequest: (cb) => {
+    const listener = (_: unknown, folder: string): void => cb(folder)
+    ipcRenderer.on('project:open-request', listener)
+    return () => ipcRenderer.removeListener('project:open-request', listener)
+  },
   recentProjects: () => ipcRenderer.invoke('recent:list'),
   removeRecentProject: (folder) => ipcRenderer.invoke('recent:remove', folder),
   prepareExampleProject: (lang) => ipcRenderer.invoke('example:prepare', lang),
