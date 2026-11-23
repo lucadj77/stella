@@ -7,18 +7,22 @@ import {
   contrastRatio,
   iconVerdict,
   minContrast,
+  READING_DISTANCES,
   parseColor,
   readableUpToCm,
   readingOf,
   textVerdict,
   upsideDownReading,
-  xHeightMm
+  visionBlurOf,
+  xHeightMm,
+  type SizeVerdict
 } from '../../../shared/model/legibility'
 import { walkLayers } from '../../../shared/model/normalize'
 import type { Layer, Side, TextLayer } from '../../../shared/model/template'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import CardSvg from '../render/CardSvg'
+import Segmented from './Segmented'
 import { loadCatalog } from './fontCatalog'
 import { xRatio } from '../legibility/xRatio'
 
@@ -32,14 +36,24 @@ interface Place {
   side: Side
 }
 
+/** Riquadro di un elemento come frazione del componente (0-1), per i segni sulla miniatura */
+interface Box {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
 interface Measured extends Place {
   /** Testi che non stanno nel riquadro, e quelli fra loro con il corpo fisso */
   overflow: string[]
   fixed: string[]
   /** Testi con il corpo usato davvero (dopo la riduzione) e l'altezza della x in mm */
-  texts: { name: string; pt: number; mm: number; content: string }[]
+  texts: { name: string; pt: number; mm: number; content: string; box: Box | null }[]
   /** Icone nel testo e immagini piccole: altezza in mm */
-  icons: { name: string; mm: number }[]
+  icons: { name: string; mm: number; box: Box | null }[]
+  /** Riquadri dei testi che non stanno */
+  overflowBoxes: Record<string, Box>
 }
 
 /** Un problema di un livello, con i componenti in cui c'è */
@@ -100,10 +114,14 @@ function layersOf(c: BoundCard, side: Side): Layer[] {
  */
 export default function LegibilityDialog({
   cards,
+  row: firstRow = 0,
   onPick,
   onClose
 }: {
   cards: BoundCard[]
+  /** Il componente da mostrare per primo: quello selezionato nel set */
+  row?: number
+  /** Seleziona il componente nel set e chiude */
   onPick(row: number): void
   onClose(): void
 }): React.JSX.Element {
@@ -112,6 +130,18 @@ export default function LegibilityDialog({
   const [measured, setMeasured] = useState<Measured[] | null>(null)
   const [reduced, setReduced] = useState(false)
   const [fontKinds, setFontKinds] = useState<Map<string, string>>(new Map())
+  const [row, setRow] = useState(Math.min(Math.max(0, firstRow), Math.max(0, cards.length - 1)))
+  const card = cards[row] as BoundCard | undefined
+  const hasBack = !!card && card.template.back.length > 0
+  const [sideChoice, setSide] = useState<Side>('front')
+  const side: Side = hasBack ? sideChoice : 'front'
+  // distanza e capovolto partono da quelli soliti del tipo di componente
+  const usual = readingOf(cards[0]?.template ?? {})
+  const [cm, setCm] = useState<number>(usual.cm)
+  const [upsideDown, setUpsideDown] = useState(usual.upsideDown)
+  const [blur, setBlur] = useState(false)
+  /** Livello evidenziato sulla miniatura, al passaggio sull'elenco */
+  const [hover, setHover] = useState<string | null>(null)
 
   useEffect(() => {
     let alive = true
@@ -140,6 +170,16 @@ export default function LegibilityDialog({
         const box = svg.viewBox.baseVal
         const rect = svg.getBoundingClientRect()
         const mmPerPx = box && rect.width > 0 ? box.width / rect.width : 0
+        const frac = (el: Element): Box | null => {
+          const r = el.getBoundingClientRect()
+          if (!(rect.width > 0 && rect.height > 0) || !(r.width > 0)) return null
+          return {
+            x: (r.left - rect.left) / rect.width,
+            y: (r.top - rect.top) / rect.height,
+            w: r.width / rect.width,
+            h: r.height / rect.height
+          }
+        }
         const layers = layersOf(card, side)
         const byName = new Map(layers.map((l) => [l.name, l]))
         const marked = [...c.querySelectorAll('[data-overflow]')]
@@ -157,17 +197,29 @@ export default function LegibilityDialog({
               name: n,
               pt,
               mm: xHeightMm(pt, xRatio(l.font, l.weight, l.italic)),
-              content
+              content,
+              box: frac(g.querySelector('foreignObject') ?? g)
             })
           if (mmPerPx > 0)
             for (const img of g.querySelectorAll('[data-gc-icon]')) {
               const h = img.getBoundingClientRect().height * mmPerPx
-              if (h > 0) icons.push({ name: n, mm: h })
+              if (h > 0) icons.push({ name: n, mm: h, box: frac(img) })
             }
         }
+        const cardW = card.template.width
+        const cardH = card.template.height
         for (const l of layers)
           if (l.type === 'image' && l.visible && l.src && Math.max(l.w, l.h) <= ICON_MAX_MM)
-            icons.push({ name: l.name, mm: Math.min(l.w, l.h) })
+            icons.push({
+              name: l.name,
+              mm: Math.min(l.w, l.h),
+              box: { x: l.x / cardW, y: l.y / cardH, w: l.w / cardW, h: l.h / cardH }
+            })
+        const overflowBoxes: Record<string, Box> = {}
+        for (const g of marked) {
+          const b = frac(g.querySelector('foreignObject') ?? g)
+          if (b) overflowBoxes[name(g)] = b
+        }
         out.push({
           row,
           side,
@@ -176,7 +228,8 @@ export default function LegibilityDialog({
             ...new Set(marked.filter((g) => g.hasAttribute('data-overflow-fixed')).map(name))
           ],
           texts,
-          icons
+          icons,
+          overflowBoxes
         })
       }
       setMeasured(out)
@@ -196,7 +249,6 @@ export default function LegibilityDialog({
     const colors = new Map<string, (string | null)[]>()
     const values = new Map<string, (string | null)[]>()
     cards.forEach((c, row) => {
-      const reading = readingOf(c.template)
       for (const side of ['front', 'back'] as const) {
         const layers = layersOf(c, side)
         layers.forEach((l, i) => {
@@ -228,7 +280,7 @@ export default function LegibilityDialog({
                 })
             }
           }
-          if (reading.upsideDown) {
+          if (upsideDown) {
             const plain = l.text.replace(/[*_~`[\]{}]/g, '')
             const flipped = upsideDownReading(plain)
             if (flipped)
@@ -262,7 +314,7 @@ export default function LegibilityDialog({
       pairs: [...pairs.values()],
       onlySignal
     }
-  }, [cards, t])
+  }, [cards, upsideDown, t])
 
   const label = (row: number): string => {
     const s = cards[row]?.label || String(row + 1)
@@ -270,22 +322,13 @@ export default function LegibilityDialog({
   }
   const sideName = (side: Side): string => t(side === 'front' ? 'preview.front' : 'preview.back')
 
-  // le distanze dei template del set, per l'intestazione
-  const readings = useMemo(() => {
-    const seen = new Map<string, number>()
-    for (const c of cards) seen.set(c.template.name, readingOf(c.template).cm)
-    return [...seen]
-  }, [cards])
-
   const sized = useMemo(() => {
     if (!measured) return null
     const small = new Groups()
     const icons = new Groups()
     const fonts = new Map<string, Set<string>>()
     for (const m of measured) {
-      const card = cards[m.row]
-      const { cm } = readingOf(card.template)
-      const byName = new Map(layersOf(card, m.side).map((l) => [l.name, l]))
+      const byName = new Map(layersOf(cards[m.row], m.side).map((l) => [l.name, l]))
       for (const x of m.texts) {
         const verdict = textVerdict(x.mm, cm, reduced)
         const l = byName.get(x.name) as TextLayer | undefined
@@ -318,7 +361,65 @@ export default function LegibilityDialog({
       }
     }
     return { small: small.list(), icons: icons.list(), fonts: [...fonts] }
-  }, [measured, cards, reduced, fontKinds, t])
+  }, [measured, cards, cm, reduced, fontKinds, t])
+
+  // il componente nella miniatura: i suoi testi e le sue icone, con il giudizio alla distanza scelta
+  const here = measured?.find((m) => m.row === row && m.side === side) ?? null
+  const marks = useMemo(() => {
+    if (!here) return []
+    const out: {
+      key: string
+      name: string
+      box: Box
+      verdict: SizeVerdict | 'overflow'
+      detail: string
+    }[] = []
+    for (const [name, box] of Object.entries(here.overflowBoxes))
+      out.push({
+        key: `o-${name}`,
+        name,
+        box,
+        verdict: 'overflow',
+        detail: t('legibility.markOverflow')
+      })
+    for (const x of here.texts) {
+      const verdict = textVerdict(x.mm, cm, reduced)
+      if (verdict !== 'ok' && x.box)
+        out.push({
+          key: `t-${x.name}`,
+          name: x.name,
+          box: x.box,
+          verdict,
+          detail: t('legibility.textItem', {
+            pt: x.pt,
+            mm: x.mm.toFixed(1),
+            cm: Math.floor(readableUpToCm(x.mm, COMFORT_DEG, reduced))
+          })
+        })
+    }
+    here.icons.forEach((i, k) => {
+      const verdict = iconVerdict(i.mm, cm, reduced)
+      if (verdict !== 'ok' && i.box)
+        out.push({
+          key: `i-${i.name}-${k}`,
+          name: i.name,
+          box: i.box,
+          verdict,
+          detail: t('legibility.iconItem', { mm: i.mm.toFixed(1) })
+        })
+    })
+    return out
+  }, [here, cm, reduced, t])
+  // un livello compare una volta nell'elenco del componente, con il giudizio peggiore
+  const markList = useMemo(() => {
+    const rank = { overflow: 3, tooSmall: 2, small: 1, ok: 0 }
+    const by = new Map<string, (typeof marks)[number]>()
+    for (const m of marks) {
+      const known = by.get(m.name)
+      if (!known || rank[m.verdict] > rank[known.verdict]) by.set(m.name, m)
+    }
+    return [...by.values()]
+  }, [marks])
 
   const overflow = measured?.filter((m) => m.overflow.length > 0) ?? []
   const nothing =
@@ -332,9 +433,15 @@ export default function LegibilityDialog({
     model.onlySignal.length === 0 &&
     model.upside.length === 0
 
+  /** Mostra un componente nella miniatura */
+  const show = (p: Place): void => {
+    setRow(p.row)
+    setSide(p.side)
+  }
+
   const pick = (p: Place, content: React.ReactNode): React.JSX.Element => (
     <li key={`${p.row}-${p.side}`}>
-      <button onClick={() => onPick(p.row)} title={t('textCheck.pick')}>
+      <button onClick={() => show(p)} title={t('legibility.showHint')}>
         <strong>
           {p.row + 1}. {label(p.row)}
         </strong>{' '}
@@ -343,13 +450,19 @@ export default function LegibilityDialog({
     </li>
   )
 
-  /** Un livello con lo stesso problema su più componenti: una riga sola, un clic va al primo */
+  /** Un livello con lo stesso problema su più componenti: una riga sola, un clic mostra il primo */
   const group = (g: Group): React.JSX.Element => {
     const names = g.rows.slice(0, 4).map((r) => `${r + 1}. ${label(r)}`)
     if (g.rows.length > 4) names.push('…')
+    const at = g.rows.includes(row) ? row : g.rows[0]
     return (
       <li key={g.key}>
-        <button onClick={() => onPick(g.rows[0])} title={t('textCheck.pick')}>
+        <button
+          onClick={() => show({ row: at, side: g.side })}
+          onMouseEnter={() => at === row && g.side === side && setHover(g.name)}
+          onMouseLeave={() => setHover(null)}
+          title={t('legibility.showHint')}
+        >
           <strong className={g.bad ? 'legibility-bad' : undefined}>{g.name}</strong>
           {g.detail && <span className="muted"> ({g.detail})</span>} · {sideName(g.side)} ·{' '}
           {g.rows.length === cards.length
@@ -360,118 +473,230 @@ export default function LegibilityDialog({
     )
   }
 
+  // la miniatura: grande quanto basta per vedere i segni, senza riempire la finestra
+  const tpl = card?.template
+  const scale = tpl ? Math.min(300 / tpl.width, 380 / tpl.height, 6) : 1
+  const blurStd = blur && tpl ? visionBlurOf(tpl, cm) : null
+
   return (
-    <Dialog title={t('legibility.title')} onClose={onClose}>
-      <div className="dialog-form text-check">
-        <p className="muted small">
-          {readings
-            .map(([name, cm]) =>
-              readings.length > 1
-                ? t('legibility.readFromNamed', { name, cm })
-                : t('legibility.readFrom', { cm })
-            )
-            .join(' ')}{' '}
-          {t('legibility.readFromHint')}
-        </p>
-        <label className="legibility-reduced">
-          <input type="checkbox" checked={reduced} onChange={(e) => setReduced(e.target.checked)} />{' '}
-          {t('legibility.reduced')}
-        </label>
-        {sized === null ? (
-          <p className="muted">{t('textCheck.running', { n: cards.length })}</p>
-        ) : nothing ? (
-          <p>{t('legibility.none', { n: cards.length })}</p>
-        ) : (
-          <div className="legibility-sections">
-            {overflow.length > 0 && (
-              <section>
-                <h4>{t('textCheck.title')}</h4>
-                <p className="muted small">{t('textCheck.found', { n: overflow.length })}</p>
-                {overflow.some((f) => f.fixed.length > 0) && (
-                  <p className="muted small">{t('textCheck.fixed')}</p>
+    <Dialog title={t('legibility.title')} onClose={onClose} className="legibility-dialog">
+      <div className="dialog-form legibility">
+        <div className="legibility-layout">
+          <div className="legibility-component">
+            <div className="legibility-controls">
+              <label>
+                {t('legibility.component')}
+                <select value={row} onChange={(e) => setRow(Number(e.target.value))}>
+                  {cards.map((_, i) => (
+                    <option key={i} value={i}>
+                      {i + 1}. {label(i)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {hasBack && (
+                <Segmented<Side>
+                  value={side}
+                  options={[
+                    ['front', t('preview.front')],
+                    ['back', t('preview.back')]
+                  ]}
+                  onChange={setSide}
+                />
+              )}
+              <label title={t('legibility.distanceHint')}>
+                {t('legibility.distance')}
+                <select value={cm} onChange={(e) => setCm(Number(e.target.value))}>
+                  {READING_DISTANCES.map((d) => (
+                    <option key={d.id} value={d.cm}>
+                      {t(`legibility.dist.${d.id}`, { cm: d.cm })}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label title={t('legibility.upsideDownHint')}>
+                <input
+                  type="checkbox"
+                  checked={upsideDown}
+                  onChange={(e) => setUpsideDown(e.target.checked)}
+                />
+                {t('legibility.upsideDown')}
+              </label>
+              <label title={t('legibility.blurHint')}>
+                <input type="checkbox" checked={blur} onChange={(e) => setBlur(e.target.checked)} />
+                {t('legibility.blur')}
+              </label>
+              <label title={t('legibility.reducedHint')}>
+                <input
+                  type="checkbox"
+                  checked={reduced}
+                  onChange={(e) => setReduced(e.target.checked)}
+                />
+                {t('legibility.reduced')}
+              </label>
+            </div>
+            {card && tpl && (
+              <div className="legibility-preview">
+                {blurStd && (
+                  <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
+                    <filter id="legibility-blur" primitiveUnits="objectBoundingBox">
+                      <feGaussianBlur stdDeviation={`${blurStd[0]} ${blurStd[1]}`} />
+                    </filter>
+                  </svg>
                 )}
-                <ul className="text-check-list">
-                  {overflow.map((f) =>
-                    pick(
-                      f,
-                      f.overflow
-                        .map((n) => (f.fixed.includes(n) ? `${n} (${t('textCheck.fixedTag')})` : n))
-                        .join(', ')
-                    )
-                  )}
-                </ul>
-              </section>
-            )}
-            {sized.small.length > 0 && (
-              <section>
-                <h4>{t('legibility.small')}</h4>
-                <p className="muted small">{t('legibility.smallHint')}</p>
-                <ul className="text-check-list">{sized.small.map(group)}</ul>
-              </section>
-            )}
-            {sized.icons.length > 0 && (
-              <section>
-                <h4>{t('legibility.icons')}</h4>
-                <p className="muted small">{t('legibility.iconsHint')}</p>
-                <ul className="text-check-list">{sized.icons.map(group)}</ul>
-              </section>
-            )}
-            {model.contrast.length > 0 && (
-              <section>
-                <h4>{t('legibility.contrast')}</h4>
-                <p className="muted small">{t('legibility.contrastHint')}</p>
-                <ul className="text-check-list">{model.contrast.map(group)}</ul>
-              </section>
-            )}
-            {model.pairs.length > 0 && (
-              <section>
-                <h4>{t('legibility.pairs')}</h4>
-                <p className="muted small">{t('legibility.pairsHint')}</p>
-                <ul className="legibility-plain">
-                  {model.pairs.map((p) => (
-                    <li key={`${p.a}-${p.b}`}>
-                      <strong>{p.names.join(', ')}</strong>: <Swatch color={p.a} /> {p.a} ·{' '}
-                      <Swatch color={p.b} /> {p.b}{' '}
-                      <span className="muted">({t(`vision.${p.vision}`)})</span>
-                    </li>
+                <div
+                  className={'legibility-card' + (upsideDown ? ' flipped' : '')}
+                  style={{ width: tpl.width * scale, height: tpl.height * scale }}
+                >
+                  <div style={blurStd ? { filter: 'url(#legibility-blur)' } : undefined}>
+                    <CardSvg template={tpl} side={side} scale={scale} />
+                  </div>
+                  {marks.map((m) => (
+                    <span
+                      key={m.key}
+                      className={
+                        `legibility-mark ${m.verdict}` + (hover === m.name ? ' hover' : '')
+                      }
+                      style={{
+                        left: `${m.box.x * 100}%`,
+                        top: `${m.box.y * 100}%`,
+                        width: `${m.box.w * 100}%`,
+                        height: `${m.box.h * 100}%`
+                      }}
+                      title={`${m.name}: ${m.detail}`}
+                    />
                   ))}
-                </ul>
-              </section>
+                </div>
+                <p className="legibility-legend small">
+                  <span className="legibility-key tooSmall" /> {t('legibility.key.tooSmall')}{' '}
+                  <span className="legibility-key small" /> {t('legibility.key.small')}{' '}
+                  <span className="legibility-key overflow" /> {t('legibility.key.overflow')}
+                </p>
+              </div>
             )}
-            {model.onlySignal.length > 0 && (
-              <section>
-                <h4>{t('legibility.onlySignal')}</h4>
-                <p className="muted small">{t('legibility.onlySignalHint')}</p>
-                <ul className="legibility-plain">
-                  {model.onlySignal.map((n) => (
-                    <li key={n}>
-                      <strong>{n}</strong>
-                    </li>
-                  ))}
-                </ul>
-              </section>
+            {here === null ? (
+              <p className="muted">{t('textCheck.running', { n: cards.length })}</p>
+            ) : markList.length === 0 ? (
+              <p>{t('legibility.componentOk', { cm })}</p>
+            ) : (
+              <ul className="text-check-list">
+                {markList.map((m) => (
+                  <li
+                    key={m.key}
+                    onMouseEnter={() => setHover(m.name)}
+                    onMouseLeave={() => setHover(null)}
+                  >
+                    <span className={`legibility-key ${m.verdict}`} /> <strong>{m.name}</strong>{' '}
+                    <span className="muted">({m.detail})</span>
+                  </li>
+                ))}
+              </ul>
             )}
-            {model.upside.length > 0 && (
-              <section>
-                <h4>{t('legibility.upside')}</h4>
-                <p className="muted small">{t('legibility.upsideHint')}</p>
-                <ul className="text-check-list">{model.upside.map(group)}</ul>
-              </section>
-            )}
-            {sized.fonts.length > 0 && (
-              <section>
-                <h4>{t('legibility.fonts')}</h4>
-                <ul className="legibility-plain">
-                  {sized.fonts.map(([font, reasons]) => (
-                    <li key={font}>
-                      <strong>{font}</strong>: {[...reasons].join('; ')}
-                    </li>
-                  ))}
-                </ul>
-              </section>
+            <button onClick={() => onPick(row)} title={t('textCheck.pick')}>
+              {t('legibility.selectInSet')}
+            </button>
+          </div>
+          <div className="legibility-set">
+            <h3>{t('legibility.setTitle', { n: cards.length })}</h3>
+            {sized === null ? (
+              <p className="muted">{t('textCheck.running', { n: cards.length })}</p>
+            ) : nothing ? (
+              <p>{t('legibility.none', { n: cards.length })}</p>
+            ) : (
+              <div className="legibility-sections">
+                {overflow.length > 0 && (
+                  <section>
+                    <h4>{t('textCheck.title')}</h4>
+                    <p className="muted small">{t('textCheck.found', { n: overflow.length })}</p>
+                    {overflow.some((f) => f.fixed.length > 0) && (
+                      <p className="muted small">{t('textCheck.fixed')}</p>
+                    )}
+                    <ul className="text-check-list">
+                      {overflow.map((f) =>
+                        pick(
+                          f,
+                          f.overflow
+                            .map((n) =>
+                              f.fixed.includes(n) ? `${n} (${t('textCheck.fixedTag')})` : n
+                            )
+                            .join(', ')
+                        )
+                      )}
+                    </ul>
+                  </section>
+                )}
+                {sized.small.length > 0 && (
+                  <section>
+                    <h4>{t('legibility.small', { cm })}</h4>
+                    <p className="muted small">{t('legibility.smallHint')}</p>
+                    <ul className="text-check-list">{sized.small.map(group)}</ul>
+                  </section>
+                )}
+                {sized.icons.length > 0 && (
+                  <section>
+                    <h4>{t('legibility.icons', { cm })}</h4>
+                    <p className="muted small">{t('legibility.iconsHint')}</p>
+                    <ul className="text-check-list">{sized.icons.map(group)}</ul>
+                  </section>
+                )}
+                {model.contrast.length > 0 && (
+                  <section>
+                    <h4>{t('legibility.contrast')}</h4>
+                    <p className="muted small">{t('legibility.contrastHint')}</p>
+                    <ul className="text-check-list">{model.contrast.map(group)}</ul>
+                  </section>
+                )}
+                {model.pairs.length > 0 && (
+                  <section>
+                    <h4>{t('legibility.pairs')}</h4>
+                    <p className="muted small">{t('legibility.pairsHint')}</p>
+                    <ul className="legibility-plain">
+                      {model.pairs.map((p) => (
+                        <li key={`${p.a}-${p.b}`}>
+                          <strong>{p.names.join(', ')}</strong>: <Swatch color={p.a} /> {p.a} ·{' '}
+                          <Swatch color={p.b} /> {p.b}{' '}
+                          <span className="muted">({t(`vision.${p.vision}`)})</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+                {model.onlySignal.length > 0 && (
+                  <section>
+                    <h4>{t('legibility.onlySignal')}</h4>
+                    <p className="muted small">{t('legibility.onlySignalHint')}</p>
+                    <ul className="legibility-plain">
+                      {model.onlySignal.map((n) => (
+                        <li key={n}>
+                          <strong>{n}</strong>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+                {model.upside.length > 0 && (
+                  <section>
+                    <h4>{t('legibility.upside')}</h4>
+                    <p className="muted small">{t('legibility.upsideHint')}</p>
+                    <ul className="text-check-list">{model.upside.map(group)}</ul>
+                  </section>
+                )}
+                {sized.fonts.length > 0 && (
+                  <section>
+                    <h4>{t('legibility.fonts')}</h4>
+                    <ul className="legibility-plain">
+                      {sized.fonts.map(([font, reasons]) => (
+                        <li key={font}>
+                          <strong>{font}</strong>: {[...reasons].join('; ')}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+              </div>
             )}
           </div>
-        )}
+        </div>
         <p className="muted small">{t('legibility.onlyWarnings')}</p>
         <div className="dialog-buttons">
           <button className="primary" onClick={onClose}>

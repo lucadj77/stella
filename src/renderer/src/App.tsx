@@ -234,13 +234,9 @@ import { LENGTH_UNITS, toUnit, type LengthUnit } from '../../shared/model/units'
 import type { AgentLock, Theme } from '../../shared/api'
 import VisionFilters from './components/VisionFilters'
 import { VISIONS, type Vision } from '../../shared/vision'
-import { READING_DISTANCES, readingOf, visionBlurOf } from '../../shared/model/legibility'
 
 /** La visione dei colori scelta, che resta passando da un set all'altro finché l'app è aperta */
 let lastVision: Vision | null = null
-/** Distanza simulata nella stessa barra (0: nessuna sfocatura) e componente capovolto */
-let lastVisionDistance = 0
-let lastVisionFlip = false
 
 // finestre usate di rado: si caricano la prima volta che si aprono (la versione web parte prima)
 const GenerateDialog = lazy(() => import('./components/GenerateDialog'))
@@ -1816,6 +1812,16 @@ function App(): React.JSX.Element {
     await documents.remove(name)
     if (openDocument === name) setSelected({ kind: 'set', index: 0 })
   }
+  /** Più documenti in un passo, con una sola conferma (Gestisci il progetto) */
+  const deleteDocuments = async (names: string[]): Promise<void> => {
+    if (names.length === 1) return deleteDocument(names[0])
+    if (
+      !(await confirmKey(t, 'manage.documents.deleteMany', { n: names.length }, { danger: true }))
+    )
+      return
+    for (const name of names) await documents.remove(name)
+    if (openDocument && names.includes(openDocument)) setSelected({ kind: 'set', index: 0 })
+  }
   /** Una copia del documento con un nome libero (Regolamento 2), che si apre */
   const duplicateDocument = async (name: string): Promise<void> => {
     const text = project?.documents?.find((d) => d.name === name)?.text ?? ''
@@ -2195,39 +2201,74 @@ function App(): React.JSX.Element {
     const set = project.sets[index]
     if (!(await confirmKey(t, 'sidebar.deleteSetConfirm', { name: set.name }, { danger: true })))
       return
+    removeSets([index])
+  }
+  /** Più set in un passo, con una sola conferma (Gestisci il progetto) */
+  const deleteSets = async (names: string[]): Promise<void> => {
+    if (!project) return
+    if (names.length === 1) {
+      const i = project.sets.findIndex((s) => s.name === names[0])
+      if (i >= 0) await deleteSet(i)
+      return
+    }
+    if (!(await confirmKey(t, 'manage.sets.deleteMany', { n: names.length }, { danger: true })))
+      return
+    removeSets(project.sets.flatMap((s, i) => (names.includes(s.name) ? [i] : [])))
+  }
+  const removeSets = (indexes: number[]): void => {
+    if (!project || !indexes.length) return
     setHistory((h) => ({
       past: [...h.past, { sets: project.sets, file: project.file }],
       future: [],
       at: 0
     }))
-    // un foglio che altri set usano ancora resta nel file
-    const shared = sharingSets(project.sets, index).length > 0
-    // in sola lettura il foglio resta nel file, tra quelli non collegati
-    const kept = !shared && project.file.dataReadOnly ? set.data : null
-    const sheet = shared || kept ? null : set.data
+    const gone = new Set(indexes)
+    const kept: Sheet[] = []
+    const trashed: Sheet[] = []
+    const seen = new Set<string>()
+    for (const index of indexes) {
+      const data = project.sets[index].data
+      if (!data || seen.has(data.name)) continue
+      seen.add(data.name)
+      // un foglio che altri set (non eliminati) usano ancora resta nel file
+      const shared = project.sets.some((s, i) => !gone.has(i) && s.data?.name === data.name)
+      if (shared) continue
+      // in sola lettura il foglio resta nel file, tra quelli non collegati
+      if (project.file.dataReadOnly) kept.push(data)
+      else trashed.push(data)
+    }
     setProject({
       ...project,
-      sets: project.sets.filter((_, i) => i !== index),
-      file: { ...project.file, sets: project.file.sets.filter((_, i) => i !== index) },
-      ...(kept
+      sets: project.sets.filter((_, i) => !gone.has(i)),
+      file: { ...project.file, sets: project.file.sets.filter((_, i) => !gone.has(i)) },
+      ...(kept.length
         ? {
-            unusedSheets: [...project.unusedSheets, kept.name],
-            unusedData: [...(project.unusedData ?? []), kept]
+            unusedSheets: [...project.unusedSheets, ...kept.map((k) => k.name)],
+            unusedData: [...(project.unusedData ?? []), ...kept]
           }
         : {})
     })
-    if (sheet) {
+    if (trashed.length) {
       setDirtySheets((d) => {
         const next = new Set(d)
-        next.delete(sheet.name)
+        trashed.forEach((sheet) => next.delete(sheet.name))
         return next
       })
       // il foglio sul disco ha ancora il nome di prima se il set era stato rinominato
-      setTrashedSheets((t) => new Set(t).add(sheet.origin ?? sheet.name))
+      setTrashedSheets((t) => {
+        const next = new Set(t)
+        trashed.forEach((sheet) => next.add(sheet.origin ?? sheet.name))
+        return next
+      })
     }
     setFileDirty(true)
-    if (selected.kind === 'set' && selected.index >= index && selected.index > 0)
-      setSelected({ kind: 'set', index: selected.index - 1 })
+    if (selected.kind === 'set') {
+      const before = indexes.filter((i) => i < selected.index).length
+      const index = gone.has(selected.index)
+        ? Math.max(0, selected.index - before - 1)
+        : selected.index - before
+      if (index !== selected.index) setSelected({ kind: 'set', index: Math.max(0, index) })
+    }
   }
 
   /**
@@ -3300,6 +3341,16 @@ function App(): React.JSX.Element {
       title: t('package.exportTemplateHint'),
       onClick: () => void savePackage('template', name)
     },
+    // derivati e varianti tornano template normali, con l'aspetto di adesso
+    ...(project?.templates.find((x) => x.name === name)?.extends
+      ? [
+          {
+            label: t('inherit.detach'),
+            title: t('inherit.detachHint'),
+            onClick: () => void detachTemplate(name)
+          }
+        ]
+      : []),
     'sep',
     {
       label: t('sidebar.delete'),
@@ -3379,6 +3430,8 @@ function App(): React.JSX.Element {
     },
     deleteNote: (name) => void deleteNote(name),
     deleteTemplates: (names) => deleteTemplates(names),
+    deleteSets: (names) => deleteSets(names),
+    deleteDocuments: (names) => deleteDocuments(names),
     editVariable: (name) => {
       setEditingVariable(name)
       focusTopDialog()
@@ -4226,6 +4279,7 @@ function App(): React.JSX.Element {
                                   setSelected({ kind: 'template', name })
                                 }}
                                 onDelete={(name) => void deleteTemplate(name)}
+                                onDetach={(name) => void detachTemplate(name)}
                                 onReorder={(names) => orderVariants(base.name, names)}
                                 onClose={() => {
                                   setVariantsFor(null)
@@ -4579,16 +4633,6 @@ function SetView({
     lastVision = v
     setVisionState(v)
   }
-  const [visionDistance, setVisionDistanceState] = useState(lastVisionDistance)
-  const setVisionDistance = (cm: number): void => {
-    lastVisionDistance = cm
-    setVisionDistanceState(cm)
-  }
-  const [visionFlip, setVisionFlipState] = useState(lastVisionFlip)
-  const setVisionFlip = (v: boolean): void => {
-    lastVisionFlip = v
-    setVisionFlipState(v)
-  }
   const [colorsOpen, setColorsOpen] = useState(false)
   const [colorsFocus, setColorsFocus] = useState<string | null>(null)
   const [splitting, setSplitting] = useState(false)
@@ -4633,18 +4677,13 @@ function SetView({
 
   const template = templates.find((tpl) => tpl.name === set.template) ?? null
   // i filtri valgono per le carte di questo set: griglia, anteprima e carta grande
-  // con la sfocatura della distanza anche la visione normale ha un filtro
-  const visionBlur = vision && template ? visionBlurOf(template, visionDistance) : null
-  const blurred = visionBlur !== null
   useEffect(() => {
-    if (!vision || !template) return
-    if (vision !== 'normal' || blurred) document.body.dataset.vision = vision
-    if (visionFlip) document.body.dataset.visionFlip = ''
+    if (!vision || vision === 'normal' || !template) return
+    document.body.dataset.vision = vision
     return () => {
       delete document.body.dataset.vision
-      delete document.body.dataset.visionFlip
     }
-  }, [vision, template, blurred, visionFlip])
+  }, [vision, template])
   // le facce di dado hanno solo il fronte
   const frontOnly = hasNoBack(template)
   const side: Side = frontOnly ? 'front' : chosenSide
@@ -5431,39 +5470,13 @@ function SetView({
         )}
         {vision && template && (
           <div className="vision-bar set-hint">
-            <VisionFilters blur={visionBlur} />
+            <VisionFilters />
             <span>{t('vision.label')}</span>
             <Segmented<Vision>
               value={vision}
               options={VISIONS.map((v) => [v, t(`vision.${v}`), t(`vision.${v}.tip`)])}
               onChange={setVision}
             />
-            <label title={t('vision.distance.tip')}>
-              {t('vision.distance')}
-              <select
-                value={visionDistance}
-                onChange={(e) => setVisionDistance(Number(e.target.value))}
-              >
-                <option value={0}>{t('vision.distance.off')}</option>
-                {[...new Set([readingOf(template).cm, ...READING_DISTANCES.map((d) => d.cm)])].map(
-                  (cm) => (
-                    <option key={cm} value={cm}>
-                      {cm === readingOf(template).cm
-                        ? t('vision.distance.template', { cm })
-                        : `${cm} cm`}
-                    </option>
-                  )
-                )}
-              </select>
-            </label>
-            <label title={t('vision.flip.tip')}>
-              <input
-                type="checkbox"
-                checked={visionFlip}
-                onChange={(e) => setVisionFlip(e.target.checked)}
-              />
-              {t('vision.flip')}
-            </label>
             <button onClick={() => setVision(null)}>{t('vision.end')}</button>
           </div>
         )}
@@ -5679,6 +5692,7 @@ function SetView({
       {checkingText && (
         <LegibilityDialog
           cards={cards}
+          row={selection[0]}
           onPick={(row) => {
             setSelection([row])
             setCheckingText(false)

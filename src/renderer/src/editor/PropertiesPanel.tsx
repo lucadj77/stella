@@ -5,8 +5,7 @@ import {
   readableUpToCm,
   readingOf,
   textVerdict,
-  xHeightMm,
-  type Reading
+  xHeightMm
 } from '../../../shared/model/legibility'
 import { xRatio } from '../legibility/xRatio'
 import { shapeAsPath } from '../../../shared/model/pathEdit'
@@ -415,43 +414,6 @@ function TemplateProperties({
           />
         </Inherit>
       )}
-      <Inherit keys={['readingDistance']}>
-        <SelectField<number>
-          label={t('legibility.distance')}
-          help={t('legibility.distanceHelp')}
-          value={tpl.readingDistance ?? 0}
-          options={[
-            [0, t('legibility.byKind', { cm: readingOf({ kind: tpl.kind }).cm })],
-            ...READING_DISTANCES.map(
-              (d) => [d.cm, t(`legibility.dist.${d.id}`, { cm: d.cm })] as [number, string]
-            ),
-            ...(tpl.readingDistance && !READING_DISTANCES.some((d) => d.cm === tpl.readingDistance)
-              ? [[tpl.readingDistance, `${tpl.readingDistance} cm`] as [number, string]]
-              : [])
-          ]}
-          onChange={(cm) => set({ readingDistance: cm || undefined }, 'readingDistance')}
-        />
-      </Inherit>
-      <Inherit keys={['readUpsideDown']}>
-        <SelectField<'auto' | 'yes' | 'no'>
-          label={t('legibility.upsideDown')}
-          help={t('legibility.upsideDownHelp')}
-          value={tpl.readUpsideDown === undefined ? 'auto' : tpl.readUpsideDown ? 'yes' : 'no'}
-          options={[
-            [
-              'auto',
-              t('legibility.byKindBool', {
-                v: t(readingOf({ kind: tpl.kind }).upsideDown ? 'legibility.yes' : 'legibility.no')
-              })
-            ],
-            ['yes', t('legibility.yes')],
-            ['no', t('legibility.no')]
-          ]}
-          onChange={(v) =>
-            set({ readUpsideDown: v === 'auto' ? undefined : v === 'yes' }, 'readUpsideDown')
-          }
-        />
-      </Inherit>
       <Inherit keys={['ttsTags']}>
         <TextField
           label={t('prop.ttsTags')}
@@ -814,7 +776,7 @@ function LayerProperties({
           computed={computed}
           fields={labelChoices(tpl, sheets)}
           part="rest"
-          reading={readingOf(tpl)}
+          readingCm={readingOf(tpl).cm}
         />
       )}
       {same && l.type === 'image' && (
@@ -1429,8 +1391,8 @@ interface TypeProps<T> {
    * fonte; 'rest': tutto il resto, dopo posizione e dimensioni
    */
   part?: 'value' | 'rest'
-  /** Distanza da cui si legge il componente, per i testi */
-  reading?: Reading
+  /** Distanza da cui si legge di solito il componente (dal tipo), per i testi */
+  readingCm?: number
 }
 
 function options<T extends string>(
@@ -1455,19 +1417,40 @@ const ANCHORS: Anchor[] = [
 const WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900]
 
 /**
- * Sotto il corpo del testo: quanto è alta la x e fino a che distanza si legge comodamente; in
- * arancione se è meno della distanza di lettura del template
+ * Occhiali accanto al corpo del testo: il suggerimento dice quanto è alta la x e come si legge
+ * da ogni distanza. Arancioni se il testo è piccolo per la distanza solita del componente
  */
-function SizeLegibility({ l, reading }: { l: TextLayer; reading: Reading }): React.JSX.Element {
+function LegibilityTip({ l, cm }: { l: TextLayer; cm?: number }): React.JSX.Element {
   const { t } = useI18n()
   const mm = xHeightMm(l.size, xRatio(l.font, l.weight, l.italic))
-  const upTo = Math.floor(readableUpToCm(mm, COMFORT_DEG))
-  const verdict = textVerdict(mm, reading.cm)
+  const lines = [
+    t('legibility.tipHead', { mm: mm.toFixed(1) }),
+    ...READING_DISTANCES.map(
+      (d) =>
+        `${t(`legibility.dist.${d.id}`, { cm: d.cm })}: ${t(`legibility.verdict.${textVerdict(mm, d.cm)}`)}`
+    ),
+    t('legibility.tipUpTo', { cm: Math.floor(readableUpToCm(mm, COMFORT_DEG)) })
+  ]
+  const warn = cm !== undefined && textVerdict(mm, cm) !== 'ok'
   return (
-    <p className={`field-note${verdict === 'ok' ? '' : ' legibility-warn'}`}>
-      {t('legibility.sizeHint', { mm: mm.toFixed(1), cm: upTo })}
-      {verdict !== 'ok' && ` ${t('legibility.sizeTooSmall', { cm: reading.cm })}`}
-    </p>
+    <span
+      className={'legibility-glasses' + (warn ? ' warn' : '')}
+      title={lines.join('\n')}
+      aria-label={t('legibility.tipLabel')}
+      role="img"
+    >
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+        <circle cx="6.5" cy="14" r="4" fill="none" stroke="currentColor" strokeWidth="1.8" />
+        <circle cx="17.5" cy="14" r="4" fill="none" stroke="currentColor" strokeWidth="1.8" />
+        <path
+          d="M10.5 13.5q1.5-1 3 0M2.5 13l1.5-6h2M21.5 13l-1.5-6h-2"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+      </svg>
+    </span>
   )
 }
 
@@ -1478,7 +1461,7 @@ function TextProperties({
   computed,
   fields,
   part,
-  reading
+  readingCm
 }: TypeProps<TextLayer>): React.JSX.Element {
   const { t } = useI18n()
   const set = setLayer as SetFn<TextLayer>
@@ -1549,8 +1532,8 @@ function TextProperties({
             min={1}
             unit="pt"
             onChange={(size) => set({ size })}
+            extra={<LegibilityTip l={l} cm={readingCm} />}
           />
-          {reading && <SizeLegibility l={l} reading={reading} />}
         </P>
         <P id="color">
           <ColorField

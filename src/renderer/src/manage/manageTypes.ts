@@ -36,6 +36,9 @@ export interface ManageActions {
   deleteNote(name: string): void
   /** Una sola conferma per tutti; quelli usati dai set restano */
   deleteTemplates(names: string[]): Promise<void>
+  /** Una sola conferma per tutti */
+  deleteSets(names: string[]): Promise<void>
+  deleteDocuments(names: string[]): Promise<void>
   /** Apre la finestra di modifica ('' per una nuova) sopra questa */
   editVariable(name: string): void
   editStyle(name: string): void

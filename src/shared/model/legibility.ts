@@ -39,27 +39,9 @@ const KIND_DEFAULTS: Record<ComponentKind, { cm: number; upsideDown: boolean }> 
   standee: { cm: 100, upsideDown: false }
 }
 
-export interface Reading {
-  /** Distanza di lettura in cm */
-  cm: number
-  /** Il componente si legge anche dall'altra parte del tavolo, capovolto */
-  upsideDown: boolean
-  /** I valori vengono dal tipo di componente, non dal template */
-  cmDefault: boolean
-  upsideDownDefault: boolean
-}
-
-export function readingOf(
-  t: Pick<Template, 'kind' | 'readingDistance' | 'readUpsideDown'>
-): Reading {
-  const d = KIND_DEFAULTS[kindOf(t)]
-  const cm = t.readingDistance && t.readingDistance > 0 ? t.readingDistance : undefined
-  return {
-    cm: cm ?? d.cm,
-    upsideDown: t.readUpsideDown ?? d.upsideDown,
-    cmDefault: cm === undefined,
-    upsideDownDefault: t.readUpsideDown === undefined
-  }
+/** Distanza da cui si legge di solito un tipo di componente, e se si legge anche capovolto */
+export function readingOf(t: Pick<Template, 'kind'>): { cm: number; upsideDown: boolean } {
+  return KIND_DEFAULTS[kindOf(t)]
 }
 
 const tan = (deg: number): number => Math.tan((deg * Math.PI) / 180)

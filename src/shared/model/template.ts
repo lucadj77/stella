@@ -502,14 +502,6 @@ export interface Template {
   labelField?: string | null
   /** Tag di Tabletop Simulator, separati da virgole, anche con {campi} */
   ttsTags?: string
-  /**
-   * Distanza da cui si legge il componente, in cm (40 in mano, 70 davanti, 100 al centro del
-   * tavolo, 150 dall'altra parte): i controlli di leggibilità ne ricavano le misure minime di
-   * testi e icone. Assente: quella del tipo di componente (shared/model/legibility.ts)
-   */
-  readingDistance?: number
-  /** Il componente si legge anche capovolto, dall'altra parte del tavolo; assente: dal tipo */
-  readUpsideDown?: boolean
   front: Layer[]
   back: Layer[]
   /**
@@ -541,9 +533,7 @@ export const INHERITABLE_TEMPLATE_KEYS = [
   'guides',
   'labelField',
   'ttsTags',
-  'backFromFront',
-  'readingDistance',
-  'readUpsideDown'
+  'backFromFront'
 ] as const
 export type InheritableTemplateKey = (typeof INHERITABLE_TEMPLATE_KEYS)[number]
 

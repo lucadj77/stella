@@ -333,19 +333,9 @@ export function normalizeTemplate(raw: RawTemplate): Template {
       }
     }
   }
-  const {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    changes: _ignored,
-    kind,
-    shapeRotation,
-    die,
-    readingDistance,
-    readUpsideDown,
-    ...plain
-  } = raw
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { changes: _ignored, kind, shapeRotation, die, ...plain } = raw
   return {
-    ...(typeof readingDistance === 'number' && readingDistance > 0 ? { readingDistance } : {}),
-    ...(typeof readUpsideDown === 'boolean' ? { readUpsideDown } : {}),
     ...(isComponentKind(kind) && kind !== 'card' ? { kind } : {}),
     ...(kind === 'die' && isDieType(die) && die !== 'd6' ? { die } : {}),
     width: 63,
@@ -533,8 +523,6 @@ export function denormalizeTemplate(t: Template): RawTemplate {
     ...(t.labelField ? { labelField: t.labelField } : {}),
     ...(t.ttsTags?.trim() ? { ttsTags: t.ttsTags } : {}),
     ...(t.backFromFront ? { backFromFront: true } : {}),
-    ...(t.readingDistance && t.readingDistance > 0 ? { readingDistance: t.readingDistance } : {}),
-    ...(typeof t.readUpsideDown === 'boolean' ? { readUpsideDown: t.readUpsideDown } : {}),
     front: t.front.map(denormalizeLayer),
     back: t.back.map(denormalizeLayer)
   }

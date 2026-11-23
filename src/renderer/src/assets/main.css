@@ -1091,11 +1091,16 @@ textarea.invalid {
   margin: -2px 0 6px calc(var(--label-w, 88px) + 8px);
 }
 
-.field-note.legibility-warn {
-  color: inherit;
-  background: var(--warning-bg);
-  border-radius: 4px;
-  padding: 2px 6px;
+.legibility-glasses {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  color: var(--muted);
+  cursor: help;
+}
+
+.legibility-glasses.warn {
+  color: #d9822b;
 }
 
 .field-grid {
@@ -6158,11 +6163,139 @@ details.usages button.link {
   background: var(--accent-soft);
 }
 
-.legibility-reduced {
-  display: flex;
+.legibility-dialog .dialog {
+  max-width: none;
+  width: min(1100px, 94vw);
+  max-height: 92vh;
+  overflow-y: auto;
+}
+
+.legibility-sections {
+  max-height: 60vh;
+}
+
+.dialog-form .legibility-controls label {
+  flex-direction: row;
   align-items: center;
-  gap: 8px;
-  margin: 4px 0 8px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.legibility-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 400px) 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 800px) {
+  .legibility-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.legibility-component {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.legibility-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+}
+
+.legibility-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legibility-controls select {
+  max-width: 220px;
+}
+
+.legibility-preview {
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.legibility-card {
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  transition: transform 0.3s;
+}
+
+.legibility-card.flipped {
+  transform: rotate(180deg);
+}
+
+.legibility-card > div > svg {
+  display: block;
+}
+
+.legibility-mark {
+  position: absolute;
+  border: 2px solid;
+  border-radius: 3px;
+  pointer-events: auto;
+  box-sizing: border-box;
+}
+
+.legibility-mark.tooSmall,
+.legibility-key.tooSmall {
+  border-color: #d32f2f;
+  background: rgba(211, 47, 47, 0.15);
+}
+
+.legibility-mark.small,
+.legibility-key.small {
+  border-color: #f0a020;
+  background: rgba(240, 160, 32, 0.15);
+}
+
+.legibility-mark.overflow,
+.legibility-key.overflow {
+  border-color: #8e44ad;
+  border-style: dashed;
+  background: rgba(142, 68, 173, 0.12);
+}
+
+.legibility-mark.hover {
+  border-width: 3px;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.35);
+}
+
+.legibility-key {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid;
+  border-radius: 3px;
+  vertical-align: -2px;
+  box-sizing: border-box;
+}
+
+.legibility-legend {
+  margin: 0;
+  color: var(--muted);
+}
+
+.legibility-component .text-check-list li {
+  padding: 3px 6px;
+  font-size: 13px;
+}
+
+.legibility-set h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
 }
 
 .legibility-sections {
@@ -6302,19 +6435,6 @@ body[data-vision='tritan'] {
 }
 body[data-vision='gray'] {
   --vision: url(#vision-gray);
-}
-body[data-vision='normal'] {
-  --vision: url(#vision-normal);
-}
-/* il componente girato di 180°, come lo vede chi sta dall'altra parte del tavolo */
-body[data-vision-flip] .card-cell > svg,
-body[data-vision-flip] .preview-card-inner > svg {
-  transform: rotate(180deg);
-}
-.vision-bar label {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
 }
 /* solo l'SVG della carta, non quelli dentro, che altrimenti avrebbero il filtro due volte */
 body[data-vision] .card-cell > svg {

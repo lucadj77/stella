@@ -78,9 +78,13 @@ export default function StartScreen({
     setDragging(false)
     const item = Array.from(e.dataTransfer.items).find((i) => i.kind === 'file')
     if (!item) return
-    // gli .zip vanno all'importazione dei pacchetti (App)
+    // gli .zip vanno all'importazione dei pacchetti (App), che guarda dataTransfer.files: qui si
+    // guarda lo stesso elenco, perché getAsFile a volte non dà il file e lo ZIP finiva qui
+    const isZip = (name?: string | null): boolean => !!name?.toLowerCase().endsWith('.zip')
+    if (Array.from(e.dataTransfer.files).some((f) => isZip(f.name)) || /zip/i.test(item.type))
+      return
     const file = item.getAsFile()
-    if (file?.name.toLowerCase().endsWith('.zip')) return
+    if (isZip(file?.name)) return
     e.preventDefault()
     const handle =
       window.api.isWeb && 'getAsFileSystemHandle' in item
@@ -93,6 +97,7 @@ export default function StartScreen({
     void (async () => {
       try {
         const path = await window.api.droppedPath({ file, handle: await handle })
+        if (isZip(path)) return
         const found = path ? await window.api.inspectDropped(path) : null
         if (found?.kind === 'stella') onOpen(found.folder)
         else if (found?.kind === 'ttc') {

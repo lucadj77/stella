@@ -15,21 +15,10 @@ import {
 } from '../legibility'
 
 describe('leggibilità', () => {
-  it('distanza e capovolto dal tipo di componente, o dal template', () => {
-    expect(readingOf({})).toEqual({
-      cm: 40,
-      upsideDown: false,
-      cmDefault: true,
-      upsideDownDefault: true
-    })
+  it('distanza e capovolto dal tipo di componente', () => {
+    expect(readingOf({})).toEqual({ cm: 40, upsideDown: false })
     expect(readingOf({ kind: 'board' }).cm).toBe(100)
     expect(readingOf({ kind: 'token' }).upsideDown).toBe(true)
-    expect(readingOf({ readingDistance: 150, readUpsideDown: true })).toEqual({
-      cm: 150,
-      upsideDown: true,
-      cmDefault: false,
-      upsideDownDefault: false
-    })
   })
 
   it('misure dall’angolo visivo', () => {
