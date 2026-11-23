@@ -723,6 +723,8 @@ function LayerProperties({
             disabled={!!from}
             value={l.name}
             validate={validateName}
+            // si applica uscendo dal campo: i richiami {nome} e la colonna seguono il nome finito
+            deferred
             onChange={(name) => set({ name })}
           />
           {base && !from && <p className="muted small">{t('inherit.addedLayer')}</p>}

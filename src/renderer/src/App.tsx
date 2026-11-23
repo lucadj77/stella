@@ -173,6 +173,11 @@ import { renameSet } from '../../shared/model/renameSet'
 import { sharingSets, syncSharedSheets } from '../../shared/model/sharedSheets'
 import { changesData } from '../../shared/model/readOnlyData'
 import { renameTemplate } from '../../shared/model/renameTemplate'
+import {
+  layerRenames,
+  renameFieldInSheet,
+  renameFieldInTemplate
+} from '../../shared/model/renameLayer'
 import { followInDocuments, type RefSnapshot } from '../../shared/model/docRefs'
 import {
   replaceInProject,
@@ -903,6 +908,12 @@ function App(): React.JSX.Element {
       // ogni modifica dell'editor è un passo della cronologia del progetto; quelle ravvicinate
       // con la stessa chiave (e un trascinamento intero) diventano un solo passo
       const p0 = projectRef.current
+      // un livello rinominato: seguono i richiami ({img}) nel template e nei derivati, e le
+      // colonne nei fogli dei set; allora ⌘Z deve riportare indietro anche i fogli
+      const before = p0?.templates.find((x) => x.name === tpl.name)
+      const renames = before ? layerRenames(before, tpl) : []
+      if (renames.length)
+        for (const [from, to] of renames) tpl = renameFieldInTemplate(tpl, from, to)
       if (p0 && change) {
         const now = Date.now()
         setHistoryRaw((h) => {
@@ -910,6 +921,7 @@ function App(): React.JSX.Element {
           const same =
             change.key !== undefined &&
             change.key === h.key &&
+            !renames.length &&
             last?.tplOnly &&
             last.where?.kind === 'template' &&
             last.where.name === tpl.name &&
@@ -919,7 +931,7 @@ function App(): React.JSX.Element {
             sets: p0.sets,
             file: p0.file,
             templates: p0.templates,
-            tplOnly: true,
+            tplOnly: !renames.length,
             where: { kind: 'template', name: tpl.name },
             side: change.side,
             selection: change.selection,
@@ -931,13 +943,43 @@ function App(): React.JSX.Element {
       }
       setProject((p) => {
         if (!p) return p
+        const family = new Set([
+          tpl.name,
+          ...descendantsOf(p.templates, tpl.name).map((x) => x.name)
+        ])
+        let next = p.templates.map((x) => (x.name === tpl.name ? tpl : x))
+        let sets = p.sets
+        if (renames.length) {
+          const touched: string[] = []
+          next = next.map((x) => {
+            if (x.name === tpl.name || !family.has(x.name)) return x
+            let y = x
+            for (const [from, to] of renames) y = renameFieldInTemplate(y, from, to)
+            if (y !== x) touched.push(x.name)
+            return y
+          })
+          if (touched.length) setDirty((d) => new Set([...d, ...touched]))
+          // i fogli dei set che usano il template o un suo derivato; un foglio condiviso una volta
+          const done = new Map<string, Sheet>()
+          sets = p.sets.map((x) => {
+            if (!x.data || !family.has(x.template)) return x
+            let data = done.get(x.data.name)
+            if (!data) {
+              data = x.data
+              for (const [from, to] of renames) data = renameFieldInSheet(data, from, to)
+              done.set(x.data.name, data)
+            }
+            return data === x.data ? x : { ...x, data }
+          })
+          const changedSheets = [...done.entries()]
+            .filter(([name, d]) => p.sets.some((x) => x.data?.name === name && x.data !== d))
+            .map(([name]) => name)
+          if (changedSheets.length) setDirtySheets((d) => new Set([...d, ...changedSheets]))
+        }
         // i derivati seguono subito il base; quelli che cambiano per una rinomina vanno salvati
-        const synced = syncDerived(
-          p.templates,
-          p.templates.map((x) => (x.name === tpl.name ? tpl : x))
-        )
+        const synced = syncDerived(p.templates, next)
         if (synced.changed.length) setDirty((d) => new Set([...d, ...synced.changed]))
-        return { ...p, templates: synced.templates }
+        return { ...p, sets, templates: synced.templates }
       })
       setDirty((d) => (d.has(tpl.name) ? d : new Set(d).add(tpl.name)))
     },

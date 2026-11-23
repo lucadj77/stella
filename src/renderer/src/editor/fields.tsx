@@ -263,10 +263,13 @@ export function TextField({
   validate,
   placeholder,
   markupFields,
-  action
+  action,
+  deferred
 }: Base & {
   value: string
   onChange(v: string): void
+  /** Applica solo uscendo dal campo (o con Invio): per i nomi, che si portano dietro i richiami */
+  deferred?: boolean
   multiline?: boolean
   /** Testo con markup: aiuto alla scrittura con questi campi */
   markupFields?: string[]
@@ -281,7 +284,8 @@ export function TextField({
   const live = useLive(
     value,
     (t) => t !== value && onChange(t),
-    (t) => !validate || validate(t) === null
+    (t) => !validate || validate(t) === null,
+    deferred
   )
   const error = validate && live.text !== value ? validate(live.text) : null
   const common = {
