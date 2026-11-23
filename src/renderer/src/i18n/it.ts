@@ -2957,7 +2957,7 @@ export const it: Record<MessageKey, string> = {
   'tip.vision':
     'Mostra i componenti come li vede chi è daltonico, per controllare che i colori che hanno un significato restino distinti',
   'vision.label': 'Visti con:',
-  'vision.normal': 'Vista normale',
+  'vision.normal': 'Colori originali',
   'vision.normal.tip': 'I componenti come sono',
   'vision.protan': 'Protanopia',
   'vision.protan.tip':
@@ -2970,7 +2970,7 @@ export const it: Record<MessageKey, string> = {
     'Senza coni del blu: blu e verdi si confondono, i gialli diventano rosati (raro)',
   'vision.gray': 'Scala di grigi',
   'vision.gray.tip': 'Solo la luminosità, come in una stampa in bianco e nero',
-  'vision.end': 'Torna normale',
+  'vision.end': "Chiudi l'anteprima",
   'export.onlyChanged': 'Componenti cambiati',
   'export.onlyChangedHint': 'Solo i componenti nuovi o cambiati nel confronto ({n})',
   'app.trash': 'Cestino…',

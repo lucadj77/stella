@@ -2918,7 +2918,7 @@ export const en = {
   'tip.vision':
     'Show the components as people with color blindness see them, to check that colors that carry meaning stay distinct',
   'vision.label': 'Seen with:',
-  'vision.normal': 'Normal vision',
+  'vision.normal': 'Original colors',
   'vision.normal.tip': 'The components as they are',
   'vision.protan': 'Protanopia',
   'vision.protan.tip':
@@ -2930,7 +2930,7 @@ export const en = {
   'vision.tritan.tip': 'No blue cones: blues and greens look alike, yellows turn pink (rare)',
   'vision.gray': 'Grayscale',
   'vision.gray.tip': 'Only lightness, as in a black and white print',
-  'vision.end': 'Back to normal',
+  'vision.end': 'Close preview',
   'export.onlyChanged': 'Changed components',
   'export.onlyChangedHint': 'Only the components new or changed in the comparison ({n})',
   'app.trash': 'Trash…',
