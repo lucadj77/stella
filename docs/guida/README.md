@@ -320,7 +320,7 @@ I livelli selezionati si copiano con ⌘C / Ctrl+C (⌘X / Ctrl+X per tagliarli)
 
 ### 4.3 Le proprietà del template
 
-Senza livelli selezionati, il pannello mostra le proprietà del template: il tipo di componente, misure, abbondanza (di base 3 mm), margine dell'area sicura, forma del componente (rettangolo con angoli arrotondati, cerchio o ellisse, esagono, sagoma presa da un'immagine), orientamento della forma, guide manuali e **Nome dei componenti**, il campo che compare sotto ogni componente nella griglia.
+Senza livelli selezionati, il pannello mostra le proprietà del template: il tipo di componente, misure, abbondanza (di base 3 mm), margine dell'area sicura, forma del componente (rettangolo con angoli arrotondati, cerchio o ellisse, esagono, sagoma presa da un'immagine), orientamento della forma, guide manuali e **Nome dei componenti**, il campo che compare sotto ogni componente nella griglia (di base il numero di riga).
 
 **Orientamento della forma** gira o specchia solo il contorno, non il contenuto: ⟲ e ⟳ fanno un quarto di giro e scambiano larghezza e altezza (un esagono con un lato in alto diventa con la punta in alto), **180°** capovolge la forma (uno scudo preso da un'immagine diventa a punta in su), ⇆ e ⇅ la specchiano. Con il quarto di giro i livelli si sistemano come quando si cambiano le misure.
 
@@ -513,6 +513,8 @@ La **griglia** mostra i componenti come verranno stampati. Il cursore in alto ca
 ![La griglia di un set di carte](img/griglia.png)
 
 Per selezionare più componenti nella griglia si trascina sullo spazio vuoto intorno: il rettangolo seleziona quelli che tocca, e con Maiuscolo o ⌘ / Ctrl li aggiunge a quelli già selezionati. ⌘A / Ctrl+A seleziona tutti i componenti mostrati (con un filtro attivo, solo quelli che passano il filtro), Esc torna al solo componente in anteprima. Sopra la griglia una barra dice quanti componenti sono selezionati, con **Seleziona tutto** e **Tieni solo una**. Trascinando uno dei componenti selezionati si spostano tutti insieme.
+
+Nella griglia Canc / ⌫ elimina i componenti selezionati (con più di uno chiede conferma), ⌘D / Ctrl+D li duplica e ⌘X, ⌘C e ⌘V / Ctrl+X, Ctrl+C e Ctrl+V li tagliano, copiano e incollano subito dopo l'ultimo selezionato. Si incollano anche in un altro set: ogni valore va nella colonna con lo stesso nome, e se il set non ha qualche colonna una conferma dice quali valori restano fuori. Negli appunti i componenti sono anche testo a tabulazioni con le intestazioni, che si incolla in Excel o in Fogli Google.
 
 ![Più carte selezionate nella griglia](img/griglia-selezione.png)
 

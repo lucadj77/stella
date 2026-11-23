@@ -20,6 +20,9 @@ export const it: Record<MessageKey, string> = {
   'set.deleteConfirm': 'Puoi annullare con ⌘Z.',
   'set.deleteConfirm.title': 'Eliminare {what}?',
   'set.deleteConfirm.ok': 'Elimina',
+  'set.pasteLost': 'I loro valori non si incollano. Puoi annullare con ⌘Z.',
+  'set.pasteLost.title': 'Colonne che questo set non ha: {columns}',
+  'set.pasteLost.ok': 'Incolla comunque',
   'set.filter': 'Filtra…',
   'set.filterAll': 'in tutte le colonne',
   'set.sortNone': 'Ordine del foglio',
@@ -866,7 +869,7 @@ export const it: Record<MessageKey, string> = {
   'editor.snapRotatedHint': "Anche l'oggetto che si aggancia prende questa rotazione",
   'prop.snapFollow': 'Stessa rotazione del livello',
   'prop.snapAngle': 'Angolo dello snap',
-  'editor.labelFieldAuto': 'Prima colonna',
+  'editor.labelFieldAuto': 'Numero di riga',
   'editor.valueHint':
     'Non si disegna sul componente. Usalo come {{name}} nelle formule e nei testi degli altri livelli; una colonna del foglio con lo stesso nome lo cambia componente per componente.',
   'layerType.group': 'Gruppo',

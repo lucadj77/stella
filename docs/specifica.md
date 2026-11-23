@@ -385,7 +385,7 @@ Prossimi passi: controllo dei caratteri che il font non ha, comando per esportar
 | area sicura      | mm dal bordo di taglio, solo come guida                                                                                                               |
 | retro            | nessuno, unico per il set, per carta (livelli del retro collegati al foglio)                                                                          |
 | griglia e guide  | passo in mm, guide manuali                                                                                                                            |
-| nome delle carte | campo (colonna o livello) mostrato sotto ogni carta nella vista del set; di base la prima colonna non vuota                                           |
+| nome delle carte | campo (colonna o livello) mostrato sotto ogni carta nella vista del set; di base il numero di riga                                                   |
 
 Quando si cambiano le dimensioni di un template che contiene già livelli, l'app chiede cosa fare:
 

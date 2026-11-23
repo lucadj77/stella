@@ -20,6 +20,9 @@ export const en = {
   'set.deleteConfirm': 'You can undo with ⌘Z.',
   'set.deleteConfirm.title': 'Delete {what}?',
   'set.deleteConfirm.ok': 'Delete',
+  'set.pasteLost': 'Their values are not pasted. You can undo with ⌘Z.',
+  'set.pasteLost.title': 'Columns this set does not have: {columns}',
+  'set.pasteLost.ok': 'Paste anyway',
   'set.filter': 'Filter…',
   'set.filterAll': 'in all columns',
   'set.sortNone': 'Sheet order',
@@ -858,7 +861,7 @@ export const en = {
   'editor.snapRotatedHint': 'The object that snaps also takes this rotation',
   'prop.snapFollow': 'Same rotation as the layer',
   'prop.snapAngle': 'Snap angle',
-  'editor.labelFieldAuto': 'First column',
+  'editor.labelFieldAuto': 'Row number',
   'editor.valueHint':
     'Not drawn on the component. Use it as {{name}} in formulas and texts of other layers; a sheet column with the same name changes it per component.',
   'layerType.group': 'Group',

@@ -99,6 +99,15 @@ import {
   type RowView
 } from '../../shared/model/sheet'
 import {
+  copyRows,
+  lostColumns,
+  parseCopiedRows,
+  pasteRows,
+  rowsToTsv,
+  ROWS_MIME,
+  type CopiedRows
+} from '../../shared/model/rowClipboard'
+import {
   renameInDefinitions,
   renameInSheet,
   renameInTemplate,
@@ -310,6 +319,91 @@ function loadUiZoom(): number {
 }
 
 type View = 'table' | 'grid'
+
+/** Azioni sui componenti selezionati nella vista a griglia, per la tastiera e gli appunti */
+interface GridCommands {
+  /** C'è almeno un componente selezionato */
+  selected: boolean
+  /** Foglio in sola lettura: si può solo copiare */
+  readOnly: boolean
+  remove(cut?: boolean): Promise<void>
+  duplicate(): void
+  copy(): CopiedRows
+  paste(rows: CopiedRows): Promise<void>
+}
+
+/**
+ * Ultimi componenti copiati: se gli appunti non tengono il tipo di Stella (alcuni sistemi lo
+ * perdono), il testo uguale a quello copiato basta per riconoscerli
+ */
+let lastCopied: { text: string; rows: CopiedRows } | null = null
+
+/** Tastiera e appunti della vista a griglia: montato solo in quella vista */
+function GridShortcuts(props: GridCommands): null {
+  const latest = useRef(props)
+  useEffect(() => {
+    latest.current = props
+  })
+  // Canc elimina i componenti selezionati, ⌘D li duplica, ⌘X ⌘C ⌘V li
+  // tagliano, copiano e incollano (anche in un altro set)
+  useEffect(() => {
+    const busy = (e: Event): boolean => {
+      const target = e.target instanceof HTMLElement ? e.target : null
+      return (
+        !!target?.closest('input, textarea, select, [contenteditable], [role="dialog"]') ||
+        !!document.querySelector('[role="dialog"]')
+      )
+    }
+    const onKey = (e: KeyboardEvent): void => {
+      const g = latest.current
+      if (e.defaultPrevented || e.altKey || busy(e)) return
+      const mod = e.metaKey || e.ctrlKey
+      if (g.readOnly) return
+      if (!mod && (e.key === 'Delete' || e.key === 'Backspace') && g.selected) {
+        e.preventDefault()
+        void g.remove()
+      } else if (mod && !e.shiftKey && e.key.toLowerCase() === 'd' && g.selected) {
+        e.preventDefault()
+        g.duplicate()
+      }
+    }
+    const onClipboard = (e: ClipboardEvent): void => {
+      const g = latest.current
+      if (busy(e)) return
+      if (e.type === 'paste') {
+        if (g.readOnly) return
+        const data = e.clipboardData
+        const rows =
+          parseCopiedRows(data?.getData(ROWS_MIME) ?? '') ??
+          (lastCopied && data?.getData('text/plain') === lastCopied.text ? lastCopied.rows : null)
+        if (!rows) return
+        e.preventDefault()
+        void g.paste(rows)
+        return
+      }
+      // con del testo selezionato nella pagina vale la copia normale
+      if (!g.selected || window.getSelection()?.toString()) return
+      const rows = g.copy()
+      const text = rowsToTsv(rows)
+      lastCopied = { text, rows }
+      e.clipboardData?.setData('text/plain', text)
+      e.clipboardData?.setData(ROWS_MIME, JSON.stringify(rows))
+      e.preventDefault()
+      if (e.type === 'cut' && !g.readOnly) void g.remove(true)
+    }
+    window.addEventListener('keydown', onKey)
+    document.addEventListener('copy', onClipboard)
+    document.addEventListener('cut', onClipboard)
+    document.addEventListener('paste', onClipboard)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.removeEventListener('copy', onClipboard)
+      document.removeEventListener('cut', onClipboard)
+      document.removeEventListener('paste', onClipboard)
+    }
+  }, [])
+  return null
+}
 /** Una riga già legata, con la sua posizione nel foglio */
 interface BoundRow {
   index: number
@@ -4995,8 +5089,10 @@ function SetView({
     const sorted = [...new Set(selection)].sort((a, b) => a - b)
     setSelection(sorted.map((row, k) => row + k + 1))
   }
-  const remove = async (): Promise<void> => {
+  /** `cut`: tagliando non si chiede conferma, i componenti sono negli appunti */
+  const remove = async (cut = false): Promise<void> => {
     if (
+      !cut &&
       selection.length > 1 &&
       !(await confirmKey(
         t,
@@ -5008,6 +5104,18 @@ function SetView({
       return
     onChange(removeRows(sheet, selection))
     setSelection([Math.min(Math.min(...selection), sheet.rows.length - selection.length - 1)])
+  }
+  const paste = async (rows: CopiedRows): Promise<void> => {
+    const lost = lostColumns(sheet, rows)
+    if (
+      lost.length &&
+      !(await confirmKey(t, 'set.pasteLost', { columns: lost.join(', ') }, { cancel: false }))
+    )
+      return
+    const at = none ? sheet.rows.length : Math.max(...selection) + 1
+    const { sheet: next, added } = pasteRows(sheet, rows, at)
+    onChange(next)
+    setSelection(added)
   }
 
   /** Livelli con un campo sotto il puntatore, dal più in alto, con dove stanno sulla carta */
@@ -5289,6 +5397,16 @@ function SetView({
               </span>
             )}
           </span>
+          {view === 'grid' && (
+            <GridShortcuts
+              selected={!none}
+              readOnly={!!readOnly}
+              remove={remove}
+              duplicate={duplicate}
+              copy={() => copyRows(sheet, selection)}
+              paste={paste}
+            />
+          )}
           <span className="spacer" />
           {view === 'grid' && (
             <input
@@ -5415,7 +5533,7 @@ function SetView({
             <button
               className="danger"
               disabled={none}
-              onClick={remove}
+              onClick={() => void remove()}
               title={t('tip.deleteCards')}
             >
               {t('set.delete')}

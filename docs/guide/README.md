@@ -320,7 +320,7 @@ Selected layers are copied with ⌘C / Ctrl+C (⌘X / Ctrl+X to cut them) and pa
 
 ### 4.3 Template properties
 
-With no layer selected, the panel shows the template properties: the kind of component, size, bleed (3 mm by default), safe margin, component shape (rectangle with rounded corners, circle or ellipse, hexagon, outline taken from an image), shape orientation, manual guides and **Component name**, the field shown under each component in the grid.
+With no layer selected, the panel shows the template properties: the kind of component, size, bleed (3 mm by default), safe margin, component shape (rectangle with rounded corners, circle or ellipse, hexagon, outline taken from an image), shape orientation, manual guides and **Component name**, the field shown under each component in the grid (the row number by default).
 
 **Shape orientation** turns or mirrors only the outline, not the content: ⟲ and ⟳ make a quarter turn and swap width and height (a hexagon with a flat top gets a point on top), **180°** turns the shape upside down (a shield taken from an image ends up point up), ⇆ and ⇅ mirror it. With a quarter turn the layers adjust as when you change the size.
 
@@ -513,6 +513,8 @@ The **grid** shows the components as they will be printed. The slider at the top
 ![The grid of a set of cards](img/griglia.png)
 
 To select several components in the grid, drag on the empty space around them: the rectangle selects the ones it touches, and with Shift or ⌘ / Ctrl adds them to the ones already selected. ⌘A / Ctrl+A selects all the components shown (with a filter, only the ones that pass it), Esc goes back to the component in the preview. Above the grid a bar shows how many components are selected, with **Select all** and **Keep only one**. Dragging one of the selected components moves all of them.
+
+In the grid, Delete / ⌫ deletes the selected components (asking first when there is more than one), ⌘D / Ctrl+D duplicates them and ⌘X, ⌘C and ⌘V / Ctrl+X, Ctrl+C and Ctrl+V cut, copy and paste them right after the last selected one. They paste into another set too: each value goes into the column with the same name, and if the set lacks some columns a confirmation says which values are left out. On the clipboard the components are also tab-separated text with the headers, which pastes into Excel or Google Sheets.
 
 ![Several cards selected in the grid](img/griglia-selezione.png)
 
