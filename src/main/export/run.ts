@@ -1,6 +1,6 @@
 import { DIE_ROWS, dieOf, isCubeDie } from '../../shared/model/dice'
 import { dieColliderObj, dieObj, dieSolid } from '../../shared/model/solids'
-import { mkdir, writeFile } from 'fs/promises'
+import { mkdir, readdir, rm, writeFile } from 'fs/promises'
 import { dirname, join, resolve } from 'path'
 import {
   defaultTtsFolder,
@@ -31,8 +31,10 @@ import {
   isTokenLike,
   type TtsPieceKind,
   type TtsDie,
-  type TtsSheet
+  type TtsSheet,
+  type CutOptions
 } from '../../shared/export'
+import { cutDxf, cutSvg, planCut, pngWithDpi, sheetFiles } from '../../shared/cutPlan'
 import {
   cardPage,
   imageExtension,
@@ -124,6 +126,8 @@ export async function runExport(job: ExportJob, env: RunEnv): Promise<ExportResu
     else if (job.kind === 'pdf' && job.duplexTest)
       await exportDuplexTest(ctx, job.options, job.duplexTest)
     else if (job.kind === 'pdf') await exportPdf(ctx, job.options, sets, job.project)
+    else if (job.kind === 'cut')
+      await exportCut(ctx, job.options, sets, job.project, job.instructions, job.locale)
     else await exportTts(ctx, job.options, sets, job.project)
   } catch (e) {
     if (!(e instanceof Cancelled)) throw e
@@ -275,6 +279,61 @@ async function exportPdf(
     step(ctx)
   }
   if (printed) ctx.result.warnings.push(msg('export.printed'))
+}
+
+// ——— Plotter da taglio ———
+
+/**
+ * Un PNG per foglio, trasparente fuori dai componenti, più i tracciati di taglio e di piega con
+ * lo stesso riquadro e le istruzioni, in una cartella sola
+ */
+/** I file di un foglio per il plotter: «sheet-01 (18 x 26.4 cm).png», « cut.svg», « folds.svg»… */
+const OLD_SHEET = /^sheet-\d+ \([^)]* cm\)( cut| folds)?\.(png|svg|dxf)$/
+
+async function exportCut(
+  ctx: Ctx,
+  o: CutOptions,
+  sets: ExportSet[],
+  project: string,
+  instructions: string | undefined,
+  locale: string | undefined
+): Promise<void> {
+  const plan = planCut(o, sets, project, locale)
+  const folder = join(outputFolder(ctx, o.folder), plan.folder)
+  for (const set of plan.overflow) ctx.result.warnings.push(msg('export.cutOverflow', { set }))
+  ctx.result.warnings.push(...plan.notes)
+  ctx.progress.total = plan.sheets.length
+  // i fogli di un'esportazione precedente hanno altri nomi (le misure): si tolgono, così nella
+  // cartella restano solo quelli da caricare
+  const old = await readdir(folder).catch(() => [] as string[])
+  for (const f of old.filter((n) => OLD_SHEET.test(n)))
+    await rm(join(folder, f), { force: true }).catch(() => undefined)
+  const dpi = Math.max(72, Math.min(1200, o.dpi || 300))
+  for (const sheet of plan.sheets) {
+    const w = Math.max(1, Math.round((sheet.width * dpi) / 25.4))
+    const h = Math.max(1, Math.round((sheet.height * dpi) / 25.4))
+    const scene: Scene = {
+      pages: [sheet.page],
+      // pixel interi: la scala si corregge di poco perché il foglio riempia l'immagine
+      scale: w / sheet.width,
+      background: null,
+      lineColor: '#000',
+      lineWidth: 0,
+      linesOver: false
+    }
+    await ctx.win.show(scene, w, h)
+    const png = (await ctx.win.capture(w, h)).toPNG()
+    await write(ctx, join(folder, `${sheet.name}.png`), Buffer.from(pngWithDpi(png, dpi)))
+    for (const f of sheetFiles(o, sheet))
+      await write(
+        ctx,
+        join(folder, f.name),
+        f.kind === 'dxf' ? cutDxf(sheet) : cutSvg(sheet, f.kind)
+      )
+    step(ctx)
+  }
+  if (instructions && plan.sheets.length)
+    await write(ctx, join(folder, 'instructions.txt'), instructions)
 }
 
 /** La pagina di prova del fronte-retro, nella cartella dei PDF */

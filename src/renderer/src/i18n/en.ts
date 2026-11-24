@@ -1614,10 +1614,13 @@ export const en = {
   'export.goal.tts.text': 'Decks, tokens, standees, tiles, boards and dice.',
   'export.goal.images': 'Images',
   'export.goal.images.text': 'One file per component, also for MakePlayingCards.',
+  'export.goal.cut': 'Cutting plotter',
+  'export.goal.cut.text': 'Print and cut with Cricut, Silhouette, Brother.',
   'export.title': 'Export',
   'export.images': 'Images',
   'export.pdf': 'PDF',
   'export.tts': 'Tabletop Simulator',
+  'export.cut': 'Cutting plotter',
   'export.sets': 'Sets',
   'export.copies': 'Copies',
   'export.copiesHint': 'Repeat each component as many times as its amount',
@@ -1929,6 +1932,36 @@ export const en = {
   'export.rounded': 'Rounded as in the template',
   'export.gridOverflow':
     'Set “{set}”: the components do not fit on the page, change margins, page or layout.',
+  'export.previewSheet': 'Sheet {n} of {total}',
+  'export.sum.cut': '{what} → {n} {n:sheet|sheets} to print and cut, in {folder}',
+  'export.cutOverflow':
+    'Set “{set}”: the components do not fit in the cutting area, change the area or the paper.',
+  'cut.machine': 'Machine',
+  'cut.machineCricutNote': 'Design Space, Print Then Cut. Cut and folds as SVG.',
+  'cut.machineOther': 'Other plotter',
+  'cut.machineOtherNote': 'Silhouette, Brother and others. Cut as SVG and DXF.',
+  'cut.area': 'area',
+  'cut.areaHint':
+    'The largest image the program accepts for print and cut. Each sheet is cropped to the components it holds.',
+  'cut.foldPairs': 'Front and back side by side, to fold',
+  'cut.foldHint': 'Each component becomes one piece twice as wide, with a fold line in the middle.',
+  'cut.hintCricut':
+    'For each sheet: a PNG to upload as Print Then Cut, and a folds file if there are folds. Design Space reads the PNG at the wrong size: type the width in cm written in the file name.',
+  'cut.hintOther':
+    'For each sheet: a PNG to print, and the cut lines as SVG and DXF of the same size. Silhouette Studio Basic opens only the DXF.',
+  'cut.moreSection': 'Spacing, resolution, folder',
+  'cut.spacingHint':
+    'Space between components. The plotter cuts along the outline, so a few millimetres are enough.',
+  'cut.sum.size': 'first sheet {w} × {h} cm',
+  'cut.instr.title': 'Stella: files for the cutting plotter',
+  'cut.instr.cricut':
+    'Cricut Design Space, one sheet at a time:\n1. Upload the sheet PNG and choose "Print Then Cut" image.\n2. Select it and type the width in cm listed below (Design Space ignores the PNG resolution). Keep the proportions locked.\n3. If the sheet has a folds file: upload it, select it and type the same width. It holds the outline of the pieces too.\n4. Align the folds file with the PNG at the top left, then delete its outline layer (the one with the whole shapes).\n5. Set the fold lines to Score, select the PNG and the fold lines and use Attach.\n6. Click Make: Design Space prints the sheet with its registration marks, then cuts it.\nHoles inside a component are transparent in the PNG and are cut too.',
+  'cut.instr.other':
+    'Other plotters (Silhouette, Brother ScanNCut and similar):\n1. Open the cut file (SVG, or DXF in Silhouette Studio Basic). Its size is the same as the sheet PNG listed below.\n2. Place the sheet PNG on the cut lines, at the top left, at the size listed below.\n3. Add the registration marks of your program, print, then cut. Fold lines are blue in the SVG and on the FOLD layer in the DXF.',
+  'cut.instr.sheets': 'Sheets:',
+  'cut.instr.sheet': '- {file}: width {w} cm, height {h} cm',
+  'cut.instr.foldsFile': '  folds: {file}',
+  'cut.instr.cutFile': '  cut: {file}',
   'sidebar.variables': 'Variables',
   'sidebar.notes': 'Notes',
   'sidebar.newNote': 'New note',

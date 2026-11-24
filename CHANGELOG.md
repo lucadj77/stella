@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## Next version
+
+### English
+
+- **Export for cutting plotters**: Cricut (Print Then Cut), Silhouette, Brother ScanNCut and similar. Stella fits the components in the area the machine accepts, crops each sheet to them and writes a PNG to print plus the cut and fold lines as SVG and DXF, with step-by-step instructions and the size of each sheet. Rounded corners, custom shapes and holes are cut along their outline; front and back can be one piece to fold, dice come out as nets with tabs.
+
+### Italiano
+
+- **Esportazione per plotter da taglio**: Cricut (Stampa e taglia), Silhouette, Brother ScanNCut e simili. Stella mette i componenti nell'area che la macchina accetta, ritaglia ogni foglio su di loro e scrive un PNG da stampare con le linee di taglio e di piega in SVG e DXF, le istruzioni passo passo e la misura di ogni foglio. Angoli arrotondati, sagome e fori si tagliano lungo il contorno; fronte e retro possono essere un pezzo solo da piegare, i dadi escono come sviluppi con le linguette.
+
 ## 1.13.2-beta.1
 
 ### English

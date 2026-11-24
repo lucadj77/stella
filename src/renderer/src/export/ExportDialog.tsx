@@ -8,6 +8,8 @@ import {
   DEFAULT_IMAGE,
   DEFAULT_PDF,
   DEFAULT_TTS,
+  DEFAULT_CUT,
+  cutArea,
   pdfGrid,
   ttsSetObject,
   ttsDefaultThickness,
@@ -21,8 +23,10 @@ import {
   type PdfOptions,
   type TtsObjectType,
   type TtsOptions,
-  type TtsSetObject
+  type TtsSetObject,
+  type CutOptions
 } from '../../../shared/export'
+import type { CutTexts } from '../../../shared/cutPlan'
 import { messageFromError, type Message } from '../../../shared/messages'
 import { readRealPath, writeRealPath } from '../../../shared/realPath'
 import { exportSummary, previewItems } from '../../../shared/exportPreview'
@@ -91,7 +95,7 @@ export default function ExportDialog({
   const [kind, setKindState] = useState<ExportKind>(() => {
     if (startProfile) return startProfile.kind
     const k = localStorage.getItem(KIND_KEY)
-    return k === 'pdf' || k === 'tts' ? k : 'images'
+    return k === 'pdf' || k === 'tts' || k === 'cut' ? k : 'images'
   })
   const setKind = (k: ExportKind): void => {
     localStorage.setItem(KIND_KEY, k)
@@ -115,6 +119,13 @@ export default function ExportDialog({
     // percorso vero delle immagini, che si conosce solo per quella (vedi shared/realPath.ts)
     ...(window.api.isWeb ? { destination: 'tts' as const } : {})
   }))
+  const [cut, setCut] = useState<CutOptions>(() => ({
+    ...DEFAULT_CUT,
+    ...saved.cut,
+    ...(startProfile?.kind === 'cut' ? startProfile.options : {})
+  }))
+  /** Lingua delle istruzioni e dei numeri nei nomi dei file del plotter */
+  const cutTexts: CutTexts = useMemo(() => ({ tr: t as CutTexts['tr'], locale: ui }), [t, ui])
   /** L'obiettivo scelto: il PDF per la stampa in casa o per la tipografia */
   const [goal, setGoal] = useState<ExportGoal>(() =>
     kind === 'pdf' ? (pdf.bleed ? 'shop' : 'home') : kind
@@ -145,18 +156,21 @@ export default function ExportDialog({
     return window.api.onExportProgress(setProgress)
   }, [])
 
-  const options = kind === 'images' ? img : kind === 'pdf' ? pdf : tts
+  const options = kind === 'images' ? img : kind === 'pdf' ? pdf : kind === 'cut' ? cut : tts
   const what: KindOptions =
     kind === 'images'
       ? { kind, options: img }
       : kind === 'pdf'
         ? { kind, options: pdf }
-        : { kind, options: tts }
+        : kind === 'cut'
+          ? { kind, options: cut }
+          : { kind, options: tts }
   const setNames = project.sets.map((s) => s.name)
   const selected = selectedSets(project, options.sets)
-  const patch = (p: Partial<ImageOptions & PdfOptions & TtsOptions>): void => {
+  const patch = (p: Partial<ImageOptions & PdfOptions & TtsOptions & CutOptions>): void => {
     if (kind === 'images') setImg((o) => ({ ...o, ...p }))
     else if (kind === 'pdf') setPdf((o) => ({ ...o, ...p }))
+    else if (kind === 'cut') setCut((o) => ({ ...o, ...p }))
     else setTts((o) => ({ ...o, ...p }))
   }
   const [onlyChanged, setOnlyChanged] = useState(!!changed)
@@ -226,7 +240,7 @@ export default function ExportDialog({
   const live = useMemo(
     () => ({ what, language: exportLanguage, onlyChanged, picked }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [kind, img, pdf, tts, exportLanguage, onlyChanged, picked]
+    [kind, img, pdf, tts, cut, exportLanguage, onlyChanged, picked]
   )
   const [stable, setStable] = useState(live)
   useEffect(() => {
@@ -239,9 +253,15 @@ export default function ExportDialog({
     stable.language === '*' ? (languages[0] ?? null) : stable.language || languages[0] || null
   const job = useMemo(
     () =>
-      buildJob(project, stable.what, firstLanguage, rowFilter(stable.onlyChanged, stable.picked)),
+      buildJob(
+        project,
+        stable.what,
+        firstLanguage,
+        rowFilter(stable.onlyChanged, stable.picked),
+        cutTexts
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [project, stable, firstLanguage, changed]
+    [project, stable, firstLanguage, changed, cutTexts]
   )
   const plan = useMemo(() => previewItems(job), [job])
   const summary = useMemo(() => exportSummary(job, plan), [job, plan])
@@ -256,6 +276,7 @@ export default function ExportDialog({
       preset ? ({ sets: o.sets, ...('folder' in o ? { folder: o.folder } : {}) } as Partial<T>) : {}
     if (p.kind === 'images') setImg((o) => ({ ...DEFAULT_IMAGE, ...p.options, ...keep(o) }))
     else if (p.kind === 'pdf') setPdf((o) => ({ ...DEFAULT_PDF, ...p.options, ...keep(o) }))
+    else if (p.kind === 'cut') setCut((o) => ({ ...DEFAULT_CUT, ...p.options, ...keep(o) }))
     else setTts((o) => ({ ...DEFAULT_TTS, ...p.options, ...keep(o) }))
     setKind(p.kind)
     setGoal(p.kind === 'pdf' ? ((p.options.bleed ?? DEFAULT_PDF.bleed) ? 'shop' : 'home') : p.kind)
@@ -266,7 +287,7 @@ export default function ExportDialog({
     if (g === goal) return
     setGoal(g)
     setActiveProfile('')
-    if (g === 'tts' || g === 'images') {
+    if (g === 'tts' || g === 'images' || g === 'cut') {
       setKind(g)
       return
     }
@@ -280,7 +301,9 @@ export default function ExportDialog({
       ? { name: '', kind, options: img }
       : kind === 'pdf'
         ? { name: '', kind, options: pdf }
-        : { name: '', kind, options: tts }
+        : kind === 'cut'
+          ? { name: '', kind, options: cut }
+          : { name: '', kind, options: tts }
   /** I profili si scrivono subito nel file di progetto, come le ultime opzioni */
   const saveNamed = (list: NamedProfile[], active: string): void => {
     setNamed(list)
@@ -299,6 +322,7 @@ export default function ExportDialog({
       images: img,
       pdf,
       tts,
+      cut,
       named: named.length ? named : undefined,
       last: { kind, ...(exportLanguage ? { language: exportLanguage } : {}) }
     }
@@ -306,7 +330,14 @@ export default function ExportDialog({
       window.api.saveExportProfiles(profiles).catch(() => undefined)
       onProfiles(profiles)
       setResult(
-        await runExport(project, what, exportLanguage, hasFont, rowFilter(onlyChanged, picked))
+        await runExport(
+          project,
+          what,
+          exportLanguage,
+          hasFont,
+          rowFilter(onlyChanged, picked),
+          cutTexts
+        )
       )
     } catch (e) {
       setError(messageFromError(e))
@@ -895,6 +926,83 @@ export default function ExportDialog({
     </>
   )
 
+  // ——— Plotter da taglio ———
+  const cutAreaFor = (
+    machine: CutOptions['machine'],
+    paper: CutOptions['paper']
+  ): Pick<CutOptions, 'areaWidth' | 'areaHeight'> => {
+    const [areaWidth, areaHeight] = cutArea(machine, paper, [cut.areaWidth, cut.areaHeight])
+    return { areaWidth, areaHeight }
+  }
+  const cutOptions = kind === 'cut' && (
+    <>
+      <h3 className="export-heading">{t('export.matters')}</h3>
+      <Choice
+        label={t('cut.machine')}
+        value={cut.machine}
+        onChange={(machine) => patch({ machine, ...cutAreaFor(machine, cut.paper) })}
+        options={[
+          { value: 'cricut', label: 'Cricut', note: t('cut.machineCricutNote') },
+          { value: 'other', label: t('cut.machineOther'), note: t('cut.machineOtherNote') }
+        ]}
+      />
+      <Row label={t('export.paper')} hint={t('cut.areaHint')}>
+        {select(
+          cut.paper,
+          [
+            ['A4', 'A4'],
+            ['Letter', 'Letter'],
+            ['A3', 'A3'],
+            ['custom', t('export.custom')]
+          ],
+          (paper) => patch({ paper, ...cutAreaFor(cut.machine, paper) })
+        )}
+        <span className="unit">{t('cut.area')}</span>
+        {mm(cut.areaWidth, (areaWidth) => patch({ areaWidth, paper: 'custom' }))}
+        <span className="unit">×</span>
+        {mm(cut.areaHeight, (areaHeight) => patch({ areaHeight, paper: 'custom' }))}
+      </Row>
+      <Row label={t('export.fold')} hint={cut.fold ? t('cut.foldHint') : undefined}>
+        {check(cut.fold, (fold) => patch({ fold }), 'cut.foldPairs')}
+      </Row>
+      {hasDice && (
+        <Row
+          label={t('export.tabDepth')}
+          hint={t('export.tabDepthHint', {
+            v: len(netTabDepth(dieFace?.width ?? 20, cut.tabDepth))
+          })}
+        >
+          {mm(cut.tabDepth, (tabDepth) => patch({ tabDepth: Math.min(NET_TAB_MAX, tabDepth) }))}
+        </Row>
+      )}
+      <p className="export-hint">
+        {t(cut.machine === 'cricut' ? 'cut.hintCricut' : 'cut.hintOther')}
+      </p>
+      <Section
+        id="cut-more"
+        title={t('cut.moreSection')}
+        summary={[
+          t('export.spacingShort', { v: len(cut.spacing) }),
+          t('export.sum.dpi', { dpi: cut.dpi }),
+          shortFolder(cut.folder)
+        ].join(' · ')}
+      >
+        <Row label={t('export.spacing')} hint={t('cut.spacingHint')}>
+          {mm(cut.spacing, (spacing) => patch({ spacing }))}
+        </Row>
+        <Row label={t('export.resolution')}>
+          <Choice<number>
+            value={cut.dpi}
+            onChange={(dpi) => patch({ dpi })}
+            options={DPIS.map((d) => ({ value: d, label: String(d) }))}
+          />
+          <span className="unit">DPI</span>
+        </Row>
+        <Row label={t('export.folder')}>{folderField(cut.folder, defaults.export, 'folder')}</Row>
+      </Section>
+    </>
+  )
+
   // ——— Immagini ———
   const audience: Audience =
     img.bleed && img.sides === 'both' && img.pattern === AUDIENCE_PATTERN.mpc
@@ -1339,6 +1447,25 @@ export default function ExportDialog({
         : []),
       t('export.sum.sheets', { n: summary.sheets })
     ].join(' · ')
+  } else if (kind === 'cut') {
+    sentence = t('export.sum.cut', {
+      what: components,
+      n: summary.sheets,
+      folder: shortFolder(cut.folder)
+    })
+    const first = plan.items[0]?.page
+    details = [
+      cut.machine === 'cricut' ? 'Cricut' : t('cut.machineOther'),
+      first
+        ? t('cut.sum.size', {
+            w: (Math.round(first.width * 10) / 100).toLocaleString(ui),
+            h: (Math.round(first.height * 10) / 100).toLocaleString(ui)
+          })
+        : '',
+      cut.fold ? t('export.foldShort') : ''
+    ]
+      .filter(Boolean)
+      .join(' · ')
   } else if (kind === 'images') {
     sentence = t('export.sum.images', {
       what: components,
@@ -1397,6 +1524,7 @@ export default function ExportDialog({
             {common}
             {pdfOptions}
             {imageOptions}
+            {cutOptions}
             {ttsOptions}
           </div>
           <LivePreview

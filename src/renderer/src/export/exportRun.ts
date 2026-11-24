@@ -16,6 +16,7 @@ import {
   DEFAULT_IMAGE,
   DEFAULT_PDF,
   DEFAULT_TTS,
+  DEFAULT_CUT,
   sidesOf,
   type ExportJob,
   type ExportKind,
@@ -24,8 +25,10 @@ import {
   type ExportSet,
   type ImageOptions,
   type PdfOptions,
-  type TtsOptions
+  type TtsOptions,
+  type CutOptions
 } from '../../../shared/export'
+import { cutInstructions, planCut, type CutTexts } from '../../../shared/cutPlan'
 import type { FontCheck } from '../render/fonts'
 
 // Esportazione delle carte, uguale dalla finestra Esporta e dal menu «Ripeti l'ultima
@@ -36,11 +39,13 @@ export type KindOptions =
   | { kind: 'images'; options: ImageOptions }
   | { kind: 'pdf'; options: PdfOptions }
   | { kind: 'tts'; options: TtsOptions }
+  | { kind: 'cut'; options: CutOptions }
 
 /** Le opzioni di un tipo come le ricorda il progetto, completate con quelle predefinite */
 export function savedOptions(kind: ExportKind, saved: ExportProfiles = {}): KindOptions {
   if (kind === 'images') return { kind, options: { ...DEFAULT_IMAGE, ...saved.images } }
   if (kind === 'pdf') return { kind, options: { ...DEFAULT_PDF, ...saved.pdf } }
+  if (kind === 'cut') return { kind, options: { ...DEFAULT_CUT, ...saved.cut } }
   return { kind, options: { ...DEFAULT_TTS, ...saved.tts } }
 }
 
@@ -65,7 +70,8 @@ export function buildJob(
   project: LoadedProject,
   { kind, options }: KindOptions,
   lang: string | null,
-  changed?: Record<string, number[]> | null
+  changed?: Record<string, number[]> | null,
+  texts?: CutTexts
 ): ExportJob {
   const languages = projectLanguages(project.file)
   // la lingua principale resta nella cartella di sempre
@@ -81,6 +87,14 @@ export function buildJob(
         .filter((s) => s.cards.length)
     : all
   const base = { project: project.file.name, sets, ...(other ? { language: other } : {}) }
+  if (kind === 'cut') {
+    const locale = texts?.locale ?? 'en'
+    // le istruzioni nominano i file e le misure dei fogli: si scrivono qui, nella lingua dell'app
+    const instructions = texts
+      ? cutInstructions(options, planCut(options, sets, base.project, locale), texts.tr, locale)
+      : undefined
+    return { ...base, kind, options, locale, ...(instructions ? { instructions } : {}) }
+  }
   return kind === 'images'
     ? { ...base, kind, options }
     : kind === 'pdf'
@@ -94,12 +108,13 @@ export async function runExport(
   what: KindOptions,
   language: string,
   hasFont: FontCheck,
-  changed?: Record<string, number[]> | null
+  changed?: Record<string, number[]> | null,
+  texts?: CutTexts
 ): Promise<ExportResult> {
   const langs = jobLanguages(project, language)
   const jobs = langs.length
-    ? langs.map((l) => buildJob(project, what, l, changed))
-    : [buildJob(project, what, null, changed)]
+    ? langs.map((l) => buildJob(project, what, l, changed, texts))
+    : [buildJob(project, what, null, changed, texts)]
   const sets = jobs[0].sets
   const r: ExportResult = { files: 0, folders: [], warnings: [], cancelled: false }
   for (const job of jobs) {
@@ -123,7 +138,9 @@ export async function runExport(
       ? sidesOf(what.options.sides)
       : what.kind === 'pdf' && what.options.duplex === 'none'
         ? sidesOf(what.options.sides)
-        : ['front', 'back']
+        : what.kind === 'cut' && !what.options.fold
+          ? ['front']
+          : ['front', 'back']
   const missing = await missingImages(project, sets, sides)
   if (missing.length)
     r.warnings.push({ key: 'export.missingImages', params: { cards: missing.join('; ') } })

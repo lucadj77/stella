@@ -67,5 +67,5 @@ export const EXPORT_PRESETS: ExportPreset[] = [
 ]
 
 /** Cosa si vuole fare con l'esportazione: sceglie il tipo e, per il PDF, parte da un preset */
-export type ExportGoal = 'home' | 'shop' | 'tts' | 'images'
-export const EXPORT_GOALS: ExportGoal[] = ['home', 'shop', 'tts', 'images']
+export type ExportGoal = 'home' | 'shop' | 'tts' | 'images' | 'cut'
+export const EXPORT_GOALS: ExportGoal[] = ['home', 'shop', 'cut', 'tts', 'images']

@@ -82,7 +82,7 @@ Projects created when the app was called Naibi have `naibi.json`, older ones (Ga
 
 A card field with the same name as a variable wins over the variable.
 
-`export` (optional) remembers the options of the last export, with one key per kind: `images`, `pdf`, `tts`. The app writes it when exporting; the option names are in `src/shared/export.ts` and their meaning in docs/specifica.md, section 9. Under `named` are the named profiles, each with `name`, `kind` and `options`. The project's `export/` folder holds the exported files and can be regenerated.
+`export` (optional) remembers the options of the last export, with one key per kind: `images`, `pdf`, `tts`, `cut` (cutting plotters). The app writes it when exporting; the option names are in `src/shared/export.ts` and their meaning in docs/specifica.md, section 9. Under `named` are the named profiles, each with `name`, `kind` and `options`. The project's `export/` folder holds the exported files and can be regenerated.
 
 `languages` (optional) lists the project languages as two- or three-letter codes, with an optional variant (`pt-BR`); the first is the main one, that of the columns without `@`. With fewer than two languages the project has a single language. `names` (optional, in the project and in each set) gives the name in the other languages, by code; a missing name is the one of the main language. See docs/specifica.md, 7.1.
 

@@ -1640,10 +1640,13 @@ export const it: Record<MessageKey, string> = {
   'export.goal.tts.text': 'Mazzi, segnalini, pedine, tessere, plance e dadi.',
   'export.goal.images': 'Immagini',
   'export.goal.images.text': 'Un file per componente, anche per MakePlayingCards.',
+  'export.goal.cut': 'Plotter da taglio',
+  'export.goal.cut.text': 'Stampa e taglio con Cricut, Silhouette, Brother.',
   'export.title': 'Esporta',
   'export.images': 'Immagini',
   'export.pdf': 'PDF',
   'export.tts': 'Tabletop Simulator',
+  'export.cut': 'Plotter da taglio',
   'export.sets': 'Set',
   'export.copies': 'Copie',
   'export.copiesHint': 'Ripeti ogni componente quante volte dice amount',
@@ -1958,6 +1961,36 @@ export const it: Record<MessageKey, string> = {
   'export.rounded': 'Arrotondati come nel template',
   'export.gridOverflow':
     'Set «{set}»: i componenti non stanno nella pagina, cambia margini, pagina o disposizione.',
+  'export.previewSheet': 'Foglio {n} di {total}',
+  'export.sum.cut': '{what} → {n} {n:foglio|fogli} da stampare e tagliare, in {folder}',
+  'export.cutOverflow':
+    'Set «{set}»: i componenti non entrano nell’area di taglio, cambia l’area o la carta.',
+  'cut.machine': 'Macchina',
+  'cut.machineCricutNote': 'Design Space, Stampa e taglia. Taglio e pieghe in SVG.',
+  'cut.machineOther': 'Altro plotter',
+  'cut.machineOtherNote': 'Silhouette, Brother e altri. Taglio in SVG e DXF.',
+  'cut.area': 'area',
+  'cut.areaHint':
+    'L’immagine più grande che il programma accetta per stampa e taglio. Ogni foglio si ritaglia sui componenti che contiene.',
+  'cut.foldPairs': 'Fronte e retro affiancati, da piegare',
+  'cut.foldHint': 'Ogni componente diventa un pezzo largo il doppio, con la piega al centro.',
+  'cut.hintCricut':
+    'Per ogni foglio: un PNG da caricare come Stampa e taglia, e un file delle pieghe se ci sono pieghe. Design Space legge il PNG alla misura sbagliata: scrivi la larghezza in cm che trovi nel nome del file.',
+  'cut.hintOther':
+    'Per ogni foglio: un PNG da stampare, e le linee di taglio in SVG e DXF della stessa misura. Silhouette Studio Basic apre solo il DXF.',
+  'cut.moreSection': 'Spaziatura, risoluzione, cartella',
+  'cut.spacingHint':
+    'Spazio tra i componenti. Il plotter taglia lungo il contorno, bastano pochi millimetri.',
+  'cut.sum.size': 'primo foglio {w} × {h} cm',
+  'cut.instr.title': 'Stella: file per il plotter da taglio',
+  'cut.instr.cricut':
+    'Cricut Design Space, un foglio alla volta:\n1. Carica il PNG del foglio e scegli l’immagine "Stampa e taglia".\n2. Selezionalo e scrivi la larghezza in cm indicata sotto (Design Space ignora la risoluzione del PNG). Lascia bloccate le proporzioni.\n3. Se il foglio ha il file delle pieghe: caricalo, selezionalo e scrivi la stessa larghezza. Contiene anche il contorno dei pezzi.\n4. Allinea il file delle pieghe al PNG in alto a sinistra, poi cancella il suo livello del contorno (quello con le forme intere).\n5. Imposta le pieghe su Cordonatura, seleziona il PNG e le pieghe e usa Aggrega.\n6. Premi Crea: Design Space stampa il foglio con i suoi segni di registro, poi lo taglia.\nI fori dentro un componente sono trasparenti nel PNG e vengono tagliati anche loro.',
+  'cut.instr.other':
+    'Altri plotter (Silhouette, Brother ScanNCut e simili):\n1. Apri il file di taglio (SVG, oppure DXF in Silhouette Studio Basic). Ha la stessa misura del PNG del foglio indicata sotto.\n2. Metti il PNG del foglio sulle linee di taglio, in alto a sinistra, alla misura indicata sotto.\n3. Aggiungi i segni di registro del tuo programma, stampa e poi taglia. Le pieghe sono blu nell’SVG e sul livello FOLD nel DXF.',
+  'cut.instr.sheets': 'Fogli:',
+  'cut.instr.sheet': '- {file}: larghezza {w} cm, altezza {h} cm',
+  'cut.instr.foldsFile': '  pieghe: {file}',
+  'cut.instr.cutFile': '  taglio: {file}',
   'sidebar.variables': 'Variabili',
   'sidebar.notes': 'Note',
   'sidebar.newNote': 'Nuova nota',

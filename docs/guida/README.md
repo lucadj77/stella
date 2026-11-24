@@ -786,7 +786,7 @@ Le icone a un colore (SVG nere su fondo trasparente) si ricolorano con la propri
 
 **Importa icone…**, nella scelta delle immagini e nella finestra di una variabile icona, apre tre raccolte incluse nell'app, che funzionano senza rete, e una online:
 
-- **game-icons.net**: circa 4200 icone, con categorie tradotte e ricerca anche in italiano. Licenza CC BY 3.0: gli autori vanno citati (vedi i crediti, [capitolo 11.7](#117-crediti)). **Aggiorna catalogo** scarica le icone pubblicate dopo questa versione dell'app (serve la rete, richiede circa un minuto).
+- **game-icons.net**: circa 4200 icone, con categorie tradotte e ricerca anche in italiano. Licenza CC BY 3.0: gli autori vanno citati (vedi i crediti, [capitolo 11.8](#118-crediti)). **Aggiorna catalogo** scarica le icone pubblicate dopo questa versione dell'app (serve la rete, richiede circa un minuto).
 - **Kenney: icone e motivi**: icone per giochi da tavolo e motivi ripetibili, in CC0.
 - **Kenney: carte, dadi e pedine**: immagini PNG a colori, in CC0.
 - **Iconify (online)**: oltre 200 altre collezioni (Material Design, Tabler, Phosphor, emoji...), cercate su internet. Si scrive nella ricerca per cercare in tutte, oppure si sceglie una collezione a sinistra per sfogliarla. I nomi delle icone sono in inglese.
@@ -957,7 +957,7 @@ L'abbondanza dei componenti interni prende l'immagine di quelli vicini. Per i co
 
 ## 11. Esportare
 
-**Esporta…** (⌘E / Ctrl+E) apre una finestra che comincia da cosa vuoi fare: **Stampare a casa** (un PDF con i componenti affiancati, fronte e retro), **Tipografia** (un PDF con l'abbondanza e i segni di taglio), **Tabletop Simulator** o **Immagini**. Sotto si scelgono i set (il numero accanto al nome dice quante righe hanno) e se ripetere i componenti secondo la colonna `amount`. I componenti si disegnano con lo stesso motore dell'anteprima, comprese le modifiche non ancora salvate.
+**Esporta…** (⌘E / Ctrl+E) apre una finestra che comincia da cosa vuoi fare: **Stampare a casa** (un PDF con i componenti affiancati, fronte e retro), **Tipografia** (un PDF con l'abbondanza e i segni di taglio), **Plotter da taglio** (Cricut, Silhouette e simili, vedi [11.5](#115-plotter-da-taglio)), **Tabletop Simulator** o **Immagini**. Sotto si scelgono i set (il numero accanto al nome dice quante righe hanno) e se ripetere i componenti secondo la colonna `amount`. I componenti si disegnano con lo stesso motore dell'anteprima, comprese le modifiche non ancora salvate.
 
 La finestra ha le opzioni a sinistra e l'anteprima a destra. Le opzioni sono in tre livelli:
 
@@ -1067,13 +1067,42 @@ I fogli si richiamano con indirizzi locali, quindi il mazzo funziona sul compute
 
 ![Esportazione per Tabletop Simulator](img/esporta-tts.png)
 
-### 11.5 Profili e preset
+### 11.5 Plotter da taglio
+
+**Plotter da taglio** prepara i componenti per una macchina che stampa e taglia: Cricut (Design Space, funzione **Stampa e taglia**), Silhouette, Brother ScanNCut e simili. La stampante stampa il foglio, la macchina legge i segni di registro e taglia lungo il contorno di ogni componente, angoli arrotondati, esagoni, sagome e fori compresi.
+
+I programmi di queste macchine accettano un'immagine non più grande di un'area fissa, che dipende dalla carta: **Macchina** e **Carta** la scelgono (per Cricut A4 18,29 × 26,97 cm, Letter 18,9 × 25,25 cm, A3 27,03 × 39,22 cm, come le dichiara Cricut), e i due campi accanto la cambiano a mano. Stella mette nell'area quanti più componenti possibile, girandoli se così ne entrano di più, con la **Spaziatura** tra l'uno e l'altro (di base 4 mm). Poi ritaglia ogni foglio sui componenti che contiene, così il programma della macchina non deve indovinare dove cominciano.
+
+![Esportazione per plotter da taglio](img/esporta-plotter.png)
+
+Per ogni foglio nella cartella `<progetto>_plotter` ci sono:
+
+- `sheet-01 (18 x 26.4 cm).png`: il foglio da stampare, a 300 DPI, trasparente fuori dai componenti. Il nome dice la misura vera del foglio.
+- Con **Altro plotter**: `… cut.svg` e `… cut.dxf`, il contorno di taglio della stessa misura del PNG (Silhouette Studio Basic apre solo il DXF).
+- Con le pieghe: `… folds.svg`, le linee da piegare.
+- `instructions.txt`: i passi da seguire e la misura di ogni foglio.
+
+**Con Cricut Design Space**, un foglio alla volta:
+
+1. Carica il PNG e scegli l'immagine **Stampa e taglia**. Design Space taglia lungo il bordo del disegno, quindi anche i fori trasparenti.
+2. Design Space ignora la risoluzione del PNG e lo apre più grande: selezionalo e scrivi la larghezza in cm che trovi nel nome del file, con le proporzioni bloccate.
+3. Se il foglio ha le pieghe, carica il file `folds.svg` e scrivi la stessa larghezza. Il file contiene anche il contorno dei pezzi, che serve solo ad allinearlo: mettilo in alto a sinistra sul PNG e poi cancella il livello del contorno (quello con le forme intere).
+4. Imposta le pieghe su **Cordonatura**, seleziona il PNG e le pieghe e usa **Aggrega**.
+5. Premi **Crea**: Design Space stampa il foglio con i suoi segni di registro e poi lo taglia.
+
+Se Design Space dice che l'immagine è troppo grande, riduci l'area di qualche millimetro ed esporta di nuovo.
+
+**Fronte e retro.** Con **Fronte e retro affiancati, da piegare** ogni componente diventa un pezzo solo, largo il doppio, con il fronte e il retro uno accanto all'altro e la piega nel mezzo; il foglio si gira se così ne entrano di più. Senza questa opzione si esporta solo il fronte. I set di facce di dado escono come sviluppi da piegare, con le linguette.
+
+Ogni nuova esportazione toglie dalla cartella i fogli di quella precedente, che avevano altri nomi.
+
+### 11.6 Profili e preset
 
 Le tipografie e la stampa in casa sono già nelle scelte: **Tipografia** e **Stampare a casa** partono dalle loro opzioni (A4, o Letter con l'app in inglese), e per le immagini **Per chi** sceglie tra uso generico, MakePlayingCards e The Game Crafter. Prima di ordinare conviene controllare le specifiche sul sito della tipografia, che possono cambiare.
 
 Il menu **Profilo ▾** in basso salva le opzioni attuali come profilo del progetto, con un nome, da riprendere in seguito: **Salva come nuovo profilo…**, **Salva in** per aggiornare il profilo scelto, **Elimina**. Scegliere un profilo dal menu rimette il suo tipo di esportazione e le sue opzioni.
 
-### 11.6 Scegliere i componenti
+### 11.7 Scegliere i componenti
 
 Per ristampare solo alcuni componenti, sotto i set c'è **Scegli i componenti…**. Apre le miniature dei componenti dei set scelti, con una casella ciascuno: un clic sceglie o toglie un componente, la casella accanto al nome del set li prende o li toglie tutti, **Tutti** e **Nessuno** valgono per tutti i set, **Fronte** e **Retro** cambiano il lato mostrato.
 
@@ -1083,7 +1112,7 @@ Per ristampare solo alcuni componenti, sotto i set c'è **Scegli i componenti…
 
 ![Solo le carte del mercato cambiate dal backup, con il prima e il dopo](img/scegli-componenti.png)
 
-### 11.7 Crediti
+### 11.8 Crediti
 
 **Crediti…** compone il testo da mettere nel regolamento o sulla scatola, con le icone e i font importati dall'app raggruppati per fonte, licenza e autore. Di base elenca solo ciò che i componenti usano. Il testo si copia o si salva in `export/credits.txt`. Le immagini copiate a mano in `assets/` non sono elencate.
 

@@ -19,6 +19,7 @@ import {
   sheetPage
 } from './exportPlan'
 import type { Message } from './messages'
+import { planCut, sheetFiles } from './cutPlan'
 
 // Le pagine, immagini e fogli che un'esportazione scriverà, uno per uno, e i numeri per la frase
 // di riepilogo della finestra. Li usano l'anteprima a lato, quella a tutta finestra e il menu
@@ -87,6 +88,38 @@ export function previewItems(job: ExportJob): PreviewPlan {
           scene
         }))
       )
+    }
+  }
+  if (job.kind === 'cut') {
+    const o = job.options
+    const plan = planCut(o, sets, job.project, job.locale)
+    // il taglio in rosso sopra i componenti, le pieghe tratteggiate: solo nell'anteprima
+    const scene = { background: '#FFFFFF', lineColor: '#E0245E', lineWidth: 0.3, linesOver: true }
+    return {
+      files:
+        plan.sheets.reduce((n, sh) => n + 1 + sheetFiles(o, sh).length, 0) +
+        (plan.sheets.length ? 1 : 0),
+      notes: [
+        ...plan.overflow.map((set) => ({ key: 'export.cutOverflow', params: { set } })),
+        ...plan.notes
+      ],
+      items: plan.sheets.map((sh, i) => ({
+        file: `${sh.name}.png`,
+        detail: { key: 'export.previewSheet', params: { n: i + 1, total: plan.sheets.length } },
+        page: {
+          ...sh.page,
+          lines: [
+            ...sh.cut.flatMap((ring) =>
+              ring.map((p, k) => {
+                const q = ring[(k + 1) % ring.length]
+                return { x1: p.x, y1: p.y, x2: q.x, y2: q.y }
+              })
+            ),
+            ...sh.folds
+          ]
+        },
+        scene
+      }))
     }
   }
   const items: PreviewItem[] = []
@@ -183,6 +216,8 @@ export function exportSummary(
     const duplex = !o.fold && o.duplex !== 'none'
     return { ...base, files: plan.files, pages, sheets: duplex ? Math.ceil(pages / 2) : pages }
   }
+  if (job.kind === 'cut')
+    return { ...base, files: plan.files, pages: plan.items.length, sheets: plan.items.length }
   const objects = planTts(job.options, sets).filter(
     (p) => p.chunks.length || p.pieces.length || p.dice.length
   ).length

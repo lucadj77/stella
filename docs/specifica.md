@@ -385,7 +385,7 @@ Prossimi passi: controllo dei caratteri che il font non ha, comando per esportar
 | area sicura      | mm dal bordo di taglio, solo come guida                                                                                                               |
 | retro            | nessuno, unico per il set, per carta (livelli del retro collegati al foglio)                                                                          |
 | griglia e guide  | passo in mm, guide manuali                                                                                                                            |
-| nome delle carte | campo (colonna o livello) mostrato sotto ogni carta nella vista del set; di base il numero di riga                                                   |
+| nome delle carte | campo (colonna o livello) mostrato sotto ogni carta nella vista del set; di base il numero di riga                                                    |
 
 Quando si cambiano le dimensioni di un template che contiene già livelli, l'app chiede cosa fare:
 
@@ -467,7 +467,7 @@ Prima di importare Stella fa un backup. I file si scrivono subito in `assets/`; 
 
 Le esportazioni si salvano come profili nel progetto, così si possono rilanciare. Ogni profilo indica i set da includere e se rispettare le copie.
 
-Stato (ottobre 2026): il comando **Esporta…** (⌘E / Ctrl+E) nella barra in alto apre una finestra che comincia dall'obiettivo (stampare a casa, tipografia, Tabletop Simulator, immagini). Le opzioni stanno a sinistra in tre livelli: le scelte che contano, a pulsanti con un disegno; sezioni chiuse con il riassunto dei valori nel titolo; una frase sopra **Esporta** che dice cosa verrà scritto (`exportSummary` in `src/shared/exportPreview.ts`). Le opzioni che con le altre scelte non si applicano restano spente, con il motivo. Le opzioni usate per ultime si salvano in `stella.json` sotto la chiave `export`, una per tipo, e `export.last` ricorda il tipo e la lingua dell'ultima esportazione. In basso, il menu **Profilo ▾** sceglie un profilo con nome, il cui tipo e le cui opzioni (set e cartella compresi) passano nella finestra; **Salva in** aggiorna il profilo scelto con le opzioni attuali, **Salva come nuovo profilo…** ne crea uno nuovo ed **Elimina** lo toglie. I profili si scrivono subito nel progetto, sotto `export.named`. Le carte si disegnano in una finestra nascosta con lo stesso codice dell'anteprima, quindi l'esportazione coincide con ciò che si vede, comprese le modifiche non ancora salvate. Le immagini mancanti in `assets/` escono come segnaposto e la finestra elenca le carte coinvolte.
+Stato (ottobre 2026): il comando **Esporta…** (⌘E / Ctrl+E) nella barra in alto apre una finestra che comincia dall'obiettivo (stampare a casa, tipografia, plotter da taglio, Tabletop Simulator, immagini). Le opzioni stanno a sinistra in tre livelli: le scelte che contano, a pulsanti con un disegno; sezioni chiuse con il riassunto dei valori nel titolo; una frase sopra **Esporta** che dice cosa verrà scritto (`exportSummary` in `src/shared/exportPreview.ts`). Le opzioni che con le altre scelte non si applicano restano spente, con il motivo. Le opzioni usate per ultime si salvano in `stella.json` sotto la chiave `export`, una per tipo, e `export.last` ricorda il tipo e la lingua dell'ultima esportazione. In basso, il menu **Profilo ▾** sceglie un profilo con nome, il cui tipo e le cui opzioni (set e cartella compresi) passano nella finestra; **Salva in** aggiorna il profilo scelto con le opzioni attuali, **Salva come nuovo profilo…** ne crea uno nuovo ed **Elimina** lo toglie. I profili si scrivono subito nel progetto, sotto `export.named`. Le carte si disegnano in una finestra nascosta con lo stesso codice dell'anteprima, quindi l'esportazione coincide con ciò che si vede, comprese le modifiche non ancora salvate. Le immagini mancanti in `assets/` escono come segnaposto e la finestra elenca le carte coinvolte.
 
 Accanto alle opzioni c'è l'anteprima vera, in piccolo: si disegna solo il file mostrato, gli altri quando li si sceglie con ‹ ›, e finché immagini e font non sono pronti c'è «Attendere…». **Ingrandisci** apre l'anteprima grande, che mostra uno alla volta i file che l'esportazione scriverà, senza scrivere nulla: le immagini delle carte con il nome del file, le pagine del PDF con i segni di taglio, i fogli di Tabletop Simulator con la carta nascosta. L'anteprima e l'esportazione usano lo stesso piano (`src/shared/exportPlan.ts`), quindi impaginazione e nomi coincidono.
 
@@ -546,6 +546,31 @@ I preset per i servizi di stampa e per la stampa in casa non sono più nel menu 
 | Stampa in casa, A4 o Letter             | PDF fronte-retro (lato lungo), senza abbondanza, segni di taglio agli angoli, con le copie                       |
 
 La dimensione in pixel dipende dal template. MakePlayingCards chiede per le carte poker almeno 822 × 1122 px a 300 DPI, cioè 36 px (3,05 mm) di abbondanza per lato; The Game Crafter stampa a 300 DPI con 1/8" (3,2 mm) di abbondanza e altrettanto di area sicura. I 3 mm predefiniti dei template vanno bene per entrambi: una carta 63 × 88 con 3 mm esce a 815 × 1110 px. Prima di ordinare conviene controllare le specifiche sul sito del servizio, che possono cambiare.
+
+### 9.5 Plotter da taglio
+
+Esportazione `kind: "cut"` (`src/shared/cutPlan.ts`) per le macchine che stampano e tagliano: Cricut Design Space (Stampa e taglia), Silhouette, Brother ScanNCut.
+
+| Opzione     | Valori                                                                                                    |
+| ----------- | --------------------------------------------------------------------------------------------------------- |
+| macchina    | `cricut` (PNG e, con le pieghe, SVG delle pieghe) o `other` (PNG, SVG e DXF del taglio, SVG delle pieghe) |
+| carta, area | A4, Letter, A3 o personalizzata; area utile in mm (`areaWidth`, `areaHeight`)                             |
+| spaziatura  | mm tra i componenti, di base 4                                                                            |
+| risoluzione | DPI del PNG, di base 300                                                                                  |
+| piegatura   | fronte e retro affiancati come pezzo unico (`fold`); linguette dei dadi (`tabDepth`)                      |
+
+Aree di base, come le dichiara Cricut per Stampa e taglia: A4 182,9 × 269,7 mm, Letter 189 × 252,5, A3 270,3 × 392,2. Per gli altri plotter una stima prudente (A4 180 × 267, Letter 185,9 × 249,4, A3 267 × 390). Nella prova su una Cricut Maker un foglio da 16,5 cm di larghezza è passato; il limite vero va controllato sulla macchina.
+
+L'impaginazione riusa quella del PDF (`cutPdfOptions`): pagina grande quanto l'area, margini zero, nessun segno, angoli e forme dei template, solo fronte, set uno dopo l'altro, dadi come sviluppi. Le coppie da piegare non si ruotano nella griglia: se con l'area girata i fogli sono meno, si impagina girata e si gira ogni foglio di 90° in senso orario (le carte diventano matrici). Ogni foglio si ritaglia poi sul riquadro dell'unione dei contorni dei componenti, che parte da 0, 0: PNG e SVG hanno la stessa misura e si allineano in alto a sinistra anche se il programma ritaglia l'SVG sul contenuto.
+
+File per foglio, nella cartella `<progetto>_plotter`, con la misura in cm nel nome (`sheet-01 (18 x 26.4 cm)`):
+
+- PNG trasparente fuori dai componenti, con la risoluzione scritta nel blocco `pHYs`. Design Space la ignora e legge 144 pixel per pollice: la larghezza in cm va scritta a mano, ed è nel nome e in `instructions.txt`.
+- SVG in pixel a 72 per pollice, senza unità (`width`/`height` = mm × 72 / 25,4), l'unica forma che Design Space importa alla misura giusta. Taglio: un tracciato chiuso per contorno, fori compresi. Pieghe: gruppo `outline` (il contorno, per allineare il file, da cancellare) e poi gruppo `folds` in blu.
+- DXF R12 in mm, con y verso l'alto: contorni come POLYLINE chiuse sul livello CUT, pieghe come LINE sul livello FOLD.
+- `instructions.txt` nella lingua dell'app (in inglese dalla riga di comando).
+
+Con Cricut non c'è file di taglio: Stampa e taglia segue il bordo del PNG, fori trasparenti compresi. I segni di registro li aggiunge il programma della macchina; Stella non li disegna. A ogni esportazione si tolgono dalla cartella i file `sheet-NN (… cm)` della volta precedente.
 
 ## 10. Icone, font e crediti
 
