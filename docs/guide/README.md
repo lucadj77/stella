@@ -1086,7 +1086,7 @@ For each sheet the `<project>_plotter` folder holds:
 
 **With Cricut Design Space**, one sheet at a time:
 
-1. Upload the PNG and choose the **Print Then Cut** image. Design Space cuts along the edge of the drawing, so transparent holes are cut too.
+1. Upload the PNG, choose the **Complex** type keeping the transparency (without removing the background) and save it as a **Print Then Cut** image. Design Space cuts along the edge of the drawing, so transparent holes are cut too.
 2. Design Space ignores the PNG resolution and opens it larger: select it and type the width in cm given in the file name, with the proportions locked.
 3. If the sheet has folds, upload the `folds.svg` file and type the same width. The file also holds the outline of the pieces, only to align it: place it at the top left on the PNG, then delete the outline layer (the one with the whole shapes).
 4. Set the folds to **Score**, select the PNG and the folds and use **Attach**.

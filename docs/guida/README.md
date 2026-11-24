@@ -1086,7 +1086,7 @@ Per ogni foglio nella cartella `<progetto>_plotter` ci sono:
 
 **Con Cricut Design Space**, un foglio alla volta:
 
-1. Carica il PNG e scegli l'immagine **Stampa e taglia**. Design Space taglia lungo il bordo del disegno, quindi anche i fori trasparenti.
+1. Carica il PNG, scegli il tipo **Complessa** lasciando la trasparenza (senza togliere lo sfondo) e salvalo come immagine **Stampa e taglia**. Design Space taglia lungo il bordo del disegno, quindi anche i fori trasparenti.
 2. Design Space ignora la risoluzione del PNG e lo apre più grande: selezionalo e scrivi la larghezza in cm che trovi nel nome del file, con le proporzioni bloccate.
 3. Se il foglio ha le pieghe, carica il file `folds.svg` e scrivi la stessa larghezza. Il file contiene anche il contorno dei pezzi, che serve solo ad allinearlo: mettilo in alto a sinistra sul PNG e poi cancella il livello del contorno (quello con le forme intere).
 4. Imposta le pieghe su **Cordonatura**, seleziona il PNG e le pieghe e usa **Aggrega**.
