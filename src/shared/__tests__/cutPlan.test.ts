@@ -35,23 +35,46 @@ const cards = (n: number, t: Template = poker): ExportCard[] =>
   Array.from({ length: n }, (_, i) => card(t, i + 1))
 
 describe('esportazione per plotter da taglio', () => {
-  it('Cricut A4: 4 carte poker per foglio, con il foglio ritagliato sui componenti', () => {
-    const plan = planCut(DEFAULT_CUT, [{ name: 'mazzo', cards: cards(6) }], 'gioco')
+  it('Cricut A4: 6 carte poker per foglio nella fascia larga, girate, foglio ritagliato', () => {
+    const plan = planCut(DEFAULT_CUT, [{ name: 'mazzo', cards: cards(8) }], 'gioco')
     expect(plan.sheets).toHaveLength(2)
     const [first, second] = plan.sheets
-    expect(first.page.items).toHaveLength(4)
-    // 2 colonne da 63,5 e 2 righe da 88 con 4 mm tra le carte, entro 168 × 234,9 mm
-    expect(first.width).toBeCloseTo(2 * 63.5 + 4, 2)
-    expect(first.height).toBeCloseTo(2 * 88 + 4, 2)
-    expect(first.name).toBe('sheet-01 (13.1 x 18 cm)')
+    expect(first.page.items).toHaveLength(6)
+    expect(first.page.items.every((it) => it.rotate === 90)).toBe(true)
+    // 2 colonne da 88 e 3 righe da 63,5 con 4 mm tra le carte, entro 18,2 × 20,5 cm
+    expect(first.width).toBeCloseTo(2 * 88 + 4, 2)
+    expect(first.height).toBeCloseTo(3 * 63.5 + 2 * 4, 2)
+    expect(first.name).toBe('sheet-01 (18 x 19.85 cm)')
     // un contorno chiuso per carta, nessun foro, e il primo comincia in 0, 0
-    expect(first.cut).toHaveLength(4)
+    expect(first.cut).toHaveLength(6)
     const box = ringsBounds(first.cut)!
     expect(box.x).toBeCloseTo(0, 2)
     expect(box.y).toBeCloseTo(0, 2)
     expect(second.page.items).toHaveLength(2)
     expect(plan.folder).toBe('gioco_plotter')
     expect(plan.overflow).toEqual([])
+  })
+
+  it('Cricut: un pezzo alto e stretto va nella fascia media', () => {
+    const tall = normalizeTemplate({
+      name: 't',
+      width: 150,
+      height: 240,
+      bleed: 0,
+      front: [],
+      back: []
+    })
+    const plan = planCut(DEFAULT_CUT, [{ name: 'alto', cards: [card(tall)] }], 'g')
+    expect(plan.overflow).toEqual([])
+    expect(plan.sheets[0].width).toBeCloseTo(150, 2)
+    expect(plan.sheets[0].height).toBeCloseTo(240, 2)
+    // con l'area personalizzata vale solo quella scritta
+    const custom = planCut(
+      { ...DEFAULT_CUT, paper: 'custom' },
+      [{ name: 'alto', cards: [card(tall)] }],
+      'g'
+    )
+    expect(custom.overflow).toEqual(['alto'])
   })
 
   it('contorno della carta: angoli arrotondati entro un centesimo di mm', () => {
@@ -162,8 +185,8 @@ describe('esportazione per plotter da taglio', () => {
     const plan = planCut(DEFAULT_CUT, [{ name: 'm', cards: cards(1) }], 'g')
     const [sheet] = plan.sheets
     const svg = cutSvg(sheet, 'cut')
-    // 63,5 mm = 180 px e 88 mm = 249,449 px a 72 per pollice
-    expect(svg).toContain('width="180" height="249.449"')
+    // la carta girata: 88 mm = 249,449 px e 63,5 mm = 180 px a 72 per pollice
+    expect(svg).toContain('width="249.449" height="180"')
     expect(svg).not.toMatch(/mm"/)
     const folds = cutSvg(sheet, 'folds')
     expect(folds.indexOf('id="outline"')).toBeLessThan(folds.indexOf('id="folds"'))
@@ -181,8 +204,8 @@ describe('esportazione per plotter da taglio', () => {
       (key, p) => `${key}${p ? ' ' + JSON.stringify(p) : ''}`,
       'it'
     )
-    expect(text).toContain('"w":"6,35","h":"8,8"')
-    expect(plan.sheets[0].name).toBe('sheet-01 (6,35 x 8,8 cm)')
+    expect(text).toContain('"w":"8,8","h":"6,35"')
+    expect(plan.sheets[0].name).toBe('sheet-01 (8,8 x 6,35 cm)')
     expect(cm(182.9)).toBe('18.29')
   })
 

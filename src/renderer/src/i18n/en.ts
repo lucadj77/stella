@@ -1943,6 +1943,8 @@ export const en = {
   'cut.area': 'area',
   'cut.areaHint':
     'The largest image the program accepts for print and cut. Each sheet is cropped to the components it holds.',
+  'cut.areaBands':
+    'Design Space accepts a stepped area, because of the registration marks in the corners: a wide band (these sizes) and taller, narrower ones ({bands}). Stella tries each and uses the one with fewer sheets.',
   'cut.foldPairs': 'Front and back side by side, to fold',
   'cut.foldHint': 'Each component becomes one piece twice as wide, with a fold line in the middle.',
   'cut.hintCricut':
@@ -1950,7 +1952,7 @@ export const en = {
   'cut.hintOther':
     'For each sheet: a PNG to print, and the cut lines as SVG and DXF of the same size. Silhouette Studio Basic opens only the DXF.',
   'cut.when':
-    'Best for tokens, custom shapes, pieces with holes and dice. For rectangular cards a PDF with crop marks and a paper trimmer is usually faster: Cricut fits only 4 poker cards per A4 sheet.',
+    'Best for tokens, custom shapes, pieces with holes and dice. For rectangular cards a PDF with crop marks and a paper trimmer is usually faster: Cricut fits only 6 poker cards per A4 sheet.',
   'cut.moreSection': 'Spacing, resolution, folder',
   'cut.spacingHint':
     'Space between components. The plotter cuts along the outline, so a few millimetres are enough.',

@@ -262,13 +262,42 @@ export const DEFAULT_PDF: PdfOptions = {
 
 /**
  * Area di Stampa e taglio di Cricut Design Space per foglio, in mm, larghezza per altezza in
- * verticale. Cricut dichiara 18,3 cm di larghezza su A4, ma con una Maker la stampa passa solo
- * sotto 16,9 cm (Design Space aggiunge l'abbondanza): A4 e Letter 16,8 cm. A3: da provare.
+ * verticale. Non è un rettangolo: i segni di registro negli angoli la riducono a tre fasce,
+ * misurate su A4 nella tela di Design Space (Cricut Maker): larga 18,4 × 20,7 cm, media
+ * 16,8 × 25,5, stretta 12 × 27. Un'immagine deve stare tutta in una fascia. Qui la fascia
+ * larga, con 2 mm di margine; le altre in CRICUT_BANDS. Letter: le stesse fasce accorciate
+ * della differenza di altezza dichiarata da Cricut (da provare). A3: da provare.
  */
 export const CRICUT_AREAS: Record<Exclude<CutPaper, 'custom'>, [number, number]> = {
-  A4: [168, 234.9],
-  Letter: [168, 234.9],
+  A4: [182, 205],
+  Letter: [182, 188],
   A3: [270.3, 392.2]
+}
+
+/** Le altre fasce dell'area Cricut, provate dopo quella di CRICUT_AREAS */
+export const CRICUT_BANDS: Record<Exclude<CutPaper, 'custom'>, [number, number][]> = {
+  A4: [
+    [166, 252],
+    [120, 268]
+  ],
+  Letter: [
+    [166, 235],
+    [120, 250]
+  ],
+  A3: []
+}
+
+/**
+ * Le aree da provare: quella scritta e, con Cricut e un foglio non personalizzato, le altre
+ * fasce dell'area di Stampa e taglio
+ */
+export function cutAreas(o: CutOptions): [number, number][] {
+  const own: [number, number] = [o.areaWidth, o.areaHeight]
+  if (o.machine !== 'cricut' || o.paper === 'custom') return [own]
+  const [w, h] = CRICUT_AREAS[o.paper]
+  // aree cambiate a mano senza passare a «personalizzata»: solo quella scritta
+  if (Math.abs(w - o.areaWidth) > 0.01 || Math.abs(h - o.areaHeight) > 0.01) return [own]
+  return [own, ...CRICUT_BANDS[o.paper]]
 }
 
 /** Area degli altri plotter, da controllare nel loro programma: il foglio meno 15 mm per lato */

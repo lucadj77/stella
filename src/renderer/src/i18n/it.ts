@@ -1972,6 +1972,8 @@ export const it: Record<MessageKey, string> = {
   'cut.area': 'area',
   'cut.areaHint':
     'L’immagine più grande che il programma accetta per stampa e taglio. Ogni foglio si ritaglia sui componenti che contiene.',
+  'cut.areaBands':
+    'Design Space accetta un’area a gradini, per i segni di registro negli angoli: una fascia larga (queste misure) e altre più alte e strette ({bands}). Stella le prova tutte e usa quella con meno fogli.',
   'cut.foldPairs': 'Fronte e retro affiancati, da piegare',
   'cut.foldHint': 'Ogni componente diventa un pezzo largo il doppio, con la piega al centro.',
   'cut.hintCricut':
@@ -1979,7 +1981,7 @@ export const it: Record<MessageKey, string> = {
   'cut.hintOther':
     'Per ogni foglio: un PNG da stampare, e le linee di taglio in SVG e DXF della stessa misura. Silhouette Studio Basic apre solo il DXF.',
   'cut.when':
-    'Conviene per segnalini, sagome, pezzi con fori e dadi. Per le carte rettangolari di solito si fa prima con il PDF con i segni di taglio e una taglierina: Cricut mette solo 4 carte poker per foglio A4.',
+    'Conviene per segnalini, sagome, pezzi con fori e dadi. Per le carte rettangolari di solito si fa prima con il PDF con i segni di taglio e una taglierina: Cricut mette solo 6 carte poker per foglio A4.',
   'cut.moreSection': 'Spaziatura, risoluzione, cartella',
   'cut.spacingHint':
     'Spazio tra i componenti. Il plotter taglia lungo il contorno, bastano pochi millimetri.',

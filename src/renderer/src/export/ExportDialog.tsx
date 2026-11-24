@@ -10,6 +10,7 @@ import {
   DEFAULT_TTS,
   DEFAULT_CUT,
   cutArea,
+  cutAreas,
   pdfGrid,
   ttsSetObject,
   ttsDefaultThickness,
@@ -947,7 +948,21 @@ export default function ExportDialog({
           { value: 'other', label: t('cut.machineOther'), note: t('cut.machineOtherNote') }
         ]}
       />
-      <Row label={t('export.paper')} hint={t('cut.areaHint')}>
+      <Row
+        label={t('export.paper')}
+        hint={
+          cutAreas(cut).length > 1
+            ? t('cut.areaBands', {
+                bands: cutAreas(cut)
+                  .slice(1)
+                  .map(
+                    ([w, h]) => `${(w / 10).toLocaleString(ui)} × ${(h / 10).toLocaleString(ui)} cm`
+                  )
+                  .join(', ')
+              })
+            : t('cut.areaHint')
+        }
+      >
         {select(
           cut.paper,
           [

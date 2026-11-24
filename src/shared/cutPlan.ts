@@ -7,6 +7,7 @@
 import { FillRule, unionD, type PathsD } from 'clipper2-ts'
 import {
   DEFAULT_PDF,
+  cutAreas,
   safeName,
   type CutOptions,
   type ExportSet,
@@ -94,6 +95,38 @@ export function cm(mm: number, locale = 'en'): string {
 }
 
 export function planCut(o: CutOptions, sets: ExportSet[], project: string, locale = 'en'): CutPlan {
+  // Cricut: l'area è fatta di fasce; si tiene quella con meno fogli (a parità, la prima)
+  let best: ReturnType<typeof planPages> | null = null
+  for (const [areaWidth, areaHeight] of cutAreas(o)) {
+    const p = planPages({ ...o, areaWidth, areaHeight }, sets, project)
+    if (
+      !best ||
+      p.overflow.length < best.overflow.length ||
+      (p.overflow.length === best.overflow.length && p.pages.length < best.pages.length)
+    )
+      best = p
+  }
+  const { pages, overflow, notes } = best!
+  const digits = Math.max(2, String(pages.length).length)
+  const sheets: CutSheet[] = []
+  pages.forEach((p) => {
+    const sheet = cropSheet(p)
+    if (!sheet) return
+    const n = String(sheets.length + 1).padStart(digits, '0')
+    sheets.push({
+      ...sheet,
+      name: `sheet-${n} (${cm(sheet.width, locale)} x ${cm(sheet.height, locale)} cm)`
+    })
+  })
+  return { folder: `${safeName(project || 'cards')}_plotter`, sheets, overflow, notes }
+}
+
+/** Le pagine per un'area sola */
+function planPages(
+  o: CutOptions,
+  sets: ExportSet[],
+  project: string
+): { pages: ScenePage[]; overflow: string[]; notes: Message[] } {
   const straight = planPdf(cutPdfOptions(o), sets, project)
   let { overflow, notes } = straight
   let pages = straight.docs.flatMap((d) => d.pages)
@@ -114,18 +147,7 @@ export function planCut(o: CutOptions, sets: ExportSet[], project: string, local
       pages = turnedPages.map(turnPage)
     }
   }
-  const digits = Math.max(2, String(pages.length).length)
-  const sheets: CutSheet[] = []
-  pages.forEach((p) => {
-    const sheet = cropSheet(p)
-    if (!sheet) return
-    const n = String(sheets.length + 1).padStart(digits, '0')
-    sheets.push({
-      ...sheet,
-      name: `sheet-${n} (${cm(sheet.width, locale)} x ${cm(sheet.height, locale)} cm)`
-    })
-  })
-  return { folder: `${safeName(project || 'cards')}_plotter`, sheets, overflow, notes }
+  return { pages, overflow, notes }
 }
 
 const plainItem = (it: SceneItem): boolean =>
