@@ -559,7 +559,7 @@ Esportazione `kind: "cut"` (`src/shared/cutPlan.ts`) per le macchine che stampan
 | risoluzione | DPI del PNG, di base 300                                                                                  |
 | piegatura   | fronte e retro affiancati come pezzo unico (`fold`); linguette dei dadi (`tabDepth`)                      |
 
-Aree di base, come le dichiara Cricut per Stampa e taglia: A4 182,9 × 269,7 mm, Letter 189 × 252,5, A3 270,3 × 392,2. Per gli altri plotter una stima prudente (A4 180 × 267, Letter 185,9 × 249,4, A3 267 × 390). Nella prova su una Cricut Maker un foglio da 16,5 cm di larghezza è passato; il limite vero va controllato sulla macchina.
+Aree di base per Cricut: A4 e Letter 171,4 × 234,9 mm (6,75 × 9,25 pollici, il limite storico di Stampa e taglia), A3 270,3 × 392,2 (da provare). Cricut indica per i computer anche 182,9 × 269,7 su A4, ma nella prova su una Cricut Maker un foglio largo 18 cm ha dato «immagini troppo grandi», mentre uno da 16,5 cm è passato. Per gli altri plotter una stima prudente (A4 180 × 267, Letter 185,9 × 249,4, A3 267 × 390).
 
 L'impaginazione riusa quella del PDF (`cutPdfOptions`): pagina grande quanto l'area, margini zero, nessun segno, angoli e forme dei template, solo fronte, set uno dopo l'altro, dadi come sviluppi. Le coppie da piegare non si ruotano nella griglia: se con l'area girata i fogli sono meno, si impagina girata e si gira ogni foglio di 90° in senso orario (le carte diventano matrici). Ogni foglio si ritaglia poi sul riquadro dell'unione dei contorni dei componenti, che parte da 0, 0: PNG e SVG hanno la stessa misura e si allineano in alto a sinistra anche se il programma ritaglia l'SVG sul contenuto.
 

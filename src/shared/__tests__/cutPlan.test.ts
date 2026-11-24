@@ -35,18 +35,17 @@ const cards = (n: number, t: Template = poker): ExportCard[] =>
   Array.from({ length: n }, (_, i) => card(t, i + 1))
 
 describe('esportazione per plotter da taglio', () => {
-  it('Cricut A4: 8 carte poker per foglio, ruotate, con il foglio ritagliato sui componenti', () => {
-    const plan = planCut(DEFAULT_CUT, [{ name: 'mazzo', cards: cards(10) }], 'gioco')
+  it('Cricut A4: 4 carte poker per foglio, con il foglio ritagliato sui componenti', () => {
+    const plan = planCut(DEFAULT_CUT, [{ name: 'mazzo', cards: cards(6) }], 'gioco')
     expect(plan.sheets).toHaveLength(2)
     const [first, second] = plan.sheets
-    expect(first.page.items).toHaveLength(8)
-    expect(first.page.items.every((it) => it.rotate === 90)).toBe(true)
-    // 2 colonne da 88 e 4 righe da 63,5 con 4 mm tra le carte
-    expect(first.width).toBeCloseTo(2 * 88 + 4, 2)
-    expect(first.height).toBeCloseTo(4 * 63.5 + 3 * 4, 2)
-    expect(first.name).toBe('sheet-01 (18 x 26.6 cm)')
+    expect(first.page.items).toHaveLength(4)
+    // 2 colonne da 63,5 e 2 righe da 88 con 4 mm tra le carte, entro 171,4 × 234,9 mm
+    expect(first.width).toBeCloseTo(2 * 63.5 + 4, 2)
+    expect(first.height).toBeCloseTo(2 * 88 + 4, 2)
+    expect(first.name).toBe('sheet-01 (13.1 x 18 cm)')
     // un contorno chiuso per carta, nessun foro, e il primo comincia in 0, 0
-    expect(first.cut).toHaveLength(8)
+    expect(first.cut).toHaveLength(4)
     const box = ringsBounds(first.cut)!
     expect(box.x).toBeCloseTo(0, 2)
     expect(box.y).toBeCloseTo(0, 2)
@@ -111,7 +110,13 @@ describe('esportazione per plotter da taglio', () => {
   })
 
   it('coppie da piegare: se girando il foglio ne entrano di più, il foglio si gira', () => {
-    const o: CutOptions = { ...DEFAULT_CUT, fold: true }
+    const o: CutOptions = {
+      ...DEFAULT_CUT,
+      fold: true,
+      paper: 'custom',
+      areaWidth: 182.9,
+      areaHeight: 269.7
+    }
     const plan = planCut(o, [{ name: 'm', cards: cards(4) }], 'g')
     // dritte ne entrano 2 (127 x 88, tre righe non stanno in 269,7); girate 4
     expect(plan.sheets).toHaveLength(1)
@@ -157,8 +162,8 @@ describe('esportazione per plotter da taglio', () => {
     const plan = planCut(DEFAULT_CUT, [{ name: 'm', cards: cards(1) }], 'g')
     const [sheet] = plan.sheets
     const svg = cutSvg(sheet, 'cut')
-    // la carta ruotata: 88 mm = 249,449 px e 63,5 mm = 180 px a 72 per pollice
-    expect(svg).toContain('width="249.449" height="180"')
+    // 63,5 mm = 180 px e 88 mm = 249,449 px a 72 per pollice
+    expect(svg).toContain('width="180" height="249.449"')
     expect(svg).not.toMatch(/mm"/)
     const folds = cutSvg(sheet, 'folds')
     expect(folds.indexOf('id="outline"')).toBeLessThan(folds.indexOf('id="folds"'))
@@ -176,8 +181,8 @@ describe('esportazione per plotter da taglio', () => {
       (key, p) => `${key}${p ? ' ' + JSON.stringify(p) : ''}`,
       'it'
     )
-    expect(text).toContain('"w":"8,8","h":"6,35"')
-    expect(plan.sheets[0].name).toBe('sheet-01 (8,8 x 6,35 cm)')
+    expect(text).toContain('"w":"6,35","h":"8,8"')
+    expect(plan.sheets[0].name).toBe('sheet-01 (6,35 x 8,8 cm)')
     expect(cm(182.9)).toBe('18.29')
   })
 

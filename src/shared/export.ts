@@ -261,12 +261,14 @@ export const DEFAULT_PDF: PdfOptions = {
 }
 
 /**
- * Area di stampa e taglio di Cricut Design Space (Maker ed Explore) per foglio, in mm, come la
- * dichiara Cricut: larghezza per altezza in verticale
+ * Area di Stampa e taglio di Cricut Design Space per foglio, in mm, larghezza per altezza in
+ * verticale. A4 e Letter: 6,75 × 9,25 pollici, il limite storico di Cricut; le misure più grandi
+ * che Cricut indica per i computer (18,29 cm su A4) non passano: con una Maker un foglio largo
+ * 18 cm dà «immagini troppo grandi», uno da 16,5 cm passa. A3: da provare.
  */
 export const CRICUT_AREAS: Record<Exclude<CutPaper, 'custom'>, [number, number]> = {
-  A4: [182.9, 269.7],
-  Letter: [189, 252.5],
+  A4: [171.4, 234.9],
+  Letter: [171.4, 234.9],
   A3: [270.3, 392.2]
 }
 
