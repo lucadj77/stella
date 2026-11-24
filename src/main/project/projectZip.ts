@@ -7,8 +7,8 @@ import { LEGACY_PROJECT_FILES, PROJECT_FILE } from '../../shared/project'
 import { projectFolderName } from '../../shared/model/projectName'
 import type { ProjectZipSummary } from '../../shared/api'
 
-// Un progetto intero in un file ZIP, per mandarlo a qualcuno o spostarlo: dentro c'è la cartella
-// del progetto (senza export/, deleted/ e i file nascosti). Si importa estraendolo in una
+// Un progetto intero in un file ZIP, per mandarlo a qualcuno o spostarlo: dentro ci sono i file
+// della cartella del progetto (senza export/, deleted/ e i file nascosti), alla radice. Si importa estraendolo in una
 // cartella nuova. Diverso dai pacchetti (package.ts), che portano un template o un set dentro un
 // progetto già aperto, e dai backup (backup.ts), che tengono le immagini fuori dallo ZIP.
 
@@ -36,16 +36,16 @@ async function projectFiles(folder: string): Promise<string[]> {
 }
 
 /**
- * Lo ZIP del progetto, com'è sul disco: i file stanno in una cartella con il nome del progetto,
- * così estraendolo a mano si ottiene la cartella e non file sparsi
+ * Lo ZIP del progetto, com'è sul disco, con i file alla radice: importandolo (o estraendolo con
+ * Finder o Esplora file) la cartella prende il nome dello ZIP. Gli ZIP della 1.13, con i file in
+ * una cartella, si importano lo stesso (projectRoot)
  */
-export async function buildProjectZip(folder: string, name: string): Promise<Uint8Array> {
+export async function buildProjectZip(folder: string): Promise<Uint8Array> {
   const root = resolve(folder)
-  const top = projectFolderName(name) || 'project'
   const zip = new JSZip()
   for (const f of await projectFiles(root)) {
     const lower = f.toLowerCase()
-    zip.file(`${top}/${f}`, await readFile(join(root, f)), {
+    zip.file(f, await readFile(join(root, f)), {
       compression: STORED.some((e) => lower.endsWith(e)) ? 'STORE' : 'DEFLATE'
     })
   }

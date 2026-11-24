@@ -5,6 +5,20 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.13.1-beta.1
+
+### English
+
+- **Deleting a template waits for Save**, like deleting a set: the template and the variants or derived templates made independent are written only when you save. Closing without saving leaves the project as it was, and ⌘Z / Ctrl+Z brings everything back.
+- **Clearer ZIP names**: projects are exported as `.stella-project.zip`, packages as `.stella-set.zip` or `.stella-template.zip`. Older `.stella.zip` packages still import.
+- **Project ZIPs without an inner folder**: the files sit at the top of the ZIP and, when importing, the proposed folder name is the ZIP file's. ZIPs exported with 1.13 still import.
+
+### Italiano
+
+- **Eliminare un template aspetta «Salva»**, come eliminare un set: il template e le varianti o i derivati resi indipendenti si scrivono solo quando salvi. Chiudendo senza salvare il progetto resta com'era, e ⌘Z / Ctrl+Z rimette tutto.
+- **Nomi degli ZIP più chiari**: i progetti si esportano come `.stella-project.zip`, i pacchetti come `.stella-set.zip` o `.stella-template.zip`. I vecchi pacchetti `.stella.zip` si importano ancora.
+- **ZIP del progetto senza cartella interna**: i file stanno alla radice dello ZIP e, importandolo, il nome proposto per la cartella è quello del file ZIP. Gli ZIP esportati con la 1.13 si importano ancora.
+
 ## 1.13.0
 
 ### English

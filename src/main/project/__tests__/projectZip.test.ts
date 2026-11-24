@@ -34,9 +34,11 @@ describe('progetto intero in uno ZIP', () => {
     try {
       const project = join(dir, 'p')
       makeProject(project)
-      const data = await buildProjectZip(project, 'Last Bounty')
+      const data = await buildProjectZip(project)
       const names = Object.keys((await JSZip.loadAsync(data)).files).filter((n) => !n.endsWith('/'))
-      expect(names.every((n) => n.startsWith('Last_Bounty/'))).toBe(true)
+      // i file stanno alla radice: la cartella prende il nome dello ZIP
+      expect(names).toContain('stella.json')
+      expect(names).toContain('templates/carte.json')
       expect(names.some((n) => n.includes('export/') || n.includes('deleted/'))).toBe(false)
       expect(names.some((n) => n.includes('.hidden'))).toBe(false)
 
@@ -62,6 +64,22 @@ describe('progetto intero in uno ZIP', () => {
       await expect(extractProjectZip(data, join(dir, 'out'), 'Copia')).rejects.toThrow(
         'projectZip.targetExists'
       )
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  })
+
+  it('importa anche gli ZIP della 1.13, con i file in una cartella', async () => {
+    const dir = temp()
+    try {
+      const zip = new JSZip()
+      zip.file('Last_Bounty/stella.json', JSON.stringify({ name: 'Last Bounty', sets: [] }))
+      zip.file('Last_Bounty/templates/carte.json', '{}')
+      const data = await zip.generateAsync({ type: 'uint8array' })
+      expect((await inspectProjectZip(data))?.folderName).toBe('Last_Bounty')
+      const folder = await extractProjectZip(data, dir, 'Nuovo')
+      expect(existsSync(join(folder, 'stella.json'))).toBe(true)
+      expect(existsSync(join(folder, 'templates', 'carte.json'))).toBe(true)
     } finally {
       rmSync(dir, { recursive: true, force: true })
     }

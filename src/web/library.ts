@@ -1,4 +1,5 @@
 import { imagesTarget } from '../shared/model/imageUsage'
+import { packageExt } from '../shared/model/projectName'
 import { mkdir, writeFile } from './shims/fs'
 import { join } from './shims/path'
 import {
@@ -238,10 +239,15 @@ export async function openPackage(): Promise<{ name: string; data: Uint8Array } 
 }
 
 /** Nel browser il pacchetto va in export/ dentro la cartella del progetto */
-export async function savePackage(folder: string, name: string, data: Uint8Array): Promise<string> {
+export async function savePackage(
+  folder: string,
+  kind: 'template' | 'set',
+  name: string,
+  data: Uint8Array
+): Promise<string> {
   const dir = join(folder, 'export')
   await mkdir(dir, { recursive: true })
-  const target = join(dir, `${name.replace(/[<>:"/\\|?*]/g, '_')}.stella.zip`)
+  const target = join(dir, `${name.replace(/[<>:"/\\|?*]/g, '_')}${packageExt(kind)}`)
   await writeFile(target, data)
   return target
 }

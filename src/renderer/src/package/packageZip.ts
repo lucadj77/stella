@@ -35,7 +35,7 @@ export async function exportPackage(
   for (const f of await window.api.readAssetFiles(manifest.assets))
     zip.file(`assets/${f.path}`, f.data)
   const data = await zip.generateAsync({ type: 'uint8array', compression: 'DEFLATE' })
-  const path = await window.api.savePackage(what.name, data)
+  const path = await window.api.savePackage(what.kind, what.name, data)
   return path ? { path, manifest } : null
 }
 

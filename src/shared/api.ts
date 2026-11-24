@@ -345,7 +345,7 @@ export interface Api {
     sources: Sources
   ): Promise<AssetsUpdate>
   /** Salva un pacchetto (.zip); restituisce dove, null se l'utente annulla */
-  savePackage(name: string, data: Uint8Array): Promise<string | null>
+  savePackage(kind: 'template' | 'set', name: string, data: Uint8Array): Promise<string | null>
   /** Sceglie un pacchetto da importare; null se l'utente annulla */
   openPackage(): Promise<{ name: string; data: Uint8Array } | null>
   /** Sposta immagini di assets/ nel cestino del progetto (deleted/assets/) */

@@ -275,7 +275,20 @@ interface RecoverySnapshot {
   dirty: string[]
   dirtySheets: string[]
   trashedSheets: string[]
+  /** File dei template eliminati da spostare in deleted/ al salvataggio (manca nei recuperi vecchi) */
+  trashedTemplates?: string[]
   fileDirty: boolean
+}
+
+/** Template eliminato, da spostare nel cestino al salvataggio; tpl null se viene da un recupero */
+interface TrashedTemplate {
+  file: string
+  tpl: Template | null
+}
+
+/** Il file del template sul disco (templates/<file>.json), anche se è stato rinominato */
+function diskFile(x: Template): string {
+  return x.origin ?? x.file ?? x.name
 }
 
 /** Attesa dopo l'ultima modifica prima di scrivere il recupero (ms) */
@@ -595,6 +608,12 @@ function App(): React.JSX.Element {
    * se nel frattempo un set nuovo ha preso lo stesso nome (il foglio nuovo si scrive da capo)
    */
   const [trashedSheets, setTrashedSheets] = useState<Set<string>>(new Set())
+  /**
+   * Template eliminati e non ancora salvati: il file (templates/<file>.json) va in deleted/ solo
+   * al salvataggio, come i fogli dei set. `tpl` è il template eliminato: se un annulla lo rimette,
+   * il file resta dov'è.
+   */
+  const [trashedTemplates, setTrashedTemplates] = useState<TrashedTemplate[]>([])
   /** file di progetto da riscrivere (set nuovi) */
   const [fileDirty, setFileDirty] = useState(false)
   /** Il file dati è cambiato fuori da Stella e non si è ancora riletto */
@@ -643,7 +662,11 @@ function App(): React.JSX.Element {
   const [saving, setSaving] = useState(false)
   const readOnlyData = !!project?.file.dataReadOnly
   // in sola lettura i fogli non si salvano: una modifica rifiutata non chiede di salvare
-  const anyDirty = dirty.size > 0 || (dirtySheets.size > 0 && !readOnlyData) || fileDirty
+  const anyDirty =
+    dirty.size > 0 ||
+    (dirtySheets.size > 0 && !readOnlyData) ||
+    fileDirty ||
+    trashedTemplates.length > 0
   /** Vero, con un avviso, se il file dati è in sola lettura e quindi l'azione non si fa */
   const dataLocked = (): boolean => {
     if (!project?.file.dataReadOnly) return false
@@ -698,6 +721,7 @@ function App(): React.JSX.Element {
       setDirty(new Set(r.dirty))
       setDirtySheets(new Set(r.dirtySheets))
       setTrashedSheets(new Set(r.trashedSheets))
+      setTrashedTemplates((r.trashedTemplates ?? []).map((file) => ({ file, tpl: null })))
       setFileDirty(r.fileDirty)
       setHistoryRaw({ past: [], future: [], at: 0 })
       setEditorRev((n) => n + 1)
@@ -716,6 +740,7 @@ function App(): React.JSX.Element {
       setDirty(new Set())
       setDirtySheets(new Set())
       setTrashedSheets(new Set())
+      setTrashedTemplates([])
       setRestored([])
       setCompareBase(null)
       setFileDirty(false)
@@ -2055,6 +2080,15 @@ function App(): React.JSX.Element {
     setError(null)
     setSaving(true)
     try {
+      // i template eliminati vanno nel cestino prima di scrivere gli altri: un template nuovo con
+      // lo stesso nome si scrive poi da capo. Uno rimesso da un annulla resta dov'è; uno da
+      // riscrivere (modificato) ci va comunque, il salvataggio lo riscrive subito dopo
+      for (const x of trashedTemplates) {
+        const back = project.templates.find((y) => y === x.tpl || diskFile(y) === x.file)
+        if (!back || (back !== x.tpl && dirty.has(back.name)))
+          await window.api.deleteTemplate(x.file)
+      }
+      setTrashedTemplates([])
       const savedTemplates: Template[] = []
       for (const name of dirty) {
         const tpl = project.templates.find((x) => x.name === name)
@@ -2199,13 +2233,14 @@ function App(): React.JSX.Element {
         dirty: [...dirty],
         dirtySheets: [...dirtySheets],
         trashedSheets: [...trashedSheets],
+        trashedTemplates: trashedTemplates.map((x) => x.file),
         fileDirty
       }
       recoveryFolder.current = folder
       window.api.writeRecovery(folder, JSON.stringify(snapshot)).catch((e) => console.error(e))
     }, RECOVERY_DELAY)
     return () => clearTimeout(timer)
-  }, [project, anyDirty, dirty, dirtySheets, trashedSheets, fileDirty])
+  }, [project, anyDirty, dirty, dirtySheets, trashedSheets, trashedTemplates, fileDirty])
 
   const createSet = (name: string, template: string, sheetName: string | null): void => {
     if (!project || (!sheetName && dataLocked())) return
@@ -2554,31 +2589,20 @@ function App(): React.JSX.Element {
       ))
     )
       return
-    // I template resi indipendenti si scrivono subito, prima di spostare il base nel cestino:
-    // altrimenti, chiudendo senza salvare, sul disco restavano derivati di un base che non c'è più
-    // e alla riapertura si caricavano vuoti.
+    // Niente si scrive sul disco finché non si salva, come per i set: i template eliminati vanno
+    // nel cestino e quelli resi indipendenti si riscrivono al salvataggio. Chiudendo senza
+    // salvare il progetto resta com'era; ⌘Z rimette tutto.
     const free = new Map(detached.map((x) => [x.name, detach(x)]))
-    try {
-      for (const x of free.values()) await window.api.saveTemplate(x)
-    } catch (e) {
-      setError(messageFromError(e))
-      return
-    }
-    for (const [n, x] of free) {
-      if (!x.origin) continue
-      const copy = { ...x }
-      delete copy.origin
-      free.set(n, copy)
-    }
-    const gone: string[] = []
-    try {
-      for (const x of remove) {
-        await window.api.deleteTemplate(x.origin ?? x.file ?? x.name)
-        gone.push(x.name)
-      }
-    } catch (e) {
-      setError(messageFromError(e))
-    }
+    const gone = remove.map((x) => x.name)
+    setHistory((h) => ({
+      past: [
+        ...h.past.slice(-99),
+        { sets: project.sets, file: project.file, templates: project.templates, tplOnly: true }
+      ],
+      future: [],
+      at: 0
+    }))
+    setTrashedTemplates((list) => [...list, ...remove.map((x) => ({ file: diskFile(x), tpl: x }))])
     setProject(
       (p) =>
         p && {
@@ -2591,8 +2615,7 @@ function App(): React.JSX.Element {
     setDirty((d) => {
       const next = new Set(d)
       for (const n of gone) next.delete(n)
-      // già scritti sul disco
-      for (const n of free.keys()) next.delete(n)
+      for (const n of free.keys()) next.add(n)
       return next
     })
     if (selected.kind === 'template' && gone.includes(selected.name))
