@@ -1071,7 +1071,7 @@ I fogli si richiamano con indirizzi locali, quindi il mazzo funziona sul compute
 
 **Plotter da taglio** prepara i componenti per una macchina che stampa e taglia: Cricut (Design Space, funzione **Stampa e taglia**), Silhouette, Brother ScanNCut e simili. La stampante stampa il foglio, la macchina legge i segni di registro e taglia lungo il contorno di ogni componente, angoli arrotondati, esagoni, sagome e fori compresi.
 
-I programmi di queste macchine accettano un'immagine non più grande di un'area fissa, che dipende dalla carta: **Macchina** e **Carta** la scelgono (per Cricut su A4 e Letter 17,14 × 23,49 cm; le misure più grandi che Cricut indica per i computer, 18,29 cm di larghezza, nella prova non sono passate), e i due campi accanto la cambiano a mano. Stella mette nell'area quanti più componenti possibile, girandoli se così ne entrano di più, con la **Spaziatura** tra l'uno e l'altro (di base 4 mm). Poi ritaglia ogni foglio sui componenti che contiene, così il programma della macchina non deve indovinare dove cominciano.
+I programmi di queste macchine accettano un'immagine non più grande di un'area fissa, che dipende dalla carta: **Macchina** e **Carta** la scelgono (per Cricut su A4 e Letter 16,8 × 23,49 cm: Cricut dichiara fino a 18,3 cm di larghezza, ma con una Maker la stampa passa solo sotto 16,9 cm, perché Design Space aggiunge l'abbondanza), e i due campi accanto la cambiano a mano. Stella mette nell'area quanti più componenti possibile, girandoli se così ne entrano di più, con la **Spaziatura** tra l'uno e l'altro (di base 4 mm). Poi ritaglia ogni foglio sui componenti che contiene, così il programma della macchina non deve indovinare dove cominciano.
 
 ![Esportazione per plotter da taglio](img/esporta-plotter.png)
 

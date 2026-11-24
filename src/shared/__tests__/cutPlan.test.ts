@@ -40,7 +40,7 @@ describe('esportazione per plotter da taglio', () => {
     expect(plan.sheets).toHaveLength(2)
     const [first, second] = plan.sheets
     expect(first.page.items).toHaveLength(4)
-    // 2 colonne da 63,5 e 2 righe da 88 con 4 mm tra le carte, entro 171,4 × 234,9 mm
+    // 2 colonne da 63,5 e 2 righe da 88 con 4 mm tra le carte, entro 168 × 234,9 mm
     expect(first.width).toBeCloseTo(2 * 63.5 + 4, 2)
     expect(first.height).toBeCloseTo(2 * 88 + 4, 2)
     expect(first.name).toBe('sheet-01 (13.1 x 18 cm)')
