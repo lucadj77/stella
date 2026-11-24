@@ -373,3 +373,32 @@ describe('saveGeneration', () => {
     expect(generationKey(' Mostri ')).toBe(generationKey('mostri'))
   })
 })
+
+describe('scelta a spunte', () => {
+  it('quantità dal testo e testo dalle spunte, nell’ordine delle voci', async () => {
+    const { valueCounts, choiceText, outsideOptions, parseWeighted } = await import('../generate')
+    expect(valueCounts(parseWeighted('Blu*3\nRossa'))).toEqual({ Blu: 3, Rossa: 1 })
+    expect(choiceText(['Rossa', 'Verde', 'Blu'], { Blu: 3, Rossa: 1, Gialla: 1 })).toBe(
+      'Rossa\nBlu*3\nGialla'
+    )
+    expect(outsideOptions(['rossa', 'Gialla'], ['Rossa'])).toEqual(['Gialla'])
+    expect(outsideOptions(['rossa'], ['Rossa'], true)).toEqual(['rossa'])
+  })
+
+  it('le varianti incrociate con i numeri da 1 a 10', async () => {
+    const { generateCards, parseWeighted, emptyColumn } = await import('../generate')
+    const col = (column: string, text: string, icons: boolean): GeneratorColumn => ({
+      ...emptyColumn(column),
+      icons,
+      ...parseWeighted(text)
+    })
+    const r = generateCards({
+      columns: [col('template', 'carta\noro', false), col('numero', '1-10', true)],
+      filter: '',
+      copies: 1
+    })
+    expect(r.rows).toHaveLength(20)
+    expect(r.rows[0]).toEqual(['carta', '1', '1'])
+    expect(r.rows[19]).toEqual(['oro', '10', '1'])
+  })
+})

@@ -945,6 +945,8 @@ Nell'elenco dei valori `oro*3` vale oro tre volte: a caso oro esce tre volte pi�
 
 Una sequenza spostata di un posto rispetto a un'altra (a/b, b/c, c/a) si ottiene anche con un campo calcolato: `PICK({card.number}+1; "a"; "b"; "c")`. Vale solo per l'ordine come scritto.
 
+**Varianti e voci di un elenco.** Se il template del set ha delle varianti, o ci sono altri template con le sue misure, tra le colonne c'è anche **template**: sceglie il template di ogni componente. Al posto della casella di testo la finestra mostra i template da spuntare, prima il base e le sue varianti e poi gli altri; lo stesso vale per le colonne dei livelli con la fonte **Elenco**, con le miniature delle immagini e i campioni dei colori. **Tutti** e **Nessuno** spuntano o tolgono tutte le voci. In sequenza e a caso accanto a ogni voce c'è la quantità, che vale come `valore*N`: in sequenza la voce si ripete nel giro, a caso esce più spesso. Per esempio, con tutte le combinazioni, la colonna template con tre varianti e una colonna con i numeri `1-10` danno 30 carte, ogni variante con i numeri da 1 a 10; in sequenza `normale` ×5 e `boss` ×1 danno cinque carte normali e poi una boss, a ogni giro. **Scrivi i valori a mano** apre il testo, per un ordine diverso da quello dell'elenco. I nomi che non corrispondono a nessuna voce si segnalano sotto le voci e in giallo nell'anteprima: un componente con un template che non esiste usa quello del set. Rinominando un template, il nome cambia anche nelle generazioni salvate.
+
 ![Il generatore in sequenza: tre colori su tutti i componenti del set, mescolati a ogni giro](img/genera-sequenza.png)
 
 ### 10.1 Dividere un'immagine tra i componenti

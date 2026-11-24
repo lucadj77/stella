@@ -10537,3 +10537,68 @@ button.wide {
   align-items: center;
   padding: 4px 8px;
 }
+
+/* generatore: voci di un elenco o template da spuntare, con la quantità */
+.generate-choices {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.generate-choices-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.generate-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 6px;
+}
+
+.generate-choice {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  min-height: 40px;
+}
+
+.generate-choice.on {
+  border-color: var(--accent);
+}
+
+.generate-choice label.check {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.generate-choice .num {
+  width: 52px;
+  flex: none;
+}
+
+.generate-choice .list-swatch {
+  width: 28px;
+  height: 22px;
+}
+
+.generate-choice-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.generate-choice-text textarea {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.generate-dialog td.generate-unknown {
+  background: var(--warning-bg);
+}

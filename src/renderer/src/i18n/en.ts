@@ -3340,6 +3340,17 @@ export const en = {
   'generate.pick': 'Values per component',
   'generate.removeSet': 'Remove the set',
   'generate.values': 'Values',
+  'generate.choices': 'Choose the values',
+  'generate.templates': 'Choose the templates',
+  'generate.choicesAll': 'All',
+  'generate.choicesNone': 'None',
+  'generate.choiceCount':
+    'How many times: in a sequence it repeats in each round, at random it comes up more often',
+  'generate.choicesText': 'Write the values by hand (for a different order)',
+  'generate.outsideList': 'Not in the list of the layer: {values}',
+  'generate.unknownTemplates':
+    'No template with this name and the size of the set: {values}. These components would use the template of the set.',
+  'generate.notInList': '{value}: not in the list',
   'generate.valuesHint': 'One per line or comma separated: wood, stone, wheat',
   'generate.fromFolder': 'From a folder…',
   'generate.fromFolderHint': 'Use the names of the images in an assets folder as values',

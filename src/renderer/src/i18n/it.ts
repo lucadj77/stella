@@ -3386,6 +3386,17 @@ export const it: Record<MessageKey, string> = {
   'generate.pick': 'Valori per componente',
   'generate.removeSet': "Togli l'insieme",
   'generate.values': 'Valori',
+  'generate.choices': 'Scegli i valori',
+  'generate.templates': 'Scegli i template',
+  'generate.choicesAll': 'Tutti',
+  'generate.choicesNone': 'Nessuno',
+  'generate.choiceCount':
+    'Quante volte: in sequenza si ripete in ogni giro, a caso esce più spesso',
+  'generate.choicesText': 'Scrivi i valori a mano (per un ordine diverso)',
+  'generate.outsideList': "Non sono nell'elenco del livello: {values}",
+  'generate.unknownTemplates':
+    'Nessun template con questo nome e le misure del set: {values}. Questi componenti userebbero il template del set.',
+  'generate.notInList': "{value}: non è nell'elenco",
   'generate.valuesHint': 'Uno per riga o separati da virgole: legno, pietra, grano',
   'generate.fromFolder': 'Da una cartella…',
   'generate.fromFolderHint': 'Usa come valori i nomi delle immagini di una cartella di assets',

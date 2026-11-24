@@ -945,6 +945,8 @@ In the list of values `gold*3` counts gold three times: in random mode gold come
 
 A sequence shifted by one place against another (a/b, b/c, c/a) can also be made with a formula field: `PICK({card.number}+1; "a"; "b"; "c")`. This only works for the order as written.
 
+**Variants and list choices.** If the set's template has variants, or there are other templates with its size, the columns include **template**: it chooses the template of each component. Instead of the text box the window shows the templates to tick, first the base and its variants and then the others; the same goes for the columns of layers with the **List** source, with image thumbnails and color swatches. **All** and **None** tick or clear every choice. In sequence and at random each choice has a quantity, which works like `value*N`: in sequence the choice repeats in the round, at random it comes up more often. For example, with every combination, the template column with three variants and a column with the numbers `1-10` give 30 cards, each variant with the numbers from 1 to 10; in sequence `normal` ×5 and `boss` ×1 give five normal cards and then a boss, in every round. **Write the values by hand** opens the text, for an order different from the list. Names that match no choice are flagged under the choices and in yellow in the preview: a component with a template that does not exist uses the set's template. Renaming a template also changes its name in saved generations.
+
 ![The generator in sequence: three colors on all components of the set, shuffled every round](img/genera-sequenza.png)
 
 ### 10.1 Splitting an image across components
