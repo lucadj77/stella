@@ -413,7 +413,8 @@ function Block({
                 sets,
                 templates,
                 maxWidth,
-                settings.size * 0.88 * PT * (b.font ?? 1)
+                settings.size * 0.88 * PT * (b.font ?? 1),
+                docFontFamily(settings.font, ctx.variables)
               )}
               sets={sets}
               templates={templates}

@@ -9,7 +9,7 @@ import {
   parseCardRef,
   type CardRef
 } from './document'
-import { SETUP_FENCE } from './setup'
+import { SETUP_FENCE, cardListSource, parseCardList } from './setup'
 import { renameInText, type RefKind } from './rename'
 import { walkLayers } from './normalize'
 import type { Template } from './template'
@@ -49,6 +49,7 @@ function mapParts(src: string, f: (part: Part, lines: string[]) => string[]): st
 
 const IMAGE_REF = /(!\[[^\]\n]*\]\(\s*)(card:[^)\n]*?)(\s*\))/gi
 const SETUP_CARD = /^(\s*(?:card|deck)\s+)(\S+)(.*)$/i
+const SETUP_CARDS = /^(\s*(?:row|hand)\s+)(\S+)(.*)$/i
 const ANATOMY_CARD = /^(\s*card\s*:\s*)(.*?)(\s*)$/i
 const CALLOUT = /^(\s*[-*]\s*)(.+?)((?:\s*\((?:\s*(?:left|right|front|back)\s*,?)+\))?\s*:\s*.*)$/
 
@@ -82,6 +83,19 @@ export function mapCardRefs(
       )
     if (part === 'setup')
       return lines.map((l) => {
+        // file e mani: un elenco di carte, riscritto in breve se una cambia
+        const many = SETUP_CARDS.exec(l)
+        const list = many && parseCardList(many[2])
+        if (many && list) {
+          let changed = false
+          const out = list.map((c) => {
+            const n = next(anatomyCardSource(c))
+            if (n === null) return c
+            changed = true
+            return n.slice(CARD_PREFIX.length)
+          })
+          return changed ? many[1] + cardListSource(out) + many[3] : l
+        }
         const m = SETUP_CARD.exec(l)
         if (!m) return l
         const n = next(anatomyCardSource(m[2]))

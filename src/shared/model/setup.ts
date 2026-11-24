@@ -5,68 +5,185 @@
 //   size 280x180
 //   margin 10                                          (senza size: margine intorno, di base 3 mm)
 //   zone 0,0 280x60 "Giocatore 1"
+//   zone 0,0 280x60 fill=#dfe8f5 stroke=none rotate=5  (colori, tratto, angoli, opacità)
 //   deck Personaggi/1?side=back 20,10 count=8 "Mazzo"
-//   card Personaggi/nome=Mago 60,10 rotate=90 "Il mago"
-//   text 140,30 width=50 "Pesca **2** carte"            (align=left o align=right; di base al centro)
+//   card Personaggi/nome=Mago 60,10 rotate=90 scale=150% label=top "Il mago"
+//   card Segnalini/1 on=@plancia cell=3,4              (al centro di una casella della plancia)
+//   row Mercato/1-3,7,Eroi/nome=Mago 10,10 gap=3       (carte in fila; direction=down: in colonna)
+//   hand Personaggi/1-5 10,10 spread=40                (carte a ventaglio)
+//   shape ellipse 60,10 30x30 stroke=#e5484d thickness=1 "1"   (rect, ellipse, polygon, star)
+//   text 140,30 width=50 color=#e5484d "Pesca **2** carte"   (align=left o right; di base al centro)
 //   arrow 40,50 -> 60,80 "pesca"
-//   arrow 40,50 -> 60,80 bend=8                        (curva: il centro si scosta di 8 mm)
-//   arrow 40,50 -> 60,80 bend=8 shift=5                (e si sposta di 5 mm verso la punta)
+//   arrow @mazzo -> @mercato                           (agganciata agli elementi con name=)
+//   arrow 40,50 -> 60,80 bend=8 shift=5                (curva e spostamento della curva)
 //   arrow 40,50 -> 60,80 heads=both size=150%          (punte: end, start, both, none; misura)
-//   arrow 40,50 -> 60,80 thickness=1                   (spessore della linea in mm)
+//   arrow 40,50 -> 60,80 thickness=1 color=red line=dash   (spessore, colore, tratteggio)
 //   image icons/moneta.png 200,20 width=10
 //
-// Con `width 60%` lo schema occupa al massimo il 60% della riga, con `font 90%` le didascalie
-// hanno il 90% del corpo di base.
+// Ogni elemento accetta `name=` (per agganciarci le frecce e le caselle) e `lock` (non si sceglie
+// con un clic nell'editor). Con `order: free` vale l'ordine delle righe (le ultime sopra); senza,
+// le zone e le forme stanno sotto, poi carte e immagini, poi testi e frecce. Con `width 60%` lo
+// schema occupa al massimo il 60% della riga, con `font 90%` le didascalie hanno il 90% del corpo
+// di base.
 
 export const SETUP_FENCE = 'setup'
 
-export type SetupItem = { from: number; to: number } & (
-  | { kind: 'card'; card: string; x: number; y: number; rotate: number; label: string }
-  | {
-      kind: 'deck'
-      card: string
-      x: number
-      y: number
-      rotate: number
-      count: number
-      label: string
-    }
-  | { kind: 'zone'; x: number; y: number; w: number; h: number; label: string }
-  | {
-      kind: 'text'
-      x: number
-      y: number
-      w: number
-      text: string
-      /** Allineamento nel riquadro largo w; di base al centro */
-      align?: SetupTextAlign
-    }
-  | {
-      kind: 'arrow'
-      x: number
-      y: number
-      x2: number
-      y2: number
-      label: string
-      /**
-       * Curva: di quanti mm il centro della freccia si scosta dalla retta, a destra di chi va
-       * dalla coda alla punta (a sinistra se negativo); assente o 0 = dritta
-       */
-      bend?: number
-      /**
-       * Con la curva: di quanti mm il centro si sposta lungo la freccia, verso la punta (verso la
-       * coda se negativo); assente o 0 = a metà
-       */
-      shift?: number
-      /** Dove stanno le punte; assente = solo alla fine */
-      heads?: ArrowHeads
-      /** Misura di linea e punta rispetto a quella di base: 1 = 100%; assente = 1 */
-      size?: number
-      /** Spessore della linea in mm, al posto di quello che viene dalla misura; assente = 0,5 × misura */
-      thickness?: number
-    }
-  | { kind: 'image'; src: string; x: number; y: number; w: number; rotate: number }
-)
+/** Tratto di una linea o di un bordo */
+export type SetupLineStyle = 'solid' | 'dash' | 'dot'
+
+/** Dove sta l'etichetta di un componente, di un mazzo, di una fila o di una mano; di base sotto */
+export type SetupLabelAt = 'bottom' | 'top' | 'left' | 'right'
+
+/** Le forme dello schema, come quelle dei livelli forma dei template */
+export type SetupShape = 'rect' | 'ellipse' | 'polygon' | 'star'
+export const SETUP_SHAPES: SetupShape[] = ['rect', 'ellipse', 'polygon', 'star']
+
+/** Opzioni che valgono per ogni elemento */
+interface Common {
+  from: number
+  to: number
+  /** Nome con cui frecce e caselle richiamano l'elemento (`name=mazzo`, `@mazzo`) */
+  name?: string
+  /** Nell'editor non si sceglie con un clic sul disegno */
+  lock?: boolean
+  /** Solo nell'editor: nascosto mentre si lavora, non si scrive */
+  hidden?: boolean
+  /**
+   * Sopra la casella di una plancia: nome dell'elemento e casella (riga, colonna da 1). Il centro
+   * dell'elemento va al centro della casella; x e y si calcolano. Non per le frecce.
+   */
+  on?: { item: string; row: number; col: number }
+}
+
+/** Aspetto di zone e forme; i valori assenti sono quelli di base del tipo */
+interface Paint {
+  /** Colore, variabile colore o `none` */
+  fill?: string
+  stroke?: string
+  /** Spessore del bordo in mm */
+  thickness?: number
+  line?: SetupLineStyle
+  /** Angoli arrotondati in mm */
+  radius?: number
+  /** Opacità, da 0 a 1 */
+  opacity?: number
+}
+
+/** Opzioni di componenti, mazzi, file e mani */
+interface Cards {
+  /** Misura rispetto a quella del template: 1 = 100% */
+  scale?: number
+  labelAt?: SetupLabelAt
+}
+
+export type SetupItem = Common &
+  (
+    | ({
+        kind: 'card'
+        card: string
+        x: number
+        y: number
+        rotate: number
+        label: string
+      } & Cards)
+    | ({
+        kind: 'deck'
+        card: string
+        x: number
+        y: number
+        rotate: number
+        count: number
+        label: string
+      } & Cards)
+    | ({
+        kind: 'row'
+        cards: string[]
+        x: number
+        y: number
+        /** Spazio tra le carte in mm; assente = 3 */
+        gap?: number
+        /** In fila verso destra (di base) o in colonna verso il basso */
+        direction?: 'right' | 'down'
+        label: string
+      } & Cards)
+    | ({
+        kind: 'hand'
+        cards: string[]
+        x: number
+        y: number
+        /** Apertura del ventaglio in gradi; assente = 30 */
+        spread?: number
+        label: string
+      } & Cards)
+    | ({
+        kind: 'zone'
+        x: number
+        y: number
+        w: number
+        h: number
+        label: string
+        /** Rotazione attorno al centro, in gradi; assente = 0 */
+        rotate?: number
+      } & Paint)
+    | ({
+        kind: 'shape'
+        shape: SetupShape
+        x: number
+        y: number
+        w: number
+        h: number
+        label: string
+        rotate?: number
+        /** Lati del poligono o punte della stella; assente = 6 e 5 */
+        sides?: number
+        /** Rientro della stella, da 0 a 1; assente = 0,5 */
+        inner?: number
+      } & Paint)
+    | {
+        kind: 'text'
+        x: number
+        y: number
+        w: number
+        text: string
+        /** Allineamento nel riquadro largo w; di base al centro */
+        align?: SetupTextAlign
+        color?: string
+        rotate?: number
+        /** Contorno delle lettere: colore e spessore in mm */
+        stroke?: string
+        thickness?: number
+      }
+    | {
+        kind: 'arrow'
+        x: number
+        y: number
+        x2: number
+        y2: number
+        label: string
+        /**
+         * Curva: di quanti mm il centro della freccia si scosta dalla retta, a destra di chi va
+         * dalla coda alla punta (a sinistra se negativo); assente o 0 = dritta
+         */
+        bend?: number
+        /**
+         * Con la curva: di quanti mm il centro si sposta lungo la freccia, verso la punta (verso la
+         * coda se negativo); assente o 0 = a metà
+         */
+        shift?: number
+        /** Dove stanno le punte; assente = solo alla fine */
+        heads?: ArrowHeads
+        /** Misura di linea e punta rispetto a quella di base: 1 = 100%; assente = 1 */
+        size?: number
+        /** Spessore della linea in mm, al posto di quello che viene dalla misura; assente = 0,5 × misura */
+        thickness?: number
+        color?: string
+        line?: SetupLineStyle
+        /** Coda e punta agganciate agli elementi con questo nome: x, y e x2, y2 non contano */
+        fromItem?: string
+        toItem?: string
+      }
+    | { kind: 'image'; src: string; x: number; y: number; w: number; rotate: number }
+  )
 
 export type SetupKind = SetupItem['kind']
 
@@ -91,6 +208,8 @@ export interface Setup {
   captionTop?: boolean
   /** Testo che scorre accanto allo schema, messo a sinistra o a destra (`wrap: left`) */
   wrap?: BlockWrap | null
+  /** Vale l'ordine delle righe (`order: free`), senza gli strati per tipo */
+  free?: boolean
   /** Righe che non si capiscono */
   bad: { from: number; to: number }[]
 }
@@ -173,10 +292,28 @@ export const WRAP_WIDTH = 0.5
 /** Larghezza di base dei testi e delle immagini, in mm */
 export const SETUP_TEXT_W = 50
 export const SETUP_IMAGE_W = 15
+/** Spazio di base tra le carte di una fila e apertura di base di una mano */
+/** Spessore di base del contorno di un testo, in mm */
+export const SETUP_TEXT_OUTLINE = 0.4
+export const SETUP_ROW_GAP = 3
+export const SETUP_HAND_SPREAD = 30
+/** Carte al massimo in una fila o in una mano */
+export const SETUP_MAX_CARDS = 60
 
-const KINDS = new Set<SetupKind>(['card', 'deck', 'zone', 'text', 'arrow', 'image'])
+const KINDS = new Set<SetupKind>([
+  'card',
+  'deck',
+  'row',
+  'hand',
+  'zone',
+  'shape',
+  'text',
+  'arrow',
+  'image'
+])
 const PAIR = /^(-?\d+(?:[.,]\d+)?),(-?\d+(?:[.,]\d+)?)$/
 const SIZE = /^(\d+(?:[.,]\d+)?)x(\d+(?:[.,]\d+)?)$/i
+const NAME = /^[\p{L}\p{N}_-]+$/u
 const num = (s: string): number => Number(s.replace(',', '.'))
 const decode = (s: string): string => {
   try {
@@ -214,101 +351,353 @@ function tokens(line: string): { text: string; quoted: boolean }[] | null {
   return out
 }
 
+/**
+ * Le carte di una fila o di una mano: riferimenti separati da virgole, con gli intervalli
+ * (`Mercato/1-3`) e i numeri che continuano il set di prima (`Mercato/1,4,7`); null se non va
+ */
+export function parseCardList(s: string): string[] | null {
+  const out: string[] = []
+  let set: string | null = null
+  for (const raw of s.split(',')) {
+    const part = raw.trim()
+    if (!part) return null
+    const q = part.indexOf('?')
+    const path = q < 0 ? part : part.slice(0, q)
+    const query = q < 0 ? '' : part.slice(q)
+    const slash = path.indexOf('/')
+    let sel: string
+    if (slash > 0) {
+      set = path.slice(0, slash)
+      sel = path.slice(slash + 1)
+    } else if (set !== null) sel = path
+    else return null
+    if (!sel) return null
+    const range = /^(\d+)-(\d+)$/.exec(sel)
+    if (range) {
+      const a = Number(range[1])
+      const b = Number(range[2])
+      if (a < 1 || b < a || out.length + b - a + 1 > SETUP_MAX_CARDS) return null
+      for (let n = a; n <= b; n++) out.push(`${set}/${n}${query}`)
+    } else if (slash > 0 || /^\d+$/.test(sel)) out.push(`${set}/${sel}${query}`)
+    else return null
+    if (out.length > SETUP_MAX_CARDS) return null
+  }
+  return out.length ? out : null
+}
+
+/** Le carte scritte in breve: i numeri di fila dello stesso set diventano un intervallo */
+export function cardListSource(cards: string[]): string {
+  const toks: { full: boolean; set: string; from?: number; to?: number; text: string }[] = []
+  for (const card of cards) {
+    const c = card.replace(/ /g, '%20')
+    const slash = c.indexOf('/')
+    const set = slash > 0 ? c.slice(0, slash) : ''
+    const sel = slash > 0 ? c.slice(slash + 1) : c
+    const n = /^\d+$/.test(sel) ? Number(sel) : null
+    const last = toks[toks.length - 1]
+    if (n !== null && last?.set === set && last.to !== undefined && n === last.to + 1) {
+      last.to = n
+      continue
+    }
+    // un numero dopo un'altra carta dello stesso set non ripete il set
+    if (n !== null) toks.push({ full: last?.set !== set, set, from: n, to: n, text: '' })
+    else toks.push({ full: true, set, text: c })
+  }
+  return toks
+    .map((t) =>
+      t.from !== undefined
+        ? `${t.full ? `${t.set}/` : ''}${t.from === t.to ? t.from : `${t.from}-${t.to}`}`
+        : t.text
+    )
+    .join(',')
+}
+
+/** Valore di un colore: esadecimale, nome, variabile tra graffe o none */
+const COLOR = /^(#[0-9a-f]{3,8}|[a-z]+|\{[^{}\s]+\}|[\p{L}\p{N}_-]+)$/iu
+
+type OptKind = 'num' | 'pct' | 'color' | 'flag' | 'word' | 'cell' | 'ref'
+/** Le opzioni `chiave=valore` e a quali elementi si applicano */
+const OPTIONS: Record<string, { type: OptKind; kinds: SetupKind[]; words?: string[] }> = {
+  name: {
+    type: 'word',
+    kinds: ['card', 'deck', 'row', 'hand', 'zone', 'shape', 'text', 'image']
+  },
+  lock: {
+    type: 'flag',
+    kinds: ['card', 'deck', 'row', 'hand', 'zone', 'shape', 'text', 'arrow', 'image']
+  },
+  scale: { type: 'pct', kinds: ['card', 'deck', 'row', 'hand'] },
+  label: {
+    type: 'word',
+    kinds: ['card', 'deck', 'row', 'hand'],
+    words: ['top', 'bottom', 'left', 'right']
+  },
+  on: { type: 'ref', kinds: ['card', 'deck', 'row', 'hand', 'zone', 'shape', 'text', 'image'] },
+  cell: { type: 'cell', kinds: ['card', 'deck', 'row', 'hand', 'zone', 'shape', 'text', 'image'] },
+  gap: { type: 'num', kinds: ['row'] },
+  direction: { type: 'word', kinds: ['row'], words: ['right', 'down'] },
+  spread: { type: 'num', kinds: ['hand'] },
+  fill: { type: 'color', kinds: ['zone', 'shape'] },
+  stroke: { type: 'color', kinds: ['zone', 'shape', 'text'] },
+  color: { type: 'color', kinds: ['text', 'arrow'] },
+  thickness: { type: 'num', kinds: ['zone', 'shape', 'arrow', 'text'] },
+  line: { type: 'word', kinds: ['zone', 'shape', 'arrow'], words: ['solid', 'dash', 'dot'] },
+  radius: { type: 'num', kinds: ['zone', 'shape'] },
+  opacity: { type: 'pct', kinds: ['zone', 'shape'] },
+  sides: { type: 'num', kinds: ['shape'] },
+  inner: { type: 'pct', kinds: ['shape'] },
+  align: { type: 'word', kinds: ['text'], words: ['left', 'center', 'right'] },
+  heads: { type: 'word', kinds: ['arrow'], words: ['end', 'start', 'both', 'none'] },
+  size: { type: 'pct', kinds: ['arrow'] },
+  shift: { type: 'num', kinds: ['arrow'] },
+  // queste le leggevano tutti gli elementi anche prima: dove non servono non contano
+  rotate: { type: 'num', kinds: KINDS_ALL() },
+  count: { type: 'num', kinds: KINDS_ALL() },
+  width: { type: 'num', kinds: KINDS_ALL() },
+  bend: { type: 'num', kinds: KINDS_ALL() }
+}
+function KINDS_ALL(): SetupKind[] {
+  return ['card', 'deck', 'row', 'hand', 'zone', 'shape', 'text', 'arrow', 'image']
+}
+
 /** Un elemento da una riga, o null se non si capisce */
 function parseItem(line: string, from: number): SetupItem | null {
   const parts = tokens(line)
   if (!parts?.length || parts[0].quoted) return null
   const kind = parts[0].text.toLowerCase() as SetupKind
   if (!KINDS.has(kind)) return null
-  const pairs: [number, number][] = []
+  /** I punti: coordinate o `@nome` di un elemento */
+  const points: ({ x: number; y: number } | string)[] = []
   let size: [number, number] | null = null
   let name = ''
   let label: string | null = null
-  const opts: Record<string, number> = {}
-  let align: SetupTextAlign | null = null
-  let heads: ArrowHeads | null = null
-  let scale: number | null = null
+  const opts: Record<string, string | number | boolean | { row: number; col: number }> = {}
   for (const p of parts.slice(1)) {
     if (p.quoted) {
       if (label !== null) return null
       label = p.text
       continue
     }
+    if (p.text === '->') continue
     const pair = PAIR.exec(p.text)
     const sz = SIZE.exec(p.text)
-    const opt = /^(rotate|count|width|bend|shift|thickness)=(-?\d+(?:[.,]\d+)?)$/i.exec(p.text)
-    const al = /^align=(left|center|right)$/i.exec(p.text)
-    const hd = /^heads=(end|start|both|none)$/i.exec(p.text)
-    const sc = /^size=(\d+(?:[.,]\d+)?)%$/i.exec(p.text)
-    if (p.text === '->') continue
-    if (al && !align) align = al[1].toLowerCase() as SetupTextAlign
-    else if (hd && !heads) heads = hd[1].toLowerCase() as ArrowHeads
-    else if (sc && scale === null) scale = num(sc[1]) / 100
-    else if (pair) pairs.push([num(pair[1]), num(pair[2])])
+    const kv = /^([a-z]+)=(.*)$/i.exec(p.text)
+    const opt = kv && !p.text.includes('/') ? OPTIONS[kv[1].toLowerCase()] : undefined
+    const flag = OPTIONS[p.text.toLowerCase()]
+    if (pair) points.push({ x: num(pair[1]), y: num(pair[2]) })
     else if (sz && !size) size = [num(sz[1]), num(sz[2])]
-    else if (opt) opts[opt[1].toLowerCase()] = num(opt[2])
-    else if (!name) name = p.text
+    else if (/^@[\p{L}\p{N}_-]+$/u.test(p.text) && kind === 'arrow') points.push(p.text.slice(1))
+    else if (flag?.type === 'flag') {
+      if (!flag.kinds.includes(kind)) return null
+      opts[p.text.toLowerCase()] = true
+    } else if (opt && kv) {
+      const key = kv[1].toLowerCase()
+      if (!opt.kinds.includes(kind) || key in opts) return null
+      const v = kv[2]
+      switch (opt.type) {
+        case 'num': {
+          if (!/^-?\d+(?:[.,]\d+)?$/.test(v)) return null
+          opts[key] = num(v)
+          break
+        }
+        case 'pct': {
+          const m = /^(\d+(?:[.,]\d+)?)%$/.exec(v)
+          if (!m) return null
+          opts[key] = num(m[1]) / 100
+          break
+        }
+        case 'color':
+          if (!COLOR.test(v)) return null
+          opts[key] = v
+          break
+        case 'word':
+          if (opt.words ? !opt.words.includes(v.toLowerCase()) : !NAME.test(v)) return null
+          opts[key] = opt.words ? v.toLowerCase() : v
+          break
+        case 'ref': {
+          const m = /^@?([\p{L}\p{N}_-]+)$/u.exec(v)
+          if (!m) return null
+          opts[key] = m[1]
+          break
+        }
+        case 'cell': {
+          const m = /^(\d+),(\d+)$/.exec(v)
+          if (!m || Number(m[1]) < 1 || Number(m[2]) < 1) return null
+          opts[key] = { row: Number(m[1]), col: Number(m[2]) }
+          break
+        }
+        default:
+          return null
+      }
+    } else if (!name) name = p.text
     else return null
   }
-  const at = { from, to: from + line.length }
-  if (align && kind !== 'text') return null
-  if (
-    (heads || scale !== null || opts.shift !== undefined || opts.thickness !== undefined) &&
-    kind !== 'arrow'
-  )
-    return null
-  const [x, y] = pairs[0] ?? [NaN, NaN]
-  if (!Number.isFinite(x) || !Number.isFinite(y)) return null
-  const rotate = ((Math.round(opts.rotate ?? 0) % 360) + 360) % 360
+  const n = (k: string): number | undefined =>
+    typeof opts[k] === 'number' ? (opts[k] as number) : undefined
+  const s = (k: string): string | undefined =>
+    typeof opts[k] === 'string' ? (opts[k] as string) : undefined
+  const on = s('on')
+  const common = {
+    from,
+    to: from + line.length,
+    ...(s('name') ? { name: s('name') } : {}),
+    ...(opts.lock ? { lock: true } : {}),
+    ...(on ? { on: { item: on, ...(opts.cell as { row: number; col: number }) } } : {})
+  }
+  const coords = points.filter((p): p is { x: number; y: number } => typeof p !== 'string')
+  // sopra una casella la posizione si calcola: non si scrive
+  const [x, y] = coords[0] ? [coords[0].x, coords[0].y] : on ? [0, 0] : [NaN, NaN]
+  const placed = coords.length === (on ? 0 : 1)
+  const rotate = ((Math.round(n('rotate') ?? 0) % 360) + 360) % 360
+  const cards = {
+    ...(n('scale') && n('scale') !== 1 ? { scale: n('scale') } : {}),
+    ...(s('label') && s('label') !== 'bottom' ? { labelAt: s('label') as SetupLabelAt } : {})
+  }
+  const paint = {
+    ...(s('fill') ? { fill: s('fill') } : {}),
+    ...(s('stroke') ? { stroke: s('stroke') } : {}),
+    ...(n('thickness') !== undefined && n('thickness')! >= 0 ? { thickness: n('thickness') } : {}),
+    ...(s('line') ? { line: s('line') as SetupLineStyle } : {}),
+    ...(n('radius') !== undefined && n('radius')! >= 0 ? { radius: n('radius') } : {}),
+    ...(n('opacity') !== undefined && n('opacity')! < 1
+      ? { opacity: Math.max(0, n('opacity')!) }
+      : {})
+  }
+  if ((on === undefined) !== (opts.cell === undefined)) return null
+  if (kind !== 'arrow' && points.length !== coords.length) return null
+  if (kind !== 'arrow' && !on && !(Number.isFinite(x) && Number.isFinite(y))) return null
   switch (kind) {
     case 'card':
-      if (!name || size || pairs.length !== 1) return null
-      return { kind, card: name, x, y, rotate, label: label ?? '', ...at }
+      if (!name || size || !placed) return null
+      return { kind, card: name, x, y, rotate, label: label ?? '', ...cards, ...common }
     case 'deck':
-      if (!name || size || pairs.length !== 1) return null
+      if (!name || size || !placed) return null
       return {
         kind,
         card: name,
         x,
         y,
         rotate,
-        count: Math.max(1, Math.min(60, Math.round(opts.count ?? 5))),
+        count: Math.max(1, Math.min(60, Math.round(n('count') ?? 5))),
         label: label ?? '',
-        ...at
+        ...cards,
+        ...common
       }
+    case 'row':
+    case 'hand': {
+      const list = name ? parseCardList(name) : null
+      if (!list || size || !placed) return null
+      return kind === 'row'
+        ? {
+            kind,
+            cards: list,
+            x,
+            y,
+            label: label ?? '',
+            ...(n('gap') !== undefined && n('gap') !== SETUP_ROW_GAP ? { gap: n('gap') } : {}),
+            ...(s('direction') === 'down' ? { direction: 'down' as const } : {}),
+            ...cards,
+            ...common
+          }
+        : {
+            kind,
+            cards: list,
+            x,
+            y,
+            label: label ?? '',
+            ...(n('spread') !== undefined && n('spread') !== SETUP_HAND_SPREAD
+              ? { spread: Math.max(0, Math.min(180, n('spread')!)) }
+              : {}),
+            ...cards,
+            ...common
+          }
+    }
     case 'zone':
-      if (name || !size || pairs.length !== 1) return null
-      return { kind, x, y, w: size[0], h: size[1], label: label ?? '', ...at }
-    case 'text':
-      if (name || size || pairs.length !== 1 || label === null) return null
+      if (name || !size || !placed) return null
       return {
         kind,
         x,
         y,
-        w: opts.width ?? SETUP_TEXT_W,
-        text: label,
-        ...(align && align !== 'center' ? { align } : {}),
-        ...at
-      }
-    case 'arrow':
-      if (name || size || pairs.length !== 2) return null
-      return {
-        kind,
-        x,
-        y,
-        x2: pairs[1][0],
-        y2: pairs[1][1],
+        w: size[0],
+        h: size[1],
         label: label ?? '',
-        ...(opts.bend ? { bend: opts.bend } : {}),
-        ...(opts.bend && opts.shift ? { shift: opts.shift } : {}),
-        ...(opts.thickness && opts.thickness > 0 ? { thickness: opts.thickness } : {}),
-        ...(heads && heads !== 'end' ? { heads } : {}),
-        ...(scale !== null && scale > 0 && scale !== 1 ? { size: scale } : {}),
-        ...at
+        ...(rotate ? { rotate } : {}),
+        ...paint,
+        ...common
       }
+    case 'shape': {
+      const shape = name.toLowerCase() as SetupShape
+      if (!SETUP_SHAPES.includes(shape) || !size || !placed) return null
+      const sides = n('sides')
+      return {
+        kind,
+        shape,
+        x,
+        y,
+        w: size[0],
+        h: size[1],
+        label: label ?? '',
+        ...(rotate ? { rotate } : {}),
+        ...(sides !== undefined ? { sides: Math.max(3, Math.min(40, Math.round(sides))) } : {}),
+        ...(n('inner') !== undefined ? { inner: Math.max(0.05, Math.min(1, n('inner')!)) } : {}),
+        ...paint,
+        ...common
+      }
+    }
+    case 'text':
+      if (name || size || !placed || label === null) return null
+      return {
+        kind,
+        x,
+        y,
+        w: n('width') ?? SETUP_TEXT_W,
+        text: label,
+        ...(s('align') && s('align') !== 'center' ? { align: s('align') as SetupTextAlign } : {}),
+        ...(s('color') ? { color: s('color') } : {}),
+        ...(rotate ? { rotate } : {}),
+        ...(s('stroke') && s('stroke') !== 'none' ? { stroke: s('stroke') } : {}),
+        ...(s('stroke') && n('thickness') !== undefined && n('thickness')! > 0
+          ? { thickness: n('thickness') }
+          : {}),
+        ...common
+      }
+    case 'arrow': {
+      if (name || size || points.length !== 2) return null
+      const [a, b] = points
+      const bend = n('bend')
+      const shift = n('shift')
+      const thickness = n('thickness')
+      const scale = n('size')
+      return {
+        kind,
+        x: typeof a === 'string' ? 0 : a.x,
+        y: typeof a === 'string' ? 0 : a.y,
+        x2: typeof b === 'string' ? 0 : b.x,
+        y2: typeof b === 'string' ? 0 : b.y,
+        label: label ?? '',
+        ...(typeof a === 'string' ? { fromItem: a } : {}),
+        ...(typeof b === 'string' ? { toItem: b } : {}),
+        ...(bend ? { bend } : {}),
+        ...(bend && shift ? { shift } : {}),
+        ...(thickness && thickness > 0 ? { thickness } : {}),
+        ...(s('heads') && s('heads') !== 'end' ? { heads: s('heads') as ArrowHeads } : {}),
+        ...(scale !== undefined && scale > 0 && scale !== 1 ? { size: scale } : {}),
+        ...(s('color') ? { color: s('color') } : {}),
+        ...(s('line') && s('line') !== 'solid' ? { line: s('line') as SetupLineStyle } : {}),
+        ...common
+      }
+    }
     case 'image':
-      if (!name || size || pairs.length !== 1 || label !== null) return null
-      return { kind, src: decode(name), x, y, w: opts.width ?? SETUP_IMAGE_W, rotate, ...at }
+      if (!name || size || !placed || label !== null) return null
+      return {
+        kind,
+        src: decode(name),
+        x,
+        y,
+        w: n('width') ?? SETUP_IMAGE_W,
+        rotate,
+        ...common
+      }
   }
 }
 
@@ -323,6 +712,7 @@ export function parseSetup(lines: string[], starts: number[]): Setup {
     caption: '',
     captionTop: false,
     wrap: null,
+    free: false,
     bad: []
   }
   lines.forEach((l, k) => {
@@ -347,6 +737,13 @@ export function parseSetup(lines: string[], starts: number[]): Setup {
       if (caption.top !== undefined) out.captionTop = caption.top
       return
     }
+    const order = /^\s*order\s*:?\s*(\S*)\s*$/i.exec(l)
+    if (order) {
+      const v = order[1].toLowerCase()
+      if (v === 'free' || v === 'layers') out.free = v === 'free'
+      else out.bad.push({ from, to: from + l.length })
+      return
+    }
     const size = /^\s*size\s*:?\s*(\S+)\s*$/i.exec(l)
     const sz = size && SIZE.exec(size[1])
     if (sz) {
@@ -366,25 +763,60 @@ export function parseSetup(lines: string[], starts: number[]): Setup {
 }
 
 const r = (n: number): string => String(Math.round(n * 10) / 10)
+const pct = (n: number): string => `${Math.round(n * 1000) / 10}%`
 const quote = (s: string): string => `"${s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`
 const text = (s: string): string => (s ? ` ${quote(s.replace(/\n/g, ' '))}` : '')
-const rot = (n: number): string => (n ? ` rotate=${n}` : '')
+const rot = (n: number | undefined): string => (n ? ` rotate=${n}` : '')
+const ref = (s: string): string => s.replace(/ /g, '%20')
+/** La posizione: le coordinate, o la casella della plancia su cui sta */
+const at = (it: SetupItem): string =>
+  it.on && it.kind !== 'arrow'
+    ? `on=@${it.on.item} cell=${it.on.row},${it.on.col}`
+    : `${r(it.x)},${r(it.y)}`
+
+/** Le opzioni comuni, il nome e il blocco, in fondo alla riga prima dell'etichetta */
+function commonOpts(it: SetupItem): string {
+  return `${it.name ? ` name=${it.name}` : ''}${it.lock ? ' lock' : ''}`
+}
+function paintOpts(it: Paint): string {
+  return [
+    it.fill ? ` fill=${it.fill}` : '',
+    it.stroke ? ` stroke=${it.stroke}` : '',
+    it.thickness !== undefined ? ` thickness=${r(it.thickness)}` : '',
+    it.line ? ` line=${it.line}` : '',
+    it.radius !== undefined ? ` radius=${r(it.radius)}` : '',
+    it.opacity !== undefined && it.opacity < 1 ? ` opacity=${pct(it.opacity)}` : ''
+  ].join('')
+}
+function cardOpts(it: Cards): string {
+  return `${it.scale && it.scale !== 1 ? ` scale=${pct(it.scale)}` : ''}${it.labelAt && it.labelAt !== 'bottom' ? ` label=${it.labelAt}` : ''}`
+}
 
 /** La riga di un elemento */
 export function setupLine(it: SetupItem): string {
+  const end = (label: string): string => `${commonOpts(it)}${text(label)}`
   switch (it.kind) {
     case 'card':
-      return `card ${it.card.replace(/ /g, '%20')} ${r(it.x)},${r(it.y)}${rot(it.rotate)}${text(it.label)}`
+      return `card ${ref(it.card)} ${at(it)}${rot(it.rotate)}${cardOpts(it)}${end(it.label)}`
     case 'deck':
-      return `deck ${it.card.replace(/ /g, '%20')} ${r(it.x)},${r(it.y)} count=${it.count}${rot(it.rotate)}${text(it.label)}`
+      return `deck ${ref(it.card)} ${at(it)} count=${it.count}${rot(it.rotate)}${cardOpts(it)}${end(it.label)}`
+    case 'row':
+      return `row ${cardListSource(it.cards)} ${at(it)}${it.gap !== undefined ? ` gap=${r(it.gap)}` : ''}${it.direction === 'down' ? ' direction=down' : ''}${cardOpts(it)}${end(it.label)}`
+    case 'hand':
+      return `hand ${cardListSource(it.cards)} ${at(it)}${it.spread !== undefined ? ` spread=${r(it.spread)}` : ''}${cardOpts(it)}${end(it.label)}`
     case 'zone':
-      return `zone ${r(it.x)},${r(it.y)} ${r(it.w)}x${r(it.h)}${text(it.label)}`
+      return `zone ${at(it)} ${r(it.w)}x${r(it.h)}${rot(it.rotate)}${paintOpts(it)}${end(it.label)}`
+    case 'shape':
+      return `shape ${it.shape} ${at(it)} ${r(it.w)}x${r(it.h)}${rot(it.rotate)}${it.sides !== undefined ? ` sides=${it.sides}` : ''}${it.inner !== undefined ? ` inner=${pct(it.inner)}` : ''}${paintOpts(it)}${end(it.label)}`
     case 'text':
-      return `text ${r(it.x)},${r(it.y)} width=${r(it.w)}${it.align && it.align !== 'center' ? ` align=${it.align}` : ''} ${quote(it.text.replace(/\n/g, ' '))}`
-    case 'arrow':
-      return `arrow ${r(it.x)},${r(it.y)} -> ${r(it.x2)},${r(it.y2)}${it.bend ? ` bend=${r(it.bend)}` : ''}${it.bend && it.shift ? ` shift=${r(it.shift)}` : ''}${it.heads && it.heads !== 'end' ? ` heads=${it.heads}` : ''}${it.size && it.size !== 1 ? ` size=${Math.round(it.size * 100)}%` : ''}${it.thickness ? ` thickness=${r(it.thickness)}` : ''}${text(it.label)}`
+      return `text ${at(it)} width=${r(it.w)}${it.align && it.align !== 'center' ? ` align=${it.align}` : ''}${it.color ? ` color=${it.color}` : ''}${it.stroke ? ` stroke=${it.stroke}${it.thickness ? ` thickness=${r(it.thickness)}` : ''}` : ''}${rot(it.rotate)}${commonOpts(it)} ${quote(it.text.replace(/\n/g, ' '))}`
+    case 'arrow': {
+      const a = it.fromItem ? `@${it.fromItem}` : `${r(it.x)},${r(it.y)}`
+      const b = it.toItem ? `@${it.toItem}` : `${r(it.x2)},${r(it.y2)}`
+      return `arrow ${a} -> ${b}${it.bend ? ` bend=${r(it.bend)}` : ''}${it.bend && it.shift ? ` shift=${r(it.shift)}` : ''}${it.heads && it.heads !== 'end' ? ` heads=${it.heads}` : ''}${it.size && it.size !== 1 ? ` size=${Math.round(it.size * 100)}%` : ''}${it.thickness ? ` thickness=${r(it.thickness)}` : ''}${it.color ? ` color=${it.color}` : ''}${it.line && it.line !== 'solid' ? ` line=${it.line}` : ''}${end(it.label)}`
+    }
     case 'image':
-      return `image ${it.src.replace(/%/g, '%25').replace(/ /g, '%20')} ${r(it.x)},${r(it.y)} width=${r(it.w)}${rot(it.rotate)}`
+      return `image ${it.src.replace(/%/g, '%25').replace(/ /g, '%20')} ${at(it)} width=${r(it.w)}${rot(it.rotate)}${commonOpts(it)}`
   }
 }
 
@@ -392,6 +824,7 @@ export function setupLine(it: SetupItem): string {
 export function setupSource(
   s: Pick<Setup, 'size' | 'items' | 'width' | 'font' | 'caption' | 'captionTop' | 'wrap'> & {
     margin?: number | null
+    free?: boolean
   }
 ): string {
   return [
@@ -401,6 +834,7 @@ export function setupSource(
     ...blockSizeLines(s),
     ...blockWrapLines(s),
     ...blockCaptionLines(s),
+    ...(s.free ? ['order: free'] : []),
     ...s.items.map(setupLine),
     '```'
   ].join('\n')
@@ -551,17 +985,31 @@ export function distributeSetupItems(
 }
 
 /**
- * Strato in cui il disegno mette l'elemento: le zone sotto, poi carte, mazzi e immagini, poi testi
- * e frecce. Dentro uno strato vale l'ordine delle righe: le ultime stanno sopra.
+ * Strato in cui il disegno mette l'elemento senza `order: free`: le zone e le forme sotto, poi
+ * carte, mazzi, file, mani e immagini, poi testi e frecce. Dentro uno strato vale l'ordine delle
+ * righe: le ultime stanno sopra.
  */
 export const setupLayer = (kind: SetupKind): number =>
-  kind === 'zone' ? 0 : kind === 'text' || kind === 'arrow' ? 2 : 1
+  kind === 'zone' || kind === 'shape' ? 0 : kind === 'text' || kind === 'arrow' ? 2 : 1
+
+/** Gli elementi nell'ordine in cui li disegnano gli strati: con `order: free` lo stesso aspetto */
+export function sortByLayer<T extends { kind: SetupKind }>(items: T[]): T[] {
+  return items
+    .map((it, i) => ({ it, i }))
+    .sort((a, b) => setupLayer(a.it.kind) - setupLayer(b.it.kind) || a.i - b.i)
+    .map((x) => x.it)
+}
+
+/** Le righe sono già nell'ordine degli strati? Allora `order: free` non cambia niente */
+export function layerOrdered(items: { kind: SetupKind }[]): boolean {
+  return items.every((it, i) => i === 0 || setupLayer(items[i - 1].kind) <= setupLayer(it.kind))
+}
 
 export type SetupOrder = 'up' | 'down' | 'top' | 'bottom'
 
 /**
- * Porta l'elemento avanti o indietro tra quelli dello stesso strato; restituisce le righe e la
- * nuova posizione dell'elemento
+ * Porta l'elemento avanti o indietro tra tutti gli elementi (l'ordine diventa libero);
+ * restituisce le righe e la nuova posizione dell'elemento
  */
 export function reorderSetupItem(
   items: SetupItem[],
@@ -570,30 +1018,22 @@ export function reorderSetupItem(
 ): { items: SetupItem[]; index: number } {
   const it = items[index]
   if (!it) return { items, index }
-  const layer = setupLayer(it.kind)
-  const same = items.flatMap((x, i) => (setupLayer(x.kind) === layer ? [i] : []))
-  const k = same.indexOf(index)
   const goal =
     to === 'up'
-      ? Math.min(same.length - 1, k + 1)
+      ? Math.min(items.length - 1, index + 1)
       : to === 'down'
-        ? Math.max(0, k - 1)
+        ? Math.max(0, index - 1)
         : to === 'top'
-          ? same.length - 1
+          ? items.length - 1
           : 0
-  if (goal === k) return { items, index }
-  const order = same.filter((i) => i !== index)
-  order.splice(goal, 0, index)
-  // le posizioni dello strato restano le stesse, cambia solo chi le occupa
-  const out = [...items]
-  same.forEach((slot, n) => (out[slot] = items[order[n]]))
-  return { items: out, index: same[goal] }
+  if (goal === index) return { items, index }
+  const out = items.filter((_, i) => i !== index)
+  out.splice(goal, 0, it)
+  return { items: out, index: goal }
 }
 
-/** Si può portare avanti (o indietro) tra gli elementi dello stesso strato? */
+/** Si può portare avanti (o indietro)? */
 export function canReorderSetupItem(items: SetupItem[], index: number, up: boolean): boolean {
-  const it = items[index]
-  if (!it) return false
-  const layer = setupLayer(it.kind)
-  return items.some((x, i) => (up ? i > index : i < index) && setupLayer(x.kind) === layer)
+  if (!items[index]) return false
+  return up ? index < items.length - 1 : index > 0
 }

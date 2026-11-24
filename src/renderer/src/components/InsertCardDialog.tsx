@@ -92,6 +92,7 @@ export default function InsertCardDialog({
   anatomy,
   initial,
   pick,
+  multiple = false,
   bare = false,
   pageWidth = 174,
   pageFont = (11 * 0.88 * 25.4) / 72,
@@ -107,6 +108,11 @@ export default function InsertCardDialog({
   initial?: Anatomy
   /** Sceglie solo la carta: il riferimento scritto ora, o '' per una nuova */
   pick?: string
+  /**
+   * Con pick: si scelgono più carte dello stesso set (Maiuscolo e ⌘/Ctrl + clic, «Tutte»);
+   * onInsert riceve i riferimenti separati da virgole
+   */
+  multiple?: boolean
   /** Con pick: senza larghezza e senza il riferimento scritto, come per la copertina */
   bare?: boolean
   /**
@@ -152,6 +158,8 @@ export default function InsertCardDialog({
   const headers = (set?.data?.headers ?? []).filter((h) => h && h !== 'amount' && !h.includes('.'))
 
   const [query, setQuery] = useState('')
+  /** Con multiple: le righe scelte, nell'ordine del set */
+  const [picked, setPicked] = useState<number[]>(() => (start ? [start.row] : [0]))
   const [row, setRow] = useState(start?.row ?? 0)
   // di base si cerca la carta per il campo del nome: il riferimento regge se le righe cambiano ordine
   const defaultKey =
@@ -291,6 +299,20 @@ export default function InsertCardDialog({
         ...(!anatomy && pick === undefined && wrap ? { wrap } : {})
       }
     : null
+  /** Il riferimento di una carta del set, come `ref` per quella scelta */
+  const refFor = (i: number): string => {
+    if (!set) return ''
+    const v = col >= 0 ? (set.data?.rows[i]?.[col] ?? '').trim() : ''
+    const unique =
+      v !== '' && (set.data?.rows.filter((r) => (r[col] ?? '').trim() === v).length ?? 0) === 1
+    return cardRefSource({
+      set: set.name,
+      ...(key !== '' && unique ? { field: key, value: v } : { row: i + 1 }),
+      side
+    }).replace(/^card:/i, '')
+  }
+  const many = multiple && pick !== undefined
+  const chosenRows = many ? picked.filter((i) => cards[i]).sort((a, b) => a - b) : []
   const alt = caption ?? cards[current]?.label ?? ''
   /** Le facce di cui si spiegano i livelli, ciascuna con i suoi */
   const faces: { face: Side; layers: ReturnType<typeof layerNames> }[] = template
@@ -423,6 +445,7 @@ export default function InsertCardDialog({
           onChange={(e) => {
             setSetName(e.target.value)
             setRow(0)
+            setPicked([0])
             setKey(null)
             if (!anatomy) setCaption(null)
           }}
@@ -448,9 +471,19 @@ export default function InsertCardDialog({
       {shown.slice(0, MAX_SHOWN).map(({ c, i }) => (
         <button
           key={i}
-          className={i === current ? 'active' : ''}
+          className={(many ? picked.includes(i) : i === current) ? 'active' : ''}
           title={c.label}
-          onClick={() => {
+          onClick={(e) => {
+            if (many && (e.metaKey || e.ctrlKey))
+              setPicked((p) => (p.includes(i) ? p.filter((x) => x !== i) : [...p, i]))
+            else if (many && e.shiftKey) {
+              // l'intervallo tra l'ultima scelta e questa, nell'ordine in cui si vedono
+              const order = shown.map((x) => x.i)
+              const a = order.indexOf(current)
+              const b = order.indexOf(i)
+              const range = a < 0 ? [i] : order.slice(Math.min(a, b), Math.max(a, b) + 1)
+              setPicked((p) => [...new Set([...p, ...range])])
+            } else setPicked([i])
             setRow(i)
             setCaption(null)
           }}
@@ -462,6 +495,14 @@ export default function InsertCardDialog({
       {shown.length > MAX_SHOWN && (
         <p className="muted small">{t('documents.more', { n: shown.length - MAX_SHOWN })}</p>
       )}
+    </div>
+  )
+  const manyBar = many && (
+    <div className="dialog-row">
+      <button onClick={() => setPicked(shown.map((x) => x.i).slice(0, 60))}>
+        {t('documents.pickAll')}
+      </button>
+      <span className="muted small grow">{t('documents.pickManyHint')}</span>
     </div>
   )
   const options = (
@@ -727,6 +768,7 @@ export default function InsertCardDialog({
         ) : (
           <>
             {choose}
+            {manyBar}
             {grid}
             {options}
             {pick !== undefined ? null : (
@@ -749,16 +791,18 @@ export default function InsertCardDialog({
           <button onClick={onClose}>{t('dialog.cancel')}</button>
           <button
             className="primary"
-            disabled={!text || (anatomy && !labels.size)}
-            onClick={() => onInsert(text)}
+            disabled={many ? !chosenRows.length : !text || (anatomy && !labels.size)}
+            onClick={() => onInsert(many ? chosenRows.map(refFor).join(',') : text)}
           >
-            {t(
-              pick !== undefined
-                ? 'documents.pick'
-                : initial
-                  ? 'documents.saveAnatomy'
-                  : 'documents.insert'
-            )}
+            {many
+              ? t('documents.addCards', { n: chosenRows.length })
+              : t(
+                  pick !== undefined
+                    ? 'documents.pick'
+                    : initial
+                      ? 'documents.saveAnatomy'
+                      : 'documents.insert'
+                )}
           </button>
         </div>
       </div>
