@@ -1071,6 +1071,8 @@ Sheets are referenced by local addresses, so the deck works on the computer that
 
 **Cutting plotter** prepares the components for a machine that prints and cuts: Cricut (Design Space, **Print Then Cut**), Silhouette, Brother ScanNCut and similar. The printer prints the sheet, the machine reads the registration marks and cuts along the outline of each component, rounded corners, hexagons, custom shapes and holes included.
 
+It is best for pieces a paper trimmer cannot cut: round or custom-shaped tokens, hexagons, pieces with holes, dice to fold. For rectangular cards a PDF with crop marks and a trimmer is usually faster, since Cricut fits only 4 poker cards per A4 sheet.
+
 The programs of these machines accept an image no larger than a fixed area, which depends on the paper: **Machine** and **Paper** choose it (for Cricut on A4 and Letter 16.8 × 23.49 cm: Cricut states up to 18.3 cm wide, but with a Maker printing works only below 16.9 cm, because Design Space adds bleed), and the two fields next to it change it by hand. Stella fits as many components as it can in the area, turning them if more fit that way, with the **Spacing** between them (4 mm by default). Then it crops each sheet to the components it holds, so the machine's program does not have to guess where they start.
 
 ![Export for cutting plotters](img/esporta-plotter.png)

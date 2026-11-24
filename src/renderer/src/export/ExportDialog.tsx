@@ -937,6 +937,7 @@ export default function ExportDialog({
   const cutOptions = kind === 'cut' && (
     <>
       <h3 className="export-heading">{t('export.matters')}</h3>
+      <p className="export-hint">{t('cut.when')}</p>
       <Choice
         label={t('cut.machine')}
         value={cut.machine}

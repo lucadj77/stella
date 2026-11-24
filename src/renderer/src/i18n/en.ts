@@ -1949,6 +1949,8 @@ export const en = {
     'For each sheet: a PNG to upload as Print Then Cut, and a folds file if there are folds. Design Space reads the PNG at the wrong size: type the width in cm written in the file name.',
   'cut.hintOther':
     'For each sheet: a PNG to print, and the cut lines as SVG and DXF of the same size. Silhouette Studio Basic opens only the DXF.',
+  'cut.when':
+    'Best for tokens, custom shapes, pieces with holes and dice. For rectangular cards a PDF with crop marks and a paper trimmer is usually faster: Cricut fits only 4 poker cards per A4 sheet.',
   'cut.moreSection': 'Spacing, resolution, folder',
   'cut.spacingHint':
     'Space between components. The plotter cuts along the outline, so a few millimetres are enough.',

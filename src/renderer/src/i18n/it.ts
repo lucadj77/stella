@@ -1978,6 +1978,8 @@ export const it: Record<MessageKey, string> = {
     'Per ogni foglio: un PNG da caricare come Stampa e taglia, e un file delle pieghe se ci sono pieghe. Design Space legge il PNG alla misura sbagliata: scrivi la larghezza in cm che trovi nel nome del file.',
   'cut.hintOther':
     'Per ogni foglio: un PNG da stampare, e le linee di taglio in SVG e DXF della stessa misura. Silhouette Studio Basic apre solo il DXF.',
+  'cut.when':
+    'Conviene per segnalini, sagome, pezzi con fori e dadi. Per le carte rettangolari di solito si fa prima con il PDF con i segni di taglio e una taglierina: Cricut mette solo 4 carte poker per foglio A4.',
   'cut.moreSection': 'Spaziatura, risoluzione, cartella',
   'cut.spacingHint':
     'Spazio tra i componenti. Il plotter taglia lungo il contorno, bastano pochi millimetri.',
