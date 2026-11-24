@@ -48,7 +48,7 @@ import { guardWindow, registerCloseGuard } from './closeGuard'
 import { clearRecovery, readRecovery, writeRecovery } from './project/recovery'
 import { downloadSkill, type SkillKind } from '../shared/skill'
 import { MessageError, msg } from '../shared/messages'
-import { projectFolderName } from '../shared/model/projectName'
+import { packageExt, projectFolderName, PROJECT_ZIP_EXT } from '../shared/model/projectName'
 import { exists } from './fs'
 import type { Template } from '../shared/model/template'
 import type {
@@ -424,7 +424,11 @@ function registerIpc(): void {
     const name = projectName || basename(folder)
     const win = BrowserWindow.fromWebContents(event.sender)
     const options = {
-      defaultPath: join(folder, 'export', `${projectFolderName(name) || 'project'}.zip`),
+      defaultPath: join(
+        folder,
+        'export',
+        `${projectFolderName(name) || 'project'}${PROJECT_ZIP_EXT}`
+      ),
       filters: [{ name: 'ZIP', extensions: ['zip'] }]
     }
     await mkdir(join(folder, 'export'), { recursive: true })
@@ -432,7 +436,7 @@ function registerIpc(): void {
       ? await dialog.showSaveDialog(win, options)
       : await dialog.showSaveDialog(options)
     if (result.canceled || !result.filePath) return null
-    await writeFile(result.filePath, await buildProjectZip(folder, name))
+    await writeFile(result.filePath, await buildProjectZip(folder))
     return result.filePath
   })
   ipcMain.handle('project:zip-inspect', (_, data: Uint8Array) => inspectProjectZip(data))
@@ -691,22 +695,29 @@ function registerIpc(): void {
       return writeAssetFiles(folder, files, replaced, sources)
     }
   )
-  ipcMain.handle('package:save', async (event, name: string, data: Uint8Array) => {
-    const folder = getProjectFolder()
-    if (!folder) throw new MessageError(msg('template.noProject'))
-    const win = BrowserWindow.fromWebContents(event.sender)
-    const options = {
-      defaultPath: join(folder, 'export', `${name.replace(/[<>:"/\\|?*]/g, '_')}.stella.zip`),
-      filters: [{ name: 'Stella package', extensions: ['zip'] }]
+  ipcMain.handle(
+    'package:save',
+    async (event, kind: 'template' | 'set', name: string, data: Uint8Array) => {
+      const folder = getProjectFolder()
+      if (!folder) throw new MessageError(msg('template.noProject'))
+      const win = BrowserWindow.fromWebContents(event.sender)
+      const options = {
+        defaultPath: join(
+          folder,
+          'export',
+          `${name.replace(/[<>:"/\\|?*]/g, '_')}${packageExt(kind)}`
+        ),
+        filters: [{ name: 'Stella package', extensions: ['zip'] }]
+      }
+      await mkdir(join(folder, 'export'), { recursive: true })
+      const result = win
+        ? await dialog.showSaveDialog(win, options)
+        : await dialog.showSaveDialog(options)
+      if (result.canceled || !result.filePath) return null
+      await writeFile(result.filePath, data)
+      return result.filePath
     }
-    await mkdir(join(folder, 'export'), { recursive: true })
-    const result = win
-      ? await dialog.showSaveDialog(win, options)
-      : await dialog.showSaveDialog(options)
-    if (result.canceled || !result.filePath) return null
-    await writeFile(result.filePath, data)
-    return result.filePath
-  })
+  )
   ipcMain.handle('package:open', async (event) => {
     const win = BrowserWindow.fromWebContents(event.sender)
     const options = {

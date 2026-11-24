@@ -80,7 +80,8 @@ const api: Api = {
   readAssetFiles: (paths: string[]) => ipcRenderer.invoke('package:read-assets', paths),
   writeAssetFiles: (files, replaced, sources) =>
     ipcRenderer.invoke('package:write-assets', files, replaced, sources),
-  savePackage: (name: string, data: Uint8Array) => ipcRenderer.invoke('package:save', name, data),
+  savePackage: (kind: 'template' | 'set', name: string, data: Uint8Array) =>
+    ipcRenderer.invoke('package:save', kind, name, data),
   openPackage: () => ipcRenderer.invoke('package:open'),
   moveImages: (paths: string[], folder: string) => ipcRenderer.invoke('images:move', paths, folder),
   restoreImages: (files: string[]) => ipcRenderer.invoke('images:restore', files),

@@ -202,7 +202,7 @@ export const en = {
   'sidebar.deleteSetConfirm.title': 'Delete the set "{name}"?',
   'sidebar.deleteSetConfirm.ok': 'Delete the set',
   'sidebar.deleteTemplateConfirm':
-    "Its file goes to the project's trash, from where you can get it back.",
+    "When you save, its file goes to the project's trash, from where you can get it back.",
   'sidebar.deleteTemplateConfirm.title': 'Delete the template "{name}"?',
   'sidebar.deleteTemplateConfirm.ok': 'Delete the template',
   'sidebar.templateInUse':
@@ -817,7 +817,8 @@ export const en = {
   'variants.openHint': 'Open this variant in the editor',
   'variants.baseHint': 'The template the variants come from',
   'variants.delete': 'Delete this variant',
-  'variants.deleteConfirm': 'The file goes to the project trash, where it can be recovered.',
+  'variants.deleteConfirm':
+    'When you save, the file goes to the project trash, where it can be recovered.',
   'variants.deleteConfirm.title': 'Delete variant "{name}"?',
   'variants.deleteConfirm.ok': 'Delete the variant',
   'variants.up': 'Move up',
@@ -1386,12 +1387,12 @@ export const en = {
   'inherit.deriveOk': 'Create',
   'inherit.deleteWithVariants.title': 'Delete template "{name}" and its variants?',
   'inherit.deleteWithVariants':
-    'The variants ({list}) can be deleted along with the template, or made independent: they become regular templates that look as they do now. Deleted files go to the project trash.',
+    'The variants ({list}) can be deleted along with the template, or made independent: they become regular templates that look as they do now. When you save, deleted files go to the project trash.',
   'inherit.deleteWithVariants.all': 'Delete the variants too',
   'inherit.deleteWithVariants.detach': 'Make them independent',
   'inherit.deleteWithDerived.title': 'Delete template "{name}"?',
   'inherit.deleteWithDerived':
-    'Other templates derive from it ({list}): they can be deleted along with this one, or made independent, looking as they do now. Deleted files go to the project trash.',
+    'Other templates derive from it ({list}): they can be deleted along with this one, or made independent, looking as they do now. When you save, deleted files go to the project trash.',
   'inherit.deleteWithDerived.inUse':
     'Other templates derive from it ({list}) and the sets {sets} use some of them, so they cannot be deleted. They can be made independent, looking as they do now, and only this one deleted.',
   'inherit.deleteWithDerived.all': 'Delete the derived templates too',
@@ -4146,14 +4147,14 @@ export const en = {
     'Click an item to see its details. ⌘/Ctrl+click and ⇧+click select more than one; double-click opens it.',
   'manage.templates.deleteMany.title': 'Delete {n} templates?',
   'manage.templates.deleteMany':
-    "{list}. Their files go to the project's trash, from where you can get them back.",
+    "{list}. When you save, their files go to the project's trash, from where you can get them back.",
   'manage.templates.deleteMany.ok': 'Delete {n} templates',
   'manage.templates.inUseSkipped': 'These stay because sets use them: {list}.',
   'manage.templates.allInUse':
     'Sets use all these templates, so none was deleted: {list}. Delete the sets first.',
   'inherit.deleteManyWithDerived.title': 'Delete {n} templates?',
   'inherit.deleteManyWithDerived':
-    'Other templates derive from them ({list}): they can be deleted along with these, or made independent, looking as they do now. Deleted files go to the project trash.',
+    'Other templates derive from them ({list}): they can be deleted along with these, or made independent, looking as they do now. When you save, deleted files go to the project trash.',
   'inherit.deleteManyWithDerived.inUse':
     'Other templates derive from them ({list}) and the sets {sets} use some of them, so they cannot be deleted. They can be made independent, looking as they do now, and only the chosen ones deleted.',
   'manage.deleteKeyHint': 'You can also press Delete (⌫ on Mac).',

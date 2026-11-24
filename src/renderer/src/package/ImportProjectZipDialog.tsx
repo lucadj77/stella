@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { ProjectZipSummary } from '../../../shared/api'
 import { messageFromError, type Message } from '../../../shared/messages'
-import { projectFolderName } from '../../../shared/model/projectName'
+import { projectFolderName, zipBaseName } from '../../../shared/model/projectName'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 
@@ -30,7 +30,8 @@ export default function ImportProjectZipDialog({
   const { t } = useI18n()
   const s = zip.summary
   const [parent, setParent] = useState(() => localStorage.getItem(PARENT_KEY) ?? '')
-  const [name, setName] = useState(s.folderName)
+  // la cartella prende il nome del file ZIP (rinominato o no), non quello scritto dentro
+  const [name, setName] = useState(() => zipBaseName(zip.file).trim() || s.folderName)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<Message | null>(null)
 

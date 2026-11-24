@@ -453,7 +453,7 @@ Nei campi numerici del pannello delle proprietà, trascinare l'etichetta a destr
 - le variabili e gli stili richiamati dai template e dal set, anche attraverso altre variabili o altri stili (stessa ricerca di "dove è usato");
 - le immagini usate (3.2: nei template, nelle carte del set, nelle variabili e negli stili presi) e i file dei font scritti nei livelli e nel markup, con le loro voci di `sources.json`.
 
-Nell'app per computer si sceglie dove salvarlo (si propone `export/<nome>.stella.zip`); nell'app web va in `export/<nome>.stella.zip` del progetto.
+Nell'app per computer si sceglie dove salvarlo (si propone `export/<nome>.stella-template.zip` o `export/<nome>.stella-set.zip`); nell'app web va lì nella cartella del progetto. I pacchetti fino alla 1.13 finivano in `.stella.zip` e si importano lo stesso.
 
 **Progetto ▾ › Importa pacchetto…**, o un file .zip lasciato cadere in un punto qualsiasi della finestra (`readPackage`: le zone che accettano immagini lasciano passare gli .zip), legge lo ZIP e mostra cosa contiene; senza un progetto aperto un avviso chiede di aprirne uno. Il pacchetto si riconosce da `stella-package.json`, non dal nome: va bene ogni .zip che lo contiene. Un elemento uguale a quello del progetto non si chiede: resta quello del progetto. Per quelli diversi si sceglie, uno per uno o per tutti:
 

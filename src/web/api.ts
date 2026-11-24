@@ -1,7 +1,7 @@
 import { downloadSkill } from '../shared/skill'
 import { mkdir, onFileChange, readFile, writeFile } from './shims/fs'
 import { basename, dirname, join } from './shims/path'
-import { projectFolderName } from '../shared/model/projectName'
+import { projectFolderName, PROJECT_ZIP_EXT } from '../shared/model/projectName'
 import type { Api, BackupSettings, BackupState } from '../shared/api'
 import type { ExportProgress } from '../shared/export'
 import { MessageError, msg } from '../shared/messages'
@@ -161,8 +161,8 @@ export const webApi: Api = {
     const f = projectFolder()
     const dir = join(f, 'export')
     await mkdir(dir, { recursive: true })
-    const target = join(dir, `${projectFolderName(projectName) || 'project'}.zip`)
-    await writeFile(target, await buildProjectZip(f, projectName))
+    const target = join(dir, `${projectFolderName(projectName) || 'project'}${PROJECT_ZIP_EXT}`)
+    await writeFile(target, await buildProjectZip(f))
     return target
   },
   inspectProjectZip: (data) => inspectProjectZip(data),
@@ -269,7 +269,7 @@ export const webApi: Api = {
   readAssetFiles: (paths) => readAssetFiles(projectFolder(), paths),
   writeAssetFiles: (files, replaced, sources) =>
     writeAssetFiles(projectFolder(), files, replaced, sources),
-  savePackage: (name, data) => savePackage(projectFolder(), name, data),
+  savePackage: (kind, name, data) => savePackage(projectFolder(), kind, name, data),
   openPackage: () => openPackage(),
   moveImages: (paths, folder) => moveImages(projectFolder(), paths, folder),
   restoreImages: (files) => restoreImages(projectFolder(), files),

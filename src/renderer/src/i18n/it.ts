@@ -204,7 +204,8 @@ export const it: Record<MessageKey, string> = {
     'Al salvataggio il suo foglio esce dal file dei dati e va nel cestino del progetto, da cui si può recuperare.',
   'sidebar.deleteSetConfirm.title': 'Eliminare il set "{name}"?',
   'sidebar.deleteSetConfirm.ok': 'Elimina il set',
-  'sidebar.deleteTemplateConfirm': 'Il file va nel cestino del progetto, da cui si può recuperare.',
+  'sidebar.deleteTemplateConfirm':
+    'Al salvataggio il file va nel cestino del progetto, da cui si può recuperare.',
   'sidebar.deleteTemplateConfirm.title': 'Eliminare il template "{name}"?',
   'sidebar.deleteTemplateConfirm.ok': 'Elimina il template',
   'sidebar.templateInUse': 'Il template "{name}" è usato da questi set: {sets}. Eliminali prima.',
@@ -825,7 +826,8 @@ export const it: Record<MessageKey, string> = {
   'variants.openHint': "Apri questa variante nell'editor",
   'variants.baseHint': 'Il template da cui vengono le varianti',
   'variants.delete': 'Elimina questa variante',
-  'variants.deleteConfirm': 'Il file va nel cestino del progetto, da cui si può recuperare.',
+  'variants.deleteConfirm':
+    'Al salvataggio il file va nel cestino del progetto, da cui si può recuperare.',
   'variants.deleteConfirm.title': 'Eliminare la variante "{name}"?',
   'variants.deleteConfirm.ok': 'Elimina la variante',
   'variants.up': 'Sposta su',
@@ -1403,12 +1405,12 @@ export const it: Record<MessageKey, string> = {
   'inherit.deriveOk': 'Crea',
   'inherit.deleteWithVariants.title': 'Eliminare il template "{name}" e le sue varianti?',
   'inherit.deleteWithVariants':
-    'Le varianti ({list}) si possono eliminare insieme al template, oppure rendere indipendenti: diventano template normali, con l’aspetto che hanno ora. I file eliminati vanno nel cestino del progetto.',
+    'Le varianti ({list}) si possono eliminare insieme al template, oppure rendere indipendenti: diventano template normali, con l’aspetto che hanno ora. Al salvataggio i file eliminati vanno nel cestino del progetto.',
   'inherit.deleteWithVariants.all': 'Elimina anche le varianti',
   'inherit.deleteWithVariants.detach': 'Rendile indipendenti',
   'inherit.deleteWithDerived.title': 'Eliminare il template "{name}"?',
   'inherit.deleteWithDerived':
-    'Ne derivano altri template ({list}): si possono eliminare insieme a questo, oppure rendere indipendenti, con l’aspetto che hanno ora. I file eliminati vanno nel cestino del progetto.',
+    'Ne derivano altri template ({list}): si possono eliminare insieme a questo, oppure rendere indipendenti, con l’aspetto che hanno ora. Al salvataggio i file eliminati vanno nel cestino del progetto.',
   'inherit.deleteWithDerived.inUse':
     'Ne derivano altri template ({list}) e i set {sets} ne usano qualcuno, quindi non si possono eliminare. Si possono rendere indipendenti, con l’aspetto che hanno ora, ed eliminare solo questo.',
   'inherit.deleteWithDerived.all': 'Elimina anche i derivati',
@@ -4199,14 +4201,14 @@ export const it: Record<MessageKey, string> = {
     'Fai clic su una voce per vederne i dettagli. ⌘/Ctrl+clic e ⇧+clic ne selezionano più di una; il doppio clic la apre.',
   'manage.templates.deleteMany.title': 'Eliminare {n} template?',
   'manage.templates.deleteMany':
-    '{list}. I file vanno nel cestino del progetto, da cui si possono recuperare.',
+    '{list}. Al salvataggio i file vanno nel cestino del progetto, da cui si possono recuperare.',
   'manage.templates.deleteMany.ok': 'Elimina {n} template',
   'manage.templates.inUseSkipped': 'Questi restano perché li usano dei set: {list}.',
   'manage.templates.allInUse':
     'Tutti questi template sono usati da dei set, quindi non ne è stato eliminato nessuno: {list}. Elimina prima i set.',
   'inherit.deleteManyWithDerived.title': 'Eliminare {n} template?',
   'inherit.deleteManyWithDerived':
-    'Ne derivano altri template ({list}): si possono eliminare insieme a questi, oppure rendere indipendenti, con l’aspetto che hanno ora. I file eliminati vanno nel cestino del progetto.',
+    'Ne derivano altri template ({list}): si possono eliminare insieme a questi, oppure rendere indipendenti, con l’aspetto che hanno ora. Al salvataggio i file eliminati vanno nel cestino del progetto.',
   'inherit.deleteManyWithDerived.inUse':
     'Ne derivano altri template ({list}) e i set {sets} ne usano qualcuno, quindi non si possono eliminare. Si possono rendere indipendenti, con l’aspetto che hanno ora, ed eliminare solo quelli scelti.',
   'manage.deleteKeyHint': 'Puoi anche premere Canc (⌫ su Mac).',

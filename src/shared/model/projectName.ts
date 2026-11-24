@@ -13,3 +13,20 @@ export function projectFolderName(name: string): string {
   if (clean === '.' || clean === '..') return ''
   return clean.replace(/ /g, '_')
 }
+
+/** Estensione dello ZIP di un progetto intero */
+export const PROJECT_ZIP_EXT = '.stella-project.zip'
+
+/** Estensione di un pacchetto, secondo cosa contiene */
+export function packageExt(kind: 'template' | 'set'): string {
+  return kind === 'set' ? '.stella-set.zip' : '.stella-template.zip'
+}
+
+/**
+ * Il nome di uno ZIP di Stella senza estensione: "Assedio.stella-project.zip" → "Assedio". Toglie
+ * anche .stella.zip (pacchetti fino alla 1.13) e .zip
+ */
+export function zipBaseName(file: string): string {
+  const base = file.split(/[\\/]/).pop() ?? file
+  return base.replace(/(\.stella(-project|-set|-template)?)?\.zip$/i, '')
+}
