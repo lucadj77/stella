@@ -10530,3 +10530,10 @@ button.wide {
 .start-drop-tip {
   margin: 8px 0 0;
 }
+
+/* tasti a icona dello schema del tavolo (forma, linea, punte, etichetta) */
+.segmented button:has(> svg) {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+}

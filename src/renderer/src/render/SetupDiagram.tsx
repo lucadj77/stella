@@ -5,6 +5,7 @@ import type { ShapeLayer, Template } from '../../../shared/model/template'
 import { anatomyCardSource } from '../../../shared/model/document'
 import {
   arrowCurve,
+  SETUP_TEXT_OUTLINE,
   setupLayer,
   type Setup,
   type SetupItem,
@@ -172,7 +173,8 @@ function Label({
   text,
   align = 'center',
   background,
-  color
+  color,
+  outline
 }: {
   x: number
   y: number
@@ -182,6 +184,8 @@ function Label({
   align?: 'left' | 'center' | 'right'
   background?: boolean
   color?: string
+  /** Contorno delle lettere: colore e spessore in mm */
+  outline?: { color: string; width: number }
 }): React.JSX.Element {
   // la posizione sta nel gruppo: l'esportazione in SVG converte il foreignObject da sé
   return (
@@ -199,12 +203,24 @@ function Label({
             fontSize: font * ZOOM,
             lineHeight: LINE,
             textAlign: align,
-            ...(color ? { color } : {})
+            ...(color ? { color } : {}),
+            // allineato a destra, una parola troppo lunga esce a sinistra, non sopra ciò che ha
+            // accanto
+            ...(align === 'right'
+              ? { display: 'flex', flexDirection: 'column' as const, alignItems: 'flex-end' }
+              : {})
           }}
         >
           <span
             style={{
               pointerEvents: 'auto',
+              // il tratto è centrato sul bordo della lettera: doppio, e dietro il riempimento
+              ...(outline && outline.width > 0
+                ? {
+                    WebkitTextStroke: `${outline.width * 2 * ZOOM}px ${outline.color}`,
+                    paintOrder: 'stroke fill'
+                  }
+                : {}),
               ...(background
                 ? { background: 'rgba(255,255,255,0.85)', padding: `0 ${font * 0.3 * ZOOM}px` }
                 : {})
@@ -507,6 +523,11 @@ function Item({
             text={it.text}
             align={it.align}
             color={it.color ? color(it.color, INK) : undefined}
+            outline={
+              it.stroke
+                ? { color: color(it.stroke, '#ffffff'), width: it.thickness ?? SETUP_TEXT_OUTLINE }
+                : undefined
+            }
           />
         </g>
       )

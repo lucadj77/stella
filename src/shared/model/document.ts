@@ -1336,7 +1336,7 @@ export function documentProblems(src: string, ctx: DocumentContext): DocumentPro
           // le frecce e i segnalini richiamano gli altri elementi per nome
           const names = [
             ...(it.kind === 'arrow' ? [it.fromItem, it.toItem] : []),
-            ...(it.kind === 'card' && it.on ? [it.on.item] : [])
+            ...(it.kind !== 'arrow' && it.on ? [it.on.item] : [])
           ].filter((n): n is string => !!n)
           for (const name of names)
             if (!b.items.some((x) => x.name?.toLowerCase() === name.toLowerCase()))

@@ -13,8 +13,8 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Layers panel**: lists the elements of the drawing, selects them, reorders them by dragging (a shape can now go over a card), locks them so a click doesn't move them, and hides them while you work.
 - **Rows and hands of cards**: several cards side by side or fanned out, also from different sets.
 - **Arrows that follow**: drop an end of an arrow on an element and it stays attached when the element moves.
-- **Tokens on board spaces**: a component placed on row and column of a board's grid follows the board.
-- **More control**: snapping to the other elements (⌥ / Alt to turn it off), zoom on cards and decks to make them stand out, caption above, below or beside, rotation of zones, shapes and texts.
+- **Elements on board spaces**: drag a component, an image or any other element onto a space of a board with a grid and it stays there when the board moves.
+- **More control**: snapping to the other elements (⌥ / Alt to turn it off), zoom on cards and decks to make them stand out, caption above, below or beside, rotation of zones, shapes and texts, outlined text, several cards of a set added to a row at once.
 
 ### Italiano
 
@@ -22,8 +22,8 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Pannello dei livelli**: elenca gli elementi del disegno, li sceglie, li riordina trascinandoli (ora una forma può stare sopra una carta), li blocca perché un clic non li sposti e li nasconde mentre lavori.
 - **File e mani di carte**: più carte una accanto all'altra o a ventaglio, anche da set diversi.
 - **Frecce che seguono**: lascia un estremo di una freccia su un elemento e resta agganciata quando l'elemento si sposta.
-- **Segnalini sulle caselle**: un componente messo su riga e colonna della griglia di una plancia segue la plancia.
-- **Più controllo**: aggancio agli altri elementi (⌥ / Alt per toglierlo), zoom su carte e mazzi per dar loro risalto, didascalia sopra, sotto o di lato, rotazione di zone, forme e testi.
+- **Elementi sulle caselle**: trascina un componente, un'immagine o qualsiasi altro elemento su una casella di una plancia con la griglia, e ci resta quando la plancia si sposta.
+- **Più controllo**: aggancio agli altri elementi (⌥ / Alt per toglierlo), zoom su carte e mazzi per dar loro risalto, didascalia sopra, sotto o di lato, rotazione di zone, forme e testi, testo con il contorno, più carte di un set aggiunte insieme a una fila.
 
 ## 1.13.1-beta.1
 

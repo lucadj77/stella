@@ -2205,6 +2205,10 @@ export const it: Record<MessageKey, string> = {
   'documents.setupCellRow': 'Riga della casella',
   'documents.setupCellCol': 'Colonna della casella',
   'documents.setupNoTarget': '— nessuno —',
+  'documents.setupNoGrid':
+    'Per mettere un elemento su una casella serve una plancia il cui template ha un livello griglia.',
+  'documents.setupOutline': 'Contorno',
+  'documents.setupOutlineWidth': 'Spessore contorno (mm)',
   'documents.setupFrom': 'Parte da',
   'documents.setupTo': 'Arriva a',
   'documents.setupAttachHint':
@@ -2284,6 +2288,10 @@ export const it: Record<MessageKey, string> = {
   'documents.set': 'Set',
   'documents.search': 'Cerca',
   'documents.searchHint': 'Nome del componente',
+  'documents.pickAll': 'Tutte',
+  'documents.pickManyHint':
+    'Maiuscolo + clic sceglie un intervallo, ⌘/Ctrl + clic aggiunge o toglie una carta',
+  'documents.addCards': 'Aggiungi {n} carte',
   'documents.more': 'Altri {n}: cerca per nome per trovarli.',
   'documents.side': 'Lato',
   'documents.front': 'Fronte',

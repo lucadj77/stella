@@ -48,6 +48,11 @@ interface Common {
   lock?: boolean
   /** Solo nell'editor: nascosto mentre si lavora, non si scrive */
   hidden?: boolean
+  /**
+   * Sopra la casella di una plancia: nome dell'elemento e casella (riga, colonna da 1). Il centro
+   * dell'elemento va al centro della casella; x e y si calcolano. Non per le frecce.
+   */
+  on?: { item: string; row: number; col: number }
 }
 
 /** Aspetto di zone e forme; i valori assenti sono quelli di base del tipo */
@@ -80,8 +85,6 @@ export type SetupItem = Common &
         y: number
         rotate: number
         label: string
-        /** Sopra la casella di una plancia: nome dell'elemento e casella (riga, colonna da 1) */
-        on?: { item: string; row: number; col: number }
       } & Cards)
     | ({
         kind: 'deck'
@@ -146,6 +149,9 @@ export type SetupItem = Common &
         align?: SetupTextAlign
         color?: string
         rotate?: number
+        /** Contorno delle lettere: colore e spessore in mm */
+        stroke?: string
+        thickness?: number
       }
     | {
         kind: 'arrow'
@@ -287,6 +293,8 @@ export const WRAP_WIDTH = 0.5
 export const SETUP_TEXT_W = 50
 export const SETUP_IMAGE_W = 15
 /** Spazio di base tra le carte di una fila e apertura di base di una mano */
+/** Spessore di base del contorno di un testo, in mm */
+export const SETUP_TEXT_OUTLINE = 0.4
 export const SETUP_ROW_GAP = 3
 export const SETUP_HAND_SPREAD = 30
 /** Carte al massimo in una fila o in una mano */
@@ -424,15 +432,15 @@ const OPTIONS: Record<string, { type: OptKind; kinds: SetupKind[]; words?: strin
     kinds: ['card', 'deck', 'row', 'hand'],
     words: ['top', 'bottom', 'left', 'right']
   },
-  on: { type: 'ref', kinds: ['card'] },
-  cell: { type: 'cell', kinds: ['card'] },
+  on: { type: 'ref', kinds: ['card', 'deck', 'row', 'hand', 'zone', 'shape', 'text', 'image'] },
+  cell: { type: 'cell', kinds: ['card', 'deck', 'row', 'hand', 'zone', 'shape', 'text', 'image'] },
   gap: { type: 'num', kinds: ['row'] },
   direction: { type: 'word', kinds: ['row'], words: ['right', 'down'] },
   spread: { type: 'num', kinds: ['hand'] },
   fill: { type: 'color', kinds: ['zone', 'shape'] },
-  stroke: { type: 'color', kinds: ['zone', 'shape'] },
+  stroke: { type: 'color', kinds: ['zone', 'shape', 'text'] },
   color: { type: 'color', kinds: ['text', 'arrow'] },
-  thickness: { type: 'num', kinds: ['zone', 'shape', 'arrow'] },
+  thickness: { type: 'num', kinds: ['zone', 'shape', 'arrow', 'text'] },
   line: { type: 'word', kinds: ['zone', 'shape', 'arrow'], words: ['solid', 'dash', 'dot'] },
   radius: { type: 'num', kinds: ['zone', 'shape'] },
   opacity: { type: 'pct', kinds: ['zone', 'shape'] },
@@ -528,14 +536,18 @@ function parseItem(line: string, from: number): SetupItem | null {
     typeof opts[k] === 'number' ? (opts[k] as number) : undefined
   const s = (k: string): string | undefined =>
     typeof opts[k] === 'string' ? (opts[k] as string) : undefined
+  const on = s('on')
   const common = {
     from,
     to: from + line.length,
     ...(s('name') ? { name: s('name') } : {}),
-    ...(opts.lock ? { lock: true } : {})
+    ...(opts.lock ? { lock: true } : {}),
+    ...(on ? { on: { item: on, ...(opts.cell as { row: number; col: number }) } } : {})
   }
   const coords = points.filter((p): p is { x: number; y: number } => typeof p !== 'string')
-  const [x, y] = coords[0] ? [coords[0].x, coords[0].y] : [NaN, NaN]
+  // sopra una casella la posizione si calcola: non si scrive
+  const [x, y] = coords[0] ? [coords[0].x, coords[0].y] : on ? [0, 0] : [NaN, NaN]
+  const placed = coords.length === (on ? 0 : 1)
   const rotate = ((Math.round(n('rotate') ?? 0) % 360) + 360) % 360
   const cards = {
     ...(n('scale') && n('scale') !== 1 ? { scale: n('scale') } : {}),
@@ -551,26 +563,15 @@ function parseItem(line: string, from: number): SetupItem | null {
       ? { opacity: Math.max(0, n('opacity')!) }
       : {})
   }
-  const on = s('on')
   if ((on === undefined) !== (opts.cell === undefined)) return null
   if (kind !== 'arrow' && points.length !== coords.length) return null
   if (kind !== 'arrow' && !on && !(Number.isFinite(x) && Number.isFinite(y))) return null
   switch (kind) {
     case 'card':
-      if (!name || size || coords.length > 1 || (!on && coords.length !== 1)) return null
-      return {
-        kind,
-        card: name,
-        x: on ? 0 : x,
-        y: on ? 0 : y,
-        rotate,
-        label: label ?? '',
-        ...cards,
-        ...(on ? { on: { item: on, ...(opts.cell as { row: number; col: number }) } } : {}),
-        ...common
-      }
+      if (!name || size || !placed) return null
+      return { kind, card: name, x, y, rotate, label: label ?? '', ...cards, ...common }
     case 'deck':
-      if (!name || size || coords.length !== 1) return null
+      if (!name || size || !placed) return null
       return {
         kind,
         card: name,
@@ -585,7 +586,7 @@ function parseItem(line: string, from: number): SetupItem | null {
     case 'row':
     case 'hand': {
       const list = name ? parseCardList(name) : null
-      if (!list || size || coords.length !== 1) return null
+      if (!list || size || !placed) return null
       return kind === 'row'
         ? {
             kind,
@@ -612,7 +613,7 @@ function parseItem(line: string, from: number): SetupItem | null {
           }
     }
     case 'zone':
-      if (name || !size || coords.length !== 1) return null
+      if (name || !size || !placed) return null
       return {
         kind,
         x,
@@ -626,7 +627,7 @@ function parseItem(line: string, from: number): SetupItem | null {
       }
     case 'shape': {
       const shape = name.toLowerCase() as SetupShape
-      if (!SETUP_SHAPES.includes(shape) || !size || coords.length !== 1) return null
+      if (!SETUP_SHAPES.includes(shape) || !size || !placed) return null
       const sides = n('sides')
       return {
         kind,
@@ -644,7 +645,7 @@ function parseItem(line: string, from: number): SetupItem | null {
       }
     }
     case 'text':
-      if (name || size || coords.length !== 1 || label === null) return null
+      if (name || size || !placed || label === null) return null
       return {
         kind,
         x,
@@ -654,6 +655,10 @@ function parseItem(line: string, from: number): SetupItem | null {
         ...(s('align') && s('align') !== 'center' ? { align: s('align') as SetupTextAlign } : {}),
         ...(s('color') ? { color: s('color') } : {}),
         ...(rotate ? { rotate } : {}),
+        ...(s('stroke') && s('stroke') !== 'none' ? { stroke: s('stroke') } : {}),
+        ...(s('stroke') && n('thickness') !== undefined && n('thickness')! > 0
+          ? { thickness: n('thickness') }
+          : {}),
         ...common
       }
     case 'arrow': {
@@ -683,7 +688,7 @@ function parseItem(line: string, from: number): SetupItem | null {
       }
     }
     case 'image':
-      if (!name || size || coords.length !== 1 || label !== null) return null
+      if (!name || size || !placed || label !== null) return null
       return {
         kind,
         src: decode(name),
@@ -763,6 +768,11 @@ const quote = (s: string): string => `"${s.replace(/\\/g, '\\\\').replace(/"/g, 
 const text = (s: string): string => (s ? ` ${quote(s.replace(/\n/g, ' '))}` : '')
 const rot = (n: number | undefined): string => (n ? ` rotate=${n}` : '')
 const ref = (s: string): string => s.replace(/ /g, '%20')
+/** La posizione: le coordinate, o la casella della plancia su cui sta */
+const at = (it: SetupItem): string =>
+  it.on && it.kind !== 'arrow'
+    ? `on=@${it.on.item} cell=${it.on.row},${it.on.col}`
+    : `${r(it.x)},${r(it.y)}`
 
 /** Le opzioni comuni, il nome e il blocco, in fondo alla riga prima dell'etichetta */
 function commonOpts(it: SetupItem): string {
@@ -787,26 +797,26 @@ export function setupLine(it: SetupItem): string {
   const end = (label: string): string => `${commonOpts(it)}${text(label)}`
   switch (it.kind) {
     case 'card':
-      return `card ${ref(it.card)} ${it.on ? `on=@${it.on.item} cell=${it.on.row},${it.on.col}` : `${r(it.x)},${r(it.y)}`}${rot(it.rotate)}${cardOpts(it)}${end(it.label)}`
+      return `card ${ref(it.card)} ${at(it)}${rot(it.rotate)}${cardOpts(it)}${end(it.label)}`
     case 'deck':
-      return `deck ${ref(it.card)} ${r(it.x)},${r(it.y)} count=${it.count}${rot(it.rotate)}${cardOpts(it)}${end(it.label)}`
+      return `deck ${ref(it.card)} ${at(it)} count=${it.count}${rot(it.rotate)}${cardOpts(it)}${end(it.label)}`
     case 'row':
-      return `row ${cardListSource(it.cards)} ${r(it.x)},${r(it.y)}${it.gap !== undefined ? ` gap=${r(it.gap)}` : ''}${it.direction === 'down' ? ' direction=down' : ''}${cardOpts(it)}${end(it.label)}`
+      return `row ${cardListSource(it.cards)} ${at(it)}${it.gap !== undefined ? ` gap=${r(it.gap)}` : ''}${it.direction === 'down' ? ' direction=down' : ''}${cardOpts(it)}${end(it.label)}`
     case 'hand':
-      return `hand ${cardListSource(it.cards)} ${r(it.x)},${r(it.y)}${it.spread !== undefined ? ` spread=${r(it.spread)}` : ''}${cardOpts(it)}${end(it.label)}`
+      return `hand ${cardListSource(it.cards)} ${at(it)}${it.spread !== undefined ? ` spread=${r(it.spread)}` : ''}${cardOpts(it)}${end(it.label)}`
     case 'zone':
-      return `zone ${r(it.x)},${r(it.y)} ${r(it.w)}x${r(it.h)}${rot(it.rotate)}${paintOpts(it)}${end(it.label)}`
+      return `zone ${at(it)} ${r(it.w)}x${r(it.h)}${rot(it.rotate)}${paintOpts(it)}${end(it.label)}`
     case 'shape':
-      return `shape ${it.shape} ${r(it.x)},${r(it.y)} ${r(it.w)}x${r(it.h)}${rot(it.rotate)}${it.sides !== undefined ? ` sides=${it.sides}` : ''}${it.inner !== undefined ? ` inner=${pct(it.inner)}` : ''}${paintOpts(it)}${end(it.label)}`
+      return `shape ${it.shape} ${at(it)} ${r(it.w)}x${r(it.h)}${rot(it.rotate)}${it.sides !== undefined ? ` sides=${it.sides}` : ''}${it.inner !== undefined ? ` inner=${pct(it.inner)}` : ''}${paintOpts(it)}${end(it.label)}`
     case 'text':
-      return `text ${r(it.x)},${r(it.y)} width=${r(it.w)}${it.align && it.align !== 'center' ? ` align=${it.align}` : ''}${it.color ? ` color=${it.color}` : ''}${rot(it.rotate)}${commonOpts(it)} ${quote(it.text.replace(/\n/g, ' '))}`
+      return `text ${at(it)} width=${r(it.w)}${it.align && it.align !== 'center' ? ` align=${it.align}` : ''}${it.color ? ` color=${it.color}` : ''}${it.stroke ? ` stroke=${it.stroke}${it.thickness ? ` thickness=${r(it.thickness)}` : ''}` : ''}${rot(it.rotate)}${commonOpts(it)} ${quote(it.text.replace(/\n/g, ' '))}`
     case 'arrow': {
       const a = it.fromItem ? `@${it.fromItem}` : `${r(it.x)},${r(it.y)}`
       const b = it.toItem ? `@${it.toItem}` : `${r(it.x2)},${r(it.y2)}`
       return `arrow ${a} -> ${b}${it.bend ? ` bend=${r(it.bend)}` : ''}${it.bend && it.shift ? ` shift=${r(it.shift)}` : ''}${it.heads && it.heads !== 'end' ? ` heads=${it.heads}` : ''}${it.size && it.size !== 1 ? ` size=${Math.round(it.size * 100)}%` : ''}${it.thickness ? ` thickness=${r(it.thickness)}` : ''}${it.color ? ` color=${it.color}` : ''}${it.line && it.line !== 'solid' ? ` line=${it.line}` : ''}${end(it.label)}`
     }
     case 'image':
-      return `image ${it.src.replace(/%/g, '%25').replace(/ /g, '%20')} ${r(it.x)},${r(it.y)} width=${r(it.w)}${rot(it.rotate)}${commonOpts(it)}`
+      return `image ${it.src.replace(/%/g, '%25').replace(/ /g, '%20')} ${at(it)} width=${r(it.w)}${rot(it.rotate)}${commonOpts(it)}`
   }
 }
 

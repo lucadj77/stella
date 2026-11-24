@@ -2172,6 +2172,10 @@ export const en = {
   'documents.setupCellRow': 'Row of the space',
   'documents.setupCellCol': 'Column of the space',
   'documents.setupNoTarget': '— none —',
+  'documents.setupNoGrid':
+    'To put an element on a space you need a board whose template has a grid layer.',
+  'documents.setupOutline': 'Outline',
+  'documents.setupOutlineWidth': 'Outline thickness (mm)',
   'documents.setupFrom': 'Starts from',
   'documents.setupTo': 'Points to',
   'documents.setupAttachHint':
@@ -2251,6 +2255,9 @@ export const en = {
   'documents.set': 'Set',
   'documents.search': 'Search',
   'documents.searchHint': 'Name of the component',
+  'documents.pickAll': 'All',
+  'documents.pickManyHint': 'Shift + click picks a range, ⌘/Ctrl + click adds or removes a card',
+  'documents.addCards': 'Add {n} cards',
   'documents.more': '{n} more: search by name to find them.',
   'documents.side': 'Side',
   'documents.front': 'Front',

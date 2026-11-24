@@ -6,8 +6,8 @@ export default function Segmented<T extends string>({
 }: {
   value: T
   disabled?: boolean
-  /** Valore, etichetta e suggerimento facoltativo */
-  options: [T, string, string?][]
+  /** Valore, etichetta (anche un'icona: allora il suggerimento le dà il nome) e suggerimento */
+  options: [T, React.ReactNode, string?][]
   onChange(v: T): void
 }): React.JSX.Element {
   return (
@@ -16,6 +16,7 @@ export default function Segmented<T extends string>({
         <button
           key={v}
           title={hint}
+          aria-label={typeof label === 'string' ? undefined : hint}
           className={v === value ? 'active' : ''}
           aria-pressed={v === value}
           disabled={disabled}

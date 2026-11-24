@@ -241,6 +241,40 @@ function boardGrid(t: Template, side: Side): GridLayer | null {
   return (walkLayers(layers).find((l) => l.type === 'grid') as GridLayer | undefined) ?? null
 }
 
+/** Le caselle della plancia disegnata nel riquadro `box`, sul tavolo; null senza griglia */
+export function boardCells(
+  board: SetupItem,
+  box: Box,
+  sets: LoadedSet[],
+  templates: Template[]
+): { cells: { row: number; col: number; x: number; y: number }[]; size: number } | null {
+  if (board.kind !== 'card' && board.kind !== 'deck') return null
+  const t = cardTemplate(board.card, sets, templates)
+  const size = cardSize(board.card, sets, templates, board.scale ?? 1)
+  if (!t || !size) return null
+  const grid = boardGrid(t, size.side)
+  if (!grid || grid.columns < 1 || grid.rows < 1) return null
+  const geo = gridGeometry(grid)
+  const k = size.w / t.width
+  const a = (board.rotate * Math.PI) / 180
+  // in un mazzo la carta in cima sta nell'angolo in alto a sinistra del riquadro
+  const turned = turnedSize(size.w, size.h, board.rotate)
+  const cx = box.x + turned.w / 2
+  const cy = box.y + turned.h / 2
+  // dalla carta dritta (mm del template) al tavolo: misura, rotazione attorno al centro, posto
+  const cells = geo.centers.map((c, n) => {
+    const px = (grid.x + c.x) * k - size.w / 2
+    const py = (grid.y + c.y) * k - size.h / 2
+    return {
+      row: Math.floor(n / grid.columns) + 1,
+      col: (n % grid.columns) + 1,
+      x: cx + px * Math.cos(a) - py * Math.sin(a),
+      y: cy + px * Math.sin(a) + py * Math.cos(a)
+    }
+  })
+  return { cells, size: Math.min(geo.cell.w, geo.cell.h) * k }
+}
+
 /**
  * Il centro della casella `row`, `col` (da 1) della griglia della plancia disegnata nel riquadro
  * `box`, o null se la plancia o la casella non ci sono
@@ -253,27 +287,31 @@ export function cellCenter(
   sets: LoadedSet[],
   templates: Template[]
 ): { x: number; y: number } | null {
-  if (board.kind !== 'card' && board.kind !== 'deck') return null
-  const t = cardTemplate(board.card, sets, templates)
-  const size = cardSize(board.card, sets, templates, board.scale ?? 1)
-  if (!t || !size) return null
-  const grid = boardGrid(t, size.side)
-  if (!grid || col > grid.columns || row > grid.rows) return null
-  const c = gridGeometry(grid).centers[(row - 1) * grid.columns + (col - 1)]
-  if (!c) return null
-  const k = size.w / t.width
-  // dalla carta dritta (mm del template) al tavolo: misura, rotazione attorno al centro, posto
-  const px = (grid.x + c.x) * k - size.w / 2
-  const py = (grid.y + c.y) * k - size.h / 2
-  const a = (board.rotate * Math.PI) / 180
-  // in un mazzo la carta in cima sta nell'angolo in alto a sinistra del riquadro
-  const turned = turnedSize(size.w, size.h, board.rotate)
-  const cx = box.x + turned.w / 2
-  const cy = box.y + turned.h / 2
-  return {
-    x: cx + px * Math.cos(a) - py * Math.sin(a),
-    y: cy + px * Math.sin(a) + py * Math.cos(a)
+  const b = boardCells(board, box, sets, templates)
+  return b?.cells.find((c) => c.row === row && c.col === col) ?? null
+}
+
+/** La casella della plancia sotto un punto del tavolo, o null se il punto non ne ha una vicina */
+export function cellAt(
+  board: SetupItem,
+  box: Box,
+  x: number,
+  y: number,
+  sets: LoadedSet[],
+  templates: Template[]
+): { row: number; col: number; x: number; y: number; size: number } | null {
+  const b = boardCells(board, box, sets, templates)
+  if (!b) return null
+  let best: (typeof b.cells)[number] | null = null
+  let dist = Infinity
+  for (const c of b.cells) {
+    const d = Math.hypot(c.x - x, c.y - y)
+    if (d < dist) {
+      dist = d
+      best = c
+    }
   }
+  return best && dist <= b.size * 0.75 ? { ...best, size: b.size } : null
 }
 
 /**
@@ -283,39 +321,66 @@ export function cellCenter(
 export function resolveItems(
   items: SetupItem[],
   sets: LoadedSet[],
-  templates: Template[]
+  templates: Template[],
+  font?: number
 ): { items: SetupItem[]; boxes: Box[] } {
   const out = items.slice()
   const boxes = items.map((it) => itemBox(it, sets, templates))
+  // per le frecce un testo vale per le righe scritte, non per il riquadro largo che lo contiene
+  const ink = (k: number): Box => {
+    const it = out[k]
+    if (it.kind !== 'text' || font === undefined) return boxes[k]
+    const e = textExtent(it.text, it.w, font)
+    const w = Math.min(it.w, Math.max(e.w, font))
+    const h = Math.max(1, e.lines) * font * SETUP_LINE
+    const x =
+      it.align === 'right' ? it.x + it.w - w : it.align === 'left' ? it.x : it.x + (it.w - w) / 2
+    if (!it.rotate) return { x, y: it.y, w, h }
+    // ruotato: attorno al centro del riquadro intero, come lo disegna lo schema
+    const cx = it.x + it.w / 2
+    const cy = it.y + h / 2
+    const r = (it.rotate * Math.PI) / 180
+    const dx = x + w / 2 - cx
+    const nx = cx + dx * Math.cos(r)
+    const ny = cy + dx * Math.sin(r)
+    return turnedBox({ x: nx - w / 2, y: ny - h / 2, w, h }, it.rotate)
+  }
   // i segnalini: al centro della casella, ruotati come vogliono
+  // i segnalini, e ogni altro elemento sopra una casella: il centro al centro della casella
   out.forEach((it, i) => {
-    if (it.kind !== 'card' || !it.on) return
+    if (it.kind === 'arrow' || !it.on) return
     const b = namedItem(out, it.on.item)
     if (b < 0 || b === i) return
     const board = out[b]
-    if (board.kind === 'card' && board.on) return
+    if (board.kind !== 'arrow' && board.on) return
     const c = cellCenter(board, boxes[b], it.on.row, it.on.col, sets, templates)
     if (!c) return
-    const own = boxes[i]
+    // un testo si centra con le sue righe, se si sa il corpo
+    const own =
+      it.kind === 'text' && font !== undefined
+        ? turnedBox({ x: it.x, y: it.y, w: it.w, h: textHeight(it.text, it.w, font) }, it.rotate)
+        : boxes[i]
     const tenth = (n: number): number => Math.round(n * 100) / 100
-    out[i] = { ...it, x: tenth(c.x - own.w / 2), y: tenth(c.y - own.h / 2) }
-    boxes[i] = { ...own, x: out[i].x, y: out[i].y }
+    const dx = c.x - (own.x + own.w / 2)
+    const dy = c.y - (own.y + own.h / 2)
+    out[i] = { ...it, x: tenth(it.x + dx), y: tenth(it.y + dy) }
+    boxes[i] = { ...boxes[i], x: boxes[i].x + dx, y: boxes[i].y + dy }
   })
   // le frecce: dal bordo di un elemento al bordo dell'altro
   out.forEach((it, i) => {
     if (it.kind !== 'arrow' || (!it.fromItem && !it.toItem)) return
     const a = it.fromItem ? namedItem(out, it.fromItem) : -1
     const b = it.toItem ? namedItem(out, it.toItem) : -1
-    const center = (k: number): { x: number; y: number } => ({
-      x: boxes[k].x + boxes[k].w / 2,
-      y: boxes[k].y + boxes[k].h / 2
-    })
+    const center = (k: number): { x: number; y: number } => {
+      const r = ink(k)
+      return { x: r.x + r.w / 2, y: r.y + r.h / 2 }
+    }
     const p0 = a >= 0 ? center(a) : { x: it.x, y: it.y }
     const p2 = b >= 0 ? center(b) : { x: it.x2, y: it.y2 }
     // con la curva la freccia esce verso il suo centro, non verso l'altro estremo
     const mid = arrowCurve({ x: p0.x, y: p0.y, x2: p2.x, y2: p2.y, bend: it.bend, shift: it.shift })
-    const s = a >= 0 ? edgePoint(boxes[a], it.bend ? mid.control : p2) : p0
-    const e = b >= 0 ? edgePoint(boxes[b], it.bend ? mid.control : p0) : p2
+    const s = a >= 0 ? edgePoint(ink(a), it.bend ? mid.control : p2) : p0
+    const e = b >= 0 ? edgePoint(ink(b), it.bend ? mid.control : p0) : p2
     out[i] = { ...it, x: s.x, y: s.y, x2: e.x, y2: e.y }
     boxes[i] = itemBox(out[i], sets, templates)
   })
@@ -386,11 +451,17 @@ export function cardLabelPlace(
   font: number
 ): { x: number; y: number; w: number; align: 'left' | 'center' | 'right' } {
   if (at === 'left' || at === 'right') {
-    const lines = textExtent(text, SIDE_LABEL_W, font).lines
+    // il riquadro cresce con il corpo e con la parola più lunga: non entra mai nell'oggetto
+    const longest = Math.max(
+      0,
+      ...text.split(/\s+/).map((word) => textExtent(word, Infinity, font).w * 1.15)
+    )
+    const w = Math.max(SIDE_LABEL_W, font * 12, longest)
+    const lines = textExtent(text, w, font).lines
     const y = box.y + box.h / 2 - (lines * font * SETUP_LINE) / 2
     return at === 'left'
-      ? { x: box.x - 1.5 - SIDE_LABEL_W, y, w: SIDE_LABEL_W, align: 'right' }
-      : { x: box.x + box.w + 1.5, y, w: SIDE_LABEL_W, align: 'left' }
+      ? { x: box.x - 1.5 - w, y, w, align: 'right' }
+      : { x: box.x + box.w + 1.5, y, w, align: 'left' }
   }
   const w = box.w + 30
   if (at === 'top') {
@@ -474,9 +545,11 @@ export function setupView(
   maxWidth: number,
   font: number
 ): SetupView {
-  const resolved = resolveItems(setup.items, sets, templates)
-  const s = { ...setup, items: resolved.items }
-  const boxes = resolved.boxes
+  // le frecce agganciate ai testi dipendono dal corpo, che dipende dall'area: si risolve col corpo
+  // di base, poi di nuovo con quello trovato
+  let resolved = resolveItems(setup.items, sets, templates, font)
+  let s = { ...setup, items: resolved.items }
+  let boxes = resolved.boxes
   // prima si misura senza testi, per sapere quanto si riduce; poi con i testi, che possono
   // allargare l'area e quindi ridurla ancora: due giri bastano
   const sizedWith = (f: number): Box[] =>
@@ -486,6 +559,13 @@ export function setupView(
         : boxes[i]
     )
   let f = font / Math.min(1, maxWidth / Math.max(1, setupArea(s, boxes).w))
+  const byFont = (it: SetupItem): boolean =>
+    it.kind === 'arrow' ? !!(it.fromItem || it.toItem) : it.kind === 'text' && !!it.on
+  if (f !== font && setup.items.some(byFont)) {
+    resolved = resolveItems(setup.items, sets, templates, f)
+    s = { ...setup, items: resolved.items }
+    boxes = resolved.boxes
+  }
   let sized = sizedWith(f)
   let area = setupArea(s, [...sized, ...textBoxes(s, sized, f)])
   f = font / Math.min(1, maxWidth / Math.max(1, area.w))

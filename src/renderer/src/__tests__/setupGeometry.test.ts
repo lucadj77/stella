@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { parseDocument } from '../../../shared/model/document'
 import { setupSource, type Setup } from '../../../shared/model/setup'
-import { setupView, textBoxes, textExtent } from '../render/setupGeometry'
+import { cardLabelPlace, setupView, textBoxes, textExtent } from '../render/setupGeometry'
 import { normalizeTemplate, type RawTemplate } from '../../../shared/model/normalize'
 import type { LoadedSet } from '../../../shared/project'
 
@@ -132,6 +132,37 @@ describe('file, mani, caselle e frecce agganciate', () => {
     if (a.kind !== 'arrow') return
     expect(a.x).toBeCloseTo(21.5)
     expect(a.x2).toBeCloseTo(98.5)
+  })
+
+  it('mette su una casella anche immagini e forme, con il centro', () => {
+    const s = setup(
+      'card Plance/1 10,10 name=p\nimage cubo.png on=@p cell=2,1 width=8\nshape rect on=@p cell=1,1 10x6'
+    )
+    const v = setupView(s, sets, templates, 1000, 3)
+    expect(v.boxes[1].x + v.boxes[1].w / 2).toBeCloseTo(35)
+    expect(v.boxes[1].y + v.boxes[1].h / 2).toBeCloseTo(85)
+    expect(v.boxes[2].x + v.boxes[2].w / 2).toBeCloseTo(35)
+    expect(v.boxes[2].y + v.boxes[2].h / 2).toBeCloseTo(35)
+  })
+
+  it('aggancia la freccia alle righe scritte di un testo, non alla prima riga', () => {
+    const s = setup(
+      'text 0,0 width=40 "una riga e poi un\'altra e poi un\'altra ancora e ancora"\nzone 0,100 40x10 name=z\narrow @t -> @z'.replace(
+        'width=40 "',
+        'width=40 name=t "'
+      )
+    )
+    const v = setupView(s, sets, templates, 1000, 3)
+    const a = v.items![2]
+    if (a.kind !== 'arrow') throw new Error('freccia')
+    // il testo va su più righe: la freccia parte sotto l'ultima, non dentro il testo
+    expect(a.y).toBeGreaterThan(3 * 1.25 * 2)
+  })
+
+  it('mette l’etichetta laterale fuori dall’oggetto anche con una parola lunga', () => {
+    const p = cardLabelPlace({ x: 100, y: 0, w: 60, h: 90 }, 'left', 'Mazzo nemicoddddddddddddd', 6)
+    expect(p.x + p.w).toBeLessThanOrEqual(100)
+    expect(p.w).toBeGreaterThan(40)
   })
 
   it('ruota zone e testi attorno al centro', () => {

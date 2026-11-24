@@ -232,7 +232,7 @@ describe('didascalia dello schema', () => {
     const it = parse('arrow 0,0 -> 20,0 size=150% thickness=1.2').items[0]
     expect(it).toMatchObject({ size: 1.5, thickness: 1.2 })
     expect(setupLine(it as SetupItem)).toBe('arrow 0,0 -> 20,0 size=150% thickness=1.2')
-    expect(parse('text 0,0 thickness=1 "a"').items).toHaveLength(0)
+    expect(parse('image a.png 0,0 thickness=1').items).toHaveLength(0)
   })
 })
 
@@ -343,5 +343,38 @@ describe('forme, colori e altri elementi dello schema', () => {
       (p) => p.message.key
     )
     expect(keys).toContain('doc.setup.unknownName')
+  })
+})
+
+describe('correzioni dopo la prova dello schema', () => {
+  it('ogni elemento tranne le frecce può stare su una casella', () => {
+    const s = parse(
+      [
+        'card P/1 0,0 name=plancia',
+        'image cubo.png on=@plancia cell=1,2 width=8',
+        'shape ellipse on=@plancia cell=2,2 10x10',
+        'text on=@plancia cell=3,1 width=20 "qui"',
+        'deck M/1 on=@plancia cell=1,1 count=3'
+      ].join('\n')
+    )
+    expect(s.bad).toEqual([])
+    expect(s.items.slice(1).map((it) => it.on)).toEqual([
+      { item: 'plancia', row: 1, col: 2 },
+      { item: 'plancia', row: 2, col: 2 },
+      { item: 'plancia', row: 3, col: 1 },
+      { item: 'plancia', row: 1, col: 1 }
+    ])
+    expect(setupLine(s.items[1])).toBe('image cubo.png on=@plancia cell=1,2 width=8')
+    expect(setupLine(s.items[2])).toBe('shape ellipse on=@plancia cell=2,2 10x10')
+    expect(parse('arrow 0,0 -> 1,1 on=@x cell=1,1').bad).toHaveLength(1)
+    expect(parse('image a.png on=@x width=8').bad).toHaveLength(1)
+  })
+
+  it('il testo ha un contorno', () => {
+    const s = parse('text 0,0 width=30 stroke=#ffffff thickness=0.6 "a"\ntext 0,0 thickness=1 "b"')
+    expect(s.items[0]).toMatchObject({ stroke: '#ffffff', thickness: 0.6 })
+    expect(setupLine(s.items[0])).toBe('text 0,0 width=30 stroke=#ffffff thickness=0.6 "a"')
+    // lo spessore senza il colore non conta
+    expect(s.items[1]).not.toHaveProperty('thickness')
   })
 })

@@ -11,11 +11,14 @@ import type { Template } from '../../../shared/model/template'
 import {
   SETUP_HAND_SPREAD,
   SETUP_IMAGE_W,
+  SETUP_MAX_CARDS,
   SETUP_ROW_GAP,
+  SETUP_TEXT_OUTLINE,
   SETUP_SHAPES,
   SETUP_TEXT_W,
   alignSetupItems,
   cardListSource,
+  parseCardList,
   layerOrdered,
   sortByLayer,
   arrowCurve,
@@ -47,6 +50,8 @@ import type { MessageKey } from '../i18n/en'
 import SetupDiagram from '../render/SetupDiagram'
 import {
   SETUP_MARGIN,
+  boardCells,
+  cellAt,
   itemBox,
   namedItem,
   setupView,
@@ -57,6 +62,7 @@ import AssetPicker from './AssetPicker'
 import InsertCardDialog from './InsertCardDialog'
 import FormattedField from './TextFormatBar'
 import Segmented from './Segmented'
+import { HeadsIcon, LabelIcon, LineIcon, ShapeIcon } from './SetupIcons'
 
 // Editor dello schema della preparazione del tavolo (```setup, model/setup.ts): si aggiungono
 // zone, carte, mazzi, testi, frecce e immagini e si spostano con il mouse sul disegno, che è lo
@@ -230,6 +236,16 @@ export default function SetupDialog({
     x: null,
     y: null
   })
+  /** La casella di una plancia su cui cadrebbe l'elemento trascinato */
+  const [cellHint, setCellHint] = useState<{
+    item: number
+    board: number
+    row: number
+    col: number
+    x: number
+    y: number
+    size: number
+  } | null>(null)
   /** Scelta di una carta da aggiungere alla fila o alla mano con questo indice */
   const [addingCard, setAddingCard] = useState<number | null>(null)
   const [size, setSize] = useState(initial?.size ?? null)
@@ -342,6 +358,15 @@ export default function SetupDialog({
   /** Gli elementi come si disegnano: frecce agganciate e segnalini al loro posto */
   const placed = view.items ?? items
   const placedSel = single !== null ? placed[single] : null
+  /** Le plance con una griglia: gli elementi che possono stare sulle loro caselle */
+  const boards = placed.flatMap((it, k) =>
+    (it.kind === 'card' || it.kind === 'deck') &&
+    !it.on &&
+    view.boxes[k] &&
+    boardCells(it, view.boxes[k], sets, templates)
+      ? [k]
+      : []
+  )
 
   // lo spazio del disegno segue la finestra
   useLayoutEffect(() => {
@@ -488,20 +513,30 @@ export default function SetupDialog({
     const name = `${it.kind}${n}`
     return { items: list.map((x, j) => (j === k ? { ...x, name } : x)), name }
   }
-  /** Un segnalino spostato a mano lascia la casella e resta dov'è disegnato */
+  /** Un elemento spostato a mano lascia la casella e resta dov'è disegnato */
   const detach = (it: Item, k: number, from: Item[] = placed): Item =>
-    it.kind === 'card' && it.on ? { ...it, x: from[k].x, y: from[k].y, on: undefined } : it
+    it.kind !== 'arrow' && it.on
+      ? ({ ...it, x: from[k].x, y: from[k].y, on: undefined } as Item)
+      : it
   /**
    * L'elemento sotto il punto dello schermo, dall'alto: quelli bloccati e nascosti solo con
    * ⌥ / Alt; `skip` è un elemento da saltare (la freccia di cui si sposta un estremo)
    */
-  const itemAt = (cx: number, cy: number, alt: boolean, skip?: number): number | null => {
+  const itemAt = (
+    cx: number,
+    cy: number,
+    alt: boolean,
+    skip?: number,
+    noArrows = false
+  ): number | null => {
     for (const el of document.elementsFromPoint(cx, cy)) {
       const h = el.closest('[data-item]')?.getAttribute('data-item')
       if (h == null) continue
       const k = Number(h)
       const it = items[k]
       if (!it || k === skip || it.hidden) continue
+      // agganciando una freccia, quelle già agganciate non coprono l'elemento sotto
+      if (noArrows && it.kind === 'arrow') continue
       if (it.lock && !alt) continue
       return k
     }
@@ -573,7 +608,8 @@ export default function SetupDialog({
         })
         return
       case 'arrow':
-        add({ kind, x: c.x - 15, y: c.y, x2: c.x + 15, y2: c.y, label: '', ...at })
+        // le frecce nuove nascono spesse 1 mm; quelle già scritte tengono il loro spessore di base
+        add({ kind, x: c.x - 15, y: c.y, x2: c.x + 15, y2: c.y, thickness: 1, label: '', ...at })
         return
     }
   }
@@ -730,6 +766,32 @@ export default function SetupDialog({
       hit = { x: snapped.x?.line ?? null, y: snapped.y?.line ?? null }
     }
     if (hit.x !== guides.x || hit.y !== guides.y) setGuides(hit)
+    // un solo elemento trascinato sopra una plancia con la griglia: la casella sotto il suo centro
+    let cell: typeof cellHint = null
+    const one = moving.length === 1 ? moving[0] : -1
+    if (one >= 0 && d.orig[one].kind !== 'arrow' && !e.altKey && d.boxes[one]) {
+      const b = d.boxes[one]
+      const cx = b.x + b.w / 2 + mx
+      const cy = b.y + b.h / 2 + my
+      for (let k = d.orig.length - 1; k >= 0; k--) {
+        const board = d.resolved[k]
+        const bb = d.boxes[k]
+        if (k === one || !bb || board.hidden || (board.kind !== 'card' && board.kind !== 'deck'))
+          continue
+        if (board.on || cx < bb.x || cy < bb.y || cx > bb.x + bb.w || cy > bb.y + bb.h) continue
+        const c = cellAt(board, bb, cx, cy, sets, templates)
+        if (c) {
+          cell = { item: one, board: k, ...c }
+          break
+        }
+      }
+    }
+    if (
+      cell?.board !== cellHint?.board ||
+      cell?.row !== cellHint?.row ||
+      cell?.col !== cellHint?.col
+    )
+      setCellHint(cell)
     if (mx || my) d.only = d.drop = false
     setItems(
       d.orig.map((it, k) =>
@@ -743,13 +805,25 @@ export default function SetupDialog({
     if (d?.mode === 'item' && d.drop) setSelection(chosen.filter((k) => k !== d.index))
     // l'estremo di una freccia lasciato su un elemento si aggancia a lui
     if (d?.mode === 'item' && (d.handle === 'start' || d.handle === 'end')) {
-      const k = itemAt(e.clientX, e.clientY, false, d.index)
-      if (k !== null && items[k].kind !== 'arrow') {
+      const k = itemAt(e.clientX, e.clientY, false, d.index, true)
+      if (k !== null) {
         const n = named(items, k)
         const key = d.handle === 'start' ? 'fromItem' : 'toItem'
         setItems(n.items.map((it, j) => (j === d.index ? ({ ...it, [key]: n.name } as Item) : it)))
       }
     }
+    // lasciato sopra una casella: ci si aggancia, e la segue
+    if (d?.mode === 'item' && cellHint && !d.only) {
+      const n = named(items, cellHint.board)
+      setItems(
+        n.items.map((it, j) =>
+          j === cellHint.item && it.kind !== 'arrow'
+            ? ({ ...it, on: { item: n.name, row: cellHint.row, col: cellHint.col } } as Item)
+            : it
+        )
+      )
+    }
+    setCellHint(null)
     drag.current = null
     setFrozen(null)
     setMarquee(null)
@@ -921,6 +995,19 @@ export default function SetupDialog({
           </text>
         ) : null
       )}
+      {cellHint && (
+        <rect
+          x={cellHint.x - cellHint.size / 2}
+          y={cellHint.y - cellHint.size / 2}
+          width={cellHint.size}
+          height={cellHint.size}
+          rx={cellHint.size / 6}
+          fill="rgba(230, 0, 126, 0.15)"
+          stroke={GUIDE}
+          strokeWidth={2 / scale}
+          pointerEvents="none"
+        />
+      )}
       {guides.x !== null && (
         <line
           x1={guides.x}
@@ -978,14 +1065,25 @@ export default function SetupDialog({
   /** Come si chiama l'elemento nel pannello dei livelli e negli elenchi */
   const describe = (it: Item): string => {
     const plain = (x: string): string => x.replace(/[*_~]/g, '').trim()
-    if (it.name) return it.name
-    if ('label' in it && it.label) return plain(it.label)
-    if (it.kind === 'text') return plain(it.text)
-    if (it.kind === 'card' || it.kind === 'deck') return it.card
-    if (it.kind === 'row' || it.kind === 'hand') return cardListSource(it.cards)
-    if (it.kind === 'image') return it.src
-    if (it.kind === 'shape') return t(SHAPE_NAMES[it.shape])
-    return t(KINDS[it.kind])
+    const short = (x: string): string => (x.length > 40 ? `${x.slice(0, 39)}…` : x)
+    const what =
+      'label' in it && it.label
+        ? plain(it.label)
+        : it.kind === 'text'
+          ? plain(it.text)
+          : it.kind === 'card' || it.kind === 'deck'
+            ? it.card
+            : it.kind === 'row' || it.kind === 'hand'
+              ? cardListSource(it.cards)
+              : it.kind === 'image'
+                ? it.src
+                : it.kind === 'shape'
+                  ? t(SHAPE_NAMES[it.shape])
+                  : t(KINDS[it.kind])
+    // il contenuto si riconosce, il nome dato agganciando no: il nome va tra parentesi
+    return it.name
+      ? `${short(what.replace(/\s+/g, ' '))} (${it.name})`
+      : short(what.replace(/\s+/g, ' '))
   }
   /** Cambia il nome e i richiami di frecce e segnalini che lo usavano */
   const rename = (k: number, value: string): void => {
@@ -1004,7 +1102,8 @@ export default function SetupDialog({
             ...(same(x.fromItem) ? { fromItem: v } : {}),
             ...(same(x.toItem) ? { toItem: v } : {})
           }
-        if (x.kind === 'card' && x.on && same(x.on.item)) x = { ...x, on: { ...x.on, item: v } }
+        if (x.kind !== 'arrow' && x.on && same(x.on.item))
+          x = { ...x, on: { ...x.on, item: v } } as Item
         return x
       })
     )
@@ -1025,7 +1124,7 @@ export default function SetupDialog({
   }
   /** Mette il segnalino sulla casella della plancia k, o lo toglie (k = -1) */
   const putOn = (k: number): void => {
-    if (single === null || sel?.kind !== 'card') return
+    if (single === null || !sel || sel.kind === 'arrow') return
     if (k < 0) {
       setItems(items.map((it, j) => (j === single ? detach(it, j) : it)))
       return
@@ -1033,8 +1132,8 @@ export default function SetupDialog({
     const n = named(items, k)
     setItems(
       n.items.map((it, j) =>
-        j === single && it.kind === 'card'
-          ? { ...it, on: { item: n.name, row: it.on?.row ?? 1, col: it.on?.col ?? 1 } }
+        j === single && it.kind !== 'arrow'
+          ? ({ ...it, on: { item: n.name, row: it.on?.row ?? 1, col: it.on?.col ?? 1 } } as Item)
           : it
       )
     )
@@ -1074,9 +1173,9 @@ export default function SetupDialog({
         value={value ?? base}
         onChange={(l) => change({ line: l === base ? undefined : l } as Partial<Item>)}
         options={[
-          ['solid', t('documents.setupLine.solid')],
-          ['dash', t('documents.setupLine.dash')],
-          ['dot', t('documents.setupLine.dot')]
+          ['solid', <LineIcon key="solid" line="solid" />, t('documents.setupLine.solid')],
+          ['dash', <LineIcon key="dash" line="dash" />, t('documents.setupLine.dash')],
+          ['dot', <LineIcon key="dot" line="dot" />, t('documents.setupLine.dot')]
         ]}
       />
     </div>
@@ -1336,21 +1435,28 @@ export default function SetupDialog({
                     <Segmented<SetupShape>
                       value={sel.shape}
                       onChange={(shape) => change({ shape })}
-                      options={SETUP_SHAPES.map((k) => [k, t(SHAPE_NAMES[k])])}
+                      options={SETUP_SHAPES.map((k) => [
+                        k,
+                        <ShapeIcon key={k} shape={k} />,
+                        t(SHAPE_NAMES[k])
+                      ])}
                     />
                   </div>
                 )}
-                {sel.kind === 'card' && (
+                {sel.kind !== 'arrow' && (
                   <>
-                    {targetSelect(
-                      t('documents.setupOnBoard'),
-                      sel.on?.item,
-                      (it, k) =>
-                        k !== single &&
-                        (it.kind === 'card' || it.kind === 'deck') &&
-                        !('on' in it && it.on),
-                      putOn
-                    )}
+                    {sel.on || boards.some((k) => k !== single)
+                      ? targetSelect(
+                          t('documents.setupOnBoard'),
+                          sel.on?.item,
+                          (it, k) =>
+                            k !== single &&
+                            (boards.includes(k) || (!!it.name && it.name === sel.on?.item)),
+                          putOn
+                        )
+                      : placed.some(
+                          (it, k) => k !== single && (it.kind === 'card' || it.kind === 'deck')
+                        ) && <p className="muted small">{t('documents.setupNoGrid')}</p>}
                     {sel.on && (
                       <div className="dialog-row">
                         {num(
@@ -1371,7 +1477,7 @@ export default function SetupDialog({
                     )}
                   </>
                 )}
-                {!(sel.kind === 'card' && sel.on) && sel.kind !== 'arrow' && (
+                {!sel.on && sel.kind !== 'arrow' && (
                   <div className="dialog-row">
                     {num('x', sel.x, (x) => change({ x }))}
                     {num('y', sel.y, (y) => change({ y }))}
@@ -1438,10 +1544,22 @@ export default function SetupDialog({
                         value={sel.heads ?? 'end'}
                         onChange={(h) => change({ heads: h === 'end' ? undefined : h })}
                         options={[
-                          ['end', t('documents.setupHeadsEnd')],
-                          ['start', t('documents.setupHeadsStart')],
-                          ['both', t('documents.setupHeadsBoth')],
-                          ['none', t('documents.setupHeadsNone')]
+                          ['end', <HeadsIcon key="e" heads="end" />, t('documents.setupHeadsEnd')],
+                          [
+                            'start',
+                            <HeadsIcon key="s" heads="start" />,
+                            t('documents.setupHeadsStart')
+                          ],
+                          [
+                            'both',
+                            <HeadsIcon key="b" heads="both" />,
+                            t('documents.setupHeadsBoth')
+                          ],
+                          [
+                            'none',
+                            <HeadsIcon key="n" heads="none" />,
+                            t('documents.setupHeadsNone')
+                          ]
                         ]}
                       />
                     </div>
@@ -1513,11 +1631,32 @@ export default function SetupDialog({
                 {(sel.kind === 'text' || sel.kind === 'image') &&
                   num(t('documents.setupW'), sel.w, (w) => change({ w }), 3)}
                 {sel.kind === 'text' && (
-                  <ColorField
-                    label={t('documents.setupColor')}
-                    value={sel.color ?? '#3a3a3c'}
-                    onChange={(v) => change({ color: !v || v === '#3a3a3c' ? undefined : v })}
-                  />
+                  <>
+                    <ColorField
+                      label={t('documents.setupColor')}
+                      value={sel.color ?? '#3a3a3c'}
+                      onChange={(v) => change({ color: !v || v === '#3a3a3c' ? undefined : v })}
+                    />
+                    <ColorField
+                      label={t('documents.setupOutline')}
+                      nullable
+                      fallback="#ffffff"
+                      value={sel.stroke ?? null}
+                      onChange={(v) =>
+                        change({ stroke: v ?? undefined, ...(v ? {} : { thickness: undefined }) })
+                      }
+                    />
+                    {sel.stroke &&
+                      num(
+                        t('documents.setupOutlineWidth'),
+                        sel.thickness ?? SETUP_TEXT_OUTLINE,
+                        (n) =>
+                          change({
+                            thickness: n > 0 && n !== SETUP_TEXT_OUTLINE ? n : undefined
+                          }),
+                        0.1
+                      )}
+                  </>
                 )}
                 {sel.kind === 'deck' &&
                   num(t('documents.setupCount'), sel.count, (count) => change({ count }), 1)}
@@ -1570,10 +1709,26 @@ export default function SetupDialog({
                           value={sel.labelAt ?? 'bottom'}
                           onChange={(a) => change({ labelAt: a === 'bottom' ? undefined : a })}
                           options={[
-                            ['bottom', t('documents.setupLabelAt.bottom')],
-                            ['top', t('documents.setupLabelAt.top')],
-                            ['left', t('documents.setupLabelAt.left')],
-                            ['right', t('documents.setupLabelAt.right')]
+                            [
+                              'bottom',
+                              <LabelIcon key="bottom" at="bottom" />,
+                              t('documents.setupLabelAt.bottom')
+                            ],
+                            [
+                              'top',
+                              <LabelIcon key="top" at="top" />,
+                              t('documents.setupLabelAt.top')
+                            ],
+                            [
+                              'left',
+                              <LabelIcon key="left" at="left" />,
+                              t('documents.setupLabelAt.left')
+                            ],
+                            [
+                              'right',
+                              <LabelIcon key="right" at="right" />,
+                              t('documents.setupLabelAt.right')
+                            ]
                           ]}
                         />
                       </div>
@@ -1771,14 +1926,17 @@ export default function SetupDialog({
       {addingCard !== null && (
         <InsertCardDialog
           pick=""
+          multiple
           sets={sets}
           templates={templates}
           project={project}
-          onInsert={(card) => {
+          onInsert={(list) => {
             const k = addingCard
             setAddingCard(null)
             const it = items[k]
-            if (it?.kind === 'row' || it?.kind === 'hand') change({ cards: [...it.cards, card] }, k)
+            const added = parseCardList(list) ?? []
+            if (it?.kind === 'row' || it?.kind === 'hand')
+              change({ cards: [...it.cards, ...added].slice(0, SETUP_MAX_CARDS) }, k)
           }}
           onClose={() => setAddingCard(null)}
         />
