@@ -217,9 +217,15 @@ export function namedItem(items: SetupItem[], name: string): number {
 
 /** Spazio tra la punta di una freccia agganciata e il bordo dell'elemento, in mm */
 const ARROW_GAP = 1.5
+/** Lo stacco dal testo, che non ha un bordo netto: più piccolo */
+const TEXT_ARROW_GAP = 0.8
 
 /** Il punto del bordo del riquadro sulla retta dal centro verso `to`, un poco fuori */
-function edgePoint(b: Box, to: { x: number; y: number }): { x: number; y: number } {
+function edgePoint(
+  b: Box,
+  to: { x: number; y: number },
+  gap = ARROW_GAP
+): { x: number; y: number } {
   const cx = b.x + b.w / 2
   const cy = b.y + b.h / 2
   const dx = to.x - cx
@@ -232,7 +238,7 @@ function edgePoint(b: Box, to: { x: number; y: number }): { x: number; y: number
   )
   // dentro il riquadro: la freccia arriva al centro
   if (t >= 1) return { x: to.x, y: to.y }
-  return { x: cx + dx * t + (dx / len) * ARROW_GAP, y: cy + dy * t + (dy / len) * ARROW_GAP }
+  return { x: cx + dx * t + (dx / len) * gap, y: cy + dy * t + (dy / len) * gap }
 }
 
 /** La griglia di un template su cui si appoggia un segnalino: la prima del fronte (o del retro) */
@@ -335,7 +341,9 @@ export function resolveItems(
     const h = Math.max(1, e.lines) * font * SETUP_LINE
     const x =
       it.align === 'right' ? it.x + it.w - w : it.align === 'left' ? it.x : it.x + (it.w - w) / 2
-    if (!it.rotate) return { x, y: it.y, w, h }
+    // sopra la prima riga e sotto l'ultima c'è metà interlinea vuota: non fa parte delle lettere
+    const lead = ((SETUP_LINE - 1) / 2) * font
+    if (!it.rotate) return { x, y: it.y + lead, w, h: h - 2 * lead }
     // ruotato: attorno al centro del riquadro intero, come lo disegna lo schema
     const cx = it.x + it.w / 2
     const cy = it.y + h / 2
@@ -379,8 +387,10 @@ export function resolveItems(
     const p2 = b >= 0 ? center(b) : { x: it.x2, y: it.y2 }
     // con la curva la freccia esce verso il suo centro, non verso l'altro estremo
     const mid = arrowCurve({ x: p0.x, y: p0.y, x2: p2.x, y2: p2.y, bend: it.bend, shift: it.shift })
-    const s = a >= 0 ? edgePoint(ink(a), it.bend ? mid.control : p2) : p0
-    const e = b >= 0 ? edgePoint(ink(b), it.bend ? mid.control : p0) : p2
+    // dal testo, che non ha un bordo, la freccia parte più vicina
+    const gap = (k: number): number => (out[k].kind === 'text' ? TEXT_ARROW_GAP : ARROW_GAP)
+    const s = a >= 0 ? edgePoint(ink(a), it.bend ? mid.control : p2, gap(a)) : p0
+    const e = b >= 0 ? edgePoint(ink(b), it.bend ? mid.control : p0, gap(b)) : p2
     out[i] = { ...it, x: s.x, y: s.y, x2: e.x, y2: e.y }
     boxes[i] = itemBox(out[i], sets, templates)
   })
@@ -406,8 +416,39 @@ export function setupArea(setup: Setup, boxes: Box[]): Box {
 const CHAR = 0.56
 
 /**
+ * Famiglia di caratteri con cui si misurano i testi dello schema: quella del documento, che
+ * setupView riceve. Il documento e le sue finestre usano lo stesso carattere, quindi basta una.
+ */
+let measureFamily: string | undefined
+let measureCtx: CanvasRenderingContext2D | null | undefined
+
+/** Larghezza di un testo in corpi, misurata con il carattere vero; null fuori dal browser */
+function measured(s: string): number | null {
+  if (measureCtx === undefined)
+    measureCtx =
+      typeof document === 'undefined'
+        ? null
+        : (() => {
+            try {
+              return document.createElement('canvas').getContext('2d')
+            } catch {
+              return null
+            }
+          })()
+  if (!measureCtx) return null
+  const family =
+    measureFamily ??
+    (typeof getComputedStyle === 'function' && document.body
+      ? getComputedStyle(document.body).fontFamily
+      : 'sans-serif')
+  measureCtx.font = `100px ${family}`
+  // il grassetto e il markup allargano un poco: meglio un margine
+  return (measureCtx.measureText(s).width / 100) * 1.04
+}
+
+/**
  * Righe e larghezza della riga più lunga di un testo con il markup, andando a capo tra le parole
- * entro `width` mm: una stima, senza misurare il carattere vero
+ * entro `width` mm: misurate con il carattere del documento nel browser, stimate altrove
  */
 export function textExtent(
   text: string,
@@ -418,14 +459,16 @@ export function textExtent(
     .replace(/\[([^\]]*)\]\{[^}]*\}/g, '$1')
     .replace(/\{[^}]*\}/g, 'MM')
     .replace(/[*_~]/g, '')
-  const char = font * CHAR
+  const space = (measured(' ') ?? CHAR) * font
+  const char = space
+  const wordW = (word: string): number => (measured(word) ?? word.length * CHAR) * font
   let lines = 0
   let widest = 0
   for (const para of plain.split(/\n|<br\s*\/?>/i)) {
     let used = 0
     lines++
     for (const word of para.split(/\s+/).filter(Boolean)) {
-      const w = word.length * char
+      const w = wordW(word)
       if (used && used + char + w > width) {
         widest = Math.max(widest, used)
         lines++
@@ -543,8 +586,11 @@ export function setupView(
   sets: LoadedSet[],
   templates: Template[],
   maxWidth: number,
-  font: number
+  font: number,
+  /** Famiglia di caratteri del documento (CSS); senza, quella della pagina */
+  family?: string
 ): SetupView {
+  measureFamily = family
   // le frecce agganciate ai testi dipendono dal corpo, che dipende dall'area: si risolve col corpo
   // di base, poi di nuovo con quello trovato
   let resolved = resolveItems(setup.items, sets, templates, font)

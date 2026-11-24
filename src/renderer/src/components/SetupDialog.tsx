@@ -345,7 +345,14 @@ export default function SetupDialog({
 
   // nella finestra vale sempre l'ordine delle righe: quelle vecchie sono già in ordine di strato
   const setup: Setup = { size, margin, items, bad: [], free: true }
-  const view = setupView(setup, sets, templates, maxWidth * blockWidth, font * blockFont)
+  const view = setupView(
+    setup,
+    sets,
+    templates,
+    maxWidth * blockWidth,
+    font * blockFont,
+    fontFamily
+  )
   const area = frozen ?? grow(view.area, size ? 10 : 25)
   const fit = Math.max(
     0.1,
