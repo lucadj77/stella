@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { parseDocument } from '../../../shared/model/document'
 import { setupSource, type Setup } from '../../../shared/model/setup'
 import { setupView, textBoxes, textExtent } from '../render/setupGeometry'
+import { normalizeTemplate, type RawTemplate } from '../../../shared/model/normalize'
+import type { LoadedSet } from '../../../shared/project'
 
 const setup = (src: string): Setup => {
   const b = parseDocument('```setup\n' + src + '\n```')[0]
@@ -56,5 +58,84 @@ describe('margine dello schema', () => {
   it('senza didascalie non lascia spazio sotto', () => {
     const v = setupView(setup('card set/1 0,0'), [], [], 500, 3)
     expect(v.area.y + v.area.h).toBeCloseTo(v.boxes[0].h + 3)
+  })
+})
+
+describe('file, mani, caselle e frecce agganciate', () => {
+  const sets: LoadedSet[] = [
+    {
+      name: 'Plance',
+      template: 'plancia',
+      data: { name: 'Plance', headers: ['nome'], rows: [['A']] }
+    },
+    {
+      name: 'Carte',
+      template: 'carta',
+      data: { name: 'Carte', headers: ['nome'], rows: [['a'], ['b'], ['c']] }
+    }
+  ]
+  const templates = [
+    normalizeTemplate({
+      name: 'plancia',
+      width: 100,
+      height: 100,
+      front: [
+        {
+          type: 'grid',
+          name: 'g',
+          x: 0,
+          y: 0,
+          w: 100,
+          h: 100,
+          rows: 2,
+          columns: 2,
+          gap: 0,
+          padding: 0
+        }
+      ]
+    } as RawTemplate),
+    normalizeTemplate({ name: 'carta', width: 20, height: 30 } as RawTemplate)
+  ]
+
+  it('mette in fila le carte con lo spazio, e lo zoom le ingrandisce', () => {
+    const s = setup('row Carte/1-3 10,10 gap=5 scale=200%')
+    const v = setupView(s, sets, templates, 1000, 3)
+    expect(v.boxes[0]).toMatchObject({ x: 10, y: 10, w: 3 * 40 + 2 * 5, h: 60 })
+    const col = setup('row Carte/1-3 0,0 direction=down')
+    expect(setupView(col, sets, templates, 1000, 3).boxes[0]).toMatchObject({ w: 20, h: 96 })
+  })
+
+  it('apre la mano a ventaglio, più larga di una carta', () => {
+    const v = setupView(setup('hand Carte/1-3 0,0 spread=60'), sets, templates, 1000, 3)
+    expect(v.boxes[0].w).toBeGreaterThan(40)
+    expect(v.boxes[0]).toMatchObject({ x: 0, y: 0 })
+  })
+
+  it('mette il segnalino al centro della casella, anche con la plancia girata', () => {
+    const s = setup('card Plance/1 10,10 name=p\ncard Carte/1 on=@p cell=2,1')
+    const v = setupView(s, sets, templates, 1000, 3)
+    const t = v.boxes[1]
+    expect(t.x + t.w / 2).toBeCloseTo(10 + 25)
+    expect(t.y + t.h / 2).toBeCloseTo(10 + 75)
+    const turned = setup('card Plance/1 0,0 rotate=90 name=p\ncard Carte/1 on=@p cell=1,1')
+    const b = setupView(turned, sets, templates, 1000, 3).boxes[1]
+    // girata di 90° in senso orario la casella in alto a sinistra va in alto a destra
+    expect(b.x + b.w / 2).toBeCloseTo(75)
+    expect(b.y + b.h / 2).toBeCloseTo(25)
+  })
+
+  it('fa partire e arrivare le frecce agganciate dal bordo degli elementi', () => {
+    const s = setup('zone 0,0 20x20 name=a\nzone 100,0 20x20 name=b\narrow @a -> @b')
+    const v = setupView(s, sets, templates, 1000, 3)
+    const a = v.items![2]
+    expect(a).toMatchObject({ kind: 'arrow', y: 10, y2: 10 })
+    if (a.kind !== 'arrow') return
+    expect(a.x).toBeCloseTo(21.5)
+    expect(a.x2).toBeCloseTo(98.5)
+  })
+
+  it('ruota zone e testi attorno al centro', () => {
+    const v = setupView(setup('zone 0,0 40x20 rotate=90'), sets, templates, 1000, 3)
+    expect(v.boxes[0]).toMatchObject({ x: 10, y: -10, w: 20, h: 40 })
   })
 })

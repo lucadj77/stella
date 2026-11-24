@@ -1325,13 +1325,24 @@ export function documentProblems(src: string, ctx: DocumentContext): DocumentPro
       case 'setup':
         out.push(...b.bad.map((r) => ({ message: msg('doc.setup.badLine'), ...r })))
         for (const it of b.items) {
-          const problem =
+          const problems =
             it.kind === 'card' || it.kind === 'deck'
-              ? imageProblem(anatomyCardSource(it.card), ctx)
-              : it.kind === 'image'
-                ? imageProblem(it.src, ctx)
-                : null
-          if (problem) out.push({ message: problem, from: it.from, to: it.to })
+              ? [imageProblem(anatomyCardSource(it.card), ctx)]
+              : it.kind === 'row' || it.kind === 'hand'
+                ? it.cards.map((c) => imageProblem(anatomyCardSource(c), ctx))
+                : it.kind === 'image'
+                  ? [imageProblem(it.src, ctx)]
+                  : []
+          // le frecce e i segnalini richiamano gli altri elementi per nome
+          const names = [
+            ...(it.kind === 'arrow' ? [it.fromItem, it.toItem] : []),
+            ...(it.kind === 'card' && it.on ? [it.on.item] : [])
+          ].filter((n): n is string => !!n)
+          for (const name of names)
+            if (!b.items.some((x) => x.name?.toLowerCase() === name.toLowerCase()))
+              problems.push(msg('doc.setup.unknownName', { name }))
+          for (const problem of problems.filter((p): p is NonNullable<typeof p> => !!p))
+            out.push({ message: problem, from: it.from, to: it.to })
           if (it.kind === 'text') texts.push({ text: it.text, from: it.from })
           if ('label' in it && it.label) texts.push({ text: it.label, from: it.from })
         }

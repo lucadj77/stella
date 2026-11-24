@@ -9,9 +9,15 @@ import { parseDocument } from '../../../shared/model/document'
 import type { LoadedSet } from '../../../shared/project'
 import type { Template } from '../../../shared/model/template'
 import {
+  SETUP_HAND_SPREAD,
   SETUP_IMAGE_W,
+  SETUP_ROW_GAP,
+  SETUP_SHAPES,
   SETUP_TEXT_W,
   alignSetupItems,
+  cardListSource,
+  layerOrdered,
+  sortByLayer,
   arrowCurve,
   bendTowards,
   canReorderSetupItem,
@@ -26,14 +32,27 @@ import {
   type SetupAlign,
   type SetupItem,
   type SetupKind,
-  type SetupOrder
+  type SetupLabelAt,
+  type SetupLineStyle,
+  type SetupOrder,
+  type SetupShape
 } from '../../../shared/model/setup'
+import { linesOf, snapBox } from '../../../shared/model/snap'
+import { ColorField } from '../editor/fields'
+import { moveItem, useDragReorder } from './useDragReorder'
 import { Dialog } from '../editor/dialogs'
 import { AlignIcon, DistributeIcon } from '../editor/AlignSection'
 import { useI18n } from '../i18n/context'
 import type { MessageKey } from '../i18n/en'
 import SetupDiagram from '../render/SetupDiagram'
-import { SETUP_MARGIN, itemBox, setupView, setupWithText, type Box } from '../render/setupGeometry'
+import {
+  SETUP_MARGIN,
+  itemBox,
+  namedItem,
+  setupView,
+  setupWithText,
+  type Box
+} from '../render/setupGeometry'
 import AssetPicker from './AssetPicker'
 import InsertCardDialog from './InsertCardDialog'
 import FormattedField from './TextFormatBar'
@@ -46,6 +65,23 @@ import Segmented from './Segmented'
 // salvataggio scrive il blocco nel testo.
 
 const BLUE = '#0a84ff'
+/** Linee guida dell'aggancio */
+const GUIDE = '#ff2d78'
+/** L'angolo in basso a destra di una zona o di una forma, ruotato con lei */
+function corner(it: {
+  x: number
+  y: number
+  w: number
+  h: number
+  rotate?: number
+}): [number, number] {
+  const a = ((it.rotate ?? 0) * Math.PI) / 180
+  const hx = it.w / 2
+  const hy = it.h / 2
+  const cx = it.x + hx
+  const cy = it.y + hy
+  return [cx + hx * Math.cos(a) - hy * Math.sin(a), cy + hx * Math.sin(a) + hy * Math.cos(a)]
+}
 /** Pixel liberi attorno al disegno adattato alla finestra */
 const FIT_PAD = 24
 const MIN_ZOOM = 0.25
@@ -68,10 +104,39 @@ function pasteItems(): SetupItem[] {
 }
 
 type Item = SetupItem
+/** Il simbolo di ogni tipo nel pannello dei livelli, come in quello dei template */
+const ICONS: Record<string, string> = {
+  zone: '▭',
+  rect: '■',
+  ellipse: '●',
+  polygon: '⬢',
+  star: '★',
+  card: '🂠',
+  deck: '▥',
+  row: '▤',
+  hand: '✋',
+  text: 'T',
+  arrow: '➝',
+  image: '▣'
+}
+const SHAPE_NAMES: Record<SetupShape, MessageKey> = {
+  rect: 'documents.setupShape.rect',
+  ellipse: 'documents.setupShape.ellipse',
+  polygon: 'documents.setupShape.polygon',
+  star: 'documents.setupShape.star'
+}
+/** Elementi con le carte, quelli che hanno zoom e posto dell'etichetta */
+const CARDISH = ['card', 'deck', 'row', 'hand']
+/** Soglia dell'aggancio agli altri elementi, in pixel dello schermo */
+const SNAP_PX = 6
+
 const KINDS = {
   zone: 'documents.setupZone',
+  shape: 'documents.setupShape',
   card: 'documents.setupCard',
   deck: 'documents.setupDeck',
+  row: 'documents.setupRow',
+  hand: 'documents.setupHand',
   text: 'documents.setupTextItem',
   arrow: 'documents.setupArrow',
   image: 'documents.setupImage'
@@ -84,6 +149,9 @@ type Drag =
       x: number
       y: number
       orig: Item[]
+      /** Gli elementi con le posizioni calcolate (frecce agganciate, segnalini) e i riquadri */
+      resolved: Item[]
+      boxes: Box[]
       /** Clic su un elemento già scelto con altri: se non si trascina resta scelto solo lui */
       only?: boolean
       /** Maiuscolo o ⌘/Ctrl su un elemento già scelto: se non si trascina esce dalla scelta */
@@ -153,7 +221,17 @@ export default function SetupDialog({
   onClose(): void
 }): React.JSX.Element {
   const { t } = useI18n()
-  const [items, setItems] = useState<Item[]>(initial?.items ?? [])
+  // senza `order: free` le righe si mettono nell'ordine degli strati: il disegno resta lo stesso
+  const [items, setItems] = useState<Item[]>(() =>
+    initial ? (initial.free ? initial.items : sortByLayer(initial.items)) : []
+  )
+  /** Linee a cui si è agganciato l'elemento trascinato, in mm */
+  const [guides, setGuides] = useState<{ x: number | null; y: number | null }>({
+    x: null,
+    y: null
+  })
+  /** Scelta di una carta da aggiungere alla fila o alla mano con questo indice */
+  const [addingCard, setAddingCard] = useState<number | null>(null)
   const [size, setSize] = useState(initial?.size ?? null)
   /** Margine intorno all'area automatica, in mm; null = quello di base */
   const [margin, setMargin] = useState<number | null>(initial?.margin ?? null)
@@ -173,9 +251,10 @@ export default function SetupDialog({
   /** Elementi scelti, per indice; il primo è quello cliccato per primo */
   const [selection, setSelection] = useState<number[]>([])
   /** Scelta della carta: per un elemento nuovo o per quello con questo indice */
-  const [pickingCard, setPickingCard] = useState<{ kind: 'card' | 'deck'; index?: number } | null>(
-    null
-  )
+  const [pickingCard, setPickingCard] = useState<{
+    kind: 'card' | 'deck' | 'row' | 'hand'
+    index?: number
+  } | null>(null)
   const [pickingImage, setPickingImage] = useState<{ index?: number } | null>(null)
   /** Area ferma mentre si trascina: senza misura scritta crescerebbe sotto il mouse */
   const [frozen, setFrozen] = useState<Box | null>(null)
@@ -195,7 +274,7 @@ export default function SetupDialog({
   /** Punto in mm da tenere sotto il mouse dopo uno zoom, e dove sta sullo schermo */
   const anchor = useRef<{ mm: { x: number; y: number }; cx: number; cy: number } | null>(null)
   const zoomRef = useRef(zoom)
-  const busy = !!pickingCard || !!pickingImage
+  const busy = !!pickingCard || !!pickingImage || addingCard !== null
   /** Il blocco ```setup come lo scrive la finestra */
   const source = setupSource({
     size,
@@ -205,13 +284,15 @@ export default function SetupDialog({
     font: blockFont,
     caption,
     captionTop,
-    wrap
+    wrap,
+    // l'ordine libero serve solo se qualcosa sta fuori dal suo strato
+    free: !layerOrdered(items)
   })
   /** Il codice scritto a mano: rimette lo schema come dice; false se non si capisce */
   const applyCode = (code: string): boolean => {
     const b = parseDocument(code.trim())[0]
     if (b?.kind !== 'setup' || b.bad.length) return false
-    setItems(b.items)
+    setItems(b.free ? b.items : sortByLayer(b.items))
     setSize(b.size)
     setMargin(b.margin ?? null)
     setBlockWidth(b.width ?? 1)
@@ -246,7 +327,8 @@ export default function SetupDialog({
     }
   }
 
-  const setup: Setup = { size, margin, items, bad: [] }
+  // nella finestra vale sempre l'ordine delle righe: quelle vecchie sono già in ordine di strato
+  const setup: Setup = { size, margin, items, bad: [], free: true }
   const view = setupView(setup, sets, templates, maxWidth * blockWidth, font * blockFont)
   const area = frozen ?? grow(view.area, size ? 10 : 25)
   const fit = Math.max(
@@ -257,6 +339,9 @@ export default function SetupDialog({
   const chosen = selection.filter((k) => k < items.length)
   const single = chosen.length === 1 ? chosen[0] : null
   const sel = single !== null ? items[single] : null
+  /** Gli elementi come si disegnano: frecce agganciate e segnalini al loro posto */
+  const placed = view.items ?? items
+  const placedSel = single !== null ? placed[single] : null
 
   // lo spazio del disegno segue la finestra
   useLayoutEffect(() => {
@@ -357,6 +442,17 @@ export default function SetupDialog({
     if (index === null) return
     setItems(items.map((it, k) => (k === index ? ({ ...it, ...patch } as Item) : it)))
   }
+  // il pannello dei livelli mostra in cima l'elemento più in alto, cioè l'ultima riga
+  const layerDrag = useDragReorder((from, to) => {
+    const last = items.length - 1
+    setItems(moveItem(items, last - from, last - to))
+    setSelection([last - to])
+  })
+  const cardDrag = useDragReorder((from, to) => {
+    const it = selection.length === 1 ? items[selection[0]] : null
+    if (it?.kind === 'row' || it?.kind === 'hand')
+      change({ cards: moveItem(it.cards, from, to) }, selection[0])
+  })
   /**
    * Ruota l'elemento attorno al suo centro: il riquadro dritto che lo contiene cambia misura, e
    * x e y (il suo angolo) si spostano perché il centro resti fermo
@@ -364,9 +460,10 @@ export default function SetupDialog({
   const rotateTo = (deg: number, index = single, from: Item | null = null): void => {
     if (index === null) return
     const o = from ?? items[index]
-    if (o.kind !== 'card' && o.kind !== 'deck' && o.kind !== 'image') return
+    if (o.kind === 'arrow' || o.kind === 'row' || o.kind === 'hand') return
     const rotate = ((Math.round(deg) % 360) + 360) % 360
-    if (o.kind === 'image') return change({ rotate }, index)
+    // zone, forme e testi ruotano attorno al centro del loro rettangolo, che resta fermo
+    if (o.kind !== 'card' && o.kind !== 'deck') return change({ rotate }, index)
     const before = itemBox(o, sets, templates)
     const after = itemBox({ ...o, rotate }, sets, templates)
     const tenth = (n: number): number => Math.round(n * 10) / 10
@@ -378,6 +475,37 @@ export default function SetupDialog({
       },
       index
     )
+  }
+  /**
+   * Dà un nome all'elemento, se non ce l'ha, perché frecce e segnalini possano richiamarlo;
+   * restituisce gli elementi e il nome
+   */
+  const named = (list: Item[], k: number): { items: Item[]; name: string } => {
+    const it = list[k]
+    if (it.name) return { items: list, name: it.name }
+    let n = 1
+    while (namedItem(list, `${it.kind}${n}`) >= 0) n++
+    const name = `${it.kind}${n}`
+    return { items: list.map((x, j) => (j === k ? { ...x, name } : x)), name }
+  }
+  /** Un segnalino spostato a mano lascia la casella e resta dov'è disegnato */
+  const detach = (it: Item, k: number, from: Item[] = placed): Item =>
+    it.kind === 'card' && it.on ? { ...it, x: from[k].x, y: from[k].y, on: undefined } : it
+  /**
+   * L'elemento sotto il punto dello schermo, dall'alto: quelli bloccati e nascosti solo con
+   * ⌥ / Alt; `skip` è un elemento da saltare (la freccia di cui si sposta un estremo)
+   */
+  const itemAt = (cx: number, cy: number, alt: boolean, skip?: number): number | null => {
+    for (const el of document.elementsFromPoint(cx, cy)) {
+      const h = el.closest('[data-item]')?.getAttribute('data-item')
+      if (h == null) continue
+      const k = Number(h)
+      const it = items[k]
+      if (!it || k === skip || it.hidden) continue
+      if (it.lock && !alt) continue
+      return k
+    }
+    return null
   }
   const remove = (): void => {
     if (!chosen.length) return
@@ -424,8 +552,15 @@ export default function SetupDialog({
       case 'image':
         setPickingImage({})
         return
+      case 'row':
+      case 'hand':
+        setPickingCard({ kind })
+        return
       case 'zone':
         add({ kind, x: c.x - 40, y: c.y - 25, w: 80, h: 50, label: '', ...at })
+        return
+      case 'shape':
+        add({ kind, shape: 'rect', x: c.x - 15, y: c.y - 15, w: 30, h: 30, label: '', ...at })
         return
       case 'text':
         add({
@@ -466,12 +601,14 @@ export default function SetupDialog({
     if (!p || e.button !== 0) return
     vp.focus()
     const handle = target.closest('[data-handle]')?.getAttribute('data-handle') ?? null
-    const hit = target.closest('[data-item]')?.getAttribute('data-item')
+    // gli elementi bloccati si scelgono solo con ⌥ / Alt + clic: il clic va a quelli sotto
+    const hit = handle === null ? itemAt(e.clientX, e.clientY, e.altKey) : null
     const toggle = e.shiftKey || e.metaKey || e.ctrlKey
+    const start = { ...p, orig: items, resolved: placed, boxes: view.boxes }
     if (handle !== null && single !== null) {
-      drag.current = { mode: 'item', index: single, handle, ...p, orig: items }
-    } else if (hit != null) {
-      const index = Number(hit)
+      drag.current = { mode: 'item', index: single, handle, ...start }
+    } else if (hit !== null) {
+      const index = hit
       // Maiuscolo o ⌘/Ctrl + clic aggiunge l'elemento alla scelta; se era già scelto lo toglie
       // al rilascio, ma solo se non lo si è trascinato
       if (toggle && !chosen.includes(index)) setSelection([...chosen, index])
@@ -480,8 +617,7 @@ export default function SetupDialog({
         mode: 'item',
         index,
         handle: null,
-        ...p,
-        orig: items,
+        ...start,
         only: !toggle && chosen.length > 1 && chosen.includes(index),
         drop: toggle && chosen.includes(index)
       }
@@ -511,56 +647,114 @@ export default function SetupDialog({
         h: Math.abs(p.y - d.y)
       }
       setMarquee(box)
-      const inside = view.boxes.flatMap((b, k) => (overlaps(b, box) ? [k] : []))
+      // i bloccati e i nascosti restano fuori
+      const inside = view.boxes.flatMap((b, k) =>
+        overlaps(b, box) && !items[k]?.lock && !items[k]?.hidden ? [k] : []
+      )
       setSelection([...new Set([...d.add, ...inside])])
       return
     }
     const dx = p.x - d.x
     const dy = p.y - d.y
     const o = d.orig[d.index]
+    // le posizioni come sono disegnate: una freccia agganciata parte dal bordo dell'elemento
+    const ro = d.resolved[d.index] ?? o
     if (d.handle === 'rotate') {
-      const b = itemBox(o, sets, templates)
+      const b = d.boxes[d.index] ?? itemBox(ro, sets, templates)
       const deg = (Math.atan2(p.y - (b.y + b.h / 2), p.x - (b.x + b.w / 2)) * 180) / Math.PI + 90
       // con Maiuscolo a scatti di 15°, come nell'editor
       rotateTo(e.shiftKey ? Math.round(deg / 15) * 15 : deg, d.index, o)
       return
     }
     let patch: Partial<Item> | null = null
-    if (d.handle === 'start') patch = { x: snap(o.x + dx), y: snap(o.y + dy) }
-    else if (d.handle === 'end' && o.kind === 'arrow')
-      patch = { x2: snap(o.x2 + dx), y2: snap(o.y2 + dy) }
-    else if (d.handle === 'bend' && o.kind === 'arrow') {
+    if (d.handle === 'start' && ro.kind === 'arrow')
+      patch = { x: snap(ro.x + dx), y: snap(ro.y + dy), fromItem: undefined }
+    else if (d.handle === 'end' && ro.kind === 'arrow')
+      patch = { x2: snap(ro.x2 + dx), y2: snap(ro.y2 + dy), toItem: undefined }
+    else if (d.handle === 'bend' && ro.kind === 'arrow') {
+      // la maniglia va dove si vuole: lontano dalla retta curva, lungo la freccia sposta il centro;
       // vicino alla retta torna dritta
-      // la maniglia va dove si vuole: lontano dalla retta curva, lungo la freccia sposta il centro
-      const { bend, shift } = bendTowards(o, p)
+      const { bend, shift } = bendTowards(ro, p)
       const straight = Math.abs(bend) < 1
       patch = {
         bend: straight ? undefined : bend,
         shift: straight || Math.abs(shift) < 1 ? undefined : shift
       }
-    } else if (d.handle === 'size' && o.kind === 'zone')
-      patch = { w: Math.max(5, snap(o.w + dx)), h: Math.max(5, snap(o.h + dy)) }
-    else if (d.handle === 'size' && (o.kind === 'image' || o.kind === 'text'))
+    } else if (d.handle === 'size' && (o.kind === 'zone' || o.kind === 'shape')) {
+      // con la zona ruotata lo spostamento si misura lungo i suoi lati; il centro si sposta di
+      // metà, perché l'angolo in alto a sinistra resti fermo
+      const a = ((o.rotate ?? 0) * Math.PI) / 180
+      const du = dx * Math.cos(a) + dy * Math.sin(a)
+      const dv = -dx * Math.sin(a) + dy * Math.cos(a)
+      let w = Math.max(3, snap(o.w + du))
+      let h = Math.max(3, snap(o.h + dv))
+      // con Maiuscolo le proporzioni restano quelle di prima: cerchi e quadrati restano tali
+      if (e.shiftKey && o.w > 0 && o.h > 0) {
+        const k = Math.max(w / o.w, h / o.h)
+        w = Math.round(o.w * k * 10) / 10
+        h = Math.round(o.h * k * 10) / 10
+      }
+      // il centro dopo: l'angolo in alto a sinistra del rettangolo ruotato non si muove
+      const ox = o.x + o.w / 2 - (o.w / 2) * Math.cos(a) + (o.h / 2) * Math.sin(a)
+      const oy = o.y + o.h / 2 - (o.w / 2) * Math.sin(a) - (o.h / 2) * Math.cos(a)
+      const cx = ox + (w / 2) * Math.cos(a) - (h / 2) * Math.sin(a)
+      const cy = oy + (w / 2) * Math.sin(a) + (h / 2) * Math.cos(a)
+      const tenth = (n: number): number => Math.round(n * 10) / 10
+      patch = a ? { w, h, x: tenth(cx - w / 2), y: tenth(cy - h / 2) } : { w, h }
+    } else if (d.handle === 'size' && (o.kind === 'image' || o.kind === 'text'))
       patch = { w: Math.max(o.kind === 'text' ? 10 : 3, snap(o.w + dx)) }
     if (patch) {
       change(patch, d.index)
       return
     }
-    // si spostano insieme tutti gli elementi scelti, a passi di 1 mm rispetto al primo
-    const mx = snap(o.x + dx) - o.x
-    const my = snap(o.y + dy) - o.y
+    // si spostano insieme tutti gli elementi scelti, a passi di 1 mm rispetto al primo; quelli
+    // bloccati restano fermi
+    const moving = (chosen.includes(d.index) ? chosen : [d.index]).filter((k) => !d.orig[k]?.lock)
+    if (!moving.length) return
+    let mx = snap(ro.x + dx) - ro.x
+    let my = snap(ro.y + dy) - ro.y
+    // i lati e i centri si agganciano a quelli degli altri elementi (⌥ / Alt per non agganciare)
+    const others = d.boxes.filter((_, k) => !moving.includes(k) && !d.orig[k]?.hidden)
+    const own = moving.map((k) => d.boxes[k]).filter(Boolean)
+    let hit: { x: number | null; y: number | null } = { x: null, y: null }
+    if (!e.altKey && own.length && others.length) {
+      const x1 = Math.min(...own.map((b) => b.x)) + mx
+      const y1 = Math.min(...own.map((b) => b.y)) + my
+      const x2 = Math.max(...own.map((b) => b.x + b.w)) + mx
+      const y2 = Math.max(...own.map((b) => b.y + b.h)) + my
+      const lines = linesOf(size ? [...others, { x: 0, y: 0, w: size.w, h: size.h }] : others)
+      const snapped = snapBox({ x: x1, y: y1, w: x2 - x1, h: y2 - y1 }, lines, SNAP_PX / scale)
+      const tenth = (n: number): number => Math.round(n * 10) / 10
+      if (snapped.x) mx = tenth(mx + snapped.x.delta)
+      if (snapped.y) my = tenth(my + snapped.y.delta)
+      hit = { x: snapped.x?.line ?? null, y: snapped.y?.line ?? null }
+    }
+    if (hit.x !== guides.x || hit.y !== guides.y) setGuides(hit)
     if (mx || my) d.only = d.drop = false
-    const moving = chosen.includes(d.index) ? chosen : [d.index]
-    setItems(d.orig.map((it, k) => (moving.includes(k) ? moveSetupItem(it, mx, my) : it)))
+    setItems(
+      d.orig.map((it, k) =>
+        moving.includes(k) && (mx || my) ? moveSetupItem(detach(it, k, d.resolved), mx, my) : it
+      )
+    )
   }
-  const onPointerUp = (): void => {
+  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>): void => {
     const d = drag.current
     if (d?.mode === 'item' && d.only) setSelection([d.index])
     if (d?.mode === 'item' && d.drop) setSelection(chosen.filter((k) => k !== d.index))
+    // l'estremo di una freccia lasciato su un elemento si aggancia a lui
+    if (d?.mode === 'item' && (d.handle === 'start' || d.handle === 'end')) {
+      const k = itemAt(e.clientX, e.clientY, false, d.index)
+      if (k !== null && items[k].kind !== 'arrow') {
+        const n = named(items, k)
+        const key = d.handle === 'start' ? 'fromItem' : 'toItem'
+        setItems(n.items.map((it, j) => (j === d.index ? ({ ...it, [key]: n.name } as Item) : it)))
+      }
+    }
     drag.current = null
     setFrozen(null)
     setMarquee(null)
     setPanning(false)
+    setGuides({ x: null, y: null })
   }
   const onKeyDown = (e: React.KeyboardEvent): void => {
     if (e.target !== e.currentTarget) return
@@ -603,7 +797,11 @@ export default function SetupDialog({
     const m = move[e.key]
     if (!m) return
     e.preventDefault()
-    setItems(items.map((it, k) => (chosen.includes(k) ? moveSetupItem(it, m[0], m[1]) : it)))
+    setItems(
+      items.map((it, k) =>
+        chosen.includes(k) && !it.lock ? moveSetupItem(detach(it, k), m[0], m[1]) : it
+      )
+    )
   }
 
   // contorno e maniglie degli elementi scelti, nelle misure del disegno
@@ -709,19 +907,56 @@ export default function SetupDialog({
           )
         )
       })}
-      {sel && box && (
+      {/* un lucchetto sugli elementi bloccati */}
+      {items.map((it, k) =>
+        it.lock && !it.hidden && view.boxes[k] ? (
+          <text
+            key={`lock${k}`}
+            x={view.boxes[k].x + 1 / scale}
+            y={view.boxes[k].y + 12 / scale}
+            fontSize={11 / scale}
+            pointerEvents="none"
+          >
+            🔒
+          </text>
+        ) : null
+      )}
+      {guides.x !== null && (
+        <line
+          x1={guides.x}
+          x2={guides.x}
+          y1={area.y}
+          y2={area.y + area.h}
+          stroke={GUIDE}
+          strokeWidth={1 / scale}
+          pointerEvents="none"
+        />
+      )}
+      {guides.y !== null && (
+        <line
+          x1={area.x}
+          x2={area.x + area.w}
+          y1={guides.y}
+          y2={guides.y}
+          stroke={GUIDE}
+          strokeWidth={1 / scale}
+          pointerEvents="none"
+        />
+      )}
+      {sel && placedSel && box && !sel.lock && (
         <>
-          {sel.kind === 'arrow'
+          {placedSel.kind === 'arrow'
             ? [
-                handle('start', sel.x, sel.y),
-                handle('end', sel.x2, sel.y2),
-                bendHandle(arrowCurve(sel).mid)
+                handle('start', placedSel.x, placedSel.y),
+                handle('end', placedSel.x2, placedSel.y2),
+                bendHandle(arrowCurve(placedSel).mid)
               ]
-            : sel.kind === 'zone' || sel.kind === 'image' || sel.kind === 'text'
-              ? handle('size', box.x + box.w, box.y + box.h)
-              : null}
-          {(sel.kind === 'card' || sel.kind === 'deck' || sel.kind === 'image') &&
-            rotateHandle(box)}
+            : sel.kind === 'zone' || sel.kind === 'shape'
+              ? handle('size', ...corner(sel))
+              : sel.kind === 'image' || sel.kind === 'text'
+                ? handle('size', box.x + box.w, box.y + box.h)
+                : null}
+          {sel.kind !== 'arrow' && sel.kind !== 'row' && sel.kind !== 'hand' && rotateHandle(box)}
         </>
       )}
       {marquee && (
@@ -739,6 +974,137 @@ export default function SetupDialog({
       )}
     </g>
   )
+
+  /** Come si chiama l'elemento nel pannello dei livelli e negli elenchi */
+  const describe = (it: Item): string => {
+    const plain = (x: string): string => x.replace(/[*_~]/g, '').trim()
+    if (it.name) return it.name
+    if ('label' in it && it.label) return plain(it.label)
+    if (it.kind === 'text') return plain(it.text)
+    if (it.kind === 'card' || it.kind === 'deck') return it.card
+    if (it.kind === 'row' || it.kind === 'hand') return cardListSource(it.cards)
+    if (it.kind === 'image') return it.src
+    if (it.kind === 'shape') return t(SHAPE_NAMES[it.shape])
+    return t(KINDS[it.kind])
+  }
+  /** Cambia il nome e i richiami di frecce e segnalini che lo usavano */
+  const rename = (k: number, value: string): void => {
+    const v = value.trim()
+    if (v && !/^[\p{L}\p{N}_-]+$/u.test(v)) return
+    const old = items[k].name
+    const same = (n: string | undefined): boolean =>
+      !!old && !!n && n.toLowerCase() === old.toLowerCase()
+    setItems(
+      items.map((it, j) => {
+        let x = j === k ? ({ ...it, name: v || undefined } as Item) : it
+        if (!old || !v) return x
+        if (x.kind === 'arrow' && (same(x.fromItem) || same(x.toItem)))
+          x = {
+            ...x,
+            ...(same(x.fromItem) ? { fromItem: v } : {}),
+            ...(same(x.toItem) ? { toItem: v } : {})
+          }
+        if (x.kind === 'card' && x.on && same(x.on.item)) x = { ...x, on: { ...x.on, item: v } }
+        return x
+      })
+    )
+  }
+  /** Aggancia un estremo della freccia all'elemento k, o lo lascia libero dov'è (k = -1) */
+  const attach = (end: 'fromItem' | 'toItem', k: number): void => {
+    if (single === null || placedSel?.kind !== 'arrow') return
+    if (k < 0) {
+      const free =
+        end === 'fromItem'
+          ? { x: placedSel.x, y: placedSel.y, fromItem: undefined }
+          : { x2: placedSel.x2, y2: placedSel.y2, toItem: undefined }
+      change(free)
+      return
+    }
+    const n = named(items, k)
+    setItems(n.items.map((it, j) => (j === single ? ({ ...it, [end]: n.name } as Item) : it)))
+  }
+  /** Mette il segnalino sulla casella della plancia k, o lo toglie (k = -1) */
+  const putOn = (k: number): void => {
+    if (single === null || sel?.kind !== 'card') return
+    if (k < 0) {
+      setItems(items.map((it, j) => (j === single ? detach(it, j) : it)))
+      return
+    }
+    const n = named(items, k)
+    setItems(
+      n.items.map((it, j) =>
+        j === single && it.kind === 'card'
+          ? { ...it, on: { item: n.name, row: it.on?.row ?? 1, col: it.on?.col ?? 1 } }
+          : it
+      )
+    )
+  }
+  /** Sceglie dal pannello dei livelli, come sul disegno */
+  const pickLayer = (k: number, e: React.MouseEvent): void => {
+    const toggle = e.shiftKey || e.metaKey || e.ctrlKey
+    if (!toggle) setSelection([k])
+    else setSelection(chosen.includes(k) ? chosen.filter((x) => x !== k) : [...chosen, k])
+  }
+  /** Colore di zone e forme: spento è `none`; uguale a quello di base non si scrive */
+  const paintField = (
+    label: string,
+    key: 'fill' | 'stroke',
+    value: string | undefined,
+    base: string
+  ): React.JSX.Element => (
+    <ColorField
+      label={label}
+      nullable
+      fallback={base === 'none' ? '#3a3a3c' : base}
+      value={value === 'none' ? null : (value ?? (base === 'none' ? null : base))}
+      onChange={(v) =>
+        change({
+          [key]: v === null ? (base === 'none' ? undefined : 'none') : v === base ? undefined : v
+        } as Partial<Item>)
+      }
+    />
+  )
+  const lineField = (
+    value: SetupLineStyle | undefined,
+    base: SetupLineStyle
+  ): React.JSX.Element => (
+    <div className="setup-text">
+      <span>{t('documents.setupLine')}</span>
+      <Segmented<SetupLineStyle>
+        value={value ?? base}
+        onChange={(l) => change({ line: l === base ? undefined : l } as Partial<Item>)}
+        options={[
+          ['solid', t('documents.setupLine.solid')],
+          ['dash', t('documents.setupLine.dash')],
+          ['dot', t('documents.setupLine.dot')]
+        ]}
+      />
+    </div>
+  )
+  /** Gli elementi a cui agganciare una freccia o un segnalino, con quello scelto */
+  const targetSelect = (
+    label: string,
+    value: string | undefined,
+    can: (it: Item, k: number) => boolean,
+    onPick: (k: number) => void
+  ): React.JSX.Element => {
+    const at = value ? namedItem(items, value) : -1
+    return (
+      <label className="setup-select">
+        {label}
+        <select value={at} onChange={(e) => onPick(Number(e.target.value))}>
+          <option value={-1}>{t('documents.setupNoTarget')}</option>
+          {items.map((it, k) =>
+            can(it, k) ? (
+              <option key={k} value={k}>
+                {`${t(KINDS[it.kind])}: ${describe(it)}`}
+              </option>
+            ) : null
+          )}
+        </select>
+      </label>
+    )
+  }
 
   const num = (
     label: string,
@@ -798,6 +1164,58 @@ export default function SetupDialog({
           </button>
         </div>
         <div className="setup-body">
+          <div className="setup-layers">
+            <span className="muted small">{t('documents.setupLayers')}</span>
+            <ul>
+              {items
+                .map((it, k) => ({ it, k }))
+                .reverse()
+                .map(({ it, k }, p) => {
+                  const dragProps = layerDrag.itemProps(p)
+                  return (
+                    <li
+                      key={k}
+                      {...dragProps}
+                      className={[
+                        'layer-row',
+                        chosen.includes(k) && 'selected',
+                        it.hidden && 'hidden',
+                        dragProps.className
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                      title={t('documents.setupLayersHint')}
+                      onClick={(e) => pickLayer(k, e)}
+                    >
+                      <span className="layer-icon">
+                        {ICONS[it.kind === 'shape' ? it.shape : it.kind]}
+                      </span>
+                      <span className="layer-name">{describe(it)}</span>
+                      <button
+                        className={`icon-btn${it.lock ? ' on' : ''}`}
+                        title={it.lock ? t('layers.unlock') : t('layers.lock')}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          change({ lock: it.lock ? undefined : true }, k)
+                        }}
+                      >
+                        {it.lock ? '🔒' : '🔓'}
+                      </button>
+                      <button
+                        className={`icon-btn${it.hidden ? ' on' : ''}`}
+                        title={t(it.hidden ? 'layers.show' : 'documents.setupHideHint')}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          change({ hidden: it.hidden ? undefined : true }, k)
+                        }}
+                      >
+                        {it.hidden ? '–' : '👁'}
+                      </button>
+                    </li>
+                  )
+                })}
+            </ul>
+          </div>
           <div
             ref={viewport}
             className={
@@ -870,35 +1288,122 @@ export default function SetupDialog({
                   </button>
                 </div>
               </>
-            ) : sel ? (
+            ) : sel && single !== null ? (
               <>
                 <h3>{t(KINDS[sel.kind])}</h3>
                 {(sel.kind === 'card' || sel.kind === 'deck') && (
                   <>
                     <code className="setup-ref">{sel.card}</code>
-                    <button onClick={() => setPickingCard({ kind: sel.kind, index: single! })}>
+                    <button onClick={() => setPickingCard({ kind: sel.kind, index: single })}>
                       {t('documents.setupChangeCard')}
                     </button>
                   </>
                 )}
+                {(sel.kind === 'row' || sel.kind === 'hand') && (
+                  <div className="setup-text">
+                    <span>{t('documents.setupCards')}</span>
+                    <ul className="setup-cards">
+                      {sel.cards.map((c, n) => (
+                        <li key={n} {...cardDrag.itemProps(n)}>
+                          <code>{c}</code>
+                          <button
+                            className="icon-btn"
+                            disabled={sel.cards.length < 2}
+                            title={t('documents.setupRemoveCard')}
+                            onClick={() => change({ cards: sel.cards.filter((_, j) => j !== n) })}
+                          >
+                            ×
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                    <button disabled={sel.cards.length >= 60} onClick={() => setAddingCard(single)}>
+                      {t('documents.setupAddCard')}
+                    </button>
+                  </div>
+                )}
                 {sel.kind === 'image' && (
                   <>
                     <code className="setup-ref">{sel.src}</code>
-                    <button onClick={() => setPickingImage({ index: single! })}>
+                    <button onClick={() => setPickingImage({ index: single })}>
                       {t('documents.setupChangeImage')}
                     </button>
                   </>
                 )}
-                <div className="dialog-row">
-                  {num('x', sel.x, (x) => change({ x }))}
-                  {num('y', sel.y, (y) => change({ y }))}
-                </div>
-                {sel.kind === 'arrow' && (
+                {sel.kind === 'shape' && (
+                  <div className="setup-text">
+                    <span>{t('documents.setupShapeKind')}</span>
+                    <Segmented<SetupShape>
+                      value={sel.shape}
+                      onChange={(shape) => change({ shape })}
+                      options={SETUP_SHAPES.map((k) => [k, t(SHAPE_NAMES[k])])}
+                    />
+                  </div>
+                )}
+                {sel.kind === 'card' && (
                   <>
-                    <div className="dialog-row">
-                      {num('x2', sel.x2, (x2) => change({ x2 }))}
-                      {num('y2', sel.y2, (y2) => change({ y2 }))}
-                    </div>
+                    {targetSelect(
+                      t('documents.setupOnBoard'),
+                      sel.on?.item,
+                      (it, k) =>
+                        k !== single &&
+                        (it.kind === 'card' || it.kind === 'deck') &&
+                        !('on' in it && it.on),
+                      putOn
+                    )}
+                    {sel.on && (
+                      <div className="dialog-row">
+                        {num(
+                          t('documents.setupCellRow'),
+                          sel.on.row,
+                          (row) =>
+                            change({ on: { ...sel.on!, row: Math.max(1, Math.round(row)) } }),
+                          1
+                        )}
+                        {num(
+                          t('documents.setupCellCol'),
+                          sel.on.col,
+                          (col) =>
+                            change({ on: { ...sel.on!, col: Math.max(1, Math.round(col)) } }),
+                          1
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+                {!(sel.kind === 'card' && sel.on) && sel.kind !== 'arrow' && (
+                  <div className="dialog-row">
+                    {num('x', sel.x, (x) => change({ x }))}
+                    {num('y', sel.y, (y) => change({ y }))}
+                  </div>
+                )}
+                {sel.kind === 'arrow' && placedSel?.kind === 'arrow' && (
+                  <>
+                    {targetSelect(
+                      t('documents.setupFrom'),
+                      sel.fromItem,
+                      (it, k) => k !== single && it.kind !== 'arrow',
+                      (k) => attach('fromItem', k)
+                    )}
+                    {!sel.fromItem && (
+                      <div className="dialog-row">
+                        {num('x', sel.x, (x) => change({ x }))}
+                        {num('y', sel.y, (y) => change({ y }))}
+                      </div>
+                    )}
+                    {targetSelect(
+                      t('documents.setupTo'),
+                      sel.toItem,
+                      (it, k) => k !== single && it.kind !== 'arrow',
+                      (k) => attach('toItem', k)
+                    )}
+                    {!sel.toItem && (
+                      <div className="dialog-row">
+                        {num('x2', sel.x2, (x2) => change({ x2 }))}
+                        {num('y2', sel.y2, (y2) => change({ y2 }))}
+                      </div>
+                    )}
+                    <p className="muted small">{t('documents.setupAttachHint')}</p>
                     <div className="dialog-row">
                       {num(t('documents.setupBend'), sel.bend ?? 0, (n) =>
                         change({ bend: n ? n : undefined, ...(n ? {} : { shift: undefined }) })
@@ -921,6 +1426,12 @@ export default function SetupDialog({
                       (n) => change({ thickness: n > 0 ? n : undefined }),
                       0.1
                     )}
+                    <ColorField
+                      label={t('documents.setupColor')}
+                      value={sel.color ?? '#3a3a3c'}
+                      onChange={(v) => change({ color: !v || v === '#3a3a3c' ? undefined : v })}
+                    />
+                    {lineField(sel.line, 'solid')}
                     <div className="setup-text">
                       <span>{t('documents.setupHeads')}</span>
                       <Segmented<ArrowHeads>
@@ -936,20 +1447,142 @@ export default function SetupDialog({
                     </div>
                   </>
                 )}
-                {sel.kind === 'zone' && (
-                  <div className="dialog-row">
-                    {num(t('documents.setupW'), sel.w, (w) => change({ w }), 5)}
-                    {num(t('documents.setupH'), sel.h, (h) => change({ h }), 5)}
-                  </div>
+                {(sel.kind === 'zone' || sel.kind === 'shape') && (
+                  <>
+                    <div className="dialog-row">
+                      {num(t('documents.setupW'), sel.w, (w) => change({ w }), 3)}
+                      {num(t('documents.setupH'), sel.h, (h) => change({ h }), 3)}
+                    </div>
+                    {sel.kind === 'shape' && (sel.shape === 'polygon' || sel.shape === 'star') && (
+                      <div className="dialog-row">
+                        {num(
+                          t(
+                            sel.shape === 'star' ? 'documents.setupPoints' : 'documents.setupSides'
+                          ),
+                          sel.sides ?? (sel.shape === 'star' ? 5 : 6),
+                          (n) => change({ sides: Math.max(3, Math.min(40, Math.round(n))) }),
+                          3
+                        )}
+                        {sel.shape === 'star' &&
+                          num(
+                            t('documents.setupInner'),
+                            (sel.inner ?? 0.5) * 100,
+                            (n) => change({ inner: Math.max(5, Math.min(100, n)) / 100 }),
+                            5
+                          )}
+                      </div>
+                    )}
+                    {paintField(
+                      t('documents.setupFill'),
+                      'fill',
+                      sel.fill,
+                      sel.kind === 'zone' ? '#f6f6f6' : 'none'
+                    )}
+                    {paintField(
+                      t('documents.setupStroke'),
+                      'stroke',
+                      sel.stroke,
+                      sel.kind === 'zone' ? '#8e8e93' : '#3a3a3c'
+                    )}
+                    <div className="dialog-row">
+                      {num(
+                        t('documents.setupThickness'),
+                        sel.thickness ?? (sel.kind === 'zone' ? 0.3 : 0.5),
+                        (n) => change({ thickness: Math.max(0, n) }),
+                        0
+                      )}
+                      {num(
+                        t('documents.setupRadius'),
+                        sel.radius ?? (sel.kind === 'zone' ? 3 : 0),
+                        (n) => change({ radius: Math.max(0, n) }),
+                        0
+                      )}
+                    </div>
+                    {lineField(sel.line, sel.kind === 'zone' ? 'dash' : 'solid')}
+                    {num(
+                      t('documents.setupOpacity'),
+                      (sel.opacity ?? 1) * 100,
+                      (n) => {
+                        const o = Math.max(0, Math.min(100, n)) / 100
+                        change({ opacity: o < 1 ? o : undefined })
+                      },
+                      0
+                    )}
+                  </>
                 )}
                 {(sel.kind === 'text' || sel.kind === 'image') &&
                   num(t('documents.setupW'), sel.w, (w) => change({ w }), 3)}
+                {sel.kind === 'text' && (
+                  <ColorField
+                    label={t('documents.setupColor')}
+                    value={sel.color ?? '#3a3a3c'}
+                    onChange={(v) => change({ color: !v || v === '#3a3a3c' ? undefined : v })}
+                  />
+                )}
                 {sel.kind === 'deck' &&
                   num(t('documents.setupCount'), sel.count, (count) => change({ count }), 1)}
-                {(sel.kind === 'card' || sel.kind === 'deck' || sel.kind === 'image') && (
+                {sel.kind === 'row' && (
+                  <>
+                    {num(t('documents.setupGap'), sel.gap ?? SETUP_ROW_GAP, (n) =>
+                      change({ gap: n === SETUP_ROW_GAP ? undefined : n })
+                    )}
+                    <div className="setup-text">
+                      <span>{t('documents.setupDirection')}</span>
+                      <Segmented<'right' | 'down'>
+                        value={sel.direction ?? 'right'}
+                        onChange={(d) => change({ direction: d === 'down' ? 'down' : undefined })}
+                        options={[
+                          ['right', t('documents.setupDirection.right')],
+                          ['down', t('documents.setupDirection.down')]
+                        ]}
+                      />
+                    </div>
+                  </>
+                )}
+                {sel.kind === 'hand' &&
+                  num(
+                    t('documents.setupSpread'),
+                    sel.spread ?? SETUP_HAND_SPREAD,
+                    (n) => {
+                      const v = Math.max(0, Math.min(180, n))
+                      change({ spread: v === SETUP_HAND_SPREAD ? undefined : v })
+                    },
+                    0
+                  )}
+                {CARDISH.includes(sel.kind) &&
+                  (sel.kind === 'card' ||
+                    sel.kind === 'deck' ||
+                    sel.kind === 'row' ||
+                    sel.kind === 'hand') && (
+                    <>
+                      {num(
+                        t('documents.setupZoom'),
+                        (sel.scale ?? 1) * 100,
+                        (n) => {
+                          const v = Math.max(10, Math.min(1000, n)) / 100
+                          change({ scale: v === 1 ? undefined : v })
+                        },
+                        10
+                      )}
+                      <div className="setup-text">
+                        <span>{t('documents.setupLabelAt')}</span>
+                        <Segmented<SetupLabelAt>
+                          value={sel.labelAt ?? 'bottom'}
+                          onChange={(a) => change({ labelAt: a === 'bottom' ? undefined : a })}
+                          options={[
+                            ['bottom', t('documents.setupLabelAt.bottom')],
+                            ['top', t('documents.setupLabelAt.top')],
+                            ['left', t('documents.setupLabelAt.left')],
+                            ['right', t('documents.setupLabelAt.right')]
+                          ]}
+                        />
+                      </div>
+                    </>
+                  )}
+                {sel.kind !== 'arrow' && sel.kind !== 'row' && sel.kind !== 'hand' && (
                   <div className="dialog-row">
-                    {num(t('documents.setupRotation'), sel.rotate, (n) => rotateTo(n))}
-                    <button onClick={() => rotateTo(sel.rotate + 90)}>
+                    {num(t('documents.setupRotation'), sel.rotate ?? 0, (n) => rotateTo(n))}
+                    <button onClick={() => rotateTo((sel.rotate ?? 0) + 90)}>
                       {t('documents.setupRotate90')}
                     </button>
                   </div>
@@ -987,13 +1620,34 @@ export default function SetupDialog({
                     />
                   </div>
                 ) : null}
+                {sel.kind !== 'arrow' && (
+                  <label className="setup-select" title={t('documents.setupNameHint')}>
+                    {t('documents.setupName')}
+                    <input
+                      key={`name${single}`}
+                      defaultValue={sel.name ?? ''}
+                      onBlur={(e) => rename(single, e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') rename(single, e.currentTarget.value)
+                      }}
+                    />
+                  </label>
+                )}
+                <label className="setup-check" title={t('documents.setupLockHint')}>
+                  <input
+                    type="checkbox"
+                    checked={!!sel.lock}
+                    onChange={(e) => change({ lock: e.target.checked ? true : undefined })}
+                  />
+                  {t('documents.setupLock')}
+                </label>
                 <div className="setup-order">
                   <span>{t('documents.setupOrder')}</span>
                   <div className="setup-order-grid">
                     {(['top', 'up', 'down', 'bottom'] as SetupOrder[]).map((to) => (
                       <button
                         key={to}
-                        disabled={!canReorderSetupItem(items, single!, to === 'top' || to === 'up')}
+                        disabled={!canReorderSetupItem(items, single, to === 'top' || to === 'up')}
                         title={t(`documents.setupOrder.${to}Hint` as MessageKey)}
                         onClick={() => reorder(to)}
                       >
@@ -1101,6 +1755,10 @@ export default function SetupDialog({
             }
             const c = center()
             const at = { from: 0, to: 0, x: c.x - 30, y: c.y - 40, rotate: 0, label: '' }
+            if (p.kind === 'row' || p.kind === 'hand') {
+              add({ kind: p.kind, cards: [card], from: 0, to: 0, x: at.x, y: at.y, label: '' })
+              return
+            }
             add(
               p.kind === 'deck'
                 ? { kind: 'deck', card, count: 10, ...at }
@@ -1108,6 +1766,21 @@ export default function SetupDialog({
             )
           }}
           onClose={() => setPickingCard(null)}
+        />
+      )}
+      {addingCard !== null && (
+        <InsertCardDialog
+          pick=""
+          sets={sets}
+          templates={templates}
+          project={project}
+          onInsert={(card) => {
+            const k = addingCard
+            setAddingCard(null)
+            const it = items[k]
+            if (it?.kind === 'row' || it?.kind === 'hand') change({ cards: [...it.cards, card] }, k)
+          }}
+          onClose={() => setAddingCard(null)}
         />
       )}
       {pickingImage && (

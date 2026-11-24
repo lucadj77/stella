@@ -5,6 +5,26 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## Next version
+
+### English
+
+- **Shapes in the table setup**: rectangles, ellipses, polygons and stars, with fill, border, dashed or dotted lines, rounded corners and opacity. Zones get the same colors and lines, texts and arrows a color.
+- **Layers panel**: lists the elements of the drawing, selects them, reorders them by dragging (a shape can now go over a card), locks them so a click doesn't move them, and hides them while you work.
+- **Rows and hands of cards**: several cards side by side or fanned out, also from different sets.
+- **Arrows that follow**: drop an end of an arrow on an element and it stays attached when the element moves.
+- **Tokens on board spaces**: a component placed on row and column of a board's grid follows the board.
+- **More control**: snapping to the other elements (⌥ / Alt to turn it off), zoom on cards and decks to make them stand out, caption above, below or beside, rotation of zones, shapes and texts.
+
+### Italiano
+
+- **Forme nello schema del tavolo**: rettangoli, ellissi, poligoni e stelle, con riempimento, bordo, linee tratteggiate o a puntini, angoli arrotondati e opacità. Le zone hanno gli stessi colori e linee, testi e frecce un colore.
+- **Pannello dei livelli**: elenca gli elementi del disegno, li sceglie, li riordina trascinandoli (ora una forma può stare sopra una carta), li blocca perché un clic non li sposti e li nasconde mentre lavori.
+- **File e mani di carte**: più carte una accanto all'altra o a ventaglio, anche da set diversi.
+- **Frecce che seguono**: lascia un estremo di una freccia su un elemento e resta agganciata quando l'elemento si sposta.
+- **Segnalini sulle caselle**: un componente messo su riga e colonna della griglia di una plancia segue la plancia.
+- **Più controllo**: aggancio agli altri elementi (⌥ / Alt per toglierlo), zoom su carte e mazzi per dar loro risalto, didascalia sopra, sotto o di lato, rotazione di zone, forme e testi.
+
 ## 1.13.1-beta.1
 
 ### English

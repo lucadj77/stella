@@ -7404,6 +7404,7 @@ button.more-button {
   flex-direction: column;
   gap: 10px;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .setup-arrange {
@@ -7448,6 +7449,78 @@ button.more-button {
   flex-direction: row;
   align-items: center;
   gap: 6px;
+}
+
+/* pannello dei livelli dello schema del tavolo: in cima l'elemento più in alto */
+.setup-layers {
+  width: 190px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 0;
+}
+
+.setup-layers ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.setup-layers .layer-row {
+  cursor: pointer;
+}
+
+.setup-layers .layer-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.setup-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.setup-cards li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  cursor: grab;
+}
+
+.setup-cards li code {
+  flex: 1;
+  min-width: 0;
+  word-break: break-all;
+}
+
+.setup-cards li.drop-before {
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+
+.setup-cards li.drop-after {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.dialog-form label.setup-select {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12px;
+}
+
+.setup-props .field {
+  font-size: 12px;
 }
 
 /* lingue del progetto */

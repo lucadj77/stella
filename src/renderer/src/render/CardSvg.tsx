@@ -517,7 +517,13 @@ function ShapeView({ layer: l, id }: { layer: ShapeLayer; id: string }): React.J
   )
 }
 
-function ShapeBody({ layer: l, fill }: { layer: ShapeLayer; fill: string }): React.JSX.Element {
+export function ShapeBody({
+  layer: l,
+  fill
+}: {
+  layer: ShapeLayer
+  fill: string
+}): React.JSX.Element {
   const paint = { fill, ...strokeProps(l.stroke) }
   switch (l.shape) {
     case 'ellipse':
