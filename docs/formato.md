@@ -87,7 +87,7 @@ I progetti creati quando l'app si chiamava Naibi hanno `naibi.json`, quelli anco
 
 Un campo della carta con lo stesso nome di una variabile vince sulla variabile.
 
-`export` (facoltativo) ricorda le opzioni dell'ultima esportazione, con una chiave per tipo: `images`, `pdf`, `tts`. La scrive l'app quando si esporta; i nomi delle opzioni sono in `src/shared/export.ts` e il loro significato in docs/specifica.md, sezione 9. Sotto `named` stanno i profili con nome, ciascuno con `name`, `kind` e `options`. La cartella `export/` del progetto contiene i file esportati e si può rigenerare.
+`export` (facoltativo) ricorda le opzioni dell'ultima esportazione, con una chiave per tipo: `images`, `pdf`, `tts`, `cut` (plotter da taglio). La scrive l'app quando si esporta; i nomi delle opzioni sono in `src/shared/export.ts` e il loro significato in docs/specifica.md, sezione 9. Sotto `named` stanno i profili con nome, ciascuno con `name`, `kind` e `options`. La cartella `export/` del progetto contiene i file esportati e si può rigenerare.
 
 `languages` (facoltativo) elenca le lingue del progetto come codici di due o tre lettere, con una variante facoltativa (`pt-BR`); la prima è la principale, quella delle colonne senza `@`. Con meno di due lingue il progetto ha una lingua sola. `names` (facoltativo, nel progetto e in ogni set) dà il nome nelle altre lingue, per codice; un nome assente è quello della lingua principale. Vedi docs/specifica.md, 7.1.
 

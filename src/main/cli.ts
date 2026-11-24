@@ -4,7 +4,7 @@ import { app } from 'electron'
 import { readFile, stat } from 'fs/promises'
 import { join, resolve } from 'path'
 import Papa from 'papaparse'
-import { messageFromError } from '../shared/messages'
+import { messageFromError, type Message } from '../shared/messages'
 import type { LoadedProject, Sheet } from '../shared/project'
 import {
   CliError,
@@ -24,11 +24,14 @@ import {
   DEFAULT_IMAGE,
   DEFAULT_PDF,
   DEFAULT_TTS,
+  DEFAULT_CUT,
+  type CutOptions,
   type ExportJob,
   type ExportSet,
   type SidesChoice
 } from '../shared/export'
 import { buildSets } from '../shared/exportJob'
+import { cutInstructions, planCut, type Translate } from '../shared/cutPlan'
 import { localizationOf, missingTranslations, projectLanguages } from '../shared/model/language'
 import { numberFormatting } from '../shared/model/numberFormat'
 import { runExport } from './export/run'
@@ -706,6 +709,19 @@ async function render(p: Parsed): Promise<number> {
   })
 }
 
+/** Plotter da taglio: le istruzioni in inglese, come il resto della riga di comando */
+function cutJob(base: Omit<ExportJob, 'kind' | 'options'>, options: CutOptions): ExportJob {
+  const job: ExportJob = { ...base, kind: 'cut', options, locale: 'en' }
+  const plan = planCut(
+    options,
+    base.sets.filter((s) => s.cards.length),
+    base.project,
+    'en'
+  )
+  const tr: Translate = (key, params) => messageText({ key, params } as Message)
+  return { ...job, instructions: cutInstructions(options, plan, tr, 'en') }
+}
+
 async function exportProfile(p: Parsed): Promise<number> {
   const project = await open(p.positional[0])
   const name = p.flags.profile
@@ -723,11 +739,13 @@ async function exportProfile(p: Parsed): Promise<number> {
         ? { ...base, kind: 'images', options: { ...DEFAULT_IMAGE, ...profile.options } }
         : profile.kind === 'pdf'
           ? { ...base, kind: 'pdf', options: { ...DEFAULT_PDF, ...profile.options } }
-          : {
-              ...base,
-              kind: 'tts',
-              options: { ...DEFAULT_TTS, nickname: project.file.name, ...profile.options }
-            }
+          : profile.kind === 'cut'
+            ? cutJob(base, { ...DEFAULT_CUT, ...profile.options })
+            : {
+                ...base,
+                kind: 'tts',
+                options: { ...DEFAULT_TTS, nickname: project.file.name, ...profile.options }
+              }
     const code = await exportJob(project, job)
     if (code) return code
   }

@@ -9,7 +9,7 @@ import type { ProjectFont } from './project'
 import type { Variables } from './model/variables'
 import { parseTags, snapPoints, type SnapPoint } from './model/ttsSnap'
 
-export type ExportKind = 'images' | 'pdf' | 'tts'
+export type ExportKind = 'images' | 'pdf' | 'tts' | 'cut'
 export type SidesChoice = 'front' | 'back' | 'both'
 
 export interface CommonOptions {
@@ -95,6 +95,31 @@ export interface PdfOptions extends CommonOptions {
 
 export type DiceLayout = 'faces' | 'net'
 
+/**
+ * Plotter da taglio: Cricut stampa i suoi segni di registrazione e ricava il taglio dal PNG; gli
+ * altri (Silhouette, Brother, ...) ricevono anche i tracciati di taglio in SVG e DXF
+ */
+export type CutMachine = 'cricut' | 'other'
+export type CutPaper = 'A4' | 'Letter' | 'A3' | 'custom'
+
+export interface CutOptions extends CommonOptions {
+  machine: CutMachine
+  paper: CutPaper
+  /**
+   * Area in cui il programma del plotter stampa e taglia (Print Then Cut), in mm: il resto del
+   * foglio va ai segni di registrazione. I componenti si impaginano qui dentro
+   */
+  areaWidth: number
+  areaHeight: number
+  /** Spazio tra i componenti, in mm: lascia posto all'abbondanza che aggiunge il programma */
+  spacing: number
+  dpi: number
+  /** Fronte e retro affiancati, con una piega da cordonare al centro di ogni coppia */
+  fold: boolean
+  /** Profondità delle linguette dei dadi da piegare, in mm; 0 la sceglie dal lato del dado */
+  tabDepth: number
+}
+
 export interface TtsOptions extends Omit<CommonOptions, 'folder'> {
   grid: 'auto' | 'fixed'
   cols: number
@@ -172,11 +197,13 @@ export type NamedProfile =
   | { name: string; kind: 'images'; options: Partial<ImageOptions> }
   | { name: string; kind: 'pdf'; options: Partial<PdfOptions> }
   | { name: string; kind: 'tts'; options: Partial<TtsOptions> }
+  | { name: string; kind: 'cut'; options: Partial<CutOptions> }
 
 export interface ExportProfiles {
   images?: Partial<ImageOptions>
   pdf?: Partial<PdfOptions>
   tts?: Partial<TtsOptions>
+  cut?: Partial<CutOptions>
   /** Profili con nome, nell'ordine in cui sono stati creati */
   named?: NamedProfile[]
   /** L'ultima esportazione: il tipo e la lingua, per «Ripeti l'ultima esportazione» */
@@ -233,6 +260,77 @@ export const DEFAULT_PDF: PdfOptions = {
   tabDepth: 0
 }
 
+/**
+ * Area di Stampa e taglio di Cricut Design Space per foglio, in mm, larghezza per altezza in
+ * verticale. Non è un rettangolo: i segni di registro negli angoli la riducono a tre fasce,
+ * misurate su A4 nella tela di Design Space (Cricut Maker): larga 18,4 × 20,7 cm, media
+ * 16,8 × 25,5, stretta 12 × 27. Un'immagine deve stare tutta in una fascia. Qui la fascia
+ * larga, con 2 mm di margine; le altre in CRICUT_BANDS. Letter: le stesse fasce accorciate
+ * della differenza di altezza dichiarata da Cricut (da provare). A3: da provare.
+ */
+export const CRICUT_AREAS: Record<Exclude<CutPaper, 'custom'>, [number, number]> = {
+  A4: [182, 205],
+  Letter: [182, 188],
+  A3: [270.3, 392.2]
+}
+
+/** Le altre fasce dell'area Cricut, provate dopo quella di CRICUT_AREAS */
+export const CRICUT_BANDS: Record<Exclude<CutPaper, 'custom'>, [number, number][]> = {
+  A4: [
+    [166, 252],
+    [120, 268]
+  ],
+  Letter: [
+    [166, 235],
+    [120, 250]
+  ],
+  A3: []
+}
+
+/**
+ * Le aree da provare: quella scritta e, con Cricut e un foglio non personalizzato, le altre
+ * fasce dell'area di Stampa e taglio
+ */
+export function cutAreas(o: CutOptions): [number, number][] {
+  const own: [number, number] = [o.areaWidth, o.areaHeight]
+  if (o.machine !== 'cricut' || o.paper === 'custom') return [own]
+  const [w, h] = CRICUT_AREAS[o.paper]
+  // aree cambiate a mano senza passare a «personalizzata»: solo quella scritta
+  if (Math.abs(w - o.areaWidth) > 0.01 || Math.abs(h - o.areaHeight) > 0.01) return [own]
+  return [own, ...CRICUT_BANDS[o.paper]]
+}
+
+/** Area degli altri plotter, da controllare nel loro programma: il foglio meno 15 mm per lato */
+export const OTHER_AREAS: Record<Exclude<CutPaper, 'custom'>, [number, number]> = {
+  A4: [180, 267],
+  Letter: [185.9, 249.4],
+  A3: [267, 390]
+}
+
+/** Area per macchina e foglio; con il foglio personalizzato resta quella scritta */
+export function cutArea(
+  machine: CutMachine,
+  paper: CutPaper,
+  current: [number, number]
+): [number, number] {
+  if (paper === 'custom') return current
+  return (machine === 'cricut' ? CRICUT_AREAS : OTHER_AREAS)[paper]
+}
+
+export const DEFAULT_CUT: CutOptions = {
+  sets: [],
+  copies: true,
+  folder: '',
+  machine: 'cricut',
+  paper: 'A4',
+  areaWidth: CRICUT_AREAS.A4[0],
+  areaHeight: CRICUT_AREAS.A4[1],
+  spacing: 4,
+  dpi: 300,
+  fold: false,
+  tabDepth: 0
+}
+
 export const DEFAULT_TTS: TtsOptions = {
   sets: [],
   copies: true,
@@ -284,6 +382,14 @@ export type ExportJob =
       duplexTest?: DuplexTestText
     })
   | (JobBase & { kind: 'tts'; options: TtsOptions })
+  | (JobBase & {
+      kind: 'cut'
+      options: CutOptions
+      /** Il file di istruzioni, già tradotto (vedi cutInstructions) */
+      instructions?: string
+      /** Lingua dei numeri nei nomi dei file e nelle istruzioni: 18.29 o 18,29 */
+      locale?: string
+    })
 
 /** Contesto del disegno: immagini e stili del progetto aperto */
 export interface ExportContext {
@@ -375,6 +481,11 @@ export interface ScenePage {
    * stanno tra le facce e il taglio passa nell'abbondanza
    */
   linesOver?: boolean
+  /**
+   * Pieghe da cordonare con il plotter (fogli da piegare, sviluppi dei dadi): non si disegnano,
+   * servono all'esportazione per plotter da taglio
+   */
+  folds?: SceneLine[]
 }
 
 export interface SceneShape {

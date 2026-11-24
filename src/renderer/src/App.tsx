@@ -220,6 +220,7 @@ import FormatDialog from './components/FormatDialog'
 import { isMacPlatform, platformKeys } from '../../shared/keys'
 import ExportToast, { type ExportRun } from './export/ExportToast'
 import { runExport, savedOptions } from './export/exportRun'
+import type { CutTexts } from '../../shared/cutPlan'
 import LanguagesDialog, { type LanguagesChange } from './components/LanguagesDialog'
 import ProjectInfoDialog, { type ProjectInfo } from './components/ProjectInfoDialog'
 import { languageName } from './i18n/languageName'
@@ -922,7 +923,14 @@ function App(): React.JSX.Element {
       setExportRun((r) => (r?.progress ? { ...r, progress } : r))
     )
     try {
-      const result = await runExport(project, what, last.language ?? languages[0] ?? '', hasFont)
+      const result = await runExport(
+        project,
+        what,
+        last.language ?? languages[0] ?? '',
+        hasFont,
+        null,
+        { tr: t as CutTexts['tr'], locale: lang }
+      )
       setExportRun({ what, result })
     } catch (e) {
       setExportRun({ what, error: messageFromError(e) })

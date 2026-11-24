@@ -401,7 +401,13 @@ function foldPages(o: PdfOptions, set: ExportSet, grid: Grid): { side: Side; pag
           }
         ]
       }),
-      lines: [...cropMarks(o, grid, plan.cards), ...foldMarks(o, grid, plan.cards)]
+      lines: [...cropMarks(o, grid, plan.cards), ...foldMarks(o, grid, plan.cards)],
+      // la piega per tutta l'altezza della coppia, tra il fronte e il retro
+      folds: plan.cards.map((c) => {
+        const t = c.instance.card.template
+        const x = c.x + b + t.width
+        return { x1: x, y1: c.y + b, x2: x, y2: c.y + b + t.height, dash: true }
+      })
     }
   }))
 }
@@ -730,7 +736,8 @@ function netPages(
         items: nets.flatMap((net) => [...net.tabs, ...net.items]),
         shapes: nets.flatMap((net) => net.shapes),
         lines: marks ? nets.flatMap((net) => [...net.cut, ...net.folds]) : [],
-        linesOver: true
+        linesOver: true,
+        folds: nets.flatMap((net) => net.folds)
       }
     })
     // con il fronte-retro i dadi non hanno retro: una pagina vuota tiene allineati i set dopo

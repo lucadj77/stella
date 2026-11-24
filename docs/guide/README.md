@@ -786,7 +786,7 @@ Single-color icons (black SVGs on a transparent background) are recolored with t
 
 **Import icons…**, in the image chooser and in the window of an icon variable, opens three collections included in the app, which work offline, and an online one:
 
-- **game-icons.net**: about 4200 icons, with categories and search. License CC BY 3.0: authors must be credited (see credits, [chapter 11.7](#117-credits)). **Update catalog** downloads the icons published after this version of the app (needs the network, takes about a minute).
+- **game-icons.net**: about 4200 icons, with categories and search. License CC BY 3.0: authors must be credited (see credits, [chapter 11.8](#118-credits)). **Update catalog** downloads the icons published after this version of the app (needs the network, takes about a minute).
 - **Kenney: icons and patterns**: board game icons and tileable patterns, CC0.
 - **Kenney: cards, dice and pawns**: color PNG images, CC0.
 - **Iconify (online)**: over 200 more collections (Material Design, Tabler, Phosphor, emoji...), searched on the internet. Type in the search box to search all of them, or choose a collection on the left to browse it.
@@ -957,7 +957,7 @@ The bleed of inner components shows the image of the neighbouring ones. For comp
 
 ## 11. Exporting
 
-**Export…** (⌘E / Ctrl+E) opens a window that starts from what you want to do: **Print at home** (a PDF with the components side by side, front and back), **Print shop** (a PDF with bleed and crop marks), **Tabletop Simulator** or **Images**. Below you choose the sets (the number next to the name says how many rows they have) and whether to repeat components as the `amount` column says. Components are drawn by the same engine as the preview, including unsaved changes.
+**Export…** (⌘E / Ctrl+E) opens a window that starts from what you want to do: **Print at home** (a PDF with the components side by side, front and back), **Print shop** (a PDF with bleed and crop marks), **Cutting plotter** (Cricut, Silhouette and similar, see [11.5](#115-cutting-plotters)), **Tabletop Simulator** or **Images**. Below you choose the sets (the number next to the name says how many rows they have) and whether to repeat components as the `amount` column says. Components are drawn by the same engine as the preview, including unsaved changes.
 
 The window has the options on the left and the preview on the right. The options come in three levels:
 
@@ -1067,13 +1067,44 @@ Sheets are referenced by local addresses, so the deck works on the computer that
 
 ![Exporting for Tabletop Simulator](img/esporta-tts.png)
 
-### 11.5 Profiles and presets
+### 11.5 Cutting plotters
+
+**Cutting plotter** prepares the components for a machine that prints and cuts: Cricut (Design Space, **Print Then Cut**), Silhouette, Brother ScanNCut and similar. The printer prints the sheet, the machine reads the registration marks and cuts along the outline of each component, rounded corners, hexagons, custom shapes and holes included.
+
+It is best for pieces a paper trimmer cannot cut: round or custom-shaped tokens, hexagons, pieces with holes, dice to fold. For rectangular cards a PDF with crop marks and a trimmer is usually faster, since Cricut fits only 6 poker cards per A4 sheet.
+
+The programs of these machines accept an image no larger than a fixed area, which depends on the paper: **Machine** and **Paper** choose it and the two fields next to it change it by hand. The Cricut area is stepped, because of the registration marks in the corners: on A4 a wide band of 18.2 × 20.5 cm, a middle one of 16.6 × 25.2 cm and a narrow one of 12 × 26.8 cm, and each image must fit entirely in one of them. Stella tries them all and uses the one that gives fewer sheets (for poker cards the wide band, with 6 cards turned). Stella fits as many components as it can in the area, turning them if more fit that way, with the **Spacing** between them (4 mm by default). Then it crops each sheet to the components it holds, so the machine's program does not have to guess where they start.
+
+![Export for cutting plotters](img/esporta-plotter.png)
+
+For each sheet the `<project>_plotter` folder holds:
+
+- `sheet-01 (18 x 26.4 cm).png`: the sheet to print, at 300 DPI, transparent outside the components. The name gives the real size of the sheet.
+- With **Other plotter**: `… cut.svg` and `… cut.dxf`, the cut outline at the same size as the PNG (Silhouette Studio Basic opens only the DXF).
+- With folds: `… folds.svg`, the lines to fold.
+- `instructions.txt`: the steps to follow and the size of each sheet.
+
+**With Cricut Design Space**, one sheet at a time:
+
+1. Upload the PNG, choose the **Complex** type keeping the transparency (without removing the background) and save it as a **Print Then Cut** image. Design Space cuts along the edge of the drawing, so transparent holes are cut too.
+2. Design Space ignores the PNG resolution and opens it larger: select it and type the width in cm given in the file name, with the proportions locked.
+3. If the sheet has folds, upload the `folds.svg` file and type the same width. The file also holds the outline of the pieces, only to align it: place it at the top left on the PNG, then delete the outline layer (the one with the whole shapes).
+4. Set the folds to **Score**, select the PNG and the folds and use **Attach**.
+5. Click **Make**: Design Space prints the sheet with its registration marks, then cuts it.
+
+If Design Space says the image is too large, make the area a few millimetres smaller and export again.
+
+**Front and back.** With **Front and back side by side, to fold** each component becomes a single piece, twice as wide, with front and back next to each other and the fold in the middle; the sheet is turned if more fit that way. Without this option only the front is exported. Sets of die faces come out as nets to fold, with tabs.
+
+Each new export removes the sheets of the previous one from the folder, since they had other names.
+
+### 11.6 Profiles and presets
 
 Print shops and home printing are already in the choices: **Print shop** and **Print at home** start from their options (A4, or Letter with the app in English), and for images **For** chooses between general use, MakePlayingCards and The Game Crafter. Before ordering, check the specifications on the printer's website, which may change.
 
 The **Profile ▾** menu at the bottom stores the current options as a named project profile, to use again later: **Save as new profile…**, **Save in** to update the chosen profile, **Delete**. Picking a profile from the menu brings back its export type and options.
 
-### 11.6 Choosing the components
+### 11.7 Choosing the components
 
 To reprint only some components, below the sets there is **Choose components…**. It opens the thumbnails of the components of the chosen sets, each with a checkbox: a click picks or drops a component, the checkbox next to the set name picks or drops them all, **All** and **None** apply to every set, **Front** and **Back** change the side shown.
 
@@ -1083,7 +1114,7 @@ To reprint only some components, below the sets there is **Choose components…*
 
 ![Only the market cards changed since the backup, with before and after](img/scegli-componenti.png)
 
-### 11.7 Credits
+### 11.8 Credits
 
 **Credits…** composes the text for the rulebook or the box, with the icons and fonts imported from the app grouped by source, license and author. By default it lists only what the components use. The text can be copied or saved to `export/credits.txt`. Images copied into `assets/` by hand are not listed.
 
