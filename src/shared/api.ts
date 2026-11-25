@@ -400,6 +400,12 @@ export interface Api {
   defaultNandeckTarget(source: string): Promise<string>
   /** Converte gli script scelti di un gioco nanDECK in un progetto nuovo; l'originale non si modifica */
   importNandeck(options: NandeckImportOptions): Promise<NandeckImportResult>
+  /** File di Dextrous in una cartella: progetto, layout e immagini trovati e quelli che mancano */
+  scanDextrous(source: string, project?: string): Promise<DextrousScan>
+  /** Cartella proposta per un progetto Dextrous convertito */
+  defaultDextrousTarget(source: string, title: string): Promise<string>
+  /** Converte un progetto Dextrous in un progetto nuovo; i file di origine non si modificano */
+  importDextrous(options: DextrousImportOptions): Promise<DextrousImportResult>
   /** Come lanciare il comando stella su questo computer; ready è falso se va prima compilato */
   stellaCommand(): Promise<{ command: string; ready: boolean }>
   /** L'ultima versione pubblicata, se è più recente di questa; null anche senza rete */
@@ -502,6 +508,56 @@ export interface NandeckImportResult {
   notes: Message[]
   /** Nome della nota scritta nel progetto */
   note: string
+}
+
+export interface DextrousScan {
+  /** JSON di progetti trovati nella cartella, relativi con / */
+  projects: string[]
+  /** Il progetto letto */
+  project: string
+  title: string
+  components: {
+    name: string
+    kind: string
+    cards: number
+    /** Layout del fronte e del retro (se ha un layout suo): id e nome se il file c'è */
+    layouts: { side: 'front' | 'back'; id: string; found: string | null }[]
+  }[]
+  /** Cartelle di immagini di Dextrous ('' = senza cartella), con le immagini trovate */
+  folders: { name: string; images: number; found: number; missing: string[] }[]
+  /** JSON di layout trovati nella cartella */
+  layoutFiles: { file: string; id: string; name: string }[]
+  /** ZIP con immagini trovati */
+  zips: string[]
+  /** Immagini disponibili (sciolte e negli ZIP) */
+  images: number
+  /** Ciò che non si converte del tutto, con i file trovati finora */
+  notes: Message[]
+}
+
+export interface DextrousImportOptions {
+  /** Cartella con i file scaricati da Dextrous */
+  source: string
+  /** Il JSON del progetto, come in DextrousScan.projects; assente: il primo */
+  project?: string
+  /** Cartella nuova (o vuota) del progetto Stella */
+  target: string
+  /** Nome del progetto; vuoto = il titolo in Dextrous */
+  name?: string
+}
+
+export interface DextrousImportResult {
+  folder: string
+  templates: number
+  sets: number
+  cards: number
+  /** Immagini copiate in assets */
+  images: number
+  missingImages: string[]
+  /** Componenti importati senza layout (template vuoto) */
+  missingLayouts: string[]
+  fonts: string[]
+  notes: Message[]
 }
 
 export interface TtcImportOptions {

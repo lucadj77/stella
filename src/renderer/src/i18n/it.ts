@@ -2429,8 +2429,6 @@ export const it: Record<MessageKey, string> = {
   'variable.sampleAfter': 'in questo turno.',
   'variable.delete': 'Elimina variabile',
   'variable.save': 'Salva variabile',
-  'tip.importTtc':
-    "Importa da Tabletop Creator: converte un progetto in un nuovo progetto Stella; l'originale non cambia",
   'ttc.title': 'Importa da Tabletop Creator',
   'ttc.intro':
     'Il progetto si converte in una cartella nuova: template, set, variabili e immagini. La cartella di Tabletop Creator viene solo letta.',
@@ -2520,10 +2518,6 @@ export const it: Record<MessageKey, string> = {
     'Questa non è la cartella di un progetto. Trascina la cartella che contiene stella.json (o quella di un progetto Tabletop Creator).',
   'start.newProject': 'Nuovo progetto…',
   'start.openProject': 'Apri progetto…',
-  'start.importTtc': 'Importa da Tabletop Creator…',
-  'start.importNandeck': 'Importa da nanDECK…',
-  'tip.importNandeck':
-    'Importa da nanDECK: converte gli script di un gioco in un progetto Stella nuovo; la cartella originale non si modifica',
   'nandeck.title': 'Importa da nanDECK',
   'nandeck.experimental':
     "L'importazione è sperimentale e incompleta: spesso il risultato automatico è molto parziale. Un agente AI con la skill nanDECK, scaricabile dal programma, può dare risultati migliori, ma non sempre perfetti.",
@@ -4418,5 +4412,91 @@ export const it: Record<MessageKey, string> = {
   'manage.notes.deleteMany': 'Eliminare {n} note?',
   'usages.notes': 'Note: {names}',
   'manage.where.notes': 'Note',
-  'manage.sum.notes': '{n} {n:nota|note}'
+  'manage.sum.notes': '{n} {n:nota|note}',
+  'dextrous.title': 'Importa da Dextrous',
+  'dextrous.how': 'Come funziona',
+  'dextrous.step1':
+    'In Dextrous scarica il file JSON del progetto e mettilo in una cartella vuota.',
+  'dextrous.step2':
+    'Scegli qui quella cartella: Stella legge il progetto ed elenca i layout e le cartelle di immagini che usa.',
+  'dextrous.step3':
+    'Scarica da Dextrous nella stessa cartella i layout che mancano (un file JSON ciascuno) e le cartelle di immagini (file ZIP, non serve estrarli), poi premi Controlla di nuovo.',
+  'dextrous.step4':
+    'Importa: il progetto si crea anche se manca qualcosa, e Stella elenca ciò che non ha potuto convertire del tutto. I file della cartella si leggono soltanto.',
+  'dextrous.source': 'Cartella con i file di Dextrous',
+  'dextrous.sourceHint':
+    'Il JSON del progetto, i JSON dei layout e gli ZIP delle immagini, anche in sottocartelle',
+  'dextrous.project': 'File del progetto',
+  'dextrous.recheck': 'Controlla di nuovo',
+  'dextrous.components': 'Componenti e layout',
+  'dextrous.component': '{name}: {kind}, {cards} {cards:riga|righe}',
+  'dextrous.kind.card': 'carte',
+  'dextrous.kind.token': 'segnalini',
+  'dextrous.kind.tile': 'tessere',
+  'dextrous.kind.board': 'plancia',
+  'dextrous.side.front': 'layout del fronte',
+  'dextrous.side.back': 'layout del retro',
+  'dextrous.layoutFound': '{side}: {name}',
+  'dextrous.layoutMissing': '{side}: manca, scaricalo da Dextrous (id {id})',
+  'dextrous.folders': 'Cartelle di immagini',
+  'dextrous.noFolder': '(senza cartella)',
+  'dextrous.folderOk': '{name}: trovate tutte le {images} immagini',
+  'dextrous.folderMissing': '{name}: trovate {found} immagini su {images}. Mancano: {missing}',
+  'dextrous.noImages': 'Il progetto non usa immagini.',
+  'dextrous.available': '{images} immagini trovate nella cartella ({zips} {zips:file|file} ZIP)',
+  'dextrous.preview': 'Cosa non si converte del tutto',
+  'dextrous.previewNone': 'Con i file trovati finora, tutto ciò che Stella legge viene convertito.',
+  'dextrous.missingWarning':
+    '{count:Manca|Mancano} {count} {count:layout|layout}: i componenti avranno un template vuoto, con i dati nel foglio.',
+  'dextrous.done':
+    'Importati {templates} template, {sets} set con {cards} righe e {images} immagini.',
+  'dextrous.missingImages': 'Immagini non trovate ({count})',
+  'dextrous.missingImagesHint':
+    'Le carte mostrano un segnaposto. Copia i file nella cartella assets del progetto con lo stesso nome.',
+  'dextrous.noProject':
+    "Nella cartella non c'è il file di un progetto Dextrous: scarica da Dextrous il JSON del progetto e mettilo qui",
+  'dextrous.missingLayouts': 'Mancano i layout di {components}: i loro template sono vuoti',
+  'dextrous.styleImage': "Stile di testo {style}: l'immagine dello stile non si converte",
+  'dextrous.backSize':
+    '{template}: il layout del retro ha una misura diversa dal fronte; si usa quella del fronte',
+  'dextrous.backCount': 'Set {set}: {fronts} fronti e {backs} retri, abbinati in ordine',
+  'dextrous.styleColumn':
+    'Set {set}: valori della colonna di stile non convertiti per {layers}; si convertono solo mostra e nascondi',
+  'dextrous.ttsData':
+    'Set {set}: descrizione e dati delle carte per Tabletop Simulator non si convertono',
+  'dextrous.googleSheet':
+    'Set {set}: in Dextrous i dati arrivano da un foglio Google; sono state importate le righe salvate nel progetto. Per tenere il foglio collegato usa Progetto > Fogli Google con il link del foglio ({url})',
+  'dextrous.lua': 'Set {set}: lo script Lua per Tabletop Simulator non si converte',
+  'dextrous.variables': 'Le variabili di Dextrous non si convertono',
+  'dextrous.unsupportedTags': 'Tag del testo non convertiti: {tags}',
+  'dextrous.unsupported.clip':
+    '{template}: le forme di ritaglio che non sono poligoni o cerchi si ignorano ({layers})',
+  'dextrous.unsupported.imageClip':
+    '{template}: le immagini restano rettangolari (o arrotondate), la forma di ritaglio si ignora ({layers})',
+  'dextrous.unsupported.curvedText': '{template}: il testo curvo si disegna dritto ({layers})',
+  'dextrous.unsupported.columns':
+    '{template}: il testo su più colonne si disegna su una colonna ({layers})',
+  'dextrous.unsupported.zoneType': '{template}: tipi di zona non convertiti: {layers}',
+  'dextrous.unsupported.flexSpace':
+    '{template}: nei contenitori flex lo spazio tra o intorno agli elementi è diventato un allineamento al centro ({layers})',
+  'dextrous.unsupported.flexReverse':
+    "{template}: i contenitori flex in ordine inverso tengono l'ordine normale ({layers})",
+  'dextrous.unsupported.flexWrap':
+    '{template}: i contenitori flex che vanno a capo restano su una riga o una colonna ({layers})',
+  'start.import': 'Importa…',
+  'tip.import':
+    'Importa un progetto: uno ZIP di Stella, o un progetto fatto con Tabletop Creator, nanDECK o Dextrous',
+  'importProject.title': 'Importa un progetto',
+  'importProject.zip': 'Progetto Stella (ZIP)',
+  'importProject.zipText':
+    'Un progetto intero esportato da Stella con Progetto > Esporta il progetto in ZIP.',
+  'importProject.ttc': 'Tabletop Creator',
+  'importProject.ttcText':
+    "Converte la cartella di un progetto Tabletop Creator in un progetto nuovo. L'originale non cambia.",
+  'importProject.nandeck': 'nanDECK',
+  'importProject.nandeckText':
+    "Converte gli script .nde di un gioco in template e set. L'importazione è parziale; una skill aiuta a finirla.",
+  'importProject.dextrous': 'Dextrous',
+  'importProject.dextrousText':
+    "Converte un progetto scaricato dall'app web Dextrous, con i suoi layout e le cartelle di immagini."
 }

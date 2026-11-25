@@ -174,8 +174,7 @@ The first time, when there are no recent projects yet, the screen welcomes you w
 
 - **New project…** creates an empty folder with the structure of a project.
 - **Open project…** opens a folder that contains `stella.json`. Projects created when the app was called Naibi (`naibi.json`) or GameCreator (`gamecreator.json`) open too. It is quicker to drag the project folder onto the screen: it opens at once. Drag the folder of a Tabletop Creator project and Stella offers to import it.
-- **Import from Tabletop Creator…** converts a Tabletop Creator project ([chapter 14](#14-importing-from-tabletop-creator)).
-- **Import from nanDECK…** converts the scripts of a nanDECK game ([chapter 14](#importing-from-nandeck)).
+- **Import…** opens the choice of what to import: a **Stella project** as ZIP ([chapter 3.1](#31-managing-the-project)), a **Tabletop Creator** project ([chapter 14](#14-importing-from-tabletop-creator)), a **nanDECK** game ([chapter 14](#importing-from-nandeck)) or a **Dextrous** project, downloaded in pieces from the web app ([chapter 14](#importing-from-dextrous)).
 - **Open the example project** opens the project used in this guide and in the videos: three sets (Characters, Items, Market), icons, variables and styles. The first time it is copied into Documents/Stella/Example, where it can be changed freely; after that the copy is opened. In the web version the copy lives in the storage the browser keeps for the site: you change and save it without choosing a folder, but it stays in that browser only.
 - **Double-click the `.stella` file**: when it opens a project, the desktop app writes a file with the project's name and the `.stella` extension in its folder (for example `My_game.stella`). Double-click that file to open the project in Stella. It works with the installed app on Windows (not the portable version), on Mac and with the `.deb` package on Linux (not the AppImage).
 - **Recent projects** shows up to 24 projects, with their first component as thumbnail, or the cover chosen in **Project info…** ([chapter 3](#3-the-project-window)). The × removes a project from the list without deleting the folder.
@@ -240,7 +239,7 @@ Renaming a set also renames its sheet in the data file. If the sheet is already 
 
 **Taking templates and sets to another project.** **Export package…**, in the menu of a template or a set (right click or ⋯), saves a ZIP file with everything needed: the template (and its base, if it is derived), for a set also the cards, the images and fonts they use, the variables and styles they refer to. The proposed name ends in `.stella-template.zip` or `.stella-set.zip`. In the other project **Project ▾ › Import package…**, or the ZIP dragged anywhere on the window, shows what the package contains (any ZIP made by Stella works, even renamed). If something with the same name is already there but different, choose what to do: keep both (the new one gets a number, "Hero 2"), replace the project's or keep the project's. Identical things are not asked about. Before importing Stella makes a backup; the result is saved like any other change.
 
-**Sending or moving the whole project.** **Project ▾ › Export project as ZIP…** saves one `.stella-project.zip` file with the whole project: templates, data file, images, fonts, documents and notes (not the `export/` and `deleted/` folders). Unsaved changes are saved first. To open it, use **Import project from ZIP…** (in the Project menu and on the start screen), or drag the ZIP onto the window, even with no project open: Stella shows what it contains (sets, templates, data file, images, fonts, documents, notes), asks for the name and the location of the folder to extract it into (the proposed name is the ZIP file's), then opens it. A dragged ZIP without `stella.json` is treated as a package.
+**Sending or moving the whole project.** **Project ▾ › Export project as ZIP…** saves one `.stella-project.zip` file with the whole project: templates, data file, images, fonts, documents and notes (not the `export/` and `deleted/` folders). Unsaved changes are saved first. To open it, use **Import project from ZIP…** (in the Project menu; on the start screen it is **Import…** › **Stella project (ZIP)**), or drag the ZIP onto the window, even with no project open: Stella shows what it contains (sets, templates, data file, images, fonts, documents, notes), asks for the name and the location of the folder to extract it into (the proposed name is the ZIP file's), then opens it. A dragged ZIP without `stella.json` is treated as a package.
 
 **Styles and variables.** Their headings show how many items they hold: with more than six items the section starts closed, and Stella remembers for each project whether you opened or closed it. They can be split into groups with the **Group** field of their window: the items of a group sit under its heading, which closes and opens with a click, after the items without a group. An item dragged onto a group heading joins that group; dragged onto another item, it takes that item's group (or none). With more than 12 items, a field above the list filters them by name. In the window of a style or variable, **Where it is used** lists the templates (with their layers), the sets (with component numbers) and the other variables and styles that refer to it; clicking a template or set opens it.
 
@@ -1353,6 +1352,29 @@ Each script becomes a template and a set:
 - print lines (page, borders, `DISPLAY`, `SAVE`) are ignored: in Stella the export settings apply.
 
 The import is partial: some commands have no direct equivalent. The app writes the note **Import nanDECK** in the project, with the lines of each script that were not converted (file, line, text and reason) and what was converted only approximately, and opens it when you open the project. To finish the work there is the **nanDECK skill**, separate from the Stella skill: the window at the end of the import copies it or saves it as a file (it downloads it from GitHub). An AI agent with the Stella skill and the nanDECK skill ([chapter 15](#15-working-with-an-ai-agent)) reads the note and the original scripts and converts the missing lines by hand.
+
+### Importing from Dextrous
+
+**Import from Dextrous…** converts a project of [Dextrous](https://www.dextrous.com.au), the web app for cards and components, into a new Stella project. Dextrous has no single file with everything: the project, the layouts and the images are downloaded separately. The window guides you:
+
+1. in Dextrous, download the project JSON file and put it in an empty folder;
+2. in the window, choose that folder: Stella reads the project and lists the components with their front layout (and back layout, if they have their own) and the image folders they use, marking what is already there;
+3. download from Dextrous into the same folder the missing layouts (one JSON file each, recognizable by name or id) and the image folders (ZIP files, no need to unzip them), then press **Check again**;
+4. **Import** creates the project even if something is missing: a component without a layout gets an empty template, with the data in the sheet; a missing image shows as a placeholder.
+
+Before importing, the window also says what will not be converted completely with the files found. The folder is only read.
+
+Each component becomes a template and a set with the same name:
+
+- the zones of the layout become layers: images, texts and, below them, a shape for the background (color or gradient), the border and the clip shape (circles and polygons); sizes, in pixels at 96 DPI, become millimeters;
+- the card background becomes the `background` shape, with the gradient and rounded corners; a card clipped to a circle becomes a round template, tokens become tokens;
+- flex containers become groups with a row or column layout, with gap and alignment; items that do not fit shrink as in Dextrous;
+- data columns take the name of the zone; copies go into the `amount` column, the card name into a value layer `name`, which names the cards;
+- HTML text becomes Stella markup, Dextrous text styles become project styles and icons in the text (`{tree.png}`) image variables;
+- a back the same as the front stays so; backs different for each card get their own layers (with `_back` in the name) and their values in the same row as the front;
+- static zones keep the content of the layout; in the others the layout content is only a preview of the Dextrous editor and is not imported.
+
+At the end the app lists what it could not convert, for example curved text, style columns with values other than show and hide, Tabletop Simulator data and scripts, and the fonts used.
 
 ## 15. Working with an AI agent
 

@@ -59,11 +59,13 @@ import type {
   DocExportFile,
   Theme,
   TtcImportOptions,
-  NandeckImportOptions
+  NandeckImportOptions,
+  DextrousImportOptions
 } from '../shared/api'
 import type { PrintedState } from '../shared/project'
 import { defaultTarget, importTtc } from './import/ttc'
 import { defaultNandeckTarget, importNandeck, scanNandeck } from './import/nandeck'
+import { defaultDextrousTarget, importDextrous, scanDextrous } from './import/dextrous'
 import { runExport } from './export/run'
 import { ExportWindow } from './export/window'
 import { toCmyk } from './export/cmyk'
@@ -858,6 +860,13 @@ function registerIpc(): void {
   // l'importazione scrive solo nella cartella di destinazione, che deve essere nuova o vuota
   ipcMain.handle('ttc:import', (_, options: TtcImportOptions) => importTtc(options))
   ipcMain.handle('nandeck:scan', (_, source: string) => scanNandeck(source))
+  ipcMain.handle('dextrous:scan', (_, source: string, project?: string) =>
+    scanDextrous(source, project)
+  )
+  ipcMain.handle('dextrous:default-target', (_, source: string, title: string) =>
+    defaultDextrousTarget(source, title)
+  )
+  ipcMain.handle('dextrous:import', (_, options: DextrousImportOptions) => importDextrous(options))
   ipcMain.handle('nandeck:default-target', (_, source: string) => defaultNandeckTarget(source))
   ipcMain.handle('nandeck:import', async (_, options: NandeckImportOptions) => {
     // i caratteri che il computer non ha finiscono nella nota

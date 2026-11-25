@@ -227,6 +227,7 @@ import { languageName } from './i18n/languageName'
 import { localizationOf, projectLanguages } from '../../shared/model/language'
 import ImportTtcDialog from './components/ImportTtcDialog'
 import ImportNandeckDialog from './components/ImportNandeckDialog'
+import ImportDextrousDialog from './components/ImportDextrousDialog'
 import StartScreen from './components/StartScreen'
 import { thumbnailTemplate } from '../../shared/model/thumbnail'
 import UpdateNotice from './components/UpdateNotice'
@@ -592,7 +593,9 @@ function App(): React.JSX.Element {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
   // { ttc }: una cartella Tabletop Creator trascinata nella schermata di avvio
-  const [importing, setImporting] = useState<false | 'ttc' | 'nandeck' | { ttc: string }>(false)
+  const [importing, setImporting] = useState<
+    false | 'ttc' | 'nandeck' | 'dextrous' | { ttc: string }
+  >(false)
   const [duplicating, setDuplicating] = useState<Selected | null>(null)
   /** Set di cui si sta cambiando il nome */
   const [renamingSet, setRenamingSet] = useState<number | null>(null)
@@ -4315,6 +4318,7 @@ function App(): React.JSX.Element {
                             onChoose={open}
                             onImport={(source) => setImporting(source ? { ttc: source } : 'ttc')}
                             onImportNandeck={() => setImporting('nandeck')}
+                            onImportDextrous={() => setImporting('dextrous')}
                             onImportZip={() => void chooseZip()}
                           />
                         )}
@@ -4507,6 +4511,16 @@ function App(): React.JSX.Element {
                           />
                         )}
                       </div>
+                      {importing === 'dextrous' && (
+                        <ImportDextrousDialog
+                          onOpen={async (folder) => {
+                            if (!(await discardOk())) return
+                            setImporting(false)
+                            load(folder)
+                          }}
+                          onClose={() => setImporting(false)}
+                        />
+                      )}
                       {importing === 'nandeck' && (
                         <ImportNandeckDialog
                           onOpen={async (folder, note) => {

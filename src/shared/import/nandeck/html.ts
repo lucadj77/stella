@@ -97,6 +97,13 @@ export function htmlToMarkup(
         break
       case 'font':
       case 'span': {
+        // una classe con gli attributi: gli stili di testo di Dextrous (<span class="nome">)
+        const cls = /class\s*=\s*["']?([^"'\s>]+)/i.exec(attrs)?.[1]
+        const styled = cls ? fonts.get(`.${cls.toLowerCase()}`) : undefined
+        if (styled) {
+          open('[', `]{${styled}}`)
+          break
+        }
         const color =
           /color\s*=\s*["']?(#[0-9a-f]{3,8}|[a-z]+)/i.exec(attrs)?.[1] ??
           /color\s*:\s*(#[0-9a-f]{3,8}|[a-z]+)/i.exec(attrs)?.[1]
