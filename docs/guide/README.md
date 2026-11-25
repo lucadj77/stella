@@ -1326,6 +1326,10 @@ Backups are kept outside the project, by default in `Documents/Stella/Backup`. I
 
 ![The backup window](img/backup.png)
 
+**A project that no longer opens.** If the project file is damaged, for example because the computer shut down while Stella was saving, the warning on the start screen has a **Restore from backup…** button. The window offers, when there is one, the copy of the project file as it was before the last save (**Use this copy**: the damaged file stays next to it, with `.damaged` at the end of its name), and the list of the project's backups, found even without reading the damaged file: **Restore…** extracts the backup to a new folder next to the project and opens it. **Choose another backup file…** takes a zip from another folder.
+
+You can do the same from **Import… › Stella backup** on the start screen, also with a backup brought from another computer: choose the zip, then the folder to extract it to. The images of a backup are not in the zip but in the `assets` folder next to it, which must be copied along.
+
 ## 14. Importing from Tabletop Creator
 
 **Import from Tabletop Creator…** converts a Tabletop Creator project into a new Stella project: templates, sets, variables and images. The original folder is only read.

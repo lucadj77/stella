@@ -30,7 +30,15 @@ import {
   isLauncherFile,
   launcherFromArgs
 } from './project/launcher'
-import { addRecent, hasThumbnail, listRecent, removeRecent, saveThumbnail } from './project/recent'
+import {
+  addRecent,
+  hasThumbnail,
+  listRecent,
+  recentName,
+  removeRecent,
+  saveThumbnail
+} from './project/recent'
+import { projectRescue, restoreProjectBackup, restoreProjectFileCopy } from './project/rescue'
 import { prepareExample } from './project/example'
 import { saveData, type DataChanges } from './project/save'
 import { markDataWritten, stopWatchingData, watchDataFile } from './project/watchData'
@@ -97,6 +105,7 @@ import {
   listBackups,
   readBackupSettings,
   restoreBackup,
+  isBackupZip,
   setBackupOwner,
   writeBackupSettings
 } from './project/backup'
@@ -837,6 +846,35 @@ function registerIpc(): void {
     if (!folder) throw new MessageError(msg('template.noProject'))
     if (dirname(resolve(file)) !== resolve(await backupDir())) throw new Error('not a backup')
     return restoreBackup(file, dirname(folder))
+  })
+
+  // progetto che non si apre: copia del file di progetto e backup, senza aprirlo
+  const backupRoot = async (): Promise<string> =>
+    (await readBackupSettings(backupSettingsFile())).folder || defaultBackupRoot()
+  ipcMain.handle('rescue:find', async (_, folder: string) =>
+    projectRescue(folder, await backupRoot(), await recentName(folder))
+  )
+  ipcMain.handle('rescue:use-copy', (_, folder: string) => restoreProjectFileCopy(folder))
+  ipcMain.handle('rescue:restore', async (_, folder: string, file: string) =>
+    restoreProjectBackup(folder, file, await backupRoot(), await recentName(folder))
+  )
+  /** Zip di backup scelti dall'utente con la finestra: solo quelli si estraggono */
+  const chosenBackups = new Set<string>()
+  ipcMain.handle('rescue:choose-file', async () => {
+    const result = await dialog.showOpenDialog({
+      defaultPath: await backupRoot(),
+      properties: ['openFile'],
+      filters: [{ name: 'Backup', extensions: ['zip'] }]
+    })
+    if (result.canceled || !result.filePaths[0]) return null
+    const file = resolve(result.filePaths[0])
+    if (!(await isBackupZip(file))) throw new MessageError(msg('rescue.notBackup'))
+    chosenBackups.add(file)
+    return file
+  })
+  ipcMain.handle('rescue:restore-file', async (_, file: string, parent: string) => {
+    if (!chosenBackups.has(resolve(file))) throw new Error('not a backup')
+    return restoreBackup(file, parent)
   })
 
   ipcMain.handle('backup:version', async (_, file: string) => {

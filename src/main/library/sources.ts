@@ -1,5 +1,6 @@
-import { readFile, rename, writeFile } from 'fs/promises'
+import { readFile } from 'fs/promises'
 import { join } from 'path'
+import { writeFileSafe } from '../fs'
 import { SOURCES_FILE, type AssetsUpdate, type Sources } from '../../shared/library'
 import { listAssets } from '../project/assets'
 import { readProjectFonts } from '../project/fonts'
@@ -26,8 +27,7 @@ export async function updateSources(folder: string, entries: Sources): Promise<S
   )
   // file temporaneo e rinomina: un arresto a metà non lascia un sources.json troncato
   const file = join(folder, 'assets', SOURCES_FILE)
-  await writeFile(file + '.tmp', JSON.stringify(kept, null, 2) + '\n')
-  await rename(file + '.tmp', file)
+  await writeFileSafe(file, JSON.stringify(kept, null, 2) + '\n')
   return kept
 }
 

@@ -13,6 +13,8 @@ import appIcon from '../assets/app-icon.png'
 import DesktopFeaturesDialog from './DesktopFeaturesDialog'
 import { WhatsNewDialog } from './UpdateNotice'
 import { checkForUpdateNow } from './updateCheck'
+import RescueDialog from './RescueDialog'
+import { restoreBackupFromFile } from './restoreBackupFile'
 
 // Schermata di ingresso: progetti recenti con miniatura, nuovo progetto, apertura e importazione.
 
@@ -20,6 +22,7 @@ const PARENT_KEY = 'newProjectParent'
 
 export default function StartScreen({
   error,
+  rescueFolder,
   loading,
   settings,
   onOpen,
@@ -31,6 +34,8 @@ export default function StartScreen({
   onHelp
 }: {
   error: Message | null
+  /** Cartella del progetto che non si è aperto per il file di progetto rovinato o mancante */
+  rescueFolder: string | null
   loading: boolean
   /** Dimensione dell'interfaccia, tema e lingua */
   settings: React.ReactNode
@@ -53,6 +58,8 @@ export default function StartScreen({
   const [desktop, setDesktop] = useState(false)
   /** La finestra con i formati da importare */
   const [importChoice, setImportChoice] = useState(false)
+  /** La finestra per ripristinare il progetto che non si apre */
+  const [rescuing, setRescuing] = useState(false)
 
   useEffect(() => {
     window.api.appVersion().then(setVersion, () => {})
@@ -160,7 +167,16 @@ export default function StartScreen({
         <span className="spacer" />
         {settings}
       </header>
-      {error && <div className="banner error">{t(error)}</div>}
+      {error && (
+        <div className={'banner error' + (rescueFolder ? ' closable' : '')}>
+          <span>{t(error)}</span>
+          {rescueFolder && (
+            <button className="primary" onClick={() => setRescuing(true)}>
+              {t('rescue.button')}
+            </button>
+          )}
+        </div>
+      )}
       <div className="start-body">
         {firstRun ? (
           <Welcome
@@ -278,12 +294,20 @@ export default function StartScreen({
           onChoose={(kind) => {
             setImportChoice(false)
             if (kind === 'zip') onImportZip()
+            else if (kind === 'backup')
+              restoreBackupFromFile(t).then(
+                (folder) => folder && onOpen(folder),
+                (err) => showNotice(t, t(messageFromError(err)))
+              )
             else if (kind === 'ttc') onImport()
             else if (kind === 'nandeck') onImportNandeck()
             else onImportDextrous()
           }}
           onClose={() => setImportChoice(false)}
         />
+      )}
+      {rescuing && rescueFolder && (
+        <RescueDialog folder={rescueFolder} onOpen={onOpen} onClose={() => setRescuing(false)} />
       )}
       {creating && (
         <NewProjectDialog
@@ -298,7 +322,7 @@ export default function StartScreen({
   )
 }
 
-type ImportKind = 'zip' | 'ttc' | 'nandeck' | 'dextrous'
+type ImportKind = 'zip' | 'ttc' | 'nandeck' | 'dextrous' | 'backup'
 
 /** Un solo tasto Importa: qui si sceglie da dove viene il progetto */
 function ImportChoiceDialog({
@@ -313,7 +337,17 @@ function ImportChoiceDialog({
     { kind: 'zip', title: 'importProject.zip', text: 'importProject.zipText' },
     { kind: 'ttc', title: 'importProject.ttc', text: 'importProject.ttcText' },
     { kind: 'nandeck', title: 'importProject.nandeck', text: 'importProject.nandeckText' },
-    { kind: 'dextrous', title: 'importProject.dextrous', text: 'importProject.dextrousText' }
+    { kind: 'dextrous', title: 'importProject.dextrous', text: 'importProject.dextrousText' },
+    // nel browser i backup si ripristinano dalla finestra Backup del progetto
+    ...(window.api.isWeb
+      ? []
+      : [
+          {
+            kind: 'backup' as const,
+            title: 'importProject.backup' as const,
+            text: 'importProject.backupText' as const
+          }
+        ])
   ]
   return (
     <Dialog title={t('importProject.title')} onClose={onClose}>

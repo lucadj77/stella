@@ -30,6 +30,11 @@ export async function addRecent(folder: string, name: string): Promise<void> {
   for (const e of list.slice(MAX_RECENT)) await del(RECENT, e.folder)
 }
 
+/** Nome con cui il progetto compare nei recenti, se c'è */
+export async function recentName(folder: string): Promise<string | undefined> {
+  return (await get<Entry>(RECENT, folder))?.name
+}
+
 export async function removeRecent(folder: string): Promise<void> {
   await del(RECENT, folder)
 }

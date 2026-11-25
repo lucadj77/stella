@@ -2,8 +2,9 @@ import JSZip from 'jszip'
 import { createHash } from 'crypto'
 import { copyFile, mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'fs/promises'
 import { basename, dirname, extname, join, relative, resolve, sep } from 'path'
-import { exists } from '../fs'
+import { exists, writeFileSafe } from '../fs'
 import type { BackupItem, BackupSettings } from '../../shared/api'
+import { LEGACY_PROJECT_FILES, PROJECT_FILE } from '../../shared/project'
 
 // Copie di sicurezza del progetto: un file zip con la cartella del progetto, tranne export/ e i
 // file nascosti, in una cartella fuori dal progetto (così non finisce nei backup successivi e
@@ -30,6 +31,55 @@ const OWNER = '.stella-project'
 /** Lo stesso file, scritto quando l'app si chiamava Naibi */
 const OLD_OWNER = '.naibi-project'
 
+/** Cartella del progetto a cui appartiene la cartella dei backup `dir`, o null */
+async function ownerOf(dir: string): Promise<string | null> {
+  for (const file of [join(dir, OWNER), join(dir, OLD_OWNER)]) {
+    try {
+      return JSON.parse(await readFile(file, 'utf8')).folder
+    } catch {
+      // cartella nuova o senza proprietario
+    }
+  }
+  return null
+}
+
+/** La cartella dei backup in `root` che dice di appartenere al progetto `folder`, o null */
+async function ownedBackupDir(root: string, folder: string): Promise<string | null> {
+  const mine = resolve(folder)
+  const dirs = (await readdir(root, { withFileTypes: true }).catch(() => []))
+    .filter((d) => d.isDirectory())
+    .map((d) => join(root, d.name))
+  for (const dir of dirs) if ((await ownerOf(dir)) === mine) return dir
+  return null
+}
+
+/**
+ * Cartella dei backup di un progetto che non si apre: il nome del progetto sta nel file rovinato,
+ * quindi la si cerca dal file di proprietà, poi (backup di versioni vecchie, senza quel file) dal
+ * nome che il progetto aveva nei recenti. Non crea e non scrive niente; null se non c'è.
+ */
+export async function findBackupDir(
+  root: string,
+  folder: string,
+  nameHint?: string
+): Promise<string | null> {
+  const own = await ownedBackupDir(root, folder)
+  if (own) return own
+  if (!nameHint) return null
+  const dir = join(root, backupDirName(nameHint))
+  return (await exists(dir)) && (await ownerOf(dir)) === null ? dir : null
+}
+
+/** Lo zip è un backup di Stella: ha il file di progetto alla radice */
+export async function isBackupZip(file: string): Promise<boolean> {
+  try {
+    const zip = await JSZip.loadAsync(await readFile(file))
+    return [PROJECT_FILE, ...LEGACY_PROJECT_FILES].some((n) => !!zip.file(n))
+  } catch {
+    return false
+  }
+}
+
 /**
  * Cartella dei backup del progetto `folder` dentro `root`: `<nome>`, oppure `<nome> 2`, `<nome> 3`...
  * se un altro progetto con lo stesso nome la usa già. Una cartella senza il file di proprietà
@@ -41,21 +91,9 @@ export async function projectBackupDir(
   folder: string
 ): Promise<string> {
   const mine = resolve(folder)
-  const ownerOf = async (dir: string): Promise<string | null> => {
-    for (const file of [join(dir, OWNER), join(dir, OLD_OWNER)]) {
-      try {
-        return JSON.parse(await readFile(file, 'utf8')).folder
-      } catch {
-        // cartella nuova o senza proprietario
-      }
-    }
-    return null
-  }
   // un progetto che ha cambiato nome tiene la sua cartella dei backup, con il nome di prima
-  const own = (await readdir(root, { withFileTypes: true }).catch(() => []))
-    .filter((d) => d.isDirectory())
-    .map((d) => join(root, d.name))
-  for (const dir of own) if ((await ownerOf(dir)) === mine) return dir
+  const own = await ownedBackupDir(root, mine)
+  if (own) return own
   for (let n = 1; ; n++) {
     const dir = join(root, n === 1 ? name : `${name} ${n}`)
     const marker = join(dir, OWNER)
@@ -189,11 +227,9 @@ export async function createBackup(
   const clean = cleanBackupLabel(label)
   const name = `${backupDirName(projectName)} ${stamp(now)}${auto ? ' auto' : ''}${clean ? ` - ${clean}` : ''}.zip`
   const file = join(dir, name)
-  const tmp = file + '.tmp'
   // lo zip si fa in memoria: i file di assets/ non ci sono, quindi resta piccolo (e così si
   // scrive anche nella versione web, che non ha gli stream di Node)
-  await writeFile(tmp, await zip.generateAsync({ type: 'nodebuffer', streamFiles: true }))
-  await rename(tmp, file)
+  await writeFileSafe(file, await zip.generateAsync({ type: 'nodebuffer', streamFiles: true }))
   return {
     file,
     name,
@@ -344,5 +380,5 @@ export async function readBackupSettings(file: string): Promise<BackupSettings> 
 
 export async function writeBackupSettings(file: string, settings: BackupSettings): Promise<void> {
   await mkdir(dirname(file), { recursive: true })
-  await writeFile(file, JSON.stringify(settings, null, 2) + '\n', 'utf8')
+  await writeFileSafe(file, JSON.stringify(settings, null, 2) + '\n')
 }

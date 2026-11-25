@@ -24,8 +24,13 @@ export async function loadProject(folder: string): Promise<LoadedProject> {
   let file: ProjectFile
   const path = await projectFilePath(folder)
   try {
-    file = JSON.parse(await readFile(path, 'utf8'))
+    const text = await readFile(path, 'utf8')
+    // vuoto o pieno di zeri: quello che resta di un salvataggio interrotto (blocco della corrente)
+    if (!text.replace(/\0/g, '').trim())
+      throw new MessageError(msg('load.emptyProjectFile', { file: basename(path) }))
+    file = JSON.parse(text)
   } catch (e) {
+    if (e instanceof MessageError) throw e
     const err = e as NodeJS.ErrnoException
     if (err.code === 'ENOENT')
       throw new MessageError(msg('load.noProjectFile', { file: PROJECT_FILE }))

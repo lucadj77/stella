@@ -1,6 +1,6 @@
 import { createHash } from 'crypto'
-import { mkdir, readFile, rename, rm, writeFile } from 'fs/promises'
-import { exists } from '../fs'
+import { mkdir, readFile, rm, writeFile } from 'fs/promises'
+import { exists, writeFileSafe } from '../fs'
 import { join } from 'path'
 import { app } from 'electron'
 import { projectFilePath } from './projectFile'
@@ -38,9 +38,7 @@ async function readEntries(): Promise<Entry[]> {
 
 async function writeEntries(list: Entry[]): Promise<void> {
   await mkdir(dataDir(), { recursive: true })
-  const tmp = listFile() + '.tmp'
-  await writeFile(tmp, JSON.stringify(list, null, 2) + '\n', 'utf8')
-  await rename(tmp, listFile())
+  await writeFileSafe(listFile(), JSON.stringify(list, null, 2) + '\n')
 }
 
 /** Elenco dal più recente, con miniature e progetti spostati o cancellati segnati come mancanti */
@@ -59,6 +57,11 @@ export async function listRecent(): Promise<RecentProject[]> {
       return { ...e, missing, thumbnail }
     })
   )
+}
+
+/** Nome con cui il progetto compare nei recenti, se c'è: serve quando il suo file non si legge */
+export async function recentName(folder: string): Promise<string | undefined> {
+  return (await readEntries()).find((e) => e.folder === folder)?.name
 }
 
 export async function addRecent(folder: string, name: string): Promise<void> {

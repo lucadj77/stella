@@ -1,5 +1,5 @@
-import { readFile, rename, writeFile } from 'fs/promises'
-import { exists } from '../fs'
+import { readFile, writeFile } from 'fs/promises'
+import { exists, writeFileSafe } from '../fs'
 import { basename, extname } from 'path'
 import type * as ExcelJS from 'exceljs'
 import JSZip from 'jszip'
@@ -263,11 +263,9 @@ async function writeXlsx(
   return true
 }
 
-/** Scrittura in un file temporaneo e rinomina: un errore a metà non rovina il file */
+/** Scrittura in un file temporaneo forzato sul disco e rinomina: un errore o un blocco a metà non rovina il file */
 async function writeAtomic(path: string, data: Buffer): Promise<void> {
-  const tmp = path + '.tmp'
-  await writeFile(tmp, data)
-  await rename(tmp, path)
+  await writeFileSafe(path, data)
 }
 
 /** Parti di un .xlsx che exceljs non riscrive, per tipo */
@@ -387,9 +385,7 @@ function toCellValue(v: string, numFmt?: string): string | number | null {
 
 async function writeOdsFile(path: string, sheets: Sheet[], removed: string[]): Promise<void> {
   const data = (await exists(path)) ? await readFile(path) : null
-  const tmp = path + '.tmp'
-  await writeFile(tmp, await writeOds(data, sheets, removed))
-  await rename(tmp, path)
+  await writeFileSafe(path, await writeOds(data, sheets, removed))
 }
 
 /** Un file .csv ha un solo foglio, con il nome del file */
@@ -401,7 +397,5 @@ async function writeCsv(path: string, sheets: Sheet[]): Promise<void> {
   if (sheets.length !== 1 || sheets[0].name !== csvSheetName(path))
     throw new MessageError(msg('save.csvOneSheet'))
   const s = sheets[0]
-  const tmp = path + '.tmp'
-  await writeFile(tmp, Papa.unparse([s.headers, ...s.rows]) + '\r\n', 'utf8')
-  await rename(tmp, path)
+  await writeFileSafe(path, Papa.unparse([s.headers, ...s.rows]) + '\r\n')
 }

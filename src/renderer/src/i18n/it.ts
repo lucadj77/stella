@@ -1390,6 +1390,33 @@ export const it: Record<MessageKey, string> = {
   'error.generic': '{text}',
   'load.noProjectFile': 'La cartella non contiene {file}',
   'load.unreadableProjectFile': '{file} non è leggibile: {error}',
+  'load.emptyProjectFile':
+    '{file} è vuoto: di solito succede quando il computer si spegne mentre Stella salva. Si può ripristinare da un backup.',
+  'rescue.button': 'Ripristina da backup…',
+  'rescue.title': 'Ripristina il progetto',
+  'rescue.intro':
+    "Il progetto non si apre. Puoi rimettere la copia del file del progetto com'era prima dell'ultimo salvataggio, oppure estrarre un backup in una nuova cartella accanto al progetto.",
+  'rescue.copyTitle': 'Copia del salvataggio precedente',
+  'rescue.copyText':
+    "Stella tiene una copia del file del progetto com'era prima dell'ultimo salvataggio ({when}). Rimettendola si perdono solo le modifiche di quell'ultimo salvataggio a set, stili e variabili; template e dati sono in file a parte.",
+  'rescue.copyOk': 'Usa questa copia',
+  'rescue.copyConfirm':
+    'La copia prende il posto del file del progetto, che poi si apre. Il file rovinato non si cancella: resta accanto, con .damaged in fondo al nome.',
+  'rescue.copyConfirm.title': 'Usare la copia del salvataggio precedente?',
+  'rescue.copyConfirm.ok': 'Usa la copia',
+  'rescue.backupsTitle': 'Backup',
+  'rescue.noBackups': 'Nessun backup trovato per questa cartella.',
+  'rescue.restoreConfirm':
+    "Il backup viene estratto in una nuova cartella accanto al progetto, che poi si apre. La cartella attuale resta com'è.",
+  'rescue.restoreConfirm.title': 'Ripristinare il backup?',
+  'rescue.restoreConfirm.ok': 'Ripristina',
+  'rescue.otherFile': 'Scegli un altro file di backup…',
+  'rescue.fileConfirm':
+    'Ora scegli la cartella in cui estrarlo: il backup diventa una cartella nuova lì dentro, che poi si apre. Le immagini non sono nello zip ma nella cartella assets accanto: se il backup viene da un altro computer, copia anche quella.',
+  'rescue.fileConfirm.title': 'Dove ripristinare il backup?',
+  'rescue.fileConfirm.ok': 'Scegli la cartella',
+  'rescue.noCopy': "La copia del file del progetto non c'è o non è leggibile.",
+  'rescue.notBackup': "Questo file non è un backup di Stella: dentro non c'è stella.json.",
   'load.unsupportedDataFile':
     'Formato del file dati non supportato: {ext} (usa .xlsx, .ods o .csv)',
   'load.newerFormat':
@@ -4498,5 +4525,11 @@ export const it: Record<MessageKey, string> = {
     "Converte gli script .nde di un gioco in template e set. L'importazione è parziale; una skill aiuta a finirla.",
   'importProject.dextrous': 'Dextrous',
   'importProject.dextrousText':
-    "Converte un progetto scaricato dall'app web Dextrous, con i suoi layout e le cartelle di immagini."
+    "Converte un progetto scaricato dall'app web Dextrous, con i suoi layout e le cartelle di immagini.",
+  'projectZip.isBackup.title': 'Questo zip è un backup',
+  'projectZip.isBackup':
+    'Le immagini di un backup non sono nello zip ma nella cartella assets accanto. Per ripristinarlo usa Importa > Backup di Stella nella schermata iniziale, o Backup… nel menu Progetto.',
+  'importProject.backup': 'Backup di Stella',
+  'importProject.backupText':
+    'Uno zip della cartella dei backup, anche di un progetto che non si apre più. Viene estratto in una cartella nuova.'
 }

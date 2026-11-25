@@ -40,7 +40,8 @@ import {
   restoreBackup,
   writeBackupSettings
 } from '../main/project/backup'
-import { backupDirFor, backupSettingsFile } from '../main/project/backupPaths'
+import { backupDirFor, backupSettingsFile, defaultBackupRoot } from '../main/project/backupPaths'
+import { projectRescue, restoreProjectBackup, restoreProjectFileCopy } from '../main/project/rescue'
 import { defaultTarget, importTtc } from '../main/import/ttc'
 import { defaultNandeckTarget, importNandeck, scanNandeck } from '../main/import/nandeck'
 import { defaultDextrousTarget, importDextrous, scanDextrous } from '../main/import/dextrous'
@@ -58,7 +59,14 @@ import {
   savePackage,
   systemFonts
 } from './library'
-import { addRecent, hasThumbnail, listRecent, removeRecent, saveThumbnail } from './recent'
+import {
+  addRecent,
+  hasThumbnail,
+  listRecent,
+  recentName,
+  removeRecent,
+  saveThumbnail
+} from './recent'
 import { FrameWindow, exportPageApi } from './exportFrame'
 import { prepareWebExample } from './example'
 
@@ -102,6 +110,13 @@ async function backupDir(settings?: BackupSettings, ask = true): Promise<string>
   if (s.folder && !(await (ask ? ensurePermission(s.folder) : hasPermission(s.folder))))
     throw new MessageError(msg('web.permissionDenied'))
   return (await backupDirFor(projectFolder(), projectName, s)).dir
+}
+
+/** Cartella di base dei backup, per un progetto che non si apre; senza chiedere permessi */
+async function rescueBackupRoot(): Promise<string> {
+  const s = await readBackupSettings(backupSettingsFile())
+  if (s.folder && (await hasPermission(s.folder))) return s.folder
+  return defaultBackupRoot()
 }
 
 async function backupState(): Promise<BackupState> {
@@ -310,6 +325,26 @@ export const webApi: Api = {
     if (dirname(file) !== dir) throw new Error('not a backup')
     if (!parent) throw new MessageError(msg('web.restoreCancelled'))
     return restoreBackup(file, parent)
+  },
+  // progetto che non si apre: la copia del file di progetto e i backup, senza aprirlo
+  projectRescue: async (folder) =>
+    projectRescue(folder, await rescueBackupRoot(), await recentName(folder)),
+  restoreProjectFileCopy: (folder) => restoreProjectFileCopy(folder),
+  restoreProjectBackup: async (folder, file, parent) => {
+    if (!parent) throw new MessageError(msg('web.restoreCancelled'))
+    return restoreProjectBackup(
+      folder,
+      file,
+      await rescueBackupRoot(),
+      await recentName(folder),
+      parent
+    )
+  },
+  // nel browser i backup stanno nello spazio del sito o in una cartella autorizzata: uno zip
+  // preso dal disco non ha accanto le immagini
+  chooseBackupFile: async () => null,
+  restoreBackupFile: async () => {
+    throw new MessageError(msg('web.desktopOnly'))
   },
   backupVersion: async (file) => {
     if (dirname(file) !== (await backupDir())) throw new Error('not a backup')

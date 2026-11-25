@@ -1373,6 +1373,33 @@ export const en = {
   'error.generic': '{text}',
   'load.noProjectFile': 'The folder does not contain {file}',
   'load.unreadableProjectFile': '{file} cannot be read: {error}',
+  'load.emptyProjectFile':
+    '{file} is empty: this usually happens when the computer shuts down while Stella is saving. It can be restored from a backup.',
+  'rescue.button': 'Restore from backup…',
+  'rescue.title': 'Restore the project',
+  'rescue.intro':
+    'The project does not open. You can put back the copy of the project file as it was before the last save, or extract a backup to a new folder next to the project.',
+  'rescue.copyTitle': 'Copy from the previous save',
+  'rescue.copyText':
+    'Stella keeps a copy of the project file as it was before the last save ({when}). Putting it back only loses the changes of that last save to sets, styles and variables; templates and data are in separate files.',
+  'rescue.copyOk': 'Use this copy',
+  'rescue.copyConfirm':
+    'The copy takes the place of the project file, then the project opens. The damaged file is not deleted: it stays next to it, with .damaged at the end of its name.',
+  'rescue.copyConfirm.title': 'Use the copy from the previous save?',
+  'rescue.copyConfirm.ok': 'Use the copy',
+  'rescue.backupsTitle': 'Backups',
+  'rescue.noBackups': 'No backups found for this folder.',
+  'rescue.restoreConfirm':
+    'The backup is extracted to a new folder next to the project, which then opens. The current folder stays as it is.',
+  'rescue.restoreConfirm.title': 'Restore the backup?',
+  'rescue.restoreConfirm.ok': 'Restore',
+  'rescue.otherFile': 'Choose another backup file…',
+  'rescue.fileConfirm':
+    'Now choose the folder to extract it to: the backup becomes a new folder inside it, which then opens. Images are not in the zip but in the assets folder next to it: if the backup comes from another computer, copy that folder too.',
+  'rescue.fileConfirm.title': 'Where to restore the backup?',
+  'rescue.fileConfirm.ok': 'Choose the folder',
+  'rescue.noCopy': 'The copy of the project file is missing or cannot be read.',
+  'rescue.notBackup': 'This file is not a Stella backup: there is no stella.json inside.',
   'load.unsupportedDataFile': 'Unsupported data file format: {ext} (use .xlsx, .ods or .csv)',
   'load.newerFormat': 'The project uses format {version}, newer than this version of the app',
   'inherit.fromBase': 'Same as the base template',
@@ -4441,7 +4468,13 @@ export const en = {
     'Converts the .nde scripts of a game into templates and sets. The import is partial; a skill helps finish it.',
   'importProject.dextrous': 'Dextrous',
   'importProject.dextrousText':
-    'Converts a project downloaded from the Dextrous web app, with its layouts and image folders.'
+    'Converts a project downloaded from the Dextrous web app, with its layouts and image folders.',
+  'projectZip.isBackup.title': 'This zip is a backup',
+  'projectZip.isBackup':
+    'The images of a backup are not in the zip but in the assets folder next to it. To restore it use Import > Stella backup on the start screen, or Backup… in the Project menu.',
+  'importProject.backup': 'Stella backup',
+  'importProject.backupText':
+    'A zip from the backup folder, even of a project that no longer opens. It is extracted to a new folder.'
 }
 
 export type MessageKey = keyof typeof en

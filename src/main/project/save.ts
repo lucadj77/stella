@@ -1,7 +1,7 @@
-import { readFile, rename, writeFile } from 'fs/promises'
+import { readFile } from 'fs/promises'
 import { join } from 'path'
 import type { ProjectFile, Sheet } from '../../shared/project'
-import { projectFilePath } from './projectFile'
+import { projectFilePath, writeProjectFile } from './projectFile'
 import { MessageError, msg } from '../../shared/messages'
 import { keepDeletedSheets, writeSpreadsheet } from './spreadsheet'
 
@@ -43,9 +43,7 @@ export async function saveData(folder: string, changes: DataChanges): Promise<Sa
       : false
   if (changes.file) {
     changes.file.dataFile = current.dataFile
-    const tmp = target + '.tmp'
-    await writeFile(tmp, JSON.stringify(changes.file, null, 2) + '\n', 'utf8')
-    await rename(tmp, target)
+    await writeProjectFile(target, JSON.stringify(changes.file, null, 2) + '\n')
   }
   return { rewritten }
 }

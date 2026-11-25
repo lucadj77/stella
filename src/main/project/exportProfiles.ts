@@ -1,6 +1,6 @@
-import { readFile, rename, writeFile } from 'fs/promises'
+import { readFile } from 'fs/promises'
 import type { ProjectFile } from '../../shared/project'
-import { projectFilePath } from './projectFile'
+import { projectFilePath, writeProjectFile } from './projectFile'
 import type { ExportProfiles } from '../../shared/export'
 
 /**
@@ -11,7 +11,5 @@ export async function saveExportProfiles(folder: string, profiles: ExportProfile
   const target = await projectFilePath(folder)
   const file: ProjectFile = JSON.parse(await readFile(target, 'utf8'))
   file.export = profiles
-  const tmp = target + '.tmp'
-  await writeFile(tmp, JSON.stringify(file, null, 2) + '\n', 'utf8')
-  await rename(tmp, target)
+  await writeProjectFile(target, JSON.stringify(file, null, 2) + '\n')
 }
