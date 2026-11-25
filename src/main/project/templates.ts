@@ -1,5 +1,5 @@
-import { mkdir, rename, writeFile } from 'fs/promises'
-import { exists } from '../fs'
+import { mkdir, rename } from 'fs/promises'
+import { exists, writeFileSafe } from '../fs'
 import { join } from 'path'
 import {
   denormalizeTemplate,
@@ -32,9 +32,7 @@ export async function saveTemplate(folder: string, template: Template): Promise<
   const content: Partial<RawTemplate> = denormalizeTemplate(template)
   if (!template.file) delete content.name
   // scrittura in un file temporaneo e rinomina: un errore a metà non tronca il template
-  const tmp = `${target}.tmp`
-  await writeFile(tmp, formatTemplate(content) + '\n', 'utf8')
-  await rename(tmp, target)
+  await writeFileSafe(target, formatTemplate(content) + '\n')
 }
 
 /**

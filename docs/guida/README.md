@@ -1326,6 +1326,10 @@ I backup stanno fuori dal progetto, di base in `Documenti/Stella/Backup`. Le imm
 
 ![La finestra dei backup](img/backup.png)
 
+**Un progetto che non si apre più.** Se il file del progetto è rovinato, per esempio perché il computer si è spento mentre Stella salvava, l'avviso nella schermata iniziale ha il pulsante **Ripristina da backup…**. La finestra propone, se c'è, la copia del file del progetto com'era prima dell'ultimo salvataggio (**Usa questa copia**: il file rovinato resta accanto, con `.damaged` in fondo al nome), e l'elenco dei backup del progetto, trovati anche senza leggere il file rovinato: **Ripristina…** estrae il backup in una cartella nuova accanto al progetto e la apre. **Scegli un altro file di backup…** prende uno zip da un'altra cartella.
+
+Lo stesso si fa da **Importa… › Backup di Stella** nella schermata iniziale, anche con un backup portato da un altro computer: si sceglie lo zip, poi la cartella in cui estrarlo. Le immagini di un backup non sono nello zip ma nella cartella `assets` accanto, che va copiata insieme.
+
 ## 14. Importare da Tabletop Creator
 
 **Importa da Tabletop Creator…** converte un progetto di Tabletop Creator in un progetto Stella nuovo: template, set, variabili e immagini. La cartella originale viene solo letta.

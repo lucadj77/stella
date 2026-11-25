@@ -1,6 +1,6 @@
-import { mkdir, readFile, readdir, rename, writeFile } from 'fs/promises'
+import { mkdir, readFile, readdir, rename } from 'fs/promises'
 import { join } from 'path'
-import { exists } from '../fs'
+import { exists, writeFileSafe } from '../fs'
 import { MessageError, msg } from '../../shared/messages'
 import { isValidNoteName, type ProjectNote } from '../../shared/project'
 import { DOCUMENTS_DIR } from '../../shared/model/document'
@@ -64,9 +64,7 @@ async function save(
     if (await exists(old)) await rename(old, target)
   }
   // file temporaneo e rinomina: un errore a metà non tronca il testo
-  const tmp = `${target}.tmp`
-  await writeFile(tmp, text, 'utf8')
-  await rename(tmp, target)
+  await writeFileSafe(target, text)
 }
 
 /** Sposta il file in deleted/ */

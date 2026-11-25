@@ -5,7 +5,8 @@ import { fsError, rootOf } from '../fs/roots'
 // usa il codice del progetto (src/main/project, src/main/export/run.ts), con gli stessi codici
 // d'errore (ENOENT, EEXIST), così quel codice gira com'è.
 
-type Encoding = BufferEncoding | { encoding?: BufferEncoding | null; flag?: string } | null
+type Encoding =
+  BufferEncoding | { encoding?: BufferEncoding | null; flag?: string; flush?: boolean } | null
 
 /** Chiamato dopo ogni scrittura o eliminazione di un file, con il suo percorso */
 let changeListener: ((path: string) => Promise<void>) | null = null

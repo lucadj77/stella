@@ -79,6 +79,16 @@ export interface BackupItem {
   label?: string
 }
 
+/** Che cosa c'è per rimettere in piedi un progetto che non si apre (src/main/project/rescue.ts) */
+export interface ProjectRescue {
+  /** Copia del file di progetto com'era prima dell'ultimo salvataggio, con la sua data (ms) */
+  copy: { date: number } | null
+  /** Backup del progetto, dal più recente */
+  backups: BackupItem[]
+  /** Cartella dei backup, se c'è */
+  backupFolder: string | null
+}
+
 export interface BackupState {
   /** Cartella dei backup del progetto aperto */
   folder: string
@@ -166,6 +176,8 @@ export interface ProjectZipSummary {
   dataFile: string | null
   /** Tutti i file */
   files: number
+  /** È lo zip di un backup (le immagini stanno fuori): si ripristina, non si importa */
+  backup?: boolean
 }
 
 export interface Api {
@@ -383,6 +395,19 @@ export interface Api {
    * web la cartella in cui estrarlo (parent) la sceglie l'utente.
    */
   restoreBackup(file: string, parent?: string): Promise<string>
+  /** Copia del file di progetto e backup di un progetto che non si apre, senza aprirlo */
+  projectRescue(folder: string): Promise<ProjectRescue>
+  /** Rimette la copia al posto del file di progetto rovinato (che resta come <nome>.damaged) */
+  restoreProjectFileCopy(folder: string): Promise<void>
+  /**
+   * Estrae un backup del progetto `folder` (che non si apre) in una cartella nuova accanto al
+   * progetto e ne restituisce il percorso. Nel web la cartella `parent` va scelta prima.
+   */
+  restoreProjectBackup(folder: string, file: string, parent?: string): Promise<string>
+  /** Sceglie dal disco lo zip di un backup. Solo nell'app desktop: nel browser null */
+  chooseBackupFile(): Promise<string | null>
+  /** Estrae lo zip di backup scelto con chooseBackupFile in una cartella nuova dentro `parent` */
+  restoreBackupFile(file: string, parent: string): Promise<string>
   /** Il progetto com'era in un backup del progetto aperto, per confrontarlo */
   backupVersion(file: string): Promise<ProjectVersion>
   /** Schede di un foglio Google condiviso con chiunque abbia il link */

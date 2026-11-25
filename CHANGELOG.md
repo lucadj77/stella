@@ -5,6 +5,18 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.14.3-beta.1
+
+### English
+
+- **Safer saving**: every file of the project is now forced to disk before it replaces the old one. A power cut or a crash during a save leaves the previous version or the new one, never an empty file. Stella also keeps a hidden copy of the project file as it was before the last save.
+- **Restore a project that no longer opens**: when the project file is damaged, the error on the start screen has **Restore from backup…**. It offers the copy from the previous save and the project's backups, without opening the project. **Import… › Stella backup** restores a backup zip chosen from disk, even from another computer.
+
+### Italiano
+
+- **Salvataggi più sicuri**: ogni file del progetto ora viene forzato sul disco prima di prendere il posto di quello vecchio. Un blocco della corrente o un arresto durante il salvataggio lascia la versione di prima o quella nuova, mai un file vuoto. Stella tiene anche una copia nascosta del file del progetto com'era prima dell'ultimo salvataggio.
+- **Ripristinare un progetto che non si apre più**: quando il file del progetto è rovinato, l'errore nella schermata iniziale ha **Ripristina da backup…**. Propone la copia del salvataggio precedente e i backup del progetto, senza aprirlo. **Importa… › Backup di Stella** ripristina uno zip di backup scelto dal disco, anche da un altro computer.
+
 ## 1.14.2-beta.1
 
 ### English

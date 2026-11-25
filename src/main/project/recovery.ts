@@ -1,7 +1,8 @@
 import { app } from 'electron'
 import { createHash } from 'crypto'
-import { mkdir, readFile, rename, rm, stat, writeFile } from 'fs/promises'
+import { mkdir, readFile, rm, stat } from 'fs/promises'
 import { join } from 'path'
+import { writeFileSafe } from '../fs'
 
 // File di recupero: mentre ci sono modifiche non salvate, il renderer ne manda una copia ogni
 // pochi secondi, che si scrive nella cartella dell'app (non in quella del progetto). Se l'app si
@@ -17,8 +18,7 @@ export async function writeRecovery(folder: string, json: string): Promise<void>
   const file = recoveryFile(folder)
   await mkdir(join(file, '..'), { recursive: true })
   // prima un file a parte, poi lo scambio: un'interruzione non lascia un file a metà
-  await writeFile(`${file}.tmp`, json, 'utf8')
-  await rename(`${file}.tmp`, file)
+  await writeFileSafe(file, json)
 }
 
 /** Il recupero del progetto, con la data in cui è stato scritto (ms), o null */

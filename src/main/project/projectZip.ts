@@ -2,6 +2,7 @@ import JSZip from 'jszip'
 import { mkdir, readFile, readdir, writeFile } from 'fs/promises'
 import { join, relative, resolve, sep } from 'path'
 import { exists } from '../fs'
+import { isManifest } from './backup'
 import { MessageError, msg } from '../../shared/messages'
 import { LEGACY_PROJECT_FILES, PROJECT_FILE } from '../../shared/project'
 import { projectFolderName } from '../../shared/model/projectName'
@@ -110,7 +111,9 @@ export async function inspectProjectZip(data: Uint8Array): Promise<ProjectZipSum
     fonts: rel.filter((n) => n.startsWith('assets/fonts/') && FONT.test(n)).length,
     dataFile:
       typeof file.dataFile === 'string' && rel.includes(file.dataFile) ? file.dataFile : null,
-    files: files.length
+    files: files.length,
+    // un backup tiene le immagini fuori dallo zip: va ripristinato, non importato
+    ...(!prefix && rel.some((n) => isManifest(n)) ? { backup: true } : {})
   }
 }
 

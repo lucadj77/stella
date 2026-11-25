@@ -259,6 +259,9 @@ const GenerateDialog = lazy(() => import('./components/GenerateDialog'))
 const StatsPanel = lazy(() => import('./components/StatsPanel'))
 const ExportDialog = lazy(() => import('./export/ExportDialog'))
 
+/** Errori di apertura per cui si propone di ripristinare il file di progetto o un backup */
+const RESCUE_ERRORS = ['load.emptyProjectFile', 'load.unreadableProjectFile']
+
 const NO_SOURCES = {}
 const NO_STYLES: Record<string, string> = {}
 /** Da quante voci stili e variabili hanno il campo per filtrarle */
@@ -689,6 +692,8 @@ function App(): React.JSX.Element {
   const [groupDrop, setGroupDrop] = useState<string | null>(null)
   const sidebarPreview = useSidebarPreview()
 
+  /** Progetto che non si è aperto per il file di progetto rovinato: si può ripristinare */
+  const [rescueFolder, setRescueFolder] = useState<string | null>(null)
   /** Progetto di cui questa sessione ha scritto il recupero: si toglie quando torna salvato */
   const recoveryFolder = useRef<string | null>(null)
   // copia delle modifiche non salvate: se Stella si chiude male, riaprendo il progetto si
@@ -736,6 +741,7 @@ function App(): React.JSX.Element {
   const load = useCallback(async (folder: string) => {
     setLoading(true)
     setError(null)
+    setRescueFolder(null)
     try {
       const loaded = await window.api.loadProject(folder)
       // un progetto letto dal disco sostituisce tutto: niente controlli sui dati
@@ -763,7 +769,16 @@ function App(): React.JSX.Element {
       updateThumbnail(loaded, true).catch((e) => console.error(e))
       void offerRecovery.current(loaded)
     } catch (e) {
-      setError(messageFromError(e))
+      const m = messageFromError(e)
+      setError(m)
+      // il file di progetto è rovinato o manca: si propone la copia o un backup
+      if (RESCUE_ERRORS.includes(m.key)) setRescueFolder(folder)
+      else if (m.key === 'load.noProjectFile')
+        // una cartella qualsiasi non ha stella.json: si propone solo se c'è qualcosa da ripristinare
+        window.api.projectRescue(folder).then(
+          (r) => (r.copy || r.backups.length) && setRescueFolder(folder),
+          () => undefined
+        )
     } finally {
       setLoading(false)
     }
@@ -1751,6 +1766,10 @@ function App(): React.JSX.Element {
     openZipRef.current = async (picked) => {
       try {
         const summary = await window.api.inspectProjectZip(picked.data)
+        if (summary?.backup && !window.api.isWeb) {
+          await showNotice(t, t('projectZip.isBackup.title'), t('projectZip.isBackup'))
+          return
+        }
         if (summary) {
           setImportingZip({ file: picked.name, data: picked.data, summary })
           return
@@ -4312,6 +4331,7 @@ function App(): React.JSX.Element {
                           <StartScreen
                             onHelp={() => setHelp(true)}
                             error={error}
+                            rescueFolder={rescueFolder}
                             loading={loading}
                             settings={settings}
                             onOpen={load}
