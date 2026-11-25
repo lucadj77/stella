@@ -12,7 +12,7 @@ import {
   type ColumnInfo,
   type ListColumn
 } from '../../../shared/model/sheet'
-import { findOption } from '../../../shared/model/template'
+import { cellChoice, findOption, isEmptyOption } from '../../../shared/model/template'
 import { plainText } from '../../../shared/model/markup'
 import { useI18n } from '../i18n/context'
 import MarkupTextarea from './MarkupTextarea'
@@ -299,7 +299,7 @@ function DataTable({
                   const bool = !calc && !isEditing && booleans.has(h)
                   const color = tint ? undefined : cellColor?.(r, h)
                   const shownDefault =
-                    !calc && !bool && !isEditing && !raw.trim() && fallback ? fallback(r, h) : ''
+                    !calc && !bool && !isEditing && raw === '' && fallback ? fallback(r, h) : ''
                   return (
                     <td
                       key={h}
@@ -373,6 +373,8 @@ function DataTable({
                             if (how === 'left') move(0, -1)
                           }}
                         />
+                      ) : isEmptyOption(raw) && lists?.has(h) ? (
+                        <span className="tpl-value">{t('list.empty')}</span>
                       ) : shownDefault ? (
                         <span className="tpl-value" title={t('table.templateValue')}>
                           <CellText text={shownDefault} fields={() => rowFields(r)} />
@@ -496,10 +498,11 @@ function CellSelect({
   const { t } = useI18n()
   const ref = useRef<HTMLSelectElement>(null)
   useEffect(() => ref.current?.focus(), [])
-  const own = value.trim()
+  const own = cellChoice(value)
   const picked = own ? findOption(list.options, own) : undefined
   const base = findOption(list.options, list.fallback)
-  const label = (o: string): string => plainText(o).replace(/\s+/g, ' ').trim() || '∅'
+  const label = (o: string): string =>
+    isEmptyOption(o) ? t('list.empty') : plainText(o).replace(/\s+/g, ' ').trim() || '∅'
   return (
     <select
       ref={ref}

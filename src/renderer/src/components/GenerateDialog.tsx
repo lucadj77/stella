@@ -15,6 +15,7 @@ import {
   parseWeighted,
   sequenceRound,
   choiceText,
+  EMPTY_VALUE,
   outsideOptions,
   valueCounts,
   type GenerateMode,
@@ -30,6 +31,7 @@ import {
 import { walkLayers } from '../../../shared/model/normalize'
 import { templateColumns, type ListColumn } from '../../../shared/model/sheet'
 import { TEMPLATE_COLUMN } from '../../../shared/model/inherit'
+import { isEmptyOption } from '../../../shared/model/template'
 import { OptionThumb } from '../editor/ListOptions'
 import type { Template } from '../../../shared/model/template'
 import { Dialog } from '../editor/dialogs'
@@ -133,6 +135,17 @@ function GenerateForm({
       ].filter((c) => c !== 'amount'),
     [template, choices, sheet.headers]
   )
+  /** Le voci come si scrivono tra i valori: «Vuoto» (uno spazio) diventa "" */
+  const tokens = useMemo(
+    () =>
+      new Map(
+        [...choices].map(([k, c]) => [
+          k,
+          { ...c, options: c.options.map((o) => (isEmptyOption(o) ? EMPTY_VALUE : o)) }
+        ])
+      ),
+    [choices]
+  )
   /** Colonne dei livelli immagine: vi si scrive il nome dell'immagine, non {icona} */
   const imageColumns = useMemo(
     () =>
@@ -158,7 +171,7 @@ function GenerateForm({
   )
 
   /** Colonna con le voci da scegliere: i valori si scrivono così come sono, uno per cella */
-  const choiceOf = (column: string): ListColumn | undefined => choices.get(column.trim())
+  const choiceOf = (column: string): ListColumn | undefined => tokens.get(column.trim())
   const plainColumn = (column: string): boolean =>
     imageColumns.has(column.trim()) || !!choiceOf(column)
   const draft = (column = ''): Draft => ({
@@ -279,7 +292,7 @@ function GenerateForm({
     active.some((c) => fieldsOf(c, isRandom).includes(h) && c.icons)
   /** Il valore di una cella dell'anteprima non è tra le voci della sua colonna */
   const unknownCell = (h: string, v: string): boolean => {
-    const ch = choices.get(h)
+    const ch = tokens.get(h)
     return !!ch && outsideOptions([v], ch.options, h === TEMPLATE_COLUMN).length > 0
   }
   const shown = result.rows.slice(0, PREVIEW_ROWS)
@@ -838,7 +851,9 @@ function GenerateForm({
                           unknownCell(result.headers[j], v) ? 'generate-unknown' : undefined
                         }
                       >
-                        {iconColumn(result.headers[j]) ? (
+                        {isEmptyOption(v) && tokens.has(result.headers[j]) ? (
+                          <span className="muted">{t('list.empty')}</span>
+                        ) : iconColumn(result.headers[j]) ? (
                           <MarkupText text={v} unit={3} ratio={1} paragraphSpacing={0} />
                         ) : (
                           v
@@ -1057,7 +1072,8 @@ function ChoicePicker({
     for (const v of outside) next[v] = counts[v] ?? 1
     onChange(choiceText(choice.options, next))
   }
-  const label = (o: string): string => o.replace(/\s+/g, ' ').trim() || '∅'
+  const label = (o: string): string =>
+    o === EMPTY_VALUE ? t('list.empty') : o.replace(/\s+/g, ' ').trim() || '∅'
   return (
     <div className="generate-values generate-choices">
       <span className="generate-choices-head">
@@ -1090,8 +1106,12 @@ function ChoicePicker({
                   checked={n !== undefined}
                   onChange={(e) => write(o, e.target.checked ? 1 : undefined)}
                 />
-                {choice.type === 'image' && <OptionThumb name={o} />}
-                {choice.type === 'shape' && (
+                {o === EMPTY_VALUE ? (
+                  <span className="list-swatch list-empty" aria-hidden="true" />
+                ) : (
+                  choice.type === 'image' && <OptionThumb name={o} />
+                )}
+                {choice.type === 'shape' && o !== EMPTY_VALUE && (
                   <span className="list-swatch" style={{ background: resolveColor(o, pal) }} />
                 )}
                 <span className="generate-choice-name">{label(o)}</span>

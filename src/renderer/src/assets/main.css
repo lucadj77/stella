@@ -10602,3 +10602,19 @@ button.wide {
 .generate-dialog td.generate-unknown {
   background: var(--warning-bg);
 }
+
+/* voce «Vuoto» di un elenco */
+.list-swatch.list-empty {
+  background: transparent;
+  border-style: dashed;
+}
+
+.option-empty {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.option-thumb.option-variable {
+  font-size: 22px;
+  line-height: 1;
+}

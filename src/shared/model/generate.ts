@@ -209,11 +209,19 @@ export function parseWeighted(text: string): ParsedValues {
   return { values, weights, sequence }
 }
 
+/**
+ * Valore `""` nell'elenco: la cella prende uno spazio, cioè «Vuoto», che svuota il valore del
+ * template (vedi EMPTY_OPTION in template.ts)
+ */
+export const EMPTY_VALUE = '""'
+
 /** I numeri restano numeri anche con "come icona": {3} non è un'icona */
 const cell = (c: GeneratorColumn, pick: string[]): string =>
-  pick
-    .map((v) => (c.icons && !/^\{.*\}$/.test(v) && !/^-?\d+([.,]\d+)?$/.test(v) ? `{${v}}` : v))
-    .join(c.separator)
+  pick.length === 1 && pick[0] === EMPTY_VALUE
+    ? ' '
+    : pick
+        .map((v) => (c.icons && !/^\{.*\}$/.test(v) && !/^-?\d+([.,]\d+)?$/.test(v) ? `{${v}}` : v))
+        .join(c.separator)
 
 export interface GeneratedCards {
   headers: string[]

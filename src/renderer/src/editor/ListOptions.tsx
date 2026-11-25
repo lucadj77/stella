@@ -1,17 +1,34 @@
 import { moveItem, useDragReorder } from '../components/useDragReorder'
 import { useContext, useMemo, useState } from 'react'
 import { assetRefName, isImageAsset, resolveAsset } from '../../../shared/model/assets'
-import { findOption, PRIMARY_PROPERTY, type Layer } from '../../../shared/model/template'
+import {
+  EMPTY_OPTION,
+  findOption,
+  isEmptyOption,
+  PRIMARY_PROPERTY,
+  type Layer
+} from '../../../shared/model/template'
+import { imageVariable } from '../../../shared/model/variables'
+import MarkupText from '../render/MarkupText'
 import { defaultValue } from '../../../shared/model/bind'
 import AssetPicker from '../components/AssetPicker'
 import { ColorSwatch } from '../components/ColorPicker'
 import { ImageIcon } from '../components/icons'
 import { useI18n } from '../i18n/context'
-import { AssetsContext, assetUrl } from '../render/assets'
+import { AssetsContext, assetUrl, VariablesContext } from '../render/assets'
 
 /** Miniatura di un'immagine del progetto, o un riquadro vuoto se non si trova */
 export function OptionThumb({ name }: { name: string }): React.JSX.Element {
   const assets = useContext(AssetsContext)
+  const variables = useContext(VariablesContext)
+  // una variabile immagine prevale su un file con lo stesso nome, come nel disegno della carta
+  const v = name.trim().replace(/^\{(.*)\}$/, '$1')
+  if (v && imageVariable(v, variables))
+    return (
+      <span className="option-thumb option-variable">
+        <MarkupText text={`{${v}}`} unit={8} ratio={1} paragraphSpacing={0} />
+      </span>
+    )
   const r = name.trim() ? resolveAsset(name.trim(), assets) : null
   return (
     <span className="option-thumb">
@@ -36,6 +53,7 @@ export default function ListOptions({
 }): React.JSX.Element {
   const { t } = useI18n()
   const assets = useContext(AssetsContext)
+  const variables = useContext(VariablesContext)
   const [picking, setPicking] = useState<number | 'new' | null>(null)
   const current = defaultValue(l) ?? ''
   const isDefault = findOption(options, current)
@@ -74,6 +92,21 @@ export default function ListOptions({
       ].sort(),
     [assets]
   )
+  /** Variabili da aggiungere come voci, scritte {nome}: nei valori niente immagini */
+  const varNames = useMemo(
+    () =>
+      Object.keys(variables ?? {})
+        .filter((n) => (l.type === 'value' ? variables[n].type !== 'image' : true))
+        .sort((a, b) => a.localeCompare(b)),
+    [variables, l.type]
+  )
+  const hasEmpty = options.some(isEmptyOption)
+  /** Aggiunge voci in fondo, senza doppioni */
+  const addOptions = (names: string[]): void => {
+    const next = [...options]
+    for (const n of names) if (!findOption(next, n) || n === '') next.push(n)
+    write(next)
+  }
   const fromFolder = (folder: string): void => {
     const names = assets
       .filter((a) => isImageAsset(a) && a.slice(0, Math.max(0, a.lastIndexOf('/'))) === folder)
@@ -106,9 +139,15 @@ export default function ListOptions({
               title={t('source.optionDefault')}
               aria-label={t('source.optionDefault')}
               checked={o === isDefault}
-              onChange={() => set({ [key]: o } as Partial<Layer>)}
+              // «Vuoto» come valore del template: il livello resta vuoto
+              onChange={() => set({ [key]: isEmptyOption(o) ? '' : o } as Partial<Layer>)}
             />
-            {l.type === 'image' && (
+            {isEmptyOption(o) && (
+              <span className="option-text option-empty" title={t('source.optionEmptyHint')}>
+                {t('list.empty')}
+              </span>
+            )}
+            {l.type === 'image' && !isEmptyOption(o) && (
               <button
                 type="button"
                 className="option-pick"
@@ -118,20 +157,22 @@ export default function ListOptions({
                 <OptionThumb name={o} />
               </button>
             )}
-            {l.type === 'shape' && (
+            {l.type === 'shape' && !isEmptyOption(o) && (
               <ColorSwatch
                 value={o}
                 title={t('cardForm.pickColor')}
                 onChange={(c) => update(i, c)}
               />
             )}
-            <input
-              type="text"
-              className="option-text"
-              value={o}
-              aria-label={t('source.option', { n: i + 1 })}
-              onChange={(e) => update(i, e.target.value)}
-            />
+            {!isEmptyOption(o) && (
+              <input
+                type="text"
+                className="option-text"
+                value={o}
+                aria-label={t('source.option', { n: i + 1 })}
+                onChange={(e) => update(i, e.target.value)}
+              />
+            )}
             <span className="option-tools">
               <button
                 type="button"
@@ -185,8 +226,33 @@ export default function ListOptions({
             )}
           </>
         ) : (
-          <button type="button" className="pick-btn" onClick={() => write([...options, ''])}>
-            {t('source.optionAdd')}
+          <>
+            <button type="button" className="pick-btn" onClick={() => write([...options, ''])}>
+              {t('source.optionAdd')}
+            </button>
+            {(l.type === 'text' || l.type === 'value') && varNames.length > 0 && (
+              <select
+                value=""
+                title={t('source.optionVariableHint')}
+                onChange={(e) => e.target.value && addOptions([`{${e.target.value}}`])}
+              >
+                <option value="">{t('source.optionVariable')}</option>
+                {varNames.map((n) => (
+                  <option key={n} value={n}>
+                    {`{${n}}`}
+                  </option>
+                ))}
+              </select>
+            )}
+          </>
+        )}
+        {!hasEmpty && (
+          <button
+            type="button"
+            title={t('source.optionEmptyHint')}
+            onClick={() => write([...options, EMPTY_OPTION])}
+          >
+            {t('source.optionAddEmpty')}
           </button>
         )}
       </div>
@@ -195,7 +261,9 @@ export default function ListOptions({
       )}
       {picking !== null && (
         <AssetPicker
+          extras="variables"
           value={picking === 'new' ? '' : (options[picking] ?? '')}
+          onPickMany={picking === 'new' ? addOptions : undefined}
           onPick={(name) => {
             if (picking === 'new') {
               if (!findOption(options, name)) write([...options, name])

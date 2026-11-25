@@ -20,6 +20,18 @@ async function workbook(path: string): Promise<void> {
 }
 
 describe('writeSpreadsheet', () => {
+  it('una cella con solo uno spazio (voce «Vuoto» di un elenco) resta uno spazio', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'gc-'))
+    const sheet = { name: 'Prova', headers: ['amount', 'ritratto'], rows: [['1', ' ']] }
+    for (const file of ['dati.xlsx', 'Prova.csv']) {
+      const path = join(dir, file)
+      if (file.endsWith('.xlsx')) await workbook(path)
+      await writeSpreadsheet(path, [sheet])
+      const back = (await readSpreadsheet(path)).find((s) => s.headers.includes('ritratto'))
+      expect(back?.rows).toEqual([['1', ' ']])
+    }
+  })
+
   it('una carta senza dati resta riaprendo il progetto (nuovo foglio, xlsx e csv)', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'gc-'))
     const sheet = {

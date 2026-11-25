@@ -402,3 +402,23 @@ describe('scelta a spunte', () => {
     expect(r.rows[19]).toEqual(['oro', '10', '1'])
   })
 })
+
+describe('voce «Vuoto»', () => {
+  it('"" tra i valori scrive uno spazio, che svuota il livello', async () => {
+    const { generateCards, parseWeighted, emptyColumn } = await import('../generate')
+    const r = generateCards({
+      columns: [{ ...emptyColumn('ritratto'), icons: false, ...parseWeighted('drago\n""') }],
+      filter: '',
+      copies: 1
+    })
+    expect(r.rows.map((x) => x[0])).toEqual(['drago', ' '])
+  })
+
+  it('cellChoice distingue la cella vuota (template) da «Vuoto»', async () => {
+    const { cellChoice, findOption, EMPTY_OPTION } = await import('../template')
+    expect(cellChoice('')).toBe('')
+    expect(cellChoice('  ')).toBe(EMPTY_OPTION)
+    expect(cellChoice(' drago ')).toBe('drago')
+    expect(findOption(['drago', EMPTY_OPTION], cellChoice(' '))).toBe(EMPTY_OPTION)
+  })
+})

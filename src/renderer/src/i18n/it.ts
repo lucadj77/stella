@@ -802,6 +802,11 @@ export const it: Record<MessageKey, string> = {
   'source.optionDown': 'Sposta giù',
   'source.optionRemove': 'Togli la voce',
   'source.optionAdd': '+ Voce',
+  'source.optionAddEmpty': '+ Vuoto',
+  'source.optionEmptyHint':
+    'Una voce che lascia vuoto il livello, anche quando il template ha un valore',
+  'source.optionVariable': '+ Variabile…',
+  'source.optionVariableHint': 'Aggiunge come voce una variabile del progetto, scritta {nome}',
   'source.optionAddImage': 'Aggiungi immagine…',
   'source.optionsFromFolder': 'Da una cartella…',
   'source.optionsFromFolderHint': 'Aggiunge come voci tutte le immagini di una cartella',
@@ -846,6 +851,7 @@ export const it: Record<MessageKey, string> = {
   'cardForm.variantHint': "L'aspetto di questo componente: il template o una delle sue varianti",
   'cardForm.otherTemplate': 'Un altro template…',
   'list.base': 'di base',
+  'list.empty': 'Vuoto',
   'list.baseOption': '{value} (di base)',
   'list.template': 'Template',
   'list.notInList': "«{value}» non è nell'elenco",
@@ -892,6 +898,10 @@ export const it: Record<MessageKey, string> = {
   'tool.short.snap': 'Snap',
   'tool.shapes': 'Rettangolo, ellisse, poligono, stella o linea',
   'assetPicker.skip': 'Per ora nessuna immagine',
+  'assetPicker.selectShown': 'Seleziona tutte quelle mostrate',
+  'assetPicker.selectShownHint':
+    'Seleziona tutte le immagini mostrate, nella cartella e nella ricerca attuali',
+  'assetPicker.addChosen': 'Aggiungi {n}',
   'assetPicker.skipHint':
     "Crea il livello vuoto: l'immagine si sceglie dopo, o viene da una colonna del foglio",
   'tool.rect': 'Rettangolo (R)',
