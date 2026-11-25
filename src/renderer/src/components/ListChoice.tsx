@@ -1,5 +1,5 @@
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { findOption } from '../../../shared/model/template'
+import { cellChoice, findOption, isEmptyOption } from '../../../shared/model/template'
 import type { ListColumn } from '../../../shared/model/sheet'
 import { palette, resolveColor } from '../../../shared/model/variables'
 import { plainText } from '../../../shared/model/markup'
@@ -44,14 +44,15 @@ export default function ListChoice({
     document.addEventListener('mousedown', down)
     return () => document.removeEventListener('mousedown', down)
   }, [open])
-  const own = value?.trim() ?? ''
+  const own = value === null ? '' : cellChoice(value)
   const picked = own ? findOption(list.options, own) : undefined
   const outside = own && !picked ? own : null
   // la voce del template: scelta, lascia la cella vuota. Una casella «Template» a parte serve
   // solo se il valore del template non è tra le voci
   const base = findOption(list.options, list.fallback)
   const fallback = base ?? list.fallback
-  const label = (o: string): string => plainText(o).replace(/\s+/g, ' ').trim() || '∅'
+  const label = (o: string): string =>
+    isEmptyOption(o) ? t('list.empty') : plainText(o).replace(/\s+/g, ' ').trim() || '∅'
 
   if (list.type === 'text' || list.type === 'value')
     return (
@@ -97,12 +98,14 @@ export default function ListChoice({
           onChange(isBase ? '' : o)
         }}
       >
-        {list.type === 'image' ? (
+        {isEmptyOption(o) ? (
+          <span className="list-swatch list-empty" aria-hidden="true" />
+        ) : list.type === 'image' ? (
           <OptionThumb name={o} />
         ) : (
           <span className="list-swatch" style={{ background: resolveColor(o, pal) }} />
         )}
-        <span className="list-tile-name">{isTpl ? t('list.template') : o}</span>
+        <span className="list-tile-name">{isTpl ? t('list.template') : label(o)}</span>
         {isBase && !isTpl && <span className="list-base">{t('list.base')}</span>}
       </button>
     )
@@ -151,7 +154,7 @@ export default function ListChoice({
           {value === null
             ? t('cardForm.mixed')
             : own
-              ? own
+              ? label(own)
               : base
                 ? t('list.baseOption', { value: base })
                 : t('list.fromTemplate', { value: fallback })}

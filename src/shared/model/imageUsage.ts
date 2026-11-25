@@ -57,7 +57,8 @@ export function imageUsages(p: UsageProject): Map<string, ImageUsage> {
 
   /** Percorso dell'immagine richiamata da un nome, attraverso una variabile immagine */
   const resolve = (name: string): string | null => {
-    const n = name.trim()
+    // {cuore} nelle voci di un elenco vale quanto cuore
+    const n = name.trim().replace(/^\{(.*)\}$/, '$1')
     if (!n) return null
     const v = imageVariable(n, variables)
     const r = resolveAsset(v ? v.src : n, p.assets)

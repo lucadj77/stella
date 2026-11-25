@@ -51,6 +51,8 @@ export default function AssetPicker({
   onPick,
   onClose,
   onSkip,
+  onPickMany,
+  bracedVariables = false,
   extras = false
 }: {
   /** Nome scritto ora nel campo: la sua immagine appare selezionata */
@@ -60,6 +62,16 @@ export default function AssetPicker({
   /** Per un livello nuovo: «Senza immagine» lo crea vuoto, da collegare poi a una colonna */
   onSkip?(): void
   extras?: boolean | 'variables'
+  /**
+   * Scelta di più immagini insieme (per esempio le voci di un elenco): un clic seleziona o
+   * deseleziona, «Aggiungi» le passa tutte nell'ordine in cui sono state scelte
+   */
+  onPickMany?(names: string[]): void
+  /**
+   * Le variabili immagine si restituiscono tra graffe ({cuore}), come nelle voci di un elenco:
+   * così non si confondono con un file con lo stesso nome
+   */
+  bracedVariables?: boolean
 }): React.JSX.Element {
   const { t } = useI18n()
   const assets = useContext(AssetsContext)
@@ -74,6 +86,17 @@ export default function AssetPicker({
   const [busy, setBusy] = useState(false)
   const sources = useContext(SourcesContext)
   const [error, setError] = useState<Message | null>(null)
+  const [chosen, setChosen] = useState<string[]>([])
+  const multi = !!onPickMany
+  /** Con la scelta multipla un clic aggiunge o toglie dalla selezione, altrimenti sceglie */
+  const choose = (name: string): void => {
+    if (!multi) {
+      onPick(name)
+      onClose()
+      return
+    }
+    setChosen((c) => (c.includes(name) ? c.filter((x) => x !== name) : [...c, name]))
+  }
   const [bg, setBg] = useThumbBackground()
   const setSize = (n: number): void => {
     setSizeState(n)
@@ -138,12 +161,10 @@ export default function AssetPicker({
   ): React.ReactNode => (
     <button
       key={key}
-      className={on ? 'asset-tile on' : 'asset-tile'}
+      className={(multi ? chosen.includes(name) : on) ? 'asset-tile on' : 'asset-tile'}
       title={name}
-      onClick={() => {
-        onPick(name)
-        onClose()
-      }}
+      aria-pressed={multi ? chosen.includes(name) : undefined}
+      onClick={() => choose(name)}
     >
       <span className="asset-thumb" style={{ height: size }}>
         {thumb}
@@ -186,10 +207,7 @@ export default function AssetPicker({
   const link = isRemoteImage(value) ? value.trim() : null
   const downloaded = current && sources[current]?.kind === 'image' ? sources[current] : null
 
-  const pick = (path: string): void => {
-    onPick(assetRefName(path, assets))
-    onClose()
-  }
+  const pick = (path: string): void => choose(assetRefName(path, assets))
 
   return (
     <Dialog title={t('assetPicker.title')} onClose={onClose}>
@@ -301,7 +319,10 @@ export default function AssetPicker({
             {imageVars.length > 0 && (
               <h3 className="asset-grid-title">{t('assetPicker.variables')}</h3>
             )}
-            {imageVars.map((n) => tile(`var:${n}`, n, value === n, markupThumb(`{${n}}`)))}
+            {imageVars.map((n) => {
+              const ref = bracedVariables ? `{${n}}` : n
+              return tile(`var:${n}`, ref, value.trim() === ref, markupThumb(`{${n}}`))
+            })}
             {extraCount > 0 && shown.length > 0 && (
               <h3 className="asset-grid-title">{t('assetPicker.files')}</h3>
             )}
@@ -310,7 +331,11 @@ export default function AssetPicker({
               return (
                 <button
                   key={a}
-                  className={a === current ? 'asset-tile on' : 'asset-tile'}
+                  className={
+                    (multi ? chosen.includes(assetRefName(a, assets)) : a === current)
+                      ? 'asset-tile on'
+                      : 'asset-tile'
+                  }
                   title={a}
                   onClick={() => pick(a)}
                 >
@@ -341,7 +366,33 @@ export default function AssetPicker({
               {t('assetPicker.skip')}
             </button>
           )}
+          {multi && (
+            <button
+              disabled={!shown.length}
+              title={t('assetPicker.selectShownHint')}
+              onClick={() =>
+                setChosen((c) => [
+                  ...c,
+                  ...shown.map((a) => assetRefName(a, assets)).filter((n) => !c.includes(n))
+                ])
+              }
+            >
+              {t('assetPicker.selectShown')}
+            </button>
+          )}
           <button onClick={onClose}>{t('dialog.cancel')}</button>
+          {multi && (
+            <button
+              className="primary"
+              disabled={!chosen.length}
+              onClick={() => {
+                onPickMany?.(chosen)
+                onClose()
+              }}
+            >
+              {t('assetPicker.addChosen', { n: chosen.length })}
+            </button>
+          )}
         </div>
       </div>
       {qr && (

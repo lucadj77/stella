@@ -87,6 +87,21 @@ export function findOption(options: string[], value: string): string | undefined
   return options.find((o) => o.trim().toLowerCase() === v)
 }
 
+/**
+ * Voce «Vuoto» di un elenco: uno spazio. Nella cella solo spazi svuotano il valore del livello
+ * (vedi bind.ts), mentre la cella vuota lascia il valore del template.
+ */
+export const EMPTY_OPTION = ' '
+
+/** La voce o la cella è «Vuoto»: solo spazi, non la stringa vuota */
+export const isEmptyOption = (v: string): boolean => v !== '' && v.trim() === ''
+
+/**
+ * Il valore scelto in una cella con le voci: senza spazi ai lati, salvo «Vuoto» che resta uno
+ * spazio; la cella vuota (valore del template) resta ''
+ */
+export const cellChoice = (v: string): string => (isEmptyOption(v) ? EMPTY_OPTION : v.trim())
+
 /** Tipi di livello che possono prendere il valore da un elenco */
 export const LIST_TYPES: readonly LayerType[] = ['text', 'image', 'shape', 'value']
 

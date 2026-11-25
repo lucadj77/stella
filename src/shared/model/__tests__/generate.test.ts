@@ -373,3 +373,52 @@ describe('saveGeneration', () => {
     expect(generationKey(' Mostri ')).toBe(generationKey('mostri'))
   })
 })
+
+describe('scelta a spunte', () => {
+  it('quantità dal testo e testo dalle spunte, nell’ordine delle voci', async () => {
+    const { valueCounts, choiceText, outsideOptions, parseWeighted } = await import('../generate')
+    expect(valueCounts(parseWeighted('Blu*3\nRossa'))).toEqual({ Blu: 3, Rossa: 1 })
+    expect(choiceText(['Rossa', 'Verde', 'Blu'], { Blu: 3, Rossa: 1, Gialla: 1 })).toBe(
+      'Rossa\nBlu*3\nGialla'
+    )
+    expect(outsideOptions(['rossa', 'Gialla'], ['Rossa'])).toEqual(['Gialla'])
+    expect(outsideOptions(['rossa'], ['Rossa'], true)).toEqual(['rossa'])
+  })
+
+  it('le varianti incrociate con i numeri da 1 a 10', async () => {
+    const { generateCards, parseWeighted, emptyColumn } = await import('../generate')
+    const col = (column: string, text: string, icons: boolean): GeneratorColumn => ({
+      ...emptyColumn(column),
+      icons,
+      ...parseWeighted(text)
+    })
+    const r = generateCards({
+      columns: [col('template', 'carta\noro', false), col('numero', '1-10', true)],
+      filter: '',
+      copies: 1
+    })
+    expect(r.rows).toHaveLength(20)
+    expect(r.rows[0]).toEqual(['carta', '1', '1'])
+    expect(r.rows[19]).toEqual(['oro', '10', '1'])
+  })
+})
+
+describe('voce «Vuoto»', () => {
+  it('"" tra i valori scrive uno spazio, che svuota il livello', async () => {
+    const { generateCards, parseWeighted, emptyColumn } = await import('../generate')
+    const r = generateCards({
+      columns: [{ ...emptyColumn('ritratto'), icons: false, ...parseWeighted('drago\n""') }],
+      filter: '',
+      copies: 1
+    })
+    expect(r.rows.map((x) => x[0])).toEqual(['drago', ' '])
+  })
+
+  it('cellChoice distingue la cella vuota (template) da «Vuoto»', async () => {
+    const { cellChoice, findOption, EMPTY_OPTION } = await import('../template')
+    expect(cellChoice('')).toBe('')
+    expect(cellChoice('  ')).toBe(EMPTY_OPTION)
+    expect(cellChoice(' drago ')).toBe('drago')
+    expect(findOption(['drago', EMPTY_OPTION], cellChoice(' '))).toBe(EMPTY_OPTION)
+  })
+})

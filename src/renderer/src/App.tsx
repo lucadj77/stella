@@ -4948,6 +4948,23 @@ function SetView({
       })
     return out
   }, [template, family])
+  // nel generatore: le voci degli elenchi e, per la colonna template, le varianti del template
+  // del set e poi gli altri template con le stesse misure
+  const generatorChoices = useMemo(() => {
+    if (!template) return undefined
+    const out = listColumns(template)
+    const names = [
+      ...new Set([
+        ...(family.length ? family.map((x) => x.name) : [template.name]),
+        ...templates
+          .filter((x) => x.width === template.width && x.height === template.height)
+          .map((x) => x.name)
+      ])
+    ]
+    if (names.length > 1)
+      out.set(TEMPLATE_COLUMN, { type: 'text', options: names, fallback: template.name })
+    return out
+  }, [template, family, templates])
   // le miniature delle varianti con i dati della carta scelta
   const variantRow = set.data?.rows[selection[0] ?? -1]
   const variantThumbs = useMemo(
@@ -5907,6 +5924,7 @@ function SetView({
           <GenerateDialog
             sheet={sheet}
             template={template}
+            choices={generatorChoices}
             seed={set.seed}
             generator={set.generator}
             generations={set.generations}

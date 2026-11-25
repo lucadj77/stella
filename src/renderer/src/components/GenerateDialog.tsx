@@ -14,6 +14,10 @@ import {
   MAX_GENERATED,
   parseWeighted,
   sequenceRound,
+  choiceText,
+  EMPTY_VALUE,
+  outsideOptions,
+  valueCounts,
   type GenerateMode,
   type GeneratorColumn,
   type RandomOptions,
@@ -25,11 +29,15 @@ import {
   saveGeneration
 } from '../../../shared/model/generate'
 import { walkLayers } from '../../../shared/model/normalize'
-import { templateColumns } from '../../../shared/model/sheet'
+import { templateColumns, type ListColumn } from '../../../shared/model/sheet'
+import { TEMPLATE_COLUMN } from '../../../shared/model/inherit'
+import { isEmptyOption } from '../../../shared/model/template'
+import { OptionThumb } from '../editor/ListOptions'
 import type { Template } from '../../../shared/model/template'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
-import { AssetsContext, useDecimalComma } from '../render/assets'
+import { AssetsContext, useDecimalComma, VariablesContext } from '../render/assets'
+import { palette, resolveColor } from '../../../shared/model/variables'
 import MarkupText from '../render/MarkupText'
 import Segmented from './Segmented'
 import FormulaDialog from './FormulaDialog'
@@ -63,6 +71,11 @@ export interface GenerateChanges {
 interface Props {
   sheet: Sheet
   template: Template | null
+  /**
+   * Colonne con un elenco di voci: quelle dei livelli con la fonte «Elenco» e la colonna template
+   * (le varianti e gli altri template con le misure del set). I valori si scelgono a spunte.
+   */
+  choices?: Map<string, ListColumn>
   /** Seme del set: si parte da quello */
   seed?: number
   /** Ultima generazione a caso del set: la finestra riparte da quelle impostazioni */
@@ -95,6 +108,7 @@ export default function GenerateDialog(props: Props): React.JSX.Element {
 function GenerateForm({
   sheet,
   template,
+  choices = NO_CHOICES,
   seed: setSeed0,
   generator,
   generations = [],
@@ -115,10 +129,22 @@ function GenerateForm({
       [
         ...new Set([
           ...(template ? templateColumns(template) : []),
+          ...choices.keys(),
           ...sheet.headers.filter((h) => h && !h.includes('.'))
         ])
       ].filter((c) => c !== 'amount'),
-    [template, sheet.headers]
+    [template, choices, sheet.headers]
+  )
+  /** Le voci come si scrivono tra i valori: «Vuoto» (uno spazio) diventa "" */
+  const tokens = useMemo(
+    () =>
+      new Map(
+        [...choices].map(([k, c]) => [
+          k,
+          { ...c, options: c.options.map((o) => (isEmptyOption(o) ? EMPTY_VALUE : o)) }
+        ])
+      ),
+    [choices]
   )
   /** Colonne dei livelli immagine: vi si scrive il nome dell'immagine, non {icona} */
   const imageColumns = useMemo(
@@ -144,9 +170,13 @@ function GenerateForm({
     [assets]
   )
 
+  /** Colonna con le voci da scegliere: i valori si scrivono così come sono, uno per cella */
+  const choiceOf = (column: string): ListColumn | undefined => tokens.get(column.trim())
+  const plainColumn = (column: string): boolean =>
+    imageColumns.has(column.trim()) || !!choiceOf(column)
   const draft = (column = ''): Draft => ({
     ...emptyColumn(column),
-    icons: !imageColumns.has(column),
+    icons: !plainColumn(column),
     text: ''
   })
   // si parte dalla generazione richiamata o, se non c'è, dall'ultima a caso del set
@@ -212,7 +242,9 @@ function GenerateForm({
         }
         // cambiando colonna si sceglie di nuovo se i valori sono icone nel testo
         if (patch.column !== undefined && patch.icons === undefined)
-          next.icons = !imageColumns.has(patch.column.trim())
+          next.icons = !plainColumn(patch.column)
+        // nelle colonne con le voci ogni cella ha una voce sola
+        if (patch.column !== undefined && choiceOf(patch.column)) next.pick = 1
         return next
       })
     )
@@ -258,6 +290,11 @@ function GenerateForm({
   /** Una colonna dell'anteprima mostra le icone se uno degli insiemi che la riempiono le usa */
   const iconColumn = (h: string): boolean =>
     active.some((c) => fieldsOf(c, isRandom).includes(h) && c.icons)
+  /** Il valore di una cella dell'anteprima non è tra le voci della sua colonna */
+  const unknownCell = (h: string, v: string): boolean => {
+    const ch = tokens.get(h)
+    return !!ch && outsideOptions([v], ch.options, h === TEMPLATE_COLUMN).length > 0
+  }
   const shown = result.rows.slice(0, PREVIEW_ROWS)
   // aggiornando, le carte generate vanno nelle righe presenti; quelle in più si accodano
   const updated = mode === 'update' ? Math.min(sheet.rows.length, result.rows.length) : 0
@@ -343,6 +380,10 @@ function GenerateForm({
               : c.pick
           const seqLength = (c.sequence ?? c.values).length
           const setMore = (next: string[]): void => update(i, { more: next })
+          const choice = choiceOf(c.column)
+          const outside = choice
+            ? outsideOptions(c.values, choice.options, c.column.trim() === TEMPLATE_COLUMN)
+            : []
           return (
             <fieldset key={i} className="generate-set">
               <div className="generate-row">
@@ -382,18 +423,20 @@ function GenerateForm({
                     {t('generate.addField')}
                   </button>
                 )}
-                <label>
-                  {t(isRandom ? 'generate.pickRandom' : 'generate.pick')}
-                  <NumInput
-                    className="num narrow"
-                    min={1}
-                    max={10}
-                    value={c.pick}
-                    onChange={(e) =>
-                      update(i, { pick: Math.max(1, Math.min(10, Number(e.target.value) || 1)) })
-                    }
-                  />
-                </label>
+                {!choice && (
+                  <label>
+                    {t(isRandom ? 'generate.pickRandom' : 'generate.pick')}
+                    <NumInput
+                      className="num narrow"
+                      min={1}
+                      max={10}
+                      value={c.pick}
+                      onChange={(e) =>
+                        update(i, { pick: Math.max(1, Math.min(10, Number(e.target.value) || 1)) })
+                      }
+                    />
+                  </label>
+                )}
                 {list.length > 1 && (
                   <button
                     className="icon-btn danger"
@@ -404,17 +447,28 @@ function GenerateForm({
                   </button>
                 )}
               </div>
-              <label className="generate-values">
-                {t('generate.values')}
-                <textarea
-                  rows={3}
-                  value={c.text}
-                  placeholder={t('generate.valuesHint')}
-                  onChange={(e) => update(i, { text: e.target.value })}
+              {choice ? (
+                <ChoicePicker
+                  choice={choice}
+                  text={c.text}
+                  outside={outside}
+                  isTemplate={c.column.trim() === TEMPLATE_COLUMN}
+                  counts={!isAll}
+                  onChange={(text) => update(i, { text })}
                 />
-              </label>
+              ) : (
+                <label className="generate-values">
+                  {t('generate.values')}
+                  <textarea
+                    rows={3}
+                    value={c.text}
+                    placeholder={t('generate.valuesHint')}
+                    onChange={(e) => update(i, { text: e.target.value })}
+                  />
+                </label>
+              )}
               <div className="generate-row">
-                {folders.length > 0 && (
+                {folders.length > 0 && !choice && (
                   <select
                     value=""
                     title={t('generate.fromFolderHint')}
@@ -430,14 +484,16 @@ function GenerateForm({
                     ))}
                   </select>
                 )}
-                <label className="check">
-                  <input
-                    type="checkbox"
-                    checked={c.icons}
-                    onChange={(e) => update(i, { icons: e.target.checked })}
-                  />
-                  {t('generate.icons')}
-                </label>
+                {!choice && (
+                  <label className="check">
+                    <input
+                      type="checkbox"
+                      checked={c.icons}
+                      onChange={(e) => update(i, { icons: e.target.checked })}
+                    />
+                    {t('generate.icons')}
+                  </label>
+                )}
                 {draws > 1 && (
                   <label
                     className="check"
@@ -784,8 +840,20 @@ function GenerateForm({
                 {shown.map((r, i) => (
                   <tr key={i}>
                     {r.slice(0, cols).map((v, j) => (
-                      <td key={j} title={v}>
-                        {iconColumn(result.headers[j]) ? (
+                      <td
+                        key={j}
+                        title={
+                          unknownCell(result.headers[j], v)
+                            ? t('generate.notInList', { value: v })
+                            : v
+                        }
+                        className={
+                          unknownCell(result.headers[j], v) ? 'generate-unknown' : undefined
+                        }
+                      >
+                        {isEmptyOption(v) && tokens.has(result.headers[j]) ? (
+                          <span className="muted">{t('list.empty')}</span>
+                        ) : iconColumn(result.headers[j]) ? (
                           <MarkupText text={v} unit={3} ratio={1} paragraphSpacing={0} />
                         ) : (
                           v
@@ -959,6 +1027,130 @@ function FilterAssistant({
 }
 
 const OTHER_COLUMN = '\u0000other'
+
+const NO_CHOICES = new Map<string, ListColumn>()
+
+/**
+ * I valori di una colonna con le voci (fonte «Elenco» o colonna template): ogni voce si spunta e
+ * ha la sua quantità, che in sequenza ripete la voce nel giro e a caso la rende più probabile. Il
+ * testo resta modificabile a mano, per un ordine diverso da quello dell'elenco; i valori che non
+ * sono tra le voci si segnalano.
+ */
+function ChoicePicker({
+  choice,
+  text,
+  outside,
+  isTemplate,
+  counts: withCounts,
+  onChange
+}: {
+  choice: ListColumn
+  text: string
+  outside: string[]
+  isTemplate: boolean
+  /** Si mostrano le quantità: in sequenza e a caso, non in tutte le combinazioni */
+  counts: boolean
+  onChange(text: string): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const variables = useContext(VariablesContext)
+  const pal = useMemo(() => palette(variables), [variables])
+  const counts = valueCounts(parseWeighted(text))
+  // le voci si riconoscono come nel template: per i livelli senza badare alle maiuscole
+  const key = (v: string): string => (isTemplate ? v.trim() : v.trim().toLowerCase())
+  const written = new Map(Object.keys(counts).map((v) => [key(v), v]))
+  const countOf = (o: string): number | undefined => {
+    const w = written.get(key(o))
+    return w === undefined ? undefined : counts[w]
+  }
+  const write = (o: string, n: number | undefined): void => {
+    const next: Record<string, number> = {}
+    for (const opt of choice.options) {
+      const c = opt === o ? n : countOf(opt)
+      if (c !== undefined) next[opt] = c
+    }
+    for (const v of outside) next[v] = counts[v] ?? 1
+    onChange(choiceText(choice.options, next))
+  }
+  const label = (o: string): string =>
+    o === EMPTY_VALUE ? t('list.empty') : o.replace(/\s+/g, ' ').trim() || '∅'
+  return (
+    <div className="generate-values generate-choices">
+      <span className="generate-choices-head">
+        {t(isTemplate ? 'generate.templates' : 'generate.choices')}
+        <button
+          type="button"
+          onClick={() =>
+            onChange(
+              choiceText(
+                choice.options,
+                Object.fromEntries(choice.options.map((o) => [o, countOf(o) ?? 1]))
+              )
+            )
+          }
+        >
+          {t('generate.choicesAll')}
+        </button>
+        <button type="button" onClick={() => onChange('')}>
+          {t('generate.choicesNone')}
+        </button>
+      </span>
+      <div className="generate-choice-grid">
+        {choice.options.map((o) => {
+          const n = countOf(o)
+          return (
+            <span key={o} className={'generate-choice' + (n !== undefined ? ' on' : '')}>
+              <label className="check" title={o}>
+                <input
+                  type="checkbox"
+                  checked={n !== undefined}
+                  onChange={(e) => write(o, e.target.checked ? 1 : undefined)}
+                />
+                {o === EMPTY_VALUE ? (
+                  <span className="list-swatch list-empty" aria-hidden="true" />
+                ) : (
+                  choice.type === 'image' && <OptionThumb name={o} />
+                )}
+                {choice.type === 'shape' && o !== EMPTY_VALUE && (
+                  <span className="list-swatch" style={{ background: resolveColor(o, pal) }} />
+                )}
+                <span className="generate-choice-name">{label(o)}</span>
+              </label>
+              {n !== undefined && withCounts && (
+                <NumInput
+                  className="num narrow"
+                  min={1}
+                  max={100}
+                  title={t('generate.choiceCount')}
+                  value={n}
+                  onChange={(e) =>
+                    write(o, Math.max(1, Math.min(100, Math.round(Number(e.target.value)) || 1)))
+                  }
+                />
+              )}
+            </span>
+          )
+        })}
+      </div>
+      {outside.length > 0 && (
+        <p className="field-warning">
+          {t(isTemplate ? 'generate.unknownTemplates' : 'generate.outsideList', {
+            values: outside.join(', ')
+          })}
+        </p>
+      )}
+      <details className="generate-choice-text">
+        <summary>{t('generate.choicesText')}</summary>
+        <textarea
+          rows={3}
+          value={text}
+          placeholder={t('generate.valuesHint')}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      </details>
+    </div>
+  )
+}
 
 /**
  * La colonna da riempire: un elenco con tutte le colonne del template e del foglio, più "Altra

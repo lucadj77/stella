@@ -1,9 +1,11 @@
-import type { LoadedSet, ProjectFile } from '../project'
+import type { LoadedSet, ProjectFile, SetDefinition } from '../project'
+import { renameInSpec } from './generate'
 import { renameInOrder } from './order'
 import type { Template } from './template'
 
 // Rinomina di un template: il template (il file cambia nome al salvataggio, vedi
-// Template.origin), i derivati che lo usano come base, i set e la colonna `template` delle carte.
+// Template.origin), i derivati che lo usano come base, i set e la colonna `template` delle carte,
+// anche nelle impostazioni del generatore (Rigenera e generazioni salvate).
 // Funzione pura.
 
 export interface TemplateRename {
@@ -35,16 +37,40 @@ export function renameTemplate(p: TemplateRename, from: string, to: string): Tem
             )
           }
         : s.data
-    if (s.template !== from && data === s.data) return s
-    return { ...s, template: s.template === from ? to : s.template, data }
+    const gen = withGenerators(s, from, to)
+    if (s.template !== from && data === s.data && gen === s) return s
+    return { ...gen, template: s.template === from ? to : s.template, data }
   })
   return {
     templates,
     sets,
     file: {
       ...p.file,
-      sets: p.file.sets.map((d) => (d.template === from ? { ...d, template: to } : d)),
+      sets: p.file.sets.map((d) => {
+        const g = withGenerators(d, from, to)
+        return d.template === from ? { ...g, template: to } : g
+      }),
       order: renameInOrder(p.file.order, 'templates', from, to)
     }
   }
+}
+
+/** Il set con il template rinominato nei valori della colonna `template` del generatore */
+function withGenerators<S extends SetDefinition>(s: S, from: string, to: string): S {
+  let out = s
+  if (s.generator) {
+    const spec = renameInSpec(s.generator.spec, 'template', from, to)
+    if (spec !== s.generator.spec) out = { ...out, generator: { ...s.generator, spec } }
+  }
+  if (s.generations) {
+    let changed = false
+    const generations = s.generations.map((g) => {
+      const spec = renameInSpec(g.spec, 'template', from, to)
+      if (spec === g.spec) return g
+      changed = true
+      return { ...g, spec }
+    })
+    if (changed) out = { ...out, generations }
+  }
+  return out
 }

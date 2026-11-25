@@ -5,6 +5,18 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.14.1-beta.1
+
+### English
+
+- **Generate with template variants and list choices**: in Generate, the **template** column is always available when the set's template has variants (or other templates have its size), and its values are ticked from a list instead of typed, each with a quantity for sequences and random draws. Columns of layers with the List source work the same way, with thumbnails and color swatches. For example, every variant crossed with the numbers 1-10, or five normal cards then a boss in each round. Names that match no template or choice are flagged, and renaming a template also updates saved generations.
+- **List choices**: image lists also offer image variables, with their thumbnail, and **Add image…** picks several images at once (**Select all shown**, then **Add N**). Text and value lists add a project variable with **+ Variable…**. The new **Empty** choice leaves the layer empty even when the template has a value.
+
+### Italiano
+
+- **Genera con le varianti del template e le voci degli elenchi**: in Genera la colonna **template** c'è sempre quando il template del set ha varianti (o altri template hanno le sue misure), e i valori si spuntano da un elenco invece di scriverli, ognuno con la quantità per le sequenze e le estrazioni a caso. Le colonne dei livelli con la fonte Elenco funzionano allo stesso modo, con miniature e campioni di colore. Per esempio, ogni variante incrociata con i numeri da 1 a 10, o cinque carte normali e poi una boss a ogni giro. I nomi che non corrispondono a nessun template o voce si segnalano, e rinominare un template aggiorna anche le generazioni salvate.
+- **Voci degli elenchi**: gli elenchi di immagini propongono anche le variabili immagine, con la miniatura, e **Aggiungi immagine…** sceglie più immagini insieme (**Seleziona tutte quelle mostrate**, poi **Aggiungi N**). Gli elenchi di testi e valori aggiungono una variabile del progetto con **+ Variabile…**. La nuova voce **Vuoto** lascia vuoto il livello anche quando il template ha un valore.
+
 ## 1.14.0-beta.1
 
 ### English

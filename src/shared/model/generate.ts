@@ -209,11 +209,19 @@ export function parseWeighted(text: string): ParsedValues {
   return { values, weights, sequence }
 }
 
+/**
+ * Valore `""` nell'elenco: la cella prende uno spazio, cioè «Vuoto», che svuota il valore del
+ * template (vedi EMPTY_OPTION in template.ts)
+ */
+export const EMPTY_VALUE = '""'
+
 /** I numeri restano numeri anche con "come icona": {3} non è un'icona */
 const cell = (c: GeneratorColumn, pick: string[]): string =>
-  pick
-    .map((v) => (c.icons && !/^\{.*\}$/.test(v) && !/^-?\d+([.,]\d+)?$/.test(v) ? `{${v}}` : v))
-    .join(c.separator)
+  pick.length === 1 && pick[0] === EMPTY_VALUE
+    ? ' '
+    : pick
+        .map((v) => (c.icons && !/^\{.*\}$/.test(v) && !/^-?\d+([.,]\d+)?$/.test(v) ? `{${v}}` : v))
+        .join(c.separator)
 
 export interface GeneratedCards {
   headers: string[]
@@ -650,4 +658,87 @@ export function regenerateSheet(s: Sheet, g: SetGenerator, seed: number): Sheet 
 
 function widen(r: string[], n: number): string[] {
   return r.length < n ? [...r, ...Array(n - r.length).fill('')] : r
+}
+
+/**
+ * Quante volte compare ogni valore scritto: 1, o la quantità scritta con *N (oro*3). Serve alla
+ * scelta a spunte delle colonne con un elenco di voci, come la colonna template.
+ */
+export function valueCounts(parsed: ParsedValues): Record<string, number> {
+  const out: Record<string, number> = {}
+  for (const v of parsed.values) out[v] = parsed.weights[v] ?? 1
+  return out
+}
+
+/**
+ * Il testo dei valori scelti a spunte: le voci nell'ordine dell'elenco, con la quantità se è più
+ * di 1 (oro*3), seguite dai valori scritti a mano che non sono tra le voci
+ */
+export function choiceText(options: string[], counts: Record<string, number>): string {
+  const known = new Set(options)
+  const line = (v: string): string => {
+    const n = Math.max(1, Math.round(counts[v] ?? 1))
+    return n > 1 ? `${v}*${n}` : v
+  }
+  return [
+    ...options.filter((o) => counts[o] !== undefined),
+    ...Object.keys(counts).filter((v) => !known.has(v))
+  ]
+    .map(line)
+    .join('\n')
+}
+
+/**
+ * I valori che non sono tra le voci dell'elenco: senza distinguere maiuscole e minuscole, come
+ * le voci di un livello, o esatti, come i nomi dei template
+ */
+export function outsideOptions(values: string[], options: string[], exact = false): string[] {
+  const key = (v: string): string => (exact ? v.trim() : v.trim().toLowerCase())
+  const known = new Set(options.map(key))
+  return values.filter((v) => v.trim() && !known.has(key(v)))
+}
+
+/**
+ * Lo stesso insieme con un valore rinominato (per esempio un template): nell'elenco, nella
+ * sequenza, nelle quantità, nei limiti e nel testo scritto nella finestra, se c'è
+ */
+export function renameGeneratorValue<C extends GeneratorColumn & { text?: string }>(
+  c: C,
+  from: string,
+  to: string
+): C {
+  if (!c.values.includes(from)) return c
+  const swap = (v: string): string => (v === from ? to : v)
+  const rekey = <T>(r?: Record<string, T>): Record<string, T> | undefined =>
+    r && Object.fromEntries(Object.entries(r).map(([k, v]) => [swap(k), v]))
+  const out: C = { ...c, values: c.values.map(swap) }
+  if (c.sequence) out.sequence = c.sequence.map(swap)
+  if (c.weights) out.weights = rekey(c.weights)
+  if (c.limits) out.limits = rekey(c.limits)
+  if (typeof c.text === 'string')
+    out.text = c.text
+      .split(/([\n,;])/)
+      .map((piece) => {
+        const m = piece.match(/^(\s*)(.*?)(\s*(?:\*\s*\d+)?\s*)$/)
+        return m && m[2] === from ? m[1] + to + m[3] : piece
+      })
+      .join('')
+  return out
+}
+
+/** Le impostazioni del generatore con un valore rinominato nelle colonne `column` */
+export function renameInSpec(
+  spec: GeneratorSpec,
+  column: string,
+  from: string,
+  to: string
+): GeneratorSpec {
+  let changed = false
+  const columns = spec.columns.map((c) => {
+    if (!fieldsOf(c, true).includes(column)) return c
+    const r = renameGeneratorValue(c, from, to)
+    if (r !== c) changed = true
+    return r
+  })
+  return changed ? { ...spec, columns } : spec
 }
