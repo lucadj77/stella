@@ -52,6 +52,7 @@ export default function AssetPicker({
   onClose,
   onSkip,
   onPickMany,
+  bracedVariables = false,
   extras = false
 }: {
   /** Nome scritto ora nel campo: la sua immagine appare selezionata */
@@ -66,6 +67,11 @@ export default function AssetPicker({
    * deseleziona, «Aggiungi» le passa tutte nell'ordine in cui sono state scelte
    */
   onPickMany?(names: string[]): void
+  /**
+   * Le variabili immagine si restituiscono tra graffe ({cuore}), come nelle voci di un elenco:
+   * così non si confondono con un file con lo stesso nome
+   */
+  bracedVariables?: boolean
 }): React.JSX.Element {
   const { t } = useI18n()
   const assets = useContext(AssetsContext)
@@ -313,7 +319,10 @@ export default function AssetPicker({
             {imageVars.length > 0 && (
               <h3 className="asset-grid-title">{t('assetPicker.variables')}</h3>
             )}
-            {imageVars.map((n) => tile(`var:${n}`, n, value === n, markupThumb(`{${n}}`)))}
+            {imageVars.map((n) => {
+              const ref = bracedVariables ? `{${n}}` : n
+              return tile(`var:${n}`, ref, value.trim() === ref, markupThumb(`{${n}}`))
+            })}
             {extraCount > 0 && shown.length > 0 && (
               <h3 className="asset-grid-title">{t('assetPicker.files')}</h3>
             )}

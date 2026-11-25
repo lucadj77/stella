@@ -184,3 +184,25 @@ describe('cartella delle immagini nuove', () => {
     expect(() => imagesTarget('../fuori')).toThrow()
   })
 })
+
+describe('voci di un elenco con una variabile immagine', () => {
+  it('{oro} tra le voci usa l’immagine della variabile', () => {
+    const conElenco = normalizeTemplate({
+      name: 'Tesoro',
+      width: 63,
+      height: 88,
+      front: [
+        {
+          type: 'image',
+          name: 'premio',
+          src: '',
+          source: { kind: 'column', column: null, options: ['{oro}', 'vecchia', ' '] }
+        }
+      ],
+      back: []
+    })
+    const u = imageUsages({ ...project, templates: [conElenco], sets: [], documents: [] })
+    expect(u.get('icons/moneta.svg')!.templates).toEqual(['Tesoro'])
+    expect(u.get('images/vecchia.png')!.templates).toEqual(['Tesoro'])
+  })
+})

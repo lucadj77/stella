@@ -262,6 +262,7 @@ export default function ListOptions({
       {picking !== null && (
         <AssetPicker
           extras="variables"
+          bracedVariables
           value={picking === 'new' ? '' : (options[picking] ?? '')}
           onPickMany={picking === 'new' ? addOptions : undefined}
           onPick={(name) => {
