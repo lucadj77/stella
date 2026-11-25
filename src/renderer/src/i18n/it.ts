@@ -2429,8 +2429,6 @@ export const it: Record<MessageKey, string> = {
   'variable.sampleAfter': 'in questo turno.',
   'variable.delete': 'Elimina variabile',
   'variable.save': 'Salva variabile',
-  'tip.importTtc':
-    "Importa da Tabletop Creator: converte un progetto in un nuovo progetto Stella; l'originale non cambia",
   'ttc.title': 'Importa da Tabletop Creator',
   'ttc.intro':
     'Il progetto si converte in una cartella nuova: template, set, variabili e immagini. La cartella di Tabletop Creator viene solo letta.',
@@ -2520,10 +2518,6 @@ export const it: Record<MessageKey, string> = {
     'Questa non è la cartella di un progetto. Trascina la cartella che contiene stella.json (o quella di un progetto Tabletop Creator).',
   'start.newProject': 'Nuovo progetto…',
   'start.openProject': 'Apri progetto…',
-  'start.importTtc': 'Importa da Tabletop Creator…',
-  'start.importNandeck': 'Importa da nanDECK…',
-  'tip.importNandeck':
-    'Importa da nanDECK: converte gli script di un gioco in un progetto Stella nuovo; la cartella originale non si modifica',
   'nandeck.title': 'Importa da nanDECK',
   'nandeck.experimental':
     "L'importazione è sperimentale e incompleta: spesso il risultato automatico è molto parziale. Un agente AI con la skill nanDECK, scaricabile dal programma, può dare risultati migliori, ma non sempre perfetti.",
@@ -4419,9 +4413,6 @@ export const it: Record<MessageKey, string> = {
   'usages.notes': 'Note: {names}',
   'manage.where.notes': 'Note',
   'manage.sum.notes': '{n} {n:nota|note}',
-  'start.importDextrous': 'Importa da Dextrous…',
-  'tip.importDextrous':
-    'Importa da Dextrous: converte un progetto scaricato da dextrous.com.au in un nuovo progetto Stella',
   'dextrous.title': 'Importa da Dextrous',
   'dextrous.how': 'Come funziona',
   'dextrous.step1':
@@ -4491,5 +4482,21 @@ export const it: Record<MessageKey, string> = {
   'dextrous.unsupported.flexReverse':
     "{template}: i contenitori flex in ordine inverso tengono l'ordine normale ({layers})",
   'dextrous.unsupported.flexWrap':
-    '{template}: i contenitori flex che vanno a capo restano su una riga o una colonna ({layers})'
+    '{template}: i contenitori flex che vanno a capo restano su una riga o una colonna ({layers})',
+  'start.import': 'Importa…',
+  'tip.import':
+    'Importa un progetto: uno ZIP di Stella, o un progetto fatto con Tabletop Creator, nanDECK o Dextrous',
+  'importProject.title': 'Importa un progetto',
+  'importProject.zip': 'Progetto Stella (ZIP)',
+  'importProject.zipText':
+    'Un progetto intero esportato da Stella con Progetto > Esporta il progetto in ZIP.',
+  'importProject.ttc': 'Tabletop Creator',
+  'importProject.ttcText':
+    "Converte la cartella di un progetto Tabletop Creator in un progetto nuovo. L'originale non cambia.",
+  'importProject.nandeck': 'nanDECK',
+  'importProject.nandeckText':
+    "Converte gli script .nde di un gioco in template e set. L'importazione è parziale; una skill aiuta a finirla.",
+  'importProject.dextrous': 'Dextrous',
+  'importProject.dextrousText':
+    "Converte un progetto scaricato dall'app web Dextrous, con i suoi layout e le cartelle di immagini."
 }

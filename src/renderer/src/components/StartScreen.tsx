@@ -8,6 +8,7 @@ import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
 import { askConfirm, showNotice } from './confirm'
 import { useI18n } from '../i18n/context'
+import type { MessageKey } from '../i18n/en'
 import appIcon from '../assets/app-icon.png'
 import DesktopFeaturesDialog from './DesktopFeaturesDialog'
 import { WhatsNewDialog } from './UpdateNotice'
@@ -50,6 +51,8 @@ export default function StartScreen({
   const [version, setVersion] = useState<string | null>(null)
   const [whatsNew, setWhatsNew] = useState(false)
   const [desktop, setDesktop] = useState(false)
+  /** La finestra con i formati da importare */
+  const [importChoice, setImportChoice] = useState(false)
 
   useEffect(() => {
     window.api.appVersion().then(setVersion, () => {})
@@ -165,10 +168,7 @@ export default function StartScreen({
             onCreate={() => setCreating(true)}
             onExample={openExample}
             onChoose={onChoose}
-            onImport={() => onImport()}
-            onImportNandeck={onImportNandeck}
-            onImportDextrous={onImportDextrous}
-            onImportZip={onImportZip}
+            onImport={() => setImportChoice(true)}
             onHelp={onHelp}
           />
         ) : (
@@ -183,17 +183,8 @@ export default function StartScreen({
             <button onClick={onChoose} title={t('tip.openProject')}>
               {t('start.openProject')}
             </button>
-            <button onClick={() => onImport()} title={t('tip.importTtc')}>
-              {t('start.importTtc')}
-            </button>
-            <button onClick={onImportNandeck} title={t('tip.importNandeck')}>
-              {t('start.importNandeck')}
-            </button>
-            <button onClick={onImportDextrous} title={t('tip.importDextrous')}>
-              {t('start.importDextrous')}
-            </button>
-            <button onClick={onImportZip} title={t('projectZip.importHint')}>
-              {t('projectZip.importMenu')}
+            <button onClick={() => setImportChoice(true)} title={t('tip.import')}>
+              {t('start.import')}
             </button>
             <button disabled={loading} title={t('tip.example')} onClick={openExample}>
               {t('start.example')}
@@ -282,6 +273,18 @@ export default function StartScreen({
         <WhatsNewDialog version={version} onClose={() => setWhatsNew(false)} />
       )}
       {desktop && <DesktopFeaturesDialog onClose={() => setDesktop(false)} />}
+      {importChoice && (
+        <ImportChoiceDialog
+          onChoose={(kind) => {
+            setImportChoice(false)
+            if (kind === 'zip') onImportZip()
+            else if (kind === 'ttc') onImport()
+            else if (kind === 'nandeck') onImportNandeck()
+            else onImportDextrous()
+          }}
+          onClose={() => setImportChoice(false)}
+        />
+      )}
       {creating && (
         <NewProjectDialog
           onCreate={(folder) => {
@@ -295,6 +298,40 @@ export default function StartScreen({
   )
 }
 
+type ImportKind = 'zip' | 'ttc' | 'nandeck' | 'dextrous'
+
+/** Un solo tasto Importa: qui si sceglie da dove viene il progetto */
+function ImportChoiceDialog({
+  onChoose,
+  onClose
+}: {
+  onChoose(kind: ImportKind): void
+  onClose(): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const choices: { kind: ImportKind; title: MessageKey; text: MessageKey }[] = [
+    { kind: 'zip', title: 'importProject.zip', text: 'importProject.zipText' },
+    { kind: 'ttc', title: 'importProject.ttc', text: 'importProject.ttcText' },
+    { kind: 'nandeck', title: 'importProject.nandeck', text: 'importProject.nandeckText' },
+    { kind: 'dextrous', title: 'importProject.dextrous', text: 'importProject.dextrousText' }
+  ]
+  return (
+    <Dialog title={t('importProject.title')} onClose={onClose}>
+      <div className="import-choices">
+        {choices.map((c) => (
+          <button key={c.kind} className="welcome-choice" onClick={() => onChoose(c.kind)}>
+            <span className="welcome-choice-title">{t(c.title)}</span>
+            <span className="welcome-choice-text">{t(c.text)}</span>
+          </button>
+        ))}
+      </div>
+      <div className="dialog-buttons">
+        <button onClick={onClose}>{t('format.cancel')}</button>
+      </div>
+    </Dialog>
+  )
+}
+
 /** Primo avvio: due strade grandi, i tre passi di Stella e dove imparare */
 function Welcome({
   loading,
@@ -302,19 +339,14 @@ function Welcome({
   onExample,
   onChoose,
   onImport,
-  onImportNandeck,
-  onImportDextrous,
-  onImportZip,
   onHelp
 }: {
   loading: boolean
   onCreate(): void
   onExample(): void
   onChoose(): void
+  /** Apre la scelta del formato da importare */
   onImport(): void
-  onImportNandeck(): void
-  onImportDextrous(): void
-  onImportZip(): void
   onHelp(): void
 }): React.JSX.Element {
   const { t, lang } = useI18n()
@@ -358,17 +390,8 @@ function Welcome({
         <button onClick={onChoose} title={t('tip.openProject')}>
           {t('start.openProject')}
         </button>
-        <button onClick={onImport} title={t('tip.importTtc')}>
-          {t('start.importTtc')}
-        </button>
-        <button onClick={onImportNandeck} title={t('tip.importNandeck')}>
-          {t('start.importNandeck')}
-        </button>
-        <button onClick={onImportDextrous} title={t('tip.importDextrous')}>
-          {t('start.importDextrous')}
-        </button>
-        <button onClick={onImportZip} title={t('projectZip.importHint')}>
-          {t('projectZip.importMenu')}
+        <button onClick={onImport} title={t('tip.import')}>
+          {t('start.import')}
         </button>
         <button onClick={onHelp} title={t('tip.help')}>
           {t('app.help')}

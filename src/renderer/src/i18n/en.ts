@@ -2394,8 +2394,6 @@ export const en = {
   'variable.sampleAfter': 'this turn.',
   'variable.delete': 'Delete variable',
   'variable.save': 'Save variable',
-  'tip.importTtc':
-    'Import from Tabletop Creator: convert a project into a new Stella project; the original is not changed',
   'ttc.title': 'Import from Tabletop Creator',
   'ttc.intro':
     'The project is converted into a new folder: templates, sets, variables and images. The Tabletop Creator folder is only read.',
@@ -2483,10 +2481,6 @@ export const en = {
     'This is not a project folder. Drag the folder that contains stella.json (or a Tabletop Creator project folder).',
   'start.newProject': 'New project…',
   'start.openProject': 'Open project…',
-  'start.importTtc': 'Import from Tabletop Creator…',
-  'start.importNandeck': 'Import from nanDECK…',
-  'tip.importNandeck':
-    'Import from nanDECK: convert the scripts of a game into a new Stella project; the original folder is not changed',
   'nandeck.title': 'Import from nanDECK',
   'nandeck.experimental':
     'The import is experimental and incomplete: the automatic result is often very partial. An AI agent with the nanDECK skill, which you can download from the app, can give better results, but not always perfect ones.',
@@ -4364,9 +4358,6 @@ export const en = {
   'usages.notes': 'Notes: {names}',
   'manage.where.notes': 'Notes',
   'manage.sum.notes': '{n} {n:note|notes}',
-  'start.importDextrous': 'Import from Dextrous…',
-  'tip.importDextrous':
-    'Import from Dextrous: convert a project downloaded from dextrous.com.au into a new Stella project',
   'dextrous.title': 'Import from Dextrous',
   'dextrous.how': 'How it works',
   'dextrous.step1': 'In Dextrous, download the project JSON file and put it in an empty folder.',
@@ -4434,7 +4425,23 @@ export const en = {
   'dextrous.unsupported.flexReverse':
     '{template}: flex containers in reverse order keep the normal order ({layers})',
   'dextrous.unsupported.flexWrap':
-    '{template}: flex containers that wrap stay on one row or column ({layers})'
+    '{template}: flex containers that wrap stay on one row or column ({layers})',
+  'start.import': 'Import…',
+  'tip.import':
+    'Import a project: a Stella ZIP, or a project made with Tabletop Creator, nanDECK or Dextrous',
+  'importProject.title': 'Import a project',
+  'importProject.zip': 'Stella project (ZIP)',
+  'importProject.zipText':
+    'A whole project exported from Stella with Project > Export project as ZIP…',
+  'importProject.ttc': 'Tabletop Creator',
+  'importProject.ttcText':
+    'Converts a Tabletop Creator project folder into a new project. The original is not changed.',
+  'importProject.nandeck': 'nanDECK',
+  'importProject.nandeckText':
+    'Converts the .nde scripts of a game into templates and sets. The import is partial; a skill helps finish it.',
+  'importProject.dextrous': 'Dextrous',
+  'importProject.dextrousText':
+    'Converts a project downloaded from the Dextrous web app, with its layouts and image folders.'
 }
 
 export type MessageKey = keyof typeof en
