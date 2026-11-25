@@ -10618,3 +10618,29 @@ button.wide {
   font-size: 22px;
   line-height: 1;
 }
+
+/* Importazione da Dextrous: come funziona e cosa c'è nella cartella */
+.import-how {
+  margin-bottom: 8px;
+}
+.import-how summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.import-how ol {
+  margin: 6px 0 0;
+  padding-left: 20px;
+}
+.dextrous-check h3 {
+  margin: 12px 0 4px;
+}
+.dextrous-check ul ul {
+  margin: 2px 0 4px;
+  padding-left: 16px;
+}
+.dextrous-check li.ok {
+  color: var(--ok, #2e7d32);
+}
+.dextrous-check li.missing {
+  color: var(--danger, #c62828);
+}

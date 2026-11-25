@@ -43,6 +43,7 @@ import {
 import { backupDirFor, backupSettingsFile } from '../main/project/backupPaths'
 import { defaultTarget, importTtc } from '../main/import/ttc'
 import { defaultNandeckTarget, importNandeck, scanNandeck } from '../main/import/nandeck'
+import { defaultDextrousTarget, importDextrous, scanDextrous } from '../main/import/dextrous'
 import { readRealPath, realPathMatches, toRealPath, virtualRoot } from '../shared/realPath'
 import { addRoot, ensurePermission, hasPermission, pickFolder } from './fs/roots'
 import { inspectDropped } from '../main/project/launcher'
@@ -334,6 +335,17 @@ export const webApi: Api = {
     for (const p of [options.source, options.target])
       if (p && !(await ensurePermission(p))) throw new MessageError(msg('web.permissionDenied'))
     return importNandeck(options)
+  },
+  scanDextrous: async (source, project) => {
+    if (!(await ensurePermission(source))) throw new MessageError(msg('web.permissionDenied'))
+    return scanDextrous(source, project)
+  },
+  defaultDextrousTarget: async (source, title) =>
+    dirname(source) === '/' ? '' : defaultDextrousTarget(source, title),
+  importDextrous: async (options) => {
+    for (const p of [options.source, options.target])
+      if (p && !(await ensurePermission(p))) throw new MessageError(msg('web.permissionDenied'))
+    return importDextrous(options)
   },
   // il comando lo trova la skill: l'app desktop se c'è, se no il pacchetto stella-cli
   stellaCommand: async () => ({ command: '', ready: true }),

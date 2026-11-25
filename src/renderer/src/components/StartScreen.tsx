@@ -25,6 +25,7 @@ export default function StartScreen({
   onChoose,
   onImport,
   onImportNandeck,
+  onImportDextrous,
   onImportZip,
   onHelp
 }: {
@@ -38,6 +39,7 @@ export default function StartScreen({
   /** Importa un progetto Tabletop Creator; con source la cartella è già scelta */
   onImport(source?: string): void
   onImportNandeck(): void
+  onImportDextrous(): void
   /** Importa un progetto intero da uno ZIP */
   onImportZip(): void
   onHelp(): void
@@ -165,6 +167,7 @@ export default function StartScreen({
             onChoose={onChoose}
             onImport={() => onImport()}
             onImportNandeck={onImportNandeck}
+            onImportDextrous={onImportDextrous}
             onImportZip={onImportZip}
             onHelp={onHelp}
           />
@@ -185,6 +188,9 @@ export default function StartScreen({
             </button>
             <button onClick={onImportNandeck} title={t('tip.importNandeck')}>
               {t('start.importNandeck')}
+            </button>
+            <button onClick={onImportDextrous} title={t('tip.importDextrous')}>
+              {t('start.importDextrous')}
             </button>
             <button onClick={onImportZip} title={t('projectZip.importHint')}>
               {t('projectZip.importMenu')}
@@ -297,6 +303,7 @@ function Welcome({
   onChoose,
   onImport,
   onImportNandeck,
+  onImportDextrous,
   onImportZip,
   onHelp
 }: {
@@ -306,6 +313,7 @@ function Welcome({
   onChoose(): void
   onImport(): void
   onImportNandeck(): void
+  onImportDextrous(): void
   onImportZip(): void
   onHelp(): void
 }): React.JSX.Element {
@@ -355,6 +363,9 @@ function Welcome({
         </button>
         <button onClick={onImportNandeck} title={t('tip.importNandeck')}>
           {t('start.importNandeck')}
+        </button>
+        <button onClick={onImportDextrous} title={t('tip.importDextrous')}>
+          {t('start.importDextrous')}
         </button>
         <button onClick={onImportZip} title={t('projectZip.importHint')}>
           {t('projectZip.importMenu')}

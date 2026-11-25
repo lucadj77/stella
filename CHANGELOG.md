@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## Next version
+
+### English
+
+- **Import from Dextrous**: converts a project of the Dextrous web app into a new Stella project. Download the project JSON, choose its folder, and the window lists the layouts and image folders to download next to it, what it has found and what will not be converted completely; the project is created even if something is missing. Zones become layers (images, texts, backgrounds, gradients, clip shapes), flex containers become groups with a layout, text styles and inline icons are converted, backs follow the front or get their own layers.
+
+### Italiano
+
+- **Importa da Dextrous**: converte un progetto dell'app web Dextrous in un nuovo progetto Stella. Si scarica il JSON del progetto, se ne sceglie la cartella e la finestra elenca i layout e le cartelle di immagini da scaricare lì accanto, ciò che ha già trovato e cosa non si converte del tutto; il progetto si crea anche se manca qualcosa. Le zone diventano livelli (immagini, testi, sfondi, sfumature, ritagli), i contenitori flex gruppi con la disposizione, gli stili di testo e le icone nel testo si convertono, i retri seguono il fronte o hanno livelli loro.
+
 ## 1.14.1-beta.1
 
 ### English

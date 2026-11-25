@@ -176,6 +176,7 @@ La prima volta, quando non ci sono ancora progetti recenti, la schermata dà il 
 - **Apri progetto…** apre una cartella che contiene `stella.json`. Si aprono anche i progetti creati quando l'app si chiamava Naibi (`naibi.json`) o GameCreator (`gamecreator.json`). Si fa prima trascinando la cartella del progetto nella schermata: si apre subito. Trascinando la cartella di un progetto Tabletop Creator, Stella propone di importarlo.
 - **Importa da Tabletop Creator…** converte un progetto di Tabletop Creator ([capitolo 14](#14-importare-da-tabletop-creator)).
 - **Importa da nanDECK…** converte gli script di un gioco nanDECK ([capitolo 14](#importare-da-nandeck)).
+- **Importa da Dextrous…** converte un progetto Dextrous, scaricato a pezzi dall'app web ([capitolo 14](#importare-da-dextrous)).
 - **Apri il progetto di esempio** apre il progetto usato in questa guida e nei video: tre set (Personaggi, Oggetti, Mercato), icone, variabili e stili. La prima volta lo copia in Documenti/Stella/Esempio, dove si può modificare liberamente; poi apre quella copia. Nella versione web la copia sta nello spazio che il browser riserva al sito: si modifica e si salva senza scegliere una cartella, ma resta solo in quel browser.
 - **Doppio clic sul file `.stella`**: aprendo un progetto, l'app desktop scrive nella sua cartella un file con il nome del progetto e l'estensione `.stella` (per esempio `Il_mio_gioco.stella`). Con un doppio clic su quel file si apre Stella con il progetto. Funziona con l'app installata su Windows (non con la versione portable), su Mac e con il pacchetto `.deb` su Linux (non con l'AppImage).
 - **Progetti recenti** mostra fino a 24 progetti, con il primo componente come miniatura, o la copertina scelta in **Informazioni progetto…** ([capitolo 3](#3-la-finestra-del-progetto)). La × toglie un progetto dall'elenco senza cancellare la cartella.
@@ -1353,6 +1354,29 @@ Ogni script diventa un template e un set:
 - le righe di stampa (pagina, bordi, `DISPLAY`, `SAVE`) si ignorano: in Stella valgono le impostazioni di esportazione.
 
 L'importazione è parziale: alcuni comandi non hanno un equivalente diretto. L'app scrive nel progetto la nota **Import nanDECK**, con le righe non convertite di ogni script (file, riga, testo e motivo) e ciò che è stato convertito in modo approssimato, e la apre quando si apre il progetto. Per finire il lavoro c'è la **skill nanDECK**, separata da quella di Stella: la finestra di fine importazione la copia o la salva come file (la scarica da GitHub). Un agente IA con la skill di Stella e la skill nanDECK ([capitolo 15](#15-lavorare-con-un-agente-ia)) legge la nota e gli script originali e converte a mano le righe che mancano.
+
+### Importare da Dextrous
+
+**Importa da Dextrous…** converte un progetto di [Dextrous](https://www.dextrous.com.au), l'app web per carte e componenti, in un progetto Stella nuovo. Dextrous non ha un file che contenga tutto: il progetto, i layout e le immagini si scaricano a parte. La finestra guida il lavoro:
+
+1. in Dextrous si scarica il file JSON del progetto e lo si mette in una cartella vuota;
+2. nella finestra si sceglie quella cartella: Stella legge il progetto ed elenca i componenti con il loro layout del fronte (e del retro, se ne hanno uno loro) e le cartelle di immagini che usano, segnando ciò che c'è già;
+3. si scaricano da Dextrous nella stessa cartella i layout che mancano (un file JSON ciascuno, si riconoscono dal nome o dall'id) e le cartelle di immagini (file ZIP, non serve estrarli), poi si preme **Controlla di nuovo**;
+4. **Importa** crea il progetto anche se manca qualcosa: un componente senza layout ha un template vuoto, con i dati nel foglio; un'immagine che manca si vede come segnaposto.
+
+Prima di importare la finestra dice anche cosa non si converte del tutto con i file trovati. La cartella viene solo letta.
+
+Ogni componente diventa un template e un set con lo stesso nome:
+
+- le zone del layout diventano livelli: immagini, testi e, sotto, una forma per lo sfondo (colore o sfumatura), il bordo e la forma di ritaglio (cerchi e poligoni); le misure, in pixel a 96 DPI, diventano millimetri;
+- il fondo della carta diventa la forma `background`, con la sfumatura e gli angoli arrotondati; una carta ritagliata a cerchio diventa un template rotondo, i token diventano segnalini;
+- i contenitori flex diventano gruppi con la disposizione in riga o in colonna, con la spaziatura e l'allineamento; gli elementi che non ci stanno si stringono come in Dextrous;
+- le colonne dei dati prendono il nome della zona; le copie vanno nella colonna `amount`, il nome della carta in un livello valore `name`, che dà il nome alle carte;
+- il testo HTML diventa il markup di Stella, gli stili di testo di Dextrous diventano stili del progetto e le icone nel testo (`{albero.png}`) variabili immagine;
+- un retro uguale al fronte resta tale; i retri diversi per ogni carta hanno i loro livelli (con `_back` nel nome) e i loro valori nella stessa riga del fronte;
+- le zone fisse tengono il contenuto del layout; nelle altre il contenuto del layout è solo un'anteprima dell'editor di Dextrous e non si importa.
+
+Al termine l'app elenca ciò che non ha potuto convertire, per esempio il testo curvo, le colonne di stile con valori diversi da mostra e nascondi, i dati e gli script per Tabletop Simulator, e i font usati.
 
 ## 15. Lavorare con un agente IA
 

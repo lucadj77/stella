@@ -106,6 +106,10 @@ const api: Api = {
   scanNandeck: (source) => ipcRenderer.invoke('nandeck:scan', source),
   defaultNandeckTarget: (source) => ipcRenderer.invoke('nandeck:default-target', source),
   importNandeck: (options) => ipcRenderer.invoke('nandeck:import', options),
+  scanDextrous: (source, project) => ipcRenderer.invoke('dextrous:scan', source, project),
+  defaultDextrousTarget: (source, title) =>
+    ipcRenderer.invoke('dextrous:default-target', source, title),
+  importDextrous: (options) => ipcRenderer.invoke('dextrous:import', options),
   stellaCommand: () => ipcRenderer.invoke('ai:command'),
   checkForUpdate: () => ipcRenderer.invoke('update:check'),
   updateChannel: () => ipcRenderer.invoke('update:channel'),
