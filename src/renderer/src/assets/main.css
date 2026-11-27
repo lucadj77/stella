@@ -1218,8 +1218,14 @@ textarea.invalid {
   inset: 0;
   /* lo sfondo resta com'è, senza velo scuro: si vede il componente mentre lo si cambia */
   background: transparent;
-  display: grid;
-  place-items: center;
+  /* la finestra resta dentro quella dell'app: si stringe se l'app è stretta e, se è più alta,
+     si scorre; «safe» la tiene attaccata in alto a sinistra invece di farla uscire dai bordi */
+  display: flex;
+  align-items: safe center;
+  justify-content: safe center;
+  box-sizing: border-box;
+  padding: 16px;
+  overflow: auto;
   z-index: 10;
 }
 
@@ -1232,19 +1238,28 @@ textarea.invalid {
   margin: 0 0 16px;
   max-width: 60ch;
   line-height: 1.45;
+  /* i percorsi lunghi vanno a capo invece di uscire dalla finestra */
+  overflow-wrap: anywhere;
 }
 
 .dialog {
   background: var(--panel);
   border-radius: 10px;
   padding: 18px 20px;
-  min-width: 360px;
+  min-width: min(360px, 100%);
   max-width: 480px;
   border: 1px solid var(--border);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
+.dialog:focus {
+  outline: none;
+}
+
 .dialog h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 16px;
   margin: 0 0 12px;
   /* anche le finestre aperte dal pannello delle proprietà, i cui titoli sono in maiuscolo */
@@ -1252,14 +1267,34 @@ textarea.invalid {
   color: var(--text);
 }
 
-.dialog h2:has(.dialog-guide) {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.dialog-title {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.dialog-close {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.dialog-close:hover {
+  color: var(--text);
+  background: rgba(127, 127, 127, 0.15);
+  border-color: var(--border);
 }
 
 .dialog-guide {
-  margin-left: auto;
+  flex: none;
   width: 26px;
   height: 26px;
   border-radius: 50%;

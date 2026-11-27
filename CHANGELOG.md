@@ -5,6 +5,18 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## Next version
+
+### English
+
+- **Windows always inside the app**: messages and windows no longer go past the edges of the app when it is small; they shrink, long file paths wrap, and a window taller than the app scrolls. On a small screen the app no longer opens bigger than the free space.
+- **Every window has an ✕ to close it** at the top right, and closes with Esc. A click outside no longer closes it, so a slip of the mouse does not lose what you were writing.
+
+### Italiano
+
+- **Finestre sempre dentro l'app**: messaggi e finestre non escono più dai bordi dell'app quando è piccola; si stringono, i percorsi lunghi vanno a capo e una finestra più alta dell'app si scorre. Su uno schermo piccolo l'app non si apre più grande dello spazio libero.
+- **Ogni finestra ha una ✕ per chiuderla** in alto a destra, e si chiude con Esc. Un clic fuori non la chiude più, così un clic sbagliato non fa perdere quello che si stava scrivendo.
+
 ## 1.14.3-beta.1
 
 ### English

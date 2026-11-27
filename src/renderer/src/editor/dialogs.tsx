@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { GuideSection } from '../../../shared/donate'
 import { guideSectionLink } from '../guideLinks'
 import { KIND_PRESETS, type KindPreset } from '../../../shared/model/kinds'
@@ -36,10 +36,17 @@ export function Dialog({
   guide?: GuideSection
 }): React.JSX.Element {
   const { t, lang } = useI18n()
+  const ref = useRef<HTMLDivElement>(null)
+  // Esc chiude anche quando nessun campo ha il fuoco: la finestra lo prende se nessuno lo ha
+  useEffect(() => {
+    const el = ref.current
+    if (el && !el.contains(document.activeElement)) el.focus({ preventScroll: true })
+  }, [])
   return (
+    // niente chiusura con un clic fuori: un clic sbagliato farebbe perdere quello che si sta
+    // scrivendo; si chiude con la X, con Esc o con i tasti
     <div
       className={'dialog-backdrop' + (className ? ' ' + className : '')}
-      onPointerDown={(e) => e.target === e.currentTarget && onClose()}
       onKeyDown={(e) => {
         if (e.key !== 'Escape') return
         // una finestra aperta sopra un'altra si chiude da sola
@@ -47,9 +54,9 @@ export function Dialog({
         onClose()
       }}
     >
-      <div className="dialog" role="dialog" aria-label={title}>
+      <div className="dialog" role="dialog" aria-label={title} tabIndex={-1} ref={ref}>
         <h2>
-          {title}
+          <span className="dialog-title">{title}</span>
           {guide && (
             <a
               className="dialog-guide"
@@ -62,6 +69,15 @@ export function Dialog({
               ?
             </a>
           )}
+          <button
+            type="button"
+            className="dialog-close"
+            onClick={onClose}
+            title={t('dialog.close')}
+            aria-label={t('dialog.close')}
+          >
+            ✕
+          </button>
         </h2>
         {children}
       </div>

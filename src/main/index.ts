@@ -1,4 +1,14 @@
-import { app, shell, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, net } from 'electron'
+import {
+  app,
+  shell,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  Menu,
+  nativeTheme,
+  net,
+  screen
+} from 'electron'
 import type { MenuItemConstructorOptions } from 'electron'
 import { existsSync } from 'fs'
 import { mkdir, readFile, rename, writeFile } from 'fs/promises'
@@ -243,9 +253,12 @@ function isWebLink(url: string): boolean {
 }
 
 function createWindow(): void {
+  // su uno schermo piccolo la finestra non nasce più grande dello spazio libero: le finestre dei
+  // messaggi, centrate in quella dell'app, finirebbero in parte fuori dallo schermo
+  const area = screen.getPrimaryDisplay().workAreaSize
   const mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: Math.min(1200, area.width),
+    height: Math.min(800, area.height),
     show: false,
     autoHideMenuBar: true,
     title: 'Stella Game Center',
