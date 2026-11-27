@@ -51,6 +51,32 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 
 - **Esportazione per plotter da taglio**: Cricut (Stampa e taglia), Silhouette, Brother ScanNCut e simili. Stella mette i componenti nell'area che la macchina accetta, ritaglia ogni foglio su di loro e scrive un PNG da stampare con le linee di taglio e di piega in SVG e DXF, le istruzioni passo passo e la misura di ogni foglio. Angoli arrotondati, sagome e fori si tagliano lungo il contorno; fronte e retro possono essere un pezzo solo da piegare, i dadi escono come sviluppi con le linguette.
 
+## 1.13.2
+
+### English
+
+- **Shapes in the table setup**: rectangles, ellipses, polygons and stars, with fill, border, dashed or dotted lines, rounded corners and opacity. Zones get the same colors and lines, texts and arrows a color.
+- **Layers panel**: lists the elements of the drawing, selects them, reorders them by dragging (a shape can now go over a card), locks them so a click doesn't move them, and hides them while you work.
+- **Rows and hands of cards**: several cards side by side or fanned out, also from different sets.
+- **Arrows that follow**: drop an end of an arrow on an element and it stays attached when the element moves.
+- **Elements on board spaces**: drag a component, an image or any other element onto a space of a board with a grid and it stays there when the board moves.
+- **More control**: snapping to the other elements (⌥ / Alt to turn it off), zoom on cards and decks to make them stand out, caption above, below or beside, rotation of zones, shapes and texts, outlined text, several cards of a set added to a row at once.
+- **Deleting a template waits for Save**, like deleting a set: the template and the variants or derived templates made independent are written only when you save. Closing without saving leaves the project as it was, and ⌘Z / Ctrl+Z brings everything back.
+- **Clearer ZIP names**: projects are exported as `.stella-project.zip`, packages as `.stella-set.zip` or `.stella-template.zip`. Older `.stella.zip` packages still import.
+- **Project ZIPs without an inner folder**: the files sit at the top of the ZIP and, when importing, the proposed folder name is the ZIP file's. ZIPs exported with 1.13 still import.
+
+### Italiano
+
+- **Forme nello schema del tavolo**: rettangoli, ellissi, poligoni e stelle, con riempimento, bordo, linee tratteggiate o a puntini, angoli arrotondati e opacità. Le zone hanno gli stessi colori e linee, testi e frecce un colore.
+- **Pannello dei livelli**: elenca gli elementi del disegno, li sceglie, li riordina trascinandoli (ora una forma può stare sopra una carta), li blocca perché un clic non li sposti e li nasconde mentre lavori.
+- **File e mani di carte**: più carte una accanto all'altra o a ventaglio, anche da set diversi.
+- **Frecce che seguono**: lascia un estremo di una freccia su un elemento e resta agganciata quando l'elemento si sposta.
+- **Elementi sulle caselle**: trascina un componente, un'immagine o qualsiasi altro elemento su una casella di una plancia con la griglia, e ci resta quando la plancia si sposta.
+- **Più controllo**: aggancio agli altri elementi (⌥ / Alt per toglierlo), zoom su carte e mazzi per dar loro risalto, didascalia sopra, sotto o di lato, rotazione di zone, forme e testi, testo con il contorno, più carte di un set aggiunte insieme a una fila.
+- **Eliminare un template aspetta «Salva»**, come eliminare un set: il template e le varianti o i derivati resi indipendenti si scrivono solo quando salvi. Chiudendo senza salvare il progetto resta com'era, e ⌘Z / Ctrl+Z rimette tutto.
+- **Nomi degli ZIP più chiari**: i progetti si esportano come `.stella-project.zip`, i pacchetti come `.stella-set.zip` o `.stella-template.zip`. I vecchi pacchetti `.stella.zip` si importano ancora.
+- **ZIP del progetto senza cartella interna**: i file stanno alla radice dello ZIP e, importandolo, il nome proposto per la cartella è quello del file ZIP. Gli ZIP esportati con la 1.13 si importano ancora.
+
 ## 1.13.2-beta.1
 
 ### English
