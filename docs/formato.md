@@ -222,4 +222,3 @@ Un template derivato ha `extends` con il nome del template base e in `changes` s
 
 Una colonna facoltativa `template` nel foglio sceglie il template di una singola carta; vuota vale il template del set. Il template scelto deve avere le misure di quello del set, perché le carte di un set si stampano insieme; altrimenti la carta usa il template del set e Stella lo segnala.
 
-L'analisi del formato di Tabletop Creator da cui deriva questa struttura è in [analisi-ttc.md](analisi-ttc.md).

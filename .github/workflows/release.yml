@@ -1,7 +1,7 @@
 # Pubblica una versione senza il terminale: si avvia a mano da main, o da un ramo release/x.y per
 # le correzioni della stabile (Actions → Release → Run workflow). Crea il tag v<versione di
 # package.json> sull'ultimo commit del ramo e avvia Build e Web su quel tag: Build pubblica la
-# release, Web aggiorna il sito. Vedi docs/rilascio.md.
+# release, Web aggiorna il sito.
 name: Release
 
 on:

@@ -210,4 +210,3 @@ A derived template has `extends` with the name of the base template and in `chan
 
 An optional `template` column in the sheet chooses the template of a single card; empty means the template of the set. The chosen template must have the size of the set's one, because the cards of a set are printed together; otherwise the card uses the set's template and Stella reports it.
 
-The analysis of the Tabletop Creator format this structure derives from is in [analisi-ttc.md](analisi-ttc.md) (in Italian).

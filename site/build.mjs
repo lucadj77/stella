@@ -78,7 +78,7 @@ for (const f of ['style.css', 'site.js', 'contact.js']) cpSync(`${here}${f}`, `$
 cpSync(`${here}fonts`, `${out}/fonts`, { recursive: true })
 // pagina nascosta con i conteggi dei download (nessun link dal sito, noindex)
 cpSync(`${here}dcount`, `${out}/dcount`, { recursive: true })
-// i progetti dimostrativi dei video di approfondimento (creati da scripts/video/progetto-*.mjs)
+// i progetti dimostrativi dei video di approfondimento
 cpSync(`${here}progetti`, `${out}/progetti`, { recursive: true })
 for (const f of ['stella.svg', 'predigarama.png']) cpSync(`${here}img/${f}`, `${out}/img/${f}`)
 for (const [lang, dir] of [

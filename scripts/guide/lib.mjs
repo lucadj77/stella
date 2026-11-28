@@ -8,7 +8,7 @@ export async function dict(lang) {
   return m[lang]
 }
 // GUIDE_HOME: un'altra casa per le prove, mentre un video si registra con quella normale
-export const home = (lang) => process.env.GUIDE_HOME || '/Users/luca'
+export const home = (lang) => process.env.GUIDE_HOME || '/Users/example'
 export const docs = (lang) => `${home(lang)}/${lang === 'it' ? 'Documenti' : 'Documents'}`
 export function makeProject(lang) {
   const dest = `${docs(lang)}/Stella/${lang === 'it' ? 'Esempio' : 'Example'}`

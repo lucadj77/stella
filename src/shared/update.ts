@@ -1,6 +1,6 @@
 // Controllo degli aggiornamenti: l'app confronta la propria versione con l'ultima release
 // pubblicata su GitHub e ne mostra le novità. Le note arrivano da CHANGELOG.md, con una parte in
-// inglese e una in italiano (vedi docs/rilascio.md). Le versioni con un suffisso (1.2.0-beta.1)
+// inglese e una in italiano. Le versioni con un suffisso (1.2.0-beta.1)
 // sono beta: le segnala solo a chi ha scelto il canale Beta.
 
 /** Le ultime release, beta comprese: per il canale Beta */
