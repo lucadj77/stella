@@ -1,5 +1,5 @@
 import type { AssetsUpdate, Sources } from '../../../shared/library'
-import { createContext, useContext, useMemo } from 'react'
+import { createContext, useContext, useMemo, type ReactNode } from 'react'
 import type { BindContext } from '../../../shared/model/bind'
 import type { Variables } from '../../../shared/model/variables'
 import type { Localization } from '../../../shared/model/language'
@@ -104,3 +104,11 @@ export function useBindContext(): BindContext {
  * non si conoscono le proporzioni dell'immagine l'icona è quadrata, e porta data-gc-pending.
  */
 export const InlineImageReadyContext = createContext<() => void>(() => undefined)
+
+/**
+ * Chi disegna i {nomi} che il testo usa come segnaposto (le immagini in linea di un documento):
+ * dà il disegno, o undefined per i nomi che non sono suoi
+ */
+export const InlineFigureContext = createContext<((name: string) => ReactNode | undefined) | null>(
+  null
+)

@@ -16,6 +16,7 @@ import {
   type DocumentContext
 } from '../../../shared/model/document'
 import { cellImageKey, cellParts } from '../../../shared/model/docTable'
+import { inlineImageIndex, inlineImageKey, inlineImages } from '../../../shared/model/docInline'
 import { assetUrl } from '../render/assets'
 import { dataUri, fontFaces, svgOfCard } from './toSvg'
 import { backdropPng, loadImage } from './iconPng'
@@ -214,10 +215,18 @@ export async function documentMarkdown(
     return link(file)
   }
 
-  const inline = async (s: string): Promise<string> =>
-    inlinesMd(parseInline(documentText(s, ctx)).children, imageOf)
-
   let cards = 0
+  /** Il testo in Markdown; `from` e `item` ritrovano le immagini in linea disegnate nella pagina */
+  const inline = async (s: string, from = -1, item = 0): Promise<string> => {
+    const { text: body, images } = inlineImages(s)
+    const figure = async (name: string): Promise<string | null> => {
+      const k = inlineImageIndex(name)
+      const img = k === null ? undefined : images[k]
+      return img ? figureMd(img.src, img.alt, inlineImageKey(from, item, k!)) : null
+    }
+    return inlinesMd(parseInline(documentText(body, ctx)).children, imageOf, figure)
+  }
+
   /** Una carta (in PNG) o un'immagine; `key` ritrova nella pagina la carta disegnata */
   const figureMd = async (src: string, rawAlt: string, key: number | string): Promise<string> => {
     const alt = rawAlt.replace(/[[\]]/g, '')
@@ -242,14 +251,14 @@ export async function documentMarkdown(
   for (const b of parseDocument(text)) {
     switch (b.kind) {
       case 'heading':
-        out.push(`${'#'.repeat(b.level)} ${await inline(b.text)}`)
+        out.push(`${'#'.repeat(b.level)} ${await inline(b.text, b.from)}`)
         break
       case 'paragraph':
-        out.push(await inline(b.text))
+        out.push(await inline(b.text, b.from))
         break
       case 'quote':
         out.push(
-          (await inline(b.text))
+          (await inline(b.text, b.from))
             .split('\n')
             .map((l) => `> ${l}`)
             .join('\n')
@@ -263,9 +272,9 @@ export async function documentMarkdown(
         break
       case 'list': {
         const lines: string[] = []
-        for (const it of b.items)
+        for (const [k, it] of b.items.entries())
           lines.push(
-            `${'   '.repeat(it.depth)}${it.ordered ? `${it.number}.` : '-'} ${(await inline(it.text)).replace(/\n/g, '  \n')}`
+            `${'   '.repeat(it.depth)}${it.ordered ? `${it.number}.` : '-'} ${(await inline(it.text, b.from, k)).replace(/\n/g, '  \n')}`
           )
         out.push(lines.join('\n'))
         break
@@ -343,7 +352,7 @@ export async function documentMarkdown(
  * didascalia, che può contenere icone in SVG
  */
 function figureSvg(page: HTMLElement, key: number | string): SVGSVGElement | null {
-  const fig = page.querySelector(`figure[data-from="${key}"]`)
+  const fig = page.querySelector(`figure[data-from="${key}"], [data-inline="${key}"]`)
   return (
     fig?.querySelector<SVGSVGElement>(':scope > svg[xmlns]') ??
     fig?.querySelector<SVGSVGElement>('svg[xmlns]') ??
@@ -362,17 +371,24 @@ const safeName = (s: string): string =>
 /** Testo Markdown di un pezzo di markup: grassetto, corsivo e barrato, le immagini come file */
 async function inlinesMd(
   list: Inline[],
-  imageOf: (name: string) => Promise<string | null>
+  imageOf: (name: string) => Promise<string | null>,
+  figure?: (name: string) => Promise<string | null>
 ): Promise<string> {
   let out = ''
   for (const n of list) {
     if (n.t === 'text') out += n.text.replace(/([\\`*_[\]<])/g, '\\$1')
     else if (n.t === 'br') out += '<br>'
     else if (n.t === 'ref') {
+      const fig = await figure?.(n.name)
+      if (fig !== undefined && fig !== null) {
+        out += fig
+        continue
+      }
+      if (inlineImageIndex(n.name) !== null) continue
       const url = await imageOf(n.name)
       out += url ? `![${n.name}](${url})`.repeat(n.count) : n.raw
     } else {
-      let inner = await inlinesMd(n.children, imageOf)
+      let inner = await inlinesMd(n.children, imageOf, figure)
       // i segni devono stare attaccati al testo: gli spazi restano fuori
       const lead = /^\s*/.exec(inner)![0]
       const tail = /\s*$/.exec(inner)![0]

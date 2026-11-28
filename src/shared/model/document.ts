@@ -3,6 +3,7 @@ import { msg, type Message } from '../messages'
 import { looksLikeAttrs, markupProblems, markupRefs } from './markup'
 import { substituteFields } from './bind'
 import { imageVariable, variableFields, type Variables } from './variables'
+import { inlineHeightText, inlineImages, parseInlineHeight, type InlineHeight } from './docInline'
 import { resolveAsset } from './assets'
 import { today } from './system'
 import type { GridLayer, GroupLayer, HAlign, Layer, Side, Template } from './template'
@@ -1080,6 +1081,8 @@ export interface CardRef {
   captionTop?: boolean
   /** Il testo che segue scorre accanto, con la carta a sinistra o a destra (wrap=left) */
   wrap?: BlockWrap
+  /** Altezza quando sta in linea con il testo (height=8 in mm, height=150% di un'icona) */
+  height?: InlineHeight
 }
 
 export type FigureAlign = 'left' | 'center' | 'right'
@@ -1094,6 +1097,8 @@ export interface ImageOptions {
   captionTop?: boolean
   /** Il testo che segue scorre accanto, con l'immagine a sinistra o a destra (wrap=left) */
   wrap?: BlockWrap
+  /** Altezza quando sta in linea con il testo (height=8 in mm, height=150% di un'icona) */
+  height?: InlineHeight
 }
 
 /**
@@ -1117,6 +1122,7 @@ export function splitImageSource(src: string): {
     else if (k === 'align' && ALIGNS.includes(v as FigureAlign)) options.align = v as FigureAlign
     else if (k === 'caption' && (v === 'top' || v === 'bottom')) options.captionTop = v === 'top'
     else if (k === 'wrap' && (v === 'left' || v === 'right')) options.wrap = v
+    else if (k === 'height' && parseInlineHeight(v)) options.height = parseInlineHeight(v)!
     else bad.push(part)
   }
   return { path: raw.slice(0, q).trim(), options, bad }
@@ -1128,7 +1134,8 @@ export function imageSourceWith(path: string, options: ImageOptions): string {
     options.width ? `width=${options.width}` : '',
     options.align && options.align !== 'center' ? `align=${options.align}` : '',
     options.captionTop ? 'caption=top' : '',
-    options.wrap ? `wrap=${options.wrap}` : ''
+    options.wrap ? `wrap=${options.wrap}` : '',
+    options.height ? `height=${inlineHeightText(options.height)}` : ''
   ].filter(Boolean)
   return `${path}${opts.length ? `?${opts.join('&')}` : ''}`
 }
@@ -1206,6 +1213,7 @@ export function parseCardRef(src: string): CardRef | Message {
       else if (k === 'align' && ALIGNS.includes(v as FigureAlign)) ref.align = v as FigureAlign
       else if (k === 'caption' && (v === 'top' || v === 'bottom')) ref.captionTop = v === 'top'
       else if (k === 'wrap' && (v === 'left' || v === 'right')) ref.wrap = v
+      else if (k === 'height' && parseInlineHeight(v)) ref.height = parseInlineHeight(v)!
       else return msg('doc.card.badOption', { option: part, ref: raw })
     }
   return ref
@@ -1222,7 +1230,8 @@ export function cardRefSource(ref: CardRef): string {
     ref.width ? `width=${ref.width}` : '',
     ref.align && ref.align !== 'center' ? `align=${ref.align}` : '',
     ref.captionTop ? 'caption=top' : '',
-    ref.wrap ? `wrap=${ref.wrap}` : ''
+    ref.wrap ? `wrap=${ref.wrap}` : '',
+    ref.height ? `height=${inlineHeightText(ref.height)}` : ''
   ].filter(Boolean)
   return `${CARD_PREFIX}${enc(ref.set)}/${selector}${opts.length ? `?${opts.join('&')}` : ''}`
 }
@@ -1293,9 +1302,13 @@ export function documentProblems(src: string, ctx: DocumentContext): DocumentPro
       case 'paragraph':
       case 'quote':
         texts.push({ text: b.text, from: b.from })
+        out.push(...inlineProblems(b.text, b.from, ctx))
         break
       case 'list':
-        b.items.forEach((it) => texts.push({ text: it.text, from: b.from }))
+        b.items.forEach((it) => {
+          texts.push({ text: it.text, from: b.from })
+          out.push(...inlineProblems(it.text, b.from, ctx))
+        })
         break
       case 'table':
         if (b.styleBad.length)
@@ -1373,6 +1386,16 @@ export function documentProblems(src: string, ctx: DocumentContext): DocumentPro
       }
   }
   return out.sort((a, b) => a.from - b.from)
+}
+
+/** Le immagini e i componenti in linea con il testo che non si trovano */
+function inlineProblems(text: string, from: number, ctx: DocumentContext): DocumentProblem[] {
+  const out: DocumentProblem[] = []
+  for (const img of inlineImages(text).images) {
+    const problem = imageProblem(img.src, ctx)
+    if (problem) out.push({ message: problem, from, to: from + Math.max(1, text.length) })
+  }
+  return out
 }
 
 /** Il riferimento card: di un'anatomia, scritto con o senza il prefisso */

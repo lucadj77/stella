@@ -1340,7 +1340,7 @@ export const en = {
   'doc.card.badRef':
     '"{ref}" is not a component: write card:Set/number or card:Set/column=value, for example card:Characters/name=Wizard',
   'doc.card.badOption':
-    'Unknown option "{option}" in "{ref}": use side=front or side=back, width=40 (mm) and align=left, center or right',
+    'Unknown option "{option}" in "{ref}": use side=front or side=back, width=40 (mm), height=8 or height=150% (in line with the text) and align=left, center or right',
   'doc.card.noSet': 'There is no set named "{set}"',
   'doc.card.noRow': 'The set "{set}" has no component {n}',
   'doc.card.noField': 'The set "{set}" has no column "{field}"',
@@ -2356,6 +2356,13 @@ export const en = {
   'documents.wrap': 'Text beside',
   'documents.wrapHint':
     'The text that follows flows beside it, with the block on the left or on the right, until a "Start below" line',
+  'documents.inline': 'In line with the text',
+  'documents.inlineHint':
+    'The image or component goes in the line at the cursor, like an icon, instead of on a line of its own',
+  'documents.inlineHeight': 'Height',
+  'documents.inlineHeightHint':
+    'In mm (8) or in % of an icon in the text (150%). Empty: as tall as an icon in the text',
+  'documents.inlineHeightAuto': 'like the text',
   'documents.wrapNone': 'No',
   'documents.wrapLeft': 'On the left',
   'documents.wrapRight': 'On the right',
@@ -3615,7 +3622,7 @@ export const en = {
   'docTools.image': 'Image',
   'docTools.imageHint': 'Insert an image of the project assets',
   'doc.image.badOption':
-    'Unknown option "{option}" in "{ref}": use width=40 (mm) and align=left, center or right',
+    'Unknown option "{option}" in "{ref}": use width=40 (mm), height=8 or height=150% (in line with the text) and align=left, center or right',
   'docImage.insert': 'Insert image',
   'docImage.edit': 'Edit image',
   'docImage.save': 'Save',

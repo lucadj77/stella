@@ -1,4 +1,5 @@
 import {
+  Fragment,
   useContext,
   useId,
   useLayoutEffect,
@@ -31,6 +32,7 @@ import {
 } from '../../../shared/model/variables'
 import {
   AssetsContext,
+  InlineFigureContext,
   InlineImageReadyContext,
   StylesContext,
   VariablesContext,
@@ -154,6 +156,7 @@ function Inlines({
   k: Scale
   styles: Record<string, string>
 }): React.JSX.Element {
+  const figure = useContext(InlineFigureContext)
   return (
     <>
       {list.map((n, i) => {
@@ -162,7 +165,9 @@ function Inlines({
             return n.text
           case 'br':
             return <br key={i} />
-          case 'ref':
+          case 'ref': {
+            const fig = figure?.(n.name)
+            if (fig !== undefined) return <Fragment key={i}>{fig}</Fragment>
             return (
               <Ref
                 key={i}
@@ -173,6 +178,7 @@ function Inlines({
                 unit={k.unit}
               />
             )
+          }
           default:
             return (
               <SpanView key={i} attrs={resolveStyles(n.attrs, styles)} k={k} styles={styles}>

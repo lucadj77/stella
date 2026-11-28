@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { findMatches, replaceMatches, type FindOptions } from '../../../shared/model/findReplace'
 import { useI18n } from '../i18n/context'
 import { runEdit } from './editRun'
+import { scrollTextIntoView } from './textareaScroll'
 
 // Barra di ricerca sopra il testo di un documento: ⌘F cerca, ⌥⌘F / Ctrl+H anche sostituisce.
 // Le sostituzioni passano dal campo come se le si scrivesse: ⌘Z le annulla in un passo.
@@ -14,6 +15,8 @@ interface Props {
   focusKey: number
   onReplaceChange(on: boolean): void
   onClose(): void
+  /** Un'occorrenza è stata portata in vista: chi usa la barra può mostrarla anche altrove */
+  onShow?(from: number): void
 }
 
 export default function FindBar({
@@ -22,7 +25,8 @@ export default function FindBar({
   replace,
   focusKey,
   onReplaceChange,
-  onClose
+  onClose,
+  onShow
 }: Props): React.JSX.Element {
   const { t } = useI18n()
   const [query, setQuery] = useState(() => selectedText(editor.current))
@@ -47,12 +51,12 @@ export default function FindBar({
     const m = matches[i]
     if (!el || !m) return
     setCurrent(i)
-    el.focus()
+    el.focus({ preventScroll: true })
     el.setSelectionRange(m.from, m.to)
-    // il campo scorre fino alla selezione quando riprende il fuoco
-    el.blur()
-    el.focus()
+    // il campo non scorre da solo fino a una selezione fatta da qui: si misura e si scorre
+    scrollTextIntoView(el, m.from)
     keep?.focus({ preventScroll: true })
+    onShow?.(m.from)
   }
 
   // il testo cambia scrivendo la ricerca: si mostra la prima occorrenza dal cursore in poi

@@ -30,6 +30,8 @@ import { useBindContext } from '../render/assets'
 import Segmented from './Segmented'
 import WrapField, { type WrapSide } from './WrapField'
 import CaptionField from './CaptionField'
+import InlineField from './InlineField'
+import { parseInlineHeight } from '../../../shared/model/docInline'
 import FormattedField, { TextFormatBar } from './TextFormatBar'
 
 /**
@@ -123,8 +125,11 @@ export default function InsertCardDialog({
   pageFont?: number
   /** Famiglia di caratteri del documento: le etichette vanno a capo come nella pagina */
   pageFamily?: string
-  /** Il testo da inserire: ![didascalia](card:…) o il blocco ```anatomy */
-  onInsert(text: string): void
+  /**
+   * Il testo da inserire: ![didascalia](card:…) o il blocco ```anatomy; `inline` se la carta va
+   * al cursore, in linea con il testo
+   */
+  onInsert(text: string, inline?: boolean): void
   onClose(): void
 }): React.JSX.Element {
   const { t } = useI18n()
@@ -238,6 +243,9 @@ export default function InsertCardDialog({
   /** Didascalia sopra il disegno invece che sotto */
   const [captionTop, setCaptionTop] = useState(initial?.captionTop ?? false)
   /** Testo che scorre accanto, con la carta o l'anatomia a sinistra o a destra */
+  /** La carta va in linea con il testo, alta quanto `inlineHeight` (vuota: come un'icona) */
+  const [inline, setInline] = useState(false)
+  const [inlineHeight, setInlineHeight] = useState('')
   const [wrap, setWrapSide] = useState<WrapSide>((initial ? initial.wrap : start?.ref.wrap) ?? null)
   // un'anatomia a tutta riga non lascia posto al testo: si parte da metà
   const setWrap = (w: WrapSide): void => {
@@ -295,8 +303,11 @@ export default function InsertCardDialog({
         ...(byField ? { field: key, value } : { row: current + 1 }),
         side: anatomy && both ? 'front' : side,
         ...(Number(width) > 0 ? { width: Number(width) } : {}),
-        ...(!anatomy && pick === undefined && captionTop ? { captionTop: true } : {}),
-        ...(!anatomy && pick === undefined && wrap ? { wrap } : {})
+        ...(!anatomy && pick === undefined && !inline && captionTop ? { captionTop: true } : {}),
+        ...(!anatomy && pick === undefined && !inline && wrap ? { wrap } : {}),
+        ...(!anatomy && pick === undefined && inline && parseInlineHeight(inlineHeight)
+          ? { height: parseInlineHeight(inlineHeight)! }
+          : {})
       }
     : null
   /** Il riferimento di una carta del set, come `ref` per quella scelta */
@@ -773,15 +784,25 @@ export default function InsertCardDialog({
             {options}
             {pick !== undefined ? null : (
               <>
-                <CaptionField
-                  value={alt}
-                  top={captionTop}
-                  onChange={setCaption}
-                  onTop={setCaptionTop}
+                <InlineField
+                  inline={inline}
+                  height={inlineHeight}
+                  onInline={setInline}
+                  onHeight={setInlineHeight}
                 />
-                <div className="dialog-row">
-                  <WrapField value={wrap} onChange={setWrap} />
-                </div>
+                {!inline && (
+                  <>
+                    <CaptionField
+                      value={alt}
+                      top={captionTop}
+                      onChange={setCaption}
+                      onTop={setCaptionTop}
+                    />
+                    <div className="dialog-row">
+                      <WrapField value={wrap} onChange={setWrap} />
+                    </div>
+                  </>
+                )}
               </>
             )}
             {!bare && <code className="insert-card-code">{text}</code>}
@@ -792,7 +813,7 @@ export default function InsertCardDialog({
           <button
             className="primary"
             disabled={many ? !chosenRows.length : !text || (anatomy && !labels.size)}
-            onClick={() => onInsert(many ? chosenRows.map(refFor).join(',') : text)}
+            onClick={() => onInsert(many ? chosenRows.map(refFor).join(',') : text, inline)}
           >
             {many
               ? t('documents.addCards', { n: chosenRows.length })

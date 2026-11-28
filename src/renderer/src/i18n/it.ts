@@ -1356,7 +1356,7 @@ export const it: Record<MessageKey, string> = {
   'doc.card.badRef':
     '"{ref}" non è un componente: scrivi card:Set/numero o card:Set/colonna=valore, per esempio card:Personaggi/nome=Mago',
   'doc.card.badOption':
-    'Opzione sconosciuta "{option}" in "{ref}": usa side=front o side=back, width=40 (mm) e align=left, center o right',
+    'Opzione sconosciuta "{option}" in "{ref}": usa side=front o side=back, width=40 (mm), height=8 o height=150% (in linea con il testo) e align=left, center o right',
   'doc.card.noSet': 'Non c\'è un set "{set}"',
   'doc.card.noRow': 'Il set "{set}" non ha il componente {n}',
   'doc.card.noField': 'Il set "{set}" non ha la colonna "{field}"',
@@ -2391,6 +2391,13 @@ export const it: Record<MessageKey, string> = {
   'documents.wrap': 'Testo accanto',
   'documents.wrapHint':
     'Il testo che segue scorre accanto, con il blocco a sinistra o a destra, fino a una riga «Riparti sotto»',
+  'documents.inline': 'In linea con il testo',
+  'documents.inlineHint':
+    "L'immagine o il componente va nella riga, al posto del cursore, come un'icona, invece che su una riga sua",
+  'documents.inlineHeight': 'Altezza',
+  'documents.inlineHeightHint':
+    "In mm (8) o in % di un'icona del testo (150%). Vuota: alta come un'icona del testo",
+  'documents.inlineHeightAuto': 'come il testo',
   'documents.wrapNone': 'No',
   'documents.wrapLeft': 'A sinistra',
   'documents.wrapRight': 'A destra',
@@ -3661,7 +3668,7 @@ export const it: Record<MessageKey, string> = {
   'docTools.image': 'Immagine',
   'docTools.imageHint': "Inserisci un'immagine degli asset del progetto",
   'doc.image.badOption':
-    'Opzione sconosciuta "{option}" in "{ref}": usa width=40 (mm) e align=left, center o right',
+    'Opzione sconosciuta "{option}" in "{ref}": usa width=40 (mm), height=8 o height=150% (in linea con il testo) e align=left, center o right',
   'docImage.insert': 'Inserisci immagine',
   'docImage.edit': 'Modifica immagine',
   'docImage.save': 'Salva',

@@ -50,6 +50,7 @@ import Resizer from './Resizer'
 import { usePanelWidth } from './usePanelWidth'
 import { plainText } from '../../../shared/model/markup'
 import { messageFromError, type Message } from '../../../shared/messages'
+import { textTop } from './textareaScroll'
 
 // finestre ed esportazioni usate di rado: si caricano la prima volta che servono
 const DocumentExportDialog = lazy(() => import('./DocumentExportDialog'))
@@ -94,42 +95,27 @@ interface Props {
 }
 
 /**
- * Altezza nel campo dove inizia il carattere `at`, a capo automatico compreso: la misura una
- * copia nascosta del campo che contiene solo il testo prima
+ * L'immagine scritta come ![testo](sorgente) dove sta il cursore, sola sulla sua riga o in mezzo
+ * al testo (`inline`)
  */
-function textTop(el: HTMLTextAreaElement, at: number): number {
-  const cs = getComputedStyle(el)
-  const copy = document.createElement('textarea')
-  for (const k of [
-    'width',
-    'fontFamily',
-    'fontSize',
-    'fontWeight',
-    'lineHeight',
-    'letterSpacing',
-    'padding',
-    'border',
-    'boxSizing',
-    'whiteSpace',
-    'overflowWrap',
-    'wordBreak',
-    'tabSize'
-  ] as const)
-    copy.style[k] = cs[k]
-  Object.assign(copy.style, {
-    position: 'fixed',
-    left: '-9999px',
-    top: '0',
-    height: '0',
-    overflowY: 'scroll',
-    visibility: 'hidden'
-  })
-  copy.value = el.value.slice(0, at)
-  document.body.appendChild(copy)
-  const top = copy.scrollHeight - parseFloat(cs.paddingBottom)
-  copy.remove()
-  // il testo copiato finisce con l'a capo prima del titolo: l'ultima riga è quella del titolo
-  return at > 0 ? top - (parseFloat(cs.lineHeight) || 0) : 0
+function imageAt(
+  text: string,
+  at: number
+): { alt: string; src: string; from: number; to: number; inline: boolean } | undefined {
+  const figure = parseDocument(text)
+    .flatMap((b) => (b.kind === 'figure' ? b.images : []))
+    .find((i) => i.from <= at && at <= i.to)
+  if (figure) return { ...figure, inline: false }
+  // le immagini in mezzo al testo: si cerca nella riga del cursore
+  const start = text.lastIndexOf('\n', at - 1) + 1
+  const end = text.indexOf('\n', at)
+  const line = text.slice(start, end < 0 ? text.length : end)
+  for (const m of line.matchAll(/!\[([^\]]*)\]\(([^)]*)\)/g)) {
+    const from = start + (m.index ?? 0)
+    const to = from + m[0].length
+    if (from <= at && at <= to) return { alt: m[1], src: m[2].trim(), from, to, inline: true }
+  }
+  return undefined
 }
 
 export default function DocumentView({
@@ -167,6 +153,8 @@ export default function DocumentView({
     value?: DocImageValue
     from?: number
     to?: number
+    /** L'immagine scritta sta in mezzo al testo */
+    inline?: boolean
   } | null>(null)
   const [pageOpen, setPageOpen] = useState(false)
   /** Barra di ricerca aperta, con o senza sostituzione; `key` la rimette al fuoco */
@@ -353,13 +341,14 @@ export default function DocumentView({
   /** Apre l'immagine: quella degli asset dove sta il cursore, se c'è */
   const openImage = (): void => {
     const at = lastCaret.current === null ? null : (editor.current?.selectionStart ?? null)
-    const img =
-      at === null
-        ? undefined
-        : parseDocument(text)
-            .flatMap((b) => (b.kind === 'figure' ? b.images : []))
-            .find((i) => i.from <= at && at <= i.to && !isCardSource(i.src))
-    if (img) setImageEdit({ value: { alt: img.alt, src: img.src }, from: img.from, to: img.to })
+    const img = at === null ? undefined : imageAt(text, at)
+    if (img && !isCardSource(img.src))
+      setImageEdit({
+        value: { alt: img.alt, src: img.src },
+        from: img.from,
+        to: img.to,
+        inline: img.inline
+      })
     else setImageEdit({})
   }
 
@@ -509,6 +498,14 @@ export default function DocumentView({
       box.scrollTo({ top: Math.max(0, top - 40) })
   }
 
+  /** L'anteprima mostra il blocco che contiene il punto `at` del testo */
+  const showInPreview = (at: number): void => {
+    let target: HTMLElement | null = null
+    for (const b of preview.current?.querySelectorAll<HTMLElement>('.doc-block') ?? [])
+      if (Number(b.dataset.from) <= at) target = b
+    if (target) scrollPreviewTo(target)
+  }
+
   /** Dall'indice: porta il testo e l'anteprima al titolo, con il titolo in cima */
   const goToHeading = (from: number): void => {
     const el = editor.current
@@ -522,6 +519,16 @@ export default function DocumentView({
     }
     const target = preview.current?.querySelector<HTMLElement>(`.doc-block[data-from="${from}"]`)
     if (target) scrollPreviewTo(target, true)
+  }
+
+  /** Inserisce un'immagine o una carta al cursore, nella riga, staccata dalle parole intorno */
+  const insertInline = (md: string): void => {
+    const at = Math.min(lastCaret.current ?? text.length, text.length)
+    const before = text.slice(0, at)
+    const after = text.slice(at)
+    const lead = before && !/\s$/.test(before) ? ' ' : ''
+    const tail = after && !/^\s/.test(after) ? ' ' : ''
+    rewrite(before + lead + md + tail + after, before.length + lead.length + md.length)
   }
 
   /** Inserisce un blocco al posto del cursore, su righe sue */
@@ -670,6 +677,7 @@ export default function DocumentView({
                 focusKey={find.key}
                 onReplaceChange={(replace) => setFind((f) => f && { ...f, replace })}
                 onClose={() => setFind(null)}
+                onShow={showInPreview}
               />
             )}
             <MarkupTextarea
@@ -796,10 +804,12 @@ export default function DocumentView({
         {imageEdit && (
           <ImageDialog
             initial={imageEdit.value}
+            inline={imageEdit.inline}
             onClose={() => setImageEdit(null)}
-            onSave={(md) => {
+            onSave={(md, inline) => {
               setImageEdit(null)
-              putBlock(md, imageEdit.from, imageEdit.to)
+              if (imageEdit.from === undefined && inline) insertInline(md)
+              else putBlock(md, imageEdit.from, imageEdit.to)
             }}
           />
         )}
@@ -896,9 +906,10 @@ export default function DocumentView({
             sets={sets}
             templates={templates}
             project={meta}
-            onInsert={(block) => {
+            onInsert={(block, inline) => {
               setInserting(false)
-              insertBlock(block)
+              if (inline) insertInline(block)
+              else insertBlock(block)
             }}
             onClose={() => setInserting(false)}
           />

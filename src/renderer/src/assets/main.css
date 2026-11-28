@@ -7068,6 +7068,33 @@ body[data-vision] .preview-card-inner > svg {
   text-align: center;
 }
 
+/* la casella In linea con il testo, con l'altezza accanto */
+.inline-field {
+  align-items: flex-end;
+}
+
+.inline-field > label.check {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+}
+
+/* immagini e componenti in linea con il testo: seguono la riga come le icone */
+.doc-inline {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 0.08em;
+  line-height: 0;
+}
+
+.doc-inline > img,
+.doc-inline-card,
+.doc-inline-card > svg {
+  display: inline-block;
+  max-width: 100%;
+}
+
 .doc-missing {
   display: inline-block;
   padding: 0.4em 0.7em;
