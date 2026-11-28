@@ -6,12 +6,9 @@ const it = lang === 'it'
 const { app, win, T } = await launch({ lang, h: 960, open: false })
 const project = makeProject(lang)
 const dialog = () => win.locator('[role="dialog"]').last()
-// chiude la finestra con un clic sullo sfondo (Esc arriva solo se il fuoco è dentro la finestra)
+// chiude la finestra con la X in alto (un clic sullo sfondo non la chiude più)
 const closeDialog = async () => {
-  await win
-    .locator('.dialog-backdrop')
-    .last()
-    .click({ position: { x: 5, y: 5 } })
+  await win.locator('.dialog-backdrop').last().locator('.dialog-close').first().click()
   await win
     .locator('.dialog-backdrop')
     .last()

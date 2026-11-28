@@ -73,7 +73,7 @@ export default function ManageDialog({
     const all = document.querySelectorAll<HTMLElement>('.dialog-backdrop')
     const top = all[all.length - 1]
     if (mine && top && top !== mine) {
-      top.querySelector<HTMLElement>('input, select, textarea, button')?.focus()
+      top.querySelector<HTMLElement>('input, select, textarea, button:not(.dialog-close)')?.focus()
       return
     }
     onClose()

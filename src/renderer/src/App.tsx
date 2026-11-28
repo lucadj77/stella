@@ -6088,7 +6088,9 @@ export default App
 function focusTopDialog(): void {
   requestAnimationFrame(() => {
     const all = document.querySelectorAll<HTMLElement>('.dialog-backdrop')
-    all[all.length - 1]?.querySelector<HTMLElement>('input, select, textarea, button')?.focus()
+    all[all.length - 1]
+      ?.querySelector<HTMLElement>('input, select, textarea, button:not(.dialog-close)')
+      ?.focus()
   })
 }
 
