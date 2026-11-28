@@ -1,4 +1,4 @@
-// Conversione di un progetto Tabletop Creator (cartella di JSON, vedi docs/analisi-ttc.md) nel
+// Conversione di un progetto Tabletop Creator (cartella di JSON) nel
 // formato di Stella: blueprint → template, set → fogli, variabili → variabili del progetto.
 // Qui solo la conversione dei dati; la lettura dei file e la copia delle immagini stanno in
 // src/main/import/ttc.ts. Ciò che non si può riprodurre finisce nelle note dell'importazione.

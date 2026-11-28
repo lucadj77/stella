@@ -2,8 +2,7 @@
 
 Ogni versione ha una parte in inglese e una in italiano, in quest'ordine: Stella mostra quella
 nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con un suffisso, come
-`1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
-[docs/rilascio.md](docs/rilascio.md).
+`1.2.0-beta.1`, sono beta.
 
 ## 1.14.3
 
