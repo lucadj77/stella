@@ -1917,6 +1917,14 @@ button.layer-source.open {
 ::highlight(mk-comment) {
   color: var(--muted);
 }
+/* le occorrenze della ricerca nei documenti; quella scelta più marcata */
+::highlight(mk-find) {
+  background-color: rgba(255, 200, 0, 0.35);
+}
+::highlight(mk-find-current) {
+  background-color: rgba(255, 150, 0, 0.85);
+  color: #000;
+}
 ::highlight(mk-err) {
   text-decoration: wavy underline var(--mk-error);
 }

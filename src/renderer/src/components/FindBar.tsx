@@ -3,6 +3,7 @@ import { findMatches, replaceMatches, type FindOptions } from '../../../shared/m
 import { useI18n } from '../i18n/context'
 import { runEdit } from './editRun'
 import { scrollTextIntoView } from './textareaScroll'
+import type { TextMark } from './MarkupTextarea'
 
 // Barra di ricerca sopra il testo di un documento: ⌘F cerca, ⌥⌘F / Ctrl+H anche sostituisce.
 // Le sostituzioni passano dal campo come se le si scrivesse: ⌘Z le annulla in un passo.
@@ -17,6 +18,8 @@ interface Props {
   onClose(): void
   /** Un'occorrenza è stata portata in vista: chi usa la barra può mostrarla anche altrove */
   onShow?(from: number): void
+  /** Le occorrenze da evidenziare nel testo, con quella scelta; vuote quando la barra si chiude */
+  onMarks?(marks: TextMark[]): void
 }
 
 export default function FindBar({
@@ -26,7 +29,8 @@ export default function FindBar({
   focusKey,
   onReplaceChange,
   onClose,
-  onShow
+  onShow,
+  onMarks
 }: Props): React.JSX.Element {
   const { t } = useI18n()
   const [query, setQuery] = useState(() => selectedText(editor.current))
@@ -36,6 +40,13 @@ export default function FindBar({
   const input = useRef<HTMLInputElement>(null)
   const matches = useMemo(() => findMatches(text, query, opts), [text, query, opts])
   const index = matches.length ? Math.min(current, matches.length - 1) : -1
+
+  // il campo non mostra la selezione mentre il fuoco è nella barra: le occorrenze si colorano
+  useEffect(() => {
+    onMarks?.(matches.map((m, i) => ({ from: m.from, to: m.to, current: i === index })))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matches, index])
+  useEffect(() => () => onMarks?.([]), [onMarks])
 
   useEffect(() => {
     input.current?.focus()

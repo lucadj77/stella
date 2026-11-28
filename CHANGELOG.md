@@ -14,7 +14,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 
 #### Fixed
 
-- **Find in documents**: moving to the next or previous match now scrolls the text to it, and the preview follows.
+- **Find in documents**: moving to the next or previous match now scrolls the text to it, and the preview follows. Matches are highlighted in the text, the current one in a stronger color.
 
 ### Italiano
 
@@ -24,7 +24,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 
 #### Corretto
 
-- **Cerca nei documenti**: passando all'occorrenza successiva o precedente il testo ora scorre fino a lei, e l'anteprima la segue.
+- **Cerca nei documenti**: passando all'occorrenza successiva o precedente il testo ora scorre fino a lei, e l'anteprima la segue. Le occorrenze sono evidenziate nel testo, quella scelta con un colore più forte.
 
 ## 1.14.3
 

@@ -36,7 +36,7 @@ import { printHtml } from '../export/printHtml'
 import InsertCardDialog from './InsertCardDialog'
 import TableDialog, { type TableValue } from './TableDialog'
 import type { Setup } from '../../../shared/model/setup'
-import MarkupTextarea from './MarkupTextarea'
+import MarkupTextarea, { type TextMark } from './MarkupTextarea'
 import DocumentToolbar from './DocumentToolbar'
 import ImageDialog, { type DocImageValue } from './ImageDialog'
 import BoxDialog from './BoxDialog'
@@ -157,6 +157,8 @@ export default function DocumentView({
     inline?: boolean
   } | null>(null)
   const [pageOpen, setPageOpen] = useState(false)
+  /** Le occorrenze della ricerca, colorate nel testo */
+  const [findMarks, setFindMarks] = useState<TextMark[]>([])
   /** Barra di ricerca aperta, con o senza sostituzione; `key` la rimette al fuoco */
   const [find, setFind] = useState<{ replace: boolean; key: number } | null>(null)
   /** Livello del titolo dove sta il cursore, per la barra */
@@ -678,6 +680,7 @@ export default function DocumentView({
                 onReplaceChange={(replace) => setFind((f) => f && { ...f, replace })}
                 onClose={() => setFind(null)}
                 onShow={showInPreview}
+                onMarks={setFindMarks}
               />
             )}
             <MarkupTextarea
@@ -685,6 +688,7 @@ export default function DocumentView({
               fields={[]}
               comments
               currentLine
+              marks={find ? findMarks : undefined}
               value={text}
               placeholder={t('documents.placeholder')}
               toolbar={(format) => (
