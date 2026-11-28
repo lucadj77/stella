@@ -4,7 +4,7 @@ Ogni versione ha una parte in inglese e una in italiano, in quest'ordine: Stella
 nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con un suffisso, come
 `1.2.0-beta.1`, sono beta.
 
-## Next version
+## 1.15.0-beta.1
 
 ### English
 
