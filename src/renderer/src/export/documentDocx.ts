@@ -16,6 +16,12 @@ import {
   type DocumentContext
 } from '../../../shared/model/document'
 import { cellBorders, cellImageKey, cellParts } from '../../../shared/model/docTable'
+import {
+  inlineImageIndex,
+  inlineImageKey,
+  inlineImages,
+  type InlineImage
+} from '../../../shared/model/docInline'
 import type { DocBox } from '../../../shared/model/docBox'
 import { imageBackdrop } from '../../../shared/model/shapes'
 import { assetUrl } from '../render/assets'
@@ -162,12 +168,19 @@ export async function documentDocx(
     return picture(data, w, h)
   }
 
-  const runs = async (list: Inline[], base: Run): Promise<string> => {
+  /** Le immagini in linea del testo che si sta scrivendo, con la chiave del blocco */
+  type InlineFigures = { images: InlineImage[]; from: number; item: number }
+  const runs = async (list: Inline[], base: Run, figs?: InlineFigures): Promise<string> => {
     let out = ''
     for (const n of list) {
       if (n.t === 'text') out += textRun(n.text, base)
       else if (n.t === 'br') out += '<w:r><w:br/></w:r>'
-      else if (n.t === 'ref') {
+      else if (n.t === 'ref' && inlineImageIndex(n.name) !== null) {
+        // un'immagine o un componente in linea: in Word è un'immagine nella riga
+        const k = inlineImageIndex(n.name)!
+        const img = figs?.images[k]
+        if (img) out += await figureRun(img.src, inlineImageKey(figs.from, figs.item, k))
+      } else if (n.t === 'ref') {
         const one = await icon(n.name, base.size ?? baseSize, n.image?.tint, base.color)
         out += one ? one.repeat(n.count) : textRun(n.raw, base)
       } else {
@@ -192,13 +205,15 @@ export async function documentDocx(
               ? cur + parseFloat(s)
               : parseFloat(s) || cur
         }
-        out += await runs(n.children, r)
+        out += await runs(n.children, r, figs)
       }
     }
     return out
   }
-  const inline = (s: string, base: Run = {}): Promise<string> =>
-    runs(parseInline(documentText(s, ctx)).children, base)
+  const inline = (s: string, base: Run = {}, from = -1, item = 0): Promise<string> => {
+    const { text: body, images } = inlineImages(s)
+    return runs(parseInline(documentText(body, ctx)).children, base, { images, from, item })
+  }
 
   const para = (content: string, props = ''): string =>
     `<w:p>${props ? `<w:pPr>${props}</w:pPr>` : ''}${content}</w:p>`
@@ -221,7 +236,7 @@ export async function documentDocx(
     return picture(await cardPng(svg, fonts), w, h)
   }
   const figureOf = (from: number | string): Element | null =>
-    page.querySelector(`figure[data-from="${from}"]`)
+    page.querySelector(`figure[data-from="${from}"], [data-inline="${from}"]`)
   /** Una carta o un'immagine già disegnata nella pagina, come immagine di Word */
   const figureRun = async (src: string, key: number | string): Promise<string> => {
     const fig = figureOf(key)
@@ -292,14 +307,19 @@ export async function documentDocx(
     switch (b.kind) {
       case 'heading':
         body.push(
-          para(await inline(b.text), `<w:pStyle w:val="Heading${b.level}"/>${paraJc(b.align)}`)
+          para(
+            await inline(b.text, {}, b.from),
+            `<w:pStyle w:val="Heading${b.level}"/>${paraJc(b.align)}`
+          )
         )
         break
       case 'paragraph':
-        body.push(para(await inline(b.text), paraJc(b.align)))
+        body.push(para(await inline(b.text, {}, b.from), paraJc(b.align)))
         break
       case 'quote':
-        body.push(para(await inline(b.text), `<w:pStyle w:val="Quote"/>${paraJc(b.align)}`))
+        body.push(
+          para(await inline(b.text, {}, b.from), `<w:pStyle w:val="Quote"/>${paraJc(b.align)}`)
+        )
         break
       case 'rule':
         body.push(
@@ -327,10 +347,10 @@ export async function documentDocx(
           numbered.push(first.number ?? 1)
           num = numbered.length + 1
         }
-        for (const it of b.items)
+        for (const [k, it] of b.items.entries())
           body.push(
             para(
-              await inline(it.text),
+              await inline(it.text, {}, b.from, k),
               `<w:pStyle w:val="ListParagraph"/><w:numPr><w:ilvl w:val="${Math.min(it.depth, 3)}"/>` +
                 `<w:numId w:val="${it.ordered ? num : 1}"/></w:numPr>`
             )

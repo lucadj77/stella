@@ -1,5 +1,14 @@
 import { projectMeta, type ProjectMeta } from '../../../shared/model/system'
-import { Fragment, memo, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  Fragment,
+  memo,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState
+} from 'react'
 import type { LoadedSet } from '../../../shared/project'
 import type { HAlign, Template } from '../../../shared/model/template'
 import { resolveAsset } from '../../../shared/model/assets'
@@ -37,9 +46,17 @@ import {
 } from '../../../shared/model/document'
 import { useI18n } from '../i18n/context'
 import CardSvg from './CardSvg'
+import {
+  ICON_EM,
+  inlineImageIndex,
+  inlineImageKey,
+  inlineImages,
+  type InlineHeight
+} from '../../../shared/model/docInline'
 import { MarkupInline } from './MarkupText'
 import {
   AssetsContext,
+  InlineFigureContext,
   LocalizationContext,
   StylesContext,
   VariablesContext,
@@ -337,9 +354,27 @@ function Block({
   templates: Template[]
 }): React.JSX.Element {
   const { t } = useI18n()
-  const inline = (s: string): React.JSX.Element => (
-    <MarkupInline text={documentText(s, ctx)} unit={DOC_UNIT} />
-  )
+  /** Il testo con il markup; le immagini scritte in mezzo al testo stanno nella riga */
+  const inline = (s: string, item = 0): React.JSX.Element => {
+    const { text, images } = inlineImages(s)
+    const body = <MarkupInline text={documentText(text, ctx)} unit={DOC_UNIT} />
+    if (!images.length) return body
+    const figure = (name: string): React.ReactNode | undefined => {
+      const k = inlineImageIndex(name)
+      const img = k === null ? undefined : images[k]
+      if (!img) return undefined
+      return (
+        <InlineFigure
+          src={img.src}
+          alt={img.alt}
+          id={inlineImageKey(b.from, item, k!)}
+          ctx={ctx}
+          templates={templates}
+        />
+      )
+    }
+    return <InlineFigureContext.Provider value={figure}>{body}</InlineFigureContext.Provider>
+  }
   switch (b.kind) {
     case 'heading': {
       const H = `h${b.level}` as 'h1' | 'h2' | 'h3'
@@ -359,7 +394,7 @@ function Block({
           {b.items.map((it, k) => (
             <div key={k} className="doc-item" style={{ marginLeft: `${it.depth * 1.4}em` }}>
               <span className="doc-marker">{it.ordered ? `${it.number}.` : '•'}</span>
-              <span>{inline(it.text)}</span>
+              <span>{inline(it.text, k)}</span>
             </div>
           ))}
         </div>
@@ -577,6 +612,105 @@ const Figure = memo(function Figure({
     </figure>
   )
 })
+
+/**
+ * Un'immagine o un componente in linea con il testo: alto come un'icona del testo, o quanto dice
+ * height= (in mm, o in % di un'icona); con solo width= è largo quei millimetri
+ */
+const InlineFigure = memo(function InlineFigure({
+  src,
+  alt,
+  id,
+  ctx,
+  templates
+}: {
+  src: string
+  alt: string
+  /** Chiave con cui l'esportazione ritrova il disegno (inlineImageKey) */
+  id: string
+  ctx: DocumentContext
+  templates: Template[]
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const problem = imageProblem(src, ctx)
+  if (problem) return <span className="doc-missing">{t(problem)}</span>
+  return (
+    <span className="doc-inline" data-inline={id} title={alt || undefined}>
+      {isCardSource(src) ? (
+        <InlineCard src={src} ctx={ctx} templates={templates} />
+      ) : (
+        <InlineAsset src={src} ctx={ctx} />
+      )}
+    </span>
+  )
+})
+
+/** Altezza in CSS di un'immagine in linea: quella scritta, o quella di un'icona del testo */
+function inlineHeightCss(
+  h: InlineHeight | undefined,
+  width: number | undefined
+): string | undefined {
+  if (h) return h.percent ? `${(ICON_EM * h.value) / 100}em` : `${h.value * DOC_UNIT}px`
+  return width ? undefined : `${ICON_EM}em`
+}
+
+function InlineAsset({ src, ctx }: { src: string; ctx: DocumentContext }): React.JSX.Element {
+  const { path, options } = splitImageSource(src)
+  const name = path.replace(/^\{(.*)\}$/, '$1')
+  const v = imageVariable(name, ctx.variables)
+  const r = /^https?:\/\//i.test(path)
+    ? { ok: true as const, path }
+    : resolveAsset(v ? v.src : name, ctx.assets ?? [])
+  if (!r.ok) return <span className="doc-missing">{src}</span>
+  const height = inlineHeightCss(options.height, options.width)
+  const style: React.CSSProperties = height
+    ? { height, width: 'auto' }
+    : { width: (options.width ?? 0) * DOC_UNIT, height: 'auto' }
+  return <img src={/^https?:\/\//i.test(r.path) ? r.path : assetUrl(r.path)} alt="" style={style} />
+}
+
+/**
+ * Un componente in linea: la carta si disegna in pixel, quindi l'altezza in em si converte con il
+ * corpo del testo intorno, che si misura dopo il primo disegno
+ */
+function InlineCard({
+  src,
+  ctx,
+  templates
+}: {
+  src: string
+  ctx: DocumentContext
+  templates: Template[]
+}): React.JSX.Element | null {
+  const card = useBoundCard(src, ctx.sets ?? [], templates, cardProject(ctx))
+  const probe = useRef<HTMLSpanElement>(null)
+  const [fontPx, setFontPx] = useState(0)
+  // a ogni disegno: il corpo cambia con le impostazioni e gli stili intorno, che non sono props;
+  // lo stato cambia solo se la misura è diversa, quindi non si ridisegna all'infinito
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useLayoutEffect(() => {
+    const el = probe.current
+    if (!el) return
+    const px = parseFloat(getComputedStyle(el).fontSize) || 0
+    if (Math.abs(px - fontPx) > 0.01) setFontPx(px)
+  })
+  if (!card) return null
+  const tpl = card.template
+  const { height, width } = card.ref
+  const px = height
+    ? height.percent
+      ? (ICON_EM * height.value * fontPx) / 100
+      : height.value * DOC_UNIT
+    : width
+      ? null
+      : ICON_EM * fontPx
+  const scale = px === null ? ((width ?? tpl.width) / tpl.width) * DOC_UNIT : px / tpl.height
+  return (
+    <span ref={probe} className="doc-inline-card">
+      {scale > 0 && <CardSvg template={tpl} side={card.ref.side} scale={scale} />}
+    </span>
+  )
+}
 
 function CardImage({
   src,

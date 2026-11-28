@@ -39,6 +39,7 @@ export default function MarkupTextarea({
   toolbar,
   comments = false,
   currentLine = false,
+  marks,
   ...rest
 }: TextareaProps & {
   value: string
@@ -53,6 +54,8 @@ export default function MarkupTextarea({
   comments?: boolean
   /** Nei documenti: una fascia evidenzia la riga (il paragrafo) in cui sta il cursore */
   currentLine?: boolean
+  /** Parti del testo da mettere in evidenza, come le occorrenze di una ricerca; `current` di più */
+  marks?: TextMark[]
 }): React.JSX.Element {
   const { t } = useI18n()
   const assets = useContext(AssetsContext)
@@ -190,7 +193,7 @@ export default function MarkupTextarea({
   useLayoutEffect(() => {
     const node = overlayRef.current?.firstChild
     if (!HIGHLIGHTS || !(node instanceof Text)) return undefined
-    return markHighlights(node, value, allProblems, comments)
+    return markHighlights(node, value, allProblems, comments, marks)
   })
   const problems = showProblems ? allProblems : []
   const current = help?.items[help.index]
@@ -387,6 +390,13 @@ function VariablePreview({ name, v }: { name: string; v: Variable }): React.JSX.
  * diversi da quelli del campo, e una parola al limite della riga va a capo nello strato colorato
  * ma non nel campo. Da lì in poi il testo che si vede non sta più sotto il cursore.
  */
+/** Una parte del testo da evidenziare nel campo */
+export interface TextMark {
+  from: number
+  to: number
+  current?: boolean
+}
+
 const HIGHLIGHTS = typeof CSS !== 'undefined' && 'highlights' in CSS
 
 /** Un gruppo di parti colorate per tipo, condiviso da tutti i campi della finestra */
@@ -406,7 +416,8 @@ function markHighlights(
   node: Text,
   src: string,
   problems: MarkupProblem[],
-  comments: boolean
+  comments: boolean,
+  marks: TextMark[] = []
 ): () => void {
   const ranges: [Highlight, Range][] = []
   const clamp = (n: number): number => Math.max(0, Math.min(src.length, n))
@@ -421,6 +432,7 @@ function markHighlights(
   }
   for (const p of highlightMarkup(src, { comments })) add(`mk-${p.kind}`, p.from, p.to)
   for (const p of problems) add('mk-err', p.from, p.to)
+  for (const m of marks) add(m.current ? 'mk-find-current' : 'mk-find', m.from, m.to)
   return () => {
     for (const [h, r] of ranges) h.delete(r)
   }

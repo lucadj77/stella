@@ -4,6 +4,28 @@ Ogni versione ha una parte in inglese e una in italiano, in quest'ordine: Stella
 nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con un suffisso, come
 `1.2.0-beta.1`, sono beta.
 
+## 1.15.0-beta.1
+
+### English
+
+#### New
+
+- **Images and components in line with the text** in documents: an image or a component written in the middle of a paragraph, heading, note or list item sits in the line like an icon, as tall as the text or as `height=8` (mm) or `height=150%` says. **Insert component** and **Image** have **In line with the text** to put it at the cursor. PDF, HTML and Word keep it in the line; Markdown writes it as a PNG.
+
+#### Fixed
+
+- **Find in documents**: moving to the next or previous match now scrolls the text to it, and the preview follows. Matches are highlighted in the text, the current one in a stronger color.
+
+### Italiano
+
+#### Nuovo
+
+- **Immagini e componenti in linea con il testo** nei documenti: un'immagine o un componente scritti in mezzo a un paragrafo, a un titolo, a una nota o a una voce di elenco stanno nella riga come un'icona, alti quanto il testo o quanto dice `height=8` (mm) o `height=150%`. **Inserisci componente** e **Immagine** hanno **In linea con il testo** per metterli al cursore. PDF, HTML e Word li tengono nella riga; Markdown li scrive come PNG.
+
+#### Corretto
+
+- **Cerca nei documenti**: passando all'occorrenza successiva o precedente il testo ora scorre fino a lei, e l'anteprima la segue. Le occorrenze sono evidenziate nel testo, quella scelta con un colore più forte.
+
 ## 1.14.3
 
 ### English

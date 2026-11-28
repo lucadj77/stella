@@ -10,6 +10,8 @@ import AssetPicker from './AssetPicker'
 import Segmented from './Segmented'
 import WrapField, { type WrapSide } from './WrapField'
 import CaptionField from './CaptionField'
+import InlineField from './InlineField'
+import { inlineHeightText, parseInlineHeight } from '../../../shared/model/docInline'
 
 /** Un'immagine del documento come è scritta: ![didascalia](sorgente) */
 export interface DocImageValue {
@@ -23,11 +25,15 @@ export interface DocImageValue {
  */
 export default function ImageDialog({
   initial,
+  inline: startInline = false,
   onSave,
   onClose
 }: {
   initial?: DocImageValue
-  onSave(markdown: string): void
+  /** L'immagine sta (o andrà) in linea con il testo */
+  inline?: boolean
+  /** `inline`: va scritta al cursore, nella riga, e non su una riga sua */
+  onSave(markdown: string, inline: boolean): void
   onClose(): void
 }): React.JSX.Element {
   const { t } = useI18n()
@@ -41,11 +47,20 @@ export default function ImageDialog({
   const [captionTop, setCaptionTop] = useState(!!start?.options.captionTop)
   const [wrap, setWrap] = useState<WrapSide>(start?.options.wrap ?? null)
   const [picking, setPicking] = useState(!initial)
+  const [inline, setInline] = useState(startInline)
+  const [height, setHeight] = useState(
+    start?.options.height ? inlineHeightText(start.options.height) : ''
+  )
 
   const name = path.replace(/^\{(.*)\}$/, '$1')
   const v = imageVariable(name, variables)
   const found = path ? resolveAsset(v ? v.src : name, assets) : null
-  const text = `![${alt.replace(/[[\]]/g, '')}](${imageSourceWith(path, { width: Number(width) > 0 ? Number(width) : undefined, align, captionTop, wrap: wrap ?? undefined })})`
+  const size = { width: Number(width) > 0 ? Number(width) : undefined }
+  // in linea con il testo non valgono allineamento, testo accanto e posizione della didascalia
+  const options = inline
+    ? { ...size, height: parseInlineHeight(height) ?? undefined }
+    : { ...size, align, captionTop, wrap: wrap ?? undefined }
+  const text = `![${alt.replace(/[[\]]/g, '')}](${imageSourceWith(path, options)})`
 
   return (
     <Dialog title={t(initial ? 'docImage.edit' : 'docImage.insert')} onClose={onClose}>
@@ -65,6 +80,7 @@ export default function ImageDialog({
             <button onClick={() => setPicking(true)}>{t('docImage.choose')}</button>
           </div>
         </div>
+        <InlineField inline={inline} height={height} onInline={setInline} onHeight={setHeight} />
         <div className="dialog-row">
           <label>
             {t('documents.width')}
@@ -77,28 +93,34 @@ export default function ImageDialog({
               onChange={(e) => setWidth(e.target.value)}
             />
           </label>
-          <label>
-            {t('docImage.align')}
-            <Segmented<FigureAlign>
-              value={align}
-              options={[
-                ['left', t('align.left')],
-                ['center', t('align.center')],
-                ['right', t('align.right')]
-              ]}
-              onChange={setAlign}
-            />
-          </label>
+          {!inline && (
+            <label>
+              {t('docImage.align')}
+              <Segmented<FigureAlign>
+                value={align}
+                options={[
+                  ['left', t('align.left')],
+                  ['center', t('align.center')],
+                  ['right', t('align.right')]
+                ]}
+                onChange={setAlign}
+              />
+            </label>
+          )}
         </div>
-        <div className="dialog-row">
-          <WrapField value={wrap} onChange={setWrap} />
-        </div>
-        <p className="muted small">{t('docImage.alignHint')}</p>
-        <CaptionField value={alt} top={captionTop} onChange={setAlt} onTop={setCaptionTop} />
+        {!inline && (
+          <>
+            <div className="dialog-row">
+              <WrapField value={wrap} onChange={setWrap} />
+            </div>
+            <p className="muted small">{t('docImage.alignHint')}</p>
+            <CaptionField value={alt} top={captionTop} onChange={setAlt} onTop={setCaptionTop} />
+          </>
+        )}
         <code className="insert-card-code">{text}</code>
         <div className="dialog-buttons">
           <button onClick={onClose}>{t('dialog.cancel')}</button>
-          <button className="primary" disabled={!path} onClick={() => onSave(text)}>
+          <button className="primary" disabled={!path} onClick={() => onSave(text, inline)}>
             {t(initial ? 'docImage.save' : 'documents.insert')}
           </button>
         </div>
