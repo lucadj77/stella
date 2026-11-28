@@ -5,17 +5,47 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
-## Next version
+## 1.14.3
 
 ### English
 
-- **Windows always inside the app**: messages and windows no longer go past the edges of the app when it is small; they shrink, long file paths wrap, and a window taller than the app scrolls. On a small screen the app no longer opens bigger than the free space.
+#### New
+
+- **Export for cutting plotters**: Cricut (Print Then Cut), Silhouette, Brother ScanNCut and similar. Stella fits the components in the area the machine accepts, crops each sheet to them and writes a PNG to print plus the cut and fold lines as SVG and DXF, with step-by-step instructions and the size of each sheet. Rounded corners, custom shapes and holes are cut along their outline; front and back can be one piece to fold, dice come out as nets with tabs.
+- **Generate with template variants and list choices**: in Generate, the **template** column is always available when the set's template has variants (or other templates have its size), and its values are ticked from a list instead of typed, each with a quantity for sequences and random draws. Columns of layers with the List source work the same way, with thumbnails and color swatches. For example, every variant crossed with the numbers 1-10, or five normal cards then a boss in each round. Names that match no template or choice are flagged, and renaming a template also updates saved generations.
+- **Import from Dextrous**: converts a project of the Dextrous web app into a new Stella project. Download the project JSON, choose its folder, and the window lists the layouts and image folders to download next to it, what it has found and what will not be converted completely; the project is created even if something is missing. Zones become layers (images, texts, backgrounds, gradients, clip shapes), flex containers become groups with a layout, text styles and inline icons are converted, backs follow the front or get their own layers.
+- **List choices**: image lists also offer image variables, with their thumbnail, and **Add image…** picks several images at once (**Select all shown**, then **Add N**). Text and value lists add a project variable with **+ Variable…**. The new **Empty** choice leaves the layer empty even when the template has a value.
+- **One Import button** on the start screen: it asks what to import, a Stella project as ZIP, Tabletop Creator, nanDECK or Dextrous.
+- **Restore a project that no longer opens**: when the project file is damaged, the error on the start screen has **Restore from backup…**. It offers the copy from the previous save and the project's backups, without opening the project. **Import… › Stella backup** restores a backup zip chosen from disk, even from another computer.
+
+#### Changed
+
 - **Every window has an ✕ to close it** at the top right, and closes with Esc. A click outside no longer closes it, so a slip of the mouse does not lose what you were writing.
+
+#### Fixed
+
+- **Safer saving**: every file of the project is now forced to disk before it replaces the old one. A power cut or a crash during a save leaves the previous version or the new one, never an empty file. Stella also keeps a hidden copy of the project file as it was before the last save.
+- **Windows always inside the app**: messages and windows no longer go past the edges of the app when it is small; they shrink, long file paths wrap, and a window taller than the app scrolls. On a small screen the app no longer opens bigger than the free space.
 
 ### Italiano
 
-- **Finestre sempre dentro l'app**: messaggi e finestre non escono più dai bordi dell'app quando è piccola; si stringono, i percorsi lunghi vanno a capo e una finestra più alta dell'app si scorre. Su uno schermo piccolo l'app non si apre più grande dello spazio libero.
+#### Nuovo
+
+- **Esportazione per plotter da taglio**: Cricut (Stampa e taglia), Silhouette, Brother ScanNCut e simili. Stella mette i componenti nell'area che la macchina accetta, ritaglia ogni foglio su di loro e scrive un PNG da stampare con le linee di taglio e di piega in SVG e DXF, le istruzioni passo passo e la misura di ogni foglio. Angoli arrotondati, sagome e fori si tagliano lungo il contorno; fronte e retro possono essere un pezzo solo da piegare, i dadi escono come sviluppi con le linguette.
+- **Genera con le varianti del template e le voci degli elenchi**: in Genera la colonna **template** c'è sempre quando il template del set ha varianti (o altri template hanno le sue misure), e i valori si spuntano da un elenco invece di scriverli, ognuno con la quantità per le sequenze e le estrazioni a caso. Le colonne dei livelli con la fonte Elenco funzionano allo stesso modo, con miniature e campioni di colore. Per esempio, ogni variante incrociata con i numeri da 1 a 10, o cinque carte normali e poi una boss a ogni giro. I nomi che non corrispondono a nessun template o voce si segnalano, e rinominare un template aggiorna anche le generazioni salvate.
+- **Importa da Dextrous**: converte un progetto dell'app web Dextrous in un nuovo progetto Stella. Si scarica il JSON del progetto, se ne sceglie la cartella e la finestra elenca i layout e le cartelle di immagini da scaricare lì accanto, ciò che ha già trovato e cosa non si converte del tutto; il progetto si crea anche se manca qualcosa. Le zone diventano livelli (immagini, testi, sfondi, sfumature, ritagli), i contenitori flex gruppi con la disposizione, gli stili di testo e le icone nel testo si convertono, i retri seguono il fronte o hanno livelli loro.
+- **Voci degli elenchi**: gli elenchi di immagini propongono anche le variabili immagine, con la miniatura, e **Aggiungi immagine…** sceglie più immagini insieme (**Seleziona tutte quelle mostrate**, poi **Aggiungi N**). Gli elenchi di testi e valori aggiungono una variabile del progetto con **+ Variabile…**. La nuova voce **Vuoto** lascia vuoto il livello anche quando il template ha un valore.
+- **Un solo tasto Importa** nella schermata di avvio: chiede cosa importare, un progetto Stella in ZIP, Tabletop Creator, nanDECK o Dextrous.
+- **Ripristinare un progetto che non si apre più**: quando il file del progetto è rovinato, l'errore nella schermata iniziale ha **Ripristina da backup…**. Propone la copia del salvataggio precedente e i backup del progetto, senza aprirlo. **Importa… › Backup di Stella** ripristina uno zip di backup scelto dal disco, anche da un altro computer.
+
+#### Cambiato
+
 - **Ogni finestra ha una ✕ per chiuderla** in alto a destra, e si chiude con Esc. Un clic fuori non la chiude più, così un clic sbagliato non fa perdere quello che si stava scrivendo.
+
+#### Corretto
+
+- **Salvataggi più sicuri**: ogni file del progetto ora viene forzato sul disco prima di prendere il posto di quello vecchio. Un blocco della corrente o un arresto durante il salvataggio lascia la versione di prima o quella nuova, mai un file vuoto. Stella tiene anche una copia nascosta del file del progetto com'era prima dell'ultimo salvataggio.
+- **Finestre sempre dentro l'app**: messaggi e finestre non escono più dai bordi dell'app quando è piccola; si stringono, i percorsi lunghi vanno a capo e una finestra più alta dell'app si scorre. Su uno schermo piccolo l'app non si apre più grande dello spazio libero.
 
 ## 1.14.3-beta.1
 
